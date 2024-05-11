@@ -31,16 +31,14 @@ namespace SSFWServer
                 Array.Copy(data, buffer, data.Length);
                 using (MemoryStream stream = new(buffer))
                 {
-                    using (BinaryWriter writer = new(stream))
+                    using BinaryWriter writer = new(stream);
+                    for (int i = 0; i < buffer.Length; i += 8)
                     {
-                        for (int i = 0; i < buffer.Length; i += 8)
-                        {
-                            blockBuffer[0] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i);
-                            blockBuffer[1] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i + 4);
-                            Decrypt(Rounds, blockBuffer, CreateKey(key, LittleEndian));
-                            writer.Write(blockBuffer[0]);
-                            writer.Write(blockBuffer[1]);
-                        }
+                        blockBuffer[0] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i);
+                        blockBuffer[1] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i + 4);
+                        Decrypt(Rounds, blockBuffer, CreateKey(key, LittleEndian));
+                        writer.Write(blockBuffer[0]);
+                        writer.Write(blockBuffer[1]);
                     }
                 }
                 // verify valid length
