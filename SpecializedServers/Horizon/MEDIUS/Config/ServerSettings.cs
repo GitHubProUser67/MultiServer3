@@ -410,9 +410,11 @@ namespace Horizon.MEDIUS.Config
 
         public string PlaystationHomeVersionRetail { get; set; } = "01.86";
 
-        public bool PlaystationHomeRetailAntiCheat { get; set; } = true;
+        public bool PlaystationHomeAntiCheat { get; set; } = true;
 
-        public Dictionary<string, string> PlaystationHomeAdminsServersAccessList { get; set; } = new();
+        public bool PlaystationHomeUserNameWhitelist { get; set; } = true;
+
+        public Dictionary<string, string> PlaystationHomeUsersServersAccessList { get; set; } = new();
 
         #endregion
     }

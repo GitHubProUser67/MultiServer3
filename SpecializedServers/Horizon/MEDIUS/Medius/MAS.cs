@@ -160,27 +160,35 @@ namespace Horizon.MEDIUS.Medius
                             if (QueryData.Length == 6 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }) && MediusClass.Settings.HttpsSVOCheckPatcher)
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
 
-                            if (MediusClass.Settings.PlaystationHomeRetailAntiCheat && data.ApplicationId == 20374)
+                            if (MediusClass.Settings.PlaystationHomeAntiCheat && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
                             {
-                                if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                switch (data.ApplicationId)
                                 {
-                                    switch (clientCheatQuery.StartAddress)
-                                    {
-                                        case 0x10050500:
-                                            if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 }))
+                                    case 20371:
+                                        // TODO!
+                                        break;
+                                    case 20374:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                        {
+                                            switch (clientCheatQuery.StartAddress)
                                             {
-                                                data.State = ClientState.DISCONNECTED;
-                                                await clientChannel.CloseAsync();
+                                                case 0x10050500:
+                                                    if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 }))
+                                                    {
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x10074820:
+                                                    if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 }))
+                                                    {
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
                                             }
-                                            break;
-                                        case 0x10074820:
-                                            if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 }))
-                                            {
-                                                data.State = ClientState.DISCONNECTED;
-                                                await clientChannel.CloseAsync();
-                                            }
-                                            break;
-                                    }
+                                        }
+                                        break;
                                 }
                             }
                         }
@@ -1789,19 +1797,38 @@ namespace Horizon.MEDIUS.Medius
 
                                                     if (data != null)
                                                     {
-                                                        if (MediusClass.Settings.PlaystationHomeRetailAntiCheat && data.ApplicationId == 20374 && 
-                                                        (string.IsNullOrEmpty(data.ClientObject.AccountName) || !MediusClass.Settings.PlaystationHomeAdminsServersAccessList.ContainsKey(data.ClientObject.AccountName)))
-                                                        {
-                                                            // Add more if needed.
+                                                        bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                                                       && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                                                       && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                                           || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)
+                                                                           || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName])
+                                                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName] != "ADMIN"));
 
-                                                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                        if (isHomeCheat)
+                                                        {
+                                                            switch (data.ApplicationId)
                                                             {
-                                                                CheatQuery(0x10050500, 9, clientChannel);
-                                                                CheatQuery(0x10074820, 9, clientChannel);
+                                                                case 20371:
+                                                                    // TODO!
+                                                                    break;
+                                                                case 20374:
+                                                                    if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                                    {
+                                                                        CheatQuery(0x10050500, 9, clientChannel);
+                                                                        CheatQuery(0x10074820, 9, clientChannel);
+                                                                    }
+                                                                    break;
                                                             }
                                                         }
 
-                                                        await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                        if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                        || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)))
+                                                        {
+                                                            data.State = ClientState.DISCONNECTED;
+                                                            await clientChannel.CloseAsync();
+                                                        }
+                                                        else
+                                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
                                                     }
                                                 }
 
@@ -1844,19 +1871,38 @@ namespace Horizon.MEDIUS.Medius
 
                                                             if (r.IsCompletedSuccessfully && r.Result != null)
                                                             {
-                                                                if (MediusClass.Settings.PlaystationHomeRetailAntiCheat && data.ApplicationId == 20374 &&
-                                                                (string.IsNullOrEmpty(data.ClientObject.AccountName) || !MediusClass.Settings.PlaystationHomeAdminsServersAccessList.ContainsKey(data.ClientObject.AccountName)))
-                                                                {
-                                                                    // Add more if needed.
+                                                                bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                                                       && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                                                       && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                                           || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)
+                                                                           || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName])
+                                                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName] != "ADMIN"));
 
-                                                                    if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                                if (isHomeCheat)
+                                                                {
+                                                                    switch (data.ApplicationId)
                                                                     {
-                                                                        CheatQuery(0x10050500, 9, clientChannel);
-                                                                        CheatQuery(0x10074820, 9, clientChannel);
+                                                                        case 20371:
+                                                                            // TODO!
+                                                                            break;
+                                                                        case 20374:
+                                                                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                                            {
+                                                                                CheatQuery(0x10050500, 9, clientChannel);
+                                                                                CheatQuery(0x10074820, 9, clientChannel);
+                                                                            }
+                                                                            break;
                                                                     }
                                                                 }
 
-                                                                await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                                if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                                || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)))
+                                                                {
+                                                                    data.State = ClientState.DISCONNECTED;
+                                                                    await clientChannel.CloseAsync();
+                                                                }
+                                                                else
+                                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
                                                             }
                                                             else
                                                             {

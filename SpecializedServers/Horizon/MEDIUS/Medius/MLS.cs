@@ -19,6 +19,7 @@ using Horizon.MUM;
 using Horizon.RT.Cryptography.RSA;
 using System.Text;
 using EndianTools;
+using CyberBackendLibrary.DataTypes;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -242,6 +243,48 @@ namespace Horizon.MEDIUS.Medius
                             */
                         }
 
+                        break;
+                    }
+                case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
+                    {
+                        byte[]? QueryData = clientCheatQuery.Data;
+
+                        if (QueryData != null)
+                        {
+                            LoggerAccessor.LogDebug($"[MLS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+
+                            if (MediusClass.Settings.PlaystationHomeAntiCheat && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
+                            {
+                                switch (data.ApplicationId)
+                                {
+                                    case 20371:
+                                        // TODO!
+                                        break;
+                                    case 20374:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                        {
+                                            switch (clientCheatQuery.StartAddress)
+                                            {
+                                                case 0x10050500:
+                                                    if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 }))
+                                                    {
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x10074820:
+                                                    if (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 }))
+                                                    {
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
@@ -10743,7 +10786,41 @@ namespace Horizon.MEDIUS.Medius
             }
 
             if (data.ClientObject != null)
-                await data.ClientObject.Login(accountDto);
+            {
+                bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                   && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                   && (string.IsNullOrEmpty(accountDto.AccountName)
+                                       || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName)
+                                       || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[accountDto.AccountName])
+                                       || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[accountDto.AccountName] != "ADMIN"));
+
+                if (isHomeCheat)
+                {
+                    switch (data.ApplicationId)
+                    {
+                        case 20371:
+                            // TODO!
+                            break;
+                        case 20374:
+                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                            {
+                                CheatQuery(0x10050500, 9, clientChannel);
+                                CheatQuery(0x10074820, 9, clientChannel);
+                            }
+                            break;
+                    }
+                }
+
+                if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(accountDto.AccountName)
+                || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName)))
+                {
+                    data.State = ClientState.DISCONNECTED;
+                    await clientChannel.CloseAsync();
+                    return false;
+                }
+                else
+                    await data.ClientObject.Login(accountDto);
+            }
 
             #region Update DB IP and CID
             if (!Anonymous)
@@ -10764,6 +10841,31 @@ namespace Horizon.MEDIUS.Medius
                 LoggerAccessor.LogInfo($"CREATING GUEST IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
             }
 
+            return true;
+        }
+        #endregion
+
+        #region PokeEngine
+        private bool CheatQuery(uint address, int Length, IChannel? clientChannel)
+        {
+            // address = 0, don't read
+            if (address == 0)
+                return false;
+
+            // client channel is null, don't read
+            if (clientChannel == null)
+                return false;
+
+            // read client memory
+            Queue(new RT_MSG_SERVER_CHEAT_QUERY()
+            {
+                QueryType = CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY,
+                SequenceId = 1,
+                StartAddress = address,
+                Length = Length,
+            }, clientChannel);
+
+            // return read
             return true;
         }
         #endregion
