@@ -118,8 +118,6 @@ namespace SSFWServer
                         sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         SSFWUserSessionManager.RegisterUser(username, sessionid);
-
-                        md5.Clear();
                     }
                 }
                 else
@@ -147,8 +145,6 @@ namespace SSFWServer
                         sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
 
                         SSFWUserSessionManager.RegisterUser(username, sessionid);
-
-                        md5.Dispose();
                     }
                 }
 
@@ -175,7 +171,7 @@ namespace SSFWServer
                         }
                     }
                     else
-                        return null;
+                        LoggerAccessor.LogError($"[SSFWLogin] - Profile data couldn't be read at this location: {userprofilefile}");
                 }
                 else
                 {
