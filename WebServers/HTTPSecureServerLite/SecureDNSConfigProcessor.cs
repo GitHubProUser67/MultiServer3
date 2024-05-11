@@ -198,15 +198,15 @@ namespace HTTPSecureServerLite
                         {
                             IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Loopback;
                         }
-                        catch // Host is invalid or non-existant, fallback to public/local server IP
+                        catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                            IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         }
                         break;
                     }
                 default:
                     {
-                        IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                        IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
