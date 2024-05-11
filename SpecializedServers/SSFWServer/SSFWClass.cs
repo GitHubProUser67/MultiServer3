@@ -91,7 +91,13 @@ namespace SSFWServer
                 if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS")) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
 #if DEBUG
-                    LoggerAccessor.LogJson(JsonConvert.SerializeObject(request), $"[[SSFW]] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
+                    LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                    {
+                        HttpMethod = request.Method,
+                        Url = request.Url,
+                        Headers = Headers.Select(header => new { Index = header.HeaderIndex, Item = header.HeaderItem }),
+                        UserAgent = UserAgent
+                    }), $"[[SSFW]] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 #else
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 #endif
