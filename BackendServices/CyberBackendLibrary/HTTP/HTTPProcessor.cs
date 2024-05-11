@@ -837,38 +837,6 @@ namespace CyberBackendLibrary.HTTP
             }
         }
 
-
-        /// <summary>
-        /// Generate a server signature for HTTP backends purposes.
-        /// <para>Générer une signature à usage des sous-systèmes HTTP.</para>
-        /// </summary>
-        /// <returns>A string.</returns>
-        public static string GenerateServerSignature()
-        {
-            string pstring = "OTHER";
-            switch (Environment.OSVersion.Platform)
-            {
-                case PlatformID.Win32NT:
-                case PlatformID.Win32S:
-                case PlatformID.Win32Windows:
-                    pstring = "WIN32";
-                    break;
-                case PlatformID.WinCE:
-                    pstring = "WINCE";
-                    break;
-                case PlatformID.Unix:
-                    pstring = "UNIX";
-                    break;
-                case PlatformID.Xbox:
-                    pstring = "XBOX";
-                    break;
-                case PlatformID.MacOSX:
-                    pstring = "MACOSX";
-                    break;
-            }
-            return $"{pstring}/1.0 UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
-        }
-
         /// <summary>
         /// Copies a Stream to an other.
         /// <para>Copie d'un Stream � un autre.</para>
