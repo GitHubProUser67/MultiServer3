@@ -716,7 +716,7 @@ namespace Horizon.LIBRARY.Database
                 if (_settings.SimulatedMode)
                 {
                     if (string.IsNullOrEmpty(mac))
-                        mac = "empty";
+                        return false;
                     else if (mac.Contains('-'))
                         mac = mac.Replace("-", string.Empty);
 
@@ -788,7 +788,7 @@ namespace Horizon.LIBRARY.Database
                 if (_settings.SimulatedMode)
                 {
                     if (string.IsNullOrEmpty(machineId))
-                        machineId = "empty";
+                        return false;
                     else if (machineId.Contains('-'))
                         machineId = machineId.Replace("-", string.Empty);
 
