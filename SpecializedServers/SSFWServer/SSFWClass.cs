@@ -32,7 +32,7 @@ namespace SSFWServer
             int headerindex = (int)request.Headers; // There is a slight mistake in netcoreserver, where the index is long, and the parser is int
                                                     // So we accomodate that with a cast.
 
-            (string HeaderIndex, string HeaderItem)[] CollectHeader = new (string, string)[headerindex];
+            (string HeaderIndex, string HeaderItem)[] CollectHeader = new(string, string)[headerindex];
 
             for (int i = 0; i < headerindex; i++)
             {
@@ -232,7 +232,7 @@ namespace SSFWServer
                                 {
                                     SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
                                     string? result = login.HandleLogin(request.BodyBytes, "cprod"); // Todo, make env maybe more dynamic?
-                                    if (result != null)
+                                    if (!string.IsNullOrEmpty(result))
                                     {
                                         Response.Clear();
                                         Response.SetBegin(201);

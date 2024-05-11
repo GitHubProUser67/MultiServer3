@@ -670,7 +670,22 @@ namespace Horizon.LIBRARY.Database
 
             try
             {
-                if (!_settings.SimulatedMode)
+                if (_settings.SimulatedMode)
+                {
+                    if (IPAddress.TryParse(ip, out IPAddress? Parsedip) && Parsedip != null && Parsedip != IPAddress.None)
+                    {
+                        (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "IPAddress", Parsedip.ToString());
+
+                        return ResultItem.Item1 switch
+                        {
+                            "OK" => ResultItem.Item2,
+                            _ => false,
+                        };
+                    }
+                    else
+                        return false;
+                }
+                else
                 {
                     IpBan IpBanArray = new IpBan
                     {
@@ -705,18 +720,13 @@ namespace Horizon.LIBRARY.Database
                     else if (mac.Contains('-'))
                         mac = mac.Replace("-", string.Empty);
 
-                    (string, bool) ResultItem = JsonMacBanController.ReadFromJsonFile(directoryPath, mac);
+                    (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "MacDatabase", mac);
 
-                    switch (ResultItem.Item1)
+                    return ResultItem.Item1 switch
                     {
-                        case "OK":
-                            return ResultItem.Item2;
-                        case "NOTFOUND":
-                            JsonMacBanController.WriteToJsonFile(directoryPath, mac);
-                            return false;
-                        case "INVALIDFOLDER":
-                            return false;
-                    }
+                        "OK" => ResultItem.Item2,
+                        _ => false,
+                    };
                 }
                 else
                 {
@@ -776,7 +786,16 @@ namespace Horizon.LIBRARY.Database
             try
             {
                 if (_settings.SimulatedMode)
-                    result = false;
+                {
+                    if (string.IsNullOrEmpty(machineId))
+                        machineId = "empty";
+                    else if (machineId.Contains('-'))
+                        machineId = machineId.Replace("-", string.Empty);
+
+                    JsonDatabaseController.WriteToJsonFile(directoryPath, "MacDatabase", machineId);
+
+                    return true;
+                }
                 else
                     result = (await PostDbAsync($"Account/postMachineId?AccountId={accountId}", $"\"{machineId}\"")).IsSuccessStatusCode;
             }

@@ -409,7 +409,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusDnasSignaturePost dnasSignaturePost:
                     {
 
-                        if (Settings.DnasEnablePost != true)
+                        if (Settings.DnasEnablePost == true)
                         {
                             //If DNAS Signature Post is the PS2/PSP/PS3 Console ID then continue
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasConsoleID)

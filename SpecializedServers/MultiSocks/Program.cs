@@ -88,15 +88,6 @@ class Program
         DSServer = new DirtySocksServer(new CancellationTokenSource().Token);
     }
 
-    static string ComputeMD5FromFile(string filePath)
-    {
-        using (FileStream stream = File.OpenRead(filePath))
-        {
-            // Convert the byte array to a hexadecimal string
-            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
-        }
-    }
-
     static void Main()
     {
         if (!IsWindows)
