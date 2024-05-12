@@ -271,7 +271,7 @@ namespace Horizon.MEDIUS.Medius
                                             switch (clientCheatQuery.StartAddress)
                                             {
                                                 case 0x101590b0:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Convert.FromBase64String("VDQrkh5H7aV9T/GbaDwNUw=="))))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -288,6 +288,8 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x10050500:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
                                                     {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -295,6 +297,8 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x10074820:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
                                                     {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -302,6 +306,8 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x50A7DEEC:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 1 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x01 }))
                                                     {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: CONSOLE USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -309,6 +315,8 @@ namespace Horizon.MEDIUS.Medius
                                                 case 268759069U:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataTypesUtils.AreArraysIdentical(QueryData, Ref1) || DataTypesUtils.AreArraysIdentical(QueryData, Ref2)))
                                                     {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -316,6 +324,8 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x100BA820:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -370,17 +380,33 @@ namespace Horizon.MEDIUS.Medius
                                     case 20374:
                                         if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
                                         {
-                                            if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(data.ClientObject.AccountName)
-                                                && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName])
-                                                && MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName].Equals("CONSOLE"))
-                                            {
+                                            string? specialRights = null;
 
+                                            if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
+                                                specialRights = value;
+
+                                            if (!string.IsNullOrEmpty(specialRights))
+                                            {
+                                                switch (specialRights)
+                                                {
+                                                    case "CONSOLE":
+                                                        CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                        break;
+                                                    case "RTM":
+                                                        break;
+                                                    default:
+                                                        CheatQuery(0x50A7DEEC, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                        CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                        break;
+                                                }
                                             }
                                             else
+                                            {
                                                 CheatQuery(0x50A7DEEC, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                            }
 
                                             CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                            CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
                                         }
                                         break;
                                 }
@@ -3447,42 +3473,6 @@ namespace Horizon.MEDIUS.Medius
 
                                     if (foundchannel != null)
                                     {
-                                        bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
-                                           && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
-                                           && (string.IsNullOrEmpty(data.ClientObject.AccountName)
-                                               || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(data.ClientObject.AccountName)
-                                               || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName])
-                                               || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName] != "ADMIN"));
-
-                                        if (isHomeCheat)
-                                        {
-                                            switch (data.ApplicationId)
-                                            {
-                                                case 20371:
-                                                    if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK) && MediusClass.Settings.PlaystationHomeVersionBetaHDK.Equals("01.86"))
-                                                    {
-                                                        CheatQuery(0x101590b0, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                                    }
-                                                    break;
-                                                case 20374:
-                                                    if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
-                                                    {
-                                                        if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(data.ClientObject.AccountName)
-                                                            && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName])
-                                                            && MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName].Equals("CONSOLE"))
-                                                        {
-
-                                                        }
-                                                        else
-                                                            CheatQuery(0x50A7DEEC, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
-
-                                                        CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                                        CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                                    }
-                                                    break;
-                                            }
-                                        }
-
                                         // Join new channel
                                         await data.ClientObject.JoinChannel(foundchannel);
 
