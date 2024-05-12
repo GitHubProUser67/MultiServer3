@@ -16,7 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetCoreServer" Version="6.7.0" />
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   
   <ItemGroup>
@@ -27,6 +30,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
+    <ProjectReference Include="..\..\BackendServices\NetCoreServer\NetCoreServer.csproj" />
   </ItemGroup>
 
 </Project>

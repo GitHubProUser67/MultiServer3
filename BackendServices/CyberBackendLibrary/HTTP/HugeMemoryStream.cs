@@ -11,7 +11,7 @@ namespace CyberBackendLibrary.HTTP
         private const int PAGE_SIZE = 1024000;
         private const int ALLOC_STEP = 1024;
 
-        private byte[][]? _streamBuffers;
+        private byte[]?[]? _streamBuffers;
 
         private int _pageCount = 0;
         private long _allocatedBytes = 0;
@@ -100,7 +100,8 @@ namespace CyberBackendLibrary.HTTP
                 if (currentPageCount == _pageCount)
                     ExtendPages();
 
-                _streamBuffers[currentPageCount++] = new byte[PAGE_SIZE];
+                if (_streamBuffers != null)
+                    _streamBuffers[currentPageCount++] = new byte[PAGE_SIZE];
             }
 
             _allocatedBytes = (long)currentPageCount * PAGE_SIZE;
@@ -155,7 +156,8 @@ namespace CyberBackendLibrary.HTTP
                 if (currentLength > count)
                     currentLength = count;
 
-                Array.Copy(_streamBuffers[currentPage++], currentOffset, buffer, offset, currentLength);
+                if (_streamBuffers != null)
+                    Array.Copy(_streamBuffers[currentPage++], currentOffset, buffer, offset, currentLength);
 
                 offset += currentLength;
                 _position += currentLength;
@@ -207,8 +209,11 @@ namespace CyberBackendLibrary.HTTP
             int neededPageCount = GetPageCount(value);
 
             // Removes unused buffers if decreasing stream length
-            while (currentPageCount > neededPageCount)
-                _streamBuffers[--currentPageCount] = null;
+            if (_streamBuffers != null)
+            {
+                while (currentPageCount > neededPageCount)
+                    _streamBuffers[--currentPageCount] = null;
+            }
 
             AllocSpaceIfNeeded(value);
 
@@ -231,7 +236,8 @@ namespace CyberBackendLibrary.HTTP
                 if (currentLength > count)
                     currentLength = count;
 
-                Array.Copy(buffer, offset, _streamBuffers[currentPage++], currentOffset, currentLength);
+                if (_streamBuffers != null)
+                    Array.Copy(buffer, offset, _streamBuffers[currentPage++], currentOffset, currentLength);
 
                 offset += currentLength;
                 _position += currentLength;

@@ -12,7 +12,7 @@ namespace MitmDNS
         private UdpClient? listener = null;
         private CancellationTokenSource _cts = null!;
 
-        public Task Start(CancellationToken cancellationToken)
+        public void Start(CancellationToken cancellationToken)
         {
             _exit = false;
 
@@ -24,8 +24,6 @@ namespace MitmDNS
             }
             else
                 LoggerAccessor.LogError("[DNS_UDP] - UDP Port 53 is occupied, UDP server failed to start!");
-
-            return Task.CompletedTask;
         }
 
         public void Stop()

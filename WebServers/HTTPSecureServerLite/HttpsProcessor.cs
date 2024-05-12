@@ -921,6 +921,14 @@ namespace HTTPSecureServerLite
                                                 sent = await response.Send("User-agent: *\nDisallow: / ");
                                                 break;
                                             #endregion
+                                            #region Get Away PSH Central!
+                                            case "/PrivateRTE/checkAuth.php":
+                                                statusCode = HttpStatusCode.OK;
+                                                response.StatusCode = (int)statusCode;
+                                                response.ContentType = "text/plain";
+                                                sent = await response.Send("false");
+                                                break;
+                                            #endregion
                                             case "/!player":
                                             case "/!player/":
                                                 if (ServerIP.Length > 15)

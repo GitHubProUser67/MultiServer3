@@ -13,7 +13,7 @@ namespace MitmDNS
         private TcpListener? listener = null;
         private CancellationTokenSource _cts = null!;
 
-        public Task Start(CancellationToken cancellationToken)
+        public void Start(CancellationToken cancellationToken)
         {
             if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(53))
             {
@@ -23,8 +23,6 @@ namespace MitmDNS
             }
             else
                 LoggerAccessor.LogError("[DNS_TCP] - TCP Port 53 is occupied, TCP server failed to start!");
-
-            return Task.CompletedTask;
         }
 
         public void Stop()

@@ -1,6 +1,5 @@
 using CustomLogger;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,8 +14,8 @@ namespace HTTPSecureServerLite
 {
     public static partial class SecureDNSConfigProcessor
     {
-        public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
-        public static ConcurrentDictionary<string, DnsSettings> StarRules = new();
+        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static Dictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
 
         public static void InitDNSSubsystem()
@@ -105,12 +104,16 @@ namespace HTTPSecureServerLite
                             // Replace "*" characters with ".*" which means any number of any character for Regexp
                             domain = domain.Replace("*", ".*");
 
-                            StarRules.TryAdd(domain, dns);
+                            lock (StarRules)
+                                StarRules.TryAdd(domain, dns);
                         }
                         else
                         {
-                            DicRules.TryAdd(domain, dns);
-                            DicRules.TryAdd("www." + domain, dns);
+                            lock (DicRules)
+                            {
+                                DicRules.TryAdd(domain, dns);
+                                DicRules.TryAdd("www." + domain, dns);
+                            }
                         }
                     }
                 });
@@ -164,8 +167,11 @@ namespace HTTPSecureServerLite
                                 dns.Mode = HandleMode.Redirect;
                                 dns.Address = GetIp(match.Groups[1].Value);
 
-                                DicRules.TryAdd(hostname, dns);
-                                DicRules.TryAdd("www." + hostname, dns);
+                                lock (DicRules)
+                                {
+                                    DicRules.TryAdd(hostname, dns);
+                                    DicRules.TryAdd("www." + hostname, dns);
+                                }
 
                                 break;
                             }
