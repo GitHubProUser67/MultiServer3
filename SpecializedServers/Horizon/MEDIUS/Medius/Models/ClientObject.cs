@@ -24,6 +24,11 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
+        public uint HomePointer { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public int UdpPort = 0;
 
         /// <summary>
@@ -927,6 +932,13 @@ namespace Horizon.MEDIUS.Medius.Models
                         break;
                     }
             }
+        }
+        #endregion
+
+        #region SetHomePointer
+        public void SetPointer(uint Pointer)
+        {
+            HomePointer = Pointer;
         }
         #endregion
 
