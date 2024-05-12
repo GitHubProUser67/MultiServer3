@@ -31,7 +31,9 @@ namespace Horizon.MEDIUS.Medius
         #region Anticheat References
         private byte[] Ref1 = Convert.FromBase64String("j1S4yArhxE6OW2ZPQzq+oA==");
 
-        private byte[] Ref2 = Convert.FromBase64String("VDQrkh5H7aV9T/GbaDwNUw==");
+        private byte[] Ref2 = Convert.FromBase64String("XtKRFh5cJ/iW3RzTcyHa8g==");
+
+        private byte[] Ref3 = Convert.FromBase64String("VDQrkh5H7aV9T/GbaDwNUw==");
         #endregion
 
         public ServerSettings Settings = new();
@@ -305,14 +307,14 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     break;
                                                 case 268759069U:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataTypesUtils.AreArraysIdentical(QueryData, Ref1))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataTypesUtils.AreArraysIdentical(QueryData, Ref1) || DataTypesUtils.AreArraysIdentical(QueryData, Ref2)))
                                                     {
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
                                                     break;
                                                 case 0x100BA820:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref2)))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
