@@ -34,6 +34,12 @@ namespace Horizon.MEDIUS.Medius
         private byte[] Ref2 = Convert.FromBase64String("XtKRFh5cJ/iW3RzTcyHa8g==");
 
         private byte[] Ref3 = Convert.FromBase64String("VDQrkh5H7aV9T/GbaDwNUw==");
+
+        private byte[] Ref4 = Convert.FromBase64String("FA5bx20s0liKa36ROeQ8Lw==");
+
+        private byte[] Ref5 = Convert.FromBase64String("gjhutOUMfyuOPC5gjtt9/Q==");
+
+        private byte[] Ref6 = Convert.FromBase64String("AAAAAAAAAAE=");
         #endregion
 
         public ServerSettings Settings = new();
@@ -273,6 +279,8 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x101590b0:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -313,7 +321,8 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     break;
                                                 case 268759069U:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataTypesUtils.AreArraysIdentical(QueryData, Ref1) || DataTypesUtils.AreArraysIdentical(QueryData, Ref2)))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataTypesUtils.AreArraysIdentical(QueryData, Ref1) 
+                                                        || DataTypesUtils.AreArraysIdentical(QueryData, Ref2) || DataTypesUtils.AreArraysIdentical(QueryData, Ref4)))
                                                     {
                                                         LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
 
@@ -326,8 +335,48 @@ namespace Horizon.MEDIUS.Medius
                                                     {
                                                         LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
 
+                                                        /*if (data.ClientObject != null)
+                                                            PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);*/
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x104F7320:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                    {
+                                                        if (data.ClientObject != null)
+                                                        {
+                                                            data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
+
+                                                            CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                            CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                        }
+
+                                                        CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                    }
+                                                    break;
+                                                default:
+                                                    if (data.ClientObject != null)
+                                                    {
+                                                        if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 6928U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataTypesUtils.AreArraysIdentical(QueryData, Ref5))
+                                                        {
+                                                            LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
+
+                                                            //PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
+
+                                                            data.State = ClientState.DISCONNECTED;
+                                                            await clientChannel.CloseAsync();
+                                                        }
+                                                        else if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 5300U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && DataTypesUtils.AreArraysIdentical(QueryData, Ref6))
+                                                        {
+                                                            LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
+
+                                                            //PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
+
+                                                            data.State = ClientState.DISCONNECTED;
+                                                            await clientChannel.CloseAsync();
+                                                        }
                                                     }
                                                     break;
                                             }
@@ -373,40 +422,26 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     case 20371:
                                         if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK) && MediusClass.Settings.PlaystationHomeVersionBetaHDK.Equals("01.86"))
-                                        {
                                             CheatQuery(0x101590b0, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                        }
                                         break;
                                     case 20374:
                                         if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
                                         {
-                                            string? specialRights = null;
-
                                             if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
-                                                specialRights = value;
-
-                                            if (!string.IsNullOrEmpty(specialRights))
                                             {
-                                                switch (specialRights)
+                                                switch (value)
                                                 {
-                                                    case "CONSOLE":
-                                                        CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                                        break;
                                                     case "RTM":
                                                         break;
                                                     default:
-                                                        CheatQuery(0x50A7DEEC, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                         CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
                                                         break;
                                                 }
                                             }
                                             else
-                                            {
-                                                CheatQuery(0x50A7DEEC, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                 CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                            }
 
-                                            CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                            CheatQuery(0x104F7320, 4, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                         }
                                         break;
                                 }
@@ -6736,6 +6771,36 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ClientObject.CurrentGame != null)
                         {
+                            bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                   && (string.IsNullOrEmpty(data.ClientObject.AccountName)
+                                       || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(data.ClientObject.AccountName)
+                                       || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName])
+                                       || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName] != "ADMIN"));
+
+                            if (isHomeCheat)
+                            {
+                                switch (data.ApplicationId)
+                                {
+                                    case 20371:
+                                        // TODO!
+                                        break;
+                                    case 20374:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                        {
+                                            if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
+                                            {
+                                                switch (value)
+                                                {
+                                                    case "DISABLECONSOLE":
+                                                        CheatQuery(0x50A7DEEC, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                        break;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+
                             CrudRoomManager.UpdateOrCreateRoom(data.ClientObject.CurrentGame.ApplicationId.ToString(), data.ClientObject.CurrentGame.GameName,
                                 data.ClientObject.CurrentGame.WorldID.ToString(), data.ClientObject.AccountName, data.ClientObject.LanguageType.ToString(),
                                 data.ClientObject == data.ClientObject.CurrentGame.Host);
