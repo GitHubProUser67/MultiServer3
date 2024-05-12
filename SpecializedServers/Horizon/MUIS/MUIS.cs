@@ -11,12 +11,6 @@ using Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUIS.Config;
-using System.Globalization;
-using Newtonsoft.Json.Linq;
-using Horizon.MEDIUS;
-
-using System.Text;
-using CyberBackendLibrary.DataTypes;
 
 namespace Horizon.MUIS
 {
@@ -150,7 +144,7 @@ namespace Horizon.MUIS
             if (clientChannel == null)
                 return;
 
-            List<BaseScertMessage> responses = new List<BaseScertMessage>();
+            List<BaseScertMessage> responses = new();
             string key = clientChannel.Id.AsLongText();
 
             try
@@ -246,16 +240,6 @@ namespace Horizon.MUIS
 
                             if (pre108ServerComplete.Contains(data.ApplicationId))
                                 Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
-
-                            switch (data.ApplicationId)
-                            {
-                                /*case 20374:
-                                    CheatQuery(0x100372c8, 5, clientChannel); // Check for 01.83 HDK online debug eboot version string.
-                                    break;*/
-                                case 20371:
-                                    CheatQuery(0x1003dd98, 5, clientChannel); // Check for 01.50 Retail Beta eboot version string.
-                                    break;
-                            }
 
                             break;
                         }
@@ -907,32 +891,5 @@ namespace Horizon.MUIS
         {
             return _clientCounter++;
         }
-
-        #region QueryEngine
-
-        private bool CheatQuery(uint address, int Length, IChannel? clientChannel)
-        {
-            // address = 0, don't read
-            if (address == 0)
-                return false;
-
-            // client channel is null, don't read
-            if (clientChannel == null)
-                return false;
-
-            // read client memory
-            Queue(new RT_MSG_SERVER_CHEAT_QUERY()
-            {
-                QueryType = CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY,
-                SequenceId = 1,
-                StartAddress = address,
-                Length = Length,
-            }, clientChannel);
-
-            // return read
-            return true;
-        }
-
-        #endregion
     }
 }

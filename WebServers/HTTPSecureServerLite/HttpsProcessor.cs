@@ -739,6 +739,18 @@ namespace HTTPSecureServerLite
                             }
                             #endregion
 
+                            #region PSH Central
+                            else if (Host == "apps.pshomecentral.net" && absolutepath == "/PrivateRTE/checkAuth.php")
+                            {
+                                LoggerAccessor.LogError($"[HTTPS] - {clientip}:{clientport} Requested a PS Home Central method : {absolutepath}");
+
+                                statusCode = HttpStatusCode.OK;
+                                response.StatusCode = (int)statusCode;
+                                response.ContentType = "text/plain";
+                                sent = await response.Send("false");
+                            }
+                            #endregion
+
                             else
                             {
                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -919,14 +931,6 @@ namespace HTTPSecureServerLite
                                                 response.StatusCode = (int)statusCode;
                                                 response.ContentType = "text/plain";
                                                 sent = await response.Send("User-agent: *\nDisallow: / ");
-                                                break;
-                                            #endregion
-                                            #region Get Away PSH Central!
-                                            case "/PrivateRTE/checkAuth.php":
-                                                statusCode = HttpStatusCode.OK;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send("false");
                                                 break;
                                             #endregion
                                             case "/!player":
