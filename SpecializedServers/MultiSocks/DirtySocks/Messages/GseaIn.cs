@@ -22,7 +22,7 @@ namespace MultiSocks.DirtySocks.Messages
 
             if (CANCEL == "1")
             {
-                client.SendMessage(new GseaOut() { COUNT = "0" });
+                client.SendMessage(new GseaOut());
                 return;
             }
 

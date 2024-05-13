@@ -10,8 +10,8 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? RedirectorSSX3_PAL;
         private AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
         private AbstractDirtySockServer? RedirectorTSBO_PAL;
-        private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         private AbstractDirtySockServer? RedirectorBOP_PS3;
+        private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         private AbstractDirtySockServer? BurnoutParadiseUltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
