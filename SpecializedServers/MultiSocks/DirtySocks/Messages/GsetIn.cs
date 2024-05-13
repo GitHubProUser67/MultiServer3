@@ -35,7 +35,17 @@ namespace MultiSocks.DirtySocks.Messages
 
             bool UpdatePlayerParams = false;
 
-            if (!string.IsNullOrEmpty(USERPARAMS))
+            if (!string.IsNullOrEmpty(PERS))
+            {
+                User? otherUser = mc.Users.GetUserByPersonaName(PERS);
+
+                if (otherUser != null && !string.IsNullOrEmpty(USERPARAMS))
+                {
+                    otherUser.Params = USERPARAMS;
+                    otherUser.CurrentGame?.UpdatePlayerParams(otherUser);
+                }
+            }
+            else if (!string.IsNullOrEmpty(USERPARAMS))
             {
                 UpdatePlayerParams = true;
                 user.Params = USERPARAMS;
@@ -61,6 +71,7 @@ namespace MultiSocks.DirtySocks.Messages
                 user.CurrentGame.ID = parsedIdent.Value;
                 user.CurrentGame.Priv = parsedPriv.Value == 1;
                 user.CurrentGame.Seed = SEED;
+                user.CurrentGame.Params = PARAMS;
             }
             else if (!string.IsNullOrEmpty(FORCE_LEAVE) && FORCE_LEAVE == "1" && user.CurrentGame != null)
             {

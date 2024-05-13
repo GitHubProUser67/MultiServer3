@@ -20,7 +20,7 @@ namespace MultiSocks.DirtySocks.Messages
                 lock (mc.Games)
                     mc.Games.UpdateGame(user.CurrentGame);
 
-                user.Connection?.SendMessage(user.CurrentGame.GetGstaOut());
+                user.Connection?.SendMessage(new GstaOut());
 
                 user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
 

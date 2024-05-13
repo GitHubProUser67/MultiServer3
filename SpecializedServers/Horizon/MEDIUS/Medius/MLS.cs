@@ -20,6 +20,7 @@ using Horizon.RT.Cryptography.RSA;
 using System.Text;
 using EndianTools;
 using CyberBackendLibrary.DataTypes;
+using System.Collections.Concurrent;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -40,6 +41,8 @@ namespace Horizon.MEDIUS.Medius
         private byte[] Ref5 = Convert.FromBase64String("gjhutOUMfyuOPC5gjtt9/Q==");
 
         private byte[] Ref6 = Convert.FromBase64String("AAAAAAAAAAE=");
+
+        private ConcurrentDictionary<(IPAddress, string?), DateTime> BannedClients = new();
         #endregion
 
         public ServerSettings Settings = new();
@@ -316,6 +319,9 @@ namespace Horizon.MEDIUS.Medius
                                                     {
                                                         LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: CONSOLE USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -326,6 +332,9 @@ namespace Horizon.MEDIUS.Medius
                                                     {
                                                         LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -335,11 +344,29 @@ namespace Horizon.MEDIUS.Medius
                                                     {
                                                         LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
 
-                                                        /*if (data.ClientObject != null)
-                                                            PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);*/
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 270088564U:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                    {
+                                                        byte[] WireFrame = new byte[4] { 16, 0x00, 0x00, 0x00 };
+
+                                                        if (!DataTypesUtils.AreArraysIdentical(QueryData, WireFrame))
+                                                            PokeAddress(270088564U, WireFrame, clientChannel);
+                                                    }
+                                                    break;
+                                                case 268856024U:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 1)
+                                                    {
+                                                        byte[] FirstPerson = new byte[] { 63 };
+
+                                                        if (!DataTypesUtils.AreArraysIdentical(QueryData, FirstPerson))
+                                                            PokeAddress(268856024U, FirstPerson, clientChannel);
                                                     }
                                                     break;
                                                 case 0x104F7320:
@@ -348,6 +375,18 @@ namespace Horizon.MEDIUS.Medius
                                                         if (data.ClientObject != null)
                                                         {
                                                             data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
+
+                                                            if (BannedClients.ContainsKey((data.ClientObject.IP, data.MachineId)))
+                                                            {
+                                                                if (BannedClients[(data.ClientObject.IP, data.MachineId)] >= DateTime.Now)
+                                                                {
+                                                                    PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
+                                                                    CheatQuery(270088564U, 4, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                                    CheatQuery(268856024U, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                                }
+                                                                else
+                                                                    BannedClients.Remove((data.ClientObject.IP, data.MachineId), out _);
+                                                            }
 
                                                             CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
                                                             CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
@@ -363,7 +402,8 @@ namespace Horizon.MEDIUS.Medius
                                                         {
                                                             LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
 
-                                                            //PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
+                                                            if (data.ClientObject.IP != IPAddress.Any)
+                                                                BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                             data.State = ClientState.DISCONNECTED;
                                                             await clientChannel.CloseAsync();
@@ -372,7 +412,8 @@ namespace Horizon.MEDIUS.Medius
                                                         {
                                                             LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
 
-                                                            //PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
+                                                            if (data.ClientObject.IP != IPAddress.Any)
+                                                                BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                             data.State = ClientState.DISCONNECTED;
                                                             await clientChannel.CloseAsync();
