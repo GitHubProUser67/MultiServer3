@@ -18,23 +18,12 @@ namespace Horizon.RT.Models
         public byte Host;
 
         public RT_TOKEN_MESSAGE_TYPE tokenMsgType;
-        public ushort targetToken;
+        public ushort TokenID;
+        public ushort TokenHost;
 
         public override void Deserialize(MessageReader reader)
         {
-            if (reader.MediusVersion == 109)
-            {
-
-            }
-            else
-            {
-                tokenMsgType = reader.Read<RT_TOKEN_MESSAGE_TYPE>();
-                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED
-                    /* ONLY HOME */
-                     || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED
-                     || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED)
-                    targetToken = reader.Read<ushort>();
-            }
+            
         }
 
         public override void Serialize(MessageWriter writer)
@@ -54,11 +43,19 @@ namespace Horizon.RT.Models
             else
             {
                 writer.Write(tokenMsgType);
-                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED
-                    /* ONLY HOME */
-                     || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED
-                     || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED)
-                    writer.Write(targetToken);
+                if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_CLIENT_QUERY
+                    || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_CLIENT_REQUEST
+                    || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_CLIENT_RELEASE
+                    || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED
+                    || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED
+                    || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED
+                    || tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED)
+                {
+                    writer.Write(TokenID);
+
+                    if (tokenMsgType == RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED)
+                        writer.Write(TokenHost);
+                }
             }
         }
 
@@ -66,7 +63,8 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"RT_TOKEN_MESSAGE_TYPE: {tokenMsgType} " +
-                $"targetToken: {targetToken} " +
+                $"targetToken: {TokenID} " +
+                $"TokenOwner: {TokenHost} " +
                 $"Host: {Host}";
         }
     }
