@@ -31,6 +31,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
     <ProjectReference Include="..\..\BackendServices\NetCoreServer\NetCoreServer.csproj" />
+	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
 
 </Project>

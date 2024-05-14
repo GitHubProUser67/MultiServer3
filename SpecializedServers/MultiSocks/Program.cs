@@ -1,6 +1,7 @@
 using CustomLogger;
 using MultiSocks.DirtySocks;
 using Newtonsoft.Json.Linq;
+using System.Reflection;
 using System.Runtime;
 using System.Security.Cryptography;
 
@@ -77,12 +78,12 @@ public static class MultiSocksServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "MultiSocks.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static DirtySocksServer? DSServer;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "MultiSocks.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static DirtySocksServer? DSServer;
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         DSServer?.Dispose();
         DSServer = new DirtySocksServer(new CancellationTokenSource().Token);
@@ -92,6 +93,8 @@ class Program
     {
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("MultiSocks");
 

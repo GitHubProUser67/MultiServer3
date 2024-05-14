@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Collections.Concurrent;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
+using System.Reflection;
 
 public static class HorizonServerConfiguration
 {
@@ -144,13 +145,13 @@ public static class HorizonServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "horizon.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static ConcurrentBag<CrudServerHandler>? HTTPBag;
-    static MumServerHandler? MUMServer;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "horizon.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static ConcurrentBag<CrudServerHandler>? HTTPBag;
+    private static MumServerHandler? MUMServer;
 
-    static Task HorizonStarter()
+    private static Task HorizonStarter()
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
@@ -181,7 +182,7 @@ class Program
         return Task.CompletedTask;
     }
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         if (Horizon.DME.DmeClass.started && !HorizonServerConfiguration.EnableDME)
             Horizon.DME.DmeClass.StopServer();
@@ -222,6 +223,8 @@ class Program
     {
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("Horizon");
 

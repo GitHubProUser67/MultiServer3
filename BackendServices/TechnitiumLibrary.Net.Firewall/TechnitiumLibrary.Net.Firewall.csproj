@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Shreyas Zare</Authors>
+    <Company>Technitium</Company>
+    <Product>Technitium Library</Product>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TechnitiumSoftware/TechnitiumLibrary</RepositoryUrl>
+    <RepositoryType></RepositoryType>
+    <Description></Description>
+    <PackageId>TechnitiumLibrary.Net</PackageId>
+    <Version>5.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <COMReference Include="NetFwTypeLib">
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>58fbcf7c-e7a9-467c-80b3-fc65e8fcca08</Guid>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+</Project>

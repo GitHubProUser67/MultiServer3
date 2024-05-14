@@ -1,6 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
+using System.Reflection;
 using System.Runtime;
 using System.Security.Cryptography;
 
@@ -116,12 +117,12 @@ public static class SSFWServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "ssfw.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static SSFWClass? Server;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "ssfw.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static SSFWClass? Server;
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         Server?.StopSSFW();
         Server = null;
@@ -138,6 +139,8 @@ class Program
     {
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("SSFWServer");
 

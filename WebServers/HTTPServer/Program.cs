@@ -11,6 +11,7 @@ using CyberBackendLibrary.AIModels;
 using CyberBackendLibrary.HTTP.PluginManager;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Reflection;
 
 public static class HTTPServerConfiguration
 {
@@ -264,13 +265,13 @@ public static class HTTPServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "http.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static Timer? FilesystemTree = null;
-    static HttpServer? Server;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "http.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? FilesystemTree = null;
+    private static HttpServer? Server;
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         Server?.Stop();
         Server = null;
@@ -300,6 +301,8 @@ class Program
     {
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("HTTPServer");
 

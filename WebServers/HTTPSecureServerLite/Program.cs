@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Security.Principal;
 using HttpMultipartParser;
 using SevenZip.Compression.LZ;
+using System.Reflection;
 
 public static class HTTPSServerConfiguration
 {
@@ -347,19 +348,19 @@ public static class HTTPSServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "https.json";
-    static string DNSconfigMD5 = string.Empty;
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static Timer? Leaderboard = null;
-    static Timer? FilesystemTree = null;
-    static Task? DNSThread = null;
-    static Task? DNSRefreshThread = null;
-    static HTTPSecureServer? Server;
-    static readonly FileSystemWatcher dnswatcher = new();
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "https.json";
+    private static string DNSconfigMD5 = string.Empty;
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? Leaderboard = null;
+    private static Timer? FilesystemTree = null;
+    private static Task? DNSThread = null;
+    private static Task? DNSRefreshThread = null;
+    private static HTTPSecureServer? Server;
+    private static readonly FileSystemWatcher dnswatcher = new();
 
     // Event handler for DNS change event
-    static void OnDNSChanged(object source, FileSystemEventArgs e)
+    private static void OnDNSChanged(object source, FileSystemEventArgs e)
     {
         try
         {
@@ -389,7 +390,7 @@ class Program
         }
     }
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         Server?.StopServer();
 
@@ -460,7 +461,7 @@ class Program
         Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token);
     }
 
-    static Task RefreshDNS()
+    private static Task RefreshDNS()
     {
         if (DNSThread != null && !SecureDNSConfigProcessor.Initiated)
         {
@@ -476,7 +477,7 @@ class Program
         return Task.CompletedTask;
     }
 
-    static string ComputeMD5FromFile(string filePath)
+    private static string ComputeMD5FromFile(string filePath)
     {
         using (FileStream stream = File.OpenRead(filePath))
         {
@@ -492,6 +493,8 @@ class Program
 
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("HTTPSecureServer");
 

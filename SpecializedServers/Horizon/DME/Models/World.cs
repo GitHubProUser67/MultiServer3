@@ -64,6 +64,12 @@ namespace Horizon.DME.Models
 
         #endregion
 
+        #region TokenManagement
+
+        public ConcurrentDictionary<ushort, List<int>> clientTokens = new();
+
+        #endregion
+
         public uint WorldId { get; protected set; } = 0;
 
         public int ApplicationId { get; protected set; } = 0;
