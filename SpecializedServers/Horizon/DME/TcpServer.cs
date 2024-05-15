@@ -707,22 +707,22 @@ namespace Horizon.DME
                                 {
                                     data.ClientObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new List<int> { data.ClientObject.DmeId });
 
-                                    Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                    data.ClientObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to broadcast the signal that this token is owned.
                                     {
-                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED,
+                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
                                         TokenID = clientTokenMsg.targetToken,
-                                    }, clientChannel);
+                                        TokenHost = (ushort)data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken][0],
+                                    });
                                 }
                                 else
                                 {
                                     lock (data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken])
                                         data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Add(data.ClientObject.DmeId);
 
-                                    Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                    Queue(new RT_MSG_SERVER_TOKEN_MESSAGE() // This message should not be broadcasted, Home doesn't like it.
                                     {
-                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
-                                        TokenID = clientTokenMsg.targetToken,
-                                        TokenHost = (ushort)data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken][0],
+                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED,
+                                        TokenID = clientTokenMsg.targetToken
                                     }, clientChannel);
                                 }
                             }
@@ -743,24 +743,24 @@ namespace Horizon.DME
                         {
                             if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
                             {
-                                if (data.ClientObject.DmeWorld.clientTokens.ContainsKey(clientTokenMsg.targetToken))
+                                if (data.ClientObject.DmeWorld.clientTokens.TryGetValue(clientTokenMsg.targetToken, out List<int>? value))
                                 {
-                                    if (data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Contains(data.ClientObject.DmeId))
+                                    if (value.Contains(data.ClientObject.DmeId))
                                     {
-                                        if (data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].IndexOf(data.ClientObject.DmeId) == 0)
+                                        if (value.IndexOf(data.ClientObject.DmeId) == 0)
                                         {
                                             data.ClientObject.DmeWorld.clientTokens.TryRemove(clientTokenMsg.targetToken, out _);
 
-                                            Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                            data.ClientObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                             {
                                                 tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED,
                                                 TokenID = clientTokenMsg.targetToken,
-                                            }, clientChannel);
+                                            });
                                         }
                                         else
                                         {
-                                            lock (data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken])
-                                                data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Remove(data.ClientObject.DmeId);
+                                            lock (value)
+                                                value.Remove(data.ClientObject.DmeId);
 
                                             Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                             {
@@ -933,25 +933,6 @@ namespace Horizon.DME
         public bool rt_token_is_valid(ushort TokenId)
         {
             return TokenId <= 65534;
-        }
-
-        public void rt_token_build_token_msg(ushort TokenId, IChannel channel, RT_TOKEN_MESSAGE_TYPE MsgType)
-        {
-            if ((int)MsgType == 1 || (int)MsgType == 2 || (int)MsgType == 3 || (int)MsgType == 7 || (int)MsgType == 8 || (int)MsgType == 0xA || (int)MsgType == 9)
-            {
-                /*
-                // send force disconnect message
-                await channel.WriteAndFlushAsync(new RT_MSG_SERVER_TOKEN_MESSAGE()
-                {
-                    tokenId = TokenId,
-                });
-
-                // close channel
-                await channel.CloseAsync();
-                */
-            }
-            else
-                LoggerAccessor.LogWarn("((RT_TOKEN_CLIENT_QUERY == MsgType) || (RT_TOKEN_CLIENT_REQUEST == MsgType) || (RT_TOKEN_CLIENT_RELEASE == MsgType) || (RT_TOKEN_SERVER_OWNED == MsgType) || (RT_TOKEN_SERVER_GRANTED == MsgType) || (RT_TOKEN_SERVER_RELEASED == MsgType) || (RT_TOKEN_SERVER_FREED == MsgType))");
         }
     }
 }

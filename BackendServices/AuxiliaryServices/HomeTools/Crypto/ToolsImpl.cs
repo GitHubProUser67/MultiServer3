@@ -1,15 +1,12 @@
 using CustomLogger;
-using System.Text;
 using System.Numerics;
-using ComponentAce.Compression.Libs.zlib;
-using ICSharpCode.SharpZipLib.Zip.Compression;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Security.Cryptography;
 using EndianTools;
 using CyberBackendLibrary.DataTypes;
 using System;
 using System.IO;
 using CastleLibrary.Utils.Conversion;
+using CyberBackendLibrary.Crypto;
 
 namespace HomeTools.Crypto
 {
@@ -261,122 +258,6 @@ namespace HomeTools.Crypto
             }
         }
 
-        public static byte[] ICSharpEdgeZlibDecompress(byte[] inData)
-        {
-            MemoryStream memoryStream = new MemoryStream();
-            MemoryStream memoryStream2 = new MemoryStream(inData);
-            byte[] array = new byte[ChunkHeader.SizeOf];
-            while (memoryStream2.Position < memoryStream2.Length)
-            {
-                memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
-                array = EndianUtils.EndianSwap(array);
-                ChunkHeader header = ChunkHeader.FromBytes(array);
-                int compressedSize = header.CompressedSize;
-                byte[] array2 = new byte[compressedSize];
-                memoryStream2.Read(array2, 0, compressedSize);
-                byte[] array3 = ICSharpDecompressEdgeZlibChunk(array2, header);
-                memoryStream.Write(array3, 0, array3.Length);
-            }
-            memoryStream2.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
-        }
-
-        private static byte[] ICSharpDecompressEdgeZlibChunk(byte[] inData, ChunkHeader header)
-        {
-            if (header.CompressedSize == header.SourceSize)
-                return inData;
-            MemoryStream baseInputStream = new MemoryStream(inData);
-            InflaterInputStream inflaterInputStream = new InflaterInputStream(baseInputStream, new Inflater(true));
-            MemoryStream memoryStream = new MemoryStream();
-            byte[] array = new byte[4096];
-            for (; ; )
-            {
-                int num = inflaterInputStream.Read(array, 0, array.Length);
-                if (num <= 0)
-                    break;
-                memoryStream.Write(array, 0, num);
-            }
-            inflaterInputStream.Close();
-            return memoryStream.ToArray();
-        }
-
-        public static byte[] ComponentAceEdgeZlibDecompress(byte[] inData)
-        {
-            MemoryStream memoryStream = new MemoryStream();
-            MemoryStream memoryStream2 = new MemoryStream(inData);
-            byte[] array = new byte[ChunkHeader.SizeOf];
-            while (memoryStream2.Position < memoryStream2.Length)
-            {
-                memoryStream2.Read(array, 0, ChunkHeader.SizeOf);
-                array = EndianUtils.EndianSwap(array);
-                ChunkHeader header = ChunkHeader.FromBytes(array);
-                int compressedSize = header.CompressedSize;
-                byte[] array2 = new byte[compressedSize];
-                memoryStream2.Read(array2, 0, compressedSize);
-                byte[] array3 = ComponentAceDecompressEdgeZlibChunk(array2, header);
-                memoryStream.Write(array3, 0, array3.Length);
-            }
-            memoryStream2.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
-        }
-
-        private static byte[] ComponentAceDecompressEdgeZlibChunk(byte[] InData, ChunkHeader header)
-        {
-            if (header.CompressedSize == header.SourceSize)
-                return InData;
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, true);
-            byte[] array = new byte[InData.Length];
-            Array.Copy(InData, 0, array, 0, InData.Length);
-            zoutputStream.Write(array, 0, array.Length);
-            zoutputStream.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
-        }
-
-        public static byte[] ComponentAceEdgeZlibCompress(byte[] inData)
-        {
-            MemoryStream memoryStream = new MemoryStream(inData.Length);
-            MemoryStream memoryStream2 = new MemoryStream(inData);
-            while (memoryStream2.Position < memoryStream2.Length)
-            {
-                int num = Math.Min((int)(memoryStream2.Length - memoryStream2.Position), 65535);
-                byte[] array = new byte[num];
-                memoryStream2.Read(array, 0, num);
-                byte[] array2 = ComponentAceCompressEdgeZlibChunk(array);
-                memoryStream.Write(array2, 0, array2.Length);
-            }
-            memoryStream2.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
-        }
-
-        private static byte[] ComponentAceCompressEdgeZlibChunk(byte[] InData)
-        {
-            MemoryStream memoryStream = new MemoryStream();
-            ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, true);
-            zoutputStream.Write(InData, 0, InData.Length);
-            zoutputStream.Close();
-            memoryStream.Close();
-            byte[] array = memoryStream.ToArray();
-            byte[] array2;
-            if (array.Length >= InData.Length)
-                array2 = InData;
-            else
-                array2 = array;
-            byte[] array3 = new byte[array2.Length + 4];
-            Array.Copy(array2, 0, array3, 4, array2.Length);
-            ChunkHeader chunkHeader = default;
-            chunkHeader.SourceSize = (ushort)InData.Length;
-            chunkHeader.CompressedSize = (ushort)array2.Length;
-            byte[] array4 = chunkHeader.GetBytes();
-            array4 = EndianUtils.EndianSwap(array4);
-            Array.Copy(array4, 0, array3, 0, ChunkHeader.SizeOf);
-            return array3;
-        }
-
         public static byte[] ProcessXTEAProxyBlocks(byte[] inputArray, byte[] Key, byte[] IV)
         {
             int inputIndex = 0;
@@ -441,101 +322,6 @@ namespace HomeTools.Crypto
             }
             else
                 return fileBytes;
-        }
-
-        public static byte[]? Crypt_Decrypt(byte[] fileBytes, byte[] IVA, int blockSize)
-        {
-            StringBuilder? hexStr = new StringBuilder();
-            byte[]? CipheredFileBytes = null;
-            int totalProcessedBytes = 0;
-            int totalBytes = fileBytes.Length;
-
-            while (totalProcessedBytes <= totalBytes)
-            {
-                int Blksize = Math.Min(blockSize, totalBytes - totalProcessedBytes);
-
-                byte[] ivBlk = new byte[blockSize];
-                if (Blksize < blockSize)
-                    Array.Copy(IVA, totalProcessedBytes, ivBlk, 0, Blksize);
-                else
-                    Array.Copy(IVA, totalProcessedBytes, ivBlk, 0, ivBlk.Length);
-
-                byte[] block = new byte[blockSize];
-                if (Blksize < blockSize)
-                    Array.Copy(fileBytes, totalProcessedBytes, block, 0, Blksize);
-                else
-                    Array.Copy(fileBytes, totalProcessedBytes, block, 0, block.Length);
-
-                int BytesToFill = blockSize - Blksize;
-
-                if (BytesToFill != 0)
-                {
-                    byte[] ISO97971 = new byte[BytesToFill];
-
-                    for (int j = 0; j < BytesToFill; j++)
-                    {
-                        if (j == 0)
-                            ISO97971[j] = 0x80;
-                        else if (j == BytesToFill - 1)
-                            ISO97971[j] = 0x01;
-                        else
-                            ISO97971[j] = 0x00;
-                    }
-
-                    Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
-
-                    hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize)[..(BytesToFill * 2)]);
-                }
-                else
-                    hexStr.Append(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk), DataTypesUtils.ByteArrayToHexString(block), blockSize));
-
-                totalProcessedBytes += blockSize;
-            }
-
-            CipheredFileBytes = DataTypesUtils.HexStringToByteArray(hexStr.ToString());
-
-            hexStr = null;
-
-            if (CipheredFileBytes.Length > fileBytes.Length)
-            {
-                byte[] ResultTrimmedArray = new byte[fileBytes.Length];
-                Buffer.BlockCopy(CipheredFileBytes, 0, ResultTrimmedArray, 0, ResultTrimmedArray.Length);
-                return ResultTrimmedArray;
-            }
-            else if (CipheredFileBytes.Length < fileBytes.Length)
-            {
-                int difference = fileBytes.Length - CipheredFileBytes.Length;
-                byte[] ResultAppendedArray = new byte[fileBytes.Length];
-
-                byte[] ivBlk = new byte[blockSize];
-                Array.Copy(IVA, IVA.Length - difference, ivBlk, 0, difference);
-
-                byte[] block = new byte[blockSize];
-                Array.Copy(fileBytes, fileBytes.Length - difference, block, 0, difference);
-
-                int BytesToFill = blockSize - difference;
-
-                byte[] ISO97971 = new byte[BytesToFill];
-
-                for (int j = 0; j < BytesToFill; j++)
-                {
-                    if (j == 0)
-                        ISO97971[j] = 0x80;
-                    else if (j == BytesToFill - 1)
-                        ISO97971[j] = 0x01;
-                    else
-                        ISO97971[j] = 0x00;
-                }
-
-                Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
-
-                Buffer.BlockCopy(CipheredFileBytes, 0, ResultAppendedArray, 0, CipheredFileBytes.Length);
-                Buffer.BlockCopy(DataTypesUtils.HexStringToByteArray(LIBSECURE.MemXOR(DataTypesUtils.ByteArrayToHexString(ivBlk),
-                    DataTypesUtils.ByteArrayToHexString(block), blockSize)), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
-                return ResultAppendedArray;
-            }
-
-            return CipheredFileBytes;
         }
 
         internal struct ChunkHeader
