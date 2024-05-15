@@ -93,13 +93,13 @@ public static class DatabaseMiddlewareServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "dbmiddleware.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static HostBuilderServer? Server = null;
-    static Timer? AuthTimer = null;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "dbmiddleware.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static HostBuilderServer? Server = null;
+    private static Timer? AuthTimer = null;
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         Server?.StopServer();
 
@@ -115,23 +115,6 @@ class Program
         _ = Task.Run(SQLiteConnector.StartAllDatabases);
 
         Server = new HostBuilderServer("*", 10000);
-    }
-
-    static async Task RefreshConfig()
-    {
-        while (true)
-        {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
-
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
-
-            DatabaseMiddlewareServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dbmiddleware.json");
-
-            await SQLiteConnector.AddDatabases(DatabaseMiddlewareServerConfiguration.DbFiles);
-            await SQLiteConnector.StartAllDatabases();
-        }
     }
 
     static void Main()

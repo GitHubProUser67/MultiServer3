@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using CyberBackendLibrary.Crypto;
 
 namespace HomeTools.UnBAR
 {
@@ -387,7 +388,7 @@ namespace HomeTools.UnBAR
                                         {
                                             try
                                             {
-                                                FileBytes = ToolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
+                                                FileBytes = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibDecompress(FileBytes);
                                             }
                                             catch
                                             {
@@ -397,7 +398,7 @@ namespace HomeTools.UnBAR
 
                                                 try
                                                 {
-                                                    FileBytes = ToolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                                                    FileBytes = CompressionLibrary.Utils.EdgeZlib.ICSharpEdgeZlibDecompress(FileBytes);
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -469,7 +470,7 @@ namespace HomeTools.UnBAR
 
                 try
                 {
-                    FileBytes = ToolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
+                    FileBytes = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibDecompress(FileBytes);
                 }
                 catch
                 {
@@ -479,7 +480,7 @@ namespace HomeTools.UnBAR
 
                     try
                     {
-                        FileBytes = ToolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                        FileBytes = CompressionLibrary.Utils.EdgeZlib.ICSharpEdgeZlibDecompress(FileBytes);
                     }
                     catch (Exception ex)
                     {

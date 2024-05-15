@@ -244,7 +244,7 @@ namespace HTTPServer
 
                                 if (response == null && HTTPServerConfiguration.plugins.Count > 0)
                                 {
-                                    foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+                                    foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins.Values)
                                     {
                                         try
                                         {

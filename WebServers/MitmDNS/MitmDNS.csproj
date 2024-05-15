@@ -8,6 +8,7 @@
 	<DockerfileRunArguments>-p 53:53</DockerfileRunArguments>
 	<ApplicationIcon>DNS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\CyberBackendLibrary\CyberBackendLibrary.csproj" />
+    <ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
   
   <ItemGroup>

@@ -10,6 +10,7 @@
 	<ApplicationIcon>DatabaseMiddleware.ico</ApplicationIcon>
 	<InvariantGlobalization>false</InvariantGlobalization>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="SQLite.CodeFirst" Version="1.7.0.36" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
     <PackageReference Include="Watson.Lite" Version="6.1.9" />

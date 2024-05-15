@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
   
   <ItemGroup>
@@ -34,14 +34,17 @@
     <Delete Files="@(FilesToCopy)" Condition="$(FilesExist)" />
   </Target>
   
-  <Target Name="AfterBuild">
-  <Copy SourceFiles="$(MSBuildProjectDirectory)\..\b\$(OutputPath)b.dll" DestinationFolder="$(OutputPath)" ContinueOnError="true" />  
-  </Target>
-  
   <ItemGroup>
     <Content Include="static\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

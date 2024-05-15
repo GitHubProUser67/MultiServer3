@@ -46,7 +46,16 @@ namespace MultiSocks.DirtySocks.Model
                 BroadcastPopulation();
 
                 if (Users.Count() < MinSize)
+                {
+                    foreach (User batchuser in Users.GetAll())
+                    {
+                        batchuser.CurrentGame = null;
+
+                        batchuser.SendPlusWho(batchuser, !string.IsNullOrEmpty(batchuser.Connection?.Context.Project) && batchuser.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+                    }
+
                     return true;
+                }
             }
 
             return false;
@@ -84,7 +93,7 @@ namespace MultiSocks.DirtySocks.Model
 
                     userToRemove.SendPlusWho(userToRemove, !string.IsNullOrEmpty(userToRemove.Connection?.Context.Project) && userToRemove.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
 
-                    userToRemove.Connection?.SendMessage(new PlusKik() { GAME = ID.ToString() });
+                    // userToRemove.Connection?.SendMessage(new PlusKik() { GAME = ID.ToString() }); // TODO, figure out why it crash client...
                 }
                 else if (reason == 2)
                 {
@@ -103,20 +112,6 @@ namespace MultiSocks.DirtySocks.Model
         {
             Started = status;
         }
-
-       /* public void StartGame()
-        {
-            CustomLogger.LoggerAccessor.LogWarn($"[Game] - Starting Game:{Name}:{ID}.");
-
-            foreach (User user in Users.GetAll())
-            {
-                user.Connection?.SendMessage(GetGstaOut());
-
-                user.SendPlusWho(user, !string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
-
-                user.Connection?.SendMessage(GetPlusSesV2());
-            }
-        }*/
 
         public void UpdatePlayerParams(User updatedUser)
         {
@@ -260,9 +255,9 @@ namespace MultiSocks.DirtySocks.Model
                 COUNT = Users?.Count().ToString() ?? "1",
                 PRIV = Priv ? "1" : "0",
                 CUSTFLAGS = CustFlags,
-                SYSFLAGS = SysFlags,
+                SYSFLAGS = "528448",
                 EVGID = "0",
-                SEED = Seed,
+                SEED = ID.ToString(),
                 GPSHOST = GPSHost?.Username,
                 GPSREGION = "0",
                 GAMEMODE = "0",
@@ -426,56 +421,6 @@ namespace MultiSocks.DirtySocks.Model
             };
         }
 
-        public GstaOut GetGstaOut()
-        {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
-            return new GstaOut()
-            {
-                IDENT = ID.ToString(),
-                HOST = Host?.Username,
-                NAME = Name,
-                ROOM = RoomID.ToString(),
-                MAXSIZE = MaxSize.ToString(),
-                MINSIZE = MinSize.ToString(),
-                COUNT = Users?.Count().ToString() ?? "1",
-                PRIV = Priv ? "1" : "0",
-                CUSTFLAGS = CustFlags,
-                SYSFLAGS = SysFlags,
-                EVGID = "0",
-                SEED = Seed,
-                GPSHOST = GPSHost?.Username,
-                GPSREGION = "0",
-                GAMEMODE = "0",
-                GAMEPORT = "9673",
-                VOIPPORT = "9683",
-                PARAMS = Params,
-                NUMPART = "1",
-                PARTSIZE0 = MaxSize.ToString(),
-                PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
-            };
-        }
-
         public GqwkOut GetGqwkOut()
         {
             int i = 0;
@@ -579,6 +524,11 @@ namespace MultiSocks.DirtySocks.Model
         public void BroadcastPopulation()
         {
             Users.Broadcast(GetPlusMgm());
+        }
+
+        public void BroadcastPlusSesV2()
+        {
+            Users.Broadcast(GetPlusSesV2());
         }
     }
 }

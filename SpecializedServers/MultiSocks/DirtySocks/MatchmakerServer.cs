@@ -37,6 +37,7 @@ namespace MultiSocks.DirtySocks
                 { "usld", typeof(UsldIn) }, //Ping Equiv?
                 { "onln", typeof(OnlnIn) }, //search for a user's info
                 { "opup", typeof(OpupIn) }, //?
+                { "rent", typeof(RentIn) }, // Refresh Entitlements
                 { "rrlc", typeof(RrlcIn) }, // (CUSTOM Burnout Paradise) Road Rules Local
                 { "rrup", typeof(RrupIn) }, // (CUSTOM Burnout Paradise) Road Rules Upload
                 { "rrgt", typeof(RrgtIn) }, // (CUSTOM Burnout Paradise) Road Rules get

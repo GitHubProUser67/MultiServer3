@@ -15,8 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SpecializedServers", "Speci
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebServers", "WebServers", "{B4C627B6-E088-4DD4-8D6E-58DFDA383277}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GraphicalUserInterface", "GraphicalUserInterface\GraphicalUserInterface.csproj", "{238AEA09-EC02-49A8-B38C-504A5944CF9C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomLogger", "BackendServices\CustomLogger\CustomLogger.csproj", "{F0E085BA-5501-4B94-9055-E77DFC1A8C37}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EndianTools", "BackendServices\EndianTools\EndianTools.csproj", "{6C02C9E8-3D82-4999-8784-4079BEB8CD22}"
@@ -57,16 +55,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HomeWebTools", "Plugins\Hom
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreServer", "BackendServices\NetCoreServer\NetCoreServer.csproj", "{40C9AAC6-0B9E-4010-8D27-5F06AA60F73D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechnitiumLibrary.Net.Firewall", "BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj", "{01AF4373-8906-480C-AD9A-1A3001BEFAB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{238AEA09-EC02-49A8-B38C-504A5944CF9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{238AEA09-EC02-49A8-B38C-504A5944CF9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{238AEA09-EC02-49A8-B38C-504A5944CF9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{238AEA09-EC02-49A8-B38C-504A5944CF9C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F0E085BA-5501-4B94-9055-E77DFC1A8C37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F0E085BA-5501-4B94-9055-E77DFC1A8C37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0E085BA-5501-4B94-9055-E77DFC1A8C37}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -147,6 +143,10 @@ Global
 		{40C9AAC6-0B9E-4010-8D27-5F06AA60F73D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40C9AAC6-0B9E-4010-8D27-5F06AA60F73D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40C9AAC6-0B9E-4010-8D27-5F06AA60F73D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01AF4373-8906-480C-AD9A-1A3001BEFAB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01AF4373-8906-480C-AD9A-1A3001BEFAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01AF4373-8906-480C-AD9A-1A3001BEFAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01AF4373-8906-480C-AD9A-1A3001BEFAB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -173,6 +173,7 @@ Global
 		{7ED1107E-7E6C-4132-9CC9-A81EB18C6FDF} = {BD14841D-553A-4699-AF7A-5E520ADF2CBE}
 		{6EB88EA2-6F44-4A48-AEBD-2B3F79608F66} = {BD14841D-553A-4699-AF7A-5E520ADF2CBE}
 		{40C9AAC6-0B9E-4010-8D27-5F06AA60F73D} = {B9D1BB31-ED3A-4577-9879-0691BD16B171}
+		{01AF4373-8906-480C-AD9A-1A3001BEFAB1} = {B9D1BB31-ED3A-4577-9879-0691BD16B171}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF5FB456-FEE4-4300-9273-869AD97A9A0B}

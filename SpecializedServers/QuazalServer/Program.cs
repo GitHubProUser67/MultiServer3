@@ -1,6 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using QuazalServer.ServerProcessors;
+using System.Reflection;
 using System.Runtime;
 using System.Security.Cryptography;
 
@@ -169,14 +170,14 @@ public static class QuazalServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "quazal.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static Timer? DatabaseUpdate = null;
-    static BackendServicesServer? BackendServer;
-    static RDVServer? RendezVousServer;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "quazal.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? DatabaseUpdate = null;
+    private static BackendServicesServer? BackendServer;
+    private static RDVServer? RendezVousServer;
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         BackendServer?.Stop();
         RendezVousServer?.Stop();
@@ -203,6 +204,8 @@ class Program
     {
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("QuazalServer");
 

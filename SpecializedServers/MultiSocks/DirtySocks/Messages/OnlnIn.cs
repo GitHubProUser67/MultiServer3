@@ -15,13 +15,18 @@ namespace MultiSocks.DirtySocks.Messages
             Model.User? user = !string.IsNullOrEmpty(PERS) ? mc.Users.GetUserByPersonaName(PERS) : client.User;
             if (user == null) return;
 
-            Model.Room? Room = user.CurrentRoom;
+            if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
+                client.SendMessage(user.SendOnlnOut(user, "BURNOUT5"));
+            else
+            {
+                Model.Room? Room = user.CurrentRoom;
 
-            PlusUser info = user.GetInfo();
+                PlusUser info = user.GetInfo();
 
-            client.SendMessage(info);
-            client.SendMessage(this);
-            //client.SendMessage(new OnlnImst());
+                client.SendMessage(info);
+                client.SendMessage(this);
+                //client.SendMessage(new OnlnImst());
+            }
         }
     }
 

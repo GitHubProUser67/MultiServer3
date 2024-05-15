@@ -1,3 +1,4 @@
+using CyberBackendLibrary.Crypto;
 using EndianTools;
 using System;
 using System.Collections;
@@ -189,7 +190,7 @@ namespace HomeTools.BARFramework
                 binaryWriter.Write(tocentry.IV);
             }
             binaryWriter.Close();
-            return Crypto.LIBSECURE.InitiateAESBuffer(memoryStream.ToArray(), Convert.FromBase64String(key), IV, "CTR") ?? Array.Empty<byte>();
+            return LIBSECURE.InitiateAESBuffer(memoryStream.ToArray(), Convert.FromBase64String(key), IV, "CTR") ?? Array.Empty<byte>();
         }
 
         public uint Version1Size

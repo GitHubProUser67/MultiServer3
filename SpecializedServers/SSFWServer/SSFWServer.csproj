@@ -9,6 +9,7 @@
 	<DockerfileRunArguments>-p 8080:8080 -p 10443:10443</DockerfileRunArguments>
 	<ApplicationIcon>SSFW.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
     <ProjectReference Include="..\..\BackendServices\NetCoreServer\NetCoreServer.csproj" />
+	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
 
 </Project>

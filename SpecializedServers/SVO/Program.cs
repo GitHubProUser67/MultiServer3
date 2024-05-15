@@ -7,6 +7,7 @@ using System.Runtime;
 using System.Net;
 using System.Security.Principal;
 using System.Security.Cryptography;
+using System.Reflection;
 
 public static class SVOServerConfiguration
 {
@@ -145,14 +146,14 @@ public static class SVOServerConfiguration
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "svo.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static Task? MediusDatabaseLoop;
-    static OTGSecureServerLite? OTGServer;
-    static SVOServer? _SVOServer;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "svo.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Task? MediusDatabaseLoop;
+    private static OTGSecureServerLite? OTGServer;
+    private static SVOServer? _SVOServer;
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         OTGServer?.StopServer();
         OTGServer = null;
@@ -176,12 +177,16 @@ class Program
     static void Main()
     {
         if (IsWindows)
+        {
             if (!IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin...");
                 if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
                     Environment.Exit(0);
             }
+
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
+        }
         else
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
@@ -268,7 +273,9 @@ class Program
         }
         catch
         {
-            return false;
+            
         }
+
+        return false;
     }
 }

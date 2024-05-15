@@ -9,8 +9,8 @@ using System;
 using System.Threading;
 using CyberBackendLibrary.AIModels;
 using CyberBackendLibrary.HTTP.PluginManager;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.Linq;
 
 public static class HTTPServerConfiguration
 {
@@ -33,9 +33,8 @@ public static class HTTPServerConfiguration
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
-    public static Dictionary<int, Dictionary<string, object>>? PluginsCustomParameters { get; set; }
 
-    public static List<HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
+    public static Dictionary<string, HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -138,32 +137,6 @@ public static class HTTPServerConfiguration
             {
 
             }
-            try
-            {
-                string? NestedJson = config.plugins_custom_parameters;
-
-                if (!string.IsNullOrEmpty(NestedJson))
-                {
-                    PluginsCustomParameters = ParseNestedJsonArray(NestedJson);
-
-#if DEBUG
-                    if (PluginsCustomParameters != null)
-                    {
-                        foreach (var param in PluginsCustomParameters)
-                        {
-                            foreach (var keypair in param.Value)
-                            {
-                                LoggerAccessor.LogInfo($"[HTTP] - Custom Parameter [{param.Key}] added: {keypair.Key} - {keypair.Value}");
-                            }
-                        }
-                    }
-#endif
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogWarn($"Plugins extra data thrown an exception ({ex})");
-            }
         }
         catch (Exception ex)
         {
@@ -208,69 +181,17 @@ public static class HTTPServerConfiguration
         }
         return new JProperty("datetime_offset", jObject);
     }
-
-    private static Dictionary<int, Dictionary<string, object>> ParseNestedJsonArray(string jsonArray)
-    {
-        Dictionary<int, Dictionary<string, object>> dictionary = new();
-
-        int i = 0;
-
-        foreach (JObject obj in JArray.Parse(jsonArray).Children<JObject>())
-        {
-            AddPluginProperties(obj, dictionary, i);
-            i++;
-        }
-
-        return dictionary;
-    }
-
-    private static void AddPluginProperties(JObject obj, Dictionary<int, Dictionary<string, object>> dictionary, int index)
-    {
-        if (!dictionary.ContainsKey(index))
-            dictionary.Add(index, new Dictionary<string, object> { });
-
-        foreach (JProperty property in obj.Properties())
-        {
-            if (property.Value is JValue value)
-                // If value is JValue (primitive), add it directly to dictionary
-                dictionary[index][property.Name] = value.Value;
-            else if (property.Value is JArray array)
-            {
-                // If value is JArray, recursively process its elements
-                List<object> list = new();
-                foreach (var item in array.Children())
-                {
-                    if (item is JObject @object)
-                    {
-                        Dictionary<int, Dictionary<string, object>> subDictionary = new();
-                        AddPluginProperties(@object, subDictionary, index);
-                        list.Add(subDictionary);
-                    }
-                    else
-                        list.Add(((JValue)item).Value);
-                }
-                dictionary[index][property.Name] = list;
-            }
-            else if (property.Value is JObject @object)
-            {
-                // If value is JObject, recursively process its properties
-                Dictionary<int, Dictionary<string, object>> subDictionary = new();
-                AddPluginProperties(@object, subDictionary, index);
-                dictionary[index][property.Name] = subDictionary;
-            }
-        }
-    }
 }
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "http.json";
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static Timer? FilesystemTree = null;
-    static HttpServer? Server;
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "http.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? FilesystemTree = null;
+    private static HttpServer? Server;
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         Server?.Stop();
         Server = null;
@@ -283,12 +204,9 @@ class Program
         if (HTTPServerConfiguration.plugins.Count > 0)
         {
             int i = 0;
-            foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+            foreach (var plugin in HTTPServerConfiguration.plugins)
             {
-                if (HTTPServerConfiguration.PluginsCustomParameters != null && HTTPServerConfiguration.PluginsCustomParameters.ContainsKey(i))
-                    _ = plugin.HTTPStartPlugin(HTTPServerConfiguration.APIStaticFolder, (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i), HTTPServerConfiguration.PluginsCustomParameters[i]);
-                else
-                    _ = plugin.HTTPStartPlugin(HTTPServerConfiguration.APIStaticFolder, (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i), null);
+                _ = plugin.Value.HTTPStartPlugin(HTTPServerConfiguration.APIStaticFolder, (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i));
                 i++;
             }
         }
@@ -300,6 +218,8 @@ class Program
     {
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("HTTPServer");
 

@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.Security.Principal;
 using HttpMultipartParser;
 using SevenZip.Compression.LZ;
+using System.Reflection;
+using System.Linq;
 
 public static class HTTPSServerConfiguration
 {
@@ -104,9 +106,7 @@ public static class HTTPSServerConfiguration
     public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
-    public static Dictionary<int, Dictionary<string, object>>? PluginsCustomParameters { get; set; }
-
-    public static List<HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
+    public static Dictionary<string, HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -221,32 +221,6 @@ public static class HTTPSServerConfiguration
             {
 
             }
-            try
-            {
-                string? NestedJson = config.plugins_custom_parameters;
-
-                if (!string.IsNullOrEmpty(NestedJson))
-                {
-                    PluginsCustomParameters = ParseNestedJsonArray(NestedJson);
-
-#if DEBUG
-                    if (PluginsCustomParameters != null)
-                    {
-                        foreach (var param in PluginsCustomParameters)
-                        {
-                            foreach (var keypair in param.Value)
-                            {
-                                LoggerAccessor.LogInfo($"[HTTPS] - Custom Parameter [{param.Key}] added: {keypair.Key} - {keypair.Value}");
-                            }
-                        }
-                    }
-#endif
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogWarn($"Plugins extra data thrown an exception ({ex})");
-            }
         }
         catch (Exception ex)
         {
@@ -291,75 +265,23 @@ public static class HTTPSServerConfiguration
         }
         return new JProperty("datetime_offset", jObject);
     }
-
-    private static Dictionary<int, Dictionary<string, object>> ParseNestedJsonArray(string jsonArray)
-    {
-        Dictionary<int, Dictionary<string, object>> dictionary = new();
-
-        int i = 0;
-
-        foreach (JObject obj in JArray.Parse(jsonArray).Children<JObject>())
-        {
-            AddPluginProperties(obj, dictionary, i);
-            i++;
-        }
-
-        return dictionary;
-    }
-
-    private static void AddPluginProperties(JObject obj, Dictionary<int, Dictionary<string, object>> dictionary, int index)
-    {
-        if (!dictionary.ContainsKey(index))
-            dictionary.Add(index, new Dictionary<string, object> { });
-
-        foreach (JProperty property in obj.Properties())
-        {
-            if (property.Value is JValue value)
-                // If value is JValue (primitive), add it directly to dictionary
-                dictionary[index][property.Name] = value.Value;
-            else if (property.Value is JArray array)
-            {
-                // If value is JArray, recursively process its elements
-                List<object> list = new();
-                foreach (var item in array.Children())
-                {
-                    if (item is JObject @object)
-                    {
-                        Dictionary<int, Dictionary<string, object>> subDictionary = new();
-                        AddPluginProperties(@object, subDictionary, index);
-                        list.Add(subDictionary);
-                    }
-                    else
-                        list.Add(((JValue)item).Value);
-                }
-                dictionary[index][property.Name] = list;
-            }
-            else if (property.Value is JObject @object)
-            {
-                // If value is JObject, recursively process its properties
-                Dictionary<int, Dictionary<string, object>> subDictionary = new();
-                AddPluginProperties(@object, subDictionary, index);
-                dictionary[index][property.Name] = subDictionary;
-            }
-        }
-    }
 }
 
 class Program
 {
-    static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    static string configPath = configDir + "https.json";
-    static string DNSconfigMD5 = string.Empty;
-    static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    static Timer? Leaderboard = null;
-    static Timer? FilesystemTree = null;
-    static Task? DNSThread = null;
-    static Task? DNSRefreshThread = null;
-    static HTTPSecureServer? Server;
-    static readonly FileSystemWatcher dnswatcher = new();
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "https.json";
+    private static string DNSconfigMD5 = string.Empty;
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? Leaderboard = null;
+    private static Timer? FilesystemTree = null;
+    private static Task? DNSThread = null;
+    private static Task? DNSRefreshThread = null;
+    private static HTTPSecureServer? Server;
+    private static readonly FileSystemWatcher dnswatcher = new();
 
     // Event handler for DNS change event
-    static void OnDNSChanged(object source, FileSystemEventArgs e)
+    private static void OnDNSChanged(object source, FileSystemEventArgs e)
     {
         try
         {
@@ -389,7 +311,7 @@ class Program
         }
     }
 
-    static void StartOrUpdateServer()
+    private static void StartOrUpdateServer()
     {
         Server?.StopServer();
 
@@ -447,12 +369,9 @@ class Program
         if (HTTPSServerConfiguration.plugins.Count > 0)
         {
             int i = 0;
-            foreach (HTTPPlugin plugin in HTTPSServerConfiguration.plugins)
+            foreach (var plugin in HTTPSServerConfiguration.plugins)
             {
-                if (HTTPSServerConfiguration.PluginsCustomParameters != null && HTTPSServerConfiguration.PluginsCustomParameters.ContainsKey(i))
-                    _ = plugin.HTTPStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i), HTTPSServerConfiguration.PluginsCustomParameters[i]);
-                else
-                    _ = plugin.HTTPStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i), null);
+                _ = plugin.Value.HTTPStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i));
                 i++;
             }
         }
@@ -460,7 +379,7 @@ class Program
         Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token);
     }
 
-    static Task RefreshDNS()
+    private static Task RefreshDNS()
     {
         if (DNSThread != null && !SecureDNSConfigProcessor.Initiated)
         {
@@ -476,7 +395,7 @@ class Program
         return Task.CompletedTask;
     }
 
-    static string ComputeMD5FromFile(string filePath)
+    private static string ComputeMD5FromFile(string filePath)
     {
         using (FileStream stream = File.OpenRead(filePath))
         {
@@ -492,6 +411,8 @@ class Program
 
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("HTTPSecureServer");
 

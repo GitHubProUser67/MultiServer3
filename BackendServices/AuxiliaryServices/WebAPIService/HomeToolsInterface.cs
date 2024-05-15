@@ -10,12 +10,13 @@ using HttpMultipartParser;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
-using CompressionLibrary.Custom;
+using CompressionLibrary.Utils;
 using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
+using CyberBackendLibrary.Crypto;
 
 namespace WebAPIService
 {
@@ -792,7 +793,7 @@ namespace WebAPIService
 
                         filename = multipartfile.FileName;
 
-                        byte[]? DecompressedData = new EdgeLZMA().Decompress(buffer, true);
+                        byte[]? DecompressedData = EdgeLZMA.Decompress(buffer, true);
 
                         if (DecompressedData != null && DecompressedData[0] != 0x73 && DecompressedData[1] != 0x65 && DecompressedData[2] != 0x67 && DecompressedData[3] != 0x73)
                             TasksResult.Add((DecompressedData, $"{filename}_Unpacked.sql"));

@@ -13,20 +13,20 @@ namespace MultiSocks.DirtySocks.Messages
             User? user = client.User;
             if (user == null) return;
 
-            if (user.CurrentGame != null) // BIG WIP, DOES NOT WORK!
+            if (user.CurrentGame != null)
             {
                 user.CurrentGame.SetGameStatus(true);
 
                 lock (mc.Games)
                     mc.Games.UpdateGame(user.CurrentGame);
 
-                user.Connection?.SendMessage(user.CurrentGame.GetGstaOut());
+                user.Connection?.SendMessage(new GstaOut());
 
                 user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
 
-                user.Connection?.SendMessage(user.CurrentGame.GetPlusSesV2());
+                user.CurrentGame.BroadcastPopulation();
 
-                // user.CurrentGame.StartGame();
+                user.CurrentGame.BroadcastPlusSesV2();
             }
             else
             {

@@ -64,6 +64,12 @@ namespace Horizon.DME.Models
 
         #endregion
 
+        #region TokenManagement
+
+        public ConcurrentDictionary<ushort, List<int>> clientTokens = new();
+
+        #endregion
+
         public uint WorldId { get; protected set; } = 0;
 
         public int ApplicationId { get; protected set; } = 0;
@@ -184,6 +190,17 @@ namespace Horizon.DME.Models
             }
         }
 
+        public void BroadcastTcpScertMessage(BaseScertMessage msg)
+        {
+            foreach (var client in Clients)
+            {
+                if (!client.Value.IsAuthenticated || !client.Value.IsConnected || !client.Value.HasRecvFlag(RT_RECV_FLAG.RECV_BROADCAST))
+                    continue;
+
+                client.Value.EnqueueTcp(msg);
+            }
+        }
+
         public void BroadcastUdp(ClientObject source, byte[] Payload)
         {
             RT_MSG_CLIENT_APP_SINGLE msg = new()
@@ -298,6 +315,16 @@ namespace Horizon.DME.Models
                     PlayerIndex = (short)player.DmeId,
                     ScertId = (short)player.ScertId,
                     IP = player.RemoteUdpEndpoint?.Address ?? MediusClass.SERVER_IP
+                });
+            }
+
+            foreach (ushort token in clientTokens.Keys)
+            {
+                player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
+                {
+                    tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
+                    TokenID = token,
+                    TokenHost = (ushort)clientTokens[token][0],
                 });
             }
 

@@ -1,4 +1,3 @@
-
 using CustomLogger;
 using CyberBackendLibrary.HTTP;
 using System.Net;

@@ -9,6 +9,7 @@
 	<DockerfileRunArguments>-p 11000-11000 -p 11050-11050 -p 11051-11051 -p 11100-11100 -p 11101-11101 -p 11140-11140 -p 21850-21850 -p 21851-21851 -p 21870-21870 -p 21871-21871</DockerfileRunArguments>
 	<ApplicationIcon>MultiSocks.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +31,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\CyberBackendLibrary\CyberBackendLibrary.csproj" />
+	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
 
 </Project>
