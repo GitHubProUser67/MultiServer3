@@ -8,6 +8,7 @@
 	<DockerfileRunArguments>-p 443:443</DockerfileRunArguments>
     <ApplicationIcon>HTTPS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

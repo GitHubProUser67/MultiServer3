@@ -352,7 +352,7 @@ namespace HTTPSecureServerLite
                     {
                         if (HTTPSServerConfiguration.plugins.Count > 0)
                         {
-                            foreach (HTTPPlugin plugin in HTTPSServerConfiguration.plugins)
+                            foreach (HTTPPlugin plugin in HTTPSServerConfiguration.plugins.Values)
                             {
                                 try
                                 {

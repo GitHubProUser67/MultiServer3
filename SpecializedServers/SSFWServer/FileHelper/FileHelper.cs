@@ -1,5 +1,4 @@
-using CompressionLibrary.Custom;
-
+using CompressionLibrary.Utils;
 using CustomLogger;
 using CyberBackendLibrary.DataTypes;
 using System.Text;
@@ -18,7 +17,7 @@ namespace SSFWServer
                 byte[] src = File.ReadAllBytes(filepath);
                 if (src.Length > 4 && src[0] == 'T' && src[1] == 'L' && src[2] == 'Z' && src[3] == 'C')
                 {
-                    byte[]? DecompressedData = new EdgeLZMA().Decompress(src, false);
+                    byte[]? DecompressedData = EdgeLZMA.Decompress(src, false);
                     if (!string.IsNullOrEmpty(key) && DecompressedData != null && DecompressedData.Length > 9 && DataTypesUtils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         byte[] dst = new byte[DecompressedData.Length - 9];
@@ -58,7 +57,7 @@ namespace SSFWServer
                 byte[] src = File.ReadAllBytes(filepath);
                 if (src.Length > 4 && src[0] == 'T' && src[1] == 'L' && src[2] == 'Z' && src[3] == 'C')
                 {
-                    byte[]? DecompressedData = new EdgeLZMA().Decompress(src, false);
+                    byte[]? DecompressedData = EdgeLZMA.Decompress(src, false);
                     if (!string.IsNullOrEmpty(key) && DecompressedData != null && DecompressedData.Length > 9 && DataTypesUtils.FindbyteSequence(DecompressedData, new byte[] { 0x74, 0x72, 0x69, 0x70, 0x6c, 0x65, 0x64, 0x65, 0x73 }))
                     {
                         byte[] dst = new byte[DecompressedData.Length - 9];
