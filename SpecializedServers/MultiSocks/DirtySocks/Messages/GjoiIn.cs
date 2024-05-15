@@ -45,8 +45,32 @@ namespace MultiSocks.DirtySocks.Messages
             int? parsedRoomID = int.TryParse(ROOM, out int room) ? room : null;
             int? parsedIdent = int.TryParse(IDENT, out int ident) ? ident : null;
 
+            if (!string.IsNullOrEmpty(SESS) && SESS.Equals("Invite") && parsedMinSize.HasValue && parsedMaxSize.HasValue
+                && parsedIdent.HasValue && parsedPriv.HasValue && !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(user.Username))
+            {
+                Game? game = mc.Games.GamesSessions.Values.Where(game => game.pass == PASS && /*game.MinSize == parsedMinSize.Value 
+                && game.MaxSize == parsedMaxSize.Value Commented out, Burnout has an offset for some WEIRD reasons...  */ game.ID == parsedIdent.Value && (game.Priv == (parsedPriv.Value == 1)) && game.Seed == SEED).FirstOrDefault();
+
+                if (game != null)
+                {
+                    game.AddUser(user);
+
+                    user.CurrentGame = game;
+
+                    client.SendMessage(game.GetGjoiOut());
+
+                    user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+
+                    game.BroadcastPopulation();
+                }
+                else
+                {
+                    // TODO SEND DIRTYSOCKS ERROR!
+                }
+            }
+
             // Check if any of the nullable variables are null before calling CreateGame
-            if (parsedMinSize.HasValue && parsedMaxSize.HasValue && parsedRoomID.HasValue && parsedIdent.HasValue && !string.IsNullOrEmpty(CUSTFLAGS) &&
+            else if (parsedMinSize.HasValue && parsedMaxSize.HasValue && parsedRoomID.HasValue && parsedIdent.HasValue && !string.IsNullOrEmpty(CUSTFLAGS) &&
                 !string.IsNullOrEmpty(PARAMS) && !string.IsNullOrEmpty(NAME) && parsedPriv.HasValue &&
                 !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(SYSFLAGS) && !string.IsNullOrEmpty(user.Username))
             {

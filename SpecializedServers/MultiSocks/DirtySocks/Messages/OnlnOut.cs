@@ -1,8 +1,8 @@
-namespace MultiSocks.DirtySocks.Messages
+﻿namespace MultiSocks.DirtySocks.Messages
 {
-    public class PlusWho : AbstractMessage
+    public class OnlnOut : AbstractMessage
     {
-        public override string _Name { get => "+who"; }
+        public override string _Name { get => "onln"; }
 
         public string? M { get; set; }
         public string? N { get; set; }
