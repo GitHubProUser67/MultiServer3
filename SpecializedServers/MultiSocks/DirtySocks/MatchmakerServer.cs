@@ -27,6 +27,7 @@ namespace MultiSocks.DirtySocks
                 { "fupd", typeof(FupdIn) }, // Update friend/rival lists in user record
                 { "hchk", typeof(HchkIn) }, //?
                 { "peek", typeof(PeekIn) }, //Audit room and receive infos about it, but not enter.
+                { "pent", typeof(PentIn) }, // Purchase entitlement.
                 { "pers", typeof(PersIn) }, //select persona
                 { "sdta", typeof(SdtaIn) }, //?
                 { "sele", typeof(SeleIn) }, //gets info for the current server
