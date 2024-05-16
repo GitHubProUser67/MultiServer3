@@ -8,6 +8,7 @@ namespace MultiSocks.Tls;
 
 /// <summary>
 /// Original code from: https://github.com/zivillian/ism7mqtt
+/// Credits: https://github.com/valters-tomsons/arcadia
 /// </summary>
 public class Rc4TlsCrypto : BcTlsCrypto
 {

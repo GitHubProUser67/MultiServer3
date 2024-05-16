@@ -3,11 +3,11 @@ using MultiSocks.DirtySocks;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Runtime;
-using System.Security.Cryptography;
 
 public static class MultiSocksServerConfiguration
 {
     public static bool UsePublicIPAddress { get; set; } = false;
+    public static bool RPCS3Workarounds { get; set; } = true;
     public static string DirtySocksDatabasePath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
 
     /// <summary>
@@ -28,6 +28,7 @@ public static class MultiSocksServerConfiguration
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
                 new JProperty("use_public_ipaddress", UsePublicIPAddress),
+                new JProperty("rpcs3_workarounds", RPCS3Workarounds),
                 new JProperty("dirtysocks_database_path", DirtySocksDatabasePath)
             ).ToString().Replace("/", "\\\\"));
 
@@ -40,6 +41,7 @@ public static class MultiSocksServerConfiguration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             UsePublicIPAddress = GetValueOrDefault(config, "use_public_ipaddress", UsePublicIPAddress);
+            RPCS3Workarounds = GetValueOrDefault(config, "rpcs3_workarounds", RPCS3Workarounds);
             DirtySocksDatabasePath = GetValueOrDefault(config, "dirtysocks_database_path", DirtySocksDatabasePath);
         }
         catch (Exception ex)
