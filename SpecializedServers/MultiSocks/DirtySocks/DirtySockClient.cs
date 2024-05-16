@@ -60,8 +60,10 @@ namespace MultiSocks.DirtySocks
         {
             if (secure)
             {
+                NetworkStream? networkStream = ClientTcp.GetStream();
+
                 Ssl3TlsServer connTls = new(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1);
-                TlsServerProtocol serverProtocol = new(ClientTcp.GetStream());
+                TlsServerProtocol serverProtocol = new(networkStream);
 
                 try
                 {

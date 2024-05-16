@@ -12,6 +12,8 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? RedirectorTSBO_PAL;
         private AbstractDirtySockServer? RedirectorBOP_PS3;
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
+        // private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC; GITHUB Tracker here: https://github.com/valters-tomsons/arcadia/issues/19
+        // private AbstractDirtySockServer? RedirectorNASCAR09_PS3; GITHUB Tracker here: https://github.com/valters-tomsons/arcadia/issues/19
         private AbstractDirtySockServer? BurnoutParadiseUltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
@@ -75,6 +77,24 @@ namespace MultiSocks.DirtySocks
             {
                 LoggerAccessor.LogError($"[RedirectorBOPULTIMATEBOX_PS3] Failed to start! Exception: {ex}");
             }
+
+            /*try
+            {
+                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21871, false, "BURNOUT5", "PC", true, "pcburnout08.ea.com");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[RedirectorBOPULTIMATEBOX_PC] Failed to start! Exception: {ex}");
+            }*/
+
+            /*try
+            {
+                RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, false, "NASCAR09", "PS3", true, "ps3nascar09.ea.com");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[RedirectorNASCAR09_PS3] Failed to start! Exception: {ex}");
+            }*/
 
             try
             {
