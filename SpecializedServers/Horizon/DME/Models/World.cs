@@ -318,14 +318,24 @@ namespace Horizon.DME.Models
                 });
             }
 
-            foreach (ushort token in clientTokens.Keys)
+            try
             {
-                player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
+                foreach (ushort token in clientTokens.Keys)
                 {
-                    tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
-                    TokenID = token,
-                    TokenHost = (ushort)clientTokens[token][0],
-                });
+                    if (clientTokens.ContainsKey(token) && clientTokens[token].Count > 0)
+                    {
+                        player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
+                        {
+                            tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
+                            TokenID = token,
+                            TokenHost = (ushort)clientTokens[token][0],
+                        });
+                    }
+                }
+            }
+            catch
+            {
+
             }
 
             // Tell server
