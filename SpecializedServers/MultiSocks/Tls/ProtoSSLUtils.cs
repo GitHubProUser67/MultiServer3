@@ -1,8 +1,4 @@
 using System.Collections.Concurrent;
-using System.Runtime.Intrinsics.X86;
-using System.Runtime.Intrinsics;
-
-using CustomLogger;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -16,11 +12,13 @@ using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 using CyberBackendLibrary.DataTypes;
+using CustomLogger;
 
 namespace MultiSocks.Tls;
 
 /// <summary>
 /// Based on the following article: https://github.com/Aim4kill/Bug_OldProtoSSL
+/// Credits: https://github.com/valters-tomsons/arcadia
 /// </summary>
 public class ProtoSSLUtils
 {
