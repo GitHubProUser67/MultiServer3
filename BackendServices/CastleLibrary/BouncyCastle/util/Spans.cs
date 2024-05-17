@@ -1,4 +1,4 @@
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+﻿#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System;
 using System.Runtime.CompilerServices;
 

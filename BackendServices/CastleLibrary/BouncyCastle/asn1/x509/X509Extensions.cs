@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier ExpiredCertsOnCrl = new DerObjectIdentifier("2.5.29.60");
 
         /**
-         * the subjectï¿½s alternative public key information
+         * the subject’s alternative public key information
          */
         public static readonly DerObjectIdentifier SubjectAltPublicKeyInfo = new DerObjectIdentifier("2.5.29.72");
 
@@ -188,15 +188,14 @@ namespace Org.BouncyCastle.Asn1.X509
             new Dictionary<DerObjectIdentifier, X509Extension>();
         private readonly List<DerObjectIdentifier> m_ordering;
 
-        public static X509Extension GetExtension(X509Extensions extensions, DerObjectIdentifier oid)
-        {
-            return extensions?.GetExtension(oid);
-        }
+        public static X509Extension GetExtension(X509Extensions extensions, DerObjectIdentifier oid) =>
+            extensions?.GetExtension(oid);
 
-        public static Asn1Encodable GetExtensionParsedValue(X509Extensions extensions, DerObjectIdentifier oid)
-        {
-            return extensions?.GetExtensionParsedValue(oid);
-        }
+        public static Asn1Object GetExtensionParsedValue(X509Extensions extensions, DerObjectIdentifier oid) =>
+            extensions?.GetExtensionParsedValue(oid);
+
+        public static Asn1OctetString GetExtensionValue(X509Extensions extensions, DerObjectIdentifier oid) =>
+            extensions?.GetExtensionValue(oid);
 
 		public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
@@ -229,6 +228,8 @@ namespace Org.BouncyCastle.Asn1.X509
         private X509Extensions(Asn1Sequence seq)
         {
             m_ordering = new List<DerObjectIdentifier>();
+
+            // Don't require empty sequence; we see empty extension blocks in the wild
 
 			foreach (Asn1Encodable ae in seq)
 			{
@@ -316,10 +317,8 @@ namespace Org.BouncyCastle.Asn1.X509
          *
          * @return the extension if it's present, null otherwise.
          */
-        public X509Extension GetExtension(DerObjectIdentifier oid)
-        {
-            return CollectionUtilities.GetValueOrNull(m_extensions, oid);
-        }
+        public X509Extension GetExtension(DerObjectIdentifier oid) =>
+            CollectionUtilities.GetValueOrNull(m_extensions, oid);
 
         /**
          * return the parsed value of the extension represented by the object identifier
@@ -327,10 +326,9 @@ namespace Org.BouncyCastle.Asn1.X509
          *
          * @return the parsed value of the extension if it's present, null otherwise.
          */
-        public Asn1Encodable GetExtensionParsedValue(DerObjectIdentifier oid)
-        {
-            return GetExtension(oid)?.GetParsedValue();
-        }
+        public Asn1Object GetExtensionParsedValue(DerObjectIdentifier oid) => GetExtension(oid)?.GetParsedValue();
+
+        public Asn1OctetString GetExtensionValue(DerObjectIdentifier oid) => GetExtension(oid)?.Value;
 
 		/**
 		 * <pre>

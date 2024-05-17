@@ -227,8 +227,16 @@ namespace Org.BouncyCastle.Security
                 "DIFFIEHELLMAN");
             AddKpgAlgorithm("DSA");
             AddKpgAlgorithm("EC",
-                // TODO Should this be an alias for ECDH?
-                X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme);
+                X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha384kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_stdDH_sha512kdf_scheme,
+                X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha224kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha384kdf_scheme,
+                SecObjectIdentifiers.dhSinglePass_cofactorDH_sha512kdf_scheme);
             AddKpgAlgorithm("ECDH",
                 "ECIES");
             AddKpgAlgorithm("ECDHC");
@@ -267,7 +275,7 @@ namespace Org.BouncyCastle.Security
             AddDefaultKeySizeEntries(80, "SKIPJACK");
             AddDefaultKeySizeEntries(128, "AES128", "ARIA128", "BLOWFISH", "CAMELLIA128", "CAST5", "CHACHA", "DESEDE",
                 "HC128", "HMACMD2", "HMACMD4", "HMACMD5", "HMACRIPEMD128", "IDEA", "NOEKEON",
-                "RC2", "RC4", "RC5", "SALSA20", "SEED", "SM4", "TEA", "XTEA", "VMPC", "VMPC-KSA3");
+                "RC2", "RC4", "RC5", "SALSA20", "SEED", "SM4", "TEA", "XTEA", "VMPC", "VMPC-KSA3", "ZUC128");
             AddDefaultKeySizeEntries(160, "HMACRIPEMD160", "HMACSHA1");
             AddDefaultKeySizeEntries(192, "AES", "AES192", "ARIA192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
                 "RIJNDAEL", "SERPENT", "TNEPRES");

@@ -25,6 +25,7 @@ namespace MultiSocks.DirtySocks
                 { "fbst", typeof(FbstIn) }, //?
                 { "fget", typeof(FgetIn) }, //?
                 { "fupd", typeof(FupdIn) }, // Update friend/rival lists in user record
+                { "fupr", typeof(FuprIn) }, //?
                 { "hchk", typeof(HchkIn) }, //?
                 { "peek", typeof(PeekIn) }, //Audit room and receive infos about it, but not enter.
                 { "pent", typeof(PentIn) }, // Purchase entitlement.
@@ -65,7 +66,7 @@ namespace MultiSocks.DirtySocks
 
         private readonly Thread PingThread;
 
-        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null, bool secure = false, string CN = "") : base(port, lowlevel, Project, SKU, secure, CN)
+        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false) : base(port, lowlevel, Project, SKU, secure, CN, email, WeakChainSignedRSAKey)
         {
             Rooms.Server = this;
 

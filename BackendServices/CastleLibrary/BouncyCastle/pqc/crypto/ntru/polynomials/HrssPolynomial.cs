@@ -1,4 +1,4 @@
-using Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets;
+﻿using Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Polynomials
 {

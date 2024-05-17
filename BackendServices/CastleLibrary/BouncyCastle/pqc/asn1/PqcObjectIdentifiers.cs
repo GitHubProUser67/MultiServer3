@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;

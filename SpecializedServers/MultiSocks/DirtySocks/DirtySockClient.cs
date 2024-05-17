@@ -35,7 +35,7 @@ namespace MultiSocks.DirtySocks
 
         private static int MAX_SIZE = 1024 * 1024 * 2;
 
-        public DirtySockClient(AbstractDirtySockServer context, TcpClient client, bool secure, string CN)
+        public DirtySockClient(AbstractDirtySockServer context, TcpClient client, bool secure, string CN, string email, bool WeakChainSignedRSAKey)
         {
             this.secure = secure;
             Context = context;
@@ -45,7 +45,7 @@ namespace MultiSocks.DirtySocks
             LoggerAccessor.LogInfo("New connection from " + IP + ".");
 
             if (secure)
-                SecureKeyCert = new ProtoSSLUtils().GetCustomEaCert(CN);
+                SecureKeyCert = new ProtoSSLUtils().GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
 
             RecvThread = new Thread(RunLoop);
             RecvThread.Start();
