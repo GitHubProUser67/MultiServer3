@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -111,6 +111,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 int signatureScheme = SignatureScheme.From(HashAlgorithm.Intrinsic, signatureAlgorithm);
                 return new BcTlsRsaPssVerifier(m_crypto, GetPubKeyRsa(), signatureScheme);
             }
+
+            // TODO[RFC 9189]
+            case SignatureAlgorithm.gostr34102012_256:
+            case SignatureAlgorithm.gostr34102012_512:
 
             default:
                 throw new TlsFatalAlert(AlertDescription.certificate_unknown);
@@ -470,6 +474,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case SignatureAlgorithm.rsa_pss_pss_sha512:
                 return SupportsRsa_Pss_Pss(signatureAlgorithm)
                     && publicKey is RsaKeyParameters;
+
+            // TODO[RFC 9189]
+            case SignatureAlgorithm.gostr34102012_256:
+            case SignatureAlgorithm.gostr34102012_512:
 
             default:
                 return false;

@@ -6,10 +6,10 @@ namespace MultiSocks.DirtySocks.Messages
 
         public string? I { get; set; }
         public string? N { get; set; }
-        public string H { get; set; } = "FreeSO";
-        public string F { get; set; } = "CK";
+        public string? H { get; set; } = "FreeSO";
+        public string? F { get; set; } = "CK";
         public string? T { get; set; }
-        public string L { get; set; } = "4";
-        public string P { get; set; } = "0";
+        public string? L { get; set; } = "4";
+        public string? P { get; set; } = "0";
     }
 }

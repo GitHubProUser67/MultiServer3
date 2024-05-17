@@ -1,4 +1,4 @@
-namespace Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets
+﻿namespace Org.BouncyCastle.Pqc.Crypto.Ntru.ParameterSets
 {
     internal class NtruHrss701 : NtruHrssParameterSet
     {

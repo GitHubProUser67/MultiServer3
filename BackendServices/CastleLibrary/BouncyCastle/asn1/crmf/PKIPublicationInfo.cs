@@ -1,4 +1,4 @@
-using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {

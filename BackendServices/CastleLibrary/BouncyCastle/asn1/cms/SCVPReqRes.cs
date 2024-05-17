@@ -1,4 +1,4 @@
-namespace Org.BouncyCastle.Asn1.Cms
+﻿namespace Org.BouncyCastle.Asn1.Cms
 {
     public class ScvpReqRes
         : Asn1Encodable

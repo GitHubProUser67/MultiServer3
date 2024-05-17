@@ -1,4 +1,4 @@
-#if NETCOREAPP3_0_OR_GREATER
+﻿#if NETCOREAPP3_0_OR_GREATER
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
@@ -142,14 +142,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private enum Mode { DEC_128, DEC_192, DEC_256, ENC_128, ENC_192, ENC_256, UNINITIALIZED };
 
-        private Vector128<byte>[]? m_roundKeys;
-        private Mode m_mode;
+        private Vector128<byte>[] m_roundKeys = null;
+        private Mode m_mode = Mode.UNINITIALIZED;
 
-        public AesEngine_X86(Vector128<byte>[]? roundKeys = null)
+        public AesEngine_X86()
         {
-            m_roundKeys = roundKeys;
-            m_mode = Mode.UNINITIALIZED;
-
             if (!IsSupported)
                 throw new PlatformNotSupportedException(nameof(AesEngine_X86));
         }
@@ -162,9 +159,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!(parameters is KeyParameter keyParameter))
             {
-                if (parameters == null)
-                    throw new ArgumentNullException(nameof(parameters));
-
+                ArgumentNullException.ThrowIfNull(parameters, nameof(parameters));
                 throw new ArgumentException("invalid type: " + Platform.GetTypeName(parameters), nameof(parameters));
             }
 

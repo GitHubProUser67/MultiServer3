@@ -56,12 +56,7 @@ namespace MultiSocks.DirtySocks.Messages
             else if (NAME == "1" || NAME == "3")
                 client.SendMessage(Encoding.ASCII.GetBytes("MultiServer Driven EA Server."));
             else if (NAME == "8")
-            {
-                User? user = client.User;
-                if (user == null) return;
-
                 client.SendMessage(new Newsnew8());
-            }
             else
                 CustomLogger.LoggerAccessor.LogWarn($"[DirtySocks] - News - Client Requested an unknown config type: {NAME}, not responding");
         }

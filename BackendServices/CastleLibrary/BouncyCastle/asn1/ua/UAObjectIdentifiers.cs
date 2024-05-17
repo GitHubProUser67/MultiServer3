@@ -1,4 +1,4 @@
-namespace Org.BouncyCastle.Asn1.UA
+﻿namespace Org.BouncyCastle.Asn1.UA
 {
     /**
      * Ukrainian object identifiers

@@ -19,14 +19,18 @@ namespace MultiSocks.DirtySocks
         public TcpListener Listener;
 
         private bool secure = false;
+        private bool WeakChainSignedRSAKey = false;
         private string CN = string.Empty;
+        private string email = string.Empty;
         private Thread ListenerThread;
 
-        public AbstractDirtySockServer(ushort port, bool lowlevel, string? Project = null, string? SKU = null, bool secure = false, string CN = "")
+        public AbstractDirtySockServer(ushort port, bool lowlevel, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false)
         {
             this.secure = secure;
             this.lowlevel = lowlevel;
+            this.WeakChainSignedRSAKey = WeakChainSignedRSAKey;
             this.CN = CN;
+            this.email = email;
             this.Project = Project;
             this.SKU = SKU;
 
@@ -47,7 +51,7 @@ namespace MultiSocks.DirtySocks
                     TcpClient client = Listener.AcceptTcpClient();
                     if (client != null)
                     {
-                        AddClient(new DirtySockClient(this, client, secure, CN)
+                        AddClient(new DirtySockClient(this, client, secure, CN, email, WeakChainSignedRSAKey)
                         {
                             SessionID = SessionID++
                         });
@@ -55,9 +59,9 @@ namespace MultiSocks.DirtySocks
                     await Task.Delay(1);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogWarn("TCP DirtySock listener stopped working!");
+                CustomLogger.LoggerAccessor.LogWarn($"TCP DirtySock listener stopped working! (reason:{ex})");
             }
         }
 

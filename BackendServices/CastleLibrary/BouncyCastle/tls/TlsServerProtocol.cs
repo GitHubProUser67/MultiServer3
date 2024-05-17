@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -356,7 +356,7 @@ namespace Org.BouncyCastle.Tls
                 int namedGroup = clientShare.NamedGroup;
 
                 TlsAgreement agreement;
-                if (NamedGroup.RefersToASpecificCurve(namedGroup))
+                if (NamedGroup.RefersToAnECDHCurve(namedGroup))
                 {
                     agreement = crypto.CreateECDomain(new TlsECConfig(namedGroup)).CreateECDH();
                 }
