@@ -72,7 +72,27 @@ namespace QuazalServer.QNetZ.DDL
 		public string Address { get => _address; set { _address = value; _dirty = true; } }
 		public Dictionary<string, int> Parameters { get => _parameters; set { _parameters = value; _dirty = true; } }
 
-		void BuildUrlString()
+        public bool IsPublic
+        {
+            get
+            {
+                int type = 0;
+                _parameters.TryGetValue("type", out type);
+                return (type & 2) != 0;
+            }
+        }
+        public bool IsBehindNAT
+        {
+            get
+            {
+                int type = 0;
+                _parameters.TryGetValue("type", out type);
+                return (type & 1) != 0;
+            }
+        }
+        public bool IsGlobal { get => IsPublic && IsBehindNAT; }
+
+        void BuildUrlString()
 		{
 			if (!_dirty)
 				return;
@@ -101,7 +121,34 @@ namespace QuazalServer.QNetZ.DDL
 			Valid = true;
 		}
 
-		public void ParseStationUrl(string? newUrlValue)
+        public bool Compare(StationURL otherUrl, IEnumerable<string> compareParameters = null)
+        {
+            if (otherUrl == null)
+                return false;
+
+            if (_urlScheme != otherUrl._urlScheme)
+                return false;
+
+            if (_address != otherUrl._address)
+                return false;
+
+            if (compareParameters == null)
+                return true;
+
+            foreach (var paramName in compareParameters)
+            {
+                int param = 0;
+                int otherParam = 0;
+                if (_parameters.TryGetValue(paramName, out param) && otherUrl._parameters.TryGetValue(paramName, out otherParam))
+                {
+                    if (param != otherParam)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public void ParseStationUrl(string? newUrlValue)
 		{
 			if (!string.IsNullOrEmpty(newUrlValue))
 			{

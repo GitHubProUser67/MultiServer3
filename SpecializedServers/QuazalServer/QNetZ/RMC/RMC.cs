@@ -222,7 +222,7 @@ namespace QuazalServer.QNetZ
 
 		private static void WriteLog(QClient client, Func<string> resolve, bool err)
         {
-			string? unknwnClientName = client.Info != null ? client.Info.Name : "<unkClient>";
+			string? unknwnClientName = client.PlayerInfo != null ? client.PlayerInfo.Name : "<unkClient>";
 			if (err)
                 LoggerAccessor.LogError($"[RMC] ({unknwnClientName}) {resolve.Invoke()}");
 			else
@@ -231,7 +231,7 @@ namespace QuazalServer.QNetZ
 
         private static void WriteLog(QClient client, string s, bool err)
 		{
-			string? unknwnClientName = client.Info != null ? client.Info.Name : "<unkClient>";
+			string? unknwnClientName = client.PlayerInfo != null ? client.PlayerInfo.Name : "<unkClient>";
 			if (err)
                 LoggerAccessor.LogError($"[RMC] ({unknwnClientName}) {s}");
 			else

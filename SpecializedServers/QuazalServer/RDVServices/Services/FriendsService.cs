@@ -46,9 +46,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(6)]
 		public RMCResult DeclineFriendship(uint uiPlayer)
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                PlayerInfo? plInfo = Context.Client.Info;
+                PlayerInfo? plInfo = Context.Client.PlayerInfo;
                 uint myUserPid = plInfo.PID;
 
                 // send notification

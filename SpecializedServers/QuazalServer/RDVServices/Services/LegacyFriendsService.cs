@@ -25,9 +25,9 @@ namespace QuazalServer.RDVServices.Services
         {
             // TODO, relationship means to switch to relationship list, bReversed I assume is order.
 
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
             {
-                PlayerInfo? plInfo = Context.Client.Info;
+                PlayerInfo? plInfo = Context.Client.PlayerInfo;
 
 				if (File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{plInfo.Name}_{plInfo.PID}_legacy_friends-list.json"))
 				{

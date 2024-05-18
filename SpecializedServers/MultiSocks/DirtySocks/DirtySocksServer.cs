@@ -14,7 +14,8 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC;
         private AbstractDirtySockServer? RedirectorNASCAR09_PS3;
-        private AbstractDirtySockServer? BurnoutParadiseUltimateBoxMatchmaker;
+        private AbstractDirtySockServer? BurnoutParadisePS3UltimateBoxMatchmaker;
+        private AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
         private AbstractDirtySockServer? SSX3Matchmaker;
@@ -80,7 +81,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21871, false, "BURNOUT5", "PC", true, "pcburnout08.ea.com", "pcburnout08@ea.com");
+                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21842, false, "BURNOUT5", "PC", true, "pcburnout08.ea.com", "pcburnout08@ea.com");
             }
             catch (Exception ex)
             {
@@ -107,11 +108,20 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                BurnoutParadiseUltimateBoxMatchmaker = new MatchmakerServer(21871, true, null, "BURNOUT5", "PS3");
+                BurnoutParadisePS3UltimateBoxMatchmaker = new MatchmakerServer(21871, true, null, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[BurnoutParadiseUltimateBoxMatchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                BurnoutParadisePCUltimateBoxMatchmaker = new MatchmakerServer(21842, true, null, "BURNOUT5", "PC");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[BurnoutParadisePCUltimateBoxMatchmaker] Failed to start! Exception: {ex}");
             }
 
             try
@@ -156,7 +166,7 @@ namespace MultiSocks.DirtySocks
                     RedirectorBOP_PS3?.Dispose();
                     RedirectorBOPULTIMATEBOX_PS3?.Dispose();
                     BurnoutParadisePS3Matchmaker?.Dispose();
-                    BurnoutParadiseUltimateBoxMatchmaker?.Dispose();
+                    BurnoutParadisePS3UltimateBoxMatchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();
 

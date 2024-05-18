@@ -135,7 +135,7 @@ namespace QuazalServer.QNetZ
 		{
 			lock (CachedResponses)
 			{
-				foreach (var cr in CachedResponses)
+				foreach (QReliableResponse cr in CachedResponses)
 				{
 					cr.ResponseList.RemoveAll(x =>
 						x.Packet.m_bySessionID == ackPacket.m_bySessionID &&
@@ -164,21 +164,24 @@ namespace QuazalServer.QNetZ
 				return null;
 			}
 
-			// delete all invalid messages
-			CachedResponses.RemoveAll(x =>
-				x.SrcPacket == null ||
-				x.SrcPacket.m_oSourceVPort == null ||
-				x.SrcPacket.m_oDestinationVPort == null);
+            lock (CachedResponses)
+			{
+                // delete all invalid messages
+                CachedResponses.RemoveAll(x =>
+                x.SrcPacket == null ||
+                x.SrcPacket.m_oSourceVPort == null ||
+                x.SrcPacket.m_oDestinationVPort == null);
 
-			return CachedResponses.FirstOrDefault(cr =>
-					cr.SrcPacket.type == packet.type &&
-					cr.SrcPacket.m_uiSignature == packet.m_uiSignature &&
-					cr.SrcPacket.m_oSourceVPort?.type == packet.m_oSourceVPort.type &&
-					cr.SrcPacket.m_oSourceVPort.port == packet.m_oSourceVPort.port &&
-					cr.SrcPacket.m_oDestinationVPort?.type == packet.m_oDestinationVPort.type &&
-					cr.SrcPacket.m_oDestinationVPort.port == packet.m_oDestinationVPort.port &&
-					cr.SrcPacket.uiSeqId == packet.uiSeqId &&
-					cr.SrcPacket.checkSum == packet.checkSum);
+                return CachedResponses.FirstOrDefault(cr =>
+                        cr.SrcPacket.type == packet.type &&
+                        cr.SrcPacket.m_uiSignature == packet.m_uiSignature &&
+                        cr.SrcPacket.m_oSourceVPort?.type == packet.m_oSourceVPort.type &&
+                        cr.SrcPacket.m_oSourceVPort.port == packet.m_oSourceVPort.port &&
+                        cr.SrcPacket.m_oDestinationVPort?.type == packet.m_oDestinationVPort.type &&
+                        cr.SrcPacket.m_oDestinationVPort.port == packet.m_oDestinationVPort.port &&
+                        cr.SrcPacket.uiSeqId == packet.uiSeqId &&
+                        cr.SrcPacket.checkSum == packet.checkSum);
+            }
 		}
 
 		// Caches the response which is going to be sent
@@ -198,8 +201,11 @@ namespace QuazalServer.QNetZ
 			QReliableResponse? cache = GetCachedResponseByRequestPacket(requestPacket);
 			if (cache == null)
 			{
-				cache = new QReliableResponse(requestPacket, ep);
-				CachedResponses.Add(cache);
+                lock (CachedResponses)
+				{
+                    cache = new QReliableResponse(requestPacket, ep);
+                    CachedResponses.Add(cache);
+                }
 			}
 			else
                 LoggerAccessor.LogInfo("[PRUDP Reliable Handler] - Found cached request");
@@ -231,19 +237,16 @@ namespace QuazalServer.QNetZ
 
 		private Task CheckResendPackets()
 		{
-			if (CachedResponses.Count > 0)
-			{
-                CachedResponses.RemoveAll(x => x.SrcPacket == null);
-                reliableResend.AddRange(CachedResponses.Where(x => DateTime.UtcNow >= x.ResendTime));
-                CachedResponses.RemoveAll(x => DateTime.UtcNow >= x.DropTime);
-
-                if (reliableResend.Count > 0)
-                    Parallel.ForEach(reliableResend, crp => { RetrySend(crp); });
-
-                reliableResend.Clear();
+            QReliableResponse[] reliableResend;
+            lock (CachedResponses)
+            {
+                reliableResend = CachedResponses.Where(x => x.SrcPacket != null && DateTime.UtcNow >= x.ResendTime).ToArray();
+                CachedResponses.RemoveAll(x => x.SrcPacket == null || DateTime.UtcNow >= x.DropTime);
             }
+            foreach (QReliableResponse crp in reliableResend)
+                RetrySend(crp);
 
-			return Task.CompletedTask;
+            return Task.CompletedTask;
         }
 	}
 }

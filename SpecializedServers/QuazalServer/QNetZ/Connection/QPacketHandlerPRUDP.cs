@@ -96,11 +96,11 @@ namespace QuazalServer.QNetZ
                 }
 
                 // drop player in case when of new account but same address
-                if (client.Info != null)
-                    NetworkPlayers.DropPlayerInfo(client.Info);
+                if (client.PlayerInfo != null)
+                    NetworkPlayers.DropPlayerInfo(client.PlayerInfo);
 
                 playerInfo.Client = client;
-                client.Info = playerInfo;
+                client.PlayerInfo = playerInfo;
 
                 uint responseCode = Helper.ReadU32(m);
 
@@ -400,7 +400,7 @@ namespace QuazalServer.QNetZ
                 {
                     QClient? client = Clients[i];
                     if (client.State == QClient.StateType.Dropped ||
-                        (DateTime.UtcNow - client.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
+                        client.TimeSinceLastPacket > Constants.ClientTimeoutSeconds)
                     {
                         LoggerAccessor.LogWarn($"[PRUDP Handler] - [{SourceName}] dropping client: 0x{client.IDsend:X8}");
                         client.State = QClient.StateType.Dropped;
@@ -460,14 +460,14 @@ namespace QuazalServer.QNetZ
 		{
 			foreach (QClient c in Clients)
 			{
-				if (c.Info == null)
+				if (c.PlayerInfo == null)
 					continue;
 
 				// also check if timed out
-				if ((DateTime.UtcNow - c.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
+				if (c.TimeSinceLastPacket > Constants.ClientTimeoutSeconds)
 					continue;
 
-				if (c.Info.PID == userPID)
+				if (c.PlayerInfo.PID == userPID)
 					return c;
 			}
 

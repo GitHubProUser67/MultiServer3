@@ -19,7 +19,7 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(1)]
         public RMCResult? Register(List<string> vecMyURLs)
         {
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
             {
                 // change address
                 StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
@@ -30,7 +30,7 @@ namespace QuazalServer.RDVServices.Services
 
                 RegisterResult result = new()
                 {
-                    pidConnectionID = Context.Client.Info.RVCID,
+                    pidConnectionID = Context.Client.PlayerInfo.RVCID,
                     retval = (int)ErrorCode.Core_NoError,
                     urlPublic = rdvConnectionUrl
                 };
@@ -56,7 +56,7 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(4)]
         public RMCResult RegisterEx(ICollection<StationURL> vecMyURLs, AnyData<SonyNPTicket> hCustomData)
         {
-            if (hCustomData.data != null && hCustomData.data.ticket != null && hCustomData.data.ticket.data != null && Context != null && Context.Client.Info != null)
+            if (hCustomData.data != null && hCustomData.data.ticket != null && hCustomData.data.ticket.data != null && Context != null && Context.Client.PlayerInfo != null)
             {
                 // Extract the desired portion of the binary data
                 byte[] extractedData = new byte[0x63 - 0x54 + 1];
@@ -85,7 +85,7 @@ namespace QuazalServer.RDVServices.Services
 
                 RegisterResult result = new()
                 {
-                    pidConnectionID = Context.Client.Info.RVCID,
+                    pidConnectionID = Context.Client.PlayerInfo.RVCID,
                     retval = (int)ErrorCode.Core_NoError,
                     urlPublic = rdvConnectionUrl
                 };

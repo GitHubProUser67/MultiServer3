@@ -14,23 +14,13 @@ namespace QuazalServer.QNetZ
 
         public static PlayerInfo? GetPlayerInfoByPID(uint pid)
 		{
-			foreach (PlayerInfo pl in Players)
-			{
-				if (pl.PID == pid)
-					return pl;
-			}
-			return null;
-		}
+            return Players.SingleOrDefault(pl => pl.PID == pid);
+        }
 
 		public static PlayerInfo? GetPlayerInfoByUsername(string userName)
 		{
-			foreach (PlayerInfo pl in Players)
-			{
-				if (pl.Name == userName)
-					return pl;
-			}
-			return null;
-		}
+            return Players.SingleOrDefault(pl => pl.Name == userName);
+        }
 
 		public static PlayerInfo CreatePlayerInfo(QClient connection)
 		{
@@ -51,31 +41,31 @@ namespace QuazalServer.QNetZ
 			Players.Clear();
 		}
 
-		public static void DropPlayerInfo(PlayerInfo plInfo)
+		public static void DropPlayerInfo(PlayerInfo playerInfo)
 		{
-			if (plInfo.Client != null)
-                plInfo.Client.Info = null;
+			LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - dropping player: {playerInfo.Name}");
 
-            plInfo.OnDropped();
-			LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - dropping player: {plInfo.Name}");
-			
-			Players.Remove(plInfo);
-		}
+            if (playerInfo.Client != null)
+                playerInfo.Client.PlayerInfo = null;
+
+            playerInfo.OnDropped();
+            Players.Remove(playerInfo);
+        }
 
 		public static void DropPlayers()
 		{
 			lock (lockObject) // Prevents the same action being done multiple times if the loop is very tight.
 			{
-                Players.RemoveAll(plInfo => {
-                    if (plInfo.Client?.State == QClient.StateType.Dropped &&
-                        (DateTime.UtcNow - plInfo.Client.LastPacketTime).TotalSeconds > Constants.ClientTimeoutSeconds)
-                    {
-                        plInfo.OnDropped();
-                        LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - auto-dropping player: {plInfo.Name}");
-
-                        return true;
-                    }
-                    return false;
+                Players.RemoveAll(playerInfo => {
+                    if (playerInfo.Client?.State != QClient.StateType.Dropped)
+                        return false;
+                    if (playerInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                        return false;
+                    LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - auto-dropping player: {playerInfo.Name}");
+                    if (playerInfo.Client != null)
+                        playerInfo.Client.PlayerInfo = null;
+                    playerInfo.OnDropped();
+                    return true;
                 });
             }
 		}

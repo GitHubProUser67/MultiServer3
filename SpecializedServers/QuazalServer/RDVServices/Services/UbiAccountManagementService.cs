@@ -14,9 +14,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(1)]
 		public RMCResult CreateAccount()
 		{
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
-				UbiAccount? account = UbisoftDatabase.AccountDatabase.CreateAccount(Context.Client.Info);
+				UbiAccount? account = UbisoftDatabase.AccountDatabase.CreateAccount(Context.Client.PlayerInfo);
 
 				if (account != null)
                     return Result(new { ubi_account = account, failed_reasons = new List<ValidationFailureReason>() });
@@ -34,9 +34,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(3)]
 		public RMCResult GetAccount()
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                PlayerInfo? playerInfo = Context.Client.Info;
+                PlayerInfo? playerInfo = Context.Client.PlayerInfo;
 
 				if (playerInfo != null)
 				{
@@ -112,17 +112,17 @@ namespace QuazalServer.RDVServices.Services
         [RMCMethod(4)]
 		public RMCResult? LinkAccount(string ubi_account_username, string ubi_account_password)
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
                 UbiAccount? account = UbisoftDatabase.AccountDatabase.GetAccountByUsername(ubi_account_username);
 
                 if (account != null && account.m_password == ubi_account_password)
                 {
-                    Context.Client.Info.UbiAcctName = account.m_username;
-                    Context.Client.Info.UbiPass = account.m_password;
-					Context.Client.Info.UbiMail = account.m_email;
-					Context.Client.Info.UbiLanguageCode = account.m_preferred_language;
-                    Context.Client.Info.UbiCountryCode = account.m_country_code;
+                    Context.Client.PlayerInfo.UbiAcctName = account.m_username;
+                    Context.Client.PlayerInfo.UbiPass = account.m_password;
+					Context.Client.PlayerInfo.UbiMail = account.m_email;
+					Context.Client.PlayerInfo.UbiLanguageCode = account.m_preferred_language;
+                    Context.Client.PlayerInfo.UbiCountryCode = account.m_country_code;
                     return Error(0);
                 }
             }
@@ -133,10 +133,10 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(5)]
 		public RMCResult GetTOS(string country_code, string language_code, bool html_version)
 		{
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                Context.Client.Info.UbiCountryCode = country_code;
-                Context.Client.Info.UbiLanguageCode = language_code;
+                Context.Client.PlayerInfo.UbiCountryCode = country_code;
+                Context.Client.PlayerInfo.UbiLanguageCode = language_code;
             }
 
             return Result(new { tos = new TOS(country_code, language_code) });
@@ -145,8 +145,8 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(6)]
 		public RMCResult ValidateUsername(string username)
 		{
-            if (Context != null && Context.Client.Info != null)
-                Context.Client.Info.UbiAcctName = username;
+            if (Context != null && Context.Client.PlayerInfo != null)
+                Context.Client.PlayerInfo.UbiAcctName = username;
 
             return Result(new { username_validation = new UsernameValidation() });
         }
@@ -154,8 +154,8 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(7)]
 		public RMCResult ValidatePassword(string password, string username)
 		{
-            if (Context != null && Context.Client.Info != null)
-                Context.Client.Info.UbiPass = password;
+            if (Context != null && Context.Client.PlayerInfo != null)
+                Context.Client.PlayerInfo.UbiPass = password;
 
             return Result(new { failed_reasons = new List<ValidationFailureReason>() });
         }
@@ -163,8 +163,8 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(8)]
 		public RMCResult ValidateEmail(string email)
 		{
-            if (Context != null && Context.Client.Info != null)
-                Context.Client.Info.UbiMail = email;
+            if (Context != null && Context.Client.PlayerInfo != null)
+                Context.Client.PlayerInfo.UbiMail = email;
 
             return Result(new { failed_reasons = new List<ValidationFailureReason>() });
         }
