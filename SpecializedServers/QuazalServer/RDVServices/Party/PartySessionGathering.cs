@@ -6,34 +6,39 @@ namespace QuazalServer.RDVServices
 {
 	public static class PartySessions
 	{
-		public static List<PartySessionGathering> GatheringList = new List<PartySessionGathering>();
+		public static List<PartySessionGathering> GatheringList = new();
 
-		public static void UpdateGatheringParticipation(PlayerInfo player, uint newGatheringId)
-		{
-			uint oldGatheringId = player.GameData().CurrentGatheringId;
+        /// <summary>
+        /// Removes player from all gatherings (except new one) and adds him to new one
+        /// </summary>
+        /// <param name="playerInfo"></param>
+        /// <param name="newGatheringId"></param>
+        public static void UpdateGatheringParticipation(PlayerInfo playerInfo, uint newGatheringId)
+        {
+            // remove this participant from all gatherings
+            // except new one and remove station urls associated
+            var oldGatherings = GatheringList.Where(x => x.Participants.Contains(playerInfo.PID) && x.Session.m_idMyself != newGatheringId).ToArray();
+            foreach (var gathering in oldGatherings)
+            {
+                gathering.Urls?.RemoveAll(x => x.Compare(playerInfo.Url));
+                gathering.Participants?.Remove(playerInfo.PID);
+            }
 
-			if (oldGatheringId == newGatheringId)
-				return;
+            // add player to new gathering if he isn't there yet
+            var newGathering = GatheringList.SingleOrDefault(x => x.Session.m_idMyself == newGatheringId);
+            if (newGathering != null && !newGathering.Participants.Contains(playerInfo.PID))
+                newGathering.Participants.Add(playerInfo.PID);
 
-			// remove participation from old gathering
-			var oldGathering = GatheringList.FirstOrDefault(x => x.Session.m_idMyself == oldGatheringId);
-			if (oldGathering != null && oldGathering.Participants != null)
-			{
-				oldGathering.Participants.Remove(player.PID);
+            // delete all outdated empty gatherings
+            GatheringList.RemoveAll(gathering => {
+                if (gathering.Participants.Count > 0)
+                    return false;
 
-				if (oldGathering.Participants.Count == 0)
-				{
-					CustomLogger.LoggerAccessor.LogWarn($"Auto-deleted gathering {oldGatheringId}");
-					GatheringList.Remove(oldGathering);
-				}
-			}
+                CustomLogger.LoggerAccessor.LogWarn($"[PartySessionGathering] - Auto-deleted gathering {gathering.Session.m_idMyself}");
+                return true;
+            });
 
-			// set new participation
-			player.GameData().CurrentGatheringId = newGatheringId;
-
-			var newGathering = GatheringList.FirstOrDefault(x => x.Session.m_idMyself == newGatheringId);
-			if (newGathering != null && newGathering.Participants != null)
-                newGathering.Participants.Add(player.PID);
+            playerInfo.GameData().CurrentGatheringId = newGatheringId;
         }
     }
 

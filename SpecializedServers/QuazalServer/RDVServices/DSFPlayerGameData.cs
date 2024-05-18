@@ -10,26 +10,24 @@ namespace QuazalServer.RDVServices
 			Owner = owner;
 
 			CurrentGatheringId = uint.MaxValue;
-			CurrentSessionTypeID = uint.MaxValue;
-			CurrentSessionID = uint.MaxValue;
-		}
+            CurrentSession = null;
+        }
 
-		// when player dropped, game data will be destroyed
-		// so we need to remove player from game session and gatherings
+        public readonly PlayerInfo Owner;
 
-		public void OnDropped()
+        public uint CurrentGatheringId { get; set; }
+        public GameSessionKey CurrentSession { get; set; }
+        public PresenceElement CurrentPresence { get; set; }
+
+        public void OnDropped()
 		{
-			// BUG: there is a bug in dropping sessions
-			PartySessions.UpdateGatheringParticipation(Owner, uint.MaxValue);
-			GameSessions.UpdateSessionParticipation(Owner, uint.MaxValue, uint.MaxValue, false);
-		}
+            // when player dropped, game data will be destroyed
+            // so we need to remove player from game session and gatherings
 
-		public readonly PlayerInfo Owner;
-
-		public uint CurrentGatheringId { get; set; }
-		public uint CurrentSessionTypeID { get; set; }
-		public uint CurrentSessionID { get; set; }
-		public PresenceElement? CurrentPresence { get; set; }
+            // BUG: there is a bug in dropping sessions
+            PartySessions.UpdateGatheringParticipation(Owner, uint.MaxValue);
+            GameSessions.UpdateSessionParticipation(Owner, null, false);
+        }
 	}
 
 	public static class DSFPlayerInfoExtensions

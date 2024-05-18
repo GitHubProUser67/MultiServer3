@@ -20,9 +20,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(1)]
 		public RMCResult RegisterGathering(AnyData<HermesPartySession> anyGathering)
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                PlayerInfo? plInfo = Context.Client.Info;
+                PlayerInfo? plInfo = Context.Client.PlayerInfo;
                 uint playerPid = plInfo.PID;
 
                 if (anyGathering.data != null)
@@ -104,9 +104,9 @@ namespace QuazalServer.RDVServices.Services
 		public RMCResult Invite(uint idGathering, ICollection<uint> lstPrincipals, string strMessage)
 		{
             bool result = false;
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                PlayerInfo? plInfo = Context.Client.Info;
+                PlayerInfo? plInfo = Context.Client.PlayerInfo;
                 PartySessionGathering? gathering = PartySessions.GatheringList.FirstOrDefault(x => x.Session.m_idMyself == idGathering);
 
                 if (gathering != null)
@@ -158,9 +158,9 @@ namespace QuazalServer.RDVServices.Services
 		public RMCResult AcceptInvitation(uint idGathering, string strMessage)
 		{
             bool result = false;
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                var plInfo = Context.Client.Info;
+                var plInfo = Context.Client.PlayerInfo;
                 var gathering = PartySessions.GatheringList.FirstOrDefault(x => x.Session.m_idMyself == idGathering);
                 var invitation = InvitationList.FirstOrDefault(x => x.GatheringId == idGathering && x.GuestId == plInfo.PID);
 
@@ -229,9 +229,9 @@ namespace QuazalServer.RDVServices.Services
 		public RMCResult DeclineInvitation(uint idGathering, string strMessage)
 		{
             bool result = false;
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                var plInfo = Context.Client.Info;
+                var plInfo = Context.Client.PlayerInfo;
                 var gathering = PartySessions.GatheringList.FirstOrDefault(x => x.Session.m_idMyself == idGathering);
                 var invitation = InvitationList.FirstOrDefault(x => x.GatheringId == idGathering && x.GuestId == plInfo.PID);
 
@@ -279,9 +279,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(9)]
 		public RMCResult GetInvitationsSent(uint idGathering)
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                var plInfo = Context.Client.Info;
+                var plInfo = Context.Client.PlayerInfo;
                 var myUserPid = plInfo.PID;
                 var list = InvitationList
                     .Where(x => x.GatheringId == idGathering && x.SentById == myUserPid)
@@ -301,9 +301,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(10)]
 		public RMCResult GetInvitationsReceived()
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                PlayerInfo? plInfo = Context.Client.Info;
+                PlayerInfo? plInfo = Context.Client.PlayerInfo;
                 uint myUserPid = plInfo.PID;
                 var list = InvitationList
                     .Where(x => x.GuestId == myUserPid)
@@ -324,9 +324,9 @@ namespace QuazalServer.RDVServices.Services
 		public RMCResult Participate(uint idGathering, string strMessage)
 		{
             bool result = false;
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                var plInfo = Context.Client.Info;
+                var plInfo = Context.Client.PlayerInfo;
                 var gathering = PartySessions.GatheringList.FirstOrDefault(x => x.Session.m_idMyself == idGathering);
 
                 if (gathering != null)
@@ -345,9 +345,9 @@ namespace QuazalServer.RDVServices.Services
 		public RMCResult CancelParticipation(uint idGathering, string strMessage)
 		{
             bool result = false;
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                var plInfo = Context.Client.Info;
+                var plInfo = Context.Client.PlayerInfo;
                 var gathering = PartySessions.GatheringList.FirstOrDefault(x => x.Session.m_idMyself == idGathering);
 
                 if (gathering != null && gathering.Participants != null)
@@ -577,9 +577,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(40)]
 		public RMCResult UpdateSessionHost(uint gid)
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                PlayerInfo? plInfo = Context.Client.Info;
+                PlayerInfo? plInfo = Context.Client.PlayerInfo;
                 var gathering = PartySessions.GatheringList.FirstOrDefault(x => x.Session.m_idMyself == gid);
 
                 if (gathering != null)
