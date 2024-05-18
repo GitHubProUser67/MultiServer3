@@ -112,12 +112,24 @@ namespace Org.BouncyCastle.Cms
         public static readonly string Gost28147Wrap     = CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Id;
 		public static readonly string Gost28147CryptoProWrap = CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Id;
 
-        public static readonly string ECCDHSha1Kdf      = X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id;
         public static readonly string ECDHSha1Kdf       = X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id;
+        public static readonly string ECCDHSha1Kdf      = X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id;
         public static readonly string ECMqvSha1Kdf      = X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
+
+        public static readonly string ECDHSha224Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme.Id;
+        public static readonly string ECCDHSha224Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha224kdf_scheme.Id;
         public static readonly string ECMqvSha224Kdf    = SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme.Id;
+
+        public static readonly string ECDHSha256Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme.Id;
+        public static readonly string ECCDHSha256Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme.Id;
         public static readonly string ECMqvSha256Kdf    = SecObjectIdentifiers.mqvSinglePass_sha256kdf_scheme.Id;
+
+        public static readonly string ECDHSha384Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha384kdf_scheme.Id;
+        public static readonly string ECCDHSha384Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha384kdf_scheme.Id;
         public static readonly string ECMqvSha384Kdf    = SecObjectIdentifiers.mqvSinglePass_sha384kdf_scheme.Id;
+
+        public static readonly string ECDHSha512Kdf     = SecObjectIdentifiers.dhSinglePass_stdDH_sha512kdf_scheme.Id;
+        public static readonly string ECCDHSha512Kdf    = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha512kdf_scheme.Id;
         public static readonly string ECMqvSha512Kdf    = SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme.Id;
 
 		internal readonly IList<RecipientInfoGenerator> recipientInfoGenerators = new List<RecipientInfoGenerator>();
@@ -156,7 +168,20 @@ namespace Org.BouncyCastle.Cms
 		{
 			var algorithm = cert.SubjectPublicKeyInfo.Algorithm;
 			var keyWrapper = new Asn1KeyWrapper(algorithm, cert);
-            AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
+			AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
+		}
+
+		/**
+		 * add a recipient.
+		 *
+		 * @param algorithm to override automatic selection (useful for OAEP with PKCS#1v1.5 certs)
+		 * @param cert recipient's public key certificate
+		 * @exception ArgumentException if there is a problem with the certificate
+		 */
+		public void AddKeyTransRecipient(string algorithm, X509Certificate cert)
+		{
+			var keyWrapper = new Asn1KeyWrapper(algorithm, cert);
+			AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, keyWrapper));
 		}
 
 		/**
@@ -171,6 +196,21 @@ namespace Org.BouncyCastle.Cms
 			SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
 			AddRecipientInfoGenerator(
 				new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(info.Algorithm, pubKey)));
+		}
+
+		/**
+		* add a recipient
+		*
+		* @param algorithm to override automatic selection (useful for OAEP with PKCS#1v1.5 certs)
+		* @param key the public key used by the recipient
+		* @param subKeyId the identifier for the recipient's public key
+		* @exception ArgumentException if there is a problem with the key
+		*/
+		public void AddKeyTransRecipient(string algorithm, AsymmetricKeyParameter pubKey, byte[] subKeyId)
+		{
+			SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
+			AddRecipientInfoGenerator(
+				new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(algorithm, pubKey)));
 		}
 
 		/**

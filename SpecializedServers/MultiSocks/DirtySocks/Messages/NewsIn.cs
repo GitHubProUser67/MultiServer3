@@ -60,6 +60,8 @@ namespace MultiSocks.DirtySocks.Messages
                 User? user = client.User;
                 if (user == null) return;
 
+                user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+
                 client.SendMessage(new Newsnew8());
             }
             else

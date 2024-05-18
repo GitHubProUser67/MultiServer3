@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Rfc8032;

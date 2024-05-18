@@ -1,4 +1,4 @@
-using Org.BouncyCastle.Crypto;
+﻿using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 {

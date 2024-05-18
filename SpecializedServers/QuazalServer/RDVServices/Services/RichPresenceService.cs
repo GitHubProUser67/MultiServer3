@@ -11,9 +11,9 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(1)]
 		public RMCResult SetPresence(int phraseId, QNetZ.DDL.qBuffer argument)
 		{
-			if (Context != null && Context.Client.Info != null)
+			if (Context != null && Context.Client.PlayerInfo != null)
 			{
-                PlayerInfo? plInfo = Context.Client.Info;
+                PlayerInfo? plInfo = Context.Client.PlayerInfo;
                 PresenceElement? presence = plInfo.GameData().CurrentPresence;
 
                 //QLog.WriteLine(1, $"Presence set to {phraseId}, {argument.data}");

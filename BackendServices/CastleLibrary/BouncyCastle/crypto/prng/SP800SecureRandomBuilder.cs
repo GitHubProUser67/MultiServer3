@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Crypto.Prng.Drbg;
 using Org.BouncyCastle.Security;

@@ -33,7 +33,7 @@ namespace QuazalServer.RDVServices.Services
 
                 if (plInfo != null && plInfo.Client != null &&
                     !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
-                    (DateTime.UtcNow - plInfo.Client.LastPacketTime).TotalSeconds < Constants.ClientTimeoutSeconds)
+                    plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
                 {
                     CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
                     NetworkPlayers.DropPlayerInfo(plInfo);
@@ -82,7 +82,7 @@ namespace QuazalServer.RDVServices.Services
                                             { "PID", (int)Context.Client.sPID },
                                             { "sid", 1 },
                                             { "stream", 3 },
-                                            { "type", 2 }
+                                            { "type", 2 } // Public, not BehindNAT
                                     })
                                 },
                                 strReturnMsg = string.Empty,
@@ -103,7 +103,7 @@ namespace QuazalServer.RDVServices.Services
                                             { "PID", (int)Context.Client.sPID },
                                             { "sid", 1 },
                                             { "stream", 3 },
-                                            { "type", 2 }
+                                            { "type", 2 } // Public, not BehindNAT
                                     })
                                 },
                                 strReturnMsg = string.Empty,
@@ -124,7 +124,7 @@ namespace QuazalServer.RDVServices.Services
                                             { "PID", (int)Context.Client.sPID },
                                             { "sid", 1 },
                                             { "stream", 3 },
-                                            { "type", 2 }
+                                            { "type", 2 } // Public, not BehindNAT
                                     })
                                 },
                                 strReturnMsg = string.Empty,
@@ -146,7 +146,7 @@ namespace QuazalServer.RDVServices.Services
                                         { "PID", (int)Context.Client.sPID },
                                         { "sid", 1 },
                                         { "stream", 3 },
-                                        { "type", 2 }
+                                        { "type", 2 } // Public, not BehindNAT
                                 })
                             },
                             strReturnMsg = string.Empty,
@@ -188,7 +188,7 @@ namespace QuazalServer.RDVServices.Services
                                             { "PID", (int)Context.Client.sPID },
                                             { "sid", 1 },
                                             { "stream", 3 },
-                                            { "type", 2 }
+                                            { "type", 2 } // Public, not BehindNAT
                                             })
                             },
                             strReturnMsg = string.Empty,
@@ -215,7 +215,7 @@ namespace QuazalServer.RDVServices.Services
                                             { "PID", (int)Context.Client.sPID },
                                             { "sid", 1 },
                                             { "stream", 3 },
-                                            { "type", 2 }
+                                            { "type", 2 } // Public, not BehindNAT
                                             })
                             },
                             strReturnMsg = string.Empty,
@@ -251,7 +251,7 @@ namespace QuazalServer.RDVServices.Services
 
                     if (plInfo != null && plInfo.Client != null &&
                             !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
-                            (DateTime.UtcNow - plInfo.Client.LastPacketTime).TotalSeconds < Constants.ClientTimeoutSeconds)
+                            plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
                     {
                         CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
                         NetworkPlayers.DropPlayerInfo(plInfo);
@@ -332,7 +332,7 @@ namespace QuazalServer.RDVServices.Services
                                     { "PID", (int)Context.Client.sPID },
                                     { "sid", 1 },
                                     { "stream", 3 },
-                                    { "type", 2 }
+                                    { "type", 2 } // Public, not BehindNAT
                                     })
                             },
                             strReturnMsg = string.Empty,

@@ -16,7 +16,7 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(1)]
 		public RMCResult? Register(List<string> vecMyURLs)
 		{
-            if (Context != null && Context.Client.Info != null)
+            if (Context != null && Context.Client.PlayerInfo != null)
 			{
                 // change address
                 StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
@@ -27,7 +27,7 @@ namespace QuazalServer.RDVServices.Services
 
                 return Result(new RegisterResult()
                 {
-                    pidConnectionID = Context.Client.Info.RVCID,
+                    pidConnectionID = Context.Client.PlayerInfo.RVCID,
                     retval = (int)ErrorCode.Core_NoError,
                     urlPublic = rdvConnectionUrl
                 });
@@ -51,7 +51,7 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(4)]
 		public RMCResult RegisterEx(ICollection<StationURL> vecMyURLs, AnyData<UbiAuthenticationLoginCustomData> hCustomData)
 		{
-			if (hCustomData.data != null && Context != null && Context.Client.Info != null)
+			if (hCustomData.data != null && Context != null && Context.Client.PlayerInfo != null)
 			{
                 // change address
                 StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
@@ -62,7 +62,7 @@ namespace QuazalServer.RDVServices.Services
 
 				return Result(new RegisterResult()
                 {
-                    pidConnectionID = Context.Client.Info.RVCID,
+                    pidConnectionID = Context.Client.PlayerInfo.RVCID,
                     retval = (int)ErrorCode.Core_NoError,
                     urlPublic = rdvConnectionUrl
                 });

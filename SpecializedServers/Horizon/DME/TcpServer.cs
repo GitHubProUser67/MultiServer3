@@ -770,14 +770,11 @@ namespace Horizon.DME
                                         }
                                     }
                                     else
-                                    {
-                                        LoggerAccessor.LogWarn($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.ClientObject?.IP} requested a token release without being registered into!");
-
-                                        Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
+                                        Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                         {
-                                            Reason = SERVER_FORCE_DISCONNECT_REASON.SERVER_FORCED_DISCONNECT_ERROR
+                                            tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED,
+                                            TokenID = clientTokenMsg.targetToken,
                                         }, clientChannel);
-                                    }
                                 }
                                 else
                                     Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
