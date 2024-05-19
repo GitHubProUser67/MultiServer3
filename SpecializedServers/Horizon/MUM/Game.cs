@@ -174,7 +174,7 @@ namespace Horizon.MUM
             GameHostType = createGame.GameHostType;
             Attributes = createGame.WorldAttributesType;
             MatchOptions = createGame.MatchOptions;
-			this.WorldID = WorldId;
+			WorldID = WorldId;
         }
 
         private void FromCreateGameRequest(MediusCreateGameRequest createGame, int WorldId)
@@ -198,7 +198,7 @@ namespace Horizon.MUM
             SpectatorPassword = createGame.SpectatorPassword;
             GameHostType = createGame.GameHostType;
             Attributes = createGame.Attributes;
-			this.WorldID = WorldId;
+			WorldID = WorldId;
         }
 
         private void FromCreateGameRequest0(MediusCreateGameRequest0 createGame, int WorldId)
@@ -215,7 +215,7 @@ namespace Horizon.MUM
             GenericField3 = createGame.GenericField3;
             GamePassword = createGame.GamePassword;
             GameHostType = createGame.GameHostType;
-			this.WorldID = WorldId;
+			WorldID = WorldId;
         }
 
 
@@ -234,7 +234,7 @@ namespace Horizon.MUM
             GamePassword = createGame.GamePassword;
             SpectatorPassword = createGame.SpectatorPassword;
             GameHostType = createGame.GameHostType;
-            this.WorldID = WorldId;
+            WorldID = WorldId;
         }
 
         private void FromCreateGameOnMeRequest(MediusServerCreateGameOnMeRequest serverCreateGameOnMe)
@@ -315,7 +315,7 @@ namespace Horizon.MUM
 
         public string GetActivePlayerList()
         {
-            var playlist = LocalClients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
+            IEnumerable<string?>? playlist = LocalClients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
             if (playlist != null)
                 return string.Join(",", playlist);
 
@@ -332,7 +332,8 @@ namespace Horizon.MUM
                 if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.MediusWorldId != MediusWorldId)
                 {
                     LoggerAccessor.LogWarn($"REMOVING CLIENT: {client}\n IS: {client?.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client?.Client?.IsConnected}\nClient CurrentGame ID: {client?.Client?.CurrentGame?.MediusWorldId}\nGameId: {MediusWorldId}\nMatch?: {client?.Client?.CurrentGame?.MediusWorldId != MediusWorldId}");
-                    LocalClients.RemoveAt(i);
+                    lock (LocalClients)
+                        LocalClients.RemoveAt(i);
                     --i;
                 }
             }
@@ -427,11 +428,14 @@ namespace Horizon.MUM
 
             LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} added with sessionkey {client.SessionKey}.");
 
-            LocalClients.Add(new GameClient()
+            lock (LocalClients)
             {
-                Client = client,
-                DmeId = client.DmeClientId != null ? (int)client.DmeClientId : 0
-            });
+                LocalClients.Add(new GameClient()
+                {
+                    Client = client,
+                    DmeId = client.DmeClientId != null ? (int)client.DmeClientId : 0
+                });
+            }
 
             // Inform the client of any custom game mode
             //client.CurrentChannel?.SendSystemMessage(client, $"Gamemode is {CustomGamemode?.FullName ?? "default"}.");
@@ -477,14 +481,15 @@ namespace Horizon.MUM
                 // Send to plugins
                 await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_HOST_LEFT, new OnPlayerGameArgs() { Player = client, Game = this });
 
-                Host = null;
+                Host = LocalClients.FirstOrDefault()?.Client;
             }
 
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_LEFT_GAME, new OnPlayerGameArgs() { Player = client, Game = this });
 
             // Remove from clients list
-            LocalClients.RemoveAll(x => x.Client == client);
+            lock (LocalClients)
+                LocalClients.RemoveAll(x => x.Client == client);
         }
 
         public virtual async Task OnEndGameReport(MediusEndGameReport report, int appid)
@@ -635,7 +640,10 @@ namespace Horizon.MUM
             {
                 ClientObject? client = LocalClients[0].Client;
                 if (client == null)
-                    LocalClients.RemoveAt(0);
+                {
+                    lock (LocalClients)
+                        LocalClients.RemoveAt(0);
+                }
                 else
                 {
                     await client.LeaveGame(this);
