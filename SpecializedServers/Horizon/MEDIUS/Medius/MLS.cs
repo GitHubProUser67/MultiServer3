@@ -5489,11 +5489,11 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ClientObject.ApplicationId == 10538 || data.ClientObject.ApplicationId == 10190)
                         {
-                            LoggerAccessor.LogInfo("AppId GameList Check");
                             var gameList = MediusClass.Manager.GetGameListAppId(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize)
+                                .Where(x => x.Host != null && x.PlayerCount > 0)
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5511,6 +5511,8 @@ namespace Horizon.MEDIUS.Medius
                             if (gameList.Length > 0)
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
+
+                                Thread.Sleep(6000); // We simulate medius fetching delay response. Some games expect a delayed response.
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5527,12 +5529,12 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            LoggerAccessor.LogInfo("Filtered GameList Check");
                             var gameList = MediusClass.Manager.GetGameList(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize,
                                data.ClientObject.GameListFilters)
+                                .Where(x => x.Host != null && x.PlayerCount > 0)
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5551,6 +5553,8 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
 
+                                Thread.Sleep(6000); // We simulate medius fetching delay response. Some games expect a delayed response.
+
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
                             }
@@ -5564,7 +5568,6 @@ namespace Horizon.MEDIUS.Medius
                                 });
                             }
                         }
-
 
                         break;
                     }
