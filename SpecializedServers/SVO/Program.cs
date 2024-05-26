@@ -70,9 +70,9 @@ public static class SVOServerConfiguration
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("database", DatabaseConfig),
                 new JProperty("pshome_rpcs3workaround", PSHomeRPCS3Workaround),
-                new JProperty("MOTD", MOTD),
+                new JProperty("MOTD", string.Empty),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }
@@ -93,7 +93,7 @@ public static class SVOServerConfiguration
             PSHomeRPCS3Workaround = GetValueOrDefault(config, "pshome_rpcs3workaround", PSHomeRPCS3Workaround);
             // Look for the MOTD xml file.
             string motd_file = GetValueOrDefault(config, "MOTD", string.Empty);
-            if (!File.Exists(motd_file))
+            if (string.IsNullOrEmpty(motd_file) || !File.Exists(motd_file))
                 LoggerAccessor.LogWarn("Could not find the MOTD file, using default xml.");
             else
                 MOTD = File.ReadAllText(motd_file);

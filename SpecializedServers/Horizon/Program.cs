@@ -80,7 +80,7 @@ public static class HorizonServerConfiguration
                 new JProperty("medius_api_key", MediusAPIKey),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("database", DatabaseConfig)
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }

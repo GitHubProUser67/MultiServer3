@@ -96,7 +96,7 @@ public static class QuazalServerConfiguration
                         new JProperty("item3", item.Item3)
                     )
                 ))
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }
