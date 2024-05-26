@@ -1,4 +1,3 @@
-
 using CyberBackendLibrary.GeoLocalization;
 using CustomLogger;
 using DatabaseMiddleware.HTTPEngine;
