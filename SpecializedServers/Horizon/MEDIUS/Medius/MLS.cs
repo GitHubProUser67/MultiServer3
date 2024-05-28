@@ -372,9 +372,15 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x104F7320:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                     {
+                                                        CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
                                                         if (data.ClientObject != null)
                                                         {
                                                             data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
+
+                                                            Parallel.Invoke(
+                                                                () => { CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH); },
+                                                                () => { CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY); });
 
                                                             if (BannedClients.ContainsKey((data.ClientObject.IP, data.MachineId)))
                                                             {
@@ -387,12 +393,7 @@ namespace Horizon.MEDIUS.Medius
                                                                 else
                                                                     BannedClients.Remove((data.ClientObject.IP, data.MachineId), out _);
                                                             }
-
-                                                            CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                                            CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                         }
-
-                                                        CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
                                                     }
                                                     break;
                                                 default:
