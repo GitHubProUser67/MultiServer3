@@ -5,6 +5,8 @@ using System.Text;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using CyberBackendLibrary.DataTypes;
 
 namespace HTTPSecureServerLite.Extensions
 {
@@ -23,7 +25,7 @@ namespace HTTPSecureServerLite.Extensions
                 string? scriptFileName = Path.GetFileName(FilePath);
                 string? tempPath = Path.GetTempPath();
 
-                string[][] HeadersLocal = Array.Empty<string[]>(); ;
+                string[][] HeadersLocal = Array.Empty<string[]>();
                 byte[]? returndata = null;
                 byte[]? postData = null;
 
@@ -43,6 +45,8 @@ namespace HTTPSecureServerLite.Extensions
                 proc.StartInfo.RedirectStandardOutput = true;
                 proc.StartInfo.RedirectStandardError = true;
                 proc.StartInfo.RedirectStandardInput = true;
+
+                proc.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 
                 proc.StartInfo.EnvironmentVariables.Clear();
 
@@ -87,60 +91,40 @@ namespace HTTPSecureServerLite.Extensions
                     sw.BaseStream.Write(postData, 0, postData.Length);
                 }
 
-                using (MemoryStream memoryStream = new())
+                // Write headers and content to response stream
+                bool headersEnd = false;
+                using (MemoryStream ms = new())
+                using (StreamReader sr = proc.StandardOutput)
+                using (StreamWriter output = new(ms))
                 {
-                    using (StreamReader reader = proc.StandardOutput)
+                    int i = 0;
+                    string? line = null;
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        int i = 0;
-                        int bytesRead = 0;
-
-                        // Read PHP output to memory stream
-                        byte[] buffer = new byte[4096];
-                        while ((bytesRead = reader.BaseStream.Read(buffer, 0, buffer.Length)) > 0)
+                        if (!headersEnd)
                         {
-                            memoryStream.Write(buffer, 0, bytesRead);
-                        }
-
-                        // If no output, read error stream
-                        if (memoryStream.Length == 0)
-                        {
-                            using StreamReader errorReader = proc.StandardError;
-                            memoryStream.Write(HTTPProcessor.RemoveUnwantedPHPHeaders(Encoding.UTF8.GetBytes(errorReader.ReadToEnd())).AsSpan());
-                        }
-
-                        // Process Set-Cookie headers
-                        List<string> setCookieHeaders = new();
-                        foreach (string header in proc.StandardOutput.ReadToEnd().Split('\n'))
-                        {
-                            if (header.Trim().StartsWith("Set-Cookie:", StringComparison.OrdinalIgnoreCase))
-                                setCookieHeaders.Add(header.Trim());
-                        }
-
-                        // Add cookies to the HttpListenerResponse
-                        foreach (string setCookieHeader in setCookieHeaders)
-                        {
-                            int colonIndex = setCookieHeader.IndexOf(':');
-                            if (colonIndex != -1)
+                            if (line == string.Empty)
                             {
-                                foreach (string cookiePart in setCookieHeader[(colonIndex + 1)..].Trim().Split(';'))
-                                {
-                                    int equalIndex = cookiePart.IndexOf('=');
-                                    if (equalIndex != -1)
-                                    {
-                                        HeadersLocal[i] = new string[] { "Set-Cookie", $"{cookiePart[..equalIndex].Trim()}={cookiePart[(equalIndex + 1)..].Trim()}; Path=/" };
-                                        i++;
-                                    }
-                                }
+                                headersEnd = true;
+                                continue;
                             }
+
+                            // The first few lines are the headers, with a
+                            // key and a value. Catch those, to write them
+                            // into our response headers.
+                            index = line.IndexOf(':');
+
+                            HeadersLocal = DataTypesUtils.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
                         }
+                        else
+                            // Write non-header lines into the output as is.
+                            output.WriteLine(line);
 
-                        // Get the final byte array
-                        returndata = HTTPProcessor.RemoveUnwantedPHPHeaders(memoryStream.ToArray());
-
-                        reader.Close();
+                        i++;
                     }
 
-                    memoryStream.Flush();
+                    output.Flush();
+                    returndata = ms.ToArray();
                 }
 
                 proc.WaitForExit(); // Wait for the PHP process to complete

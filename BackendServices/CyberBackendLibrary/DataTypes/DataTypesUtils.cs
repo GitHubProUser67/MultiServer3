@@ -149,6 +149,25 @@ namespace CyberBackendLibrary.DataTypes
         }
 
         /// <summary>
+        /// Adds an element to a double string array.
+        /// <para>Ajoute un élément à une liste double de strings.</para>
+        /// </summary>
+        /// <param name="original">The original double array.</param>
+        /// <param name="bytesToRead">The new array to add.</param>
+        /// <returns>A double array of strings.</returns>
+        public static string[][] AddElement(string[][] original, string[] newElement)
+        {
+            int newSize = original.Length + 1;
+            string[][] newArray = new string[newSize][];
+            for (int i = 0; i < original.Length; i++)
+            {
+                newArray[i] = original[i];
+            }
+            newArray[newSize - 1] = newElement;
+            return newArray;
+        }
+
+        /// <summary>
         /// Finds a sequence of bytes within a byte array.
         /// <para>Trouve une séquence de bytes dans un tableau de bytes.</para>
         /// </summary>
