@@ -1558,15 +1558,20 @@ namespace HTTPSecureServerLite
             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
             ctx.Response.ContentType = contentType;
             ctx.Response.StatusCode = 200;
-            if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && fileSize <= 8000000)
+            if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
             {
-                ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                st = HTTPProcessor.CompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
-            }
-            else if (!string.IsNullOrEmpty(encoding) && encoding.Contains("deflate") && fileSize <= 8000000)
-            {
-                ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                st = HTTPProcessor.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                if (encoding.Contains("gzip") && fileSize <= 8000000)
+                {
+                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                    st = HTTPProcessor.CompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                }
+                else if (encoding.Contains("deflate") && fileSize <= 8000000)
+                {
+                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                    st = HTTPProcessor.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                }
+                else
+                    st = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             }
             else
                 st = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);

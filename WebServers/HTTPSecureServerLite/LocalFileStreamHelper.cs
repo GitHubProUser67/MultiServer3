@@ -72,10 +72,20 @@ namespace HTTPSecureServerLite
                             ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                             ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                             ctx.Response.ContentType = "text/html; charset=UTF-8";
-                            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                            if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                                if (acceptencoding.Contains("gzip"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                    return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                                }
+                                else if (acceptencoding.Contains("deflate"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                    return ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload))).Result;
+                                }
+                                else
+                                    return ctx.Response.Send(payload).Result;
                             }
                             else
                                 return ctx.Response.Send(payload).Result;
@@ -162,10 +172,20 @@ namespace HTTPSecureServerLite
                 ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                 ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                 ctx.Response.ContentType = "text/html; charset=UTF-8";
-                if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                 {
-                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                    if (acceptencoding.Contains("gzip"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                        return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                    }
+                    else if (acceptencoding.Contains("deflate"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                        return ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload))).Result;
+                    }
+                    else
+                        return ctx.Response.Send(payload).Result;
                 }
                 else
                     return ctx.Response.Send(payload).Result;

@@ -791,8 +791,15 @@ namespace HTTPServer
                                                                 else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
-                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                                                                    {
+                                                                        if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else if (encoding.Contains("deflate"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                    }
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
@@ -821,8 +828,15 @@ namespace HTTPServer
                                                                 else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
-                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                                                                    {
+                                                                        if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else if (encoding.Contains("deflate"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                    }
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
@@ -1241,10 +1255,20 @@ namespace HTTPServer
                             };
                             response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                             response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                response.Headers.Add("Content-Encoding", "gzip");
-                                response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                                if (acceptencoding.Contains("gzip"))
+                                {
+                                    response.Headers.Add("Content-Encoding", "gzip");
+                                    response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                                }
+                                else if (acceptencoding.Contains("deflate"))
+                                {
+                                    response.Headers.Add("Content-Encoding", "deflate");
+                                    response.ContentStream = new MemoryStream(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload)));
+                                }
+                                else
+                                    response.ContentAsUTF8 = payload;
                             }
                             else
                                 response.ContentAsUTF8 = payload;
@@ -1416,10 +1440,20 @@ namespace HTTPServer
                     };
                     response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                     response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                     {
-                        response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                        if (acceptencoding.Contains("gzip"))
+                        {
+                            response.Headers.Add("Content-Encoding", "gzip");
+                            response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                        }
+                        else if (acceptencoding.Contains("deflate"))
+                        {
+                            response.Headers.Add("Content-Encoding", "deflate");
+                            response.ContentStream = new MemoryStream(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload)));
+                        }
+                        else
+                            response.ContentAsUTF8 = payload;
                     }
                     else
                         response.ContentAsUTF8 = payload;
