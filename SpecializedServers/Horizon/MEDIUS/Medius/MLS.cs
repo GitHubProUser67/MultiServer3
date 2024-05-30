@@ -372,9 +372,15 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x104F7320:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                     {
+                                                        CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
                                                         if (data.ClientObject != null)
                                                         {
                                                             data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
+
+                                                            Parallel.Invoke(
+                                                                () => { CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH); },
+                                                                () => { CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY); });
 
                                                             if (BannedClients.ContainsKey((data.ClientObject.IP, data.MachineId)))
                                                             {
@@ -387,12 +393,7 @@ namespace Horizon.MEDIUS.Medius
                                                                 else
                                                                     BannedClients.Remove((data.ClientObject.IP, data.MachineId), out _);
                                                             }
-
-                                                            CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-                                                            CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                         }
-
-                                                        CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
                                                     }
                                                     break;
                                                 default:
@@ -5489,11 +5490,11 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ClientObject.ApplicationId == 10538 || data.ClientObject.ApplicationId == 10190)
                         {
-                            LoggerAccessor.LogInfo("AppId GameList Check");
                             var gameList = MediusClass.Manager.GetGameListAppId(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize)
+                                .Where(x => x.Host != null && x.PlayerCount > 0)
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5511,6 +5512,9 @@ namespace Horizon.MEDIUS.Medius
                             if (gameList.Length > 0)
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
+
+                                Thread.Sleep(new Random().Next(2000, 6001)); // We simulate medius fetching delay between 2 and 6 seconds.
+                                                                             // Some games expect a delayed response and it's never the same for every clients.
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5527,12 +5531,12 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            LoggerAccessor.LogInfo("Filtered GameList Check");
                             var gameList = MediusClass.Manager.GetGameList(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize,
                                data.ClientObject.GameListFilters)
+                                .Where(x => x.Host != null && x.PlayerCount > 0)
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5551,6 +5555,9 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
 
+                                Thread.Sleep(new Random().Next(2000, 6001)); // We simulate medius fetching delay between 2 and 6 seconds.
+                                                                             // Some games expect a delayed response and it's never the same for every clients.
+
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
                             }
@@ -5564,7 +5571,6 @@ namespace Horizon.MEDIUS.Medius
                                 });
                             }
                         }
-
 
                         break;
                     }

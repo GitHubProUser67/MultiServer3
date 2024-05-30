@@ -1,6 +1,4 @@
-﻿using MultiSocks.DirtySocks.Model;
-
-namespace MultiSocks.DirtySocks.Messages
+﻿namespace MultiSocks.DirtySocks.Messages
 {
     public class FupdIn : AbstractMessage
     {
@@ -14,8 +12,6 @@ namespace MultiSocks.DirtySocks.Messages
         {
             if (!string.IsNullOrEmpty(TAG) && client.User != null)
             {
-                List<string> UpdateList = new();
-
                 switch (TAG)
                 {
                     case "F":

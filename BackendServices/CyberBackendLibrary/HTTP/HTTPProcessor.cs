@@ -2,6 +2,7 @@ using ComponentAce.Compression.Libs.zlib;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -587,12 +588,8 @@ namespace CyberBackendLibrary.HTTP
 
         public static readonly Dictionary<string, byte[]> _PathernDictionary = new Dictionary<string, byte[]>()
         {
-#if NETSTANDARD2_1_OR_GREATER
             // Add more entries as needed
             { "text/html", new byte[] { 0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20 } },
-#elif NET7_0_OR_GREATER
-            { "text/html", "<!DOCTYPE "u8.ToArray() },
-#endif
             { "video/mp4", new byte[] { 0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70 } }
         };
 
@@ -643,65 +640,6 @@ namespace CyberBackendLibrary.HTTP
                 return null;
             else
                 return _mimeTypes.TryGetValue(mimeType, out string? extension) ? extension : null;
-        }
-
-        public static byte[] RemoveUnwantedPHPHeaders(byte[] phpOutputBytes)
-        {
-            // Find the index where headers end and content starts (indicated by an empty line)
-            int emptyLineIndex = -1;
-            for (int i = 0; i < phpOutputBytes.Length - 3; i++)
-            {
-                if (phpOutputBytes[i] == '\r' && phpOutputBytes[i + 1] == '\n' && phpOutputBytes[i + 2] == '\r' && phpOutputBytes[i + 3] == '\n')
-                {
-                    emptyLineIndex = i + 4; // Skip the empty line
-                    break;
-                }
-            }
-
-            if (emptyLineIndex == -1)
-                // If no empty line found, return the original bytes
-                return phpOutputBytes;
-
-            List<byte> filteredOutput = new List<byte>();
-
-            bool skipHeaders = false;
-
-            for (int i = emptyLineIndex; i < phpOutputBytes.Length; i++)
-            {
-                byte currentByte = phpOutputBytes[i];
-
-                if (currentByte == '\r' && i < phpOutputBytes.Length - 1 && phpOutputBytes[i + 1] == '\n')
-                {
-                    // Empty line indicates end of headers, switch to normal content
-                    skipHeaders = true;
-                    filteredOutput.Add((byte)'\r');
-                    filteredOutput.Add((byte)'\n');
-                    i++; // Skip the '\n' character
-                }
-                else if (!skipHeaders)
-                {
-                    // Check if the line contains unwanted headers and skip them
-                    bool skipLine = false;
-
-                    if (currentByte == 'C' && i + 12 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Content-Type:"))
-                    {
-                        skipLine = true;
-                        i += 13; // Skip "Content-Type:" and the following space
-                    }
-                    else if (currentByte == 'S' && i + 10 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Set-Cookie:"))
-                    {
-                        skipLine = true;
-                        i += 11; // Skip "Set-Cookie:" and the following space
-                    }
-
-                    if (!skipLine)
-                        filteredOutput.Add(currentByte);
-                }
-                else
-                    filteredOutput.Add(currentByte);
-            }
-
-            return filteredOutput.ToArray();
         }
 
         public static bool CheckHeaderMatch(byte[] byteArray, int startIndex, string header)
@@ -774,6 +712,23 @@ namespace CyberBackendLibrary.HTTP
                 return input;
         }
 
+        public static string RemoveDiacritics(string text)
+        {
+            string normalizedString = text.Normalize(NormalizationForm.FormD);
+            StringBuilder stringBuilder = new StringBuilder(capacity: normalizedString.Length);
+
+            for (int i = 0; i < normalizedString.Length; i++)
+            {
+                char c = normalizedString[i];
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    stringBuilder.Append(c);
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(NormalizationForm.FormC);
+        }
+
         public static byte[] Compress(byte[] input)
         {
             byte[] byteoutput = Array.Empty<byte>();
@@ -784,6 +739,25 @@ namespace CyberBackendLibrary.HTTP
                 {
                     gzipStream.Write(input, 0, input.Length);
                     gzipStream.Flush();
+                }
+
+                byteoutput = output.ToArray();
+                output.Flush();
+            }
+
+            return byteoutput;
+        }
+
+        public static byte[] Inflate(byte[] input)
+        {
+            byte[] byteoutput = Array.Empty<byte>();
+
+            using (MemoryStream output = new MemoryStream())
+            {
+                using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
+                {
+                    zlibStream.Write(input, 0, input.Length);
+                    zlibStream.finish();
                 }
 
                 byteoutput = output.ToArray();

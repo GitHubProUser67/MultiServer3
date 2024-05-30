@@ -49,7 +49,7 @@ public static class SSFWServerConfiguration
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("scenelist_file", ScenelistFile),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }

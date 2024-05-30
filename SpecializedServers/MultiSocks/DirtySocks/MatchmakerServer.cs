@@ -58,6 +58,7 @@ namespace MultiSocks.DirtySocks
                 { "gqwk", typeof(GqwkIn) }, //Quick join.
                 { "news", typeof(NewsIn) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
                 { "rank", typeof(RankIn) }, //unknown. { RANK = "Unranked", TIME = 866 }
+                { "tcup", typeof(TcupIn) } //?
             };
 
         public UserCollection Users = new();

@@ -120,8 +120,8 @@ namespace HTTPServer.Models
                     {
                         // Extract two values from the inner array
                         string value1 = innerArray[0];
-                        string value2 = innerArray[1];
-                        response.Headers.Add(value1, value2);
+                        if (!response.Headers.ContainsKey(value1))
+                            response.Headers.Add(value1, innerArray[1]);
                     }
                 }
             }

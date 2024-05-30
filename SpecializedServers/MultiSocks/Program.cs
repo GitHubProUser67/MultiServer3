@@ -30,7 +30,7 @@ public static class MultiSocksServerConfiguration
                 new JProperty("use_public_ipaddress", UsePublicIPAddress),
                 new JProperty("rpcs3_workarounds", RPCS3Workarounds),
                 new JProperty("dirtysocks_database_path", DirtySocksDatabasePath)
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }

@@ -18,7 +18,6 @@ namespace Horizon.DME.Models
 
         private static ConcurrentDictionary<uint, World> _idToWorld = new();
         private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
-        private static object _lock = new();
 
         private void RegisterWorld(uint WorldId)
         {
@@ -42,15 +41,12 @@ namespace Horizon.DME.Models
 
         private bool TryRegisterNewClientIndex(out int index)
         {
-            lock (_lock)
+            for (index = 0; index < _pIdIsUsed.Count; ++index)
             {
-                for (index = 0; index < _pIdIsUsed.Count; ++index)
+                if (_pIdIsUsed.TryGetValue(index, out bool isUsed) && !isUsed)
                 {
-                    if (_pIdIsUsed.TryGetValue(index, out bool isUsed) && !isUsed)
-                    {
-                        _pIdIsUsed[index] = true;
-                        return true;
-                    }
+                    _pIdIsUsed[index] = true;
+                    return true;
                 }
             }
 
@@ -91,6 +87,8 @@ namespace Horizon.DME.Models
         public ConcurrentDictionary<int, ClientObject> Clients = new();
 
         public MPSClient? Manager { get; } = null;
+
+        private object _Lock = new();
         
         public World(MPSClient manager, int appId, int maxPlayers, uint WorldId)
         {
@@ -293,58 +291,65 @@ namespace Horizon.DME.Models
             ForceDestruct = request.BrutalFlag;
         }
 
-        public async Task OnPlayerJoined(ClientObject player)
+        public Task OnPlayerJoined(ClientObject player)
         {
-            player.HasJoined = true;
-
-            // Plugin
-            await DmeClass.Plugins.OnEvent(PluginEvent.DME_PLAYER_ON_JOINED, new OnPlayerArgs()
+            lock (_Lock)
             {
-                Player = player,
-                Game = this
-            });
+                player.HasJoined = true;
 
-            // Tell other clients
-            foreach (var client in Clients)
-            {
-                if (!client.Value.HasJoined || client.Value == player || !client.Value.HasRecvFlag(RT_RECV_FLAG.RECV_NOTIFICATION))
-                    continue;
-
-                client.Value.EnqueueTcp(new RT_MSG_SERVER_CONNECT_NOTIFY()
+                // Plugin
+                DmeClass.Plugins.OnEvent(PluginEvent.DME_PLAYER_ON_JOINED, new OnPlayerArgs()
                 {
-                    PlayerIndex = (short)player.DmeId,
-                    ScertId = (short)player.ScertId,
-                    IP = player.RemoteUdpEndpoint?.Address ?? MediusClass.SERVER_IP
+                    Player = player,
+                    Game = this
+                }).Wait();
+
+                // Tell other clients
+                foreach (var client in Clients)
+                {
+                    if (!client.Value.HasJoined || client.Value == player || !client.Value.HasRecvFlag(RT_RECV_FLAG.RECV_NOTIFICATION))
+                        continue;
+
+                    client.Value.EnqueueTcp(new RT_MSG_SERVER_CONNECT_NOTIFY()
+                    {
+                        PlayerIndex = (short)player.DmeId,
+                        ScertId = (short)player.ScertId,
+                        IP = player.RemoteUdpEndpoint?.Address ?? MediusClass.SERVER_IP
+                    });
+                }
+
+                _ = Task.Run(() => {
+                    foreach (ushort token in clientTokens.Keys)
+                    {
+                        try
+                        {
+                            if (clientTokens.TryGetValue(token, out List<int>? value) && value.Count > 0)
+                            {
+                                player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
+                                {
+                                    tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
+                                    TokenID = token,
+                                    TokenHost = (ushort)value[0],
+                                });
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                });
+
+                // Tell server
+                Manager?.Enqueue(new MediusServerConnectNotification()
+                {
+                    MediusWorldUID = WorldId,
+                    PlayerSessionKey = player.SessionKey ?? string.Empty,
+                    ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT
                 });
             }
 
-            try
-            {
-                foreach (ushort token in clientTokens.Keys)
-                {
-                    if (clientTokens.ContainsKey(token) && clientTokens[token].Count > 0)
-                    {
-                        player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
-                        {
-                            tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
-                            TokenID = token,
-                            TokenHost = (ushort)clientTokens[token][0],
-                        });
-                    }
-                }
-            }
-            catch
-            {
-
-            }
-
-            // Tell server
-            Manager?.Enqueue(new MediusServerConnectNotification()
-            {
-                MediusWorldUID = WorldId,
-                PlayerSessionKey = player.SessionKey ?? string.Empty,
-                ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT
-            });
+            return Task.CompletedTask;
         }
 
         public async Task OnPlayerLeft(ClientObject player)
@@ -398,7 +403,7 @@ namespace Horizon.DME.Models
             await Task.Delay(100);
 
             // find existing client and reuse
-            var existingClient = Clients.FirstOrDefault(x => x.Value.SessionKey == request.ConnectInfo.SessionKey);
+            KeyValuePair<int, ClientObject> existingClient = Clients.FirstOrDefault(x => x.Value.SessionKey == request.ConnectInfo.SessionKey);
             if (existingClient.Value != null)
             {
                 // found existing

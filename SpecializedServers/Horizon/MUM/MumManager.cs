@@ -966,9 +966,10 @@ namespace Horizon.MUM
             }
             */
             Game? game = null;
-            var gameList = GetGameListAppId(client.ApplicationId, 1, 100); // -1 means any?
             if (request.MediusWorldID == -1)
             {
+                IEnumerable<Game>? gameList = GetGameListAppId(client.ApplicationId, 1, 100); // -1 means any?
+
                 if (gameList == null)
                 {
                     LoggerAccessor.LogWarn($"[MediusManager] - Join Game Request Handler Error: Error in retrieving game world info from MUM cache [{request.MediusWorldID}]");
@@ -1044,9 +1045,8 @@ namespace Horizon.MUM
 
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GAME_HOST_TYPE == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
-                    && game.netAddressList?.AddressList[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
+                    && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
                 {
-
                     game.Host?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
@@ -1061,7 +1061,7 @@ namespace Horizon.MUM
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    new NetAddress() { Address = request.AddressList.AddressList[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
+                                    new NetAddress() { Address = request.AddressList.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
                                     new NetAddress() { AddressType = NetAddressType.NetAddressNone},
                                 }
                             },
@@ -1069,10 +1069,9 @@ namespace Horizon.MUM
                     });
                 }
                 else if (game.GAME_HOST_TYPE == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
-                        && game.netAddressList?.AddressList[0].AddressType == NetAddressType.NetAddressTypeExternal
-                        && game.netAddressList?.AddressList[1].AddressType == NetAddressType.NetAddressTypeInternal)
+                        && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeExternal
+                        && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeInternal)
                 {
-
                     game.Host?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
@@ -1087,8 +1086,8 @@ namespace Horizon.MUM
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    new NetAddress() { Address = request.AddressList.AddressList[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() { Address = request.AddressList.AddressList[1].Address, Port = request.AddressList.AddressList[1].Port, AddressType = NetAddressType.NetAddressTypeInternal},
+                                    new NetAddress() { Address = request.AddressList.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() { Address = request.AddressList.AddressList?[1].Address, Port = request.AddressList.AddressList[1].Port, AddressType = NetAddressType.NetAddressTypeInternal},
                                 }
                             },
                         }
@@ -1097,10 +1096,9 @@ namespace Horizon.MUM
                 }
 
                 else if (game.GAME_HOST_TYPE == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
-                        && game.netAddressList?.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
-                        && game.netAddressList?.AddressList[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
+                        && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+                        && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
                 {
-
                     game.Host?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}"),
@@ -1138,8 +1136,7 @@ namespace Horizon.MUM
                 else
                 {
                     if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
-                    {
-                        dme.Queue(new MediusServerJoinGameRequest()
+                        dme?.Queue(new MediusServerJoinGameRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                             ConnectInfo = new NetConnectionInfo()
@@ -1151,10 +1148,8 @@ namespace Horizon.MUM
                                 ServerKey = MediusClass.GlobalAuthPublic
                             }
                         });
-                    }
                     else
-                    {
-                        dme.Queue(new MediusServerJoinGameRequest()
+                        dme?.Queue(new MediusServerJoinGameRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                             ConnectInfo = new NetConnectionInfo()
@@ -1166,9 +1161,7 @@ namespace Horizon.MUM
                                 ServerKey = MediusClass.GlobalAuthPublic
                             }
                         });
-                    }
                 }
-
             }
 
             return Task.CompletedTask;
