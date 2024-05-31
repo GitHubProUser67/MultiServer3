@@ -7,6 +7,8 @@
         public string? FIND { get; set; }
         public string? START { get; set; }
         public string? RANGE { get; set; }
+        public string? CHAN {  get; set; }
+        public string? SEQN { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
