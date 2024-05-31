@@ -16,12 +16,15 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? Redirector007EverythingOrNothing_NTSC;
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC;
+        private AbstractDirtySockServer? RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC;
+        private AbstractDirtySockServer? RedirectorNASCAR08_PS3;
         private AbstractDirtySockServer? RedirectorNASCAR09_PS3;
         private AbstractDirtySockServer? RedirectorCRYSIS3_MPBETA_PS3;
         private AbstractDirtySockServer? BurnoutParadisePS3UltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
-        private AbstractDirtySockServer? EverythingOrNothing007_NTSCMatchmaker;
+        private AbstractDirtySockServer? EverythingOrNothing007_NTSC_Matchmaker;
+        private AbstractDirtySockServer? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
         private AbstractDirtySockServer? NFLStreet_NTSCMatchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
         private AbstractDirtySockServer? SSX3Matchmaker;
@@ -94,7 +97,7 @@ namespace MultiSocks.DirtySocks
             #region Lord Of the Rings: The Return of the King
             try
             {
-                RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC = new RedirectorServer(11200, ListenIP, 11201, false, "LOTR", "PS2", true, "ps2rotk04.ea.com", "ps2rotk04@ea.com");
+                RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC = new RedirectorServer(11200, ListenIP, 11201, false, "LOTR", "PS2", false, "ps2rotk04.ea.com", "ps2rotk04@ea.com");
                 LoggerAccessor.LogInfo($"[Redirector LOTR:TROTK PS2] Started!");
             }
             catch (Exception ex)
@@ -201,9 +204,19 @@ namespace MultiSocks.DirtySocks
                 LoggerAccessor.LogError($"[NFL Street NTSC Matchmaker] Failed to start! Exception: {ex}");
             }
 
+
             try
             {
-                EverythingOrNothing007_NTSCMatchmaker = new MatchmakerServer(11601, true, null, "PS2-BOND-2004", "PS2", false);
+                LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker = new MatchmakerServer(11201, true, null, "PS2_ROTK_2004", "PS2", false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Everything Or Nothing 007 NTSC Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                EverythingOrNothing007_NTSC_Matchmaker = new MatchmakerServer(11601, true, null, "PS2-BOND-2004", "PS2", false);
             }
             catch (Exception ex)
             {
@@ -283,7 +296,8 @@ namespace MultiSocks.DirtySocks
                     RedirectorBOPULTIMATEBOX_PS3?.Dispose();
                     BurnoutParadisePS3Matchmaker?.Dispose();
                     BurnoutParadisePS3UltimateBoxMatchmaker?.Dispose();
-                    EverythingOrNothing007_NTSCMatchmaker?.Dispose();
+                    LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker?.Dispose();
+                    EverythingOrNothing007_NTSC_Matchmaker?.Dispose();
                     NFLStreet_NTSCMatchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();
