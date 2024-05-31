@@ -60,7 +60,8 @@ namespace MultiSocks.DirtySocks
                 { "rank", typeof(RankIn) }, //unknown. { RANK = "Unranked", TIME = 866 }
                 { "tcup", typeof(TcupIn) }, // Time Challenge Score Upload?
                 { "snap", typeof(SnapIn) }, // Get Leaderboard snapshot
-                { "quik", typeof(QuikIn) }  // Old version Quick Match
+                { "quik", typeof(QuikIn) }, // Old version Quick Match
+                { "rept", typeof(ReptIn) } // Submit a Report about a user
             };
 
         public UserCollection Users = new();
