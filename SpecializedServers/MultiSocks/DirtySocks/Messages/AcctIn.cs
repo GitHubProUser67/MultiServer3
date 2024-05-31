@@ -29,6 +29,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? VERS { get; set; }
         public string? SLUS { get; set; }
         public string? LOC { get; set; }
+        public string? DEFPER { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
