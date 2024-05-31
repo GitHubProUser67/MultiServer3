@@ -91,6 +91,18 @@ namespace MultiSocks.DirtySocks
             #endregion
 
 
+            #region Lord Of the Rings: The Return of the King
+            try
+            {
+                RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC = new RedirectorServer(11200, ListenIP, 11201, false, "LOTR", "PS2", true, "ps2rotk04.ea.com", "ps2rotk04@ea.com");
+                LoggerAccessor.LogInfo($"[Redirector LOTR:TROTK PS2] Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector LOTR:TROTK PS2] Failed to start! Exception: {ex}");
+            }
+            #endregion
+
             #region Burnout Paradise PS3
             try
             {
@@ -111,41 +123,41 @@ namespace MultiSocks.DirtySocks
             {
                 LoggerAccessor.LogError($"[RedirectorBOPULTIMATEBOX_PS3] Failed to start! Exception: {ex}");
             }
+
             #endregion
 
             #region Burnout Paradise PC
             try
             {
                 RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21842, false, "BURNOUT5", "PC", true, "pcburnout08.ea.com", "pcburnout08@ea.com");
-                LoggerAccessor.LogInfo($"[RedirectorBOPULTIMATEBOX_PC] Started!");
+                LoggerAccessor.LogInfo($"[Redirector BOPULTIMATEBOX PC] Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[RedirectorBOPULTIMATEBOX_PC] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Redirector BOPULTIMATEBOX PC] Failed to start! Exception: {ex}");
             }
             #endregion
 
             #region Nascar PS3
+            try
+            {
+                RedirectorNASCAR08_PS3 = new RedirectorServer(20651, ListenIP, 20652, false, "NASCAR08", "PS3", true, "ps3nascar08.ea.com", "ps3nascar08@ea.com");
+                LoggerAccessor.LogInfo($"[Redirector NASCAR08 PS3] Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector NASCAR08 PS3] Failed to start! Exception: {ex}");
+            }
 
 
             try
             {
-                RedirectorNASCAR09_PS3 = new RedirectorServer(20651, ListenIP, 20652, false, "NASCAR08", "PS3", true, "ps3nascar08.ea.com", "ps3nascar08@ea.com");
-                LoggerAccessor.LogInfo($"[RedirectorNASCAR08_PS3] Started!");
+                RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, false, "NASCAR09", "PS3", true, "ps3nascar09.ea.com", "ps3nascar09@ea.com");
+                LoggerAccessor.LogInfo($"[Redirector NASCAR09 PS3] Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[RedirectorNASCAR08_PS3] Failed to start! Exception: {ex}");
-            }
-
-            try
-            {
-                RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, false, "NASCAR09", "PS3", true, "ps2bond04.ea.com", "ps2bond04@ea.com");
-                LoggerAccessor.LogInfo($"[RedirectorNASCAR09_PS3] Started!");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[RedirectorNASCAR09_PS3] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Redirector NASCAR09 PS3] Failed to start! Exception: {ex}");
             }
             #endregion
 
@@ -153,16 +165,28 @@ namespace MultiSocks.DirtySocks
             #region 007: Everything or Nothing
             try
             {
-                Redirector007EverythingOrNothing_NTSC = new RedirectorServer(11600, ListenIP, 11601, false, "007EON", "PS2", false, "ps2bond04.ea.com", "ps2bond04@ea.com");
+                Redirector007EverythingOrNothing_NTSC = new RedirectorServer(11600, ListenIP, 11601, false, "PS2-BOND-2004", "PS2", false, "ps2bond04.ea.com", "ps2bond04@ea.com");
 
-                LoggerAccessor.LogInfo($"[Redirector007EverythingOrNothing_NTSC] Started!");
+                LoggerAccessor.LogInfo($"[Redirector 007 Everything Or Nothing NTSC] Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[Redirector007EverythingOrNothing_NTSC] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Redirector 007Everything Or Nothing NTSC] Failed to start! Exception: {ex}");
             }
             #endregion
 
+            #region Crysis 3
+            try
+            {
+                RedirectorCRYSIS3_MPBETA_PS3 = new RedirectorServer(42127, ListenIP, 42128, false, "CRYSIS3MPBETA", "PS3", true, "gosredirector.ea.com", "ps3crysis3@ea.com");
+
+                LoggerAccessor.LogInfo($"[Redirector CRYSIS3 MPBETA PS3] Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector CRYSIS3 MPBETA PS3] Failed to start! Exception: {ex}");
+            }
+            #endregion
 
             #endregion
 
@@ -170,29 +194,20 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                EverythingOrNothing007_NTSCMatchmaker = new MatchmakerServer(11601, true, null, "007EON", "PS2");
+                NFLStreet_NTSCMatchmaker = new MatchmakerServer(11301, true, null, "NFLSTREET-PS2-2004", "PS2");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[EverythingOrNothing007_NTSCMatchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[NFL Street NTSC Matchmaker] Failed to start! Exception: {ex}");
             }
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21842, false, "BURNOUT5", "PC", true, "pcburnout08.ea.com", "pcburnout08@ea.com");
+                EverythingOrNothing007_NTSCMatchmaker = new MatchmakerServer(11601, true, null, "PS2-BOND-2004", "PS2", false);
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[RedirectorBOPULTIMATEBOX_PC] Failed to start! Exception: {ex}");
-            }
-
-            try
-            {
-                RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, false, "NASCAR09", "PS3", true, "ps3nascar09.ea.com", "ps3nascar09@ea.com");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[RedirectorNASCAR09_PS3] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Everything Or Nothing 007 NTSC Matchmaker] Failed to start! Exception: {ex}");
             }
 
             try
@@ -201,7 +216,7 @@ namespace MultiSocks.DirtySocks
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[BurnoutParadisePS3Matchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[BurnoutParadise PS3 Matchmaker] Failed to start! Exception: {ex}");
             }
 
             try
@@ -210,7 +225,7 @@ namespace MultiSocks.DirtySocks
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[BurnoutParadiseUltimateBoxMatchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[BurnoutParadise UltimateBox Matchmaker] Failed to start! Exception: {ex}");
             }
 
             try
@@ -219,17 +234,9 @@ namespace MultiSocks.DirtySocks
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[BurnoutParadisePCUltimateBoxMatchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[BurnoutParadisePCUltimateBox Matchmaker] Failed to start! Exception: {ex}");
             }
 
-            try
-            {
-                NFLStreet_NTSCMatchmaker = new MatchmakerServer(11301, true, null, "NFLSTREET-PS2-2004", "PS2");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[NFLStreet_NTSCMatchmaker] Failed to start! Exception: {ex}");
-            }
 
             try
             {
@@ -276,6 +283,7 @@ namespace MultiSocks.DirtySocks
                     RedirectorBOPULTIMATEBOX_PS3?.Dispose();
                     BurnoutParadisePS3Matchmaker?.Dispose();
                     BurnoutParadisePS3UltimateBoxMatchmaker?.Dispose();
+                    EverythingOrNothing007_NTSCMatchmaker?.Dispose();
                     NFLStreet_NTSCMatchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();

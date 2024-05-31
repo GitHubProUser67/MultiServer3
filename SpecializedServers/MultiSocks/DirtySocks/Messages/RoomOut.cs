@@ -6,7 +6,11 @@ namespace MultiSocks.DirtySocks.Messages
 
         public string? IDENT { get; set; }
         public string? NAME { get; set; }
+        public string? HOST { get; set; }
+        public string? DESC { get; set; }
         public string? COUNT { get; set; }
+        public string? LIMIT { get; set; }
+        public string? MAX {  get; set; }
         public string FLAGS { get; set; } = "C";
     }
 }
