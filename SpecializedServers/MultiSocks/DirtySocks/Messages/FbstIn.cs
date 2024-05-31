@@ -5,6 +5,9 @@ namespace MultiSocks.DirtySocks.Messages
     public class FbstIn : AbstractMessage
     {
         public override string _Name { get => "fbst"; }
+        public string? TKDNA { get; set; }
+        public string? TKDNF { get; set; }
+        public string? FBCHAL { get; set; }
         public string? CRSH { get; set; }
         public string? DIST { get; set; }
         public string? TIME { get; set; }
