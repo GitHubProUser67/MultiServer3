@@ -38,11 +38,12 @@ namespace MultiSocks.DirtySocks
                 { "user", typeof(UserIn) }, //get my user info
                 { "usld", typeof(UsldIn) }, //Ping Equiv?
                 { "onln", typeof(OnlnIn) }, //search for a user's info
+                { "rvup", null }, //?
                 { "opup", typeof(OpupIn) }, //?
                 { "rent", typeof(RentIn) }, // Refresh Entitlements
                 { "rrlc", typeof(RrlcIn) }, // (CUSTOM Burnout Paradise) Road Rules Local
                 { "rrup", typeof(RrupIn) }, // (CUSTOM Burnout Paradise) Road Rules Upload
-                { "rrgt", typeof(RrgtIn) }, // (CUSTOM Burnout Paradise) Road Rules get
+                { "rrgt", typeof(RrgtIn) }, // (CUSTOM Burnout Paradise) Road Rules Get
                 { "rvup", typeof(RvupIn) }, //?
                 { "addr", typeof(Addr) }, //the client tells us their IP and port (ephemeral). The IP is usually wrong.
                 { "chal", typeof(Chal) }, //enter challenge mode
@@ -58,7 +59,9 @@ namespace MultiSocks.DirtySocks
                 { "gqwk", typeof(GqwkIn) }, //Quick join.
                 { "news", typeof(NewsIn) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
                 { "rank", typeof(RankIn) }, //unknown. { RANK = "Unranked", TIME = 866 }
-                { "tcup", typeof(TcupIn) } //?
+                { "tcup", typeof(TcupIn) }, // Time Challenge Score Upload?
+                { "snap", typeof(SnapIn) }, // Get Leaderboard snapshot
+                { "quik", typeof(QuikIn) }  // Old version Quick Match
             };
 
         public UserCollection Users = new();

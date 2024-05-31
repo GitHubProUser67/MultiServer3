@@ -7,6 +7,7 @@
         public string? DRVDEA { get; set; }
         public string? RIDDEA { get; set; }
         public string? FBURNCHALL { get; set; }
+        public string? ISLDDEA { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

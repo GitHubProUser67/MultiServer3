@@ -3,6 +3,7 @@ namespace MultiSocks.DirtySocks.Messages
     public class UserIn : AbstractMessage
     {
         public override string _Name { get => "user"; }
+        public string? PERS { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
@@ -15,6 +16,7 @@ namespace MultiSocks.DirtySocks.Messages
 
             UserOut result = new()
             {
+                PERS = user.Username,
                 MESG = user.Username,
                 ADDR = client.IP,
             };

@@ -5,6 +5,7 @@ namespace MultiSocks.DirtySocks.Messages
         public override string _Name { get => "onln"; }
 
         public string? PERS { get; set; }
+        public string? OFFLINE { get; set; }
         public string ROOM { get; set; } = "Room-A";
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
