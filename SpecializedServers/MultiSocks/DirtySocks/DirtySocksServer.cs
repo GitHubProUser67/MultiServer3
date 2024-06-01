@@ -10,24 +10,29 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? RedirectorSSX3_PAL;
         private AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
         private AbstractDirtySockServer? RedirectorTSBO_PAL;
-        private AbstractDirtySockServer? RedirectorBOP_PS3;
-        private AbstractDirtySockServer? BurnoutParadiseUltimateBoxMatchmaker;
         private AbstractDirtySockServer? RedirectorNFLStreet_NTSC;
+        private AbstractDirtySockServer? RedirectorNFLStreet2_NTSC;
+        private AbstractDirtySockServer? RedirectorNFLStreet3_NTSC;
         private AbstractDirtySockServer? Redirector007EverythingOrNothing_NTSC;
+        private AbstractDirtySockServer? RedirectorNCAAMM06_NTSC;
+        private AbstractDirtySockServer? RedirectorBOP_PS3;
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC;
         private AbstractDirtySockServer? RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC;
         private AbstractDirtySockServer? RedirectorNASCAR08_PS3;
         private AbstractDirtySockServer? RedirectorNASCAR09_PS3;
-        private AbstractDirtySockServer? RedirectorCRYSIS3_MPBETA_PS3;
+        private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? BurnoutParadisePS3UltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
-        private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? EverythingOrNothing007_NTSC_Matchmaker;
         private AbstractDirtySockServer? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
+        private AbstractDirtySockServer? NCAAMM06_NTSC_Matchmaker;
         private AbstractDirtySockServer? NFLStreet_NTSCMatchmaker;
+        private AbstractDirtySockServer? NFLStreet2_NTSCMatchmaker;
+        private AbstractDirtySockServer? NFLStreet3_NTSCMatchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
         private AbstractDirtySockServer? SSX3Matchmaker;
+        //private AbstractDirtySockServer? RedirectorCRYSIS3_MPBETA_PS3; //For Blaze
         private bool disposedValue;
 
         public DirtySocksServer(CancellationToken cancellationToken)
@@ -92,12 +97,25 @@ namespace MultiSocks.DirtySocks
                 LoggerAccessor.LogError($"[Redirector] NFL Street NTSC Failed to start! Exception: {ex}");
             }
 
-
             try
             {
                 RedirectorNFLStreet2_NTSC = new RedirectorServer(21301, ListenIP, 21302, false, "NFLSTREET-PS2-2005", "PS2");
+                LoggerAccessor.LogInfo($"[Redirector] NFL Street 2 NTSC Started!");
+            }
+            catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[Redirector] NFL Street 2 NTSC Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                RedirectorNFLStreet3_NTSC = new RedirectorServer(11701, ListenIP, 11702, false, "NFLSTREET-PS2-2006", "PS2");
+                LoggerAccessor.LogInfo($"[Redirector] NFL Street 3 NTSC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] NFL Street 3 NTSC Failed to start! Exception: {ex}");
+            }
 
             #endregion
 
@@ -153,22 +171,22 @@ namespace MultiSocks.DirtySocks
             try
             {
                 RedirectorNASCAR08_PS3 = new RedirectorServer(20651, ListenIP, 20652, false, "NASCAR08", "PS3", true, "ps3nascar08.ea.com", "ps3nascar08@ea.com");
-                LoggerAccessor.LogInfo($"[Redirector NASCAR08 PS3] Started!");
+                LoggerAccessor.LogInfo($"[Redirector] NASCAR08 PS3 Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[Redirector NASCAR08 PS3] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Redirector] NASCAR08 PS3 Failed to start! Exception: {ex}");
             }
 
 
             try
             {
                 RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, false, "NASCAR09", "PS3", true, "ps3nascar09.ea.com", "ps3nascar09@ea.com");
-                LoggerAccessor.LogInfo($"[Redirector NASCAR09 PS3] Started!");
+                LoggerAccessor.LogInfo($"[Redirector] NASCAR09 PS3 Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[Redirector NASCAR09 PS3] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Redirector] NASCAR09 PS3 Failed to start! Exception: {ex}");
             }
             #endregion
 
@@ -217,6 +235,8 @@ namespace MultiSocks.DirtySocks
             */
             #endregion
 
+
+
             #region Matchmaker
 
             try
@@ -231,6 +251,15 @@ namespace MultiSocks.DirtySocks
             try
             {
                 NFLStreet2_NTSCMatchmaker = new MatchmakerServer(21302, true, null, "NFLSTREET-PS2-2005", "PS2");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[NFL Street NTSC Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                NFLStreet3_NTSCMatchmaker = new MatchmakerServer(11702, true, null, "NFLSTREET-PS2-2006", "PS2");
             }
             catch (Exception ex)
             {
@@ -279,7 +308,7 @@ namespace MultiSocks.DirtySocks
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[BurnoutParadise UltimateBox Matchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[BurnoutParadise PS3 UltimateBox Matchmaker] Failed to start! Exception: {ex}");
             }
 
             try
@@ -288,7 +317,7 @@ namespace MultiSocks.DirtySocks
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[BurnoutParadisePCUltimateBox Matchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[BurnoutParadise PC UltimateBox Matchmaker] Failed to start! Exception: {ex}");
             }
 
 
@@ -344,6 +373,8 @@ namespace MultiSocks.DirtySocks
                     RedirectorNASCAR09_PS3?.Dispose();
                     RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC?.Dispose();
                     RedirectorNFLStreet_NTSC?.Dispose();
+                    RedirectorNFLStreet2_NTSC?.Dispose();
+                    RedirectorNFLStreet3_NTSC?.Dispose();
 
                     //Matchmakers
                     BurnoutParadisePS3Matchmaker?.Dispose();
@@ -353,6 +384,7 @@ namespace MultiSocks.DirtySocks
                     EverythingOrNothing007_NTSC_Matchmaker?.Dispose();
                     NFLStreet_NTSCMatchmaker?.Dispose();
                     NFLStreet2_NTSCMatchmaker?.Dispose();
+                    NFLStreet3_NTSCMatchmaker?.Dispose();
                     NCAAMM06_NTSC_Matchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();
