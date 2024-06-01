@@ -3,7 +3,8 @@
     public class ReptIn : AbstractMessage
     {
         public override string _Name { get => "rept"; }
-        public string? PERS { get; set; } // persona of user to report
+        public string? PERS { get; set; } // Persona of user to report
+        public string? LANG { get; set; } // Player Language
         public string? PROD { get; set; } // OPTIONAL: product-platform-year 
         public string? TYPE { get; set; } // Report Type
         public string? TEXT { get; set; } // Report Description
