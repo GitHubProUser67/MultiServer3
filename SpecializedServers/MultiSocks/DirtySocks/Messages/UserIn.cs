@@ -4,6 +4,7 @@ namespace MultiSocks.DirtySocks.Messages
     {
         public override string _Name { get => "user"; }
         public string? PERS { get; set; }
+        public string? NAME { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

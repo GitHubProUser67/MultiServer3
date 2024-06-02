@@ -15,7 +15,7 @@ namespace MultiSocks.DirtySocks.Messages
 
             // Todo, send proper news data for burnout.
 
-            if (NAME == "client.cfg") // TODO, do a real config file.
+            if (NAME == "client.cfg" || NAME == "7") // TODO, do a real config file.
             {
                 if (context.Project == "BURNOUT5")
                 {
