@@ -195,7 +195,7 @@ namespace MultiSocks.DirtySocks
             #region NCAA March Madness 06
             try
             {
-                RedirectorNCAAMM06_NTSC = new RedirectorServer(30701, ListenIP, 30702, false, "PS2-MM-2006", "PS2", false, "ps2mm06.ea.com", "ps2mm06@ea.com");
+                RedirectorNCAAMM06_NTSC = new RedirectorServer(30700, ListenIP, 30701, false, "PS2-MM-2006", "PS2", false, "ps2mm06.ea.com", "ps2mm06@ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] NCAA March Madness 06 NTSC Started!");
             }
@@ -237,6 +237,7 @@ namespace MultiSocks.DirtySocks
             #endregion
 
             #region EA Messenger
+
             try
             {
                 EAMessenger = new EAMessengerServer(10899, true, null, null, "PS2");
@@ -289,7 +290,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                NCAAMM06_NTSC_Matchmaker = new MatchmakerServer(30702, true, null, "PS2-MM-2006", "PS2");
+                NCAAMM06_NTSC_Matchmaker = new MatchmakerServer(30701, true, null, "MM05", "PS2");
             }
             catch (Exception ex)
             {

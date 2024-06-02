@@ -1,3 +1,4 @@
+using MultiSocks.DirtySocks.Messages.BurnoutParadiseCustom;
 using MultiSocks.DirtySocks.Model;
 using System.Text;
 
@@ -15,7 +16,7 @@ namespace MultiSocks.DirtySocks.Messages
 
             // Todo, send proper news data for burnout.
 
-            if (NAME == "client.cfg" || NAME == "7") // TODO, do a real config file.
+            if (NAME == "7" || NAME == "client.cfg") // TODO, do a real config file.
             {
                 if (context.Project == "BURNOUT5")
                 {
@@ -47,7 +48,7 @@ namespace MultiSocks.DirtySocks.Messages
                             TOS_URL = "\"http://gos.ea.com/easo/editorial/common/2008/tos/tos.jsp?lang=%s&platform=pc&from=%s\"",
                         });
                     }
-                }
+                } 
                 else
                     client.SendMessage(new NewsOut());
             }
@@ -63,6 +64,15 @@ namespace MultiSocks.DirtySocks.Messages
                 user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
 
                 client.SendMessage(new Newsnew8());
+            }
+            // NCAA MM 06
+            else if (NAME == "quickmsgs.en")
+            {
+                client.SendMessage(new NewsOut());
+            }
+            else if (NAME.Contains("webconfig."))
+            {
+                client.SendMessage(new WebConfigNewsOut() { BILLBOARD_URL = "http://gos.ea.com/easo/", BILLBOARD_TEXT = "Test" });
             }
             else
                 CustomLogger.LoggerAccessor.LogWarn($"[DirtySocks] - News - Client Requested an unknown config type: {NAME}, not responding");

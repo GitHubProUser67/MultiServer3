@@ -35,6 +35,8 @@ namespace MultiSocks.DirtySocks.Messages
         public string? CLST { get; set; }
         public string? NETV { get; set; }
         public string? MINAGE { get; set; }
+        public string? ENTL { get; set; }
+        public string? MASK { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
