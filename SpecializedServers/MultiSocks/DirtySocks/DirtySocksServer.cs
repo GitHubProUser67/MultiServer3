@@ -32,6 +32,7 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? NFLStreet3_NTSCMatchmaker;
         private AbstractDirtySockServer? SimsMatchmaker;
         private AbstractDirtySockServer? SSX3Matchmaker;
+        private AbstractDirtySockServer? EAMessenger;
         //private AbstractDirtySockServer? RedirectorCRYSIS3_MPBETA_PS3; //For Blaze
         private bool disposedValue;
 
@@ -109,7 +110,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorNFLStreet3_NTSC = new RedirectorServer(11701, ListenIP, 11702, false, "NFLSTREET-PS2-2006", "PS2");
+                RedirectorNFLStreet3_NTSC = new RedirectorServer(11700, ListenIP, 11701, false, "NFLSTREET3-PS2-2007", "PS2");
                 LoggerAccessor.LogInfo($"[Redirector] NFL Street 3 NTSC Started!");
             }
             catch (Exception ex)
@@ -135,7 +136,7 @@ namespace MultiSocks.DirtySocks
             #region Burnout Paradise PS3
             try
             {
-                RedirectorBOP_PS3 = new RedirectorServer(21850, ListenIP, 21851, false, "BURNOUT5", "PS3");
+                RedirectorBOP_PS3 = new RedirectorServer(21850, ListenIP, 21851, false, "BURNOUT5", "PS3", false, "ps3burnout08.ea.com", "ps3burnout08@ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] BOP PS3 Started!");
             }
             catch (Exception ex)
@@ -145,7 +146,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, ListenIP, 21871, false, "BURNOUT5", "PS3");
+                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, ListenIP, 21871, false, "BURNOUT5", "PS3", false, "ps3burnout08.ea.com", "ps3burnout08@ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] BOPULTIMATEBOX PS3 Started!");
             }
             catch (Exception ex)
@@ -235,7 +236,18 @@ namespace MultiSocks.DirtySocks
             */
             #endregion
 
+            #region EA Messenger
+            try
+            {
+                EAMessenger = new EAMessengerServer(10899, true, null, null, "PS2");
+                LoggerAccessor.LogInfo($"[EAMessenger] Buddy Service Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[EAMessenger] Buddy Service Failed to start! Exception: {ex}");
+            }
 
+            #endregion
 
             #region Matchmaker
 
@@ -259,7 +271,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                NFLStreet3_NTSCMatchmaker = new MatchmakerServer(11702, true, null, "NFLSTREET-PS2-2006", "PS2");
+                NFLStreet3_NTSCMatchmaker = new MatchmakerServer(11701, true, null, "NFLSTREET3-PS2-2007", "PS2");
             }
             catch (Exception ex)
             {
@@ -388,6 +400,9 @@ namespace MultiSocks.DirtySocks
                     NCAAMM06_NTSC_Matchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();
+
+                    //EA.COM Buddy Server
+                    EAMessenger?.Dispose();
 
                     LoggerAccessor.LogWarn("DirtySocks Servers stopped...");
                 }
