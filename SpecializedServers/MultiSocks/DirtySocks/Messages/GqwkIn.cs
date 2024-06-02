@@ -5,6 +5,7 @@ namespace MultiSocks.DirtySocks.Messages
     public class GqwkIn : AbstractMessage
     {
         public override string _Name { get => "gqwk"; }
+        public string? GS { get; set; }
         public string? GS0 { get; set; }
         public string? GS1 { get; set; }
         public string? GS2 { get; set; }
@@ -15,6 +16,15 @@ namespace MultiSocks.DirtySocks.Messages
         public string? FORCE_LEAVE { get; set; }
         public string? USERPARAMS { get; set; }
         public string USERFLAGS { get; set; } = "0";
+        public string? NAME { get; set; }
+        public string? MINSIZE { get; set; }
+        public string? MAXSIZE { get; set; }
+        public string? SYSFLAGS { get; set; }
+        public string? PARAMS { get; set; }
+        public string? SYSMASK { get; set; }
+        public string? TYPE { get; set; }
+        public string? MODE { get; set; }
+        public string? SESSION { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

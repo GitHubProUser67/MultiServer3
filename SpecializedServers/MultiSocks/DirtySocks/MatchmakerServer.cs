@@ -63,7 +63,11 @@ namespace MultiSocks.DirtySocks
                 { "snap", typeof(SnapIn) }, // Get Leaderboard snapshot
                 { "quik", typeof(QuikIn) }, // Old version Quick Match
                 { "rept", typeof(ReptIn) }, // Submit a Report about a user
+                { "rcat", typeof(RcatIn) }, // Fetch room category information
+                { "priv", typeof(PrivIn) }, // Set Private Message mode.
                 { "flag", typeof(FlagIn) }, // Set attribute flags.
+                { "uatr", typeof(UatrIn) }, // Update user attributes and hardware flags
+                { "lggr", typeof(Lggr) } // Client -> Server logger 
             };
 
         public UserCollection Users = new();
