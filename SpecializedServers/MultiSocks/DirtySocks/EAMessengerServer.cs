@@ -1,6 +1,5 @@
 using MultiSocks.DirtySocks.DataStore;
 using MultiSocks.DirtySocks.Messages;
-using MultiSocks.DirtySocks.Messages.BurnoutParadiseCustom;
 using MultiSocks.DirtySocks.Model;
 
 namespace MultiSocks.DirtySocks
@@ -10,10 +9,6 @@ namespace MultiSocks.DirtySocks
         public override Dictionary<string, Type?> NameToClass { get; } =
             new Dictionary<string, Type?>()
             {
-                { "~png", typeof(Ping) },
-                { "move", typeof(MoveIn) }, //move into a room. remove last room and broadcast "+rom" to others. broadcast "+pop" with Z=ID/Count for population update
-                { "mesg", typeof(Mesg) }, //PRIV is non-null for private. else broadcast to room. PRIV->(find client), TEXT->T, ATTR->EP, (name)->N
-                { "auxi", typeof(Auxi) }, //auxiliary information. returned as X attribute in +usr and +who
                 { "AUTH", typeof(EAMAuthIn) },
                 { "PSET", typeof(PsetIn) },
             };

@@ -1,6 +1,5 @@
 using MultiSocks.DirtySocks.DataStore;
 using MultiSocks.DirtySocks.Messages;
-using MultiSocks.DirtySocks.Messages.BurnoutParadiseCustom;
 using MultiSocks.DirtySocks.Model;
 
 namespace MultiSocks.DirtySocks

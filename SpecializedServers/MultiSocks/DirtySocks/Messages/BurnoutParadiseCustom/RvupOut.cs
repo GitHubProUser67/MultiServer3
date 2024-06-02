@@ -1,4 +1,4 @@
-﻿namespace MultiSocks.DirtySocks.Messages.BurnoutParadiseCustom
+﻿namespace MultiSocks.DirtySocks.Messages
 {
     public class RvupOut : AbstractMessage
     {

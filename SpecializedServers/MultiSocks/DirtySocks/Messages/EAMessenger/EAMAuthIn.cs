@@ -1,5 +1,4 @@
 using MultiSocks.DirtySocks.DataStore;
-using System.Text.RegularExpressions;
 
 namespace MultiSocks.DirtySocks.Messages
 {
