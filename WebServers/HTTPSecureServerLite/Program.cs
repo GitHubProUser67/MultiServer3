@@ -14,10 +14,8 @@ using System.Security.Cryptography;
 using CyberBackendLibrary.HTTP.PluginManager;
 using System.Diagnostics;
 using System.Security.Principal;
-using HttpMultipartParser;
-using SevenZip.Compression.LZ;
 using System.Reflection;
-using System.Linq;
+using CyberBackendLibrary.HTTP;
 
 public static class HTTPSServerConfiguration
 {
@@ -31,6 +29,7 @@ public static class HTTPSServerConfiguration
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPSTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
+    public static string ASPNETRedirectUrl { get; set; } = string.Empty;
     public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
@@ -42,6 +41,7 @@ public static class HTTPSServerConfiguration
     public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableLiveTranscoding { get; set; } = false;
+    public static Dictionary<string, string>? MimeTypes { get; set; } = HTTPProcessor._mimeTypes;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
     public static string[]? HTTPSDNSList { get; set; } = {
             "www.outso-srv1.com",
@@ -130,6 +130,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("online_routes_config", DNSOnlineConfig),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
+                new JProperty("aspnet_redirect_url", ASPNETRedirectUrl),
                 new JProperty("php", new JObject(
                     new JProperty("redirect_url", PHPRedirectUrl),
                     new JProperty("version", PHPVersion),
@@ -139,6 +140,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("api_static_folder", APIStaticFolder),
                 new JProperty("https_static_folder", HTTPSStaticFolder),
                 new JProperty("https_temp_folder", HTTPSTempFolder),
+                SerializeMimeTypes(),
                 SerializeDateTimeOffset(),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("converters_folder", ConvertersFolder),
@@ -170,6 +172,7 @@ public static class HTTPSServerConfiguration
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             APIStaticFolder = GetValueOrDefault(config, "api_static_folder", APIStaticFolder);
+            ASPNETRedirectUrl = GetValueOrDefault(config, "aspnet_redirect_url", ASPNETRedirectUrl);
             PHPRedirectUrl = GetValueOrDefault(config.php, "redirect_url", PHPRedirectUrl);
             PHPVersion = GetValueOrDefault(config.php, "version", PHPVersion);
             PHPStaticFolder = GetValueOrDefault(config.php, "static_folder", PHPStaticFolder);
@@ -186,6 +189,7 @@ public static class HTTPSServerConfiguration
             EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
             EnableLiveTranscoding = GetValueOrDefault(config, "enable_live_transcoding", EnableLiveTranscoding);
+            MimeTypes = GetValueOrDefault(config, "mime_types", MimeTypes);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             // Deserialize Ports if it exists
@@ -267,6 +271,17 @@ public static class HTTPSServerConfiguration
             jObject.Add(kvp.Key, kvp.Value);
         }
         return new JProperty("datetime_offset", jObject);
+    }
+
+    // Helper method for the MimeTypes config serialization.
+    private static JProperty SerializeMimeTypes()
+    {
+        JObject jObject = new();
+        foreach (var kvp in MimeTypes ?? new Dictionary<string, string>())
+        {
+            jObject.Add(kvp.Key, kvp.Value);
+        }
+        return new JProperty("mime_types", jObject);
     }
 }
 

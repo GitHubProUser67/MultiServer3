@@ -621,25 +621,17 @@ namespace CyberBackendLibrary.HTTP
 
         // http://stackoverflow.com/questions/1029740/get-mime-type-from-filename-extension
 
-        public static string GetMimeType(string? extension)
+        public static string GetMimeType(string? extension, Dictionary<string, string> mimeTypesDic)
         {
             if (string.IsNullOrEmpty(extension))
                 return "application/octet-stream";
             else
             {
-                if (!extension.StartsWith("."))
+                if (!extension.StartsWith('.'))
                     extension = "." + extension;
 
-                return _mimeTypes.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
+                return mimeTypesDic.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
             }
-        }
-
-        public static string? GetExtensionFromMime(string? mimeType)
-        {
-            if (string.IsNullOrEmpty(mimeType))
-                return null;
-            else
-                return _mimeTypes.TryGetValue(mimeType, out string? extension) ? extension : null;
         }
 
         public static bool CheckHeaderMatch(byte[] byteArray, int startIndex, string header)

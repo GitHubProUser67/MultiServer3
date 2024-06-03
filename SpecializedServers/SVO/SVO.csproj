@@ -2,14 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 10058:10058 -p 10060:10060 -p 10061:10061 -p 10062:10062</DockerfileRunArguments>
 	<ApplicationIcon>SVO.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
-	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +21,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
-    <PackageReference Include="Watson.Lite" Version="6.1.9" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Watson.Lite" Version="6.1.10" />
   </ItemGroup>
 
   <ItemGroup>

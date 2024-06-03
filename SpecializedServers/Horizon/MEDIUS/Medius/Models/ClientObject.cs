@@ -11,6 +11,7 @@ using System.Net;
 using static Horizon.MUM.Game;
 using Horizon.PluginManager;
 using Horizon.MUM;
+using Horizon.HTTPSERVICE;
 
 namespace Horizon.MEDIUS.Medius.Models
 {
@@ -21,10 +22,12 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public List<GameClient> Clients = new();
 
+        public ConcurrentDictionary<string, Task> Tasks = new();
+
         /// <summary>
         /// 
         /// </summary>
-        public uint HomePointer { get; set; }
+        public uint HomePointer = 0;
 
         /// <summary>
         /// 
@@ -519,8 +522,16 @@ namespace Horizon.MEDIUS.Medius.Models
             // Leave channel
             await LeaveCurrentChannel();
 
+            // Stop custom tasks
+            await DisposeTasks();
+
+            // Release home pointer
+            HomePointer = 0;
+
             // Logout
             _logoutTime = Utils.GetHighPrecisionUtcTime();
+
+            CrudRoomManager.RemoveUser(AccountName, ApplicationId);
 
             // Tell database
             PostStatus();
@@ -543,6 +554,8 @@ namespace Horizon.MEDIUS.Medius.Models
 
             // Login
             _loginTime = Utils.GetHighPrecisionUtcTime();
+
+            CrudRoomManager.AddOrUpdateUser(AccountName, ApplicationId);
 
             // WE ARE ANONYMOUS SO DON'T POST TO DATABASE!!!!
         }
@@ -570,6 +583,8 @@ namespace Horizon.MEDIUS.Medius.Models
 
                     // Update last sign in date
                     _ = HorizonServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
+
+                    CrudRoomManager.AddOrUpdateUser(AccountName, ApplicationId);
 
                     // Update database status
                     PostStatus();
@@ -941,6 +956,23 @@ namespace Horizon.MEDIUS.Medius.Models
             HomePointer = Pointer;
         }
         #endregion
+
+        public Task DisposeTasks()
+        {
+            foreach (Task task in Tasks.Values)
+            {
+                try
+                {
+                    task.Dispose();
+                }
+                catch
+                {
+                    
+                }
+            }
+
+            return Task.CompletedTask;
+        }
 
         /*
         public Task<RT_RESULT> rt_msg_server_check_protocol_compatibility(ushort clientVersion, int p_compatible)
