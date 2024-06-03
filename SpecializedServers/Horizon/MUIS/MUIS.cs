@@ -494,7 +494,7 @@ namespace Horizon.MUIS
                                 //Send Standard/Variable Flow
                                 foreach (var info in infos)
                                 {
-                                    var isLast = infos.LastOrDefault() == info;
+                                    bool isLast = infos.LastOrDefault() == info;
 
                                     #region INFO_UNIVERSES
                                     // MUIS Standard Flow - Deprecated after Medius Client/Server Library 1.50

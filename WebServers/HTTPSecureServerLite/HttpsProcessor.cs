@@ -436,7 +436,7 @@ namespace HTTPSecureServerLite
                                                 response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}").ToString("r"));
                                                 response.StatusCode = (int)statusCode;
-                                                response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}"));
+                                                response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}"), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                 sent = await response.Send(buffer);
                                             }
                                             else
@@ -925,14 +925,6 @@ namespace HTTPSecureServerLite
                                                     }
                                                 }
                                                 break;
-                                            #region Get Away Google!
-                                            case "/robots.txt":
-                                                statusCode = HttpStatusCode.OK;
-                                                response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send("User-agent: *\nDisallow: / ");
-                                                break;
-                                            #endregion
                                             case "/!player":
                                             case "/!player/":
                                                 if (ServerIP.Length > 15)
@@ -957,7 +949,7 @@ namespace HTTPSecureServerLite
                                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                         response.StatusCode = (int)statusCode;
                                                         response.ContentType = "application/json";
-                                                        sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}"));
+                                                        sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                                     }
                                                     else if (request.RetrieveQueryValue("m3u") == "on")
                                                     {
@@ -1024,7 +1016,7 @@ namespace HTTPSecureServerLite
                                                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + $"/{indexFile}").ToString("r"));
                                                                         response.StatusCode = (int)statusCode;
-                                                                        response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath + $"/{indexFile}"));
+                                                                        response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath + $"/{indexFile}"), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                                         sent = await response.Send(buffer);
                                                                     }
                                                                     else
@@ -1060,7 +1052,15 @@ namespace HTTPSecureServerLite
                                                         }
                                                     }
                                                 }
-                                                else if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
+                                                else if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPSServerConfiguration.ASPNETRedirectUrl))
+                                                {
+                                                    statusCode = HttpStatusCode.PermanentRedirect;
+                                                    response.Headers.Add("Location", $"{HTTPSServerConfiguration.ASPNETRedirectUrl}{request.Url.RawWithQuery}");
+                                                    response.StatusCode = (int)statusCode;
+                                                    response.ContentType = "text/html";
+                                                    sent = await response.Send();
+                                                }
+                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
                                                 {
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{request.Url.RawWithQuery}");
@@ -1068,7 +1068,7 @@ namespace HTTPSecureServerLite
                                                     response.ContentType = "text/html";
                                                     sent = await response.Send();
                                                 }
-                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                 {
                                                     var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
                                                     statusCode = HttpStatusCode.OK;
@@ -1096,7 +1096,7 @@ namespace HTTPSecureServerLite
                                                 {
                                                     if (File.Exists(filePath))
                                                     {
-                                                        string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
+                                                        string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                         if (ContentType == "application/octet-stream")
                                                         {
                                                             byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
@@ -1283,7 +1283,15 @@ namespace HTTPSecureServerLite
                                                 }
                                                 break;
                                             default:
-                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
+                                                if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPSServerConfiguration.ASPNETRedirectUrl))
+                                                {
+                                                    statusCode = HttpStatusCode.PermanentRedirect;
+                                                    response.Headers.Add("Location", $"{HTTPSServerConfiguration.ASPNETRedirectUrl}{request.Url.RawWithQuery}");
+                                                    response.StatusCode = (int)statusCode;
+                                                    response.ContentType = "text/html";
+                                                    sent = await response.Send();
+                                                }
+                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
                                                 {
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{request.Url.RawWithQuery}");
@@ -1291,7 +1299,7 @@ namespace HTTPSecureServerLite
                                                     response.ContentType = "text/html";
                                                     sent = await response.Send();
                                                 }
-                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                 {
                                                     (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
                                                     statusCode = HttpStatusCode.OK;
@@ -1313,19 +1321,52 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else
                                                 {
-                                                    statusCode = HttpStatusCode.NotFound;
-                                                    response.StatusCode = (int)statusCode;
-
-                                                    if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                                    if (File.Exists(filePath))
                                                     {
-                                                        response.ContentType = "text/html";
-                                                        sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                            HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                                        string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+                                                        if (ContentType == "application/octet-stream")
+                                                        {
+                                                            byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                            foreach (var entry in HTTPProcessor._PathernDictionary)
+                                                            {
+                                                                if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                {
+                                                                    ContentType = entry.Key;
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        string UserAgent = request.Useragent.ToLower();
+
+                                                        if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
+                                                            sent = new LocalFileStreamHelper().Handle_LocalFile_Stream(ctx, filePath, ContentType);
+                                                        else
+                                                        {
+                                                            // send file
+                                                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
+
+                                                            sent = await SendFile(ctx, encoding, filePath, ContentType);
+                                                        }
                                                     }
                                                     else
                                                     {
-                                                        response.ContentType = "text/plain";
-                                                        sent = await response.Send();
+                                                        LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
+
+                                                        statusCode = HttpStatusCode.NotFound;
+                                                        response.StatusCode = (int)statusCode;
+
+                                                        if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                                        {
+                                                            response.ContentType = "text/html";
+                                                            sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                                        }
+                                                        else
+                                                        {
+                                                            response.ContentType = "text/plain";
+                                                            sent = await response.Send();
+                                                        }
                                                     }
                                                 }
                                                 break;
@@ -1394,7 +1435,7 @@ namespace HTTPSecureServerLite
                                         if (fileInfo.Exists)
                                         {
                                             statusCode = HttpStatusCode.OK;
-                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
+                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                             if (ContentType == "application/octet-stream")
                                             {
                                                 bool matched = false;
@@ -1453,7 +1494,7 @@ namespace HTTPSecureServerLite
                                     case "PROPFIND":
                                         if (File.Exists(filePath))
                                         {
-                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
+                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                             if (ContentType == "application/octet-stream")
                                             {
                                                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);

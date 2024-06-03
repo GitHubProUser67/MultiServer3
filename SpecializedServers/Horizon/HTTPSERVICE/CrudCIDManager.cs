@@ -1,11 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using CyberBackendLibrary.Extension;
+using Newtonsoft.Json;
 using System.Text;
 
 namespace Horizon.HTTPSERVICE
 {
     public class CrudCIDManager
     {
-        private static readonly List<User> users = new();
+        private static readonly ConcurrentList<User> users = new();
 
         // Update or Create a User based on the provided parameters
         public static void CreateUser(string? UserName, string? MachineID)
@@ -16,15 +17,12 @@ namespace Horizon.HTTPSERVICE
             if (string.IsNullOrEmpty(MachineID))
                 MachineID = "empty";
 
-            lock (users)
-            {
-                User? userToUpdate = users.FirstOrDefault(u => u.UserName == UserName && u.MachineID == MachineID);
+            User? userToUpdate = users.FirstOrDefault(u => u.UserName == UserName && u.MachineID == MachineID);
 
-                if (userToUpdate == null)
-                {
-                    userToUpdate = new User { UserName = UserName, MachineID = MachineID };
-                    users.Add(userToUpdate);
-                }
+            if (userToUpdate == null)
+            {
+                userToUpdate = new User { UserName = UserName, MachineID = MachineID };
+                users.Add(userToUpdate);
             }
         }
 
@@ -37,27 +35,20 @@ namespace Horizon.HTTPSERVICE
             if (string.IsNullOrEmpty(MachineID))
                 MachineID = "empty";
 
-            lock (users)
-            {
-                users.RemoveAll(u => u.UserName == UserName && u.MachineID == MachineID);
-            }
+            users.RemoveAll(u => u.UserName == UserName && u.MachineID == MachineID);
         }
 
         // Get a list of all Users
         public static List<User> GetAllUsers()
         {
-            lock (users)
-                return users;
+            return users.ToList();
         }
 
         // Serialize the Users list to JSON
         public static string ToJson(bool encrypt)
         {
-            lock (users)
-            {
-                string JsonData = JsonConvert.SerializeObject(users, Formatting.Indented);
-                return encrypt ? XORString(JsonData, HorizonServerConfiguration.MediusAPIKey) : JsonData;
-            }
+            string JsonData = JsonConvert.SerializeObject(users);
+            return encrypt ? XORString(JsonData, HorizonServerConfiguration.MediusAPIKey) : JsonData;
         }
 
         private static string XORString(string input, string? key)

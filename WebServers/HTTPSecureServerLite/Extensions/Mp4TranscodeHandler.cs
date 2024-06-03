@@ -12,13 +12,13 @@ namespace HTTPSecureServerLite.Extensions
     public class Mp4TranscodeHandler
     {
         private static int _httpPort = 8081;
-        private string filePath;
-        private string convertersPath;
+        private readonly string filePath;
+        private readonly string convertersPath;
         private Thread? _thread = null;
-        private ManualResetEvent _waitFFMpeg = new(false);
-        private ManualResetEvent _waitCompletation = new(false);
-        private ManualResetEvent _waitPort = new(false);
-        private ManualResetEvent _stopServer = new(false);
+        private readonly ManualResetEvent _waitFFMpeg = new(false);
+        private readonly ManualResetEvent _waitCompletation = new(false);
+        private readonly ManualResetEvent _waitPort = new(false);
+        private readonly ManualResetEvent _stopServer = new(false);
 
         public (HttpContextBase, Process)? HandlersCache = null;
 
@@ -96,8 +96,6 @@ namespace HTTPSecureServerLite.Extensions
 
                         proc.Start();
                         proc.PriorityClass = ProcessPriorityClass.High;
-
-                        //string output = proc.StandardOutput.ReadToEnd();
 
                         LoggerAccessor.LogWarn($"[Mp4TranscodeHandler] - Started FFMpeg stream for client: {context.Request.Source.IpAddress}:{context.Request.Source.Port}");
                     }

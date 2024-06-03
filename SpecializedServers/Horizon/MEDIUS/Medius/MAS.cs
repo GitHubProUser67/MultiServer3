@@ -23,7 +23,7 @@ namespace Horizon.MEDIUS.Medius
 {
     public class MAS : BaseMediusComponent
     {
-        static readonly TimeSpan _defaultTimeout = TimeSpan.FromMilliseconds(3000);
+        private static readonly TimeSpan _defaultTimeout = TimeSpan.FromMilliseconds(3000);
         public override int TCPPort => MediusClass.Settings.MASPort;
         public override int UDPPort => 00000;
 
@@ -270,7 +270,7 @@ namespace Horizon.MEDIUS.Medius
 
         protected virtual async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
         {
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (message == null)
                 return;
 
@@ -285,20 +285,16 @@ namespace Horizon.MEDIUS.Medius
                         List<int> nonSecure = new() { 10010, 10031 };
                         List<int> preCreateClient = new() { 10680 };
 
-                        //UYA Public Beta v1.0
+                        // UYA Public Beta v1.0
                         if (preCreateClient.Contains(data.ApplicationId))
                         {
                             LoggerAccessor.LogInfo("R&C 3: UYA Public Beta v1.0 reserving MGCL Client prior to MAS login!");
                             // Create client object
                             data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest);
                         }
-
-                        //If Message Routing App id
-                        if (data.ApplicationId == 120)
-                        {
-                            data.ClientObject = new ClientObject();
+                        // If Message Routing App id
+                        else if (data.ApplicationId == 120)
                             data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(mgclSessionBeginRequest, clientChannel);
-                        }
 
                         if (data.ClientObject != null)
                         {
@@ -308,7 +304,7 @@ namespace Horizon.MEDIUS.Medius
 
                             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
-                            //MGCL_SEND_FAILED, MGCL_UNSUCCESSFUL
+                            // MGCL_SEND_FAILED, MGCL_UNSUCCESSFUL
                             if (!data.ClientObject.IsConnected)
                             {
                                 data.ClientObject.Queue(new MediusServerSessionBeginResponse()
@@ -329,7 +325,7 @@ namespace Horizon.MEDIUS.Medius
 
                                 if (nonSecure.Contains(data.ClientObject.ApplicationId))
                                 {
-                                    //TM:BO Reply unencrypted
+                                    // TM:BO Reply unencrypted
                                     data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                                     {
                                         MessageID = mgclSessionBeginRequest.MessageID,

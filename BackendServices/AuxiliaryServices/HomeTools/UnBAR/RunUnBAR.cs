@@ -28,53 +28,50 @@ namespace HomeTools.UnBAR
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        public static void RunEncrypt(string filePath, string sdatfilePath)
+        public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath, ushort version)
         {
-            try
+            using Process? process = Process.Start(new ProcessStartInfo()
             {
-                int statuscode = new EDAT().encryptFile(filePath, sdatfilePath);
+                FileName = converterPath + "/make_npdata",
+                Arguments = $"-e \"{filePath}\" \"{sdatfilePath}\" 0 1 {version} 1 4 3 00 \"\" 0",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = converterPath, // Can load various config files.
+                CreateNoWindow = true
+            });
 
-                if (statuscode != 0)
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {statuscode}");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[RunEncrypt] - SDAT Encryption failed with exception : {ex}");
-            }
+            process?.WaitForExit();
+
+            int? ExitCode = process?.ExitCode;
+
+            if (ExitCode != 0)
+                LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
         }
 
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
-            int statuscode = new EDAT().decryptFile(sdatfilePath, datfilePath);
-
-            if (statuscode == 0)
-                await RunExtract(datfilePath, outDir);
-            else
+            using Process? process = Process.Start(new ProcessStartInfo()
             {
-                LoggerAccessor.LogDebug($"[RunUnBAR] - EDAT decryption failed with status code : {statuscode}, switching to make_npdata...");
+                FileName = converterPath + "/make_npdata",
+                Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = converterPath, // Can load various config files.
+                CreateNoWindow = true
+            });
 
-                using Process? process = Process.Start(new ProcessStartInfo()
-                {
-                    FileName = converterPath + "/make_npdata",
-                    Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    WorkingDirectory = converterPath, // Can load various config files.
-                    CreateNoWindow = true
-                });
+            process?.WaitForExit();
 
-                process?.WaitForExit();
+            int? ExitCode = process?.ExitCode;
 
-                int? ExitCode = process?.ExitCode;
-
-                if (ExitCode != 0)
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
-                else
-                    await RunExtract(datfilePath, outDir);
-            }
+            if (ExitCode != 0)
+                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
+            else
+                await RunExtract(datfilePath, outDir);
         }
 
         private static async Task RunExtract(string filePath, string outDir)
@@ -88,14 +85,32 @@ namespace HomeTools.UnBAR
             {
                 try
                 {
-                    RawBarData = await File.ReadAllBytesAsync(filePath);
+                    RawBarData = File.ReadAllBytes(filePath);
 
-                    if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
-                        isSharc = true;
-                    else if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }) != -1)
+                    if (RawBarData.Length < 12)
+                        return; // File not a BAR.
+                    else
                     {
-                        isSharc = true;
-                        isLittleEndian = true;
+                        if (RawBarData[0] == 0xAD && RawBarData[1] == 0xEF && RawBarData[2] == 0x17 && RawBarData[3] == 0xE1)
+                        {
+
+                        }
+                        else if (RawBarData[0] == 0xE1 && RawBarData[1] == 0x17 && RawBarData[2] == 0xEF && RawBarData[3] == 0xAD)
+                            isLittleEndian = true;
+                        else
+                            return; // File not a BAR.
+
+                        switch (isLittleEndian)
+                        {
+                            case true:
+                                if (RawBarData[4] == 0x00 && RawBarData[5] == 0x00 && RawBarData[6] == 0x00 && RawBarData[7] == 0x02)
+                                    isSharc = true;
+                                break;
+                            default:
+                                if (RawBarData[4] == 0x02 && RawBarData[5] == 0x00 && RawBarData[6] == 0x00 && RawBarData[7] == 0x00)
+                                    isSharc = true;
+                                break;
+                        }
                     }
 
                     if (isSharc && RawBarData.Length > 52)
@@ -213,15 +228,6 @@ namespace HomeTools.UnBAR
                     }
                     else
                     {
-                        if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1 }) != -1)
-                        {
-
-                        }
-                        else if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD }) != -1)
-                            isLittleEndian = true;
-                        else
-                            return; // File not a BAR.
-
                         Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
                         LoggerAccessor.LogInfo("Loading BAR/dat: {0}", filePath);
@@ -229,7 +235,7 @@ namespace HomeTools.UnBAR
                 }
                 catch (Exception ex)
                 {
-                    LoggerAccessor.LogError($"[RunUnBAR] - Timestamp creation failed! with error - {ex}");
+                    LoggerAccessor.LogError($"[RunUnBAR] - Initial archive loading failed with error - {ex}");
                 }
             }
 
@@ -285,7 +291,6 @@ namespace HomeTools.UnBAR
                     await Task.WhenAll(TOCTasks);
 
                     TOCTasks = null;
-                    archive = null;
 
                     if (File.Exists(filePath + ".map"))
                         File.Move(filePath + ".map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));

@@ -4,6 +4,14 @@
 		WatsonWebserver.Core
 		WatsonWebserver.Lite
 		CavemanTcp
+		HomeTools
+		WebAPIService
+		CastleLibrary
+		CompressionLibrary
+		CustomLogger
+		CyberBackendLibrary
+		EndianTools
+		TechnitiumLibrary.Net.Firewall
 	  </ExcludeAssemblies>
 	</Costura>
 </Weavers>
