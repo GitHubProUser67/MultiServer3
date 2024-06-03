@@ -17,7 +17,7 @@ namespace MultiSocks.DirtySocks.Messages
 
             UserOut result = new()
             {
-                PERS = user.Username,
+                PERS = user.PersonaName,
                 MESG = user.Username,
                 ADDR = client.IP,
             };
