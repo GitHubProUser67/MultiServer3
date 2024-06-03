@@ -718,12 +718,6 @@ namespace HTTPServer
                                                                 break;
                                                             #endregion
 
-                                                            #region Get Away Google
-                                                            case "/robots.txt":
-                                                                response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
-                                                                break;
-                                                            #endregion
-
                                                             #region WebVideo Player
                                                             case "/!player":
                                                             case "/!player/":
@@ -786,9 +780,11 @@ namespace HTTPServer
                                                             #endregion
 
                                                             default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
-                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
@@ -823,9 +819,11 @@ namespace HTTPServer
                                                             #endregion
 															
                                                             default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
-                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
@@ -841,7 +839,12 @@ namespace HTTPServer
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
                                                                 else
-                                                                    response = HttpBuilder.NotFound(request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                                                                {
+                                                                    if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath);
+                                                                    else
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                }
                                                                 break;
                                                         }
                                                         break;
@@ -945,7 +948,7 @@ namespace HTTPServer
                                                             if (ServerIP.Length > 15)
                                                                 ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
 
-                                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
+                                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                             if (ContentType == "application/octet-stream")
                                                             {
                                                                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
@@ -1197,7 +1200,7 @@ namespace HTTPServer
                     using HugeMemoryStream ms = new();
                     int buffersize = HTTPServerConfiguration.BufferSize;
                     Span<byte> Separator = new byte[] { 0x0D, 0x0A };
-                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                     if (ContentType == "application/octet-stream")
                     {
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
@@ -1460,7 +1463,7 @@ namespace HTTPServer
                 }
                 else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                 {
-                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                     if (ContentType == "application/octet-stream")
                     {
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
@@ -1506,7 +1509,7 @@ namespace HTTPServer
                     long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
                     fs.Position = startByte;
 
-                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                     if (ContentType == "application/octet-stream")
                     {
                         foreach (var entry in HTTPProcessor._PathernDictionary)

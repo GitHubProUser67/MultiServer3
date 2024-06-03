@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "HTTPSecureServerLite": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

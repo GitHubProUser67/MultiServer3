@@ -25,12 +25,12 @@ namespace CyberBackendLibrary.HTTP
 
     public class FileStructureToJson
     {
-        public static string GetFileStructureAsJson(string rootDirectory, string httpdirectoryrequest)
+        public static string GetFileStructureAsJson(string rootDirectory, string httpdirectoryrequest, Dictionary<string, string> mimeTypesDic)
         {
             try
             {
                 if (Directory.Exists(rootDirectory))
-                    return JsonConvert.SerializeObject(new FileStructure() { Root = CreateFileNode(rootDirectory, httpdirectoryrequest) },
+                    return JsonConvert.SerializeObject(new FileStructure() { Root = CreateFileNode(rootDirectory, httpdirectoryrequest, mimeTypesDic) },
                      Formatting.Indented, new JsonSerializerSettings()
                      {
                          NullValueHandling = NullValueHandling.Ignore
@@ -49,7 +49,7 @@ namespace CyberBackendLibrary.HTTP
             return (fileSystemInfo.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
         }
 
-        private static FileNode? CreateFileNode(string directoryPath, string httpdirectoryrequest)
+        private static FileNode? CreateFileNode(string directoryPath, string httpdirectoryrequest, Dictionary<string, string> mimeTypesDic)
         {
             try
             {
@@ -66,7 +66,7 @@ namespace CyberBackendLibrary.HTTP
                 {
                     if (!IsHidden(file))
                     {
-                        string mimetype = HTTPProcessor.GetMimeType(Path.GetExtension(file.FullName));
+                        string mimetype = HTTPProcessor.GetMimeType(Path.GetExtension(file.FullName), mimeTypesDic);
 
                         switch (mimetype)
                         {

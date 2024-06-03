@@ -393,7 +393,7 @@ namespace Horizon.MEDIUS.Medius
             {
                 foreach (IChannel clientChannel in clientChannels)
                     if (clientChannel != null)
-                        if (_channelDatas.TryGetValue(clientChannel.Id.AsLongText(), out var data))
+                        if (_channelDatas.TryGetValue(clientChannel.Id.AsLongText(), out ChannelData? data))
                             data.SendQueue.Enqueue(message);
             }
         }
@@ -407,7 +407,7 @@ namespace Horizon.MEDIUS.Medius
         {
             foreach (IChannel clientChannel in clientChannels)
                 if (clientChannel != null)
-                    if (_channelDatas.TryGetValue(clientChannel.Id.AsLongText(), out var data))
+                    if (_channelDatas.TryGetValue(clientChannel.Id.AsLongText(), out ChannelData? data))
                         foreach (var message in messages)
                             data.SendQueue.Enqueue(message);
         }

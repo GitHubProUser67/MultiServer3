@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -16,7 +15,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
         /// <summary>
         /// Connection Class: Ethernet, modem, or wireless 
@@ -42,42 +41,31 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            //
             reader.ReadBytes(3);
             ConnectionClass = reader.Read<MediusConnectionType>();
             ClientVersionMajor = reader.ReadInt32();
             ClientVersionMinor = reader.ReadInt32();
-
             if (reader.AppId == 22920)
-            {
                 ClientVersionSpecialPatch = reader.ReadInt32();
-            }
             ClientVersionBuild = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(new byte[3]);
             writer.Write(ConnectionClass);
             writer.Write(ClientVersionMajor);
             writer.Write(ClientVersionMinor);
             if (writer.AppId == 22920)
-            {
                 writer.Write(ClientVersionSpecialPatch);
-            }
             writer.Write(ClientVersionBuild);
         }
 

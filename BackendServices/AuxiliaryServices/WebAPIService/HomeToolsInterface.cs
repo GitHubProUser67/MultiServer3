@@ -37,6 +37,7 @@ namespace WebAPIService
                     using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
+                    ushort SDATVersion = 4;
                     int i = 0;
                     string filename = string.Empty;
                     var data = MultipartFormDataParser.Parse(ms, boundary);
@@ -74,6 +75,14 @@ namespace WebAPIService
                     try
                     {
                         bigendian = data.GetParameterValue("bigendian");
+                    }
+                    catch
+                    {
+                        // Not Important
+                    }
+                    try
+                    {
+                        SDATVersion = ushort.Parse(data.GetParameterValue("sdatversion"));
                     }
                     catch
                     {
@@ -189,9 +198,9 @@ namespace WebAPIService
                         if (mode == "sdat")
                         {
                             if (version2 == "on")
-                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat");
+                                RunUnBAR.RunEncrypt(APIStaticFolder, rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat", SDATVersion);
                             else
-                                RunUnBAR.RunEncrypt(rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat");
+                                RunUnBAR.RunEncrypt(APIStaticFolder, rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat", SDATVersion);
 
                             using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                             {

@@ -2,14 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 61920:61920 -p 50100:50100 -p 10075:10075 -p 10076:10076 -p 10077:10077 -p 10073:10073 -p 50000:50000 -p 10070:10070 -p 3101:3101 -p 2222:2222 -p 10373:10373 -p 10372:10372 -p 10071:10071 -p 10072:10072 -p 10079:10079 -p 10078:10078 -p 10080:10080</DockerfileRunArguments>
 	<ApplicationIcon>Horizon.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
-	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +20,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Watson.Lite" Version="6.1.9" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Watson.Lite" Version="6.1.10" />
   </ItemGroup>
 
   <ItemGroup>
