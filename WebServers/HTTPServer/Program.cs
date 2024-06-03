@@ -10,15 +10,16 @@ using System.Threading;
 using CyberBackendLibrary.AIModels;
 using CyberBackendLibrary.HTTP.PluginManager;
 using System.Reflection;
-using System.Linq;
+using CyberBackendLibrary.HTTP;
 
 public static class HTTPServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
     public static ushort DefaultPluginsPort { get; set; } = 61850;
+    public static string ASPNETRedirectUrl { get; set; } = string.Empty;
+    public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
-    public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static bool PHPDebugErrors { get; set; } = false;
     public static int BufferSize { get; set; } = 4096;
     public static string HttpVersion { get; set; } = "1.1";
@@ -30,6 +31,7 @@ public static class HTTPServerConfiguration
     public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
+    public static Dictionary<string, string>? MimeTypes { get; set; } = HTTPProcessor._mimeTypes;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
     public static List<string>? RedirectRules { get; set; }
@@ -54,6 +56,7 @@ public static class HTTPServerConfiguration
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
+                new JProperty("aspnet_redirect_url", ASPNETRedirectUrl),
                 new JProperty("php", new JObject(
                     new JProperty("redirect_url", PHPRedirectUrl),
                     new JProperty("version", PHPVersion),
@@ -66,6 +69,7 @@ public static class HTTPServerConfiguration
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("buffer_size", BufferSize),
                 new JProperty("http_version", HttpVersion),
+                SerializeMimeTypes(),
                 SerializeDateTimeOffset(),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
@@ -87,6 +91,7 @@ public static class HTTPServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
+            ASPNETRedirectUrl = GetValueOrDefault(config, "aspnet_redirect_url", ASPNETRedirectUrl);
             PHPRedirectUrl = GetValueOrDefault(config.php, "redirect_url", PHPRedirectUrl);
             PHPVersion = GetValueOrDefault(config.php, "version", PHPVersion);
             PHPStaticFolder = GetValueOrDefault(config.php, "static_folder", PHPStaticFolder);
@@ -97,6 +102,7 @@ public static class HTTPServerConfiguration
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             BufferSize = GetValueOrDefault(config, "buffer_size", BufferSize);
             HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
+            MimeTypes = GetValueOrDefault(config, "mime_types", MimeTypes);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
@@ -183,6 +189,17 @@ public static class HTTPServerConfiguration
             jObject.Add(kvp.Key, kvp.Value);
         }
         return new JProperty("datetime_offset", jObject);
+    }
+
+    // Helper method for the MimeTypes config serialization.
+    private static JProperty SerializeMimeTypes()
+    {
+        JObject jObject = new();
+        foreach (var kvp in MimeTypes ?? new Dictionary<string, string>())
+        {
+            jObject.Add(kvp.Key, kvp.Value);
+        }
+        return new JProperty("mime_types", jObject);
     }
 }
 

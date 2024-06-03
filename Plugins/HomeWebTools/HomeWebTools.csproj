@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
+	<BaseOutputPath>..\..\WebServers\HTTPSecureServerLite\bin</BaseOutputPath> <!-- Necessary evil, we must copy https/http dlls first -->
   </PropertyGroup>
   
   <ItemGroup>
@@ -38,13 +38,6 @@
     <Content Include="static\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Costura.Fody" Version="5.7.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
 </Project>

@@ -288,7 +288,7 @@ namespace SVO
                         if (File.Exists(filePath))
                         {
                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                            ctx.Response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
+                            ctx.Response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPProcessor._mimeTypes);
 
                             ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
                             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));

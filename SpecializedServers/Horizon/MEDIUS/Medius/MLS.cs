@@ -21,6 +21,7 @@ using System.Text;
 using EndianTools;
 using CyberBackendLibrary.DataTypes;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -360,15 +361,6 @@ namespace Horizon.MEDIUS.Medius
                                                             PokeAddress(270088564U, WireFrame, clientChannel);
                                                     }
                                                     break;
-                                                case 268856024U:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 1)
-                                                    {
-                                                        byte[] FirstPerson = new byte[] { 63 };
-
-                                                        if (!DataTypesUtils.AreArraysIdentical(QueryData, FirstPerson))
-                                                            PokeAddress(268856024U, FirstPerson, clientChannel);
-                                                    }
-                                                    break;
                                                 case 0x104F7320:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                     {
@@ -376,11 +368,28 @@ namespace Horizon.MEDIUS.Medius
 
                                                         if (data.ClientObject != null)
                                                         {
-                                                            data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
+                                                            if (data.ClientObject.HomePointer == 0)
+                                                            {
+                                                                data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
 
-                                                            Parallel.Invoke(
-                                                                () => { CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH); },
-                                                                () => { CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY); });
+                                                                data.ClientObject.Tasks.TryAdd("1.86 ANTI FREEZE", Task.Run(() => {
+
+                                                                    while (true)
+                                                                    {
+                                                                        while (data.ClientObject.IsInGame)
+                                                                        {
+                                                                            CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+
+                                                                            Thread.Sleep(1);
+                                                                        }
+
+                                                                        Thread.Sleep(100);
+                                                                    }
+
+                                                                }));
+                                                            }
+
+                                                            CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
 
                                                             if (BannedClients.ContainsKey((data.ClientObject.IP, data.MachineId)))
                                                             {
@@ -388,7 +397,6 @@ namespace Horizon.MEDIUS.Medius
                                                                 {
                                                                     PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
                                                                     CheatQuery(270088564U, 4, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
-                                                                    CheatQuery(268856024U, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                                 }
                                                                 else
                                                                     BannedClients.Remove((data.ClientObject.IP, data.MachineId), out _);
@@ -450,7 +458,7 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_SERVER_ECHO serverEchoReply:
                     {
-                        if (data.ClientObject?.CurrentGame != null && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
+                        if (data.ClientObject != null && data.ClientObject.IsInGame && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
                         {
                             bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
                                    && (string.IsNullOrEmpty(data.ClientObject.AccountName)

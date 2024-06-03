@@ -2,14 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 8080:8080 -p 10443:10443</DockerfileRunArguments>
 	<ApplicationIcon>SSFW.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
-	<BaseOutputPath>..\..\~BuildOutput\MultiServer</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +20,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="NetCoreServer" Version="8.0.7" />
   </ItemGroup>
   
   <ItemGroup>
@@ -31,7 +32,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
-    <ProjectReference Include="..\..\BackendServices\NetCoreServer\NetCoreServer.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
 
