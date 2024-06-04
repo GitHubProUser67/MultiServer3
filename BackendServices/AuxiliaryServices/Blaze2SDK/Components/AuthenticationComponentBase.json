@@ -1,0 +1,294 @@
+{
+  "Usings": [
+    "Blaze2SDK.Blaze.Authentication",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze2SDK.Components",
+  "Components": [
+    {
+      "Id": 1,
+      "Name": "AuthenticationComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze2RpcError",
+      "Methods": [
+        {
+          "Id": 10,
+          "Name": "createAccount",
+          "RequestType": "CreateAccountParameters",
+          "ResponseType": "CreateAccountResponse",
+          "ErrorResponseType": "FieldValidateErrorList"
+        },
+        {
+          "Id": 20,
+          "Name": "updateAccount",
+          "RequestType": "UpdateAccountRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 28,
+          "Name": "updateParentalEmail",
+          "RequestType": "UpdateAccountRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 30,
+          "Name": "getAccount",
+          "RequestType": "NullStruct",
+          "ResponseType": "AccountInfo",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 31,
+          "Name": "grantEntitlement",
+          "RequestType": "Entitlement",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 32,
+          "Name": "getEntitlements",
+          "RequestType": "ListEntitlementsRequest",
+          "ResponseType": "Entitlements",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 33,
+          "Name": "hasEntitlement",
+          "RequestType": "HasEntitlementRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 34,
+          "Name": "getUseCount",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 35,
+          "Name": "decrementUseCount",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 36,
+          "Name": "getAuthToken",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 37,
+          "Name": "getHandoffToken",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 38,
+          "Name": "listEntitlement2",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 40,
+          "Name": "login",
+          "RequestType": "LoginRequest",
+          "ResponseType": "LoginResponse",
+          "ErrorResponseType": "CreateAccountResponse"
+        },
+        {
+          "Id": 41,
+          "Name": "acceptTos",
+          "RequestType": "AcceptTosRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 42,
+          "Name": "getTosInfo",
+          "RequestType": "GetTosInfoRequest",
+          "ResponseType": "GetTosInfoResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 44,
+          "Name": "consumecode",
+          "RequestType": "ConsumecodeRequest",
+          "ResponseType": "ConsumecodeResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 45,
+          "Name": "passwordForgot",
+          "RequestType": "PasswordForgotRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 50,
+          "Name": "silentLogin",
+          "RequestType": "SilentLoginRequest",
+          "ResponseType": "FullLoginResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 51,
+          "Name": "checkAgeReq",
+          "RequestType": "CheckAgeReqRequest",
+          "ResponseType": "CheckAgeReqResponse",
+          "ErrorResponseType": "FieldValidateErrorList"
+        },
+        {
+          "Id": 60,
+          "Name": "expressLogin",
+          "RequestType": "ExpressLoginRequest",
+          "ResponseType": "FullLoginResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 61,
+          "Name": "stressLogin",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 70,
+          "Name": "logout",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 80,
+          "Name": "createPersona",
+          "RequestType": "CreatePersonaRequest",
+          "ResponseType": "PersonaDetails",
+          "ErrorResponseType": "FieldValidateErrorList"
+        },
+        {
+          "Id": 90,
+          "Name": "getPersona",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 100,
+          "Name": "listPersonas",
+          "RequestType": "NullStruct",
+          "ResponseType": "ListPersonasResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 110,
+          "Name": "loginPersona",
+          "RequestType": "LoginPersonaRequest",
+          "ResponseType": "SessionInfo",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 120,
+          "Name": "logoutPersona",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 140,
+          "Name": "deletePersona",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 141,
+          "Name": "disablePersona",
+          "RequestType": "PersonaRequest",
+          "ResponseType": "PersonaDetails",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 143,
+          "Name": "listDeviceAccounts",
+          "RequestType": "ListDeviceAccountsRequest",
+          "ResponseType": "ListDeviceAccountsResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 150,
+          "Name": "xboxCreateAccount",
+          "RequestType": "ConsoleCreateAccountRequest",
+          "ResponseType": "ConsoleCreateAccountResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 160,
+          "Name": "xboxAssociateAccount",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 170,
+          "Name": "xboxLogin",
+          "RequestType": "XboxLoginRequest",
+          "ResponseType": "ConsoleLoginResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 180,
+          "Name": "ps3CreateAccount",
+          "RequestType": "ConsoleCreateAccountRequest",
+          "ResponseType": "ConsoleCreateAccountResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 190,
+          "Name": "ps3AssociateAccount",
+          "RequestType": "ConsoleAssociateAccountRequest",
+          "ResponseType": "SessionInfo",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 200,
+          "Name": "ps3Login",
+          "RequestType": "PS3LoginRequest",
+          "ResponseType": "ConsoleLoginResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 210,
+          "Name": "validateSessionKey",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 230,
+          "Name": "createWalUserSession",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 300,
+          "Name": "deviceLoginGuest",
+          "RequestType": "DeviceLoginGuestRequest",
+          "ResponseType": "ConsoleLoginResponse",
+          "ErrorResponseType": "ConsoleCreateAccountRequest"
+        }
+      ],
+      "Notifications": []
+    }
+  ]
+}

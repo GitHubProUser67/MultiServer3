@@ -1,0 +1,175 @@
+{
+  "Usings": [
+    "Blaze2SDK.Blaze",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze2SDK.Components",
+  "Components": [
+    {
+      "Id": 30722,
+      "Name": "UserSessions",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze2RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "lookupUserInformation",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2,
+          "Name": "lookupUsersInformation",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3,
+          "Name": "fetchExtendedData",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4,
+          "Name": "updatePingSiteLatency",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5,
+          "Name": "updateExtendedDataAttribute",
+          "RequestType": "UpdateUserSessionAttributeRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 6,
+          "Name": "assignUserToGroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 7,
+          "Name": "removeUserFromGroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 8,
+          "Name": "updateHardwareFlags",
+          "RequestType": "UpdateHardwareFlagsRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 9,
+          "Name": "getPermissions",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 10,
+          "Name": "getAccessGroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 11,
+          "Name": "checkOnlineStatus",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 12,
+          "Name": "lookupUser",
+          "RequestType": "UserIdentification",
+          "ResponseType": "UserData",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 13,
+          "Name": "lookupUsers",
+          "RequestType": "LookupUsersRequest",
+          "ResponseType": "UserDataResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 20,
+          "Name": "updateNetworkInfo",
+          "RequestType": "NetworkInfo",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 21,
+          "Name": "listDefaultAccessGroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 22,
+          "Name": "listAuthorization",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 23,
+          "Name": "lookupUserGeoIPData",
+          "RequestType": "UserIdentification",
+          "ResponseType": "GeoLocationData",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 24,
+          "Name": "overrideUserGeoIPData",
+          "RequestType": "GeoLocationData",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 25,
+          "Name": "setUserInfoAttribute",
+          "RequestType": "SetUserInfoAttributeRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 1,
+          "Name": "UserSessionExtendedDataUpdate",
+          "Type": "UserSessionExtendedDataUpdate"
+        },
+        {
+          "Id": 2,
+          "Name": "UserAdded",
+          "Type": "UserIdentification"
+        },
+        {
+          "Id": 3,
+          "Name": "UserSessionUnsubscribed",
+          "Type": "UserIdentification"
+        },
+        {
+          "Id": 4,
+          "Name": "UserSessionDisconnected",
+          "Type": "UserSessionDisconnectReason"
+        }
+      ]
+    }
+  ]
+}

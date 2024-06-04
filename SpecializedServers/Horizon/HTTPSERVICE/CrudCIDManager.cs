@@ -11,13 +11,10 @@ namespace Horizon.HTTPSERVICE
         // Update or Create a User based on the provided parameters
         public static void CreateUser(string? UserName, string? MachineID)
         {
-            if (string.IsNullOrEmpty(UserName))
+            if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(MachineID))
                 return;
 
-            if (string.IsNullOrEmpty(MachineID))
-                MachineID = "empty";
-
-            User? userToUpdate = users.FirstOrDefault(u => u.UserName == UserName && u.MachineID == MachineID);
+            User? userToUpdate = users.FirstOrDefault(user => user.UserName == UserName && user.MachineID == MachineID);
 
             if (userToUpdate == null)
             {
@@ -29,13 +26,10 @@ namespace Horizon.HTTPSERVICE
         // Remove a User from a specific room based on the provided parameters
         public static void RemoveUserFromGame(string? UserName, string? MachineID)
         {
-            if (string.IsNullOrEmpty(UserName))
+            if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(MachineID))
                 return;
 
-            if (string.IsNullOrEmpty(MachineID))
-                MachineID = "empty";
-
-            users.RemoveAll(u => u.UserName == UserName && u.MachineID == MachineID);
+            users.RemoveAll(user => user.UserName == UserName && user.MachineID == MachineID);
         }
 
         // Get a list of all Users
