@@ -238,20 +238,22 @@ namespace CompressionLibrary.Utils
                             Buffer.BlockCopy(inbuffer, SegmentOffset, CompressedData, 0, CompressedData.Length);
                             if (SegmentCompressedSize > 0 && SegmentCompressedSize <= 65536 && CompressedData.Length > 3 && CompressedData[0] == 0x5D && CompressedData[1] == 0x00 && CompressedData[2] == 0x00)
                             {
-                                using MemoryStream compressedStream = new MemoryStream(CompressedData);
-                                using (MemoryStream decompressedStream = new MemoryStream())
+                                using (MemoryStream compressedStream = new MemoryStream(CompressedData))
                                 {
-                                    SegmentDecompress(compressedStream, decompressedStream);
-                                    // Find the number of bytes in the stream
-                                    int contentLength = (int)decompressedStream.Length;
-                                    // Create a byte array
-                                    byte[] buffer = new byte[contentLength];
-                                    // Read the contents of the memory stream into the byte array
-                                    decompressedStream.Read(buffer, 0, contentLength);
-                                    arrayOfArrays[index] = buffer;
-                                    decompressedStream.Flush();
+                                    using (MemoryStream decompressedStream = new MemoryStream())
+                                    {
+                                        SegmentDecompress(compressedStream, decompressedStream);
+                                        // Find the number of bytes in the stream
+                                        int contentLength = (int)decompressedStream.Length;
+                                        // Create a byte array
+                                        byte[] buffer = new byte[contentLength];
+                                        // Read the contents of the memory stream into the byte array
+                                        decompressedStream.Read(buffer, 0, contentLength);
+                                        arrayOfArrays[index] = buffer;
+                                        decompressedStream.Flush();
+                                    }
+                                    compressedStream.Flush();
                                 }
-                                compressedStream.Flush();
                             }
                             else
                                 arrayOfArrays[index] = CompressedData; // Can happen, just means segment is not compressed.
@@ -328,15 +330,18 @@ namespace CompressionLibrary.Utils
         {
             Encoder encoder = new Encoder();
             encoder.SetCoderProperties(propIDs, properties);
-            using MemoryStream strmOutStream = new MemoryStream();
-            encoder.WriteCoderProperties(strmOutStream);
-            long fileSize = inStream.Length;
-            for (int i = 0; i < 8; i++)
+            using (MemoryStream strmOutStream = new MemoryStream())
+            {
+                encoder.WriteCoderProperties(strmOutStream);
+                long fileSize = inStream.Length;
+                for (int i = 0; i < 8; i++)
                 strmOutStream.WriteByte((byte)(fileSize >> (8 * i)));
-            encoder.Code(inStream, strmOutStream, -1, -1, null);
-            strmOutStream.Position = 0;
-            strmOutStream.CopyTo(outStream);
-            outStream.Position = 0;
+                encoder.Code(inStream, strmOutStream, -1, -1, null);
+                strmOutStream.Position = 0;
+                strmOutStream.CopyTo(outStream);
+                outStream.Position = 0;
+                strmOutStream.Flush();
+            }
         }
 
         /// <summary>

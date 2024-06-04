@@ -7,7 +7,6 @@
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-	<BaseOutputPath>..\..\~BuildOutput\Nautilus</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

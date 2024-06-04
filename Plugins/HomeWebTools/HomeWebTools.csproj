@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-	<BaseOutputPath>..\..\WebServers\HTTPSecureServerLite\bin</BaseOutputPath> <!-- Necessary evil, we must copy https/http dlls first -->
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   
   <ItemGroup>
