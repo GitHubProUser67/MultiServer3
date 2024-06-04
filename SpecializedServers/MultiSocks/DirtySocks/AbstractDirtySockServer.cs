@@ -118,12 +118,12 @@ namespace MultiSocks.DirtySocks
                     }
                 }
                 else
-                    CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Type {name}:{body.Replace("\n", "")}");
+                    CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Type {name} : {body.Replace("\n", "")}");
 
                 Type? c;
                 if (!NameToClass.TryGetValue(name, out c))
                 {
-                    CustomLogger.LoggerAccessor.LogError($"{client.IP} Requested an unexpected message Type {name}:{body.Replace("\n", "")}");
+                    CustomLogger.LoggerAccessor.LogError($"{client.IP} Requested an unexpected message Type {name} : {body.Replace("\n", "")}");
                     return;
                 }
 

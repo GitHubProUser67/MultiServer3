@@ -42,8 +42,8 @@ namespace MultiSocks.DirtySocks
                 { "rent", typeof(RentIn) }, // Refresh Entitlements
                 { "rrlc", typeof(RrlcIn) }, // (CUSTOM Burnout Paradise) Road Rules Local
                 { "rrup", typeof(RrupIn) }, // (CUSTOM Burnout Paradise) Road Rules Upload
-                { "rrgt", typeof(RrgtIn) }, // (CUSTOM Burnout Paradise) Road Rules get
-                { "rvup", typeof(RvupIn) }, //?
+                { "rrgt", typeof(RrgtIn) }, // (CUSTOM Burnout Paradise) Road Rules Get
+                { "rvup", typeof(RvupIn) }, // (CUSTOM Burnout Paradise) RiVal UPload
                 { "addr", typeof(Addr) }, //the client tells us their IP and port (ephemeral). The IP is usually wrong.
                 { "chal", typeof(Chal) }, //enter challenge mode
                 { "glea", typeof(GleaIn) }, //leave game (string NAME)
@@ -54,11 +54,19 @@ namespace MultiSocks.DirtySocks
                 { "gset", typeof(GsetIn) }, //Actualize Game properties.
                 { "gsta", typeof(GstaIn) }, //game start. return gstanepl if not enough people, empty gsta if enough.
                 { "gcre", null }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
-                { "gpsc", typeof(GpscIn) }, //?
-                { "gqwk", typeof(GqwkIn) }, //Quick join.
+                { "gpsc", typeof(GpscIn) }, // Create a game on a persistent game spawn service for a user.
+                { "gqwk", typeof(GqwkIn) }, // Join the best matching game based on provided criteria.
                 { "news", typeof(NewsIn) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
                 { "rank", typeof(RankIn) }, //unknown. { RANK = "Unranked", TIME = 866 }
-                { "tcup", typeof(TcupIn) } //?
+                { "tcup", typeof(TcupIn) }, // Time Challenge Score Upload?
+                { "snap", typeof(SnapIn) }, // Get Leaderboard snapshot
+                { "quik", typeof(QuikIn) }, // Old version Quick Match
+                { "rept", typeof(ReptIn) }, // Submit a Report about a user
+                { "rcat", typeof(RcatIn) }, // Fetch room category information
+                { "priv", typeof(PrivIn) }, // Set Private Message mode.
+                { "flag", typeof(FlagIn) }, // Set attribute flags.
+                { "uatr", typeof(UatrIn) }, // Update user attributes and hardware flags
+                { "lggr", typeof(Lggr) } // Client -> Server logger 
             };
 
         public UserCollection Users = new();
