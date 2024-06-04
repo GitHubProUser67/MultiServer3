@@ -19,12 +19,11 @@ namespace XI5
         const uint XI5_VER_3_0 = 822083584;
         const uint XI5_VER_4_0 = 1090519040;
 
-        
-        static IHash _sha224hasher;
-        static ECDsaSigner ECDsaRPCN;
+        private static IHash _sha224hasher;
+        private static ECDsaSigner ECDsaRPCN;
+
         static XI5Ticket()
         {
-            
             _sha224hasher = HashFactory.Crypto.CreateSHA224();
             PemReader pr = new(new StringReader("-----BEGIN PUBLIC KEY-----\r\nME4wEAYHKoZIzj0CAQYFK4EEACADOgAEsHvA8K3bl2V+nziQOejSucl9wqMdMELn\r\n0Eebk9gcQrCr32xCGRox4x+TNC+PAzvVKcLFf9taCn0=\r\n-----END PUBLIC KEY-----"));
             ECDsaRPCN = new ECDsaSigner();
@@ -44,8 +43,8 @@ namespace XI5
         public uint Status { get; private set; }
         public string? IssuerName { get; private set; }
 
-        byte[]? _fullBodyData;
-        byte[]? _signature;
+        private byte[]? _fullBodyData;
+        private byte[]? _signature;
 
         public XI5Ticket(byte[] data)
         {
@@ -115,7 +114,7 @@ namespace XI5
             }
         }
 
-        static byte[] ReadFullField(Stream stream, Datatype expected)
+        private static byte[] ReadFullField(Stream stream, Datatype expected)
         {
             Datatype dt = (Datatype)stream.ReadUShort();
             if (dt != expected)
@@ -129,7 +128,7 @@ namespace XI5
             return data;
         }
 
-        static byte[] ReadField(Stream stream, Datatype expected)
+        private static byte[] ReadField(Stream stream, Datatype expected)
         {
             Datatype dt = (Datatype)stream.ReadUShort();
             if (dt != expected)
@@ -142,13 +141,14 @@ namespace XI5
             return data;
         }
 
-        static byte[] ReadBody(Stream stream) => ReadField(stream, Datatype.Body);
-        static byte[] ReadFullBody(Stream stream) => ReadFullField(stream, Datatype.Body);
-        static byte[] ReadFooter(Stream stream) => ReadField(stream, Datatype.Footer);
-        static byte[] ReadFullFooter(Stream stream) => ReadFullField(stream, Datatype.Footer);
-        static byte[] ReadBinary(Stream stream) => ReadField(stream, Datatype.Binary);
-        static byte[] ReadFullBinary(Stream stream) => ReadFullField(stream, Datatype.Binary);
-        static string ReadBinaryAsString(Stream stream)
+        private static byte[] ReadBody(Stream stream) => ReadField(stream, Datatype.Body);
+        private static byte[] ReadFullBody(Stream stream) => ReadFullField(stream, Datatype.Body);
+        private static byte[] ReadFooter(Stream stream) => ReadField(stream, Datatype.Footer);
+        private static byte[] ReadFullFooter(Stream stream) => ReadFullField(stream, Datatype.Footer);
+        private static byte[] ReadBinary(Stream stream) => ReadField(stream, Datatype.Binary);
+        private static byte[] ReadFullBinary(Stream stream) => ReadFullField(stream, Datatype.Binary);
+		
+        private static string ReadBinaryAsString(Stream stream)
         {
             byte[] data = ReadBinary(stream);
             int inx = Array.FindIndex(data, 0, (x) => x == 0);//search for 0
@@ -156,14 +156,16 @@ namespace XI5
                 return Encoding.UTF8.GetString(data, 0, inx);
             return Encoding.UTF8.GetString(data);
         }
-        static uint ReadUInt(Stream stream)
+		
+        private static uint ReadUInt(Stream stream)
         {
             byte[] data = ReadField(stream, Datatype.UInt);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(data);
             return BitConverter.ToUInt32(data, 0);
         }
-        static DateTime ReadTime(Stream stream)
+		
+        private static DateTime ReadTime(Stream stream)
         {
             byte[] data = ReadField(stream, Datatype.Time);
             if (BitConverter.IsLittleEndian)
@@ -171,7 +173,7 @@ namespace XI5
             return DateTimeOffset.FromUnixTimeMilliseconds((long)BitConverter.ToUInt64(data, 0)).UtcDateTime;
         }
 
-        static ulong ReadULong(Stream stream)
+        private static ulong ReadULong(Stream stream)
         {
             byte[] data = ReadField(stream, Datatype.ULong);
             if (BitConverter.IsLittleEndian)
@@ -179,7 +181,7 @@ namespace XI5
             return BitConverter.ToUInt64(data, 0);
         }
 
-        static string ReadString(Stream stream)
+        private static string ReadString(Stream stream)
         {
             byte[] data = ReadField(stream, Datatype.String);
             int inx = Array.FindIndex(data, 0, (x) => x == 0);//search for 0

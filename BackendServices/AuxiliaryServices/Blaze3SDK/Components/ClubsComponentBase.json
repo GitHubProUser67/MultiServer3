@@ -1,0 +1,380 @@
+{
+  "Usings": [
+    "Blaze3SDK.Blaze.Clubs",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze3SDK.Components",
+  "Components": [
+    {
+      "Id": 11,
+      "Name": "ClubsComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze3RpcError",
+      "Methods": [
+        {
+          "Id": 1100,
+          "Name": "createClub",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1200,
+          "Name": "getClubs",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1300,
+          "Name": "findClubs",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1310,
+          "Name": "findClubs2",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1400,
+          "Name": "removeMember",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1500,
+          "Name": "sendInvitation",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1600,
+          "Name": "getInvitations",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1700,
+          "Name": "revokeInvitation",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1800,
+          "Name": "acceptInvitation",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 1900,
+          "Name": "declineInvitation",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2000,
+          "Name": "getMembers",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2100,
+          "Name": "promoteToGM",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2150,
+          "Name": "demoteToMember",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2200,
+          "Name": "updateClubSettings",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2300,
+          "Name": "postNews",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2400,
+          "Name": "getNews",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2450,
+          "Name": "setNewsItemHidden",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2500,
+          "Name": "setMetadata",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2510,
+          "Name": "setMetadata2",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2600,
+          "Name": "getClubsComponentSettings",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2650,
+          "Name": "transferOwnership",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2700,
+          "Name": "getClubMembershipForUsers",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2800,
+          "Name": "sendPetition",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2900,
+          "Name": "getPetitions",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3000,
+          "Name": "acceptPetition",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3100,
+          "Name": "declinePetition",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3200,
+          "Name": "revokePetition",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3300,
+          "Name": "joinClub",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3400,
+          "Name": "getClubRecordbook",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3410,
+          "Name": "resetClubRecords",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3500,
+          "Name": "updateMemberOnlineStatus",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3600,
+          "Name": "getClubAwards",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3700,
+          "Name": "updateMemberMetadata",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3800,
+          "Name": "findClubsAsync",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3810,
+          "Name": "findClubs2Async",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3900,
+          "Name": "listRivals",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4000,
+          "Name": "getClubTickerMessages",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4100,
+          "Name": "setClubTickerMessagesSubscription",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4200,
+          "Name": "changeClubStrings",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4300,
+          "Name": "countMessages",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4400,
+          "Name": "getMembersAsync",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4500,
+          "Name": "getClubBans",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4600,
+          "Name": "getUserBans",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4700,
+          "Name": "banMember",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4800,
+          "Name": "unbanMember",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4900,
+          "Name": "GetClubsComponentInfo",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5000,
+          "Name": "disbandClub",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5100,
+          "Name": "getNewsForClubs",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5200,
+          "Name": "getPetitionsForClubs",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 0,
+          "Name": "FindClubsAsyncNotification",
+          "Type": "FindClubsAsyncResult"
+        },
+        {
+          "Id": 1,
+          "Name": "NewClubTickerMessageNotification",
+          "Type": "ClubTickerMessage"
+        },
+        {
+          "Id": 2,
+          "Name": "GetMembersAsyncNotification",
+          "Type": "GetMembersAsyncResult"
+        }
+      ]
+    }
+  ]
+}

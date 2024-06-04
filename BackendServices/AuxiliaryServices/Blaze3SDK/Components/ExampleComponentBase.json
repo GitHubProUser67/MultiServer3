@@ -1,0 +1,28 @@
+{
+  "Usings": [
+    "Blaze3SDK.Blaze.Example",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze3SDK.Components",
+  "Components": [
+    {
+      "Id": 3,
+      "Name": "ExampleComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze3RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "poke",
+          "RequestType": "ExampleRequest",
+          "ResponseType": "ExampleResponse",
+          "ErrorResponseType": "ExampleError"
+        }
+      ],
+      "Notifications": []
+    }
+  ]
+}

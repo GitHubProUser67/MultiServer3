@@ -1,0 +1,514 @@
+{
+  "Usings": [
+    "Blaze3SDK.Blaze.GameManager",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze3SDK.Components",
+  "Components": [
+    {
+      "Id": 4,
+      "Name": "GameManager",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze3RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "createGame",
+          "RequestType": "CreateGameRequest",
+          "ResponseType": "CreateGameResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2,
+          "Name": "destroyGame",
+          "RequestType": "DestroyGameRequest",
+          "ResponseType": "DestroyGameResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3,
+          "Name": "advanceGameState",
+          "RequestType": "AdvanceGameStateRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4,
+          "Name": "setGameSettings",
+          "RequestType": "SetGameSettingsRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5,
+          "Name": "setPlayerCapacity",
+          "RequestType": "SetPlayerCapacityRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 6,
+          "Name": "setPresenceMode",
+          "RequestType": "SetPresenceModeRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 7,
+          "Name": "setGameAttributes",
+          "RequestType": "SetGameAttributesRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 8,
+          "Name": "setPlayerAttributes",
+          "RequestType": "SetPlayerAttributesRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 9,
+          "Name": "joinGame",
+          "RequestType": "JoinGameRequest",
+          "ResponseType": "JoinGameResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 11,
+          "Name": "removePlayer",
+          "RequestType": "RemovePlayerRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 13,
+          "Name": "startMatchmaking",
+          "RequestType": "StartMatchmakingRequest",
+          "ResponseType": "StartMatchmakingResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 14,
+          "Name": "cancelMatchmaking",
+          "RequestType": "CancelMatchmakingRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 15,
+          "Name": "finalizeGameCreation",
+          "RequestType": "UpdateGameSessionRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 17,
+          "Name": "listGames",
+          "RequestType": "NullStruct",
+          "ResponseType": "ListGamesResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 18,
+          "Name": "setPlayerCustomData",
+          "RequestType": "SetPlayerCustomDataRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 19,
+          "Name": "replayGame",
+          "RequestType": "ReplayGameRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 20,
+          "Name": "returnDedicatedServerToPool",
+          "RequestType": "ReturnDedicatedServerToPoolRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 21,
+          "Name": "joinGameByGroup",
+          "RequestType": "JoinGameRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 22,
+          "Name": "leaveGameByGroup",
+          "RequestType": "RemovePlayerRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 23,
+          "Name": "migrateGame",
+          "RequestType": "MigrateHostRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 24,
+          "Name": "updateGameHostMigrationStatus",
+          "RequestType": "UpdateGameHostMigrationStatusRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 25,
+          "Name": "resetDedicatedServer",
+          "RequestType": "CreateGameRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 26,
+          "Name": "updateGameSession",
+          "RequestType": "UpdateGameSessionRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 27,
+          "Name": "banPlayer",
+          "RequestType": "BanPlayerRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 29,
+          "Name": "updateMeshConnection",
+          "RequestType": "UpdateMeshConnectionRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 31,
+          "Name": "removePlayerFromBannedList",
+          "RequestType": "RemovePlayerFromBannedListRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 32,
+          "Name": "clearBannedList",
+          "RequestType": "BannedListRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 33,
+          "Name": "getBannedList",
+          "RequestType": "BannedListRequest",
+          "ResponseType": "BannedListResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 38,
+          "Name": "addQueuedPlayerToGame",
+          "RequestType": "AddQueuedPlayerToGameRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 39,
+          "Name": "updateGameName",
+          "RequestType": "UpdateGameNameRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 40,
+          "Name": "ejectHost",
+          "RequestType": "EjectHostRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 100,
+          "Name": "getGameListSnapshot",
+          "RequestType": "GetGameListRequest",
+          "ResponseType": "GetGameListResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 101,
+          "Name": "getGameListSubscription",
+          "RequestType": "GetGameListRequest",
+          "ResponseType": "GetGameListResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 102,
+          "Name": "destroyGameList",
+          "RequestType": "DestroyGameListRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 103,
+          "Name": "getFullGameData",
+          "RequestType": "GetFullGameDataRequest",
+          "ResponseType": "GetFullGameDataResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 104,
+          "Name": "getMatchmakingConfig",
+          "RequestType": "NullStruct",
+          "ResponseType": "GetMatchmakingConfigResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 105,
+          "Name": "getGameDataFromId",
+          "RequestType": "GetGameDataFromIdRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 106,
+          "Name": "addAdminPlayer",
+          "RequestType": "UpdateAdminListRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 107,
+          "Name": "removeAdminPlayer",
+          "RequestType": "UpdateAdminListRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 108,
+          "Name": "setPlayerTeam",
+          "RequestType": "SetPlayerTeamRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 109,
+          "Name": "changeGameTeamId",
+          "RequestType": "ChangeTeamIdRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 110,
+          "Name": "migrateAdminPlayer",
+          "RequestType": "UpdateAdminListRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 111,
+          "Name": "getUserSetGameListSubscription",
+          "RequestType": "GetUserSetGameListSubscriptionRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 112,
+          "Name": "swapPlayersTeam",
+          "RequestType": "SwapPlayersTeamRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 150,
+          "Name": "registerDynamicDedicatedServerCreator",
+          "RequestType": "RegisterDynamicDedicatedServerCreatorRequest",
+          "ResponseType": "RegisterDynamicDedicatedServerCreatorResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 151,
+          "Name": "unregisterDynamicDedicatedServerCreator",
+          "RequestType": "UnregisterDynamicDedicatedServerCreatorRequest",
+          "ResponseType": "UnregisterDynamicDedicatedServerCreatorResponse",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 10,
+          "Name": "NotifyMatchmakingFailed",
+          "Type": "NotifyMatchmakingFailed"
+        },
+        {
+          "Id": 12,
+          "Name": "NotifyMatchmakingAsyncStatus",
+          "Type": "NotifyMatchmakingAsyncStatus"
+        },
+        {
+          "Id": 15,
+          "Name": "NotifyGameCreated",
+          "Type": "NotifyGameCreated"
+        },
+        {
+          "Id": 16,
+          "Name": "NotifyGameRemoved",
+          "Type": "NotifyGameRemoved"
+        },
+        {
+          "Id": 20,
+          "Name": "NotifyGameSetup",
+          "Type": "NotifyGameSetup"
+        },
+        {
+          "Id": 21,
+          "Name": "NotifyPlayerJoining",
+          "Type": "NotifyPlayerJoining"
+        },
+        {
+          "Id": 22,
+          "Name": "NotifyJoiningPlayerInitiateConnections",
+          "Type": "NotifyGameSetup"
+        },
+        {
+          "Id": 23,
+          "Name": "NotifyPlayerJoiningQueue",
+          "Type": "NotifyPlayerJoining"
+        },
+        {
+          "Id": 24,
+          "Name": "NotifyPlayerPromotedFromQueue",
+          "Type": "NotifyPlayerJoining"
+        },
+        {
+          "Id": 25,
+          "Name": "NotifyPlayerClaimingReservation",
+          "Type": "NotifyPlayerJoining"
+        },
+        {
+          "Id": 30,
+          "Name": "NotifyPlayerJoinCompleted",
+          "Type": "NotifyPlayerJoinCompleted"
+        },
+        {
+          "Id": 40,
+          "Name": "NotifyPlayerRemoved",
+          "Type": "NotifyPlayerRemoved"
+        },
+        {
+          "Id": 60,
+          "Name": "NotifyHostMigrationFinished",
+          "Type": "NotifyHostMigrationFinished"
+        },
+        {
+          "Id": 70,
+          "Name": "NotifyHostMigrationStart",
+          "Type": "NotifyHostMigrationStart"
+        },
+        {
+          "Id": 71,
+          "Name": "NotifyPlatformHostInitialized",
+          "Type": "NotifyPlatformHostInitialized"
+        },
+        {
+          "Id": 80,
+          "Name": "NotifyGameAttribChange",
+          "Type": "NotifyGameAttribChange"
+        },
+        {
+          "Id": 90,
+          "Name": "NotifyPlayerAttribChange",
+          "Type": "NotifyPlayerAttribChange"
+        },
+        {
+          "Id": 95,
+          "Name": "NotifyPlayerCustomDataChange",
+          "Type": "NotifyPlayerCustomDataChange"
+        },
+        {
+          "Id": 100,
+          "Name": "NotifyGameStateChange",
+          "Type": "NotifyGameStateChange"
+        },
+        {
+          "Id": 110,
+          "Name": "NotifyGameSettingsChange",
+          "Type": "NotifyGameSettingsChange"
+        },
+        {
+          "Id": 111,
+          "Name": "NotifyGameCapacityChange",
+          "Type": "NotifyGameCapacityChange"
+        },
+        {
+          "Id": 112,
+          "Name": "NotifyGameReset",
+          "Type": "NotifyGameReset"
+        },
+        {
+          "Id": 113,
+          "Name": "NotifyGameReportingIdChange",
+          "Type": "NotifyGameReportingIdChange"
+        },
+        {
+          "Id": 115,
+          "Name": "NotifyGameSessionUpdated",
+          "Type": "GameSessionUpdatedNotification"
+        },
+        {
+          "Id": 116,
+          "Name": "NotifyGamePlayerStateChange",
+          "Type": "NotifyGamePlayerStateChange"
+        },
+        {
+          "Id": 117,
+          "Name": "NotifyGamePlayerTeamChange",
+          "Type": "NotifyGamePlayerTeamChange"
+        },
+        {
+          "Id": 118,
+          "Name": "NotifyGameTeamIdChange",
+          "Type": "NotifyGameTeamIdChange"
+        },
+        {
+          "Id": 119,
+          "Name": "NotifyProcessQueue",
+          "Type": "NotifyProcessQueue"
+        },
+        {
+          "Id": 120,
+          "Name": "NotifyPresenceModeChanged",
+          "Type": "NotifyPresenceModeChanged"
+        },
+        {
+          "Id": 121,
+          "Name": "NotifyGamePlayerQueuePositionChange",
+          "Type": "NotifyGamePlayerQueuePositionChange"
+        },
+        {
+          "Id": 201,
+          "Name": "NotifyGameListUpdate",
+          "Type": "NotifyGameListUpdate"
+        },
+        {
+          "Id": 202,
+          "Name": "NotifyAdminListChange",
+          "Type": "NotifyAdminListChange"
+        },
+        {
+          "Id": 220,
+          "Name": "NotifyCreateDynamicDedicatedServerGame",
+          "Type": "NotifyCreateDynamicDedicatedServerGame"
+        },
+        {
+          "Id": 230,
+          "Name": "NotifyGameNameChange",
+          "Type": "NotifyGameNameChange"
+        }
+      ]
+    }
+  ]
+}

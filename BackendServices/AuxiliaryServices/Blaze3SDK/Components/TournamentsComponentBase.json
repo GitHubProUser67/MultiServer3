@@ -1,0 +1,76 @@
+{
+  "Usings": [
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze3SDK.Components",
+  "Components": [
+    {
+      "Id": 23,
+      "Name": "TournamentsComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze3RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "getTournaments",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2,
+          "Name": "getMemberCounts",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4,
+          "Name": "getTrophies",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5,
+          "Name": "getMyTournamentId",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 6,
+          "Name": "joinTournament",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 7,
+          "Name": "leaveTournament",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 8,
+          "Name": "resetMyTournament",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 9,
+          "Name": "getMyTournamentDetails",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": []
+    }
+  ]
+}

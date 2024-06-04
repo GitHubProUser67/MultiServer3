@@ -1,0 +1,88 @@
+{
+  "Usings": [
+    "Blaze2SDK.Blaze.Association",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze2SDK.Components",
+  "Components": [
+    {
+      "Id": 25,
+      "Name": "AssociationListsComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze2RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "addUsersToList",
+          "RequestType": "UpdateList",
+          "ResponseType": "UpdateListResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2,
+          "Name": "removeUsersFromList",
+          "RequestType": "UpdateList",
+          "ResponseType": "UpdateListResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3,
+          "Name": "clearList",
+          "RequestType": "ClearList",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4,
+          "Name": "setUsersToList",
+          "RequestType": "UpdateList",
+          "ResponseType": "UpdateListResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5,
+          "Name": "getListForUser",
+          "RequestType": "GetListForUser",
+          "ResponseType": "AssociationListInfo",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 6,
+          "Name": "getLists",
+          "RequestType": "GetUserLists",
+          "ResponseType": "AssociationListCollectionInfo",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 7,
+          "Name": "subscribeToLists",
+          "RequestType": "SubscriptionInfo",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 8,
+          "Name": "unsubscribeFromLists",
+          "RequestType": "SubscriptionInfo",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 1,
+          "Name": "NotifyListMemberUpdated",
+          "Type": "MemberInfo"
+        },
+        {
+          "Id": 2,
+          "Name": "NotifyListMemberRemoved",
+          "Type": "AssociationListInfo"
+        }
+      ]
+    }
+  ]
+}

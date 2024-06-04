@@ -1,0 +1,48 @@
+{
+  "Usings": [
+    "Blaze2SDK.Blaze.CensusData",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze2SDK.Components",
+  "Components": [
+    {
+      "Id": 10,
+      "Name": "CensusDataComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze2RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "subscribeToCensusData",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2,
+          "Name": "unsubscribeFromCensusData",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3,
+          "Name": "getRegionCounts",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 1,
+          "Name": "NotifyServerCensusData",
+          "Type": "NotifyServerCensusData"
+        }
+      ]
+    }
+  ]
+}

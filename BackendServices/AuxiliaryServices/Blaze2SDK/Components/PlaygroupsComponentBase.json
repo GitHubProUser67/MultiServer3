@@ -1,0 +1,142 @@
+{
+  "Usings": [
+    "Blaze2SDK.Blaze.Playgroups",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze2SDK.Components",
+  "Components": [
+    {
+      "Id": 6,
+      "Name": "PlaygroupsComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze2RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "createPlaygroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2,
+          "Name": "destroyPlaygroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3,
+          "Name": "joinPlaygroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4,
+          "Name": "leavePlaygroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5,
+          "Name": "setPlaygroupAttributes",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 6,
+          "Name": "setMemberAttributes",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 7,
+          "Name": "kickPlaygroupMember",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 8,
+          "Name": "setPlaygroupJoinControls",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 9,
+          "Name": "finalizePlaygroupCreation",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 10,
+          "Name": "lookupPlaygroupInfo",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 50,
+          "Name": "NotifyDestroyPlaygroup",
+          "Type": "NotifyDestroyPlaygroup"
+        },
+        {
+          "Id": 51,
+          "Name": "NotifyJoinPlaygroup",
+          "Type": "NotifyJoinPlaygroup"
+        },
+        {
+          "Id": 52,
+          "Name": "NotifyMemberJoinedPlaygroup",
+          "Type": "NotifyMemberJoinedPlaygroup"
+        },
+        {
+          "Id": 53,
+          "Name": "NotifyMemberRemovedFromPlaygroup",
+          "Type": "NotifyMemberRemoveFromPlaygroup"
+        },
+        {
+          "Id": 54,
+          "Name": "NotifyPlaygroupAttributesSet",
+          "Type": "NotifyPlaygroupAttributesSet"
+        },
+        {
+          "Id": 75,
+          "Name": "NotifyMemberAttributesSet",
+          "Type": "NotifyMemberAttributesSet"
+        },
+        {
+          "Id": 79,
+          "Name": "NotifyLeaderChange",
+          "Type": "NotifyLeaderChange"
+        },
+        {
+          "Id": 80,
+          "Name": "NotifyMemberPermissionsChange",
+          "Type": "NotifyMemberPermissionsChange"
+        },
+        {
+          "Id": 85,
+          "Name": "NotifyJoinControlsChange",
+          "Type": "NotifyJoinControlsChange"
+        },
+        {
+          "Id": 86,
+          "Name": "NotifyXboxSessionInfo",
+          "Type": "NotifyXboxSessionInfo"
+        }
+      ]
+    }
+  ]
+}
