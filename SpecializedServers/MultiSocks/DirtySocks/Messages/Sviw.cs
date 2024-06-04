@@ -17,11 +17,8 @@ namespace MultiSocks.DirtySocks.Messages
             User? user = client.User;
             if (user == null) return;
 
-            if (VIEW == "DLC")
-            {
-                user.SendPlusWho(user);
+            if (VIEW == "DLC" || VIEW == "lobby")
                 client.SendMessage(new Dlc());
-            }
             else
             {
                 if (user.SelectedPersona != -1) return;

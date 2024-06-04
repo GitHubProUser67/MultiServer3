@@ -16,15 +16,19 @@ namespace MultiSocks.DirtySocks
                 { "auxi", typeof(Auxi) }, //auxiliary information. returned as X attribute in +usr and +who
                 { "auth", typeof(AuthIn) },
                 { "acct", typeof(AcctIn) },
-                { "cate", null }, //?
+                { "cate", typeof(CateIn) }, //?
                 { "conn", null }, //?
                 { "cusr", null }, //?
                 { "cper", typeof(CperIn) }, //create persona. (NAME) in, (PERS, NAME) out. where name is username.
                 { "dper", typeof(DperIn) }, //delete persona
                 { "edit", null }, //?
+                { "fbst", typeof(FbstIn) }, //?
                 { "fget", typeof(FgetIn) }, //?
-                { "fupd", null }, //Room equiv
+                { "fupd", typeof(FupdIn) }, // Update friend/rival lists in user record
+                { "fupr", typeof(FuprIn) }, //?
+                { "hchk", typeof(HchkIn) }, //?
                 { "peek", typeof(PeekIn) }, //Audit room and receive infos about it, but not enter.
+                { "pent", typeof(PentIn) }, // Purchase entitlement.
                 { "pers", typeof(PersIn) }, //select persona
                 { "sdta", typeof(SdtaIn) }, //?
                 { "sele", typeof(SeleIn) }, //gets info for the current server
@@ -34,20 +38,35 @@ namespace MultiSocks.DirtySocks
                 { "user", typeof(UserIn) }, //get my user info
                 { "usld", typeof(UsldIn) }, //Ping Equiv?
                 { "onln", typeof(OnlnIn) }, //search for a user's info
-                { "rvup", null }, //?
+                { "opup", typeof(OpupIn) }, //?
+                { "rent", typeof(RentIn) }, // Refresh Entitlements
+                { "rrlc", typeof(RrlcIn) }, // (CUSTOM Burnout Paradise) Road Rules Local
+                { "rrup", typeof(RrupIn) }, // (CUSTOM Burnout Paradise) Road Rules Upload
+                { "rrgt", typeof(RrgtIn) }, // (CUSTOM Burnout Paradise) Road Rules Get
+                { "rvup", typeof(RvupIn) }, // (CUSTOM Burnout Paradise) RiVal UPload
                 { "addr", typeof(Addr) }, //the client tells us their IP and port (ephemeral). The IP is usually wrong.
                 { "chal", typeof(Chal) }, //enter challenge mode
-                { "glea", null }, //leave game (string NAME)
+                { "glea", typeof(GleaIn) }, //leave game (string NAME)
                 { "gget", null }, //get game by name
-                { "gjoi", null }, //join game by name
-                { "gdel", null }, //delete game by name
+                { "gjoi", typeof(GjoiIn) }, //join game by name
+                { "gdel", typeof(GdelIn) }, //delete game by name
                 { "gsea", typeof(GseaIn) }, //Game search
-                { "gsta", null }, //game start. return gstanepl if not enough people, empty gsta if enough.
+                { "gset", typeof(GsetIn) }, //Actualize Game properties.
+                { "gsta", typeof(GstaIn) }, //game start. return gstanepl if not enough people, empty gsta if enough.
                 { "gcre", null }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
-                { "gpsc", typeof(GpscIn) }, //?
-                { "gqwk", typeof(GqwkIn) }, //Quick join.
+                { "gpsc", typeof(GpscIn) }, // Create a game on a persistent game spawn service for a user.
+                { "gqwk", typeof(GqwkIn) }, // Join the best matching game based on provided criteria.
                 { "news", typeof(NewsIn) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)
-                { "rank", null }, //unknown. { RANK = "Unranked", TIME = 866 }
+                { "rank", typeof(RankIn) }, //unknown. { RANK = "Unranked", TIME = 866 }
+                { "tcup", typeof(TcupIn) }, // Time Challenge Score Upload?
+                { "snap", typeof(SnapIn) }, // Get Leaderboard snapshot
+                { "quik", typeof(QuikIn) }, // Old version Quick Match
+                { "rept", typeof(ReptIn) }, // Submit a Report about a user
+                { "rcat", typeof(RcatIn) }, // Fetch room category information
+                { "priv", typeof(PrivIn) }, // Set Private Message mode.
+                { "flag", typeof(FlagIn) }, // Set attribute flags.
+                { "uatr", typeof(UatrIn) }, // Update user attributes and hardware flags
+                { "lggr", typeof(Lggr) } // Client -> Server logger 
             };
 
         public UserCollection Users = new();
@@ -56,7 +75,7 @@ namespace MultiSocks.DirtySocks
 
         private readonly Thread PingThread;
 
-        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null, bool secure = false, string CN = "") : base(port, lowlevel, Project, SKU, secure, CN)
+        public MatchmakerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false) : base(port, lowlevel, Project, SKU, secure, CN, email, WeakChainSignedRSAKey)
         {
             Rooms.Server = this;
 
@@ -72,7 +91,7 @@ namespace MultiSocks.DirtySocks
                 {
                     foreach (var pair in RoomToAdd)
                     {
-                        CustomLogger.LoggerAccessor.LogInfo($"[MatchmakerServer] - Adding Room: {pair.Item1}, With Global Availability: {pair.Item2} on Port: {port}");
+                        CustomLogger.LoggerAccessor.LogInfo($"[MatchmakerServer] - Adding Room: {pair.Item1}, {(pair.Item2 ? ("With Global Availability: " + pair.Item2 + " ") : string.Empty)}on Port: {port}");
                         Rooms.AddRoom(new Room() { Name = pair.Item1, IsGlobal = pair.Item2 });
                     }
                 }

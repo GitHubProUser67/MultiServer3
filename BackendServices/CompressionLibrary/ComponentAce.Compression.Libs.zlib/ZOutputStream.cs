@@ -5,19 +5,19 @@ namespace ComponentAce.Compression.Libs.zlib
 {
     public class ZOutputStream : Stream
     {
-        protected internal ZStream? z = new();
+        protected internal ZStream z = new ZStream();
 
         protected internal int bufsize = 4096;
 
         protected internal int flush_Renamed_Field;
 
-        protected internal byte[]? buf;
+        protected internal byte[] buf;
 
         protected internal byte[] buf1 = new byte[1];
 
         protected internal bool compress;
 
-        private Stream? out_Renamed;
+        private Stream out_Renamed;
 
         public virtual int FlushMode
         {

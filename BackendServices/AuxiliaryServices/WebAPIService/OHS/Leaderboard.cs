@@ -23,7 +23,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -63,7 +63,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -104,7 +104,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -126,7 +126,10 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Deserialize the JSON string
-                    ScoreBoardUpdate? rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdate>(dataforohs);
+                    ScoreBoardUpdate? rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdate>(dataforohs, new JsonSerializerSettings
+                    {
+                        Converters = { new ScoreBoardUpdateConverter() }
+                    });
 
                     if (rootObject != null)
                     {
@@ -135,9 +138,9 @@ namespace WebAPIService.OHS
                         int score = rootObject.score;
                         string? key = rootObject.key;
 
-                        if (!string.IsNullOrEmpty(rootObject.value))
+                        if (rootObject.value != null && rootObject.value.Length > 0 && rootObject.value[0] is string)
                         {
-                            value = JaminProcessor.JaminDeFormat(rootObject.value, false, 0, false);
+                            value = JaminProcessor.JaminDeFormat((string)rootObject.value[0], false, 0, false);
 
                             if (!string.IsNullOrEmpty(value))
                                 LoggerAccessor.LogInfo($"[OHS] : Leaderboard has extra data: {value}");
@@ -188,7 +191,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
-                    using (MemoryStream ms = new(PostData))
+                    using (MemoryStream ms = new MemoryStream(PostData))
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
@@ -203,7 +206,7 @@ namespace WebAPIService.OHS
                 dataforohs = batchparams;
             // TODO! writekey must be somewhere.
 
-            StringBuilder? resultBuilder = new();
+            StringBuilder? resultBuilder = new StringBuilder();
 
             string? value = null;
 
@@ -212,7 +215,10 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Deserialize the JSON string
-                    ScoreBoardUpdateSameEntry? rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdateSameEntry>(dataforohs);
+                    ScoreBoardUpdateSameEntry? rootObject = JsonConvert.DeserializeObject<ScoreBoardUpdateSameEntry>(dataforohs, new JsonSerializerSettings
+                    {
+                        Converters = { new ScoreBoardUpdateSameEntryConverter() }
+                    });
 
                     if (rootObject != null)
                     {
@@ -221,9 +227,9 @@ namespace WebAPIService.OHS
                         int score = rootObject.score;
                         string[]? keys = rootObject.keys;
 
-                        if (!string.IsNullOrEmpty(rootObject.value))
+                        if (rootObject.value != null && rootObject.value.Length > 0 && rootObject.value[0] is string)
                         {
-                            value = JaminProcessor.JaminDeFormat(rootObject.value, false, 0, false);
+                            value = JaminProcessor.JaminDeFormat((string)rootObject.value[0], false, 0, false);
 
                             if (!string.IsNullOrEmpty(value))
                                 LoggerAccessor.LogInfo($"[OHS] : Leaderboard has extra data: {value}");
@@ -413,7 +419,7 @@ namespace WebAPIService.OHS
 
                             if (File.Exists(scoreboardfile))
                             {
-                                StringBuilder? resultBuilder = new();
+                                StringBuilder? resultBuilder = new StringBuilder();
 
                                 foreach (string user in data.Users)
                                 {
@@ -625,8 +631,8 @@ namespace WebAPIService.OHS
 
         public static Scoreboard GenerateSampleScoreboard(int numEntries)
         {
-            Scoreboard scoreboard = new();
-            Random? random = new();
+            Scoreboard scoreboard = new Scoreboard();
+            Random? random = new Random();
 
             scoreboard.Entries = new List<ScoreboardEntry>();
 
@@ -693,9 +699,73 @@ namespace WebAPIService.OHS
             return null;
         }
 
+        public class ScoreBoardUpdateSameEntryConverter : JsonConverter<ScoreBoardUpdateSameEntry>
+        {
+            public override ScoreBoardUpdateSameEntry ReadJson(JsonReader reader, Type objectType, ScoreBoardUpdateSameEntry? existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                JObject jsonObject = JObject.Load(reader);
+
+                ScoreBoardUpdateSameEntry entry = new ScoreBoardUpdateSameEntry
+                {
+                    user = jsonObject["user"]?.ToString(),
+                    keys = jsonObject["keys"]?.ToObject<string[]>(),
+                    score = jsonObject["score"]?.ToObject<int>() ?? 0
+                };
+
+                // Determine if "value" is a string or an array of objects
+                JToken? valueToken = jsonObject["value"];
+                if (valueToken != null)
+                {
+                    if (valueToken.Type == JTokenType.String)
+                        entry.value = new object[] { valueToken.ToObject<string>() ?? string.Empty };
+                    else
+                        entry.value = valueToken.ToObject<object[]>();
+                }
+
+                return entry;
+            }
+
+            public override void WriteJson(JsonWriter writer, ScoreBoardUpdateSameEntry? value, JsonSerializer serializer)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class ScoreBoardUpdateConverter : JsonConverter<ScoreBoardUpdate>
+        {
+            public override ScoreBoardUpdate ReadJson(JsonReader reader, Type objectType, ScoreBoardUpdate? existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                JObject jsonObject = JObject.Load(reader);
+
+                ScoreBoardUpdate entry = new ScoreBoardUpdate
+                {
+                    user = jsonObject["user"]?.ToString(),
+                    key = jsonObject["keys"]?.ToObject<string>(),
+                    score = jsonObject["score"]?.ToObject<int>() ?? 0
+                };
+
+                // Determine if "value" is a string or an array of objects
+                JToken? valueToken = jsonObject["value"];
+                if (valueToken != null)
+                {
+                    if (valueToken.Type == JTokenType.String)
+                        entry.value = new object[] { valueToken.ToObject<string>() ?? string.Empty };
+                    else
+                        entry.value = valueToken.ToObject<object[]>();
+                }
+
+                return entry;
+            }
+
+            public override void WriteJson(JsonWriter writer, ScoreBoardUpdate? value, JsonSerializer serializer)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public class ScoreboardNameGenerator
         {
-            private static Random random = new();
+            private static Random random = new Random();
 
             // List of silly French-sounding words to be used in the names
             private static string[] sillyFrenchWords = { "Croissant", "Baguette", "Fougasse", "TarteAuFromage", "Tabernack", "UnePetiteContine", "ChuckNorris", "Pamplemousse", "JimCarrey", "Fromage" };
@@ -723,7 +793,7 @@ namespace WebAPIService.OHS
             public string? user { get; set; }
             public string[]? keys { get; set; }
             public int score { get; set; }
-            public string? value { get; set; }
+            public object[]? value { get; set; }
         }
 
         public class ScoreBoardUpdate
@@ -731,7 +801,7 @@ namespace WebAPIService.OHS
             public string? user { get; set; }
             public string? key { get; set; }
             public int score { get; set; }
-            public string? value { get; set; }
+            public object[]? value { get; set; }
         }
 
         public class ScoreBoardUsersRequest

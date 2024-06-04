@@ -140,7 +140,7 @@ namespace MultiSocks.DirtySocks.Model
             {
                 foreach (var user in Users)
                 {
-                    infos.Add(user.GetInfo());
+                    infos.Add(user.Value.GetInfo());
                 }
             }
             foreach (var info in infos) target.Connection?.SendMessage(info);

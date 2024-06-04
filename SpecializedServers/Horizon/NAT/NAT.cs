@@ -71,7 +71,10 @@ namespace Horizon.NAT
             try
             {
                 if (_boundChannel != null)
+                {
                     await _boundChannel.CloseAsync();
+                    _boundChannel = null;
+                }
             }
             finally
             {

@@ -11,6 +11,7 @@ using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System.Collections.Generic;
 using System;
+using CyberBackendLibrary.Crypto;
 
 namespace HomeTools.BARFramework
 {
@@ -209,7 +210,7 @@ namespace HomeTools.BARFramework
                         byte[] inData = endianAwareBinaryReader2.ReadBytes((int)num2);
                         CompressionMethod method = CompressionMethod.ZLib;
                         byte[]? buffer = CompressionFactory.Decompress(inData, method, m_header.Flags);
-                        MemoryStream inStream = new(buffer);
+                        MemoryStream inStream = new MemoryStream(buffer);
                         if (ReadTOC(inStream, m_endian))
                         {
                             m_toc.CompressedSize = num2;
@@ -623,10 +624,9 @@ namespace HomeTools.BARFramework
                 LoggerAccessor.LogError(string.Format("File paths cannot contain whitespace: {0}", text));
                 return null;
             }
-            AfsHash afsHash = new(text);
+            AfsHash afsHash = new AfsHash(text);
             bool flag = false;
-            int num;
-            if (Path.GetExtension(filePath) == string.Empty && int.TryParse(Path.GetFileName(filePath), out num))
+            if (Path.GetExtension(filePath) == string.Empty && int.TryParse(Path.GetFileName(filePath), out _))
                 flag = true;
             TOCEntry tocentry;
             if (flag)
@@ -660,12 +660,12 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[]? array2 = null;
                 if (isvalid)
-                    array2 = ToolsImpl.ComponentAceEdgeZlibCompress(array);
+                    array2 = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length;
                     tocEntry.Compression = CompressionMethod.Encrypted;
-                    using (MemoryStream memoryStream = new(array))
+                    using (MemoryStream memoryStream = new MemoryStream(array))
                     {
                         tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
                         memoryStream.Close();
@@ -681,7 +681,7 @@ namespace HomeTools.BARFramework
                     array2 = array;
                     tocEntry.CompressedSize = (uint)array2.Length;
                     tocEntry.Compression = CompressionMethod.Uncompressed;
-                    using (MemoryStream memoryStream = new(array))
+                    using (MemoryStream memoryStream = new MemoryStream(array))
                     {
                         tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
                         memoryStream.Close();
@@ -702,12 +702,12 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[]? array2 = null;
                 if (isvalid)
-                    array2 = ToolsImpl.ComponentAceEdgeZlibCompress(array);
+                    array2 = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length + 28;
                     tocEntry.Compression = CompressionMethod.Encrypted;
-                    using (MemoryStream memoryStream = new(array))
+                    using (MemoryStream memoryStream = new MemoryStream(array))
                     {
                         tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
                         memoryStream.Close();
@@ -732,7 +732,7 @@ namespace HomeTools.BARFramework
                     array2 = array;
                     tocEntry.CompressedSize = (uint)array2.Length;
                     tocEntry.Compression = CompressionMethod.Uncompressed;
-                    using (MemoryStream memoryStream = new(array))
+                    using (MemoryStream memoryStream = new MemoryStream(array))
                     {
                         tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
                         memoryStream.Close();
@@ -768,7 +768,7 @@ namespace HomeTools.BARFramework
 
                 tocEntry.CompressedSize = (uint)array2.Length;
                 tocEntry.Compression = compressionMethod;
-                using (MemoryStream memoryStream = new(array))
+                using (MemoryStream memoryStream = new MemoryStream(array))
                 {
                     tocEntry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
                     memoryStream.Close();
@@ -780,7 +780,7 @@ namespace HomeTools.BARFramework
 
         public void VerifyFileIsInDirectory(DirectoryInfo directory, string filePath)
         {
-            DirectoryInfo directoryInfo = new(Path.GetDirectoryName(filePath));
+            DirectoryInfo directoryInfo = new DirectoryInfo(Path.GetDirectoryName(filePath));
             bool flag = false;
             DirectoryInfo? directoryInfo2 = directoryInfo;
             string b = directory.FullName.ToLower().TrimEnd(new char[]
@@ -841,8 +841,8 @@ namespace HomeTools.BARFramework
         public bool ContainsFile(string filePath)
         {
             string inBARPath = GetInBARPath(filePath);
-            AfsHash afsHash = new(inBARPath);
-            HashedFileName filename = new(afsHash.Value);
+            AfsHash afsHash = new AfsHash(inBARPath);
+            HashedFileName filename = new HashedFileName(afsHash.Value);
             TOCEntry? tocentry = m_toc[filename];
             return tocentry != null;
         }
@@ -850,7 +850,7 @@ namespace HomeTools.BARFramework
         public void ReplaceFile(string filePath, BARAddFileOptions options)
         {
             string inBARPath = GetInBARPath(filePath);
-            AfsHash afsHash = new(inBARPath);
+            AfsHash afsHash = new AfsHash(inBARPath);
             HashedFileName filename = (HashedFileName)afsHash.Value;
             TOCEntry? tocEntry = m_toc[filename];
             FileStream inStream = File.OpenRead(filePath);
@@ -991,7 +991,11 @@ namespace HomeTools.BARFramework
                     if (FileBytes != null)
                     {
                         byte[]? SignatureHeader = new byte[24];
-                        byte[] SHA1Data = SHA1.HashData(FileBytes);
+                        byte[] SHA1Data = new byte[0];
+                        using (SHA1 sha1 = SHA1.Create())
+                        {
+                            SHA1Data = sha1.ComputeHash(FileBytes);
+                        }
                         Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);
@@ -1041,9 +1045,9 @@ namespace HomeTools.BARFramework
             {
                 '\n'
             });
-            Hashtable hashtable = new();
-            Regex regex = new("([\\w\\d]+)(\\s+)(Number of files:\\s+)(?<filecount>[\\d]+)");
-            Regex regex2 = new("([\\w\\d]+)\\s+(?<path>[:\\w\\d\\s-_$/\\.+]+)\\[(?<hash>[\\w\\d]+)\\]");
+            Hashtable hashtable = new Hashtable();
+            Regex regex = new Regex("([\\w\\d]+)(\\s+)(Number of files:\\s+)(?<filecount>[\\d]+)");
+            Regex regex2 = new Regex("([\\w\\d]+)\\s+(?<path>[:\\w\\d\\s-_$/\\.+]+)\\[(?<hash>[\\w\\d]+)\\]");
             foreach (string input in array)
             {
                 Match match = regex.Match(input);
@@ -1079,17 +1083,14 @@ namespace HomeTools.BARFramework
             textReader.Close();
         }
 
-        public byte[] GetFileData(string FileName)
+        public byte[]? GetFileData(string FileName)
         {
-            AfsHash afsHash = new(FileName);
-            HashedFileName fileName = new(afsHash.Value);
-            return GetFileData(fileName);
+            return GetFileData(new HashedFileName(new AfsHash(FileName).Value));
         }
 
-        public byte[] GetFileData(HashedFileName FileName)
+        public byte[]? GetFileData(HashedFileName FileName)
         {
-            TOCEntry? tocentry = m_toc[FileName];
-            return tocentry.GetData(m_header.Flags);
+            return m_toc[FileName]?.GetData(m_header.Flags);
         }
 
         public void UpdateFile(HashedFileName FileName, byte[] inData)
@@ -1154,10 +1155,7 @@ namespace HomeTools.BARFramework
 
         public byte[]? GetRawFileData(string FileName)
         {
-            string inBARPath = GetInBARPath(FileName);
-            AfsHash afsHash = new(inBARPath);
-            HashedFileName fileName = new(afsHash.Value);
-            return GetRawFileData(fileName);
+            return GetRawFileData(new HashedFileName(new AfsHash(GetInBARPath(FileName)).Value));
         }
 
         public byte[]? GetRawFileData(HashedFileName FileName)
@@ -1199,7 +1197,7 @@ namespace HomeTools.BARFramework
 
         public Hashtable GetFileTree()
         {
-            Hashtable hashtable = new();
+            Hashtable hashtable = new Hashtable();
             foreach (object obj in m_toc)
             {
                 TOCEntry tocentry = (TOCEntry)obj;
@@ -1221,14 +1219,13 @@ namespace HomeTools.BARFramework
         public void CreateManifest()
         {
             Hashtable fileTree = GetFileTree();
-            XmlWriterSettings xmlWriterSettings = new()
+            StringBuilder stringBuilder = new StringBuilder();
+            XmlWriter xmlWriter = XmlWriter.Create(stringBuilder, new XmlWriterSettings()
             {
                 Indent = true,
                 Encoding = Encoding.UTF8,
                 OmitXmlDeclaration = true
-            };
-            StringBuilder stringBuilder = new();
-            XmlWriter xmlWriter = XmlWriter.Create(stringBuilder, xmlWriterSettings);
+            });
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement("manifest");
             foreach (object obj in fileTree.Keys)
@@ -1249,7 +1246,7 @@ namespace HomeTools.BARFramework
             xmlWriter.WriteEndDocument();
             xmlWriter.Close();
             byte[] bytes = Encoding.UTF8.GetBytes(stringBuilder.ToString());
-            MemoryStream inStream = new(bytes);
+            MemoryStream inStream = new MemoryStream(bytes);
             string filePath = m_resourceRoot + "\\__$manifest$__";
             AddFile(filePath, inStream, BARAddFileOptions.ForceCompress);
         }
@@ -1272,7 +1269,7 @@ namespace HomeTools.BARFramework
 
         private string m_resourceRoot = string.Empty;
 
-        private readonly Header m_header = new();
+        private readonly Header m_header = new Header();
 
         private readonly TOC m_toc;
 

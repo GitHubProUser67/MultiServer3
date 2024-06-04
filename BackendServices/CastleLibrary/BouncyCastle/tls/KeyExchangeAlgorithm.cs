@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -59,6 +59,11 @@ namespace Org.BouncyCastle.Tls
          * GMT 0024-2014
          */
         public const int SM2 = 25;
+
+        /*
+         * RFC 9189
+         */
+        public const int GOSTR341112_256 = 26;
 
         public static bool IsAnonymous(int keyExchangeAlgorithm)
         {

@@ -45,7 +45,7 @@ namespace CyberBackendLibrary.FileSystem
 
                     if (MediaPaths?.Any() == true)
                     {
-                        StringBuilder builder = new();
+                        StringBuilder builder = new StringBuilder();
 
                         // Add M3U header
                         builder.AppendLine("#EXTM3U");

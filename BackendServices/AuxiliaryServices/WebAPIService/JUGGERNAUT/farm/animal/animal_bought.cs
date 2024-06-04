@@ -25,7 +25,7 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
                     if (File.Exists($"{apiPath}/juggernaut/farm/User_Data/{user}.xml"))
                     {
                         // Load the XML string into an XmlDocument
-                        XmlDocument xmlDoc = new();
+                        XmlDocument xmlDoc = new XmlDocument();
                         xmlDoc.LoadXml(AddAnimalEntry(File.ReadAllText($"{apiPath}/juggernaut/farm/User_Data/{user}.xml"), type, id));
 
                         // Find the <gold> element
@@ -63,7 +63,7 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
         {
             XDocument xdoc = XDocument.Parse(xmlData);
 
-            XElement newAnimal = new("animal",
+            XElement newAnimal = new XElement("animal",
                 new XElement("t", type),
                 new XElement("l", 1),
                 new XElement("lf", id),

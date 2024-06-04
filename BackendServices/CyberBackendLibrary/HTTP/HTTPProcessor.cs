@@ -2,6 +2,7 @@ using ComponentAce.Compression.Libs.zlib;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace CyberBackendLibrary.HTTP
 {
     public partial class HTTPProcessor
     {
-        public static readonly Dictionary<string, string> _mimeTypes = new(StringComparer.InvariantCultureIgnoreCase)
+        public static readonly Dictionary<string, string> _mimeTypes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
 
@@ -585,14 +586,10 @@ namespace CyberBackendLibrary.HTTP
             #endregion
         };
 
-        public static readonly Dictionary<string, byte[]> _PathernDictionary = new()
+        public static readonly Dictionary<string, byte[]> _PathernDictionary = new Dictionary<string, byte[]>()
         {
-#if NET6_0
             // Add more entries as needed
             { "text/html", new byte[] { 0x3C, 0x21, 0x44, 0x4F, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20 } },
-#elif NET7_0_OR_GREATER
-            { "text/html", "<!DOCTYPE "u8.ToArray() },
-#endif
             { "video/mp4", new byte[] { 0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70 } }
         };
 
@@ -624,84 +621,17 @@ namespace CyberBackendLibrary.HTTP
 
         // http://stackoverflow.com/questions/1029740/get-mime-type-from-filename-extension
 
-        public static string GetMimeType(string? extension)
+        public static string GetMimeType(string? extension, Dictionary<string, string> mimeTypesDic)
         {
             if (string.IsNullOrEmpty(extension))
                 return "application/octet-stream";
             else
             {
-                if (!extension.StartsWith("."))
+                if (!extension.StartsWith('.'))
                     extension = "." + extension;
 
-                return _mimeTypes.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
+                return mimeTypesDic.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
             }
-        }
-
-        public static string? GetExtensionFromMime(string? mimeType)
-        {
-            if (string.IsNullOrEmpty(mimeType))
-                return null;
-            else
-                return _mimeTypes.TryGetValue(mimeType, out string? extension) ? extension : null;
-        }
-
-        public static byte[] RemoveUnwantedPHPHeaders(byte[] phpOutputBytes)
-        {
-            // Find the index where headers end and content starts (indicated by an empty line)
-            int emptyLineIndex = -1;
-            for (int i = 0; i < phpOutputBytes.Length - 3; i++)
-            {
-                if (phpOutputBytes[i] == '\r' && phpOutputBytes[i + 1] == '\n' && phpOutputBytes[i + 2] == '\r' && phpOutputBytes[i + 3] == '\n')
-                {
-                    emptyLineIndex = i + 4; // Skip the empty line
-                    break;
-                }
-            }
-
-            if (emptyLineIndex == -1)
-                // If no empty line found, return the original bytes
-                return phpOutputBytes;
-
-            List<byte> filteredOutput = new();
-
-            bool skipHeaders = false;
-
-            for (int i = emptyLineIndex; i < phpOutputBytes.Length; i++)
-            {
-                byte currentByte = phpOutputBytes[i];
-
-                if (currentByte == '\r' && i < phpOutputBytes.Length - 1 && phpOutputBytes[i + 1] == '\n')
-                {
-                    // Empty line indicates end of headers, switch to normal content
-                    skipHeaders = true;
-                    filteredOutput.Add((byte)'\r');
-                    filteredOutput.Add((byte)'\n');
-                    i++; // Skip the '\n' character
-                }
-                else if (!skipHeaders)
-                {
-                    // Check if the line contains unwanted headers and skip them
-                    bool skipLine = false;
-
-                    if (currentByte == 'C' && i + 12 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Content-Type:"))
-                    {
-                        skipLine = true;
-                        i += 13; // Skip "Content-Type:" and the following space
-                    }
-                    else if (currentByte == 'S' && i + 10 < phpOutputBytes.Length && CheckHeaderMatch(phpOutputBytes, i, "Set-Cookie:"))
-                    {
-                        skipLine = true;
-                        i += 11; // Skip "Set-Cookie:" and the following space
-                    }
-
-                    if (!skipLine)
-                        filteredOutput.Add(currentByte);
-                }
-                else
-                    filteredOutput.Add(currentByte);
-            }
-
-            return filteredOutput.ToArray();
         }
 
         public static bool CheckHeaderMatch(byte[] byteArray, int startIndex, string header)
@@ -730,7 +660,7 @@ namespace CyberBackendLibrary.HTTP
         {
             if (string.IsNullOrEmpty(referer))
                 return string.Empty;
-#if NET5_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
             Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
 #elif NET7_0_OR_GREATER
             // Match the input string with the pattern
@@ -751,7 +681,7 @@ namespace CyberBackendLibrary.HTTP
             NameValueCollection formData = HttpUtility.ParseQueryString(Encoding.UTF8.GetString(urlEncodedDataByte));
 
             // Convert the NameValueCollection to a dictionary for easy sorting
-            Dictionary<string, string> formDataDictionary = new();
+            Dictionary<string, string> formDataDictionary = new Dictionary<string, string>();
             foreach (string? key in formData.AllKeys)
             {
                 if (key != null)
@@ -774,16 +704,52 @@ namespace CyberBackendLibrary.HTTP
                 return input;
         }
 
+        public static string RemoveDiacritics(string text)
+        {
+            string normalizedString = text.Normalize(NormalizationForm.FormD);
+            StringBuilder stringBuilder = new StringBuilder(capacity: normalizedString.Length);
+
+            for (int i = 0; i < normalizedString.Length; i++)
+            {
+                char c = normalizedString[i];
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    stringBuilder.Append(c);
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(NormalizationForm.FormC);
+        }
+
         public static byte[] Compress(byte[] input)
         {
             byte[] byteoutput = Array.Empty<byte>();
 
-            using (MemoryStream output = new())
+            using (MemoryStream output = new MemoryStream())
             {
-                using (GZipStream gzipStream = new(output, CompressionLevel.Fastest, false))
+                using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, false))
                 {
                     gzipStream.Write(input, 0, input.Length);
                     gzipStream.Flush();
+                }
+
+                byteoutput = output.ToArray();
+                output.Flush();
+            }
+
+            return byteoutput;
+        }
+
+        public static byte[] Inflate(byte[] input)
+        {
+            byte[] byteoutput = Array.Empty<byte>();
+
+            using (MemoryStream output = new MemoryStream())
+            {
+                using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
+                {
+                    zlibStream.Write(input, 0, input.Length);
+                    zlibStream.finish();
                 }
 
                 byteoutput = output.ToArray();
@@ -797,8 +763,8 @@ namespace CyberBackendLibrary.HTTP
         {
             if (input.Length > 2147483648)
             {
-                HugeMemoryStream outMemoryStream = new();
-                GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
+                HugeMemoryStream outMemoryStream = new HugeMemoryStream();
+                GZipStream outZStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.Flush();
                 outMemoryStream.Position = 0;
@@ -806,8 +772,8 @@ namespace CyberBackendLibrary.HTTP
             }
             else
             {
-                MemoryStream outMemoryStream = new();
-                GZipStream outZStream = new(outMemoryStream, CompressionLevel.Fastest, false);
+                MemoryStream outMemoryStream = new MemoryStream();
+                GZipStream outZStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.Flush();
                 outMemoryStream.Position = 0;
@@ -819,8 +785,8 @@ namespace CyberBackendLibrary.HTTP
         {
             if (input.Length > 2147483648)
             {
-                HugeMemoryStream outMemoryStream = new();
-                ZOutputStream outZStream = new(outMemoryStream, 1, true);
+                HugeMemoryStream outMemoryStream = new HugeMemoryStream();
+                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.finish();
                 outMemoryStream.Position = 0;
@@ -828,34 +794,13 @@ namespace CyberBackendLibrary.HTTP
             }
             else
             {
-                MemoryStream outMemoryStream = new();
-                ZOutputStream outZStream = new(outMemoryStream, 1, true);
+                MemoryStream outMemoryStream = new MemoryStream();
+                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 outZStream.finish();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
-        }
-
-
-        /// <summary>
-        /// Generate a server signature for HTTP backends purposes.
-        /// <para>Générer une signature à usage des sous-systèmes HTTP.</para>
-        /// </summary>
-        /// <returns>A string.</returns>
-        public static string GenerateServerSignature()
-        {
-            string pstring = Environment.OSVersion.Platform switch
-            {
-                PlatformID.Win32NT or PlatformID.Win32S or PlatformID.Win32Windows => "WIN32",
-                PlatformID.WinCE => "WINCE",
-                PlatformID.Unix => "UNIX",
-                PlatformID.Xbox => "XBOX",
-                PlatformID.MacOSX => "MACOSX",
-                PlatformID.Other => "OTHER",
-                _ => "OTHER",
-            };
-            return $"{pstring}/1.0 UPnP/1.0 DLNADOC/1.5 sdlna/1.0";
         }
 
         /// <summary>

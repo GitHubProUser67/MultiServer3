@@ -1,9 +1,11 @@
 using CustomLogger;
+using MitmDNS;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +35,7 @@ public static class MitmDNSServerConfiguration
                 new JProperty("online_routes_config", DNSOnlineConfig),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests)
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }
@@ -83,52 +85,152 @@ public static class MitmDNSServerConfiguration
 
 class Program
 {
-    static Task RefreshConfig()
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "dns.json";
+    private static string DNSconfigMD5 = string.Empty;
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Task? DNSThread = null;
+    private static Task? DNSRefreshThread = null;
+    private static MitmDNSClass Server = new();
+    private static readonly FileSystemWatcher dnswatcher = new();
+
+    // Event handler for DNS change event
+    private static void OnDNSChanged(object source, FileSystemEventArgs e)
     {
-        while (true)
+        try
         {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
+            dnswatcher.EnableRaisingEvents = false;
 
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
+            LoggerAccessor.LogInfo($"DNS Routes File {e.FullPath} has been changed, Routes Refresh at - {DateTime.Now}");
 
-            MitmDNSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dns.json");
+            // Sleep a little to let file-system time to write the changes to the file.
+            Thread.Sleep(6000);
+
+            DNSconfigMD5 = ComputeMD5FromFile(MitmDNSServerConfiguration.DNSConfig);
+
+            while (DNSRefreshThread != null)
+            {
+                LoggerAccessor.LogWarn("[DNS] - Waiting for previous DNS refresh Task to finish...");
+                Thread.Sleep(6000);
+            }
+
+            DNSRefreshThread = RefreshDNS();
+            DNSRefreshThread.Dispose();
+            DNSRefreshThread = null;
+        }
+
+        finally
+        {
+            dnswatcher.EnableRaisingEvents = true;
+        }
+    }
+
+    private static void StartOrUpdateServer()
+    {
+        Server.StopServer();
+
+        dnswatcher.Path = Path.GetDirectoryName(MitmDNSServerConfiguration.DNSConfig) ?? configDir;
+        dnswatcher.Filter = Path.GetFileName(MitmDNSServerConfiguration.DNSConfig);
+
+        if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
+        {
+            string MD5 = ComputeMD5FromFile(MitmDNSServerConfiguration.DNSConfig);
+
+            if (!MD5.Equals(DNSconfigMD5))
+            {
+                DNSconfigMD5 = MD5;
+
+                while (DNSRefreshThread != null)
+                {
+                    LoggerAccessor.LogWarn("[DNS] - Waiting for previous DNS refresh Task to finish...");
+                    Thread.Sleep(6000);
+                }
+
+                DNSRefreshThread = RefreshDNS();
+                DNSRefreshThread.Dispose();
+                DNSRefreshThread = null;
+            }
+        }
+
+        Server.StartServerAsync(new CancellationTokenSource().Token);
+    }
+
+    private static Task RefreshDNS()
+    {
+        if (DNSThread != null && !MitmDNSClass.Initiated)
+        {
+            while (!MitmDNSClass.Initiated)
+            {
+                LoggerAccessor.LogWarn("[DNS] - Waiting for previous config assignement Task to finish...");
+                Thread.Sleep(6000);
+            }
+        }
+
+        DNSThread = Task.Run(MitmDNSClass.RenewConfig);
+
+        return Task.CompletedTask;
+    }
+
+    private static string ComputeMD5FromFile(string filePath)
+    {
+        using (FileStream stream = File.OpenRead(filePath))
+        {
+            // Convert the byte array to a hexadecimal string
+            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
         }
     }
 
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+        dnswatcher.NotifyFilter = NotifyFilters.LastWrite;
+        dnswatcher.Changed += OnDNSChanged;
 
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("MitmDNS");
 
-        MitmDNSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dns.json");
+        MitmDNSServerConfiguration.RefreshVariables(configPath);
 
-        MitmDNS.MitmDNSClass? dns = new();
+        StartOrUpdateServer();
 
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => dns.MitmDNSMain(),
-                    () => RefreshConfig()
-                ));
+        dnswatcher.EnableRaisingEvents = true;
 
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
                 Console.ReadLine();
 
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
+
+                            MitmDNSServerConfiguration.RefreshVariables(configPath);
+
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
             }
         }
@@ -136,7 +238,7 @@ class Program
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

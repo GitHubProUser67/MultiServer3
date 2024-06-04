@@ -1,4 +1,3 @@
-
 using CyberBackendLibrary.GeoLocalization;
 using CustomLogger;
 using DatabaseMiddleware.HTTPEngine;
@@ -93,62 +92,76 @@ public static class DatabaseMiddlewareServerConfiguration
 
 class Program
 {
-    static async Task RefreshConfig()
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "dbmiddleware.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static HostBuilderServer? Server = null;
+    private static Timer? AuthTimer = null;
+
+    private static void StartOrUpdateServer()
     {
-        while (true)
-        {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
+        Server?.StopServer();
 
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
+        SQLiteConnector.StopAllDatabases().Wait();
 
-            DatabaseMiddlewareServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dbmiddleware.json");
+        AuthenticationChannel.LoadExistingAuths();
 
-            await SQLiteConnector.AddDatabases(DatabaseMiddlewareServerConfiguration.DbFiles);
-            await SQLiteConnector.StartAllDatabases();
-        }
+        AuthTimer?.Dispose();
+        AuthTimer = new Timer(AuthenticationChannel.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+
+        SQLiteConnector.AddDatabases(DatabaseMiddlewareServerConfiguration.DbFiles).Wait();
+
+        _ = Task.Run(SQLiteConnector.StartAllDatabases);
+
+        Server = new HostBuilderServer("*", 10000);
     }
 
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("DatabaseMiddleware");
 
-        DatabaseMiddlewareServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dbmiddleware.json");
-
-        AuthenticationChannel.LoadExistingAuths();
-
-        _ = new Timer(AuthenticationChannel.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
-
         GeoIP.Initialize();
 
-        SQLiteConnector.AddDatabases(DatabaseMiddlewareServerConfiguration.DbFiles).Wait();
+        DatabaseMiddlewareServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/dbmiddleware.json");
 
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => _ = SQLiteConnector.StartAllDatabases(),
-                    () => new HostBuilderServer("*", 10000).StartServer(),
-                    () => _ = RefreshConfig()
-                ));
+        StartOrUpdateServer();
 
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
                 Console.ReadLine();
 
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
+
+                            DatabaseMiddlewareServerConfiguration.RefreshVariables(configPath);
+
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
             }
         }
@@ -156,7 +169,7 @@ class Program
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

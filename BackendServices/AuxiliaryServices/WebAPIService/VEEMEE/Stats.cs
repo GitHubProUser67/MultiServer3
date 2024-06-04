@@ -16,23 +16,21 @@ namespace WebAPIService.VEEMEE
 
                 if (!string.IsNullOrEmpty(boundary) && PostData != null)
                 {
-                    using (MemoryStream ms = new(PostData))
-                    {
-                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                    using MemoryStream ms = new MemoryStream(PostData);
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
 
-                        id = data.GetParameterValue("id");
+                    id = data.GetParameterValue("id");
 
-                        ms.Flush();
-                    }
+                    ms.Flush();
                 }
 
                 LoggerAccessor.LogInfo($"[VEEMEE] - Getconfig values : id|{id}");
             }
 
             if (File.Exists($"{apiPath}/VEEMEE/Acorn_Medow/stats_config.json"))
-                return Processor.sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/stats_config.json"));
+                return Processor.Sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/stats_config.json"));
             if (File.Exists($"{apiPath}/VEEMEE/nml/stats_config.xml"))
-                return Processor.sign(File.ReadAllText($"{apiPath}/VEEMEE/nml/stats_config.xml"));
+                return Processor.Sign(File.ReadAllText($"{apiPath}/VEEMEE/nml/stats_config.xml"));
             else
                 return null;
         }
@@ -58,7 +56,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -101,7 +99,7 @@ namespace WebAPIService.VEEMEE
             }
 
             if (File.Exists($"{apiPath}/VEEMEE/Acorn_Medow/stats_config.json"))
-                return Processor.sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/stats_config.json"));
+                return Processor.Sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/stats_config.json"));
             else
                 return null;
         }
@@ -113,7 +111,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -122,7 +120,7 @@ namespace WebAPIService.VEEMEE
                     ms.Flush();
                 }
 
-                return Processor.sign(usage);
+                return Processor.Sign(usage);
             }
 
             return null;

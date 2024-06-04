@@ -14,7 +14,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
             public string? time { get; set; }
         }
 
-        private static List<ScoreboardEntry> scoreboard = new();
+        private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();
 
         public static void UpdateScore(string name, int newScore)
         {
@@ -52,11 +52,11 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 
         public static string ConvertScoreboardToXml()
         {
-            XElement xmlScoreboard = new("xml");
+            XElement xmlScoreboard = new XElement("xml");
 
             foreach (var entry in scoreboard)
             {
-                XElement xmlEntry = new("entry",
+                XElement xmlEntry = new XElement("entry",
                     new XElement("user", entry.name ?? "Voodooperson05"),
                     new XElement("score", entry.score),
                     new XElement("time", entry.time ?? "000"));

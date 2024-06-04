@@ -1,7 +1,5 @@
 using CustomLogger;
-using PSHostsFile;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,13 +14,13 @@ namespace HTTPSecureServerLite
 {
     public static partial class SecureDNSConfigProcessor
     {
-        public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
-        public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
+        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static Dictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
 
         public static void InitDNSSubsystem()
         {
-            LoggerAccessor.LogWarn("[HTTPS_DNS] - DNS system is initialising, endpoints will be available when initialized...");
+            LoggerAccessor.LogWarn("[HTTPS_DNS] - DNS system configuration is initialising, endpoints will be available when initialized...");
 
             if (!string.IsNullOrEmpty(HTTPSServerConfiguration.DNSOnlineConfig))
             {
@@ -45,17 +43,17 @@ namespace HTTPSecureServerLite
                     LoggerAccessor.LogError($"[HTTPS_DNS] - Online Config failed to initialize! - {ex}");
                 }
             }
-            else
-            {
-                if (File.Exists(HTTPSServerConfiguration.DNSConfig))
-                    ParseRules(HTTPSServerConfiguration.DNSConfig);
-                else
-                    LoggerAccessor.LogError("[HTTPS_DNS] - No config text file, so HTTPS_DNS server configuration is aborted!");
-            }
+            else if (File.Exists(HTTPSServerConfiguration.DNSConfig))
+                ParseRules(HTTPSServerConfiguration.DNSConfig);
         }
 
         public static void ParseRules(string Filename, bool IsFilename = true)
         {
+            DicRules.Clear();
+            StarRules.Clear();
+
+            Initiated = false;
+
             LoggerAccessor.LogInfo("[HTTPS_DNS] - Parsing Configuration File...");
 
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
@@ -107,37 +105,18 @@ namespace HTTPSecureServerLite
                             domain = domain.Replace("*", ".*");
 
                             lock (StarRules)
-                            {
-                                if (!StarRules.Any(pair => pair.Key == domain))
-                                    StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                            }
+                                StarRules.TryAdd(domain, dns);
                         }
                         else
                         {
-                            DicRules.TryAdd(domain, dns);
-                            DicRules.TryAdd("www." + domain, dns);
+                            lock (DicRules)
+                            {
+                                DicRules.TryAdd(domain, dns);
+                                DicRules.TryAdd("www." + domain, dns);
+                            }
                         }
                     }
                 });
-            }
-
-            foreach (HostsFileEntry? hostsEntry in HostsFile.Get())
-            {
-                string domain = hostsEntry.Hostname;
-
-                DnsSettings dns = new()
-                {
-                    Mode = HandleMode.Redirect,
-                    Address = hostsEntry.Address
-                };
-
-                // Check if the domain has been processed before
-                if (!DicRules.ContainsKey(domain) && !StarRules.Any(pair => pair.Key == domain))
-                {
-                    // Hosts entry should not support wildcard in theory, so only DicRules.
-                    DicRules.TryAdd(domain, dns);
-                    DicRules.TryAdd("www." + domain, dns);
-                }
             }
 
             Initiated = true;
@@ -188,8 +167,11 @@ namespace HTTPSecureServerLite
                                 dns.Mode = HandleMode.Redirect;
                                 dns.Address = GetIp(match.Groups[1].Value);
 
-                                DicRules.TryAdd(hostname, dns);
-                                DicRules.TryAdd("www." + hostname, dns);
+                                lock (DicRules)
+                                {
+                                    DicRules.TryAdd(hostname, dns);
+                                    DicRules.TryAdd("www." + hostname, dns);
+                                }
 
                                 break;
                             }
@@ -222,15 +204,15 @@ namespace HTTPSecureServerLite
                         {
                             IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Loopback;
                         }
-                        catch // Host is invalid or non-existant, fallback to public/local server IP
+                        catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                            IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         }
                         break;
                     }
                 default:
                     {
-                        IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                        IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }

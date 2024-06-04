@@ -192,3 +192,6 @@ collector.gr.online.scea.com,Redirect,IP
 content.gr.online.scea.com,Redirect,IP
 www.konami.com,Redirect,IP
 nDreams-multiserver-cdn,Redirect,IP
+turoklive.quazal.net,Redirect,IP
+gosredirector.ea.com,Redirect,IP
+ps3nascar09.ea.com,Redirect,IP

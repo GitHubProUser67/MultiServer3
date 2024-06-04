@@ -22,7 +22,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
                     if (File.Exists($"{apiPath}/juggernaut/farm/User_Data/{user}.xml"))
                     {
                         // Load the XML string into an XmlDocument
-                        XmlDocument xmlDoc = new();
+                        XmlDocument xmlDoc = new XmlDocument();
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <level> element

@@ -7,7 +7,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
 {
     public static class JsonData
     {
-        private readonly static Dictionary<string, string> DriverSanFransiscoPCResponse = new()
+        private readonly static Dictionary<string, string> DriverSanFransiscoPCResponse = new Dictionary<string, string>()
         {
             { "SandboxUrl",                     @"prudp:/address=pdc-lb-rdv-prod01.ubisoft.com;port=60105;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv01.ubisoft.com:60105"},
@@ -20,7 +20,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, string> Hawx2PS3Response = new()
+        private readonly static Dictionary<string, string> Hawx2PS3Response = new Dictionary<string, string>()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod02.ubisoft.com;port=60115;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv02.ubisoft.com:60115"},
@@ -33,7 +33,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, string> DriverSanFransiscoPS3Response = new()
+        private readonly static Dictionary<string, string> DriverSanFransiscoPS3Response = new Dictionary<string, string>()
         {
             { "GatorAuthServiceActivity",       @"DRIVER5PS3"},
             { "GatorAuthServiceURI",            @"http://gatorservice.ubi.com/AuthenticationServiceSSL.svc"},
@@ -53,7 +53,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, string> GhostReconFutureSoliderPS3Response = new()
+        private readonly static Dictionary<string, string> GhostReconFutureSoliderPS3Response = new Dictionary<string, string>()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod04.ubisoft.com;port=61120;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv04.ubisoft.com:61120"},
@@ -67,7 +67,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
         };
 
 
-        private readonly static Dictionary<string, string> AC3PS3Response = new()
+        private readonly static Dictionary<string, string> AC3PS3Response = new Dictionary<string, string>()
         {
             { "GenomeId",                       @"9a36ff77-d110-45c9-9dfb-2568d326f0f4"},
             { "killSwitch_contentFiltering",    @"0"},
@@ -108,7 +108,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "US_SyncFriends_PS3",             @"http://friendsservice.ubi.com/friendsservice.svc/REST/ProposeContacts "},
         };
 
-        private readonly static Dictionary<string, string> AC3MULTPS3Response = new()
+        private readonly static Dictionary<string, string> AC3MULTPS3Response = new Dictionary<string, string>()
         {
             { "GenomeId",                       @"9a36ff77-d110-45c9-9dfb-2568d326f0f4"},
             { "killSwitch_contentFiltering",    @"0"},
@@ -149,7 +149,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "US_SyncFriends_PS3",             @"http://friendsservice.ubi.com/friendsservice.svc/REST/ProposeContacts "},
         };
 
-        private readonly static Dictionary<string, string> AC2PS3Response = new()
+        private readonly static Dictionary<string, string> AC2PS3Response = new Dictionary<string, string>()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod07.ubisoft.com;port=61129;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv07.ubisoft.com:61129"},
@@ -163,7 +163,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
         };
 
 
-        private readonly static Dictionary<string, string> BeyondGoodAndEvilHDPS3Response = new()
+        private readonly static Dictionary<string, string> BeyondGoodAndEvilHDPS3Response = new Dictionary<string, string>()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod08.ubisoft.com;port=61137;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv08.ubisoft.com:61137"},
@@ -176,7 +176,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, string> RaymanLegendsPS3Response = new()
+        private readonly static Dictionary<string, string> RaymanLegendsPS3Response = new Dictionary<string, string>()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod09.ubisoft.com;port=61139;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv09.ubisoft.com:61139"},
@@ -189,7 +189,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, Tuple<string, string?>> SCBLACKLISTPS3Response = new()
+        private readonly static Dictionary<string, Tuple<string, string?>> SCBLACKLISTPS3Response = new Dictionary<string, Tuple<string, string?>>()
         {
             { "punch_DetectUrls",               new Tuple<string, string?>(@"lb-prod-mm-detect01.ubisoft.com:11020", "lb-prod-mm-detect02.ubisoft.com:11020")},
             { "SandboxUrlPS3",                  new Tuple<string, string?>(@"prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61131;serviceid=UPxxxx-MYGAME", null)},
@@ -205,7 +205,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
 
         public static string GetOnlineConfigPSN(string? onlineConfigID)
         {
-            List<OnlineConfigEntry> list = new();
+            List<OnlineConfigEntry> list = new List<OnlineConfigEntry>();
 
             switch (onlineConfigID)
             {

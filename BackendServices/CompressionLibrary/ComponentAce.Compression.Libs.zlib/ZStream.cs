@@ -38,7 +38,7 @@ namespace ComponentAce.Compression.Libs.zlib
 
         private static readonly int DEF_WBITS = 15;
 
-        public byte[]? next_in;
+        public byte[] next_in;
 
         public int next_in_index;
 
@@ -46,7 +46,7 @@ namespace ComponentAce.Compression.Libs.zlib
 
         public long total_in;
 
-        public byte[]? next_out;
+        public byte[] next_out;
 
         public int next_out_index;
 
@@ -54,17 +54,17 @@ namespace ComponentAce.Compression.Libs.zlib
 
         public long total_out;
 
-        public string? msg;
+        public string msg;
 
-        internal Deflate? dstate;
+        internal Deflate dstate;
 
-        internal Inflate? istate;
+        internal Inflate istate;
 
         internal int data_type;
 
         public long adler;
 
-        internal Adler32? _adler = new();
+        internal Adler32 _adler = new Adler32();
 
         public int inflateInit()
         {

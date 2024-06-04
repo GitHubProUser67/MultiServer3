@@ -20,7 +20,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
                     if (File.Exists($"{apiPath}/juggernaut/clearasil/space_access/{user}.xml"))
                     {
                         // Load the XML string into an XmlDocument
-                        XmlDocument xmlDoc = new();
+                        XmlDocument xmlDoc = new XmlDocument();
                         xmlDoc.Load($"{apiPath}/juggernaut/clearasil/space_access/{user}.xml");
 
                         // Find the <phase2> element

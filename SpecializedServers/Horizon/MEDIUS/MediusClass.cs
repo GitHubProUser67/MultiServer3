@@ -135,6 +135,11 @@ namespace Horizon.MEDIUS
 
                 await Task.Delay(100);
             }
+        }
+
+        public static async void StopServer()
+        {
+            started = false;
 
             await AuthenticationServer.Stop();
             await LobbyServer.Stop();
@@ -496,7 +501,7 @@ namespace Horizon.MEDIUS
             }
         }
 
-        public static void MediusMain()
+        public static void StartServer()
         {
             RefreshConfig();
             _ = StartServerAsync();

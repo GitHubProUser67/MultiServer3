@@ -21,7 +21,7 @@ namespace WebAPIService.PREMIUMAGENCY
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -485,14 +485,12 @@ namespace WebAPIService.PREMIUMAGENCY
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using (MemoryStream ms = new(PostData))
-                {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
+                using MemoryStream ms = new MemoryStream(PostData);
+                var data = MultipartFormDataParser.Parse(ms, boundary);
 
-                    nid = data.GetParameterValue("nid");
+                nid = data.GetParameterValue("nid");
 
-                    ms.Flush();
-                }
+                ms.Flush();
             }
 
             if (nid == null || eventId == null)
@@ -846,14 +844,12 @@ namespace WebAPIService.PREMIUMAGENCY
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using (MemoryStream ms = new(PostData))
-                {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
+                using MemoryStream ms = new MemoryStream(PostData);
+                var data = MultipartFormDataParser.Parse(ms, boundary);
 
-                    nid = data.GetParameterValue("nid");
+                nid = data.GetParameterValue("nid");
 
-                    ms.Flush();
-                }
+                ms.Flush();
             }
 
             if (nid == null || eventId == null)

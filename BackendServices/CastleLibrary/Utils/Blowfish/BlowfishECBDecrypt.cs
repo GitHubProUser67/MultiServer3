@@ -7,12 +7,12 @@ namespace CastleLibrary.Utils.Blowfish
 {
     public class BlowfishECBDecrypt
     {
-        public static byte[]? ProcessECBBuffer(byte[] FileBytes, byte[] KeyBytes)
+        public static byte[] ProcessECBBuffer(byte[] FileBytes, byte[] KeyBytes)
         {
             if (KeyBytes.Length == 32)
             {
                 // Create the cipher
-                IBufferedCipher? cipher = CipherUtilities.GetCipher("Blowfish/ECB/NOPADDING");
+                IBufferedCipher cipher = CipherUtilities.GetCipher("Blowfish/ECB/NOPADDING");
 
                 cipher.Init(false, new KeyParameter(KeyBytes));
 

@@ -78,14 +78,14 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal int wbits;
 
-        internal InfBlocks? blocks;
+        internal InfBlocks blocks;
 
         private static byte[] mark = new byte[4]
         {
-        0,
-        0,
-        (byte)SupportClass.Identity(255L),
-        (byte)SupportClass.Identity(255L)
+            0,
+            0,
+            (byte)SupportClass.Identity(255L),
+            (byte)SupportClass.Identity(255L)
         };
 
         internal int inflateReset(ZStream z)

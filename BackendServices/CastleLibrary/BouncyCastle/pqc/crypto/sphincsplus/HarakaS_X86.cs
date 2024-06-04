@@ -1,4 +1,4 @@
-#if NETCOREAPP3_0_OR_GREATER
+﻿#if NETCOREAPP3_0_OR_GREATER
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public void Reset()
         {
-            Array.Clear(m_buf, 0, m_buf.Length);
+            Array.Clear(m_buf);
             m_bufPos = 0;
             m_state = State.Absorbing;
         }

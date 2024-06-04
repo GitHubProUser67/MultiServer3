@@ -12,7 +12,7 @@ namespace CyberBackendLibrary.DNS
         {
             try
             {
-                List<byte> ans = new();
+                List<byte> ans = new List<byte>();
                 //http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf
                 //Header
                 ans.AddRange(new byte[] { Req[0], Req[1] });//ID
@@ -32,13 +32,15 @@ namespace CyberBackendLibrary.DNS
             }
             catch
             {
-                throw;
+                
             }
+
+            return null;
         }
 
         public static List<string> GetDnsName(byte[] Req)
         {
-            List<string> addr = new();
+            List<string> addr = new List<string>();
             int type = Req[2] >> 3 & 0xF;
             if (type == 0)
             {

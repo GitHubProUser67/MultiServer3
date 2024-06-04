@@ -17,12 +17,13 @@ using System.Globalization;
 using System.Text;
 using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
+using Horizon.HTTPSERVICE;
 
 namespace Horizon.MEDIUS.Medius
 {
     public class MAS : BaseMediusComponent
     {
-        static readonly TimeSpan _defaultTimeout = TimeSpan.FromMilliseconds(3000);
+        private static readonly TimeSpan _defaultTimeout = TimeSpan.FromMilliseconds(3000);
         public override int TCPPort => MediusClass.Settings.MASPort;
         public override int UDPPort => 00000;
 
@@ -45,7 +46,7 @@ namespace Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
@@ -156,8 +157,45 @@ namespace Horizon.MEDIUS.Medius
                         {
                             LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
 
-                            if (QueryData.Length == 6 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }) && MediusClass.Settings.HttpsSVOCheckPatcher)
+                            if (MediusClass.Settings.HttpsSVOCheckPatcher && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 6
+                                && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }))
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
+
+                            if (MediusClass.Settings.PlaystationHomeAntiCheat && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
+                            {
+                                switch (data.ApplicationId)
+                                {
+                                    case 20371:
+                                        // TODO!
+                                        break;
+                                    case 20374:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                        {
+                                            switch (clientCheatQuery.StartAddress)
+                                            {
+                                                case 0x10050500:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x10074820:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
                         }
                         break;
                     }
@@ -232,7 +270,7 @@ namespace Horizon.MEDIUS.Medius
 
         protected virtual async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
         {
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             if (message == null)
                 return;
 
@@ -247,20 +285,16 @@ namespace Horizon.MEDIUS.Medius
                         List<int> nonSecure = new() { 10010, 10031 };
                         List<int> preCreateClient = new() { 10680 };
 
-                        //UYA Public Beta v1.0
+                        // UYA Public Beta v1.0
                         if (preCreateClient.Contains(data.ApplicationId))
                         {
                             LoggerAccessor.LogInfo("R&C 3: UYA Public Beta v1.0 reserving MGCL Client prior to MAS login!");
                             // Create client object
                             data.ClientObject = MediusClass.ProxyServer.ReserveClient(mgclSessionBeginRequest);
                         }
-
-                        //If Message Routing App id
-                        if (data.ApplicationId == 120)
-                        {
-                            data.ClientObject = new ClientObject();
+                        // If Message Routing App id
+                        else if (data.ApplicationId == 120)
                             data.ClientObject = MediusClass.ProxyServer.ReserveDMEObject(mgclSessionBeginRequest, clientChannel);
-                        }
 
                         if (data.ClientObject != null)
                         {
@@ -270,7 +304,7 @@ namespace Horizon.MEDIUS.Medius
 
                             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
-                            //MGCL_SEND_FAILED, MGCL_UNSUCCESSFUL
+                            // MGCL_SEND_FAILED, MGCL_UNSUCCESSFUL
                             if (!data.ClientObject.IsConnected)
                             {
                                 data.ClientObject.Queue(new MediusServerSessionBeginResponse()
@@ -291,7 +325,7 @@ namespace Horizon.MEDIUS.Medius
 
                                 if (nonSecure.Contains(data.ClientObject.ApplicationId))
                                 {
-                                    //TM:BO Reply unencrypted
+                                    // TM:BO Reply unencrypted
                                     data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                                     {
                                         MessageID = mgclSessionBeginRequest.MessageID,
@@ -731,7 +765,6 @@ namespace Horizon.MEDIUS.Medius
                             await data.ClientObject.Logout();
                         }
                         #endregion
-
                         else
                         {
                             await HorizonServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
@@ -983,7 +1016,7 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusDnasSignaturePost dnasSignaturePost:
                     {
-                        if (Settings.DnasEnablePost != true)
+                        if (Settings.DnasEnablePost == true)
                         {
                             //If DNAS Signature Post is the PS2/PSP/PS3 Console ID then continue
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasConsoleID)
@@ -1764,7 +1797,40 @@ namespace Horizon.MEDIUS.Medius
                                                     #endregion
 
                                                     if (data != null)
-                                                        await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                    {
+                                                        bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                                                       && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                                                       && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                                           || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)
+                                                                           || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName])
+                                                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName] != "ADMIN"));
+
+                                                        if (isHomeCheat)
+                                                        {
+                                                            switch (data.ApplicationId)
+                                                            {
+                                                                case 20371:
+                                                                    // TODO!
+                                                                    break;
+                                                                case 20374:
+                                                                    if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                                    {
+                                                                        CheatQuery(0x10050500, 9, clientChannel);
+                                                                        CheatQuery(0x10074820, 9, clientChannel);
+                                                                    }
+                                                                    break;
+                                                            }
+                                                        }
+
+                                                        if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                        || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)))
+                                                        {
+                                                            data.State = ClientState.DISCONNECTED;
+                                                            await clientChannel.CloseAsync();
+                                                        }
+                                                        else
+                                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                    }
                                                 }
 
                                             }
@@ -1805,7 +1871,40 @@ namespace Horizon.MEDIUS.Medius
                                                             LoggerAccessor.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
 
                                                             if (r.IsCompletedSuccessfully && r.Result != null)
-                                                                await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                            {
+                                                                bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                                                       && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                                                       && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                                           || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)
+                                                                           || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName])
+                                                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName] != "ADMIN"));
+
+                                                                if (isHomeCheat)
+                                                                {
+                                                                    switch (data.ApplicationId)
+                                                                    {
+                                                                        case 20371:
+                                                                            // TODO!
+                                                                            break;
+                                                                        case 20374:
+                                                                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                                            {
+                                                                                CheatQuery(0x10050500, 9, clientChannel);
+                                                                                CheatQuery(0x10074820, 9, clientChannel);
+                                                                            }
+                                                                            break;
+                                                                    }
+                                                                }
+
+                                                                if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(r.Result.AccountName)
+                                                                || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)))
+                                                                {
+                                                                    data.State = ClientState.DISCONNECTED;
+                                                                    await clientChannel.CloseAsync();
+                                                                }
+                                                                else
+                                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                            }
                                                             else
                                                             {
                                                                 // Reply error
@@ -1815,7 +1914,6 @@ namespace Horizon.MEDIUS.Medius
                                                                     StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
                                                                 });
                                                             }
-
                                                         });
                                                     }
                                                 }
@@ -2509,8 +2607,13 @@ namespace Horizon.MEDIUS.Medius
 
             #region Update DB IP and CID
             await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
-            if (data.ClientObject != null && !string.IsNullOrEmpty(data.MachineId))
-                await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+            if (data.ClientObject != null)
+            {
+                CrudCIDManager.CreateUser(data.ClientObject.AccountName, data.MachineId);
+
+                if (!string.IsNullOrEmpty(data.MachineId))
+                    await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+            }
             #endregion
 
             if (data.ClientObject != null)
@@ -2720,6 +2823,8 @@ namespace Horizon.MEDIUS.Medius
 
             if (data.ClientObject != null)
             {
+                CrudCIDManager.CreateUser("AnonymousClient", data.MachineId);
+
                 // Login
                 await data.ClientObject.LoginAnonymous(anonymousLoginRequest, iAccountID);
 

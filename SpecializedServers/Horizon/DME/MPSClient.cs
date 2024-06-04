@@ -90,10 +90,13 @@ namespace Horizon.DME
             if (client.Destroy)
                 throw new InvalidOperationException($"Attempting to add {client} to MediusManager but client is ready to be destroyed.");
 
-            if (_accessTokenToClient.TryAdd(client.Token ?? string.Empty, client))
+            if (string.IsNullOrEmpty(client.Token) || string.IsNullOrEmpty(client.SessionKey))
+                throw new InvalidOperationException($"Attempting to add {client} but it has invalid token or SessionKey.");
+
+            if (_accessTokenToClient.TryAdd(client.Token, client))
             {
-                if (!_sessionKeyToClient.TryAdd(client.SessionKey ?? string.Empty, client))
-                    _accessTokenToClient.TryRemove(client.Token ?? string.Empty, out _);
+                if (!_sessionKeyToClient.TryAdd(client.SessionKey, client))
+                    _accessTokenToClient.TryRemove(client.Token, out _);
             }
         }
 
@@ -102,8 +105,11 @@ namespace Horizon.DME
             if (client == null)
                 return;
 
-            _sessionKeyToClient.TryRemove(client.SessionKey ?? string.Empty, out _);
-            _accessTokenToClient.TryRemove(client.Token ?? string.Empty, out _);
+            if (string.IsNullOrEmpty(client.Token) || string.IsNullOrEmpty(client.SessionKey))
+                throw new InvalidOperationException($"Attempting to remove {client} but it has invalid token or SessionKey.");
+
+            _sessionKeyToClient.TryRemove(client.SessionKey, out _);
+            _accessTokenToClient.TryRemove(client.Token, out _);
         }
 
         #endregion
@@ -166,7 +172,10 @@ namespace Horizon.DME
         {
             await Task.WhenAll(_worlds.Select(x => x.Stop()));
             if (_mpsChannel != null)
-                await _mpsChannel.DisconnectAsync();
+            {
+                await _mpsChannel.CloseAsync();
+                _mpsChannel = null;
+            }
             if (_group != null)
                 await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
 
@@ -495,7 +504,7 @@ namespace Horizon.DME
                     }
                 case MediusServerJoinGameRequest joinGameRequest:
                     {
-                        if (uint.TryParse(joinGameRequest.MessageID.Value.Split('-')[0], out uint gameOrPartyId))
+                        if (uint.TryParse(joinGameRequest.MessageID?.Value.Split('-')[0], out uint gameOrPartyId))
                         {
                             World? world = _worlds.FirstOrDefault(x => x.WorldId == gameOrPartyId);
                             if (world == null)
@@ -516,9 +525,8 @@ namespace Horizon.DME
                                 MessageID = joinGameRequest.MessageID,
                                 Confirmation = MGCL_ERROR_CODE.MGCL_DME_ERROR,
                             });
-
-                            break;
                         }
+
                         break;
                     }
                 case MediusServerEndGameRequest endGameRequest:

@@ -22,7 +22,7 @@ namespace WebAPIService.MultiMedia
 		/// </summary>
 		public static WebVideo? ConvertVideo(Dictionary<string, string> Arguments, string ConverterDir)
         {
-            WebVideo video = new();
+            WebVideo video = new WebVideo();
             try
             {
                 bool UseFFmpeg = true;
@@ -283,7 +283,7 @@ namespace WebAPIService.MultiMedia
                 }
 
                 // Configure YT-DLP and FFmpeg processes and prepare data stream
-                ProcessStartInfo YoutubeDlStart = new()
+                ProcessStartInfo YoutubeDlStart = new ProcessStartInfo()
                 {
                     FileName = $"{ConverterDir}/yt-dlp",
                     Arguments = string.Format("\"{0}\"{1} -o -", url, YoutubeDlArgs),
@@ -292,7 +292,7 @@ namespace WebAPIService.MultiMedia
                     RedirectStandardError = true
                 };
 
-                ProcessStartInfo FFmpegStart = new()
+                ProcessStartInfo FFmpegStart = new ProcessStartInfo()
                 {
                     FileName = $"{ConverterDir}/ffmpeg",
                     Arguments = string.Format("-i pipe: {0} pipe:", FFmpegArgs),

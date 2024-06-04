@@ -1,5 +1,3 @@
-using System.Runtime.Intrinsics.X86;
-using System.Runtime.Intrinsics;
 using System.Text;
 using System.Linq;
 using System.IO;
@@ -17,7 +15,7 @@ namespace CyberBackendLibrary.DataTypes
         /// <returns>A string.</returns>
         public static string ByteArrayToHexString(byte[] byteArray)
         {
-            StringBuilder hex = new(byteArray.Length * 2);
+            StringBuilder hex = new StringBuilder(byteArray.Length * 2);
 
             foreach (byte b in byteArray)
             {
@@ -134,9 +132,9 @@ namespace CyberBackendLibrary.DataTypes
         {
             byte[] result = new byte[bytesToRead];
 
-            using (FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                using BinaryReader reader = new(fileStream);
+                using BinaryReader reader = new BinaryReader(fileStream);
                 int bytesRead = reader.Read(result, 0, bytesToRead);
 
                 // If the file is less than 10 bytes, pad with null bytes
@@ -151,6 +149,25 @@ namespace CyberBackendLibrary.DataTypes
         }
 
         /// <summary>
+        /// Adds an element to a double string array.
+        /// <para>Ajoute un élément à une liste double de strings.</para>
+        /// </summary>
+        /// <param name="original">The original double array.</param>
+        /// <param name="bytesToRead">The new array to add.</param>
+        /// <returns>A double array of strings.</returns>
+        public static string[][] AddElement(string[][] original, string[] newElement)
+        {
+            int newSize = original.Length + 1;
+            string[][] newArray = new string[newSize][];
+            for (int i = 0; i < original.Length; i++)
+            {
+                newArray[i] = original[i];
+            }
+            newArray[newSize - 1] = newElement;
+            return newArray;
+        }
+
+        /// <summary>
         /// Finds a sequence of bytes within a byte array.
         /// <para>Trouve une séquence de bytes dans un tableau de bytes.</para>
         /// </summary>
@@ -159,71 +176,22 @@ namespace CyberBackendLibrary.DataTypes
         /// <returns>A boolean.</returns>
         public static bool FindbyteSequence(byte[] byteArray, byte[] sequenceToFind)
         {
-            if (Avx2.IsSupported)
+            for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
             {
-                for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
+                if (byteArray[i] == sequenceToFind[0])
                 {
-                    // Extract the result to check if the first element matches
-                    if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, byteArray[i]), Vector256<byte>.Zero.WithElement(0, sequenceToFind[0]))) != 0)
+                    bool found = true;
+                    for (int j = 1; j < sequenceToFind.Length; j++)
                     {
-                        // Check the remaining elements
-                        bool found = true;
-                        for (int j = 1; j < sequenceToFind.Length; j++)
+                        if (byteArray[i + j] != sequenceToFind[j])
                         {
-                            if (byteArray[i + j] != sequenceToFind[j])
-                            {
-                                found = false;
-                                break;
-                            }
+                            found = false;
+                            break;
                         }
-
-                        if (found)
-                            return true;
                     }
-                }
-            }
-            else if (Sse2.IsSupported)
-            {
-                for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
-                {
-                    // Extract the result to check if the first element matches
-                    if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, byteArray[i]), Vector128<byte>.Zero.WithElement(0, sequenceToFind[0]))) != 0)
-                    {
-                        // Check the remaining elements
-                        bool found = true;
-                        for (int j = 1; j < sequenceToFind.Length; j++)
-                        {
-                            if (byteArray[i + j] != sequenceToFind[j])
-                            {
-                                found = false;
-                                break;
-                            }
-                        }
 
-                        if (found)
-                            return true;
-                    }
-                }
-            }
-            else
-            {
-                for (int i = 0; i < byteArray.Length - sequenceToFind.Length + 1; i++)
-                {
-                    if (byteArray[i] == sequenceToFind[0])
-                    {
-                        bool found = true;
-                        for (int j = 1; j < sequenceToFind.Length; j++)
-                        {
-                            if (byteArray[i + j] != sequenceToFind[j])
-                            {
-                                found = false;
-                                break;
-                            }
-                        }
-
-                        if (found)
-                            return true;
-                    }
+                    if (found)
+                        return true;
                 }
             }
 
@@ -245,65 +213,7 @@ namespace CyberBackendLibrary.DataTypes
             {
                 for (int i = offset; i <= buffer.Length - searchPattern.Length; i++)
                 {
-                    if (Avx2.IsSupported)
-                    {
-                        // Extract the result to check if the first element matches
-                        if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]))) != 0)
-                        {
-                            if (buffer.Length > 1)
-                            {
-                                bool matched = true;
-                                for (int y = 1; y <= searchPattern.Length - 1; y++)
-                                {
-                                    if (buffer[i + y] != searchPattern[y])
-                                    {
-                                        matched = false;
-                                        break;
-                                    }
-                                }
-                                if (matched)
-                                {
-                                    found = i;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                found = i;
-                                break;
-                            }
-                        }
-                    }
-                    else if (Sse2.IsSupported)
-                    {
-                        // Extract the result to check if the first element matches
-                        if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]))) != 0)
-                        {
-                            if (buffer.Length > 1)
-                            {
-                                bool matched = true;
-                                for (int y = 1; y <= searchPattern.Length - 1; y++)
-                                {
-                                    if (buffer[i + y] != searchPattern[y])
-                                    {
-                                        matched = false;
-                                        break;
-                                    }
-                                }
-                                if (matched)
-                                {
-                                    found = i;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                found = i;
-                                break;
-                            }
-                        }
-                    }
-                    else if (buffer[i] == searchPattern[0])
+                    if (buffer[i] == searchPattern[0])
                     {
                         if (buffer.Length > 1)
                         {
@@ -348,19 +258,7 @@ namespace CyberBackendLibrary.DataTypes
 
             for (int i = offset; i < buffer.Length - searchPattern.Length + 1; i++)
             {
-                if (Avx2.IsSupported)
-                {
-                    // Extract the result to check if the first element matches
-                    if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]))) != 0 && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
-                        return i;
-                }
-                else if (Sse2.IsSupported)
-                {
-                    // Extract the result to check if the first element matches
-                    if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]))) != 0 && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
-                        return i;
-                }
-                else if (buffer[i] == searchPattern[0] && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
+                if (buffer[i] == searchPattern[0] && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
                     return i;
             }
 

@@ -74,7 +74,7 @@ namespace CyberBackendLibrary.TCP_IP
                         IPInterfaceProperties? properties = networkInterface.GetIPProperties();
 
                         // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
-                        var addresses = allowipv6
+                        System.Collections.Generic.IEnumerable<string> addresses = allowipv6
                             ? properties.UnicastAddresses.Select(addr => addr.Address.ToString())
                             : properties.UnicastAddresses
                                 .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
@@ -101,29 +101,12 @@ namespace CyberBackendLibrary.TCP_IP
         /// </summary>
         /// <param name="hostName">The domain on which we search.</param>
         /// <param name="fallback">The fallback IP if we fail to find any results</param>
-        /// <param name="RequirePing">If we want to check if domain respond to a Ping</param>
         /// <returns>A string.</returns>
-        public static string? GetFirstActiveIPAddress(string hostName, string? fallback, bool RequirePing = false)
+        public static string? GetFirstActiveIPAddress(string hostName, string? fallback)
         {
             try
             {
-                if (RequirePing)
-                {
-                    foreach (IPAddress address in Dns.GetHostEntry(hostName).AddressList)
-                    {
-                        try
-                        {
-                            if (new Ping().Send(address).Status == IPStatus.Success)
-                                return address.ToString();
-                        }
-                        catch (PingException)
-                        {
-                            continue;
-                        }
-                    }
-                }
-                else
-                    return Dns.GetHostEntry(hostName).AddressList.FirstOrDefault()?.ToString() ?? fallback;
+                return Dns.GetHostEntry(hostName).AddressList.FirstOrDefault()?.ToString() ?? fallback;
             }
             catch
             {

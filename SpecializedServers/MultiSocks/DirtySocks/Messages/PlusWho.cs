@@ -3,6 +3,7 @@ namespace MultiSocks.DirtySocks.Messages
     public class PlusWho : AbstractMessage
     {
         public override string _Name { get => "+who"; }
+
         public string? M { get; set; }
         public string? N { get; set; }
         public string? MA { get; set; }
@@ -33,7 +34,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? R { get; set; } //room
         public string? RGC { get; set; }
         public string? RI { get; set; } //room id
-        public string RF { get; set; } = "C";
-        public string RT { get; set; } = "1";
+        public string? RF { get; set; }
+        public string? RT { get; set; }
     }
 }

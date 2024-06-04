@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -32,10 +32,6 @@
 	<Copy SourceFiles="@(FilesToCopy1)" DestinationFolder="$(OutDir)\static\plugins\HomeWebTools\" Condition="$(FilesExist)" />
 	
     <Delete Files="@(FilesToCopy)" Condition="$(FilesExist)" />
-  </Target>
-  
-  <Target Name="AfterBuild">
-  <Copy SourceFiles="$(MSBuildProjectDirectory)\..\b\$(OutputPath)b.dll" DestinationFolder="$(OutputPath)" ContinueOnError="true" />  
   </Target>
   
   <ItemGroup>

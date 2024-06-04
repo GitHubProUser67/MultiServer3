@@ -12,7 +12,7 @@ namespace WebAPIService.HELLFIRE
 
             if (!string.IsNullOrEmpty(boundary))
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     string Command = data.GetParameterValue("Command");

@@ -23,14 +23,14 @@ namespace QuazalServer.RDVServices.Services
 				if (qclient != null)
 				{
                     QClient? thisClient = Context?.Client;
-                    if (thisClient != null && thisClient.Info != null)
+                    if (thisClient != null && thisClient.PlayerInfo != null)
                     {
                         StationURL thisClientURL = new(
 							"prudp",
 							thisClient.Endpoint.Address.ToString(),
 							new Dictionary<string, int>() {
 								{ "port", thisClient.Endpoint.Port },
-								{ "RVCID", (int)thisClient.Info.RVCID }
+								{ "RVCID", (int)thisClient.PlayerInfo.RVCID }
 							});
 
                         SendRMCCall(qclient, RMCProtocolId.NATTraversalService, 2, thisClientURL);

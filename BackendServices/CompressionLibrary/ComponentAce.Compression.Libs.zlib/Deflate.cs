@@ -138,11 +138,11 @@ namespace ComponentAce.Compression.Libs.zlib
 
         private static readonly int HEAP_SIZE;
 
-        internal ZStream? strm;
+        internal ZStream strm;
 
         internal int status;
 
-        internal byte[]? pending_buf;
+        internal byte[] pending_buf;
 
         internal int pending_buf_size;
 
@@ -164,13 +164,13 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal int w_mask;
 
-        internal byte[]? window;
+        internal byte[] window;
 
         internal int window_size;
 
-        internal short[]? prev;
+        internal short[] prev;
 
-        internal short[]? head;
+        internal short[] head;
 
         internal int ins_h;
 
@@ -216,11 +216,11 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal short[] bl_tree;
 
-        internal Tree l_desc = new();
+        internal Tree l_desc = new Tree();
 
-        internal Tree d_desc = new();
+        internal Tree d_desc = new Tree();
 
-        internal Tree bl_desc = new();
+        internal Tree bl_desc = new Tree();
 
         internal short[] bl_count = new short[16];
 

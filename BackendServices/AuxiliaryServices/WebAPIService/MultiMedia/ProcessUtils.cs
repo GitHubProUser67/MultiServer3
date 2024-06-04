@@ -21,7 +21,8 @@ namespace WebAPIService.MultiMedia
                 {
                     //the process is counting crows. Fire!
                     Proc.Kill();
-                    if (Console.GetCursorPosition().Left > 0) Console.WriteLine();
+                    if (Console.CursorLeft > 0)
+                        Console.WriteLine();
                     LoggerAccessor.LogWarn("[PreventProcessIdle] - Idle process {0} killed.", Proc.ProcessName);
                 }
         }
@@ -46,7 +47,7 @@ namespace WebAPIService.MultiMedia
                 if (process.HasExited) return double.MinValue;
                 if (instance.StartsWith(process.ProcessName))
                 {
-                    using (PerformanceCounter processId = new("Process", "ID Process", instance, true))
+                    using (PerformanceCounter processId = new PerformanceCounter("Process", "ID Process", instance, true))
                     {
                         if (process.Id == (int)processId.RawValue)
                         {
@@ -57,7 +58,7 @@ namespace WebAPIService.MultiMedia
                 }
             }
 
-            PerformanceCounter cpu = new("Process", "% Processor Time", name, true);
+            PerformanceCounter cpu = new PerformanceCounter("Process", "% Processor Time", name, true);
 
             // Getting first initial values
             cpu.NextValue();

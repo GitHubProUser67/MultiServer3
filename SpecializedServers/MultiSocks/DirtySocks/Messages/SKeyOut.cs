@@ -9,6 +9,5 @@ namespace MultiSocks.DirtySocks.Messages
         public string? GFID { get; set; }
         public string? PLATFORM { get; set; }
         public string? PSID { get; set; }
-
     }
 }

@@ -1,0 +1,186 @@
+{
+  "Usings": [
+    "Blaze3SDK.Blaze.Stats",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze3SDK.Components",
+  "Components": [
+    {
+      "Id": 7,
+      "Name": "StatsComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze3RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "getStatDescs",
+          "RequestType": "GetStatDescsRequest",
+          "ResponseType": "StatDescs",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 2,
+          "Name": "getStats",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 3,
+          "Name": "getStatGroupList",
+          "RequestType": "NullStruct",
+          "ResponseType": "StatGroupList",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 4,
+          "Name": "getStatGroup",
+          "RequestType": "GetStatGroupRequest",
+          "ResponseType": "StatGroupResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 5,
+          "Name": "getStatsByGroup",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 6,
+          "Name": "getDateRange",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 7,
+          "Name": "getEntityCount",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 10,
+          "Name": "getLeaderboardGroup",
+          "RequestType": "LeaderboardGroupRequest",
+          "ResponseType": "LeaderboardGroupResponse",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 11,
+          "Name": "getLeaderboardFolderGroup",
+          "RequestType": "LeaderboardFolderGroupRequest",
+          "ResponseType": "LeaderboardFolderGroup",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 12,
+          "Name": "getLeaderboard",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 13,
+          "Name": "getCenteredLeaderboard",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 14,
+          "Name": "getFilteredLeaderboard",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 15,
+          "Name": "getKeyScopesMap",
+          "RequestType": "NullStruct",
+          "ResponseType": "KeyScopes",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 16,
+          "Name": "getStatsByGroupAsync",
+          "RequestType": "GetStatsByGroupRequest",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 17,
+          "Name": "getLeaderboardTreeAsync",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 18,
+          "Name": "getLeaderboardEntityCount",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 19,
+          "Name": "getStatCategoryList",
+          "RequestType": "NullStruct",
+          "ResponseType": "StatCategoryList",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 20,
+          "Name": "getPeriodIds",
+          "RequestType": "NullStruct",
+          "ResponseType": "PeriodIds",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 21,
+          "Name": "getLeaderboardRaw",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 22,
+          "Name": "getCenteredLeaderboardRaw",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 23,
+          "Name": "getFilteredLeaderboardRaw",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 24,
+          "Name": "changeKeyscopeValue",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 50,
+          "Name": "GetStatsAsyncNotification",
+          "Type": "KeyScopedStatValues"
+        },
+        {
+          "Id": 51,
+          "Name": "GetLeaderboardTreeNotification",
+          "Type": "LeaderboardTreeNode"
+        }
+      ]
+    }
+  ]
+}

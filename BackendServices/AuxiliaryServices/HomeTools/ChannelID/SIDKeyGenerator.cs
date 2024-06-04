@@ -150,8 +150,7 @@ namespace HomeTools.ChannelID
         {
             get
             {
-                if (m_Instance == null)
-                    m_Instance = new();
+                m_Instance ??= new SIDKeyGenerator();
                 return m_Instance;
             }
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 mRandom = null;
             }
 
-            mCurveLength = (mECParams.Curve.FieldSize + 7) / 8;
+            mCurveLength = mECParams.Curve.FieldElementEncodingLength;
         }
 
         public virtual byte[] ProcessBlock(byte[] input, int inOff, int inLen)

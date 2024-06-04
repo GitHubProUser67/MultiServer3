@@ -41,7 +41,7 @@ namespace MultiSocks.DirtySocks.Model
         }
 
         public Game? CreateGame(int maxSize, int minSize, string custFlags, string @params,
-                string name, bool priv, string seed, string sysFlags, string pass)
+                string name, bool priv, string seed, string sysFlags, string pass, int roomId)
         {
             lock (Games)
             {
@@ -57,7 +57,7 @@ namespace MultiSocks.DirtySocks.Model
                     game.pass == pass))
                 {
                     Game game = new(maxSize, minSize, GameIDsCounter, custFlags, @params,
-                                    name, priv, seed, sysFlags, pass);
+                                    name, priv, seed, sysFlags, pass, roomId);
                     GameIDsCounter++;
                     Games.Add(game);
                     return game;

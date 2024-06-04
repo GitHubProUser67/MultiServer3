@@ -53,7 +53,7 @@ namespace SVO
             }
         }
 
-        public static async Task StartTickPooling()
+        public static async void StartTickPooling()
         {
             // iterate
             while (true)

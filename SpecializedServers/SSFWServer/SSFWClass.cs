@@ -8,12 +8,12 @@ using System.Text.RegularExpressions;
 using System.Net.Security;
 using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
+using Newtonsoft.Json;
 
 namespace SSFWServer
 {
     public class SSFWClass
     {
-        public static bool IsStarted = false;
         public static string? legacykey;
         public static SSFWServer? _Server;
         public static HttpSSFWServer? _HttpServer;
@@ -32,14 +32,11 @@ namespace SSFWServer
             int headerindex = (int)request.Headers; // There is a slight mistake in netcoreserver, where the index is long, and the parser is int
                                                     // So we accomodate that with a cast.
 
-            (string HeaderIndex, string HeaderItem)[] CollectHeader = new (string, string)[headerindex];
+            (string HeaderIndex, string HeaderItem)[] CollectHeader = new(string, string)[headerindex];
 
             for (int i = 0; i < headerindex; i++)
             {
                 CollectHeader[i] = request.Header(i);
-#if DEBUG
-                LoggerAccessor.LogInfo($"[SSFW] - CollectHeaders - Debug Headers : HeaderIndex -> {CollectHeader[i].HeaderIndex} | HeaderItem -> {CollectHeader[i].HeaderItem}");
-#endif
             }
 
             return CollectHeader;
@@ -62,7 +59,7 @@ namespace SSFWServer
                                  // from doing extensive checks everytime we want to display the User-Agent in particular.
         }
 
-        public Task StartSSFW()
+        public void StartSSFW()
         {
             // Create and prepare a new SSL server context and start the server
             _Server = new SSFWServer(new SslContext(SslProtocols.Tls12, new X509Certificate2(certpath, certpass), MyRemoteCertificateValidationCallback), IPAddress.Any, 10443);
@@ -74,10 +71,13 @@ namespace SSFWServer
                     () => _HttpServer.Start()
                 ));
 
-            IsStarted = true;
             LoggerAccessor.LogInfo("[SSFW] - Server started on ports 8080 and 10443...");
+        }
 
-            return Task.CompletedTask;
+        public void StopSSFW()
+        {
+            _Server?.Stop();
+            _HttpServer?.Stop();
         }
 
         private static HttpResponse SSFWRequestProcess(HttpRequest request, HttpResponse Response)
@@ -90,7 +90,17 @@ namespace SSFWServer
 
                 if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS")) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
+#if DEBUG
+                    LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                    {
+                        HttpMethod = request.Method,
+                        Url = request.Url,
+                        Headers = Headers.Select(header => new { Index = header.HeaderIndex, Item = header.HeaderItem }),
+                        UserAgent = UserAgent
+                    }), $"[[SSFW]] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
+#else
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
+#endif
 
                     string sessionid = GetHeaderValue(Headers, "X-Home-Session-Id");
 
@@ -222,7 +232,7 @@ namespace SSFWServer
                                 {
                                     SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
                                     string? result = login.HandleLogin(request.BodyBytes, "cprod"); // Todo, make env maybe more dynamic?
-                                    if (result != null)
+                                    if (!string.IsNullOrEmpty(result))
                                     {
                                         Response.Clear();
                                         Response.SetBegin(201);

@@ -65,12 +65,7 @@ namespace SSFWServer
             if (bufferwrite != null)
             {
                 bool rpcn = false;
-                int logoncount = 1;
-                string sessionid = string.Empty;
                 string salt = string.Empty;
-                string username = string.Empty;
-                string resultString = string.Empty;
-                // Create a byte array
 
                 // Extract the desired portion of the binary data
                 byte[] extractedData = new byte[0x63 - 0x54 + 1];
@@ -93,104 +88,90 @@ namespace SSFWServer
                 else
                     LoggerAccessor.LogInfo($"[SSFW] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
-                if (rpcn && !SSFWServerConfiguration.SSFWCrossSave)
-                {
-                    // Convert the modified data to a string
-                    username = resultString = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
+                (string, string) UserNames = new();
+                (string, string) ResultStrings = new();
+                (string, string) SessionIDs = new();
 
-                    // Calculate the MD5 hash of the result
-                    using (MD5 md5 = MD5.Create())
-                    {
-                        if (!string.IsNullOrEmpty(xsignature))
-                            salt = generalsecret + xsignature + XHomeClientVersion;
-                        else
-                            salt = generalsecret + XHomeClientVersion;
+                // Convert the modified data to a string
+                UserNames.Item2 = ResultStrings.Item2 = Encoding.ASCII.GetString(extractedData) + homeClientVersion;
 
-                        byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + salt));
-                        string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                        // Trim the hash to a specific length
-                        hash = hash[..10];
-
-                        // Append the trimmed hash to the result
-                        resultString += hash;
-
-                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
-
-                        SSFWUserSessionManager.RegisterUser(username, sessionid);
-
-                        md5.Clear();
-                    }
-                }
+                // Calculate the MD5 hash of the result
+                using MD5 md5 = MD5.Create();
+                if (!string.IsNullOrEmpty(xsignature))
+                    salt = generalsecret + xsignature + XHomeClientVersion;
                 else
+                    salt = generalsecret + XHomeClientVersion;
+
+                string hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt))).Replace("-", string.Empty);
+
+                // Trim the hash to a specific length
+                hash = hash[..14];
+
+                // Append the trimmed hash to the result
+                ResultStrings.Item2 += hash;
+
+                SessionIDs.Item2 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item2);
+
+                if (rpcn)
                 {
                     // Convert the modified data to a string
-                    username = resultString = Encoding.ASCII.GetString(extractedData) + homeClientVersion;
+                    UserNames.Item1 = ResultStrings.Item1 = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
 
                     // Calculate the MD5 hash of the result
-                    using (MD5 md5 = MD5.Create())
-                    {
-                        if (!string.IsNullOrEmpty(xsignature))
-                            salt = generalsecret + xsignature + XHomeClientVersion;
-                        else
-                            salt = generalsecret + XHomeClientVersion;
-
-                        byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + salt));
-                        string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                        // Trim the hash to a specific length
-                        hash = hash[..14];
-
-                        // Append the trimmed hash to the result
-                        resultString += hash;
-
-                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
-
-                        SSFWUserSessionManager.RegisterUser(username, sessionid);
-
-                        md5.Dispose();
-                    }
-                }
-
-                string userprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json";
-
-                string olduserprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json";
-
-                if (File.Exists(olduserprofilefile))
-                    File.Move(olduserprofilefile, userprofilefile);
-
-                if (File.Exists(userprofilefile))
-                {
-                    string? userprofiledata = FileHelper.ReadAllText(userprofilefile, key);
-                    if (!string.IsNullOrEmpty(userprofiledata))
-                    {
-                        // Parsing JSON data to SSFWUserData object
-                        SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>(userprofiledata);
-                        if (userData != null)
-                        {
-                            // Modifying the object if needed
-                            userData.LogonCount += 1;
-                            logoncount = userData.LogonCount;
-                            File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json",JsonConvert.SerializeObject(userData, Formatting.Indented));
-                        }
-                    }
+                    if (!string.IsNullOrEmpty(xsignature))
+                        salt = generalsecret + xsignature + XHomeClientVersion;
                     else
-                        return null;
+                        salt = generalsecret + XHomeClientVersion;
+
+                    hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt))).Replace("-", string.Empty);
+
+                    // Trim the hash to a specific length
+                    hash = hash[..10];
+
+                    // Append the trimmed hash to the result
+                    ResultStrings.Item1 += hash;
+
+                    SessionIDs.Item1 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1);
+                }
+
+                md5.Clear();
+
+                if (!string.IsNullOrEmpty(UserNames.Item1) && !string.IsNullOrEmpty(SessionIDs.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
+                {
+                    SSFWUserSessionManager.RegisterUser(UserNames.Item1, SessionIDs.Item1);
+
+                    if (SSFWAccountManagement.AccountExists(UserNames.Item2, SessionIDs.Item2))
+                        SSFWAccountManagement.CopyAccountProfile(UserNames.Item2, UserNames.Item1, SessionIDs.Item2, SessionIDs.Item1, key);
+                }
+                else if (!string.IsNullOrEmpty(UserNames.Item2) && !string.IsNullOrEmpty(SessionIDs.Item2))
+                {
+                    rpcn = false;
+
+                    SSFWUserSessionManager.RegisterUser(UserNames.Item2, SessionIDs.Item2);
                 }
                 else
                 {
-                    Directory.CreateDirectory($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts");
+                    LoggerAccessor.LogError("[SSFWLogin] - Invalid UserNames Passed to Login, aborting!");
+                    return null;
+                }
 
-                    // Parsing JSON data to SSFWUserData object
-                    SSFWUserData? userData = JsonConvert.DeserializeObject<SSFWUserData>($"{{\"Username\":\"{sessionid}\",\"LogonCount\":{logoncount},\"IGA\":0}}");
-                    if (userData != null)
-                    {
-                        LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - Session ID : {userData.Username}");
-                        LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - LogonCount : {userData.LogonCount}");
-                        LoggerAccessor.LogInfo($"[SSFW] : Account Created - {Encoding.ASCII.GetString(extractedData)} - IGA : {userData.IGA}");
+                int logoncount = SSFWAccountManagement.ReadOrMigrateAccount(extractedData, rpcn ? UserNames.Item1 : UserNames.Item2, rpcn ? SessionIDs.Item1 : SessionIDs.Item2, key);
 
-                        File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", JsonConvert.SerializeObject(userData, Formatting.Indented));
-                    }
+                if (logoncount <= 0)
+                {
+                    LoggerAccessor.LogError($"[SSFWLogin] - Invalid Account or LogonCount value for user: {(rpcn ? UserNames.Item1 : UserNames.Item2)}");
+                    return null;
+                }
+
+                if (rpcn && Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item2}") && !Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item1}"))
+                    SSFWDataMigrator.MigrateSSFWData(SSFWServerConfiguration.SSFWStaticFolder, ResultStrings.Item2, ResultStrings.Item1);
+
+                string? resultString = rpcn ? ResultStrings.Item1 : ResultStrings.Item2;
+
+                if (string.IsNullOrEmpty(resultString))
+                {
+                    LoggerAccessor.LogError($"[SSFWLogin] - Invalid ResultString value for user: {(rpcn ? UserNames.Item1 : UserNames.Item2)}");
+                    return null;
                 }
 
                 Directory.CreateDirectory($"{SSFWServerConfiguration.SSFWStaticFolder}/LayoutService/{env}/person/{resultString}");
@@ -243,6 +224,7 @@ namespace SSFWServer
                     if (!File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/LayoutService/{env}/person/{resultString}/mylayout.json"))
                         File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/LayoutService/{env}/person/{resultString}/mylayout.json", SSFWMisc.LegacyLayoutTemplate);
                 }
+
                 if (!File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{resultString}/mini.json"))
                     File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{resultString}/mini.json", SSFWServerConfiguration.SSFWMinibase);
                 if (!File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{resultString}.json"))
@@ -250,7 +232,7 @@ namespace SSFWServer
                 if (!File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{resultString}/list.json"))
                     File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{resultString}/list.json", "[]");
 
-                return $"{{\"session\":[{{\"@id\":\"{sessionid}\",\"person\":{{\"@id\":\"{resultString}\",\"logonCount\":\"{logoncount}\"}}}}]}}";
+                return $"{{\"session\":[{{\"@id\":\"{(rpcn ? SessionIDs.Item1 : SessionIDs.Item2)}\",\"person\":{{\"@id\":\"{resultString}\",\"logonCount\":\"{logoncount}\"}}}}]}}";
             }
 
             return null;

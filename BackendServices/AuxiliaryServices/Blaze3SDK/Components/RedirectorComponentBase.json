@@ -1,0 +1,28 @@
+{
+  "Usings": [
+    "Blaze3SDK.Blaze.Redirector",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze3SDK.Components",
+  "Components": [
+    {
+      "Id": 5,
+      "Name": "RedirectorComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze3RpcError",
+      "Methods": [
+        {
+          "Id": 1,
+          "Name": "getServerInstance",
+          "RequestType": "ServerInstanceRequest",
+          "ResponseType": "ServerInstanceInfo",
+          "ErrorResponseType": "ServerInstanceError"
+        }
+      ],
+      "Notifications": []
+    }
+  ]
+}

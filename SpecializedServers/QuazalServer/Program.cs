@@ -1,6 +1,9 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
+using QuazalServer.ServerProcessors;
+using System.Reflection;
 using System.Runtime;
+using System.Security.Cryptography;
 
 public static class QuazalServerConfiguration
 {
@@ -29,6 +32,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61140, "HJb8Ix1M"), // RAYMANLEGENDSPS3
                         Tuple.Create(60001, "ridfebb9"), // RB3
                         Tuple.Create(21032, "8dtRv2oj"), // GRO
+                        Tuple.Create(30161, "uG9Kv3p"), // TUROKPS3
                         Tuple.Create(30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
                         Tuple.Create(61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
                     };
@@ -50,6 +54,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61133, 61134, "ex5LYTJ0"), // WATCHDOGSPS3
                         Tuple.Create(61137, 61138, "4TeVtJ7V"), // BGEHDPS3
                         Tuple.Create(61139, 61140, "HJb8Ix1M"), // RAYMANLEGENDSPS3
+                        Tuple.Create(30160, 30161, "uG9Kv3p"), // TUROKPS3
                         Tuple.Create(30560, 30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
                         Tuple.Create(61135, 61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
                     };
@@ -91,7 +96,7 @@ public static class QuazalServerConfiguration
                         new JProperty("item3", item.Item3)
                     )
                 ))
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }
@@ -165,59 +170,84 @@ public static class QuazalServerConfiguration
 
 class Program
 {
-    static Task RefreshConfig()
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "quazal.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? DatabaseUpdate = null;
+    private static BackendServicesServer? BackendServer;
+    private static RDVServer? RendezVousServer;
+
+    private static void StartOrUpdateServer()
     {
-        while (true)
+        BackendServer?.Stop();
+        RendezVousServer?.Stop();
+
+        if (DatabaseUpdate != null)
         {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
-
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
-
-            QuazalServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/quazal.json");
+            DatabaseUpdate.Dispose();
+            DatabaseUpdate = null;
         }
+
+        QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.InitiateDatabase();
+
+        DatabaseUpdate = new Timer(QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.ScheduledDatabaseUpdate, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+
+        BackendServer = new BackendServicesServer();
+        RendezVousServer = new RDVServer();
+        BackendServer.Start(QuazalServerConfiguration.BackendServersList
+                    , 2, new CancellationTokenSource().Token);
+        RendezVousServer.Start(QuazalServerConfiguration.RendezVousServersList
+                    , 2, new CancellationTokenSource().Token);
     }
 
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("QuazalServer");
 
-        QuazalServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/quazal.json");
-
         QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
-        QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.InitiateDatabase();
 
-        // Timer for scheduled updates every 30 seconds.
-        _ = new Timer(QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.ScheduledDatabaseUpdate, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        QuazalServerConfiguration.RefreshVariables(configPath);
 
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => new QuazalServer.ServerProcessors.BackendServicesServer().Start(QuazalServerConfiguration.BackendServersList
-                    , 2, new CancellationTokenSource().Token),
-                    () => new QuazalServer.ServerProcessors.RDVServer().Start(QuazalServerConfiguration.RendezVousServersList
-                    , 2, new CancellationTokenSource().Token),
-                    () => RefreshConfig()
-                ));
+        StartOrUpdateServer();
 
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
                 Console.ReadLine();
 
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
+
+                            QuazalServerConfiguration.RefreshVariables(configPath);
+
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
             }
         }
@@ -225,7 +255,7 @@ class Program
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

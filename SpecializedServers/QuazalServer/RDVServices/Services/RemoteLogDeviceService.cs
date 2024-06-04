@@ -10,7 +10,7 @@ namespace QuazalServer.RDVServices.Services
 		[RMCMethod(1)]
 		public RMCResult Log(string strLine)
 		{
-			CustomLogger.LoggerAccessor.LogInfo($"[RMC] - Recieved from PID={Context?.Client?.Info?.PID}: {strLine}");
+			CustomLogger.LoggerAccessor.LogInfo($"[RMC] - Recieved from PID={Context?.Client?.PlayerInfo?.PID}: {strLine}");
 			return Error(0);
 		}
 	}

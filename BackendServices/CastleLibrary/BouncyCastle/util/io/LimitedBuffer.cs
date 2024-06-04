@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
@@ -47,6 +47,7 @@ namespace Org.BouncyCastle.Utilities.IO
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             buffer.CopyTo(m_buf.AsSpan(m_count));
+            m_count += buffer.Length;
         }
 #endif
 

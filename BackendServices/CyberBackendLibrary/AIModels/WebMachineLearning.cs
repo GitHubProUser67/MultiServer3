@@ -11,7 +11,7 @@ namespace CyberBackendLibrary.AIModels
     // Self contained AI engine for HTTP driven use.
     public class WebMachineLearning
     {
-        private static object _Lock = new();
+        private static object _Lock = new object();
         public static IEnumerable<FileSystemInfo>? fileSystemCache = null;
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace CyberBackendLibrary.AIModels
             if (string.IsNullOrEmpty(text2)) return 0;
 
             // Tokenize text
-            Regex regex = new(@"\W+");
+            Regex regex = new Regex(@"\W+");
 
             // Calculate word frequency
             Dictionary<string, int>? freq1 = regex.Split(text1.ToLower()).Where(token => token.Length > 0)

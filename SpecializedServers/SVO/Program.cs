@@ -7,6 +7,7 @@ using System.Runtime;
 using System.Net;
 using System.Security.Principal;
 using System.Security.Cryptography;
+using System.Reflection;
 
 public static class SVOServerConfiguration
 {
@@ -69,9 +70,9 @@ public static class SVOServerConfiguration
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("database", DatabaseConfig),
                 new JProperty("pshome_rpcs3workaround", PSHomeRPCS3Workaround),
-                new JProperty("MOTD", MOTD),
+                new JProperty("MOTD", string.Empty),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString().Replace("/", "\\\\"));
+            ).ToString());
 
             return;
         }
@@ -92,7 +93,7 @@ public static class SVOServerConfiguration
             PSHomeRPCS3Workaround = GetValueOrDefault(config, "pshome_rpcs3workaround", PSHomeRPCS3Workaround);
             // Look for the MOTD xml file.
             string motd_file = GetValueOrDefault(config, "MOTD", string.Empty);
-            if (!File.Exists(motd_file))
+            if (string.IsNullOrEmpty(motd_file) || !File.Exists(motd_file))
                 LoggerAccessor.LogWarn("Could not find the MOTD file, using default xml.");
             else
                 MOTD = File.ReadAllText(motd_file);
@@ -145,66 +146,89 @@ public static class SVOServerConfiguration
 
 class Program
 {
-    static Task RefreshConfig()
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "svo.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Task? MediusDatabaseLoop;
+    private static OTGSecureServerLite? OTGServer;
+    private static SVOServer? _SVOServer;
+
+    private static void StartOrUpdateServer()
     {
-        while (true)
-        {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
+        OTGServer?.StopServer();
+        OTGServer = null;
 
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
+        _SVOServer?.Stop();
+        _SVOServer = null;
 
-            SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
-        }
+        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
+            SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
+
+        MediusDatabaseLoop ??= Task.Run(SVOManager.StartTickPooling);
+
+        if (HttpListener.IsSupported)
+            _SVOServer = new SVOServer("*");
+        else
+            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
+
+        OTGServer = new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", 10062);
     }
 
     static void Main()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
         if (IsWindows)
+        {
             if (!IsAdministrator())
             {
                 Console.WriteLine("Trying to restart as admin...");
                 if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
                     Environment.Exit(0);
             }
+
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
+        }
         else
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
         LoggerAccessor.SetupLogger("SVO");
 
-        SVOServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/svo.json");
+        SVOServerConfiguration.RefreshVariables(configPath);
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
-            SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
+        StartOrUpdateServer();
 
-        if (HttpListener.IsSupported)
-            _ = Task.Run(new SVOServer("*").Start);
-        else
-            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
-
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", 10062).StartServer(), // 0.0.0.0 as the certificate binds to this ip.
-                    async () => await SVOManager.StartTickPooling(),
-                    () => RefreshConfig()
-                ));
-
-        if (IsWindows)
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
                 Console.ReadLine();
 
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
+
+                            SVOServerConfiguration.RefreshVariables(configPath);
+
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
             }
         }
@@ -212,7 +236,7 @@ class Program
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 
@@ -249,7 +273,9 @@ class Program
         }
         catch
         {
-            return false;
+            
         }
+
+        return false;
     }
 }

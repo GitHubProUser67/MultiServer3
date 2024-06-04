@@ -10,23 +10,19 @@ namespace WebAPIService.VEEMEE
     {
         private static string Sha1Hash(string data)
         {
-            byte[]? hashBytes = null;
-
+            byte[]? SHA1Data = null;
             using (var sha1 = SHA1.Create())
             {
-                hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes($"veemeeHTTPRequ9R3UMWDAT8F3*#@&$^{data}"));
-
-                sha1.Clear();
+                SHA1Data = sha1.ComputeHash(Encoding.UTF8.GetBytes($"veemeeHTTPRequ9R3UMWDAT8F3*#@&$^{data}"));
             }
-
-            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
         }
 
-        public static string? sign(string jsonData)
+        public static string? Sign(string jsonData)
         {
             try
             {
-                string formattedJson = JToken.Parse(jsonData.Replace("\n", "")).ToString(Newtonsoft.Json.Formatting.None);
+                string formattedJson = JToken.Parse(jsonData.Replace("\n", string.Empty)).ToString(Newtonsoft.Json.Formatting.None);
 
                 string hash = Sha1Hash(formattedJson).ToUpper();
 
@@ -41,8 +37,10 @@ namespace WebAPIService.VEEMEE
                 else if (token.Type == JTokenType.Array)
                 {
                     JArray array = (JArray)token;
-                    JObject obj = new();
-                    obj["hash"] = hash;
+                    JObject obj = new JObject
+                    {
+                        ["hash"] = hash
+                    };
                     array.Add(obj);
                     formattedJson = array.ToString(Newtonsoft.Json.Formatting.None);
                 }
@@ -51,7 +49,7 @@ namespace WebAPIService.VEEMEE
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[VEEMEE] : Exception in sign, file might be incorrect : {ex}");
+                LoggerAccessor.LogError($"[VEEMEE] : Exception in Sign, file might be incorrect : {ex}");
             }
 
             return null;

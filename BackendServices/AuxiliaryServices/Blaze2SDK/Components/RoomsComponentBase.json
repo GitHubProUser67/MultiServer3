@@ -1,0 +1,228 @@
+{
+  "Usings": [
+    "Blaze2SDK.Blaze.Rooms",
+    "BlazeCommon",
+    "NLog"
+  ],
+  "Namespace": "Blaze2SDK.Components",
+  "Components": [
+    {
+      "Id": 21,
+      "Name": "RoomsComponent",
+      "DefaultRequestType": "NullStruct",
+      "DefaultResponseType": "NullStruct",
+      "DefaultErrorType": "NullStruct",
+      "ErrorEnum": "Blaze2RpcError",
+      "Methods": [
+        {
+          "Id": 10,
+          "Name": "selectViewUpdates",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 11,
+          "Name": "selectCategoryUpdates",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 20,
+          "Name": "joinRoom",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 21,
+          "Name": "leaveRoom",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 31,
+          "Name": "kickUser",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 40,
+          "Name": "transferRoomHost",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 100,
+          "Name": "createRoomCategory",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 101,
+          "Name": "removeRoomCategory",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 102,
+          "Name": "createRoom",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 103,
+          "Name": "removeRoom",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 109,
+          "Name": "getViews",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 110,
+          "Name": "createScheduledCategory",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 111,
+          "Name": "deleteScheduledCategory",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 112,
+          "Name": "getScheduledCategories",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 120,
+          "Name": "lookupRoomData",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 130,
+          "Name": "setRoomAttributes",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 140,
+          "Name": "checkEntryCriteria",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        },
+        {
+          "Id": 150,
+          "Name": "toggleJoinedRoomNotifications",
+          "RequestType": "NullStruct",
+          "ResponseType": "NullStruct",
+          "ErrorResponseType": "NullStruct"
+        }
+      ],
+      "Notifications": [
+        {
+          "Id": 10,
+          "Name": "RoomViewUpdatedNotification",
+          "Type": "RoomViewData"
+        },
+        {
+          "Id": 11,
+          "Name": "RoomViewAddedNotification",
+          "Type": "RoomViewData"
+        },
+        {
+          "Id": 12,
+          "Name": "RoomViewRemovedNotification",
+          "Type": "RoomViewRemoved"
+        },
+        {
+          "Id": 20,
+          "Name": "RoomCategoryUpdatedNotification",
+          "Type": "RoomCategoryData"
+        },
+        {
+          "Id": 21,
+          "Name": "RoomCategoryAddedNotification",
+          "Type": "RoomCategoryData"
+        },
+        {
+          "Id": 22,
+          "Name": "RoomCategoryRemovedNotification",
+          "Type": "RoomCategoryRemoved"
+        },
+        {
+          "Id": 30,
+          "Name": "RoomUpdatedNotification",
+          "Type": "RoomData"
+        },
+        {
+          "Id": 31,
+          "Name": "RoomAddedNotification",
+          "Type": "RoomData"
+        },
+        {
+          "Id": 32,
+          "Name": "RoomRemovedNotification",
+          "Type": "RoomRemoved"
+        },
+        {
+          "Id": 40,
+          "Name": "RoomPopulationUpdated",
+          "Type": "RoomsPopulationUpdate"
+        },
+        {
+          "Id": 50,
+          "Name": "RoomMemberJoined",
+          "Type": "RoomMemberData"
+        },
+        {
+          "Id": 51,
+          "Name": "RoomMemberLeft",
+          "Type": "RoomMemberRemoved"
+        },
+        {
+          "Id": 52,
+          "Name": "RoomMemberUpdated",
+          "Type": "RoomMemberData"
+        },
+        {
+          "Id": 60,
+          "Name": "RoomKick",
+          "Type": "RoomMemberKicked"
+        },
+        {
+          "Id": 70,
+          "Name": "RoomHostTransfer",
+          "Type": "RoomHostTransfered"
+        },
+        {
+          "Id": 80,
+          "Name": "RoomAttributesSet",
+          "Type": "RoomAttributesSet"
+        }
+      ]
+    }
+  ]
+}

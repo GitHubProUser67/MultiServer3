@@ -24,7 +24,7 @@ namespace HomeTools.ChannelID
 
         public SceneKey(Guid guid) => ConvertFromGUID(guid);
 
-        public static SceneKey New() => new(Guid.NewGuid());
+        public static SceneKey New() => new SceneKey(Guid.NewGuid());
 
         public override string ToString()
         {

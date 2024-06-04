@@ -14,6 +14,8 @@ using System.Security.Cryptography;
 using CyberBackendLibrary.HTTP.PluginManager;
 using System.Diagnostics;
 using System.Security.Principal;
+using System.Reflection;
+using CyberBackendLibrary.HTTP;
 
 public static class HTTPSServerConfiguration
 {
@@ -27,6 +29,7 @@ public static class HTTPSServerConfiguration
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPSTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
+    public static string ASPNETRedirectUrl { get; set; } = string.Empty;
     public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
@@ -35,8 +38,10 @@ public static class HTTPSServerConfiguration
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
     public static bool NotFoundSuggestions { get; set; } = false;
+    public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableLiveTranscoding { get; set; } = false;
+    public static Dictionary<string, string>? MimeTypes { get; set; } = HTTPProcessor._mimeTypes;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
     public static string[]? HTTPSDNSList { get; set; } = {
             "www.outso-srv1.com",
@@ -102,8 +107,7 @@ public static class HTTPSServerConfiguration
     public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
-
-    public static List<HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
+    public static Dictionary<string, HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -126,6 +130,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("online_routes_config", DNSOnlineConfig),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
+                new JProperty("aspnet_redirect_url", ASPNETRedirectUrl),
                 new JProperty("php", new JObject(
                     new JProperty("redirect_url", PHPRedirectUrl),
                     new JProperty("version", PHPVersion),
@@ -135,6 +140,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("api_static_folder", APIStaticFolder),
                 new JProperty("https_static_folder", HTTPSStaticFolder),
                 new JProperty("https_temp_folder", HTTPSTempFolder),
+                SerializeMimeTypes(),
                 SerializeDateTimeOffset(),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("converters_folder", ConvertersFolder),
@@ -144,12 +150,14 @@ public static class HTTPSServerConfiguration
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
+                new JProperty("enable_http_compression", EnableHTTPCompression),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("enable_live_transcoding", EnableLiveTranscoding),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
-                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString().Replace("/", "\\\\"));
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
+                new JProperty("plugins_custom_parameters", string.Empty)
+            ).ToString());
 
             return;
         }
@@ -164,6 +172,7 @@ public static class HTTPSServerConfiguration
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             APIStaticFolder = GetValueOrDefault(config, "api_static_folder", APIStaticFolder);
+            ASPNETRedirectUrl = GetValueOrDefault(config, "aspnet_redirect_url", ASPNETRedirectUrl);
             PHPRedirectUrl = GetValueOrDefault(config.php, "redirect_url", PHPRedirectUrl);
             PHPVersion = GetValueOrDefault(config.php, "version", PHPVersion);
             PHPStaticFolder = GetValueOrDefault(config.php, "static_folder", PHPStaticFolder);
@@ -177,8 +186,10 @@ public static class HTTPSServerConfiguration
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
+            EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
             EnableLiveTranscoding = GetValueOrDefault(config, "enable_live_transcoding", EnableLiveTranscoding);
+            MimeTypes = GetValueOrDefault(config, "mime_types", MimeTypes);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             HTTPSDNSList = GetValueOrDefault(config, "https_dns_list", HTTPSDNSList);
             // Deserialize Ports if it exists
@@ -252,7 +263,7 @@ public static class HTTPSServerConfiguration
     }
 
     // Helper method for the DateTimeOffset config serialization.
-    public static JProperty SerializeDateTimeOffset()
+    private static JProperty SerializeDateTimeOffset()
     {
         JObject jObject = new();
         foreach (var kvp in DateTimeOffset ?? new Dictionary<string, int>())
@@ -261,34 +272,66 @@ public static class HTTPSServerConfiguration
         }
         return new JProperty("datetime_offset", jObject);
     }
+
+    // Helper method for the MimeTypes config serialization.
+    private static JProperty SerializeMimeTypes()
+    {
+        JObject jObject = new();
+        foreach (var kvp in MimeTypes ?? new Dictionary<string, string>())
+        {
+            jObject.Add(kvp.Key, kvp.Value);
+        }
+        return new JProperty("mime_types", jObject);
+    }
 }
 
 class Program
 {
-    static Task RefreshConfig()
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "https.json";
+    private static string DNSconfigMD5 = string.Empty;
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? Leaderboard = null;
+    private static Timer? FilesystemTree = null;
+    private static Task? DNSThread = null;
+    private static Task? DNSRefreshThread = null;
+    private static HTTPSecureServer? Server;
+    private static readonly FileSystemWatcher dnswatcher = new();
+
+    // Event handler for DNS change event
+    private static void OnDNSChanged(object source, FileSystemEventArgs e)
     {
-        while (true)
+        try
         {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
+            dnswatcher.EnableRaisingEvents = false;
 
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
+            LoggerAccessor.LogInfo($"DNS Routes File {e.FullPath} has been changed, Routes Refresh at - {DateTime.Now}");
 
-            HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
+            // Sleep a little to let file-system time to write the changes to the file.
+            Thread.Sleep(6000);
+
+            DNSconfigMD5 = ComputeMD5FromFile(HTTPSServerConfiguration.DNSConfig);
+
+            while (DNSRefreshThread != null)
+            {
+                LoggerAccessor.LogWarn("[HTTPS_DNS] - Waiting for previous DNS refresh Task to finish...");
+                Thread.Sleep(6000);
+            }
+
+            DNSRefreshThread = RefreshDNS();
+            DNSRefreshThread.Dispose();
+            DNSRefreshThread = null;
+        }
+
+        finally
+        {
+            dnswatcher.EnableRaisingEvents = true;
         }
     }
 
-    static void Main()
+    private static void StartOrUpdateServer()
     {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
-        if (!IsWindows)
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
-        LoggerAccessor.SetupLogger("HTTPSecureServer");
-
-        HTTPSServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/https.json");
+        Server?.StopServer();
 
         if (HTTPSServerConfiguration.EnableLiveTranscoding && IsWindows)
             if (!IsAdministrator())
@@ -303,47 +346,133 @@ class Program
         CyberBackendLibrary.SSL.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
             HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
-        GeoIP.Initialize();
-
         LeaderboardClass.APIPath = HTTPSServerConfiguration.APIStaticFolder;
 
-        _ = new Timer(LeaderboardClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        Leaderboard ??= new Timer(LeaderboardClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
-        if (HTTPSServerConfiguration.NotFoundSuggestions)
-            _ = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPSServerConfiguration.HTTPSStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        if (HTTPSServerConfiguration.DNSOverEthernetEnabled)
+        {
+            dnswatcher.Path = Path.GetDirectoryName(HTTPSServerConfiguration.DNSConfig) ?? configDir;
+            dnswatcher.Filter = Path.GetFileName(HTTPSServerConfiguration.DNSConfig);
+            dnswatcher.EnableRaisingEvents = true;
 
-        if (HTTPSServerConfiguration.DNSOverEthernetEnabled && !SecureDNSConfigProcessor.Initiated)
-            _ = Task.Run(SecureDNSConfigProcessor.InitDNSSubsystem);
+            if (File.Exists(HTTPSServerConfiguration.DNSConfig))
+            {
+                string MD5 = ComputeMD5FromFile(HTTPSServerConfiguration.DNSConfig);
 
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token),
-                    () => RefreshConfig()
-                ));
+                if (!MD5.Equals(DNSconfigMD5))
+                {
+                    DNSconfigMD5 = MD5;
+
+                    while (DNSRefreshThread != null)
+                    {
+                        LoggerAccessor.LogWarn("[HTTPS_DNS] - Waiting for previous DNS refresh Task to finish...");
+                        Thread.Sleep(6000);
+                    }
+
+                    DNSRefreshThread = RefreshDNS();
+                    DNSRefreshThread.Dispose();
+                    DNSRefreshThread = null;
+                }
+            }
+        }
+        else if (dnswatcher.EnableRaisingEvents)
+            dnswatcher.EnableRaisingEvents = false;
+
+        if (HTTPSServerConfiguration.NotFoundSuggestions && FilesystemTree == null)
+            FilesystemTree = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPSServerConfiguration.HTTPSStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        else if (!HTTPSServerConfiguration.NotFoundSuggestions && FilesystemTree != null)
+            _ = FilesystemTree.DisposeAsync();
 
         if (HTTPSServerConfiguration.plugins.Count > 0)
         {
             int i = 0;
-            foreach (HTTPPlugin plugin in HTTPSServerConfiguration.plugins)
+            foreach (var plugin in HTTPSServerConfiguration.plugins)
             {
-                _ = plugin.HTTPStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i));
+                _ = plugin.Value.HTTPStartPlugin(HTTPSServerConfiguration.APIStaticFolder, (ushort)(HTTPSServerConfiguration.DefaultPluginsPort + i));
                 i++;
             }
         }
 
-        if (IsWindows)
+        Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token);
+    }
+
+    private static Task RefreshDNS()
+    {
+        if (DNSThread != null && !SecureDNSConfigProcessor.Initiated)
+        {
+            while (!SecureDNSConfigProcessor.Initiated)
+            {
+                LoggerAccessor.LogWarn("[HTTPS_DNS] - Waiting for previous config assignement Task to finish...");
+                Thread.Sleep(6000);
+            }
+        }
+
+        DNSThread = Task.Run(SecureDNSConfigProcessor.InitDNSSubsystem);
+
+        return Task.CompletedTask;
+    }
+
+    private static string ComputeMD5FromFile(string filePath)
+    {
+        using (FileStream stream = File.OpenRead(filePath))
+        {
+            // Convert the byte array to a hexadecimal string
+            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
+        }
+    }
+
+    static void Main()
+    {
+        dnswatcher.NotifyFilter = NotifyFilters.LastWrite;
+        dnswatcher.Changed += OnDNSChanged;
+
+        if (!IsWindows)
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
+
+        LoggerAccessor.SetupLogger("HTTPSecureServer");
+
+        GeoIP.Initialize();
+
+        HTTPSServerConfiguration.RefreshVariables(configPath);
+
+        StartOrUpdateServer();
+
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
                 Console.ReadLine();
 
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
+
+                            HTTPSServerConfiguration.RefreshVariables(configPath);
+
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
             }
         }
@@ -351,7 +480,7 @@ class Program
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 

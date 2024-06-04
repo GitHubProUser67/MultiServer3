@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X9;
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
 
             protected override X9ECParameters CreateParameters()
             {
-                byte[]? S = null;
+                byte[] S = null;
                 ECCurve curve = Curve;
 
                 X9ECPoint G = ConfigureBasepoint(curve,

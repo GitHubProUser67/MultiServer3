@@ -26,7 +26,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -46,7 +46,12 @@ namespace WebAPIService.NDREAMS.Aurora
                     Directory.CreateDirectory(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}");
 
                     string PlayerVisitProfilePath = apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/visit_counter.json";
-                    string Hash = DataTypesUtils.ByteArrayToHexString(MD5.HashData(Array.Empty<byte>())); // Seems to not make a difference.
+                    byte[] MD5Data = new byte[0];
+                    using (MD5 md5hash = MD5.Create())
+                    {
+                        MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
+                    }
+                    string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data); // Seems to not make a difference.
 
                     if (File.Exists(PlayerVisitProfilePath))
                     {
@@ -97,7 +102,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -189,7 +194,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -227,7 +232,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -259,7 +264,12 @@ namespace WebAPIService.NDREAMS.Aurora
                         if (key == ExpectedHash)
                         {
                             int best = 0;
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5.HashData(Array.Empty<byte>()));
+                            byte[] MD5Data = new byte[0];
+                            using (MD5 md5hash = MD5.Create())
+                            {
+                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
+                            }
+                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
 
                             if (int.TryParse(score, out int resscore))
                             {
@@ -274,7 +284,7 @@ namespace WebAPIService.NDREAMS.Aurora
                             }
 
                             return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><high>{high}</high><best>{best}</best>" +
-                                $"<score>{score}</score><exp>{(File.Exists(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/inventory.json") ? NDREAMSProfilesUtils.ExtractProfileProperties(File.ReadAllText(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/inventory.json")).Item1 : xp)}" +
+                                $"<score>{score}</score><exp>{(File.Exists(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/inventory.json") ? NDREAMSProfilesUtils.ExtractProfileProperties(File.ReadAllText(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/inventory.json")).Item1.ToString() : xp)}" +
                                 $"</exp><confirm>{NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, $"{Hash}{high}", CurrentDate)}</confirm></result></xml>";
                         }
                         else
@@ -308,7 +318,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -356,7 +366,12 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5.HashData(Array.Empty<byte>()));
+                            byte[] MD5Data = new byte[0];
+                            using (MD5 md5hash = MD5.Create())
+                            {
+                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
+                            }
+                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
                             if (!string.IsNullOrEmpty(everything))
                             {
                                 string[] parts = everything.Split(',');
@@ -380,7 +395,12 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5.HashData(Array.Empty<byte>()));
+                            byte[] MD5Data = new byte[0];
+                            using (MD5 md5hash = MD5.Create())
+                            {
+                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
+                            }
+                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
 
                             if (!string.IsNullOrEmpty(consumable))
                                 File.WriteAllText(directoryPath + $"/{consumable}", count);
@@ -398,7 +418,12 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5.HashData(Array.Empty<byte>()));
+                            byte[] MD5Data = new byte[0];
+                            using (MD5 md5hash = MD5.Create())
+                            {
+                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
+                            }
+                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
                             int rescount = 0;
 
                             if (!string.IsNullOrEmpty(consumable) && File.Exists(directoryPath + $"/{consumable}"))
@@ -438,7 +463,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -467,7 +492,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -529,7 +554,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 

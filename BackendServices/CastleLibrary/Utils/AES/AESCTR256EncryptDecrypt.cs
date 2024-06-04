@@ -8,12 +8,12 @@ namespace CastleLibrary.Utils.AES
 {
     public class AESCTR256EncryptDecrypt
     {
-        public static byte[]? InitiateCTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv)
+        public static byte[] InitiateCTRBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv)
         {
             if (KeyBytes.Length >= 16 && m_iv.Length == 16)
             {
                 // Create the cipher
-                IBufferedCipher? cipher = CipherUtilities.GetCipher("AES/CTR/NOPADDING");
+                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CTR/NOPADDING");
 
                 cipher.Init(false, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
 
@@ -32,14 +32,14 @@ namespace CastleLibrary.Utils.AES
             return null;
         }
 
-        public static string? InitiateCTRBufferTobase64String(string FileString, byte[] KeyBytes, byte[] m_iv)
+        public static string InitiateCTRBufferTobase64String(string FileString, byte[] KeyBytes, byte[] m_iv)
         {
             if (KeyBytes.Length >= 16 && m_iv.Length == 16)
             {
                 byte[] FileBytes = Encoding.UTF8.GetBytes(FileString);
 
                 // Create the cipher
-                IBufferedCipher? cipher = CipherUtilities.GetCipher("AES/CTR/NOPADDING");
+                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CTR/NOPADDING");
 
                 cipher.Init(false, new ParametersWithIV(new KeyParameter(KeyBytes), m_iv));
 

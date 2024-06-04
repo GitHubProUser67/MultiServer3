@@ -1,0 +1,17 @@
+﻿<Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
+	<Costura>
+	  <ExcludeAssemblies>
+		WatsonWebserver.Core
+		WatsonWebserver.Lite
+		CavemanTcp
+		HomeTools
+		WebAPIService
+		CastleLibrary
+		CompressionLibrary
+		CustomLogger
+		CyberBackendLibrary
+		EndianTools
+		TechnitiumLibrary.Net.Firewall
+	  </ExcludeAssemblies>
+	</Costura>
+</Weavers>

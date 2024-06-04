@@ -11,14 +11,14 @@ namespace HomeTools.AFS
     {
         public static string MapperHelperFolder = $"{Directory.GetCurrentDirectory()}/static/!HomeTools/HelperFiles/";
         private static readonly string UUIDRegexModel = @"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}";
-        private static readonly Dictionary<string, string> MappedAFSHashesCache = new();
+        private static readonly Dictionary<string, string> MappedAFSHashesCache = new Dictionary<string, string>();
 
         public static async Task AFSMapStart(string CurrentFolder, string prefix, string BruteforceUUIDs)
         {
             Match objectmatch = new Regex(UUIDRegexModel).Match(CurrentFolder);
 
             // Create a list to hold the tasks
-            List<Task>? HashMapTasks = new();
+            List<Task>? HashMapTasks = new List<Task>();
 
             if (objectmatch.Success) // We first map the corresponding object.
             {
@@ -52,7 +52,7 @@ namespace HomeTools.AFS
             if (BruteforceUUIDs == "on" && Directory.Exists(MapperHelperFolder) && File.Exists(MapperHelperFolder + "/uuid_helper.txt"))
             {
                 // Open the file for reading
-                using StreamReader reader = new(MapperHelperFolder + "/uuid_helper.txt");
+                using StreamReader reader = new StreamReader(MapperHelperFolder + "/uuid_helper.txt");
                 string? line = null;
 
                 // Read and display lines from the file until the end of the file is reached

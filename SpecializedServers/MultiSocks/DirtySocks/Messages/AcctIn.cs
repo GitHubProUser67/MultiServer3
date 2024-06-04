@@ -29,13 +29,14 @@ namespace MultiSocks.DirtySocks.Messages
         public string? VERS { get; set; }
         public string? SLUS { get; set; }
         public string? LOC { get; set; }
+        public string? DEFPER { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
-            if (VERS == "BURNOUT5/ISLAND")
+            if (VERS == "BURNOUT5/ISLAND" || VERS == "BURNOUT5/TROPHIES" || VERS == "BURNOUT5/31")
             {
                 if (SKU == "PS3")
                 {

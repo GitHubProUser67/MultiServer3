@@ -6,18 +6,20 @@ using CyberBackendLibrary.GeoLocalization;
 using System.IO;
 using System.Collections.Generic;
 using System;
-using System.Threading.Tasks;
 using System.Threading;
 using CyberBackendLibrary.AIModels;
 using CyberBackendLibrary.HTTP.PluginManager;
+using System.Reflection;
+using CyberBackendLibrary.HTTP;
 
 public static class HTTPServerConfiguration
 {
     public static string PluginsFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/plugins";
     public static ushort DefaultPluginsPort { get; set; } = 61850;
+    public static string ASPNETRedirectUrl { get; set; } = string.Empty;
+    public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
-    public static string PHPRedirectUrl { get; set; } = string.Empty;
     public static bool PHPDebugErrors { get; set; } = false;
     public static int BufferSize { get; set; } = 4096;
     public static string HttpVersion { get; set; } = "1.1";
@@ -26,14 +28,16 @@ public static class HTTPServerConfiguration
     public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static bool NotFoundSuggestions { get; set; } = false;
+    public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
+    public static Dictionary<string, string>? MimeTypes { get; set; } = HTTPProcessor._mimeTypes;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
     public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
 
-    public static List<HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
+    public static Dictionary<string, HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -52,6 +56,7 @@ public static class HTTPServerConfiguration
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
+                new JProperty("aspnet_redirect_url", ASPNETRedirectUrl),
                 new JProperty("php", new JObject(
                     new JProperty("redirect_url", PHPRedirectUrl),
                     new JProperty("version", PHPVersion),
@@ -64,16 +69,19 @@ public static class HTTPServerConfiguration
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("buffer_size", BufferSize),
                 new JProperty("http_version", HttpVersion),
+                SerializeMimeTypes(),
                 SerializeDateTimeOffset(),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
+                new JProperty("enable_http_compression", EnableHTTPCompression),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("enable_image_upscale", EnableImageUpscale),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
-                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
-            ).ToString().Replace("/", "\\\\"));
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
+                new JProperty("plugins_custom_parameters", string.Empty)
+            ).ToString());
 
             return;
         }
@@ -83,6 +91,7 @@ public static class HTTPServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
+            ASPNETRedirectUrl = GetValueOrDefault(config, "aspnet_redirect_url", ASPNETRedirectUrl);
             PHPRedirectUrl = GetValueOrDefault(config.php, "redirect_url", PHPRedirectUrl);
             PHPVersion = GetValueOrDefault(config.php, "version", PHPVersion);
             PHPStaticFolder = GetValueOrDefault(config.php, "static_folder", PHPStaticFolder);
@@ -93,10 +102,12 @@ public static class HTTPServerConfiguration
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             BufferSize = GetValueOrDefault(config, "buffer_size", BufferSize);
             HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
+            MimeTypes = GetValueOrDefault(config, "mime_types", MimeTypes);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
+            EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
             EnableImageUpscale = GetValueOrDefault(config, "enable_image_upscale", EnableImageUpscale);
             // Deserialize Ports if it exists
@@ -170,7 +181,7 @@ public static class HTTPServerConfiguration
     }
 
     // Helper method for the DateTimeOffset config serialization.
-    public static JProperty SerializeDateTimeOffset()
+    private static JProperty SerializeDateTimeOffset()
     {
         JObject jObject = new();
         foreach (var kvp in DateTimeOffset ?? new Dictionary<string, int>())
@@ -179,69 +190,98 @@ public static class HTTPServerConfiguration
         }
         return new JProperty("datetime_offset", jObject);
     }
+
+    // Helper method for the MimeTypes config serialization.
+    private static JProperty SerializeMimeTypes()
+    {
+        JObject jObject = new();
+        foreach (var kvp in MimeTypes ?? new Dictionary<string, string>())
+        {
+            jObject.Add(kvp.Key, kvp.Value);
+        }
+        return new JProperty("mime_types", jObject);
+    }
 }
 
 class Program
 {
-    static Task RefreshConfig()
+    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    private static string configPath = configDir + "http.json";
+    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+    private static Timer? FilesystemTree = null;
+    private static HttpServer? Server;
+
+    private static void StartOrUpdateServer()
     {
-        while (true)
-        {
-            // Sleep for 5 minutes (300,000 milliseconds)
-            Thread.Sleep(5 * 60 * 1000);
+        Server?.Stop();
+        Server = null;
 
-            // Your task logic goes here
-            LoggerAccessor.LogInfo("Config Refresh at - " + DateTime.Now);
-
-            HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
-        }
-    }
-
-    static void Main()
-    {
-        bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-
-        if (!IsWindows)
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
-        LoggerAccessor.SetupLogger("HTTPServer");
-
-        HTTPServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/http.json");
-
-        GeoIP.Initialize();
-
-        if (HTTPServerConfiguration.NotFoundSuggestions)
-            _ = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPServerConfiguration.HTTPStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
-
-        _ = Task.Run(() => Parallel.Invoke(
-                    () => _ = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token),
-                    () => RefreshConfig()
-                ));
+        if (HTTPServerConfiguration.NotFoundSuggestions && FilesystemTree == null)
+            FilesystemTree = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPServerConfiguration.HTTPStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
+        else if (!HTTPServerConfiguration.NotFoundSuggestions && FilesystemTree != null)
+            _ = FilesystemTree.DisposeAsync();
 
         if (HTTPServerConfiguration.plugins.Count > 0)
         {
             int i = 0;
-            foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+            foreach (var plugin in HTTPServerConfiguration.plugins)
             {
-                _ = plugin.HTTPStartPlugin(HTTPServerConfiguration.APIStaticFolder, (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i));
+                _ = plugin.Value.HTTPStartPlugin(HTTPServerConfiguration.APIStaticFolder, (ushort)(HTTPServerConfiguration.DefaultPluginsPort + i));
                 i++;
             }
         }
 
-        if (IsWindows)
+        Server = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token);
+    }
+
+    static void Main()
+    {
+        if (!IsWindows)
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
+
+        LoggerAccessor.SetupLogger("HTTPServer");
+
+        GeoIP.Initialize();
+
+        HTTPServerConfiguration.RefreshVariables(configPath);
+
+        StartOrUpdateServer();
+
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
         {
             while (true)
             {
-                LoggerAccessor.LogInfo("Press any key to shutdown the server. . .");
+                LoggerAccessor.LogInfo("Press any keys to access server actions...");
 
                 Console.ReadLine();
 
-                LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+                LoggerAccessor.LogInfo("Press one of the following keys to trigger an action: [R (Reboot),S (Shutdown)]");
 
-                if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                switch (char.ToLower(Console.ReadKey().KeyChar))
                 {
-                    LoggerAccessor.LogInfo("Shutting down. Goodbye!");
-                    Environment.Exit(0);
+                    case 's':
+                        LoggerAccessor.LogWarn("Are you sure you want to shut down the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    case 'r':
+                        LoggerAccessor.LogWarn("Are you sure you want to reboot the server? [y/N]");
+
+                        if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
+                        {
+                            LoggerAccessor.LogInfo("Rebooting!");
+
+                            HTTPServerConfiguration.RefreshVariables(configPath);
+
+                            StartOrUpdateServer();
+                        }
+                        break;
                 }
             }
         }
@@ -249,7 +289,7 @@ class Program
         {
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
-            Thread.Sleep(Timeout.Infinite); // While-true on Linux are thread blocking if on main static.
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

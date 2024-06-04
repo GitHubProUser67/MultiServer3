@@ -148,7 +148,8 @@ namespace Horizon.MUM
 
                 if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.MediusWorldId != MediusWorldId)
                 {
-                    LocalClients.RemoveAt(i);
+                    lock (LocalClients)
+                        LocalClients.RemoveAt(i);
                     --i;
                 }
             }
@@ -199,11 +200,14 @@ namespace Horizon.MUM
 
             LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: {client} added.");
 
-            LocalClients.Add(new PartyClient()
+            lock (LocalClients)
             {
-                Client = client,
-                DmeId = client.DmeClientId != null ? (int)client.DmeClientId : 0
-            });
+                LocalClients.Add(new PartyClient()
+                {
+                    Client = client,
+                    DmeId = client.DmeClientId != null ? (int)client.DmeClientId : 0
+                });
+            }
 
             // Inform the client of any custom game mode
             //client.CurrentChannel?.SendSystemMessage(client, $"Gamemode is {CustomGamemode?.FullName ?? "default"}.");
@@ -229,12 +233,13 @@ namespace Horizon.MUM
         {
             LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: {client} removed.");
 
+            // Remove from clients list
+            lock (LocalClients)
+                LocalClients.RemoveAll(x => x.Client == client);
+
             // Remove host
             if (Host == client)
-                Host = null;
-
-            // Remove from clients list
-            LocalClients.RemoveAll(x => x.Client == client);
+                Host = LocalClients.FirstOrDefault()?.Client;
         }
 
         public virtual void OnPartyPlayerReport(MediusPartyPlayerReport report)
@@ -264,7 +269,10 @@ namespace Horizon.MUM
             {
                 ClientObject? client = LocalClients[0].Client;
                 if (client == null)
-                    LocalClients.RemoveAt(0);
+                {
+                    lock (LocalClients)
+                        LocalClients.RemoveAt(0);
+                }
                 else
                     await client.LeaveParty(this);
                 // client.LeaveChannel(ChatChannel);

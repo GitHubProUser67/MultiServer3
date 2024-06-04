@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
 using CyberBackendLibrary.HTTP;
-using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System;
 
@@ -73,10 +72,20 @@ namespace HTTPSecureServerLite
                             ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                             ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                             ctx.Response.ContentType = "text/html; charset=UTF-8";
-                            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                            if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                                if (acceptencoding.Contains("gzip"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                    return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                                }
+                                else if (acceptencoding.Contains("deflate"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                    return ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload))).Result;
+                                }
+                                else
+                                    return ctx.Response.Send(payload).Result;
                             }
                             else
                                 return ctx.Response.Send(payload).Result;
@@ -118,7 +127,6 @@ namespace HTTPSecureServerLite
                     ms.Position = 0;
                     ctx.Response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                     ctx.Response.Headers.Add("Accept-Ranges", "bytes");
-                    ctx.Response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     ctx.Response.Headers.Add("Content-Length", ms.Length.ToString());
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
@@ -164,10 +172,20 @@ namespace HTTPSecureServerLite
                 ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                 ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                 ctx.Response.ContentType = "text/html; charset=UTF-8";
-                if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                 {
-                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                    if (acceptencoding.Contains("gzip"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                        return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                    }
+                    else if (acceptencoding.Contains("deflate"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                        return ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload))).Result;
+                    }
+                    else
+                        return ctx.Response.Send(payload).Result;
                 }
                 else
                     return ctx.Response.Send(payload).Result;
@@ -190,7 +208,6 @@ namespace HTTPSecureServerLite
                 ctx.Response.ContentType = ContentType;
                 ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                 ctx.Response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
-                ctx.Response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                 ctx.Response.Headers.Add("Content-Length", TotalBytes.ToString());
                 ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));

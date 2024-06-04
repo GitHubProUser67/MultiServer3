@@ -7,9 +7,9 @@ namespace CyberBackendLibrary.HTTP.PluginManager
 {
     public class PluginLoader
     {
-        public static List<HTTPPlugin> LoadPluginsFromFolder(string folderPath)
+        public static Dictionary<string, HTTPPlugin> LoadPluginsFromFolder(string folderPath)
         {
-            List<HTTPPlugin> plugins = new();
+            Dictionary<string, HTTPPlugin> plugins = new Dictionary<string, HTTPPlugin>();
 
             if (Directory.Exists(folderPath))
             {
@@ -18,13 +18,13 @@ namespace CyberBackendLibrary.HTTP.PluginManager
                     HTTPPlugin? plugin = LoadPlugin(dllFile);
                     if (plugin != null)
                     {
-                        CustomLogger.LoggerAccessor.LogInfo($"[HTTPS] - Plugin: {dllFile} Loaded.");
-                        plugins.Add(plugin);
+                        CustomLogger.LoggerAccessor.LogInfo($"[PluginLoader] - Plugin: {dllFile} Loaded.");
+                        plugins.Add(Path.GetFileNameWithoutExtension(dllFile), plugin);
                     }
                 }
             }
             else
-                CustomLogger.LoggerAccessor.LogWarn($"[HTTPS] - No Plugins Folder found: {folderPath}");
+                CustomLogger.LoggerAccessor.LogWarn($"[PluginLoader] - No Plugins Folder found: {folderPath}");
 
             return plugins;
         }
@@ -42,13 +42,13 @@ namespace CyberBackendLibrary.HTTP.PluginManager
                     }
                     catch (ReflectionTypeLoadException)
                     {
-                        CustomLogger.LoggerAccessor.LogWarn($"[HTTPS] - Plugin: {pluginPath} is not compatible with this project, ignoring...");
+                        CustomLogger.LoggerAccessor.LogWarn($"[PluginLoader] - Plugin: {pluginPath} is not compatible with this project, ignoring...");
                     }
                 }
             }
             catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogError($"[HTTPS] - Error loading plugin/dependency '{pluginPath}': {ex}");
+                CustomLogger.LoggerAccessor.LogError($"[PluginLoader] - Error loading plugin/dependency '{pluginPath}': {ex}");
             }
 
             return null;

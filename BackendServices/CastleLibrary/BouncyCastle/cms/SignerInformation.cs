@@ -298,7 +298,7 @@ namespace Org.BouncyCastle.Cms
 					*/
 					SignerInfo si = SignerInfo.GetInstance(asn1Obj.ToAsn1Object());
 
-                    string digestName = CmsSignedHelper.GetDigestAlgName(si.DigestAlgorithm.Algorithm.Id);
+                    string digestName = CmsSignedHelper.GetDigestAlgName(si.DigestAlgorithm.Algorithm);
                     IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
                     byte[] hash = DigestUtilities.DoFinal(digest, GetSignature());
 
@@ -315,27 +315,24 @@ namespace Org.BouncyCastle.Cms
 		*/
 		public virtual byte[] GetEncodedSignedAttributes()
 		{
-			return signedAttributeSet == null
-				?	null
-				:	signedAttributeSet.GetEncoded(Asn1Encodable.Der);
+			return signedAttributeSet?.GetEncoded(Asn1Encodable.Der);
 		}
 
-		private bool DoVerify(
-			AsymmetricKeyParameter	key)
+		private bool DoVerify(AsymmetricKeyParameter publicKey)
 		{
 			DerObjectIdentifier sigAlgOid = this.encryptionAlgorithm.Algorithm;
 			Asn1Encodable sigParams = this.encryptionAlgorithm.Parameters;
-			string digestName = CmsSignedHelper.GetDigestAlgName(this.EncryptionAlgOid);
+			string digestName = CmsSignedHelper.GetDigestAlgName(sigAlgOid);
 
 			if (digestName.Equals(sigAlgOid.Id))
 			{
-				digestName = CmsSignedHelper.GetDigestAlgName(this.DigestAlgOid);
+				digestName = CmsSignedHelper.GetDigestAlgName(digestAlgorithm.Algorithm);
 			}
 			
 			IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
 			ISigner sig;
 
-			if (sigAlgOid.Equals(Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss))
+			if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
 			{
 				// RFC 4056 2.2
 				// When the id-RSASSA-PSS algorithm identifier is used for a signature,
@@ -386,7 +383,7 @@ namespace Org.BouncyCastle.Cms
 				//				if (sigParams != null)
 				//					throw new CmsException("unrecognised signature parameters provided");
 
-				string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(this.EncryptionAlgOid);
+				string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
 
                 sig = CmsSignedHelper.GetSignatureInstance(signatureName);
 
@@ -485,7 +482,7 @@ namespace Org.BouncyCastle.Cms
 
 			try
 			{
-				sig.Init(false, key);
+				sig.Init(false, publicKey);
 
 				if (signedAttributeSet == null)
 				{
@@ -498,7 +495,7 @@ namespace Org.BouncyCastle.Cms
 						else
 						{
 							// need to decrypt signature and check message bytes
-							return VerifyDigest(resultDigest, key, this.GetSignature());
+							return VerifyDigest(resultDigest, publicKey, GetSignature());
 						}
 					}
 					else if (content != null)
@@ -562,12 +559,9 @@ namespace Org.BouncyCastle.Cms
 			return digInfo;
 		}
 
-		private bool VerifyDigest(
-			byte[]					digest,
-			AsymmetricKeyParameter	key,
-			byte[]					signature)
+		private bool VerifyDigest(byte[] digest, AsymmetricKeyParameter publicKey, byte[] signature)
 		{
-			string algorithm = CmsSignedHelper.GetEncryptionAlgName(this.EncryptionAlgOid);
+			string algorithm = CmsSignedHelper.GetEncryptionAlgName(encryptionAlgorithm.Algorithm);
 
 			try
 			{
@@ -575,7 +569,7 @@ namespace Org.BouncyCastle.Cms
 				{
 					IBufferedCipher c = CipherUtilities.GetCipher(Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption);
 
-					c.Init(false, key);
+					c.Init(false, publicKey);
 
 					byte[] decrypt = c.DoFinal(signature);
 
@@ -599,7 +593,7 @@ namespace Org.BouncyCastle.Cms
 				{
 					ISigner sig = CmsSignedHelper.GetSignatureInstance("NONEwithDSA");
 
-					sig.Init(false, key);
+					sig.Init(false, publicKey);
 
 					sig.BlockUpdate(digest, 0, digest.Length);
 

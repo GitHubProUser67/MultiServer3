@@ -36,6 +36,8 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using WebAPIService.HELLFIRE;
 using CyberBackendLibrary.HTTP.PluginManager;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace HTTPServer
 {
@@ -161,7 +163,11 @@ namespace HTTPServer
                                 else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                                     CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
+#if DEBUG
+                                LoggerAccessor.LogJson(JsonConvert.SerializeObject(request), $"[[HTTP]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+#else
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+#endif
 
                                 string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                                 string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
@@ -238,7 +244,7 @@ namespace HTTPServer
 
                                 if (response == null && HTTPServerConfiguration.plugins.Count > 0)
                                 {
-                                    foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins)
+                                    foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins.Values)
                                     {
                                         try
                                         {
@@ -304,7 +310,7 @@ namespace HTTPServer
 
                                                 string? res = null;
 												
-												#region OHS API Version
+                                                #region OHS API Version
                                                 int version = 0;
                                                 if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
                                                     version = 2;
@@ -318,7 +324,7 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
-												#endregion
+                                                #endregion
 												
                                                 using (MemoryStream postdata = new())
                                                 {
@@ -712,12 +718,6 @@ namespace HTTPServer
                                                                 break;
                                                             #endregion
 
-                                                            #region Get Away Google
-                                                            case "/robots.txt":
-                                                                response = HttpResponse.Send("User-agent: *\nDisallow: / "); // Get Away Google.
-                                                                break;
-                                                            #endregion
-
                                                             #region WebVideo Player
                                                             case "/!player":
                                                             case "/!player/":
@@ -780,13 +780,22 @@ namespace HTTPServer
                                                             #endregion
 
                                                             default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
-                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
-                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                                                                    {
+                                                                        if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else if (encoding.Contains("deflate"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                    }
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
@@ -810,18 +819,32 @@ namespace HTTPServer
                                                             #endregion
 															
                                                             default:
-                                                                if (absolutepath.ToLower().EndsWith(".php") && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
-                                                                else if (absolutepath.ToLower().EndsWith(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
-                                                                    if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip") && CollectPHP.Item1 != null)
-                                                                        response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                                                                    {
+                                                                        if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else if (encoding.Contains("deflate"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                    }
                                                                     else
                                                                         response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
                                                                 else
-                                                                    response = HttpBuilder.NotFound(request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                                                                {
+                                                                    if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath);
+                                                                    else
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                }
                                                                 break;
                                                         }
                                                         break;
@@ -925,7 +948,7 @@ namespace HTTPServer
                                                             if (ServerIP.Length > 15)
                                                                 ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
 
-                                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath));
+                                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                             if (ContentType == "application/octet-stream")
                                                             {
                                                                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
@@ -1004,7 +1027,7 @@ namespace HTTPServer
             Routes.Add(route);
         }
 
-        #endregion
+#endregion
 
         #region Private Methods
 
@@ -1063,7 +1086,6 @@ namespace HTTPServer
                             string? encoding = null;
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
 
                             if (!response.Headers.ContainsKey("Content-Type"))
                                 response.Headers.Add("Content-Type", "text/plain");
@@ -1178,7 +1200,7 @@ namespace HTTPServer
                     using HugeMemoryStream ms = new();
                     int buffersize = HTTPServerConfiguration.BufferSize;
                     Span<byte> Separator = new byte[] { 0x0D, 0x0A };
-                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                     if (ContentType == "application/octet-stream")
                     {
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
@@ -1236,10 +1258,20 @@ namespace HTTPServer
                             };
                             response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                             response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                response.Headers.Add("Content-Encoding", "gzip");
-                                response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                                if (acceptencoding.Contains("gzip"))
+                                {
+                                    response.Headers.Add("Content-Encoding", "gzip");
+                                    response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                                }
+                                else if (acceptencoding.Contains("deflate"))
+                                {
+                                    response.Headers.Add("Content-Encoding", "deflate");
+                                    response.ContentStream = new MemoryStream(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload)));
+                                }
+                                else
+                                    response.ContentAsUTF8 = payload;
                             }
                             else
                                 response.ContentAsUTF8 = payload;
@@ -1314,7 +1346,6 @@ namespace HTTPServer
                     response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
-                    response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
@@ -1412,17 +1443,27 @@ namespace HTTPServer
                     };
                     response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                     response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip"))
+                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                     {
-                        response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                        if (acceptencoding.Contains("gzip"))
+                        {
+                            response.Headers.Add("Content-Encoding", "gzip");
+                            response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                        }
+                        else if (acceptencoding.Contains("deflate"))
+                        {
+                            response.Headers.Add("Content-Encoding", "deflate");
+                            response.ContentStream = new MemoryStream(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(payload)));
+                        }
+                        else
+                            response.ContentAsUTF8 = payload;
                     }
                     else
                         response.ContentAsUTF8 = payload;
                 }
                 else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                 {
-                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                     if (ContentType == "application/octet-stream")
                     {
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
@@ -1468,7 +1509,7 @@ namespace HTTPServer
                     long TotalBytes = endByte - startByte; // Todo : Curl showed that we should load TotalBytes - 1, but VLC and Chrome complains about it...
                     fs.Position = startByte;
 
-                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path));
+                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                     if (ContentType == "application/octet-stream")
                     {
                         foreach (var entry in HTTPProcessor._PathernDictionary)
@@ -1494,7 +1535,6 @@ namespace HTTPServer
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                     response.Headers.Add("Access-Control-Allow-Origin", "*");
-                    response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
 
@@ -1587,7 +1627,6 @@ namespace HTTPServer
                             string? encoding = null;
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Server", HTTPProcessor.GenerateServerSignature());
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
@@ -1860,6 +1899,6 @@ namespace HTTPServer
         [GeneratedRegex("\\b\\d{3}\\b")]
         private static partial Regex HttpStatusCodeRegex();
 #endif
-        #endregion
+#endregion
     }
 }

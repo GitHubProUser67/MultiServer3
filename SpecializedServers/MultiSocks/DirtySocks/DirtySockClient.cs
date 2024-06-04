@@ -35,7 +35,7 @@ namespace MultiSocks.DirtySocks
 
         private static int MAX_SIZE = 1024 * 1024 * 2;
 
-        public DirtySockClient(AbstractDirtySockServer context, TcpClient client, bool secure, string CN)
+        public DirtySockClient(AbstractDirtySockServer context, TcpClient client, bool secure, string CN, string email, bool WeakChainSignedRSAKey)
         {
             this.secure = secure;
             Context = context;
@@ -45,7 +45,7 @@ namespace MultiSocks.DirtySocks
             LoggerAccessor.LogInfo("New connection from " + IP + ".");
 
             if (secure)
-                SecureKeyCert = new ProtoSSLUtils().GetCustomEaCert(CN);
+                SecureKeyCert = new ProtoSSLUtils().GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
 
             RecvThread = new Thread(RunLoop);
             RecvThread.Start();
@@ -60,8 +60,10 @@ namespace MultiSocks.DirtySocks
         {
             if (secure)
             {
+                NetworkStream? networkStream = ClientTcp.GetStream();
+
                 Ssl3TlsServer connTls = new(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1);
-                TlsServerProtocol serverProtocol = new(ClientTcp.GetStream());
+                TlsServerProtocol serverProtocol = new(networkStream);
 
                 try
                 {
@@ -172,7 +174,7 @@ namespace MultiSocks.DirtySocks
             {
                 ClientStream?.Write(data);
             }
-            catch (Exception)
+            catch
             {
                 // something bad happened :(
             }
@@ -184,7 +186,7 @@ namespace MultiSocks.DirtySocks
             {
                 ClientStream?.Write(msg.GetData());
             }
-            catch (Exception)
+            catch
             {
                 // something bad happened :(
             }

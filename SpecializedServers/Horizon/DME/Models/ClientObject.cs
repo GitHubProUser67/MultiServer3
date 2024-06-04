@@ -256,9 +256,12 @@ namespace Horizon.DME.Models
                     await Udp.Stop();
 
                 if (Tcp != null)
+                {
                     await Tcp.CloseAsync();
+                    Tcp = null;
+                }
             }
-            catch (Exception)
+            catch
             {
 
             }

@@ -42,7 +42,7 @@ namespace SSFWServer
             }
         }
 
-        public static byte[] DecryptData(byte[] encryptedData, string encryptionKey)
+        public static byte[] DecryptData(byte[] InData, string encryptionKey)
         {
             if (string.IsNullOrEmpty(encryptionKey))
                 return Array.Empty<byte>();
@@ -58,7 +58,7 @@ namespace SSFWServer
 
                 byte[] firstSixBytes = new byte[6];
 
-                Array.Copy(encryptedData, 0, firstSixBytes, 0, firstSixBytes.Length);
+                Array.Copy(InData, 0, firstSixBytes, 0, firstSixBytes.Length);
 
                 if (DataTypesUtils.FindbyteSequence(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }))
                 {
@@ -68,13 +68,13 @@ namespace SSFWServer
 
                     // With MultiServer 1.3 and up, TripleDes is improved with a custom crypto on top.
 
-                    byte[] dst = new byte[encryptedData.Length - 6];
+                    byte[] dst = new byte[InData.Length - 6];
 
-                    Array.Copy(encryptedData, 6, dst, 0, dst.Length);
+                    Array.Copy(InData, 6, dst, 0, dst.Length);
 
-                    encryptedData = xtea.Decrypt(dst, InitiateCustomXTEACipheredKey(xteakey, ReverseByteArray(xteakey)));
+                    InData = xtea.Decrypt(dst, InitiateCustomXTEACipheredKey(xteakey, ReverseByteArray(xteakey)));
 
-                    if (encryptedData == Array.Empty<byte>()) // Decryption failed.
+                    if (InData == Array.Empty<byte>()) // Decryption failed.
                     {
                         des.Dispose();
                         xtea = null;
@@ -83,7 +83,7 @@ namespace SSFWServer
                 }
 
                 ICryptoTransform cryptoTransform = des.CreateDecryptor();
-                encryptedData = cryptoTransform.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+                InData = cryptoTransform.TransformFinalBlock(InData, 0, InData.Length);
 
                 cryptoTransform.Dispose();
 
@@ -96,7 +96,7 @@ namespace SSFWServer
 
             xtea = null;
 
-            return encryptedData;
+            return InData;
         }
 
         private static byte[] InitiateCustomXTEACipheredKey(byte[] KeyBytes, byte[] ReversedKeyBytes)

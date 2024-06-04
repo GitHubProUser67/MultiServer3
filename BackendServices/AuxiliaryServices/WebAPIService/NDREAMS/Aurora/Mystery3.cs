@@ -22,7 +22,7 @@ namespace WebAPIService.NDREAMS.Aurora
                 ushort max = 180;
                 int turns = 0;
 
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 

@@ -19,6 +19,9 @@ using Horizon.MUM;
 using Horizon.RT.Cryptography.RSA;
 using System.Text;
 using EndianTools;
+using CyberBackendLibrary.DataTypes;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -26,6 +29,22 @@ namespace Horizon.MEDIUS.Medius
     {
         public override int TCPPort => MediusClass.Settings.MLSPort;
         public override int UDPPort => 0;
+
+        #region Anticheat References
+        private byte[] Ref1 = Convert.FromBase64String("j1S4yArhxE6OW2ZPQzq+oA==");
+
+        private byte[] Ref2 = Convert.FromBase64String("XtKRFh5cJ/iW3RzTcyHa8g==");
+
+        private byte[] Ref3 = Convert.FromBase64String("VDQrkh5H7aV9T/GbaDwNUw==");
+
+        private byte[] Ref4 = Convert.FromBase64String("FA5bx20s0liKa36ROeQ8Lw==");
+
+        private byte[] Ref5 = Convert.FromBase64String("gjhutOUMfyuOPC5gjtt9/Q==");
+
+        private byte[] Ref6 = Convert.FromBase64String("AAAAAAAAAAE=");
+
+        private ConcurrentDictionary<(IPAddress, string?), DateTime> BannedClients = new();
+        #endregion
 
         public ServerSettings Settings = new();
 
@@ -66,7 +85,7 @@ namespace Horizon.MEDIUS.Medius
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(Horizon.LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
             var enableEncryption = MediusClass.GetAppSettingsOrDefault(data.ApplicationId).EnableEncryption;
             scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -244,6 +263,180 @@ namespace Horizon.MEDIUS.Medius
 
                         break;
                     }
+                case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
+                    {
+                        byte[]? QueryData = clientCheatQuery.Data;
+
+                        if (QueryData != null)
+                        {
+                            LoggerAccessor.LogDebug($"[MLS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+
+                            if (MediusClass.Settings.PlaystationHomeAntiCheat && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
+                            {
+                                switch (data.ApplicationId)
+                                {
+                                    case 20371:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK) && MediusClass.Settings.PlaystationHomeVersionBetaHDK.Equals("01.86"))
+                                        {
+                                            switch (clientCheatQuery.StartAddress)
+                                            {
+                                                case 0x101590b0:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                        break;
+                                    case 20374:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                        {
+                                            switch (clientCheatQuery.StartAddress)
+                                            {
+                                                case 0x10050500:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x10074820:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x50A7DEEC:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 1 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x01 }))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: CONSOLE USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 268759069U:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataTypesUtils.AreArraysIdentical(QueryData, Ref1) 
+                                                        || DataTypesUtils.AreArraysIdentical(QueryData, Ref2) || DataTypesUtils.AreArraysIdentical(QueryData, Ref4)))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x100BA820:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
+                                                    {
+                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 270088564U:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                    {
+                                                        byte[] WireFrame = new byte[4] { 16, 0x00, 0x00, 0x00 };
+
+                                                        if (!DataTypesUtils.AreArraysIdentical(QueryData, WireFrame))
+                                                            PokeAddress(270088564U, WireFrame, clientChannel);
+                                                    }
+                                                    break;
+                                                case 0x104F7320:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                    {
+                                                        CheatQuery(0x100BA820, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                                        if (data.ClientObject != null)
+                                                        {
+                                                            if (data.ClientObject.HomePointer == 0)
+                                                            {
+                                                                data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
+
+                                                                data.ClientObject.Tasks.TryAdd("1.86 ANTI FREEZE", Task.Run(() => {
+
+                                                                    while (true)
+                                                                    {
+                                                                        while (data.ClientObject.IsInGame)
+                                                                        {
+                                                                            CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+
+                                                                            Thread.Sleep(1);
+                                                                        }
+
+                                                                        Thread.Sleep(100);
+                                                                    }
+
+                                                                }));
+                                                            }
+
+                                                            CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                                            if (BannedClients.ContainsKey((data.ClientObject.IP, data.MachineId)))
+                                                            {
+                                                                if (BannedClients[(data.ClientObject.IP, data.MachineId)] >= DateTime.Now)
+                                                                {
+                                                                    PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
+                                                                    CheatQuery(270088564U, 4, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                                }
+                                                                else
+                                                                    BannedClients.Remove((data.ClientObject.IP, data.MachineId), out _);
+                                                            }
+                                                        }
+                                                    }
+                                                    break;
+                                                default:
+                                                    if (data.ClientObject != null)
+                                                    {
+                                                        if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 6928U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataTypesUtils.AreArraysIdentical(QueryData, Ref5))
+                                                        {
+                                                            LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
+
+                                                            if (data.ClientObject.IP != IPAddress.Any)
+                                                                BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
+                                                            data.State = ClientState.DISCONNECTED;
+                                                            await clientChannel.CloseAsync();
+                                                        }
+                                                        else if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 5300U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && DataTypesUtils.AreArraysIdentical(QueryData, Ref6))
+                                                        {
+                                                            LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
+
+                                                            if (data.ClientObject.IP != IPAddress.Any)
+                                                                BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
+                                                            data.State = ClientState.DISCONNECTED;
+                                                            await clientChannel.CloseAsync();
+                                                        }
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+                        break;
+                    }
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
@@ -265,7 +458,45 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_SERVER_ECHO serverEchoReply:
                     {
+                        if (data.ClientObject != null && data.ClientObject.IsInGame && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
+                        {
+                            bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                   && (string.IsNullOrEmpty(data.ClientObject.AccountName)
+                                       || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(data.ClientObject.AccountName)
+                                       || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName])
+                                       || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName] != "ADMIN"));
 
+                            if (isHomeCheat)
+                            {
+                                switch (data.ApplicationId)
+                                {
+                                    case 20371:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK) && MediusClass.Settings.PlaystationHomeVersionBetaHDK.Equals("01.86"))
+                                            CheatQuery(0x101590b0, 20, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                        break;
+                                    case 20374:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                        {
+                                            if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
+                                            {
+                                                switch (value)
+                                                {
+                                                    case "RTM":
+                                                        break;
+                                                    default:
+                                                        CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                        break;
+                                                }
+                                            }
+                                            else
+                                                CheatQuery(268759069U, 27, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                            CheatQuery(0x104F7320, 4, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                        }
+                                        break;
+                                }
+                            }
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_ECHO clientEcho:
@@ -366,7 +597,7 @@ namespace Horizon.MEDIUS.Medius
                 case MediusDnasSignaturePost dnasSignaturePost:
                     {
 
-                        if (Settings.DnasEnablePost != true)
+                        if (Settings.DnasEnablePost == true)
                         {
                             //If DNAS Signature Post is the PS2/PSP/PS3 Console ID then continue
                             if (dnasSignaturePost.DnasSignatureType == MediusDnasCategory.DnasConsoleID)
@@ -5267,11 +5498,11 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ClientObject.ApplicationId == 10538 || data.ClientObject.ApplicationId == 10190)
                         {
-                            LoggerAccessor.LogInfo("AppId GameList Check");
                             var gameList = MediusClass.Manager.GetGameListAppId(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize)
+                                .Where(x => x.Host != null && x.PlayerCount > 0)
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5289,6 +5520,9 @@ namespace Horizon.MEDIUS.Medius
                             if (gameList.Length > 0)
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
+
+                                Thread.Sleep(new Random().Next(2000, 6001)); // We simulate medius fetching delay between 2 and 6 seconds.
+                                                                             // Some games expect a delayed response and it's never the same for every clients.
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5305,12 +5539,12 @@ namespace Horizon.MEDIUS.Medius
                         }
                         else
                         {
-                            LoggerAccessor.LogInfo("Filtered GameList Check");
                             var gameList = MediusClass.Manager.GetGameList(
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize,
                                data.ClientObject.GameListFilters)
+                                .Where(x => x.Host != null && x.PlayerCount > 0)
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5329,6 +5563,9 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
 
+                                Thread.Sleep(new Random().Next(2000, 6001)); // We simulate medius fetching delay between 2 and 6 seconds.
+                                                                             // Some games expect a delayed response and it's never the same for every clients.
+
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
                             }
@@ -5342,7 +5579,6 @@ namespace Horizon.MEDIUS.Medius
                                 });
                             }
                         }
-
 
                         break;
                     }
@@ -6590,6 +6826,36 @@ namespace Horizon.MEDIUS.Medius
 
                         if (data.ClientObject.CurrentGame != null)
                         {
+                            bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                   && (string.IsNullOrEmpty(data.ClientObject.AccountName)
+                                       || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(data.ClientObject.AccountName)
+                                       || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName])
+                                       || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[data.ClientObject.AccountName] != "ADMIN"));
+
+                            if (isHomeCheat)
+                            {
+                                switch (data.ApplicationId)
+                                {
+                                    case 20371:
+                                        // TODO!
+                                        break;
+                                    case 20374:
+                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                        {
+                                            if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
+                                            {
+                                                switch (value)
+                                                {
+                                                    case "DISABLECONSOLE":
+                                                        CheatQuery(0x50A7DEEC, 1, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                        break;
+                                                }
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+
                             CrudRoomManager.UpdateOrCreateRoom(data.ClientObject.CurrentGame.ApplicationId.ToString(), data.ClientObject.CurrentGame.GameName,
                                 data.ClientObject.CurrentGame.WorldID.ToString(), data.ClientObject.AccountName, data.ClientObject.LanguageType.ToString(),
                                 data.ClientObject == data.ClientObject.CurrentGame.Host);
@@ -10743,7 +11009,41 @@ namespace Horizon.MEDIUS.Medius
             }
 
             if (data.ClientObject != null)
-                await data.ClientObject.Login(accountDto);
+            {
+                bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                   && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                   && (string.IsNullOrEmpty(accountDto.AccountName)
+                                       || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName)
+                                       || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[accountDto.AccountName])
+                                       || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[accountDto.AccountName] != "ADMIN"));
+
+                if (isHomeCheat)
+                {
+                    switch (data.ApplicationId)
+                    {
+                        case 20371:
+                            // TODO!
+                            break;
+                        case 20374:
+                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                            {
+                                CheatQuery(0x10050500, 9, clientChannel);
+                                CheatQuery(0x10074820, 9, clientChannel);
+                            }
+                            break;
+                    }
+                }
+
+                if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(accountDto.AccountName)
+                || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName)))
+                {
+                    data.State = ClientState.DISCONNECTED;
+                    await clientChannel.CloseAsync();
+                    return false;
+                }
+                else
+                    await data.ClientObject.Login(accountDto);
+            }
 
             #region Update DB IP and CID
             if (!Anonymous)
@@ -10756,12 +11056,61 @@ namespace Horizon.MEDIUS.Medius
 
             if (data.ClientObject != null)
             {
+                CrudCIDManager.CreateUser(Anonymous ? "AnonymousClient" : data.ClientObject.AccountName, data.MachineId);
+
                 // Add to logged in clients
                 MediusClass.Manager.AddClient(data.ClientObject);
 
                 LoggerAccessor.LogInfo($"CREATING GUEST IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
             }
 
+            return true;
+        }
+        #endregion
+
+        #region PokeEngine
+        private bool CheatQuery(uint address, int Length, IChannel? clientChannel, CheatQueryType Type = CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY)
+        {
+            // address = 0, don't read
+            if (address == 0)
+                return false;
+
+            // client channel is null, don't read
+            if (clientChannel == null)
+                return false;
+
+            // read client memory
+            Queue(new RT_MSG_SERVER_CHEAT_QUERY()
+            {
+                QueryType = Type,
+                SequenceId = 1,
+                StartAddress = address,
+                Length = Length,
+            }, clientChannel);
+
+            // return read
+            return true;
+        }
+
+        private bool PokeAddress(uint patchLocation, byte[] Payload, IChannel? clientChannel)
+        {
+            // patch location = 0, don't patch
+            if (patchLocation == 0)
+                return false;
+
+            // client channel is null, don't patch
+            if (clientChannel == null)
+                return false;
+
+            // poke client memory
+            Queue(new RT_MSG_SERVER_MEMORY_POKE()
+            {
+                start_Address = patchLocation,
+                Payload = Payload,
+                SkipEncryption = false,
+            }, clientChannel);
+
+            // return patched
             return true;
         }
         #endregion

@@ -1,3 +1,4 @@
+using QuazalServer.QNetZ.DDL;
 using System.Linq.Expressions;
 
 namespace QuazalServer.QNetZ
@@ -27,8 +28,26 @@ namespace QuazalServer.QNetZ
         public string? UbiPass { get; set; }
         public string? Name { get; set; }
 
-		// game - specific stuff comes here
-		public T GetData<T>() where T: class
+        public StationURL? Url
+        {
+            get
+            {
+                if (Client == null)
+                    return null;
+
+                return new StationURL(
+                    "prudp",
+                    Client.Endpoint.Address.ToString(),
+                    new Dictionary<string, int>() {
+                        { "port", Client.Endpoint.Port },
+                        { "RVCID", (int)RVCID },
+						//{ "type", 3 }	// TODO: IsPublic and Behind NAT flags
+					});
+            }
+        }
+
+        // game - specific stuff comes here
+        public T GetData<T>() where T: class
 		{
 			IPlayerDataStore? value;
 

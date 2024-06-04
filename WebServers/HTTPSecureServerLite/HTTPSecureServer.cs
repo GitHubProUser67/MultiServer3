@@ -39,22 +39,18 @@ namespace HTTPSecureServerLite
             Task serverHTTP = Task.Run(async () =>
             {
                 HttpsProcessor processor = new(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", listenerPort); // 0.0.0.0 as the certificate binds to this IP
-                processor.StartServer();
                 _listeners.TryAdd(listenerPort, processor);
 
                 // Wait until cancellation is requested or task completes
                 await Task.Delay(-1, _cts.Token);
 
-                await StopAsync(_cts.Token);
-
             }, _cts.Token);
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public void StopServer()
         {
             _cts.Cancel();
             _listeners.Values.ToList().ForEach(x => x.StopServer());
-            return Task.CompletedTask;
         }
         #endregion
     }

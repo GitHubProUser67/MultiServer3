@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using CyberBackendLibrary.Crypto;
 
 namespace HomeTools.UnBAR
 {
@@ -27,53 +28,50 @@ namespace HomeTools.UnBAR
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
 
-        public static void RunEncrypt(string filePath, string sdatfilePath)
+        public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath, ushort version)
         {
-            try
+            using Process? process = Process.Start(new ProcessStartInfo()
             {
-                int statuscode = new EDAT().encryptFile(filePath, sdatfilePath);
+                FileName = converterPath + "/make_npdata",
+                Arguments = $"-e \"{filePath}\" \"{sdatfilePath}\" 0 1 {version} 1 4 3 00 \"\" 0",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = converterPath, // Can load various config files.
+                CreateNoWindow = true
+            });
 
-                if (statuscode != 0)
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {statuscode}");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[RunEncrypt] - SDAT Encryption failed with exception : {ex}");
-            }
+            process?.WaitForExit();
+
+            int? ExitCode = process?.ExitCode;
+
+            if (ExitCode != 0)
+                LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
         }
 
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
-            int statuscode = new EDAT().decryptFile(sdatfilePath, datfilePath);
-
-            if (statuscode == 0)
-                await RunExtract(datfilePath, outDir);
-            else
+            using Process? process = Process.Start(new ProcessStartInfo()
             {
-                LoggerAccessor.LogDebug($"[RunUnBAR] - EDAT decryption failed with status code : {statuscode}, switching to make_npdata...");
+                FileName = converterPath + "/make_npdata",
+                Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = converterPath, // Can load various config files.
+                CreateNoWindow = true
+            });
 
-                using Process? process = Process.Start(new ProcessStartInfo()
-                {
-                    FileName = converterPath + "/make_npdata",
-                    Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    WorkingDirectory = converterPath, // Can load various config files.
-                    CreateNoWindow = true
-                });
+            process?.WaitForExit();
 
-                process?.WaitForExit();
+            int? ExitCode = process?.ExitCode;
 
-                int? ExitCode = process?.ExitCode;
-
-                if (ExitCode != 0)
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
-                else
-                    await RunExtract(datfilePath, outDir);
-            }
+            if (ExitCode != 0)
+                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
+            else
+                await RunExtract(datfilePath, outDir);
         }
 
         private static async Task RunExtract(string filePath, string outDir)
@@ -87,14 +85,32 @@ namespace HomeTools.UnBAR
             {
                 try
                 {
-                    RawBarData = await File.ReadAllBytesAsync(filePath);
+                    RawBarData = File.ReadAllBytes(filePath);
 
-                    if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }) != -1)
-                        isSharc = true;
-                    else if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }) != -1)
+                    if (RawBarData.Length < 12)
+                        return; // File not a BAR.
+                    else
                     {
-                        isSharc = true;
-                        isLittleEndian = true;
+                        if (RawBarData[0] == 0xAD && RawBarData[1] == 0xEF && RawBarData[2] == 0x17 && RawBarData[3] == 0xE1)
+                        {
+
+                        }
+                        else if (RawBarData[0] == 0xE1 && RawBarData[1] == 0x17 && RawBarData[2] == 0xEF && RawBarData[3] == 0xAD)
+                            isLittleEndian = true;
+                        else
+                            return; // File not a BAR.
+
+                        switch (isLittleEndian)
+                        {
+                            case true:
+                                if (RawBarData[4] == 0x00 && RawBarData[5] == 0x00 && RawBarData[6] == 0x00 && RawBarData[7] == 0x02)
+                                    isSharc = true;
+                                break;
+                            default:
+                                if (RawBarData[4] == 0x02 && RawBarData[5] == 0x00 && RawBarData[6] == 0x00 && RawBarData[7] == 0x00)
+                                    isSharc = true;
+                                break;
+                        }
                     }
 
                     if (isSharc && RawBarData.Length > 52)
@@ -212,15 +228,6 @@ namespace HomeTools.UnBAR
                     }
                     else
                     {
-                        if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xAD, 0xEF, 0x17, 0xE1 }) != -1)
-                        {
-
-                        }
-                        else if (DataTypesUtils.FindBytePattern(RawBarData, new byte[] { 0xE1, 0x17, 0xEF, 0xAD }) != -1)
-                            isLittleEndian = true;
-                        else
-                            return; // File not a BAR.
-
                         Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
 
                         LoggerAccessor.LogInfo("Loading BAR/dat: {0}", filePath);
@@ -228,7 +235,7 @@ namespace HomeTools.UnBAR
                 }
                 catch (Exception ex)
                 {
-                    LoggerAccessor.LogError($"[RunUnBAR] - Timestamp creation failed! with error - {ex}");
+                    LoggerAccessor.LogError($"[RunUnBAR] - Initial archive loading failed with error - {ex}");
                 }
             }
 
@@ -236,14 +243,13 @@ namespace HomeTools.UnBAR
             {
                 try
                 {
-                    BARArchive? archive = null;
-                    archive = new(filePath, outDir);
+                    BARArchive archive = new BARArchive(filePath, outDir);
                     archive.Load();
                     archive.WriteMap(filePath);
                     File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
 
                     // Create a list to hold the tasks
-                    List<Task>? TOCTasks = new();
+                    List<Task>? TOCTasks = new List<Task>();
 
                     foreach (TOCEntry tableOfContent in archive.TableOfContents)
                     {
@@ -260,7 +266,7 @@ namespace HomeTools.UnBAR
                                         ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
                                     else
                                     {
-                                        using MemoryStream memoryStream = new(FileData);
+                                        using MemoryStream memoryStream = new MemoryStream(FileData);
                                         ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
                                             FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)));
                                         memoryStream.Flush();
@@ -285,7 +291,6 @@ namespace HomeTools.UnBAR
                     await Task.WhenAll(TOCTasks);
 
                     TOCTasks = null;
-                    archive = null;
 
                     if (File.Exists(filePath + ".map"))
                         File.Move(filePath + ".map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
@@ -356,9 +361,15 @@ namespace HomeTools.UnBAR
                                 // Copy the content after the first 28 bytes to the new array
                                 Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
-                                StringBuilder sb = new();
+                                StringBuilder sb = new StringBuilder();
 
-                                foreach (byte b in SHA1.HashData(FileBytes))
+                                byte[] SHA1Data = new byte[0];
+                                using (SHA1 sha1 = SHA1.Create())
+                                {
+                                    SHA1Data = sha1.ComputeHash(FileBytes);
+                                }
+
+                                foreach (byte b in SHA1Data)
                                 {
                                     sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
                                 }
@@ -382,7 +393,7 @@ namespace HomeTools.UnBAR
                                         {
                                             try
                                             {
-                                                FileBytes = ToolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
+                                                FileBytes = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibDecompress(FileBytes);
                                             }
                                             catch
                                             {
@@ -392,7 +403,7 @@ namespace HomeTools.UnBAR
 
                                                 try
                                                 {
-                                                    FileBytes = ToolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                                                    FileBytes = CompressionLibrary.Utils.EdgeZlib.ICSharpEdgeZlibDecompress(FileBytes);
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -464,7 +475,7 @@ namespace HomeTools.UnBAR
 
                 try
                 {
-                    FileBytes = ToolsImpl.ComponentAceEdgeZlibDecompress(FileBytes);
+                    FileBytes = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibDecompress(FileBytes);
                 }
                 catch
                 {
@@ -474,7 +485,7 @@ namespace HomeTools.UnBAR
 
                     try
                     {
-                        FileBytes = ToolsImpl.ICSharpEdgeZlibDecompress(FileBytes);
+                        FileBytes = CompressionLibrary.Utils.EdgeZlib.ICSharpEdgeZlibDecompress(FileBytes);
                     }
                     catch (Exception ex)
                     {
@@ -484,7 +495,7 @@ namespace HomeTools.UnBAR
                     }
                 }
 
-                using MemoryStream memoryStream = new(FileBytes);
+                using MemoryStream memoryStream = new MemoryStream(FileBytes);
                 string registeredExtension = string.Empty;
 
                 try
@@ -513,7 +524,7 @@ namespace HomeTools.UnBAR
             }
             else
             {
-                using MemoryStream memoryStream = new(data);
+                using MemoryStream memoryStream = new MemoryStream(data);
                 string registeredExtension = string.Empty;
 
                 try

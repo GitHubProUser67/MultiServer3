@@ -3,7 +3,7 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class AuroraXPTable
     {
-        private static readonly Dictionary<ushort, int> LevelsNxp = new()
+        private static readonly Dictionary<ushort, int> LevelsNxp = new Dictionary<ushort, int>()
         {
             {1, 0},
             {2, 1371},
@@ -157,7 +157,7 @@ namespace WebAPIService.NDREAMS.Aurora
             {150, 1050755}
         };
 
-        private static readonly Dictionary<int, string> XpRewards = new()
+        private static readonly Dictionary<int, string> XpRewards = new Dictionary<int, string>()
         {
             {1371, "Aurora Energy goggles - bronze"},
             {2805, "Aurora Teleporter active item"},

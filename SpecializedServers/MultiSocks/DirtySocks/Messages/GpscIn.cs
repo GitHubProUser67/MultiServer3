@@ -27,7 +27,18 @@ namespace MultiSocks.DirtySocks.Messages
             User? user = client.User;
             if (user == null) return;
 
-            user.Params = USERPARAMS ?? "PUSMC01?????,,,-1,-1,,d";
+            if (!string.IsNullOrEmpty(USERPARAMS))
+                user.Params = USERPARAMS;
+
+            if (!string.IsNullOrEmpty(FORCE_LEAVE) && FORCE_LEAVE == "1" && user.CurrentGame != null)
+            {
+                Game prevGame = user.CurrentGame;
+
+                prevGame.KickPlayerByUsername(user.Username);
+
+                lock (mc.Games)
+                    mc.Games.UpdateGame(prevGame);
+            }
 
             int? parsedMinSize = int.TryParse(MINSIZE, out int minSize) ? minSize : null;
             int? parsedMaxSize = int.TryParse(MAXSIZE, out int maxSize) ? maxSize : null;
@@ -40,7 +51,7 @@ namespace MultiSocks.DirtySocks.Messages
             {
                 Game? game = mc.Games.GetGameByName(NAME, PASS);
 
-                game ??= mc.Games.AddGame(parsedMaxSize.Value, parsedMinSize.Value, CUSTFLAGS, PARAMS, NAME, parsedPriv.Value != 0, SEED, SYSFLAGS, PASS);
+                game ??= mc.Games.AddGame(parsedMaxSize.Value, parsedMinSize.Value, CUSTFLAGS, PARAMS, NAME, parsedPriv.Value != 0, SEED, SYSFLAGS, PASS, (user.CurrentRoom != null) ? user.CurrentRoom.ID : 0);
 
                 if (game != null)
                 {
@@ -60,14 +71,11 @@ namespace MultiSocks.DirtySocks.Messages
 
                     user.CurrentGame = game;
 
-                    client.SendMessage(new GpscOut()
-                    {
-
-                    });
+                    client.SendMessage(new GpscOut());
 
                     user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
 
-                    client.SendMessage(game.GetPlusMgm());
+                    game.BroadcastPopulation();
                 }
                 else
                 {

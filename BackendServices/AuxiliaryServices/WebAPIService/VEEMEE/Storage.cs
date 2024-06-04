@@ -15,7 +15,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -49,7 +49,7 @@ namespace WebAPIService.VEEMEE
                     }
                 }
 
-                return Processor.sign(configValue);
+                return Processor.Sign(configValue);
             }
 
             return null;
@@ -65,7 +65,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -97,7 +97,7 @@ namespace WebAPIService.VEEMEE
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -110,7 +110,7 @@ namespace WebAPIService.VEEMEE
 
                 ProfileManager.WriteProfile(psnid, profile, apiPath);
 
-                return Processor.sign(profile);
+                return Processor.Sign(profile);
             }
 
             return null;
@@ -125,9 +125,9 @@ namespace WebAPIService.VEEMEE
                 return null;
 
             if (File.Exists($"{apiPath}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"))
-                return Processor.sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"));
+                return Processor.Sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/User_Profiles/{psnid}.json"));
             else
-                return Processor.sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/default_profile.json"));
+                return Processor.Sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/default_profile.json"));
         }
 
         public static void WriteProfile(string psnid, string profile, string apiPath)

@@ -14,6 +14,8 @@ using System.Net;
 using DotNetty.Handlers.Timeout;
 using Horizon.DME.PluginArgs;
 using Horizon.PluginManager;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Horizon.DME
 {
@@ -24,8 +26,6 @@ namespace Horizon.DME
         public bool IsRunning => _boundChannel != null && _boundChannel.Active;
 
         public int Port => DmeClass.Settings.TCPPort;
-
-        public List<ushort> clientTokens = new();
 
         protected IEventLoopGroup? _bossGroup = null;
         protected IEventLoopGroup? _workerGroup = null;
@@ -145,7 +145,10 @@ namespace Horizon.DME
             try
             {
                 if (_boundChannel != null)
+                {
                     await _boundChannel.CloseAsync();
+                    _boundChannel = null;
+                }
             }
             finally
             {
@@ -698,25 +701,97 @@ namespace Horizon.DME
                 {
                     case RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_CLIENT_REQUEST:
                         {
-                            clientTokens.Add(clientTokenMsg.targetToken);
-
-                            Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                            if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
                             {
-                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED,
-                                targetToken = clientTokenMsg.targetToken,
-                            }, clientChannel);
+                                if (!data.ClientObject.DmeWorld.clientTokens.ContainsKey(clientTokenMsg.targetToken))
+                                {
+                                    data.ClientObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new List<int> { data.ClientObject.DmeId });
+
+                                    data.ClientObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to broadcast the signal that this token is owned.
+                                    {
+                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
+                                        TokenID = clientTokenMsg.targetToken,
+                                        TokenHost = (ushort)data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken][0],
+                                    });
+                                }
+                                else
+                                {
+                                    lock (data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken])
+                                        data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Add(data.ClientObject.DmeId);
+
+                                    Queue(new RT_MSG_SERVER_TOKEN_MESSAGE() // This message should not be broadcasted, Home doesn't like it.
+                                    {
+                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED,
+                                        TokenID = clientTokenMsg.targetToken
+                                    }, clientChannel);
+                                }
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogWarn($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.ClientObject?.IP} requested a token request without being in a DmeWorld!");
+
+                                Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
+                                {
+                                    Reason = SERVER_FORCE_DISCONNECT_REASON.SERVER_FORCED_DISCONNECT_ERROR
+                                }, clientChannel);
+                            }
+
                             break;
                         }
 
                     case RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_CLIENT_RELEASE:
                         {
-                            clientTokens.Remove(clientTokenMsg.targetToken);
-
-                            Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                            if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
                             {
-                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED,
-                                targetToken = clientTokenMsg.targetToken,
-                            }, clientChannel);
+                                if (data.ClientObject.DmeWorld.clientTokens.TryGetValue(clientTokenMsg.targetToken, out List<int>? value))
+                                {
+                                    if (value.Contains(data.ClientObject.DmeId))
+                                    {
+                                        if (value.IndexOf(data.ClientObject.DmeId) == 0)
+                                        {
+                                            data.ClientObject.DmeWorld.clientTokens.TryRemove(clientTokenMsg.targetToken, out _);
+
+                                            data.ClientObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                            {
+                                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED,
+                                                TokenID = clientTokenMsg.targetToken,
+                                            });
+                                        }
+                                        else
+                                        {
+                                            lock (value)
+                                                value.Remove(data.ClientObject.DmeId);
+
+                                            Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                            {
+                                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED,
+                                                TokenID = clientTokenMsg.targetToken,
+                                            }, clientChannel);
+                                        }
+                                    }
+                                    else
+                                        Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                        {
+                                            tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED,
+                                            TokenID = clientTokenMsg.targetToken,
+                                        }, clientChannel);
+                                }
+                                else
+                                    Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                    {
+                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNER_REMOVED,
+                                    }, clientChannel);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogWarn($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.ClientObject?.IP} requested a token release without being in a DmeWorld!");
+
+                                Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
+                                {
+                                    Reason = SERVER_FORCE_DISCONNECT_REASON.SERVER_FORCED_DISCONNECT_ERROR
+                                }, clientChannel);
+                            }
+
                             break;
                         }
 
@@ -855,25 +930,6 @@ namespace Horizon.DME
         public bool rt_token_is_valid(ushort TokenId)
         {
             return TokenId <= 65534;
-        }
-
-        public void rt_token_build_token_msg(ushort TokenId, IChannel channel, RT_TOKEN_MESSAGE_TYPE MsgType)
-        {
-            if ((int)MsgType == 1 || (int)MsgType == 2 || (int)MsgType == 3 || (int)MsgType == 7 || (int)MsgType == 8 || (int)MsgType == 0xA || (int)MsgType == 9)
-            {
-                /*
-                // send force disconnect message
-                await channel.WriteAndFlushAsync(new RT_MSG_SERVER_TOKEN_MESSAGE()
-                {
-                    tokenId = TokenId,
-                });
-
-                // close channel
-                await channel.CloseAsync();
-                */
-            }
-            else
-                LoggerAccessor.LogWarn("((RT_TOKEN_CLIENT_QUERY == MsgType) || (RT_TOKEN_CLIENT_REQUEST == MsgType) || (RT_TOKEN_CLIENT_RELEASE == MsgType) || (RT_TOKEN_SERVER_OWNED == MsgType) || (RT_TOKEN_SERVER_GRANTED == MsgType) || (RT_TOKEN_SERVER_RELEASED == MsgType) || (RT_TOKEN_SERVER_FREED == MsgType))");
         }
     }
 }

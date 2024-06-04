@@ -23,7 +23,7 @@ namespace TycoonServer.HFProcessors
 
             if (boundary != null)
             {
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     Command = data.GetParameterValue("Command");

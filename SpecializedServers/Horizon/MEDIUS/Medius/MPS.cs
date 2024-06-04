@@ -352,16 +352,16 @@ namespace Horizon.MEDIUS.Medius
                             int accountId = 0;
                             string msgId = string.Empty;
 
-                            string[] messageParts = joinGameResponse.MessageID.Value.Split('-');
+                            string[]? messageParts = joinGameResponse.MessageID?.Value.Split('-');
 
-                            if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
+                            if (messageParts != null && messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
                             {
                                 offseted = true;
                                 gameOrPartyId = int.Parse(messageParts[0]);
                                 accountId = -int.Parse(messageParts[2]);
                                 msgId = messageParts[3];
                             }
-                            else if (int.TryParse(messageParts[0], out gameOrPartyId) &&
+                            else if (messageParts != null && int.TryParse(messageParts[0], out gameOrPartyId) &&
                                 int.TryParse(messageParts[1], out accountId))
                                 msgId = messageParts[2];
                             else
@@ -381,7 +381,7 @@ namespace Horizon.MEDIUS.Medius
                                 else
                                     partyType = int.Parse(messageParts[3]);
                             }
-                            catch (Exception)
+                            catch
                             {
                                 // Not Important.
                             }
@@ -779,8 +779,6 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerConnectNotification
                 case MediusServerConnectNotification connectNotification:
                     {
-                        LoggerAccessor.LogInfo("MediusServerConnectNotification Received");
-                        //LoggerAccessor.LogWarn($"sessionkey {(data.ClientObject as DMEObject).SessionKey} worldid {(int)connectNotification.MediusWorldUID}");
                         if (data.ClientObject != null && MediusClass.Manager.GetGameByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
                         {
                             Game? conn = MediusClass.Manager.GetGameByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);

@@ -48,7 +48,7 @@ namespace WebAPIService.VEEMEE.gofish
                     }
 
                     // Load the XML string into an XmlDocument
-                    XmlDocument xmlDoc = new();
+                    XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{apiPath}/VEEMEE/gofish/User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <score> element

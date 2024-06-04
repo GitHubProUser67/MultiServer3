@@ -41,7 +41,7 @@ namespace WebAPIService.PREMIUMAGENCY
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using (MemoryStream ms = new(PostData))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
@@ -199,9 +199,9 @@ namespace WebAPIService.PREMIUMAGENCY
             try
             {
 
-                List<(string, string)> formData = new();
+                List<(string, string)> formData = new List<(string, string)>();
 
-                using (StreamReader reader = new(filePath))
+                using (StreamReader reader = new StreamReader(filePath))
                 {
                     string? line;
                     string currentKey = string.Empty;

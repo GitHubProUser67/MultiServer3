@@ -1,7 +1,5 @@
 using CustomLogger;
-using PSHostsFile;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,18 +8,36 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MitmDNS
 {
     public partial class MitmDNSClass
     {
-        public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
-        public static List<KeyValuePair<string, DnsSettings>> StarRules = new();
+        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static Dictionary<string, DnsSettings> StarRules = new();
+        public static bool Initiated = false;
+        public MitmDNSUDPProcessor UDPproc = new();
+        public MitmDNSTCPProcessor TCPproc = new();
 
-        public async void MitmDNSMain()
+        public void StartServerAsync(CancellationToken cancellationToken)
         {
-            LoggerAccessor.LogWarn("[DNS] - DNS system is initialising, service will be available when initialized...");
+            Parallel.Invoke(() => {
+                _ = Task.Run(() => UDPproc.Start(cancellationToken));
+                _ = Task.Run(() => TCPproc.Start(cancellationToken));
+            });
+        }
+
+        public void StopServer()
+        {
+            UDPproc.Stop();
+            TCPproc.Stop();
+        }
+
+        public async static void RenewConfig()
+        {
+            LoggerAccessor.LogWarn("[DNS] - DNS system configuration is initialising, service will be available when initialized...");
 
             if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
             {
@@ -41,26 +57,20 @@ namespace MitmDNS
                 }
                 catch (Exception ex)
                 {
-                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize, so DNS server starter aborted! - {ex}");
-                    return;
+                    LoggerAccessor.LogError($"[DNS] - Online Config failed to initialize! - {ex}");
                 }
             }
-            else
-            {
-                if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
-                    ParseRules(MitmDNSServerConfiguration.DNSConfig);
-                else
-                {
-                    LoggerAccessor.LogError("[DNS] - No config text file, so DNS server aborted!");
-                    Environment.Exit(0);
-                }
-            }
-
-            await new MitmDNSUDPProcessor().RunDns();
+            else if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
+                ParseRules(MitmDNSServerConfiguration.DNSConfig);
         }
 
         private static void ParseRules(string Filename, bool IsFilename = true)
         {
+            DicRules.Clear();
+            StarRules.Clear();
+
+            Initiated = false;
+
             LoggerAccessor.LogInfo("[DNS] - Parsing Configuration File...");
 
             if (Path.GetFileNameWithoutExtension(Filename).ToLower() == "boot")
@@ -112,38 +122,21 @@ namespace MitmDNS
                             domain = domain.Replace("*", ".*");
 
                             lock (StarRules)
-                            {
-                                if (!StarRules.Any(pair => pair.Key == domain))
-                                    StarRules.Add(new KeyValuePair<string, DnsSettings>(domain, dns));
-                            }
+                                StarRules.TryAdd(domain, dns);
                         }
                         else
                         {
-                            DicRules.TryAdd(domain, dns);
-                            DicRules.TryAdd("www." + domain, dns);
+                            lock (DicRules)
+                            {
+                                DicRules.TryAdd(domain, dns);
+                                DicRules.TryAdd("www." + domain, dns);
+                            }
                         }
                     }
                 });
             }
 
-            foreach (HostsFileEntry? hostsEntry in HostsFile.Get())
-            {
-                string domain = hostsEntry.Hostname;
-
-                DnsSettings dns = new()
-                {
-                    Mode = HandleMode.Redirect,
-                    Address = hostsEntry.Address
-                };
-
-                // Check if the domain has been processed before
-                if (!DicRules.ContainsKey(domain) && !StarRules.Any(pair => pair.Key == domain))
-                {
-                    // Hosts entry should not support wildcard in theory, so only DicRules.
-                    DicRules.TryAdd(domain, dns);
-                    DicRules.TryAdd("www." + domain, dns);
-                }
-            }
+            Initiated = true;
 
             LoggerAccessor.LogInfo("[DNS] - " + DicRules.Count.ToString() + " dictionary rules and " + StarRules.Count.ToString() + " star rules loaded");
         }
@@ -191,8 +184,11 @@ namespace MitmDNS
                                 dns.Mode = HandleMode.Redirect;
                                 dns.Address = GetIp(match.Groups[1].Value);
 
-                                DicRules.TryAdd(hostname, dns);
-                                DicRules.TryAdd("www." + hostname, dns);
+                                lock (DicRules)
+                                {
+                                    DicRules.TryAdd(hostname, dns);
+                                    DicRules.TryAdd("www." + hostname, dns);
+                                }
 
                                 break;
                             }
@@ -225,15 +221,15 @@ namespace MitmDNS
                         {
                             IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Loopback;
                         }
-                        catch // Host is invalid or non-existant, fallback to public/local server IP
+                        catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress()); // Some legacy DNS clients doesn't support IPv6.
+                            IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
                         }
                         break;
                     }
                 default:
                     {
-                        IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress()); // Some legacy DNS clients doesn't support IPv6.
+                        IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
@@ -243,7 +239,7 @@ namespace MitmDNS
         }
         #endregion
 
-        private bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        private static bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

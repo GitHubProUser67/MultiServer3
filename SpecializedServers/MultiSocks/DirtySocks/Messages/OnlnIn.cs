@@ -5,6 +5,7 @@ namespace MultiSocks.DirtySocks.Messages
         public override string _Name { get => "onln"; }
 
         public string? PERS { get; set; }
+        public string? OFFLINE { get; set; }
         public string ROOM { get; set; } = "Room-A";
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
@@ -12,16 +13,21 @@ namespace MultiSocks.DirtySocks.Messages
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
-            Model.User? user = client.User;
+            Model.User? user = !string.IsNullOrEmpty(PERS) ? mc.Users.GetUserByPersonaName(PERS) : client.User;
             if (user == null) return;
 
-            Model.Room? Room = user.CurrentRoom;
+            if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
+                client.SendMessage(user.SendOnlnOut(user, "BURNOUT5"));
+            else
+            {
+                Model.Room? Room = user.CurrentRoom;
 
-            PlusUser info = user.GetInfo();
+                PlusUser info = user.GetInfo();
 
-            client.SendMessage(info);
-            client.SendMessage(this);
-            //client.SendMessage(new OnlnImst());
+                client.SendMessage(info);
+                client.SendMessage(this);
+                //client.SendMessage(new OnlnImst());
+            }
         }
     }
 

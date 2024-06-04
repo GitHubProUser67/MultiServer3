@@ -103,7 +103,7 @@ namespace HTTPServer
                 };
             else
                 return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                    HTTPServerConfiguration.HTTPStaticFolder, HTTPProcessor.GenerateServerSignature(), serverPort, HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.Not_Found);
+                    HTTPServerConfiguration.HTTPStaticFolder, "NCSAHTTPServer", serverPort, HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.Not_Found);
         }
 
         public static HttpResponse NotAllowed(bool KeepAlive = false)

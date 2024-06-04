@@ -35,13 +35,15 @@ namespace MultiSocks.DirtySocks.Messages
         public string? CLST { get; set; }
         public string? NETV { get; set; }
         public string? MINAGE { get; set; }
+        public string? ENTL { get; set; }
+        public string? MASK { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
-            if (VERS == "BURNOUT5/ISLAND")
+            if (VERS == "BURNOUT5/ISLAND" || VERS == "BURNOUT5/TROPHIES" || VERS == "BURNOUT5/31")
             {
                 if (SKU == "PS3")
                 {
