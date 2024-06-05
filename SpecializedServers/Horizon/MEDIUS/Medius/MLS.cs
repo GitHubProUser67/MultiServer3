@@ -22,6 +22,7 @@ using EndianTools;
 using CyberBackendLibrary.DataTypes;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -10982,20 +10983,27 @@ namespace Horizon.MEDIUS.Medius
 
             if (accountDto == null)
             {
+                Ionic.Crc.CRC32? crc = new();
                 Anonymous = true;
 
                 int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
+                byte[] iAccountIDBytes = Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s");
+
+                crc.SlurpBlock(iAccountIDBytes, 0, iAccountIDBytes.Length);
+
                 LoggerAccessor.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
 
                 accountDto = new()
                 {
                     AccountId = iAccountID,
-                    AccountName = $"Guest_{new CastleLibrary.Utils.Crc32().Get(Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s")):X}",
+                    AccountName = $"Guest_{crc.Crc32Result:X4}",
                     AccountPassword = "UNSET",
                     MachineId = data.MachineId,
                     MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                     AppId = data.ClientObject?.ApplicationId
                 };
+
+                crc = null;
             }
             else if (accountDto.IsBanned) // Would be too easy if the Client could bypass Ban with a Guest...
             {

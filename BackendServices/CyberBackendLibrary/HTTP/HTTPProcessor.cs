@@ -1,4 +1,6 @@
 using ComponentAce.Compression.Libs.zlib;
+using ZstdSharp;
+using ZstdSharp.Unsafe;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -721,7 +723,31 @@ namespace CyberBackendLibrary.HTTP
                 .Normalize(NormalizationForm.FormC);
         }
 
-        public static byte[] Compress(byte[] input)
+        public static byte[] CompressZstd(byte[] input)
+        {
+            using Compressor compressor = new Compressor(0);
+            return compressor.Wrap(input).ToArray();
+        }
+
+        public static byte[] CompressBrotli(byte[] input)
+        {
+            byte[] byteoutput = Array.Empty<byte>();
+
+            using (MemoryStream output = new MemoryStream())
+            {
+                using (BrotliStream brStream = new BrotliStream(output, CompressionLevel.Fastest))
+                {
+                    brStream.Write(input, 0, input.Length);
+                    brStream.Flush();
+                }
+
+                byteoutput = output.ToArray();
+            }
+
+            return byteoutput;
+        }
+
+        public static byte[] CompressGzip(byte[] input)
         {
             byte[] byteoutput = Array.Empty<byte>();
 
@@ -734,7 +760,6 @@ namespace CyberBackendLibrary.HTTP
                 }
 
                 byteoutput = output.ToArray();
-                output.Flush();
             }
 
             return byteoutput;
@@ -753,29 +778,70 @@ namespace CyberBackendLibrary.HTTP
                 }
 
                 byteoutput = output.ToArray();
-                output.Flush();
             }
 
             return byteoutput;
         }
 
-        public static Stream CompressStream(Stream input, bool LargeChunkMode)
+        public static Stream ZstdCompressStream(Stream input, bool LargeChunkMode)
         {
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                GZipStream outZStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
+                CompressionStream outZStream = new CompressionStream(outMemoryStream, 0);
+                outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
-                outZStream.Flush();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                GZipStream outZStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
+                CompressionStream outZStream = new CompressionStream(outMemoryStream, 0);
+                outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
                 CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
-                outZStream.Flush();
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
+        }
+
+        public static Stream BrotliCompressStream(Stream input, bool LargeChunkMode)
+        {
+            if (input.Length > 2147483648)
+            {
+                HugeMemoryStream outMemoryStream = new HugeMemoryStream();
+                BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
+                CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
+            else
+            {
+                MemoryStream outMemoryStream = new MemoryStream();
+                BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
+                CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
+        }
+
+        public static Stream GzipCompressStream(Stream input, bool LargeChunkMode)
+        {
+            if (input.Length > 2147483648)
+            {
+                HugeMemoryStream outMemoryStream = new HugeMemoryStream();
+                GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
+                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096);
+                outGStream.Flush();
+                outMemoryStream.Position = 0;
+                return outMemoryStream;
+            }
+            else
+            {
+                MemoryStream outMemoryStream = new MemoryStream();
+                GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
+                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096);
+                outGStream.Flush();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }

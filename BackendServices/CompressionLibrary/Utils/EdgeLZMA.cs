@@ -92,22 +92,22 @@ namespace CompressionLibrary.Utils
             bw.Write(0);   // unknown, 0
             bw.Write(0);   // unknown, 0
             var encoder = new Encoder(); // next comes the coder properties (5 bytes), followed by stream lengths, followed by the streams themselves.
-            var props = new Dictionary<SevenZip.CoderPropID, object>();
-            props[SevenZip.CoderPropID.DictionarySize] = 0x10000;
-            props[SevenZip.CoderPropID.MatchFinder] = "BT4";
-            props[SevenZip.CoderPropID.NumFastBytes] = numFastBytes;
-            props[SevenZip.CoderPropID.LitContextBits] = litContextBits;
-            props[SevenZip.CoderPropID.LitPosBits] = litPosBits;
-            props[SevenZip.CoderPropID.PosStateBits] = posStateBits;
-            //props[SevenZip.CoderPropID.BlockSize] = blockSize; // this always throws an exception when set
-            //props[SevenZip.CoderPropID.MatchFinderCycles] = matchFinderCycles; // ^ same here
-            //props[SevenZip.CoderPropID.DefaultProp] = 0;
-            //props[SevenZip.CoderPropID.UsedMemorySize] = 100000;
-            //props[SevenZip.CoderPropID.Order] = 1;
-            //props[SevenZip.CoderPropID.NumPasses] = 10;
-            //props[SevenZip.CoderPropID.Algorithm] = 0;
-            //props[SevenZip.CoderPropID.NumThreads] = ;
-            //props[SevenZip.CoderPropID.EndMarker] = ;
+            var props = new Dictionary<CoderPropID, object>();
+            props[CoderPropID.DictionarySize] = 0x10000;
+            props[CoderPropID.MatchFinder] = "BT4";
+            props[CoderPropID.NumFastBytes] = numFastBytes;
+            props[CoderPropID.LitContextBits] = litContextBits;
+            props[CoderPropID.LitPosBits] = litPosBits;
+            props[CoderPropID.PosStateBits] = posStateBits;
+            //props[CoderPropID.BlockSize] = blockSize; // this always throws an exception when set
+            //props[CoderPropID.MatchFinderCycles] = matchFinderCycles; // ^ same here
+            //props[CoderPropID.DefaultProp] = 0;
+            //props[CoderPropID.UsedMemorySize] = 100000;
+            //props[CoderPropID.Order] = 1;
+            //props[CoderPropID.NumPasses] = 10;
+            //props[CoderPropID.Algorithm] = 0;
+            //props[CoderPropID.NumThreads] = ;
+            //props[CoderPropID.EndMarker] = ;
 
             encoder.SetCoderProperties(props.Keys.ToArray(), props.Values.ToArray());
 
@@ -250,9 +250,7 @@ namespace CompressionLibrary.Utils
                                         // Read the contents of the memory stream into the byte array
                                         decompressedStream.Read(buffer, 0, contentLength);
                                         arrayOfArrays[index] = buffer;
-                                        decompressedStream.Flush();
                                     }
-                                    compressedStream.Flush();
                                 }
                             }
                             else
@@ -340,7 +338,6 @@ namespace CompressionLibrary.Utils
                 strmOutStream.Position = 0;
                 strmOutStream.CopyTo(outStream);
                 outStream.Position = 0;
-                strmOutStream.Flush();
             }
         }
 

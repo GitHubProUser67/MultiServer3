@@ -1,6 +1,5 @@
 // Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
 
-using WebAPIService;
 using WebAPIService.OHS;
 using WebAPIService.OUWF;
 using WebAPIService.PREMIUMAGENCY;
@@ -789,8 +788,12 @@ namespace HTTPServer
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
-                                                                        if (encoding.Contains("gzip"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        if (encoding.Contains("zstd"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                                                        else if (encoding.Contains("br"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                                                        else if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                         else if (encoding.Contains("deflate"))
                                                                             response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
                                                                         else
@@ -828,8 +831,12 @@ namespace HTTPServer
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
-                                                                        if (encoding.Contains("gzip"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        if (encoding.Contains("zstd"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                                                        else if (encoding.Contains("br"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                                                        else if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                         else if (encoding.Contains("deflate"))
                                                                             response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
                                                                         else
@@ -1260,10 +1267,20 @@ namespace HTTPServer
                             response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
                             if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                if (acceptencoding.Contains("gzip"))
+                                if (acceptencoding.Contains("zstd"))
+                                {
+                                    response.Headers.Add("Content-Encoding", "zstd");
+                                    response.ContentStream = new MemoryStream(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(payload)));
+                                }
+                                else if (acceptencoding.Contains("br"))
+                                {
+                                    response.Headers.Add("Content-Encoding", "br");
+                                    response.ContentStream = new MemoryStream(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(payload)));
+                                }
+                                else if (acceptencoding.Contains("gzip"))
                                 {
                                     response.Headers.Add("Content-Encoding", "gzip");
-                                    response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                                    response.ContentStream = new MemoryStream(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(payload)));
                                 }
                                 else if (acceptencoding.Contains("deflate"))
                                 {
@@ -1296,15 +1313,30 @@ namespace HTTPServer
 
                             long FileLength = new FileInfo(local_path).Length;
 
-                            if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                response.Headers.Add("Content-Encoding", "gzip");
-                                response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
-                            }
-                            else if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && FileLength <= 8000000)
-                            {
-                                response.Headers.Add("Content-Encoding", "deflate");
-                                response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                if (acceptencoding.Contains("zstd") && FileLength <= 8000000)
+                                {
+                                    response.Headers.Add("Content-Encoding", "zstd");
+                                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                }
+                                else if (acceptencoding.Contains("br") && FileLength <= 8000000)
+                                {
+                                    response.Headers.Add("Content-Encoding", "br");
+                                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                }
+                                else if (acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                                {
+                                    response.Headers.Add("Content-Encoding", "gzip");
+                                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                }
+                                else if (acceptencoding.Contains("deflate") && FileLength <= 8000000)
+                                {
+                                    response.Headers.Add("Content-Encoding", "deflate");
+                                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                }
+                                else
+                                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                             }
                             else
                                 response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -1445,10 +1477,20 @@ namespace HTTPServer
                     response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                     {
-                        if (acceptencoding.Contains("gzip"))
+                        if (acceptencoding.Contains("zstd"))
+                        {
+                            response.Headers.Add("Content-Encoding", "zstd");
+                            response.ContentStream = new MemoryStream(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(payload)));
+                        }
+                        else if (acceptencoding.Contains("br"))
+                        {
+                            response.Headers.Add("Content-Encoding", "br");
+                            response.ContentStream = new MemoryStream(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(payload)));
+                        }
+                        else if (acceptencoding.Contains("gzip"))
                         {
                             response.Headers.Add("Content-Encoding", "gzip");
-                            response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload)));
+                            response.ContentStream = new MemoryStream(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(payload)));
                         }
                         else if (acceptencoding.Contains("deflate"))
                         {
@@ -1491,15 +1533,30 @@ namespace HTTPServer
 
                     long FileLength = new FileInfo(local_path).Length;
 
-                    if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                     {
-                        response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
-                    }
-                    else if (!string.IsNullOrEmpty(acceptencoding) && acceptencoding.Contains("deflate") && FileLength <= 8000000)
-                    {
-                        response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                        if (acceptencoding.Contains("zstd") && FileLength <= 8000000)
+                        {
+                            response.Headers.Add("Content-Encoding", "zstd");
+                            response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                        }
+                        else if (acceptencoding.Contains("br") && FileLength <= 8000000)
+                        {
+                            response.Headers.Add("Content-Encoding", "br");
+                            response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                        }
+                        else if (acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                        {
+                            response.Headers.Add("Content-Encoding", "gzip");
+                            response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                        }
+                        else if (acceptencoding.Contains("deflate") && FileLength <= 8000000)
+                        {
+                            response.Headers.Add("Content-Encoding", "deflate");
+                            response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                        }
+                        else
+                            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     }
                     else
                         response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);

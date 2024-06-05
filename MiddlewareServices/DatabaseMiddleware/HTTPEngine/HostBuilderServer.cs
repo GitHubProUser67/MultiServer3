@@ -558,10 +558,30 @@ namespace DatabaseMiddleware.HTTPEngine
                                 ctx.Response.ContentType = "image/x-icon";
                                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                                 string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
-                                if (!string.IsNullOrEmpty(encoding) && encoding.Contains("gzip"))
+                                if (!string.IsNullOrEmpty(encoding))
                                 {
-                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                    await ctx.Response.Send(HTTPProcessor.Compress(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                    if (encoding.Contains("zstd"))
+                                    {
+                                        ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                        await ctx.Response.Send(HTTPProcessor.CompressZstd(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                    }
+                                    else if (encoding.Contains("br"))
+                                    {
+                                        ctx.Response.Headers.Add("Content-Encoding", "br");
+                                        await ctx.Response.Send(HTTPProcessor.CompressBrotli(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                    }
+                                    else if (encoding.Contains("gzip"))
+                                    {
+                                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                        await ctx.Response.Send(HTTPProcessor.CompressGzip(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                    }
+                                    else if (encoding.Contains("deflate"))
+                                    {
+                                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                        await ctx.Response.Send(HTTPProcessor.Inflate(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico")));
+                                    }
+                                    else
+                                        await ctx.Response.Send(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));
                                 }
                                 else
                                     await ctx.Response.Send(File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/wwwroot/favicon.ico"));

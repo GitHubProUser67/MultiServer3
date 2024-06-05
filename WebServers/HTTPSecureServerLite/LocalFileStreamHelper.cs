@@ -74,10 +74,20 @@ namespace HTTPSecureServerLite
                             ctx.Response.ContentType = "text/html; charset=UTF-8";
                             if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                if (acceptencoding.Contains("gzip"))
+                                if (acceptencoding.Contains("zstd"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                    return ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(payload))).Result;
+                                }
+                                else if (acceptencoding.Contains("br"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "br");
+                                    return ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(payload))).Result;
+                                }
+                                else if (acceptencoding.Contains("gzip"))
                                 {
                                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                    return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                                    return ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(payload))).Result;
                                 }
                                 else if (acceptencoding.Contains("deflate"))
                                 {
@@ -174,10 +184,20 @@ namespace HTTPSecureServerLite
                 ctx.Response.ContentType = "text/html; charset=UTF-8";
                 if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                 {
-                    if (acceptencoding.Contains("gzip"))
+                    if (acceptencoding.Contains("zstd"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                        return ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(payload))).Result;
+                    }
+                    else if (acceptencoding.Contains("br"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "br");
+                        return ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(payload))).Result;
+                    }
+                    else if (acceptencoding.Contains("gzip"))
                     {
                         ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                        return ctx.Response.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(payload))).Result;
+                        return ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(payload))).Result;
                     }
                     else if (acceptencoding.Contains("deflate"))
                     {

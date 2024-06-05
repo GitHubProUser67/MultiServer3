@@ -1,10 +1,10 @@
 using System.Text;
 using System.Security.Cryptography;
 using lzo.net;
-using ComponentAce.Compression.Libs.zlib;
 using System.Text.RegularExpressions;
 using CyberBackendLibrary.DataTypes;
 using EndianTools;
+using Ionic.Zlib;
 
 namespace QuazalServer.QNetZ
 {
@@ -239,24 +239,19 @@ namespace QuazalServer.QNetZ
                         return memoryStream.ToArray();
                     }
 				default:
-                    ZOutputStream zoutputStream = new(memoryStream, false);
-                    byte[] array = new byte[InData.Length];
-                    Array.Copy(InData, 0, array, 0, InData.Length);
-                    zoutputStream.Write(array, 0, array.Length);
-                    zoutputStream.Close();
-                    memoryStream.Close();
-                    return memoryStream.ToArray();
+                    ZlibStream s = new(new MemoryStream(InData), CompressionMode.Decompress);
+                    MemoryStream result = new();
+                    s.CopyTo(result);
+                    return result.ToArray();
             }
         }
 
         public static byte[] Compress(byte[] InData)
         {
-            MemoryStream memoryStream = new();
-            ZOutputStream zoutputStream = new(memoryStream, 9, false);
-            zoutputStream.Write(InData, 0, InData.Length);
-            zoutputStream.Close();
-            memoryStream.Close();
-            return memoryStream.ToArray();
+            ZlibStream s = new(new MemoryStream(InData), CompressionMode.Compress);
+            MemoryStream result = new();
+            s.CopyTo(result);
+            return result.ToArray();
         }
 
         public static byte[] Encrypt(string key, byte[] data)

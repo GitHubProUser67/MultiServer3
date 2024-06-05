@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
   
   <ItemGroup>
