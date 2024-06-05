@@ -29,10 +29,10 @@ for %%r in (%RIDs%) do (
 	
 	@echo Copying %%r build output to ~PublishOutput...
 	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net8.0/%%r/publish" "~PublishOutput/Database/%%r/net8.0/Debug"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
 	)
 	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net8.0/%%r/publish" "~PublishOutput/Database/%%r/net8.0/Debug"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
 	)
 	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net6.0/Debug"
 	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
@@ -43,10 +43,10 @@ for %%r in (%RIDs%) do (
 	xcopy /E /Y /I "WebServers/HTTPServer/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
 	xcopy /E /Y /I "WebServers/MitmDNS/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
 	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net8.0/%%r/publish" "~PublishOutput/Database/%%r/net8.0/Release"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
 	)
 	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net8.0/%%r/publish" "~PublishOutput/Database/%%r/net8.0/Release"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
 	)
 	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net6.0/Release"
 	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
