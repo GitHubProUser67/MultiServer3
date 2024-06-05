@@ -16,6 +16,7 @@
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
 	<DefineConstants />
     <Optimize>True</Optimize>
+	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
 
   <ItemGroup>

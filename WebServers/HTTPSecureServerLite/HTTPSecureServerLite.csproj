@@ -8,6 +8,7 @@
 	<DockerfileRunArguments>-p 443:443</DockerfileRunArguments>
     <ApplicationIcon>HTTPS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<PublishSingleFile>false</PublishSingleFile> <!-- Single mode cannot load plugins due to no assembly loading support. -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +18,7 @@
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
     <PackageReference Include="Watson.Lite" Version="6.1.10" />
@@ -33,5 +34,26 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  
   </ItemGroup>
+
+  <Target Name="PostPublishCleanup" AfterTargets="AfterBuild">
+	<ItemGroup>
+        <FilesToRemove Include="$(OutDir)$(ProjectName).deps.json" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <FilesExist Condition="Exists(@(FilesToRemove))">true</FilesExist>
+    </PropertyGroup>
+
+    <Delete Files="@(FilesToRemove)" Condition="$(FilesExist)" />
+	
+	<!-- HTTPS¨Plugins needs the deps.json still, so we copy a fixed version.
+		 We need this because Costura.Fody compresses local depenendies, and 
+		 the deps.json still has them referenced which trips docker. -->
+	
+    <WriteLinesToFile
+        File="$(OutDir)$(ProjectName).deps.json"
+        Lines="$([System.IO.File]::ReadAllText(HTTPSecureServerLite.deps.patch))"
+        Encoding="UTF-8"/>
+  </Target>
 
 </Project>

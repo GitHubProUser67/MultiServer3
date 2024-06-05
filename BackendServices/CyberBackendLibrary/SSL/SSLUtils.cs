@@ -10,6 +10,8 @@ using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CyberBackendLibrary.SSL
 {
@@ -94,6 +96,8 @@ namespace CyberBackendLibrary.SSL
         /// <returns>A X509Certificate2.</returns>
         public static X509Certificate2 CreateRootCertificateAuthority(string directoryPath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
         {
+            File.WriteAllText(directoryPath + "/lock.txt", string.Empty);
+
             DateTime CurrentDate = DateTime.Now;
 
             byte[] certSerialNumber = new byte[16];
@@ -137,6 +141,8 @@ namespace CyberBackendLibrary.SSL
             rsa.Clear();
 
             CreateCertificatesTextFile(PemRootCACertificate, directoryPath + "/CERTIFICATES.TXT");
+
+            File.Delete(directoryPath + "/lock.txt");
 
             return RootCACertificate;
         }
@@ -260,6 +266,9 @@ namespace CyberBackendLibrary.SSL
 
             X509Certificate2? RootCACertificate = null;
 
+            if (File.Exists(directoryPath + "/lock.txt"))
+                WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
+
             if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
                 RootCACertificate = CreateRootCertificateAuthority(directoryPath, Hashing);
             else
@@ -312,9 +321,31 @@ namespace CyberBackendLibrary.SSL
         /// <param name="selfsignedSubject">The self signed CA.</param>
         /// <param name="FileName">The output file.</param>
         /// <returns>Nothing.</returns>
-        public static void CreateCertificatesTextFile(string rootcaSubject, string FileName)
+        private static void CreateCertificatesTextFile(string rootcaSubject, string FileName)
         {
             File.WriteAllText(FileName, rootcaSubject + ENTRUST_NET_CA);
+        }
+
+        private static async Task WaitForFileDeletionAsync(string filePath)
+        {
+            using FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(Path.GetDirectoryName(filePath));
+            TaskCompletionSource<bool> deletionCompletionSource = new TaskCompletionSource<bool>();
+
+            // Watch for file deletion
+            fileSystemWatcher.Deleted += (sender, e) =>
+            {
+                if (e.Name == Path.GetFileName(filePath))
+                {
+                    // Signal that the file has been deleted
+                    deletionCompletionSource.SetResult(true);
+                }
+            };
+
+            // Enable watching
+            fileSystemWatcher.EnableRaisingEvents = true;
+
+            // Wait for the file to be deleted or for cancellation
+            await deletionCompletionSource.Task;
         }
     }
 

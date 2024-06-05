@@ -93,7 +93,14 @@ namespace HTTPServer.RouteHandlers
 
             if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale && fileSize <= 2147483648) // 2gb limit.
             {
-                byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{new CastleLibrary.Utils.Crc32().Get(Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????")):X}")?.Result;
+                Ionic.Crc.CRC32? crc = new();
+                byte[] PathIdent = Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????");
+
+                crc.SlurpBlock(PathIdent, 0, PathIdent.Length);
+
+                byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{crc.Crc32Result:X4}")?.Result;
+
+                crc = null;
 
                 if (UpscalledOrOriginalData != null)
                     response.ContentStream = new MemoryStream(UpscalledOrOriginalData);
@@ -111,10 +118,20 @@ namespace HTTPServer.RouteHandlers
             {
                 if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
-                    if (encoding.Contains("gzip") && fileSize <= 8000000)
+                    if (encoding.Contains("zstd") && fileSize <= 8000000)
+                    {
+                        response.Headers.Add("Content-Encoding", "zstd");
+                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                    }
+                    else if (encoding.Contains("br") && fileSize <= 8000000)
+                    {
+                        response.Headers.Add("Content-Encoding", "br");
+                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                    }
+                    else if (encoding.Contains("gzip") && fileSize <= 8000000)
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
                     }
                     else if (encoding.Contains("deflate") && fileSize <= 8000000)
                     {
@@ -145,10 +162,20 @@ namespace HTTPServer.RouteHandlers
 
             if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
             {
-                if (encoding.Contains("gzip") && FileLength <= 8000000)
+                if (encoding.Contains("zstd") && FileLength <= 8000000)
+                {
+                    response.Headers.Add("Content-Encoding", "zstd");
+                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                }
+                else if (encoding.Contains("br") && FileLength <= 8000000)
+                {
+                    response.Headers.Add("Content-Encoding", "br");
+                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                }
+                else if (encoding.Contains("gzip") && FileLength <= 8000000)
                 {
                     response.Headers.Add("Content-Encoding", "gzip");
-                    response.ContentStream = HTTPProcessor.CompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
                 }
                 else if (encoding.Contains("deflate") && FileLength <= 8000000)
                 {
@@ -177,10 +204,20 @@ namespace HTTPServer.RouteHandlers
 
                 if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
-                    if (encoding.Contains("gzip") && Data.Length <= 8000000)
+                    if (encoding.Contains("zstd") && Data.Length <= 8000000)
+                    {
+                        response.Headers.Add("Content-Encoding", "zstd");
+                        response.ContentStream = new MemoryStream(HTTPProcessor.CompressZstd(Data));
+                    }
+                    else if (encoding.Contains("br") && Data.Length <= 8000000)
+                    {
+                        response.Headers.Add("Content-Encoding", "br");
+                        response.ContentStream = new MemoryStream(HTTPProcessor.CompressBrotli(Data));
+                    }
+                    else if (encoding.Contains("gzip") && Data.Length <= 8000000)
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = new MemoryStream(HTTPProcessor.Compress(Data));
+                        response.ContentStream = new MemoryStream(HTTPProcessor.CompressGzip(Data));
                     }
                     else if (encoding.Contains("deflate") && Data.Length <= 8000000)
                     {
@@ -208,8 +245,14 @@ namespace HTTPServer.RouteHandlers
             {
                 if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
-                    if (encoding.Contains("gzip"))
-                        return HttpResponse.Send(HTTPProcessor.Compress(
+                    if (encoding.Contains("zstd"))
+                        return HttpResponse.Send(HTTPProcessor.CompressZstd(
+                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                    else if (encoding.Contains("br"))
+                        return HttpResponse.Send(HTTPProcessor.CompressBrotli(
+                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "br" } });
+                    else if (encoding.Contains("gzip"))
+                        return HttpResponse.Send(HTTPProcessor.CompressGzip(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                     else if (encoding.Contains("deflate"))
                         return HttpResponse.Send(HTTPProcessor.Inflate(
@@ -227,8 +270,12 @@ namespace HTTPServer.RouteHandlers
                 {
                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                     {
-                        if (encoding.Contains("gzip"))
-                            return HttpResponse.Send(HTTPProcessor.Compress(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                        if (encoding.Contains("zstd"))
+                            return HttpResponse.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                        else if (encoding.Contains("br"))
+                            return HttpResponse.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "br" } });
+                        else if (encoding.Contains("gzip"))
+                            return HttpResponse.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                         else if (encoding.Contains("deflate"))
                             return HttpResponse.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                         else
@@ -251,8 +298,12 @@ namespace HTTPServer.RouteHandlers
                             (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(local_path + $"/{indexFile}", HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
                             if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                             {
-                                if (encoding.Contains("gzip"))
-                                    return HttpResponse.Send(HTTPProcessor.Compress(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                if (encoding.Contains("zstd"))
+                                    return HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                else if (encoding.Contains("br"))
+                                    return HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                else if (encoding.Contains("gzip"))
+                                    return HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                 else if (encoding.Contains("deflate"))
                                     return HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
                                 else
@@ -265,8 +316,12 @@ namespace HTTPServer.RouteHandlers
                         {
                             if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                             {
-                                if (encoding.Contains("gzip"))
-                                    return HttpResponse.Send(HTTPProcessor.Compress(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                if (encoding.Contains("zstd"))
+                                    return HttpResponse.Send(HTTPProcessor.CompressZstd(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                                else if (encoding.Contains("br"))
+                                    return HttpResponse.Send(HTTPProcessor.CompressBrotli(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "br" } });
+                                else if (encoding.Contains("gzip"))
+                                    return HttpResponse.Send(HTTPProcessor.CompressGzip(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                                 else if (encoding.Contains("deflate"))
                                     return HttpResponse.Send(HTTPProcessor.Inflate(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                                 else

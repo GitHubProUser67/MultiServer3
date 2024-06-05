@@ -11,6 +11,7 @@
     <Description></Description>
     <PackageId>TechnitiumLibrary.Net</PackageId>
     <Version>5.0</Version>
+	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
 
   <ItemGroup>

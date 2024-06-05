@@ -155,7 +155,9 @@ namespace HTTPSecureServerLite
                 string ServerIP = request.Destination.IpAddress;
                 if (string.IsNullOrEmpty(ServerIP))
                     ServerIP = serverIP;
-                string ServerPort = request.Destination.Port.ToString();
+                int ServerPort = request.Destination.Port;
+                if (ServerPort == 0)
+                    ServerPort = 443; // Happens for some reasons (API bug?)
                 bool sent = false;
 
                 try
@@ -462,7 +464,7 @@ namespace HTTPSecureServerLite
                                     {
                                         response.ContentType = "text/html";
                                         sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                            HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                            HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
                                     }
                                     else
                                     {
@@ -1042,7 +1044,7 @@ namespace HTTPSecureServerLite
                                                             {
                                                                 response.ContentType = "text/html";
                                                                 sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
                                                             }
                                                             else
                                                             {
@@ -1139,7 +1141,7 @@ namespace HTTPSecureServerLite
                                                         {
                                                             response.ContentType = "text/html";
                                                             sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
                                                         }
                                                         else
                                                         {
@@ -1360,7 +1362,7 @@ namespace HTTPSecureServerLite
                                                         {
                                                             response.ContentType = "text/html";
                                                             sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
                                                         }
                                                         else
                                                         {
@@ -1474,7 +1476,7 @@ namespace HTTPSecureServerLite
                                             {
                                                 response.ContentType = "text/html";
                                                 sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
                                             }
                                             else
                                             {
@@ -1539,7 +1541,7 @@ namespace HTTPSecureServerLite
                                             {
                                                 response.ContentType = "text/html";
                                                 sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "NCSAHTTPServer", ServerPort, HTTPSServerConfiguration.NotFoundSuggestions));
+                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
                                             }
                                             else
                                             {
@@ -1601,10 +1603,20 @@ namespace HTTPSecureServerLite
             ctx.Response.StatusCode = 200;
             if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
             {
-                if (encoding.Contains("gzip") && fileSize <= 8000000)
+                if (encoding.Contains("zstd") && fileSize <= 8000000)
+                {
+                    ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                    st = HTTPProcessor.ZstdCompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                }
+                else if (encoding.Contains("br") && fileSize <= 8000000)
+                {
+                    ctx.Response.Headers.Add("Content-Encoding", "br");
+                    st = HTTPProcessor.BrotliCompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                }
+                else if (encoding.Contains("gzip") && fileSize <= 8000000)
                 {
                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    st = HTTPProcessor.CompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                    st = HTTPProcessor.GzipCompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
                 }
                 else if (encoding.Contains("deflate") && fileSize <= 8000000)
                 {
