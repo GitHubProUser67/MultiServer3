@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
     <PackageReference Include="SQLite.CodeFirst" Version="1.7.0.36" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
@@ -32,9 +36,22 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  
   </ItemGroup>
-  
-  <Target Name="CopySQLite" AfterTargets="AfterBuild">
-    <Copy SourceFiles="SQLiteDependency\SQLite.Interop.dll" DestinationFolder="$(OutDir)" />
-  </Target>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Costura32\SQLite.Interop.dll" />
+    <EmbeddedResource Include="Costura64\SQLite.Interop.dll" />
+  </ItemGroup>
+  
+  <Target Name="PostPublishCleanup" AfterTargets="AfterBuild">
+    <ItemGroup>
+        <FilesToRemove Include="$(OutDir)$(ProjectName).deps.json" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <FilesExist Condition="Exists(@(FilesToRemove))">true</FilesExist>
+    </PropertyGroup>
+
+    <Delete Files="@(FilesToRemove)" Condition="$(FilesExist)" />
+  </Target>
+ 
 </Project>

@@ -14,7 +14,7 @@ dotnet build --configuration Debug --property WarningLevel=0
 dotnet build --configuration Release --property WarningLevel=0
 
 @echo Copying build output to ~BuildOutput...
-xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin" "~BuildOutput/Database"
+xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/Horizon/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/MultiSocks/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/QuazalServer/bin" "~BuildOutput/MultiServer"
@@ -47,14 +47,6 @@ if exist "~BuildOutput/MultiServer/Release/net8.0" (
 if exist "~BuildOutput/MultiServer/Release/net6.0" (
     xcopy /E /Y /I "~BuildOutput/MultiServer/Release/net6.0" "~BuildOutput/MultiServer/Release"
 	@rmdir /S /Q "~BuildOutput/MultiServer/Release/net6.0"
-)
-if exist "~BuildOutput/Database/Debug/net8.0" (
-    xcopy /E /Y /I "~BuildOutput/Database/Debug/net8.0" "~BuildOutput/Database/Debug"
-	@rmdir /S /Q "~BuildOutput/Database/Debug/net8.0"
-)
-if exist "~BuildOutput/Database/Release/net8.0" (
-    xcopy /E /Y /I "~BuildOutput/Database/Release/net8.0" "~BuildOutput/Database/Release"
-	@rmdir /S /Q "~BuildOutput/Database/Release/net8.0"
 )
 if exist "~BuildOutput/Nautilus/Debug/net8.0-windows" (
     xcopy /E /Y /I "~BuildOutput/Nautilus/Debug/net8.0-windows" "~BuildOutput/Nautilus/Debug"
