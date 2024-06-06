@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -21,7 +21,6 @@
       <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
-    <PackageReference Include="NetCoreServer" Version="8.0.7" />
   </ItemGroup>
   
   <ItemGroup>
@@ -32,19 +31,13 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
+    <ProjectReference Include="..\..\BackendServices\NetCoreServer\NetCoreServer.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
   
-  <Target Name="PostPublishCleanup" AfterTargets="AfterBuild">
-    <ItemGroup>
-        <FilesToRemove Include="$(OutDir)$(ProjectName).deps.json" />
-    </ItemGroup>
-
-    <PropertyGroup>
-        <FilesExist Condition="Exists(@(FilesToRemove))">true</FilesExist>
-    </PropertyGroup>
-
-    <Delete Files="@(FilesToRemove)" Condition="$(FilesExist)" />
+  <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">
+    <!-- Path to the JSON file you want to modify -->
+    <Exec Command="powershell -ExecutionPolicy Bypass -File $(ProjectDir)DepsFixer.ps1 -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
   </Target>
 
 </Project>

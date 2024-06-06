@@ -29,46 +29,46 @@ for %%r in (%RIDs%) do (
 	
 	@echo Copying %%r build output to ~PublishOutput...
 	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
 	)
 	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
 	)
-	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net6.0/Debug"
-	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
-	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
-	xcopy /E /Y /I "SpecializedServers/SSFWServer/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
-	xcopy /E /Y /I "SpecializedServers/SVO/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
-	xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
-	xcopy /E /Y /I "WebServers/HTTPServer/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
-	xcopy /E /Y /I "WebServers/MitmDNS/bin/Debug/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Debug"
+	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "SpecializedServers/SSFWServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "SpecializedServers/SVO/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "WebServers/HTTPServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "WebServers/MitmDNS/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
 	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
 	)
 	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
+		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
 	)
-	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net6.0/Release"
-	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
-	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
-	xcopy /E /Y /I "SpecializedServers/SSFWServer/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
-	xcopy /E /Y /I "SpecializedServers/SVO/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
-	xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
-	xcopy /E /Y /I "WebServers/HTTPServer/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
-	xcopy /E /Y /I "WebServers/MitmDNS/bin/Release/net8.0/%%r/publish" "~PublishOutput/MultiServer/%%r/net8.0/Release"
-	if exist "Plugins/HomeWebTools/bin/Debug/net8.0/static" (
-		xcopy /E /Y /I "Plugins/HomeWebTools/bin/Debug/net8.0/static" "~PublishOutput/MultiServer/%%r/net8.0/Debug/static"
+	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "SpecializedServers/SSFWServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "SpecializedServers/SVO/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "WebServers/HTTPServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "WebServers/MitmDNS/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	if exist "Plugins/HomeWebTools/bin/Debug/net6.0/static" (
+		xcopy /E /Y /I "Plugins/HomeWebTools/bin/Debug/net6.0/static" "~PublishOutput/MultiServer/%%r/Debug/static"
 	)
-	if exist "Plugins/HomeWebTools/bin/Release/net8.0/static" (
-		xcopy /E /Y /I "Plugins/HomeWebTools/bin/Release/net8.0/static" "~PublishOutput/MultiServer/%%r/net8.0/Release/static"
+	if exist "Plugins/HomeWebTools/bin/Release/net6.0/static" (
+		xcopy /E /Y /I "Plugins/HomeWebTools/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
 	)
 	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Debug/net8.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/net8.0/Debug"
-		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Release/net8.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/net8.0/Release"
+		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Debug"
+		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Release"
 	)
 	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Debug/net8.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/net8.0/Debug"
-		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Release/net8.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/net8.0/Release"
+		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Debug"
+		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Release"
 	)
 )
 

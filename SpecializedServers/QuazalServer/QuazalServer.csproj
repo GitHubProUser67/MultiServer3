@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -35,16 +35,9 @@
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
   
-  <Target Name="PostPublishCleanup" AfterTargets="AfterBuild">
-    <ItemGroup>
-        <FilesToRemove Include="$(OutDir)$(ProjectName).deps.json" />
-    </ItemGroup>
-
-    <PropertyGroup>
-        <FilesExist Condition="Exists(@(FilesToRemove))">true</FilesExist>
-    </PropertyGroup>
-
-    <Delete Files="@(FilesToRemove)" Condition="$(FilesExist)" />
+  <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">
+    <!-- Path to the JSON file you want to modify -->
+    <Exec Command="powershell -ExecutionPolicy Bypass -File $(ProjectDir)DepsFixer.ps1 -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
   </Target>
 
 </Project>
