@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 443:443</DockerfileRunArguments>
@@ -35,25 +35,8 @@
     </Content>  
   </ItemGroup>
 
-  <Target Name="PostPublishCleanup" AfterTargets="AfterBuild">
-	<ItemGroup>
-        <FilesToRemove Include="$(OutDir)$(ProjectName).deps.json" />
-    </ItemGroup>
-
-    <PropertyGroup>
-        <FilesExist Condition="Exists(@(FilesToRemove))">true</FilesExist>
-    </PropertyGroup>
-
-    <Delete Files="@(FilesToRemove)" Condition="$(FilesExist)" />
-	
-	<!-- HTTPS¨Plugins needs the deps.json still, so we copy a fixed version.
-		 We need this because Costura.Fody compresses local depenendies, and 
-		 the deps.json still has them referenced which trips docker. -->
-	
-    <WriteLinesToFile
-        File="$(OutDir)$(ProjectName).deps.json"
-        Lines="$([System.IO.File]::ReadAllText(HTTPSecureServerLite.deps.patch))"
-        Encoding="UTF-8"/>
+  <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">
+    <Exec Command="powershell -ExecutionPolicy Bypass -File $(ProjectDir)DepsFixer.ps1 -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
   </Target>
 
 </Project>
