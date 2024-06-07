@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "horizon": "StartDebugging",
+        "multisocks": "StartDebugging",
+        "ssfwserver": "StartDebugging",
+        "svo": "StartDebugging",
+        "httpsecureserverlite": "StartDebugging"
+      }
+    }
+  }
+}
