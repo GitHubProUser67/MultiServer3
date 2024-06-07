@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer publisher script 05/06/2024
+@echo MultiServer publisher script 07/06/2024
 @echo.
 
 @echo Cleaning up directories:
@@ -7,8 +7,8 @@
 @echo.
 
 :Build
-dotnet restore
-dotnet clean
+dotnet restore MultiServer3.sln
+dotnet clean MultiServer3.sln
 dotnet build "Plugins/HomeWebTools/HomeWebTools.csproj" --configuration Debug --property WarningLevel=0
 dotnet build "Plugins/HomeWebTools/HomeWebTools.csproj" --configuration Release --property WarningLevel=0
 
@@ -24,8 +24,8 @@ set params=-p:PublishReadyToRun=true -p:DebugType=None -p:DebugSymbols=false --p
 
 for %%r in (%RIDs%) do (
     @echo Publishing MultiServer for %%r ...
-    dotnet publish -r %%r -c Debug %params%
-    dotnet publish -r %%r -c Release %params%
+    dotnet publish MultiServer3.sln -r %%r -c Debug %params%
+    dotnet publish MultiServer3.sln -r %%r -c Release %params%
 	
 	@echo Copying %%r build output to ~PublishOutput...
 	if "%%r"=="win-x64" (

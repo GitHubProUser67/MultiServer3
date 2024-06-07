@@ -1,0 +1,38 @@
+version: '3.4'
+
+services:
+  horizon:
+    image: ${DOCKER_REGISTRY-}horizon
+    build:
+      context: .
+      dockerfile: SpecializedServers/Horizon/Dockerfile
+    network_mode: "bridge"  # Needed for SSL Handling
+
+  multisocks:
+    image: ${DOCKER_REGISTRY-}multisocks
+    build:
+      context: .
+      dockerfile: SpecializedServers/MultiSocks/Dockerfile
+    network_mode: "bridge"  # Needed for SSL Handling
+
+  ssfwserver:
+    image: ${DOCKER_REGISTRY-}ssfwserver
+    build:
+      context: .
+      dockerfile: SpecializedServers/SSFWServer/Dockerfile
+    network_mode: "bridge"  # Needed for SSL Handling
+
+  svo:
+    image: ${DOCKER_REGISTRY-}svo
+    build:
+      context: .
+      dockerfile: SpecializedServers/SVO/Dockerfile
+    network_mode: "bridge"  # Needed for SSL Handling
+
+  httpsecureserverlite:
+    image: ${DOCKER_REGISTRY-}httpsecureserverlite
+    build:
+      context: .
+      dockerfile: WebServers/HTTPSecureServerLite/Dockerfile
+    network_mode: "bridge"  # Needed for SSL Handling
+
