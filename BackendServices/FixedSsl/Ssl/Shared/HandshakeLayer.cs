@@ -63,16 +63,24 @@ namespace Org.Mentalis.Security.Ssl.Shared
             m_Disposed = false;
             m_Options = options;
             m_IsNegotiating = true;
-            m_RNG = new RNGCryptoServiceProvider();
             m_RecordLayer = recordLayer;
             m_State = HandshakeType.Nothing;
-            m_IncompleteMessage = new byte[0];
+            m_IncompleteMessage = Array.Empty<byte>();
+#if NET6_0_OR_GREATER
+            m_LocalMD5Hash = MD5.Create();
+            m_LocalSHA1Hash = SHA1.Create();
+            m_RemoteMD5Hash = MD5.Create();
+            m_RemoteSHA1Hash = SHA1.Create();
+#else
             m_LocalMD5Hash = new MD5CryptoServiceProvider();
             m_LocalSHA1Hash = new SHA1CryptoServiceProvider();
             m_RemoteMD5Hash = new MD5CryptoServiceProvider();
             m_RemoteSHA1Hash = new SHA1CryptoServiceProvider();
-            m_CertSignHash = new MD5SHA1CryptoServiceProvider();
-            m_CertSignHash.Protocol = this.GetProtocol();
+#endif
+            m_CertSignHash = new MD5SHA1CryptoServiceProvider
+            {
+                Protocol = this.GetProtocol()
+            };
             if (options.Entity == ConnectionEnd.Server && ((int)options.Flags & (int)SecurityFlags.MutualAuthentication) != 0)
                 m_MutualAuthentication = true;
             else
@@ -84,7 +92,6 @@ namespace Org.Mentalis.Security.Ssl.Shared
             m_RecordLayer = handshakeLayer.m_RecordLayer;
             m_Options = handshakeLayer.m_Options;
             m_IsNegotiating = handshakeLayer.m_IsNegotiating;
-            m_RNG = handshakeLayer.m_RNG;
             m_State = handshakeLayer.m_State;
             m_IncompleteMessage = handshakeLayer.m_IncompleteMessage;
             m_LocalMD5Hash = handshakeLayer.m_LocalMD5Hash;
@@ -458,13 +465,6 @@ namespace Org.Mentalis.Security.Ssl.Shared
         {
             Dispose();
         }
-        public RNGCryptoServiceProvider RNG
-        {
-            get
-            {
-                return m_RNG;
-            }
-        }
         public SslAlgorithms ActiveEncryption
         {
             get
@@ -503,7 +503,6 @@ namespace Org.Mentalis.Security.Ssl.Shared
 
         protected SecurityOptions m_Options;
         protected bool m_IsNegotiating;
-        protected RNGCryptoServiceProvider m_RNG;
         protected RecordLayer m_RecordLayer;
         protected HandshakeType m_State; // last received message
         protected byte[] m_IncompleteMessage;

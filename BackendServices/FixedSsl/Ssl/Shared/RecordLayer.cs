@@ -130,7 +130,7 @@ namespace Org.Mentalis.Security.Ssl.Shared
 								trailer[i] = padding;
 							}
 						} else {
-							m_HandshakeLayer.RNG.GetBytes(trailer);
+                            RandomNumberGenerator.Fill(trailer);
 							ret[ret.Length - 1] = padding;
 						}
 						if (messTrailer > 0)
@@ -209,7 +209,7 @@ namespace Org.Mentalis.Security.Ssl.Shared
 							}
 						} else {
 							byte[] buffer = new byte[ret.Length - message.length - mac.Length];
-							m_HandshakeLayer.RNG.GetBytes(buffer);
+                            RandomNumberGenerator.Fill(buffer);
 							Array.Copy(buffer, 0, ret, message.length + mac.Length, buffer.Length);
 							ret[ret.Length - 1] = padding;
 						}

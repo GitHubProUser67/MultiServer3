@@ -145,7 +145,7 @@ namespace Org.Mentalis.Security.Ssl.Shared
             temp = new HandshakeMessage(HandshakeType.ServerHello, new byte[38]);
             m_ServerTime = GetUnixTime();
             m_ServerRandom = new byte[28];
-            m_RNG.GetBytes(m_ServerRandom);
+            RandomNumberGenerator.Fill(m_ServerRandom);
             temp.fragment[0] = GetVersion().major;
             temp.fragment[1] = GetVersion().minor;
             Array.Copy(m_ServerTime, 0, temp.fragment, 2, 4);
@@ -323,7 +323,7 @@ namespace Org.Mentalis.Security.Ssl.Shared
                 // this is to avoid RSA PKCS#1 padding attacks
                 // and the Klima-Pokorny-Rosa attack on RSA in SSL/TLS
                 preMasterSecret = new byte[48];
-                m_RNG.GetBytes(preMasterSecret);
+                RandomNumberGenerator.Fill(preMasterSecret);
             }
             GenerateCiphers(preMasterSecret);
             return new SslHandshakeStatus(SslStatus.MessageIncomplete, null);

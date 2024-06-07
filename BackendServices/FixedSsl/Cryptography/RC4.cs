@@ -156,7 +156,7 @@ namespace Org.Mentalis.Security.Cryptography
 		/// <remarks>Use this method to generate a random key when none is specified.</remarks>
 		public override void GenerateKey() {
 			byte[] key = new byte[this.KeySize / 8];
-			GetRNGCSP().GetBytes(key);
+            RandomNumberGenerator.Fill(key);
 			this.Key = key;
 		}
 		/// <summary>
@@ -180,18 +180,5 @@ namespace Org.Mentalis.Security.Cryptography
 			} catch {}
 			return null;
 		}
-		/// <summary>
-		/// Returns an <see cref="RNGCryptoServiceProvider"/> instance.
-		/// </summary>
-		/// <returns>An RNGCryptoServiceProvider instance.</returns>
-		protected RNGCryptoServiceProvider GetRNGCSP() {
-			if (m_RNG == null)
-				m_RNG = new RNGCryptoServiceProvider();
-			return m_RNG;
-		}
-		/// <summary>
-		/// Holds the RNGCryptoServiceProvider object.
-		/// </summary>
-		private RNGCryptoServiceProvider m_RNG;
 	}
 }

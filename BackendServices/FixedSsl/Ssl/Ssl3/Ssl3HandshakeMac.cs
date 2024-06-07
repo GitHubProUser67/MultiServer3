@@ -43,11 +43,19 @@ namespace Org.Mentalis.Security.Ssl.Ssl3
 			if (rgbKey == null)
 				throw new ArgumentNullException();
 			if (hashType == HashType.MD5) {
-				m_HashAlgorithm = new MD5CryptoServiceProvider();
+#if NET6_0_OR_GREATER
+                m_HashAlgorithm = MD5.Create();
+#else
+			    m_HashAlgorithm = new MD5CryptoServiceProvider();
+#endif
 				m_PadSize = 48;
 			} else { // SHA1
-				m_HashAlgorithm = new SHA1CryptoServiceProvider();
-				m_PadSize = 40;
+#if NET6_0_OR_GREATER
+                m_HashAlgorithm = SHA1.Create();
+#else
+			    m_HashAlgorithm = new SHA1CryptoServiceProvider();
+#endif
+                m_PadSize = 40;
 			}
 			this.KeyValue = (byte[])rgbKey.Clone();
 			m_IsDisposed = false;

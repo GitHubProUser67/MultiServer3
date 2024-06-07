@@ -396,12 +396,8 @@ namespace QuazalServer.RDVServices.Services
         private static string Hash(string password, int iterations)
         {
             // Create salt
-            byte[] salt = Array.Empty<byte>();
-
-            using (RNGCryptoServiceProvider rng = new())
-            {
-                rng.GetBytes(salt = new byte[SaltSize]);
-            }
+            byte[] salt = new byte[SaltSize];
+            RandomNumberGenerator.Fill(salt);
 
             // Create hash
             byte[] hash;

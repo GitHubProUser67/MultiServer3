@@ -33,7 +33,7 @@ namespace MultiSocks.Blaze.Local_Profile
                 tmpres.WriteByte((byte)((len >> 8) & 0xFF));
                 tmpres.WriteByte((byte)(len & 0xFF));
                 tmpres.Write(fileres, 0, fileres.Length);
-                res.Write(new SHA1CryptoServiceProvider().ComputeHash(tmpres.ToArray()), 0, 0x14);
+                res.Write(SHA1.Create().ComputeHash(tmpres.ToArray()), 0, 0x14);
                 res.Write(tmpres.ToArray(), 0, (int)tmpres.Length);
                 return res.ToArray();
             }
