@@ -98,7 +98,7 @@ namespace Org.Mentalis.Security.Ssl.Shared
 			HandshakeMessage temp = new HandshakeMessage(HandshakeType.ClientHello, new byte[38 + ciphers.Length + compr.Length]);
 			m_ClientTime = GetUnixTime();
 			m_ClientRandom = new byte[28];
-			m_RNG.GetBytes(m_ClientRandom);
+            RandomNumberGenerator.Fill(m_ClientRandom);
 			ProtocolVersion pv = CompatibilityLayer.GetMaxProtocol(m_Options.Protocol);
 			temp.fragment[0] = pv.major;
 			temp.fragment[1] = pv.minor;
@@ -276,7 +276,7 @@ namespace Org.Mentalis.Security.Ssl.Shared
 				m_KeyCipher = (RSACryptoServiceProvider)m_RemoteCertificate.PublicKey;
 			RSAKeyTransform kf = new RSAKeyTransform(m_KeyCipher);
 			byte[] preMasterSecret = new byte[48];
-			m_RNG.GetBytes(preMasterSecret);
+            RandomNumberGenerator.Fill(preMasterSecret);
 			ProtocolVersion pv = CompatibilityLayer.GetMaxProtocol(m_Options.Protocol);
 			preMasterSecret[0] =  pv.major;
 			preMasterSecret[1] = pv.minor;

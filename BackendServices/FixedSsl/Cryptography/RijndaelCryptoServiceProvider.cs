@@ -41,7 +41,7 @@ namespace Org.Mentalis.Security.Cryptography
     /// <remarks>
     /// This class will use the unmanaged implementation of the Rijndael algorithm, when possible. If the unmanaged Rijndael algorithm is not available, it will fall back to the <see cref="RijndaelManaged"/> implementation.
     /// </remarks>
-    public sealed class RijndaelCryptoServiceProvider : Rijndael {
+    public sealed class RijndaelCryptoServiceProvider : Aes {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RijndaelCryptoServiceProvider"/> class.
 		/// </summary>
@@ -58,7 +58,7 @@ namespace Org.Mentalis.Security.Cryptography
 				if (Marshal.GetLastWin32Error() == SecurityConstants.NTE_BAD_KEYSET)
 					SspiProvider.CryptAcquireContext(ref m_Provider, IntPtr.Zero, null, SecurityConstants.PROV_RSA_AES, SecurityConstants.CRYPT_NEWKEYSET);
 			}*/
-			m_Managed = new RijndaelManaged();
+			m_Managed = Create("AesManaged")!;
 		}
 		/// <summary>
 		/// Releases all unmanaged resources.
@@ -307,7 +307,7 @@ namespace Org.Mentalis.Security.Cryptography
 			return CanUseUnmanaged(this.KeySize, this.BlockSize, this.Padding);
 		}
 		/// <summary>Holds a managed <see cref="Rijndael"/> instance.</summary>
-		private RijndaelManaged m_Managed;
+		private Aes m_Managed;
 		/// <summary>Handle of the unmanaged AES CSP.</summary>
 		private int m_Provider;
 		/// <summary>Holds a boolean that indicates whether this object has been disposed.</summary>

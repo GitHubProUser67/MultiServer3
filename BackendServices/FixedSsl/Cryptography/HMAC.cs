@@ -59,7 +59,7 @@ namespace Org.Mentalis.Security.Cryptography
 				throw new ArgumentNullException();
 			if (rgbKey == null) {
 				rgbKey = new byte[hash.HashSize / 8];
-				new RNGCryptoServiceProvider().GetBytes(rgbKey);
+				RandomNumberGenerator.Fill(rgbKey);
 			}
 			m_HashAlgorithm = hash;
 			this.Key = (byte[])rgbKey.Clone();

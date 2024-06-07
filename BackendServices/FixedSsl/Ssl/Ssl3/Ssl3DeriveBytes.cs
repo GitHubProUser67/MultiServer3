@@ -61,9 +61,14 @@ namespace Org.Mentalis.Security.Ssl.Ssl3
 				Array.Copy(serverRandom, 0, m_Random, 0, 32);
 				Array.Copy(clientRandom, 0, m_Random, 32, 32);
 			}
+#if NET6_0_OR_GREATER
+			m_MD5 = MD5.Create();
+			m_SHA1 = SHA1.Create();
+#else
 			m_MD5 = new MD5CryptoServiceProvider();
 			m_SHA1 = new SHA1CryptoServiceProvider();
-			Reset();
+#endif
+            Reset();
 		}
 		protected byte[] GetNextBytes() {
 			if (m_Iteration > 26)

@@ -42,8 +42,13 @@ namespace Org.Mentalis.Security.Ssl.Shared
         public MD5SHA1CryptoServiceProvider()
         {
             this.HashSizeValue = 36;
+#if NET6_0_OR_GREATER
+            m_MD5 = MD5.Create();
+            m_SHA1 = SHA1.Create();
+#else
             m_MD5 = new MD5CryptoServiceProvider();
             m_SHA1 = new SHA1CryptoServiceProvider();
+#endif
         }
         protected override void Dispose(bool disposing)
         {

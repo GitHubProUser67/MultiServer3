@@ -56,8 +56,12 @@ namespace Org.Mentalis.Security.Ssl.Ssl3
 			server_iv = prf.GetBytes(definition.BulkIVSize);
 			prf.Dispose();
 			if (definition.Exportable) { // make some extra modifications if the keys are exportable
+#if NET6_0_OR_GREATER
+				MD5 md5 = MD5.Create();
+#else
 				MD5 md5 = new MD5CryptoServiceProvider();
-				md5.TransformBlock(client_key, 0, client_key.Length, client_key, 0);
+#endif
+                md5.TransformBlock(client_key, 0, client_key.Length, client_key, 0);
 				md5.TransformBlock(clientrnd, 0, clientrnd.Length, clientrnd, 0);
 				md5.TransformFinalBlock(serverrnd, 0, serverrnd.Length);
 				client_key = new byte[definition.BulkExpandedSize];

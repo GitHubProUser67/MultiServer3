@@ -1112,7 +1112,10 @@ namespace HTTPSecureServerLite
                                                             }
                                                         }
 
-                                                        string UserAgent = request.Useragent.ToLower();
+                                                        string? UserAgent = null;
+
+                                                        if (!string.IsNullOrEmpty(request.Useragent))
+                                                            UserAgent = request.Useragent.ToLower();
 
                                                         if (HTTPSServerConfiguration.EnableLiveTranscoding
                                                             && ((ContentType.Contains("video") && !ContentType.Contains("mp4"))

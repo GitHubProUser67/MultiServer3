@@ -69,10 +69,15 @@ namespace Org.Mentalis.Security.Ssl.Tls1
 			Array.Copy(secret, 0, s1, 0, length);
 			Array.Copy(secret, secret.Length - length, s2, 0, length);
 			// create ExpansionDeriveBytes objects
+#if NET6_0_OR_GREATER
+			m_MD5 = new ExpansionDeriveBytes(MD5.Create(), s1, ls);
+			m_SHA1 = new ExpansionDeriveBytes(SHA1.Create(), s2, ls);
+#else
 			m_MD5 = new ExpansionDeriveBytes(new MD5CryptoServiceProvider(), s1, ls);
 			m_SHA1 = new ExpansionDeriveBytes(new SHA1CryptoServiceProvider(), s2, ls);
-		}
-		public override byte[] GetBytes(int cb) { // get the next bytes
+#endif
+        }
+        public override byte[] GetBytes(int cb) { // get the next bytes
 			if (m_Disposed)
 				throw new ObjectDisposedException(this.GetType().FullName);
 			byte[] md5 = m_MD5.GetBytes(cb);
