@@ -370,26 +370,9 @@ namespace Horizon.MEDIUS.Medius
                                                         if (data.ClientObject != null)
                                                         {
                                                             if (data.ClientObject.HomePointer == 0)
-                                                            {
                                                                 data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
 
-                                                                data.ClientObject.Tasks.TryAdd("1.86 ANTI FREEZE", Task.Run(() => {
-
-                                                                    while (true)
-                                                                    {
-                                                                        while (data.ClientObject.IsInGame)
-                                                                        {
-                                                                            CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
-
-                                                                            Thread.Sleep(1);
-                                                                        }
-
-                                                                        Thread.Sleep(100);
-                                                                    }
-
-                                                                }));
-                                                            }
-
+                                                            CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                             CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
 
                                                             if (BannedClients.ContainsKey((data.ClientObject.IP, data.MachineId)))
