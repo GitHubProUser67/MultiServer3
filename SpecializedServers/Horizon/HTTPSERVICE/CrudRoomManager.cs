@@ -15,9 +15,18 @@ namespace Horizon.HTTPSERVICE
         {
             if (!string.IsNullOrEmpty(username))
             {
-                KeyValuePair<string, int> UserCollection = new(username, appid);
-                if (!rooms.Item1.Contains(UserCollection))
-                    rooms.Item1.Add(UserCollection);
+                KeyValuePair<string, int> newUser = new(username, appid);
+
+                foreach (KeyValuePair<string, int> User in rooms.Item1.GetItems())
+                {
+                    if (User.Key.Equals(username))
+                    {
+                        rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(username));
+                        break;
+                    }
+                }
+
+                rooms.Item1.Add(newUser);
             }
         }
 
