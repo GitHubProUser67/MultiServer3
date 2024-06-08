@@ -190,7 +190,7 @@ class Program
         else
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-        LoggerAccessor.SetupLogger("SVO");
+        LoggerAccessor.SetupLogger("SVO", Directory.GetCurrentDirectory());
 
         SVOServerConfiguration.RefreshVariables(configPath);
 

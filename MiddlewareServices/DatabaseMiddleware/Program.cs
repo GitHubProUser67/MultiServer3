@@ -121,7 +121,7 @@ class Program
         if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-        LoggerAccessor.SetupLogger("DatabaseMiddleware");
+        LoggerAccessor.SetupLogger("DatabaseMiddleware", Directory.GetCurrentDirectory());
 
         GeoIP.Initialize();
 

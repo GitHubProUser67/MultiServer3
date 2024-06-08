@@ -51,7 +51,15 @@ namespace MultiSocks.DirtySocks.Model
                     {
                         batchuser.CurrentGame = null;
 
-                        batchuser.SendPlusWho(batchuser, !string.IsNullOrEmpty(batchuser.Connection?.Context.Project) && batchuser.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+                        if (!string.IsNullOrEmpty(batchuser.Connection?.Context.Project))
+                        {
+                            if (batchuser.Connection.Context.Project.Contains("DPR-09"))
+                                batchuser.SendPlusWho(batchuser, "DPR-09");
+                            else if (batchuser.Connection.Context.Project.Contains("BURNOUT5"))
+                                batchuser.SendPlusWho(batchuser, "BURNOUT5");
+                        }
+                        else
+                            batchuser.SendPlusWho(batchuser, string.Empty);
                     }
 
                     return true;
@@ -91,7 +99,15 @@ namespace MultiSocks.DirtySocks.Model
                 {
                     userToRemove.CurrentGame = null;
 
-                    userToRemove.SendPlusWho(userToRemove, !string.IsNullOrEmpty(userToRemove.Connection?.Context.Project) && userToRemove.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+                    if (!string.IsNullOrEmpty(userToRemove.Connection?.Context.Project))
+                    {
+                        if (userToRemove.Connection.Context.Project.Contains("DPR-09"))
+                            userToRemove.SendPlusWho(userToRemove, "DPR-09");
+                        else if (userToRemove.Connection.Context.Project.Contains("BURNOUT5"))
+                            userToRemove.SendPlusWho(userToRemove, "BURNOUT5");
+                    }
+                    else
+                        userToRemove.SendPlusWho(userToRemove, string.Empty);
 
                     // userToRemove.Connection?.SendMessage(new PlusKik() { GAME = ID.ToString() }); // TODO, figure out why it crash client...
                 }
@@ -99,7 +115,15 @@ namespace MultiSocks.DirtySocks.Model
                 {
                     userToRemove.CurrentGame = null;
 
-                    userToRemove.SendPlusWho(userToRemove, !string.IsNullOrEmpty(userToRemove.Connection?.Context.Project) && userToRemove.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+                    if (!string.IsNullOrEmpty(userToRemove.Connection?.Context.Project))
+                    {
+                        if (userToRemove.Connection.Context.Project.Contains("DPR-09"))
+                            userToRemove.SendPlusWho(userToRemove, "DPR-09");
+                        else if (userToRemove.Connection.Context.Project.Contains("BURNOUT5"))
+                            userToRemove.SendPlusWho(userToRemove, "BURNOUT5");
+                    }
+                    else
+                        userToRemove.SendPlusWho(userToRemove, string.Empty);
                 }
                 else
                     userToRemove.CurrentGame = null;

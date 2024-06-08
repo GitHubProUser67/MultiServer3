@@ -79,7 +79,7 @@ namespace MultiSocks.DirtySocks.Model
                     RI = user.CurrentRoom?.ID.ToString()
                 };
             }
-            else if (VERS.Contains("BURNOUT5"))
+            else if (VERS.Contains("BURNOUT5") || VERS.Contains("DPR-09"))
             {
                 who = new PlusWho()
                 {

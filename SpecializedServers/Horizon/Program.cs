@@ -226,7 +226,7 @@ class Program
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
-        LoggerAccessor.SetupLogger("Horizon");
+        LoggerAccessor.SetupLogger("Horizon", Directory.GetCurrentDirectory());
 
         GeoIP.Initialize();
 

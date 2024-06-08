@@ -21,12 +21,14 @@ namespace MultiSocks.DirtySocks
         private AbstractDirtySockServer? RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC;
         private AbstractDirtySockServer? RedirectorNASCAR08_PS3;
         private AbstractDirtySockServer? RedirectorNASCAR09_PS3;
+        private AbstractDirtySockServer? RedirectorHASBROFAMILYGAMENIGH_PS3;
         private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private AbstractDirtySockServer? BurnoutParadisePS3UltimateBoxMatchmaker;
         private AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
         private AbstractDirtySockServer? EverythingOrNothing007_NTSC_Matchmaker;
         private AbstractDirtySockServer? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
         private AbstractDirtySockServer? NCAAMM06_NTSC_Matchmaker;
+        private AbstractDirtySockServer? HASBROFAMILYGAMENIGHPS3Matchmaker;
         private AbstractDirtySockServer? NFLStreet_NTSCMatchmaker;
         private AbstractDirtySockServer? NFLStreet2_NTSCMatchmaker;
         private AbstractDirtySockServer? NFLStreet3_NTSCMatchmaker;
@@ -120,7 +122,6 @@ namespace MultiSocks.DirtySocks
 
             #endregion
 
-
             #region Lord Of the Rings: The Return of the King
             try
             {
@@ -179,7 +180,6 @@ namespace MultiSocks.DirtySocks
                 LoggerAccessor.LogError($"[Redirector] NASCAR08 PS3 Failed to start! Exception: {ex}");
             }
 
-
             try
             {
                 RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, false, "NASCAR09", "PS3", true, "ps3nascar09.ea.com", "ps3nascar09@ea.com");
@@ -191,6 +191,17 @@ namespace MultiSocks.DirtySocks
             }
             #endregion
 
+            #region Hasbro Family Game Night PS3
+            try
+            {
+                RedirectorHASBROFAMILYGAMENIGH_PS3 = new RedirectorServer(32950, ListenIP, 32951, false, "DPR-09", "PS3");
+                LoggerAccessor.LogInfo($"[Redirector] HASBROFAMILYGAMENIGH PS3 Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] HASBROFAMILYGAMENIGH PS3 Failed to start! Exception: {ex}");
+            }
+            #endregion
 
             #region NCAA March Madness 06
             try
@@ -205,8 +216,6 @@ namespace MultiSocks.DirtySocks
             }
             #endregion
 
-
-
             #region 007: Everything or Nothing
             try
             {
@@ -219,21 +228,7 @@ namespace MultiSocks.DirtySocks
                 LoggerAccessor.LogError($"[Redirector] 007 Everything Or Nothing NTSC Failed to start! Exception: {ex}");
             }
             #endregion
-
-            /*
-            #region Crysis 3
-            try
-            {
-                RedirectorCRYSIS3_MPBETA_PS3 = new RedirectorServer(42127, ListenIP, 42128, false, "CRYSIS3MPBETA", "PS3", true, "gosredirector.ea.com", "ps3crysis3@ea.com");
-
-                LoggerAccessor.LogInfo($"[Redirector CRYSIS3 MPBETA PS3] Started!");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[Redirector CRYSIS3 MPBETA PS3] Failed to start! Exception: {ex}");
-            }
-            #endregion
-            */
+			
             #endregion
 
             #region EA Messenger
@@ -295,6 +290,15 @@ namespace MultiSocks.DirtySocks
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[NFL Street NTSC Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                HASBROFAMILYGAMENIGHPS3Matchmaker = new MatchmakerServer(32951, true, null, "DPR-09", "PS3");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Hasbro Family Game Night NTSC Matchmaker] Failed to start! Exception: {ex}");
             }
 
             try
@@ -384,6 +388,7 @@ namespace MultiSocks.DirtySocks
                     Redirector007EverythingOrNothing_NTSC?.Dispose();
                     RedirectorNASCAR08_PS3?.Dispose();
                     RedirectorNASCAR09_PS3?.Dispose();
+                    RedirectorHASBROFAMILYGAMENIGH_PS3?.Dispose();
                     RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC?.Dispose();
                     RedirectorNFLStreet_NTSC?.Dispose();
                     RedirectorNFLStreet2_NTSC?.Dispose();
@@ -399,6 +404,7 @@ namespace MultiSocks.DirtySocks
                     NFLStreet2_NTSCMatchmaker?.Dispose();
                     NFLStreet3_NTSCMatchmaker?.Dispose();
                     NCAAMM06_NTSC_Matchmaker?.Dispose();
+                    HASBROFAMILYGAMENIGHPS3Matchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();
 

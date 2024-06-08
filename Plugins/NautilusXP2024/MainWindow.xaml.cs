@@ -59,7 +59,7 @@ namespace NautilusXP2024
         {
             InitializeComponent();
 
-            LoggerAccessor.SetupLogger("NautilusXP2024");
+            LoggerAccessor.SetupLogger("NautilusXP2024", Directory.GetCurrentDirectory());
 
             DataContext = this;
             // Load settings when the window initializes

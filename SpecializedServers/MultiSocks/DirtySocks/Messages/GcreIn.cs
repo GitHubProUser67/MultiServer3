@@ -1,10 +1,10 @@
-using MultiSocks.DirtySocks.Model;
+﻿using MultiSocks.DirtySocks.Model;
 
 namespace MultiSocks.DirtySocks.Messages
 {
-    public class GpscIn : AbstractMessage
+    public class GcreIn : AbstractMessage
     {
-        public override string _Name { get => "gpsc"; }
+        public override string _Name { get => "gcre"; }
 
         public string? CUSTFLAGS { get; set; }
         public string? MINSIZE { get; set; }
@@ -18,6 +18,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? FORCE_LEAVE { get; set; }
         public string? USERPARAMS { get; set; }
         public string? REGIONS { get; set; }
+        public string? IGNPROFNAME { get; set; }
         public string USERFLAGS { get; set; } = "0";
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
@@ -71,7 +72,7 @@ namespace MultiSocks.DirtySocks.Messages
 
                     user.CurrentGame = game;
 
-                    client.SendMessage(new GpscOut());
+                    client.SendMessage(game.GetGcreOut());
 
                     if (!string.IsNullOrEmpty(context.Project))
                     {

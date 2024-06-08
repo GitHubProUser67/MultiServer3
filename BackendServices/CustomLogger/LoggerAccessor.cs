@@ -14,7 +14,7 @@ namespace CustomLogger
     {
         private static bool initiated = false;
 
-        public static void SetupLogger(string project)
+        public static void SetupLogger(string project, string CurrentDir)
         {
             try
             {
@@ -30,22 +30,43 @@ namespace CustomLogger
 
             }
 
-            Directory.CreateDirectory(Directory.GetCurrentDirectory() + $"/logs");
+            Directory.CreateDirectory(CurrentDir + $"/logs");
 
             Console.WriteLine(FiggleFonts.Ogre.Render(project));
 
-            Logger = LoggerFactory.Create(builder =>
+            // Check if the log file is in use by another process, if not create/use one.
+            try
             {
-                builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
-                builder.AddProvider(_fileLogger = new FileLoggerProvider(Directory.GetCurrentDirectory() + $"/logs/{project}.log", new FileLoggerOptions()
-                {
-                    Append = false,
-                    FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
-                    MaxRollingFiles = 100
-                }));
+                string logfilePath = CurrentDir + $"/logs/{project}.log";
 
-                _fileLogger.MinLevel = LogLevel.Information;
-            }).CreateLogger(string.Empty);
+                if (File.Exists(logfilePath))
+                {
+                    using (FileStream stream = File.Open(logfilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    {
+
+                    }
+                }
+
+                Logger = LoggerFactory.Create(builder =>
+                {
+                    builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
+                    builder.AddProvider(_fileLogger = new FileLoggerProvider(CurrentDir + $"/logs/{project}.log", new FileLoggerOptions()
+                    {
+                        Append = false,
+                        FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
+                        MaxRollingFiles = 100
+                    }));
+                    _fileLogger.MinLevel = LogLevel.Information;
+                }).CreateLogger(string.Empty);
+            }
+            catch (IOException)
+            {
+                Logger = LoggerFactory.Create(builder =>
+                {
+                    builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
+                }).CreateLogger(string.Empty);
+            }
+
 #if DEBUG
             if (Environment.OSVersion.Platform == PlatformID.Win32NT
                 || Environment.OSVersion.Platform == PlatformID.Win32S

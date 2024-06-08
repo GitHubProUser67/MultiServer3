@@ -36,7 +36,7 @@ namespace MultiSocks.DirtySocks.Messages
             var mc = context as MatchmakerServer;
             if (mc == null) return;
 
-            if (VERS == "BURNOUT5/ISLAND" || VERS == "BURNOUT5/TROPHIES" || VERS == "BURNOUT5/31")
+            if (VERS == "BURNOUT5/ISLAND" || VERS == "BURNOUT5/TROPHIES" || VERS == "BURNOUT5/31" || VERS == "BOTTEST")
             {
                 if (SKU == "PS3")
                 {

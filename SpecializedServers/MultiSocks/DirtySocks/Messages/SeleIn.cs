@@ -74,7 +74,17 @@ namespace MultiSocks.DirtySocks.Messages
                 });
 
             if (user != null && (USERSETS != "0" || INGAME != "0"))
-                user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+            {
+                if (!string.IsNullOrEmpty(context.Project))
+                {
+                    if (context.Project.Contains("DPR-09"))
+                        user.SendPlusWho(user, "DPR-09");
+                    else if (context.Project.Contains("BURNOUT5"))
+                        user.SendPlusWho(user, "BURNOUT5");
+                }
+                else
+                    user.SendPlusWho(user, string.Empty);
+            }
         }
     }
 }

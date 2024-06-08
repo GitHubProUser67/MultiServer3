@@ -98,7 +98,7 @@ class Program
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
-        LoggerAccessor.SetupLogger("MultiSocks");
+        LoggerAccessor.SetupLogger("MultiSocks", Directory.GetCurrentDirectory());
 
         MultiSocksServerConfiguration.RefreshVariables(configPath);
 

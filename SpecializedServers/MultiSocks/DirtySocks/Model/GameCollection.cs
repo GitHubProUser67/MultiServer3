@@ -39,7 +39,15 @@ namespace MultiSocks.DirtySocks.Model
 
                     user.CurrentGame = null;
 
-                    user.SendPlusWho(user, !string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5") ? "BURNOUT5" : string.Empty);
+                    if (!string.IsNullOrEmpty(user.Connection?.Context.Project))
+                    {
+                        if (user.Connection.Context.Project.Contains("DPR-09"))
+                            user.SendPlusWho(user, "DPR-09");
+                        else if (user.Connection.Context.Project.Contains("BURNOUT5"))
+                            user.SendPlusWho(user, "BURNOUT5");
+                    }
+                    else
+                        user.SendPlusWho(user, string.Empty);
                 }
 
                 GamesSessions.TryRemove(game.ID, out _);
