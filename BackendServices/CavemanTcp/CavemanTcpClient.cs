@@ -260,7 +260,7 @@ namespace CavemanTcp
         /// <summary>
         /// Establish the connection to the server.
         /// </summary>
-        public void Connect(int timeoutSeconds)
+        public void Connect(int timeoutSeconds, SslProtocols protocols)
         {  
             if (timeoutSeconds < 1) throw new ArgumentException("Timeout must be greater than zero seconds."); 
             if (IsConnected) return; 
@@ -294,7 +294,7 @@ namespace CavemanTcp
                         _SslStream = new SslStream(_NetworkStream, false);
                     }
 
-                    _SslStream.AuthenticateAsClient(_ServerIp, _SslCertificateCollection, Common.GetSslProtocol, !_Settings.AcceptInvalidCertificates);
+                    _SslStream.AuthenticateAsClient(_ServerIp, _SslCertificateCollection, protocols, !_Settings.AcceptInvalidCertificates);
 
                     if (!_SslStream.IsEncrypted)
                     {

@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Security.Principal;
 using System.Reflection;
 using CyberBackendLibrary.HTTP;
+using System.Security.Authentication;
 
 public static class HTTPSServerConfiguration
 {
@@ -37,6 +38,9 @@ public static class HTTPSServerConfiguration
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
+#pragma warning disable
+    public static SslProtocols HTTPSProtocols { get; set; } = SslProtocols.Ssl2 | SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+#pragma warning restore
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
@@ -147,6 +151,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
+                new JProperty("protocols", HTTPSProtocols),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
@@ -183,6 +188,7 @@ public static class HTTPSServerConfiguration
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
             HTTPSCertificateHashingAlgorithm = new HashAlgorithmName(GetValueOrDefault(config, "certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name));
+            HTTPSProtocols = GetValueOrDefault(config, "protocols", HTTPSProtocols);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
@@ -394,7 +400,7 @@ class Program
             }
         }
 
-        Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token);
+        Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, HTTPSServerConfiguration.HTTPSProtocols, new CancellationTokenSource().Token);
     }
 
     private static Task RefreshDNS()

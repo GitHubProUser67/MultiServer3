@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -110,12 +111,12 @@ namespace WatsonWebserver.Lite
         /// Start accepting new connections.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
-        public override void Start(CancellationToken token = default)
+        public override void Start(SslProtocols protocols, CancellationToken token = default)
         {
             if (_TcpServer == null) throw new ObjectDisposedException("Webserver has been disposed.");
             if (_TcpServer.IsListening) throw new InvalidOperationException("Webserver is already running.");
 
-            _TcpServer.Start();
+            _TcpServer.Start(protocols);
 
             _TokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             _Token = _TokenSource.Token;
@@ -127,12 +128,12 @@ namespace WatsonWebserver.Lite
         /// Start accepting new connections.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
-        public override async Task StartAsync(CancellationToken token = default)
+        public override async Task StartAsync(SslProtocols protocols, CancellationToken token = default)
         {
             if (_TcpServer == null) throw new ObjectDisposedException("Webserver has been disposed.");
             if (_TcpServer.IsListening) throw new InvalidOperationException("Webserver is already running.");
 
-            await _TcpServer.StartAsync(token).ConfigureAwait(false);
+            await _TcpServer.StartAsync(protocols, token).ConfigureAwait(false);
 
             _TokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             _Token = _TokenSource.Token;
