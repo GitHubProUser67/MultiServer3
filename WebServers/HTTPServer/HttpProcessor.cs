@@ -37,6 +37,7 @@ using WebAPIService.HELLFIRE;
 using CyberBackendLibrary.HTTP.PluginManager;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using WebAPIService.UBISOFT.gsconnect;
 
 namespace HTTPServer
 {
@@ -136,6 +137,8 @@ namespace HTTPServer
                                 HttpResponse? response = null;
                                 string Method = request.Method;
                                 string Host = request.RetrieveHeaderValue("Host");
+                                if (string.IsNullOrEmpty(Host))
+                                    Host = request.RetrieveHeaderValue("HOST");
                                 string Accept = request.RetrieveHeaderValue("Accept");
                                 string SuplementalMessage = string.Empty;
                                 string fullurl = HTTPProcessor.DecodeUrl(request.Url);
@@ -443,17 +446,14 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
                                                     postdata.Flush();
                                                 }
 
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
-                                                {
-                                                    //response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                     response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
-                                                }
                                             }
                                             #endregion
 
@@ -470,11 +470,11 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = juggernaut.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
+                                                    res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder, postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 else
-                                                    res = juggernaut.ProcessRequest(request.QueryParameters);
+                                                    res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder);
                                                 juggernaut.Dispose();
                                                 if (res == null)
                                                     response = HttpBuilder.InternalServerError();
@@ -555,6 +555,40 @@ namespace HTTPServer
                                                     response = HttpBuilder.InternalServerError();
                                                 else
                                                     response = HttpResponse.Send(res.Item1, res.Item2, res.Item3);
+                                            }
+                                            #endregion
+
+                                            #region gsconnect API
+                                            else if (Host == "gsconnect.ubisoft.com" && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
+
+                                                (string?, string?, Dictionary<string, string>?) res;
+                                                gsconnectClass gsconn = new(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder);
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = gsconn.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                else
+                                                    res = gsconn.ProcessRequest(request.QueryParameters);
+
+                                                if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                {
+                                                    response = HttpResponse.Send(res.Item1, res.Item2);
+
+                                                    if (res.Item3 != null)
+                                                    {
+                                                        foreach (KeyValuePair<string, string> headertoadd in  res.Item3)
+                                                        {
+                                                            response.Headers.TryAdd(headertoadd.Key, headertoadd.Value);
+                                                        }
+                                                    }
+                                                }
                                             }
                                             #endregion
 
