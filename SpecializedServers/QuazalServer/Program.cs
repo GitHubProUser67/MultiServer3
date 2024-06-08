@@ -207,7 +207,7 @@ class Program
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
-        LoggerAccessor.SetupLogger("QuazalServer");
+        LoggerAccessor.SetupLogger("QuazalServer", Directory.GetCurrentDirectory());
 
         QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
 

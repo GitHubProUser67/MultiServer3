@@ -190,7 +190,7 @@ class Program
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
-        LoggerAccessor.SetupLogger("MitmDNS");
+        LoggerAccessor.SetupLogger("MitmDNS", Directory.GetCurrentDirectory());
 
         MitmDNSServerConfiguration.RefreshVariables(configPath);
 

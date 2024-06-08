@@ -53,7 +53,7 @@ namespace MultiSocks.DirtySocks
                 { "gsea", typeof(GseaIn) }, //Game search
                 { "gset", typeof(GsetIn) }, //Actualize Game properties.
                 { "gsta", typeof(GstaIn) }, //game start. return gstanepl if not enough people, empty gsta if enough.
-                { "gcre", null }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
+                { "gcre", typeof(GcreIn) }, //game create. (name, roomname, maxPlayers, minPlayers, sysFlags, params). return a lot of info
                 { "gpsc", typeof(GpscIn) }, // Create a game on a persistent game spawn service for a user.
                 { "gqwk", typeof(GqwkIn) }, // Join the best matching game based on provided criteria.
                 { "news", typeof(NewsIn) }, //news for server. return newsnew0 with news info (plaintext mode, NOT keyvalue)

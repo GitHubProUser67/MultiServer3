@@ -15,6 +15,8 @@ namespace MultiSocks.DirtySocks.Messages
         public string? CUSTMASK { get; set; }
         public string? CUSTFLAGS { get; set; }
         public string? CANCEL { get; set; }
+        public string? LANG { get; set; }
+        public string? VER { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
@@ -33,6 +35,9 @@ namespace MultiSocks.DirtySocks.Messages
                     .Skip(start - 1) // Adjusting for 1-based indexing
                     .Take(count)
                     .ToList();
+
+                if (!string.IsNullOrEmpty(LANG) && LANG != "-1" && !string.IsNullOrEmpty(context.Project) && context.Project.Contains("DPR-09")) // Hasbro Family game Night does custom filtering on top for region specific lobbies.
+                    MatchingList = MatchingList.Where(game => game.Params.Contains($"LANG%3d{LANG}") && game.Params.Contains($"VER%3d{VER}")).ToList();
 
                 client.SendMessage(new GseaOut() { COUNT = MatchingList.Count.ToString() });
 

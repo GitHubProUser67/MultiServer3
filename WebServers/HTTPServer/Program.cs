@@ -241,7 +241,7 @@ class Program
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
-        LoggerAccessor.SetupLogger("HTTPServer");
+        LoggerAccessor.SetupLogger("HTTPServer", Directory.GetCurrentDirectory());
 
         GeoIP.Initialize();
 
