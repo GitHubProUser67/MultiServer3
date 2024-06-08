@@ -149,6 +149,8 @@ namespace HTTPSecureServerLite
                 string absolutepath = string.Empty;
                 string fulluripath = string.Empty;
                 string Host = request.RetrieveHeaderValue("Host");
+                if (string.IsNullOrEmpty(Host))
+                    Host = request.RetrieveHeaderValue("HOST");
                 string Accept = request.RetrieveHeaderValue("Accept");
                 string clientip = request.Source.IpAddress;
                 string clientport = request.Source.Port.ToString();
@@ -527,7 +529,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                                string? res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                string? res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, true);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";

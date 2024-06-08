@@ -9,7 +9,7 @@ namespace TycoonServer.HFProcessors
 {
     public class TycoonRequestProcessor
     {
-        public static string? ProcessMainPHP(byte[]? PostData, string? ContentType, string? PHPSessionID, string WorkPath)
+        public static string? ProcessMainPHP(byte[]? PostData, string? ContentType, string? PHPSessionID, string WorkPath, bool https)
         {
             if (PostData == null || string.IsNullOrEmpty(ContentType))
                 return null;
@@ -27,7 +27,14 @@ namespace TycoonServer.HFProcessors
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     Command = data.GetParameterValue("Command");
-                    UserID = data.GetParameterValue("UserID");
+                    try
+                    {
+                        UserID = data.GetParameterValue("UserID");
+                    }
+                    catch
+                    {
+                        // Not Important.
+                    }
                     try
                     {
                         DisplayName = data.GetParameterValue("DisplayName");
@@ -62,7 +69,7 @@ namespace TycoonServer.HFProcessors
                     switch (Command)
                     {
                         case "VersionCheck":
-                            return "<Response><URL>http://game2.hellfiregames.com:61900/HomeTycoon</URL></Response>";
+                            return $"<Response><URL>{(https ? "https" : "http")}://game2.hellfiregames.com/HomeTycoon</URL></Response>";
                         case "QueryMotd":
                             return "<Response><Motd>Message of the Day!</Motd></Response>";
                         case "QueryServerGlobals":

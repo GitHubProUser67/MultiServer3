@@ -19,7 +19,7 @@ namespace WebAPIService.HELLFIRE
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string ContentType)
+        public string? ProcessRequest(byte[] PostData, string ContentType, bool https)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -31,13 +31,13 @@ namespace WebAPIService.HELLFIRE
                     {
                         #region HomeTycoon
                         case "/HomeTycoon/Main_SCEE.php":
-                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath, https);
                         case "/HomeTycoon/Main_SCEJ.php":
-                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath, https);
                         case "/HomeTycoon/Main_SCEAsia.php":
-                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath, https);
                         case "/HomeTycoon/Main.php":
-                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                            return TycoonRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath, https);
                         #endregion
 
                         #region ClearasilSkater
