@@ -531,7 +531,7 @@ namespace Horizon.MEDIUS.Medius.Models
             // Logout
             _logoutTime = Utils.GetHighPrecisionUtcTime();
 
-            CrudRoomManager.RemoveUser(AccountName, ApplicationId);
+            CrudRoomManager.RemoveUser(AccountName);
 
             // Tell database
             PostStatus();
