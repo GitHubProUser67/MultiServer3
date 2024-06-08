@@ -153,14 +153,10 @@ namespace Horizon.HTTPSERVICE
                 rooms.Item2.RemoveAll(r => r.AppId == appId);
         }
 
-        public static void RemoveUser(string? username, int appid)
+        public static void RemoveUser(string? username)
         {
             if (!string.IsNullOrEmpty(username))
-            {
-                KeyValuePair<string, int> UserCollection = new(username, appid);
-                if (rooms.Item1.Contains(UserCollection))
-                    rooms.Item1.Remove(UserCollection);
-            }
+                rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(username));
         }
 
         // Get a list of all Rooms
