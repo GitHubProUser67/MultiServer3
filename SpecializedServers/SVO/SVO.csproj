@@ -23,12 +23,12 @@
     </PackageReference>
     <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
-    <PackageReference Include="Watson.Lite" Version="6.1.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonService\HorizonService.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
+	<ProjectReference Include="..\..\BackendServices\WatsonWebserver.Lite\WatsonWebserver.Lite.csproj" />
   </ItemGroup>
   
   <ItemGroup>

@@ -8,6 +8,7 @@
 	<DockerfileRunArguments>-p 53:53</DockerfileRunArguments>
 	<ApplicationIcon>DNS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>

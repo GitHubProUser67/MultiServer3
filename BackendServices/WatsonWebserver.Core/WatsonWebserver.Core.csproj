@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
+		<Version>6.1.9</Version>
+		<PackageId>Watson.Core</PackageId>
+		<Title>Watson Webserver Core</Title>
+		<Company>Joel Christner</Company>
+		<Product>Watson.Core</Product>
+		<Description>Core library for Watson and Watson.Lite; simple, fast, async C# web servers for handling REST requests with SSL support, targeted to .NET Core, .NET Standard, and .NET Framework.</Description>
+		<Copyright>(c)2023 Joel Christner</Copyright>
+		<PackageProjectUrl>https://github.com/dotnet/WatsonWebserver</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/dotnet/WatsonWebserver</RepositoryUrl>
+		<RepositoryType>github</RepositoryType>
+		<PackageTags>web server rest restful http https api async ssl</PackageTags>
+		<PackageReleaseNotes>Major update with breaking changes</PackageReleaseNotes>
+		<IsPublishable>false</IsPublishable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="IpMatcher" Version="1.0.4.4" />
+		<PackageReference Include="RegexMatcher" Version="1.0.8" />
+		<PackageReference Include="System.Text.Json" Version="8.0.3" />
+		<PackageReference Include="Timestamps" Version="1.0.8" />
+		<PackageReference Include="UrlMatcher" Version="2.0.1" />
+	</ItemGroup>
+
+</Project>
