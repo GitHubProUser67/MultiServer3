@@ -1,6 +1,7 @@
 using CustomLogger;
 using CyberBackendLibrary.HTTP;
 using System.Net;
+using System.Security.Authentication;
 using System.Text;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
@@ -199,7 +200,7 @@ namespace Horizon.HTTPSERVICE
                     }
                 });
 
-                _Server.Start();
+                _Server.Start(SslProtocols.Tls12 | SslProtocols.Tls13);
 
                 LoggerAccessor.LogInfo($"CrudHandler Server initiated on port:{port}...");
             }

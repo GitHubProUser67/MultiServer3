@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
+using System.Security.Authentication;
 
 namespace Horizon.MUM
 {
@@ -281,7 +282,7 @@ namespace Horizon.MUM
                     }
                 });
 
-                _Server.Start();
+                _Server.Start(SslProtocols.Tls12 | SslProtocols.Tls13);
 
                 LoggerAccessor.LogInfo($"MumHandler Server initiated on port:{port}...");
             }

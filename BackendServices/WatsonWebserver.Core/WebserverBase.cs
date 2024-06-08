@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using System.Security.Authentication;
 
 namespace WatsonWebserver.Core
 {
@@ -181,14 +182,14 @@ namespace WatsonWebserver.Core
         /// Start accepting new connections.
         /// </summary>
         /// <param name="token">Cancellation token useful for canceling the server.</param>
-        public abstract void Start(CancellationToken token = default);
+        public abstract void Start(SslProtocols protocols, CancellationToken token = default);
 
         /// <summary>
         /// Start accepting new connections.
         /// </summary>
         /// <param name="token">Cancellation token useful for canceling the server.</param>
         /// <returns>Task.</returns>
-        public abstract Task StartAsync(CancellationToken token = default);
+        public abstract Task StartAsync(SslProtocols protocols, CancellationToken token = default);
 
         /// <summary>
         /// Stop accepting new connections.

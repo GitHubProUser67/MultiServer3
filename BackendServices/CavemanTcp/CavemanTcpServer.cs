@@ -354,7 +354,7 @@ namespace CavemanTcp
         /// <summary>
         /// Start accepting connections.
         /// </summary>
-        public void Start()
+        public void Start(SslProtocols protocols)
         {
             if (_IsListening) throw new InvalidOperationException("CavemanTcpServer is already running.");
 
@@ -365,7 +365,7 @@ namespace CavemanTcp
             _Token = _TokenSource.Token;
 
             _Statistics = new CavemanTcpStatistics();
-            _AcceptConnections = Task.Run(() => AcceptConnections(), _Token);
+            _AcceptConnections = Task.Run(() => AcceptConnections(protocols), _Token);
 
             Logger?.Invoke(_Header + "started");
         }
@@ -375,7 +375,7 @@ namespace CavemanTcp
         /// </summary>
         /// <param name="token">Cancellation token for canceling the server.</param>
         /// <returns>Task.</returns>
-        public Task StartAsync(CancellationToken token = default)
+        public Task StartAsync(SslProtocols protocols, CancellationToken token = default)
         {
             if (_IsListening) throw new InvalidOperationException("CavemanTcpServer is already running.");
 
@@ -394,7 +394,7 @@ namespace CavemanTcp
             }
 
             _Statistics = new CavemanTcpStatistics();
-            _AcceptConnections = Task.Run(() => AcceptConnections(), _Token);
+            _AcceptConnections = Task.Run(() => AcceptConnections(protocols), _Token);
 
             Logger?.Invoke(_Header + "started");
             return _AcceptConnections; // sets _IsListening 
@@ -1272,7 +1272,7 @@ namespace CavemanTcp
             }
         }
 
-        private async Task AcceptConnections()
+        private async Task AcceptConnections(SslProtocols protocols)
         {
             _IsListening = true;
 
@@ -1327,7 +1327,7 @@ namespace CavemanTcp
 
                     if (_Keepalive.EnableTcpKeepAlives) EnableKeepalives(tcpClient);
 
-                    var _ = HandleClientConnection(client, linkedCts.Token)
+                    var _ = HandleClientConnection(client, protocols, linkedCts.Token)
                         .ContinueWith(x => linkedCts.Dispose())
                         .ConfigureAwait(false);
 
@@ -1369,7 +1369,7 @@ namespace CavemanTcp
             _IsListening = false;
         }
 
-        private async Task HandleClientConnection(ClientMetadata client, CancellationToken token = default)
+        private async Task HandleClientConnection(ClientMetadata client, SslProtocols protocols, CancellationToken token = default)
         {
             try
             {
@@ -1384,7 +1384,7 @@ namespace CavemanTcp
                         client.SslStream = new SslStream(client.NetworkStream, false);
                     }
 
-                    bool success = await StartTls(client).ConfigureAwait(false);
+                    bool success = await StartTls(client, protocols).ConfigureAwait(false);
                     if (!success)
                     {
                         RemoveAndDisposeClient(client.Guid);
@@ -1412,14 +1412,14 @@ namespace CavemanTcp
             }
         }
 
-        private async Task<bool> StartTls(ClientMetadata client)
+        private async Task<bool> StartTls(ClientMetadata client, SslProtocols protocols)
         {
             try
             {
                 await client.SslStream.AuthenticateAsServerAsync(
                     _SslCertificate,
                     _Settings.MutuallyAuthenticate,
-                    Common.GetSslProtocol,
+                    protocols,
                     !_Settings.AcceptInvalidCertificates).ConfigureAwait(false);
 
                 if (!client.SslStream.IsEncrypted)

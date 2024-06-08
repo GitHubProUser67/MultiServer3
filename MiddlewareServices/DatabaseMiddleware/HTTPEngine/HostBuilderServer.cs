@@ -11,6 +11,7 @@ using System.Net;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
+using System.Security.Authentication;
 
 namespace DatabaseMiddleware.HTTPEngine
 {
@@ -600,7 +601,7 @@ namespace DatabaseMiddleware.HTTPEngine
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
-                _Server.Start();
+                _Server.Start(SslProtocols.Tls12 | SslProtocols.Tls13);
                 LoggerAccessor.LogInfo($"Database Server initiated on port: {port}...");
             }
         }

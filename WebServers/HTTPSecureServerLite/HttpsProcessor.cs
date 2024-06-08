@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
 using Newtonsoft.Json;
+using System.Security.Authentication;
 
 namespace HTTPSecureServerLite
 {
@@ -38,11 +39,13 @@ namespace HTTPSecureServerLite
         private WebserverLite? _Server;
         private readonly string ip;
         private readonly ushort port;
+        private readonly SslProtocols protocols;
 
-        public HttpsProcessor(string certpath, string certpass, string ip, ushort port)
+        public HttpsProcessor(string certpath, string certpass, string ip, ushort port, SslProtocols protocols)
         {
             this.ip = ip;
             this.port = port;
+            this.protocols = protocols;
             WebserverSettings settings = new()
             {
                 Hostname = ip,
@@ -132,7 +135,7 @@ namespace HTTPSecureServerLite
                     }
                 });
 
-                _Server.Start();
+                _Server.Start(protocols);
                 LoggerAccessor.LogInfo($"HTTPS Server initiated on port: {port}...");
             }
         }
