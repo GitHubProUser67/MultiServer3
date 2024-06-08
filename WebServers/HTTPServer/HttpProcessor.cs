@@ -579,7 +579,12 @@ namespace HTTPServer
                                                     response = HttpBuilder.InternalServerError();
                                                 else
                                                 {
-                                                    response = HttpResponse.Send(res.Item1, res.Item2);
+                                                    response = new(false, "1.0")
+                                                    {
+                                                        HttpStatusCode = Models.HttpStatusCode.OK
+                                                    };
+                                                    response.Headers["Content-Type"] = res.Item2;
+                                                    response.ContentAsUTF8 = res.Item1;
 
                                                     if (res.Item3 != null)
                                                     {
