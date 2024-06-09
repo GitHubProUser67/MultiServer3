@@ -300,6 +300,18 @@ namespace CyberBackendLibrary.SSL
             return new X509Certificate2(publicKey.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
         }
 
+        public static void WriteObjectToPEM(object obj, string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                StringBuilder CertPem = new StringBuilder();
+                PemWriter CSRPemWriter = new PemWriter(new StringWriter(CertPem));
+                CSRPemWriter.WriteObject(obj);
+                CSRPemWriter.Writer.Flush();
+                File.WriteAllText(filePath, CertPem.ToString());
+            }
+        }
+
         /// <summary>
         /// Get a random int64 number.
         /// <para>Obtiens un nombre int64 random.</para>

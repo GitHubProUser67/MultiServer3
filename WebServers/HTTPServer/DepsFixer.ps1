@@ -29,7 +29,7 @@ $propertiesToRemove = @(
 
 try {
     # Read the JSON file
-    $jsonContent = Get-Content $jsonFilePath -Raw | ConvertFrom-Json
+    $jsonContent = Get-Content -LiteralPath $jsonFilePath -Raw | ConvertFrom-Json
 } catch {
     Write-Error "Failed to read or parse JSON file: $jsonFilePath"
     exit 1
@@ -54,7 +54,7 @@ foreach ($property in $propertiesToRemove) {
 
 try {
     # Save the modified JSON content back to the file
-    $jsonContent | ConvertTo-Json -Depth 32 | Set-Content $jsonFilePath
+    $jsonContent | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $jsonFilePath
 } catch {
     Write-Error "Failed to write modified JSON content back to file: $jsonFilePath"
     exit 1

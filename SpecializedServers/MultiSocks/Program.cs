@@ -8,6 +8,7 @@ public static class MultiSocksServerConfiguration
 {
     public static bool UsePublicIPAddress { get; set; } = false;
     public static bool RPCS3Workarounds { get; set; } = true;
+    public static string ProtoSSLCertificateCachePath { get; set; } = $"{Directory.GetCurrentDirectory()}/SSL/ProtoSSL/Cache";
     public static string DirtySocksDatabasePath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
 
     /// <summary>
@@ -29,6 +30,7 @@ public static class MultiSocksServerConfiguration
             File.WriteAllText(configPath, new JObject(
                 new JProperty("use_public_ipaddress", UsePublicIPAddress),
                 new JProperty("rpcs3_workarounds", RPCS3Workarounds),
+                new JProperty("protossl_certificate_cache_path", ProtoSSLCertificateCachePath),
                 new JProperty("dirtysocks_database_path", DirtySocksDatabasePath)
             ).ToString());
 
@@ -42,6 +44,7 @@ public static class MultiSocksServerConfiguration
 
             UsePublicIPAddress = GetValueOrDefault(config, "use_public_ipaddress", UsePublicIPAddress);
             RPCS3Workarounds = GetValueOrDefault(config, "rpcs3_workarounds", RPCS3Workarounds);
+            ProtoSSLCertificateCachePath = GetValueOrDefault(config, "protossl_certificate_cache_path", ProtoSSLCertificateCachePath);
             DirtySocksDatabasePath = GetValueOrDefault(config, "dirtysocks_database_path", DirtySocksDatabasePath);
         }
         catch (Exception ex)
@@ -87,6 +90,7 @@ class Program
 
     private static void StartOrUpdateServer()
     {
+        Directory.CreateDirectory(MultiSocksServerConfiguration.ProtoSSLCertificateCachePath);
         DSServer?.Dispose();
         DSServer = new DirtySocksServer(new CancellationTokenSource().Token);
     }
