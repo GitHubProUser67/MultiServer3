@@ -6,42 +6,33 @@ namespace Horizon.HTTPSERVICE
 {
     public class CrudCIDManager
     {
-        private static readonly ConcurrentList<User> users = new();
+        private static readonly ConcurrentList<CIDPair> cids = new();
 
-        // Update or Create a User based on the provided parameters
-        public static void CreateUser(string? UserName, string? MachineID)
+        // Create a CIDPair based on the provided parameters
+        public static void CreateCIDPair(string? UserName, string? MachineID)
         {
             if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(MachineID))
                 return;
 
-            User? userToUpdate = users.FirstOrDefault(user => user.UserName == UserName && user.MachineID == MachineID);
+            CIDPair? cidpairToUpdate = cids.FirstOrDefault(cidpair => cidpair.UserName == UserName && cidpair.MachineID == MachineID);
 
-            if (userToUpdate == null)
+            if (cidpairToUpdate == null)
             {
-                userToUpdate = new User { UserName = UserName, MachineID = MachineID };
-                users.Add(userToUpdate);
+                cidpairToUpdate = new CIDPair { UserName = UserName, MachineID = MachineID };
+                cids.Add(cidpairToUpdate);
             }
         }
 
-        // Remove a User from a specific room based on the provided parameters
-        public static void RemoveUserFromGame(string? UserName, string? MachineID)
+        // Get a list of all CIDPair
+        public static List<CIDPair> GetAllCIDPair()
         {
-            if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(MachineID))
-                return;
-
-            users.RemoveAll(user => user.UserName == UserName && user.MachineID == MachineID);
+            return cids.ToList();
         }
 
-        // Get a list of all Users
-        public static List<User> GetAllUsers()
-        {
-            return users.ToList();
-        }
-
-        // Serialize the Users list to JSON
+        // Serialize the CIDPair list to JSON
         public static string ToJson(bool encrypt)
         {
-            string JsonData = JsonConvert.SerializeObject(users);
+            string JsonData = JsonConvert.SerializeObject(GetAllCIDPair());
             return encrypt ? XORString(JsonData, HorizonServerConfiguration.MediusAPIKey) : JsonData;
         }
 
@@ -61,7 +52,7 @@ namespace Horizon.HTTPSERVICE
         }
     }
 
-    public class User
+    public class CIDPair
     {
         public string? UserName { get; set; }
         public string? MachineID { get; set; }

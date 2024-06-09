@@ -455,14 +455,13 @@ namespace Horizon.DME.Models
             // Add client to manager
             Manager.AddClient(newClient);
 
-            if (DmeClass.GetAppSettingsOrDefault(ApplicationId).EnableDmeEncryption)
+            if (true /*!DmeClass.GetAppSettingsOrDefault(ApplicationId).EnableDmeEncryption*/)
                 return new MediusServerJoinGameResponse()
                 {
                     MessageID = request.MessageID,
                     DmeClientIndex = newClient.DmeId,
                     AccessKey = request.ConnectInfo.AccessKey,
-                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                    pubKey = request.ConnectInfo.ServerKey
+                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
                 };
             else
                 return new MediusServerJoinGameResponse()
@@ -470,7 +469,8 @@ namespace Horizon.DME.Models
                     MessageID = request.MessageID,
                     DmeClientIndex = newClient.DmeId,
                     AccessKey = request.ConnectInfo.AccessKey,
-                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
+                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                    pubKey = request.ConnectInfo.ServerKey
                 };
         }
 #pragma warning restore

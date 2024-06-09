@@ -305,7 +305,7 @@ namespace Horizon.DME
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            var enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
+            bool enableEncryption = false /*DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption*/;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
 
