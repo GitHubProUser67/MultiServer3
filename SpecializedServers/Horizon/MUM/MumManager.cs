@@ -10,6 +10,7 @@ using IChannel = DotNetty.Transport.Channels.IChannel;
 using Horizon.HTTPSERVICE;
 using Horizon.MEDIUS;
 using Horizon.MEDIUS.Medius;
+using System.Globalization;
 
 namespace Horizon.MUM
 {
@@ -945,6 +946,33 @@ namespace Horizon.MUM
         #region JoinGameRequest
         public Task JoinGame(ClientObject client, MediusJoinGameRequest request)
         {
+            List<int> approvedMaxPlayersAppIds = new() { 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
+
+            if (client.ApplicationId == 20371 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK))
+            {
+                try
+                {
+                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionBetaHDK, CultureInfo.InvariantCulture) >= 01.21)
+                        approvedMaxPlayersAppIds.Add(20371);
+                }
+                catch
+                {
+
+                }
+            }
+            else if (client.ApplicationId == 20374 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail))
+            {
+                try
+                {
+                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionRetail, CultureInfo.InvariantCulture) >= 01.21)
+                        approvedMaxPlayersAppIds.Add(20374);
+                }
+                catch
+                {
+
+                }
+            }
+
             #region Client
             /*
             if (client == null)
@@ -975,6 +1003,7 @@ namespace Horizon.MUM
                     LoggerAccessor.LogWarn($"[MediusManager] - Join Game Request Handler Error: Error in retrieving game world info from MUM cache [{request.MediusWorldID}]");
                     client.Queue(new MediusJoinGameResponse()
                     {
+                        SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                         MessageID = request.MessageID,
                         StatusCode = MediusCallbackStatus.MediusGameNotFound
                     });
@@ -990,6 +1019,7 @@ namespace Horizon.MUM
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: Error in retrieving game world info from MUM cache [{request.MediusWorldID}]");
                 client.Queue(new MediusJoinGameResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusGameNotFound
                 });
@@ -1001,6 +1031,7 @@ namespace Horizon.MUM
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: This game's password {game.GamePassword} doesn't match the requested GamePassword {request.GamePassword}");
                 client.Queue(new MediusJoinGameResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusInvalidPassword
                 });
@@ -1013,6 +1044,7 @@ namespace Horizon.MUM
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: This game does not allow more than {game.MaxPlayers}. Current player count: {game.PlayerCount}");
                 client.Queue(new MediusJoinGameResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusWorldIsFull
                 });
@@ -1025,6 +1057,7 @@ namespace Horizon.MUM
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: This games HostType {game.GameHostType} does not match the Requests HostType {request.GameHostType}");
                 client.Queue(new MediusJoinGameResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusRequestDenied
                 });
@@ -1061,7 +1094,7 @@ namespace Horizon.MUM
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    new NetAddress() { Address = request.AddressList.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
+                                    new NetAddress() { Address = request.AddressList?.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
                                     new NetAddress() { AddressType = NetAddressType.NetAddressNone},
                                 }
                             },
@@ -1086,8 +1119,8 @@ namespace Horizon.MUM
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    new NetAddress() { Address = request.AddressList.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() { Address = request.AddressList.AddressList?[1].Address, Port = request.AddressList.AddressList[1].Port, AddressType = NetAddressType.NetAddressTypeInternal},
+                                    new NetAddress() { Address = request.AddressList?.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() { Address = request.AddressList?.AddressList?[1].Address, Port = request.AddressList.AddressList[1].Port, AddressType = NetAddressType.NetAddressTypeInternal},
                                 }
                             },
                         }
@@ -1171,11 +1204,39 @@ namespace Horizon.MUM
         #region JoinGameRequest0
         public void JoinGame0(ClientObject client, MediusJoinGameRequest0 request)
         {
+            List<int> approvedMaxPlayersAppIds = new() { 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
+
+            if (client.ApplicationId == 20371 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK))
+            {
+                try
+                {
+                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionBetaHDK, CultureInfo.InvariantCulture) >= 01.21)
+                        approvedMaxPlayersAppIds.Add(20371);
+                }
+                catch
+                {
+
+                }
+            }
+            if (client.ApplicationId == 20374 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail))
+            {
+                try
+                {
+                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionRetail, CultureInfo.InvariantCulture) >= 01.21)
+                        approvedMaxPlayersAppIds.Add(20374);
+                }
+                catch
+                {
+
+                }
+            }
+
             Game? game = GetGameByGameId(request.MediusWorldID);
             if (game == null)
             {
                 client.Queue(new MediusJoinGameResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusGameNotFound
                 });
@@ -1184,6 +1245,7 @@ namespace Horizon.MUM
             {
                 client.Queue(new MediusJoinGameResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusInvalidPassword
                 });
@@ -1192,13 +1254,14 @@ namespace Horizon.MUM
             {
                 client.Queue(new MediusJoinGameResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusWorldIsFull
                 });
             }
             else
             {
-                var dme = game.DMEServer;
+                DMEObject? dme = game.DMEServer;
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GameHostType == MediusGameHostType.MediusGameHostPeerToPeer)
                 {
@@ -1218,7 +1281,7 @@ namespace Horizon.MUM
                 // Else send normal Connection type
                 else
                 {
-                    dme.Queue(new MediusServerJoinGameRequest()
+                    dme?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1463,6 +1526,33 @@ namespace Horizon.MUM
 
         public async Task joinParty(ClientObject client, MediusPartyJoinByIndexRequest request, IChannel channel)
         {
+            List<int> approvedMaxPlayersAppIds = new() { 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
+
+            if (client.ApplicationId == 20371 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK))
+            {
+                try
+                {
+                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionBetaHDK, CultureInfo.InvariantCulture) >= 01.21)
+                        approvedMaxPlayersAppIds.Add(20371);
+                }
+                catch
+                {
+
+                }
+            }
+            else if (client.ApplicationId == 20374 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail))
+            {
+                try
+                {
+                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionRetail, CultureInfo.InvariantCulture) >= 01.21)
+                        approvedMaxPlayersAppIds.Add(20374);
+                }
+                catch
+                {
+
+                }
+            }
+
             #region Client
             /*
             if (client == null)
@@ -1484,6 +1574,7 @@ namespace Horizon.MUM
 
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusNoResult
                 });
@@ -1494,6 +1585,7 @@ namespace Horizon.MUM
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: This party's password {party.PartyPassword} doesn't match the requested party Password {request.PartyPassword}");
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusInvalidPassword
                 });
@@ -1505,6 +1597,7 @@ namespace Horizon.MUM
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: This game does not allow more than {party.MaxPlayers}. Current player count: {party.PlayerCount}");
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusWorldIsFull
                 });
@@ -1516,6 +1609,7 @@ namespace Horizon.MUM
                 LoggerAccessor.LogWarn($"PartyJoinByIndex Request Handler Error: This party's HostType {party.PartyHostType} does not match the Requests HostType {request.PartyHostType}");
                 client.Queue(new MediusPartyJoinByIndexResponse()
                 {
+                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
                     MessageID = request.MessageID,
                     StatusCode = MediusCallbackStatus.MediusRequestDenied
                 });
