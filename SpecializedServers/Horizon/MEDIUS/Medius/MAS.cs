@@ -2609,7 +2609,7 @@ namespace Horizon.MEDIUS.Medius
             await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
             if (data.ClientObject != null)
             {
-                CrudCIDManager.CreateUser(data.ClientObject.AccountName, data.MachineId);
+                CrudCIDManager.CreateCIDPair(data.ClientObject.AccountName, data.MachineId);
 
                 if (!string.IsNullOrEmpty(data.MachineId))
                     await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
@@ -2823,7 +2823,7 @@ namespace Horizon.MEDIUS.Medius
 
             if (data.ClientObject != null)
             {
-                CrudCIDManager.CreateUser("AnonymousClient", data.MachineId);
+                CrudCIDManager.CreateCIDPair("AnonymousClient", data.MachineId);
 
                 // Login
                 await data.ClientObject.LoginAnonymous(anonymousLoginRequest, iAccountID);

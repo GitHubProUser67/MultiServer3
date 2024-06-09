@@ -75,8 +75,6 @@ namespace Horizon.DME
                         channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
                     var scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
 
-                    //scertClient.CipherService.GetCipher(CipherContext.RC_CLIENT_SESSION);
-
                     // pass medius version
                     scertClient.MediusVersion = ClientObject?.MediusVersion;
                 }
