@@ -4,10 +4,11 @@ using DatabaseMiddleware.HTTPEngine;
 using DatabaseMiddleware.SQLiteEngine;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
+using CyberBackendLibrary.DataTypes;
 
 public static class DatabaseMiddlewareServerConfiguration
 {
-    public static string DatabaseAccessKey { get; set; } = "9hK8qm93OQBuuFYE7q8Tfd0YNlFOM3hRMXf1qFhRbqg="; // Base64 only.
+    public static string DatabaseAccessKey { get; set; } = "9hK8qm93OQBuuFYE7q8Tfd0YNlFOM3hRMXf1qFhRbqg=";
     public static string AuthenticationsList { get; set; } = $"{Directory.GetCurrentDirectory()}/static/DatabaseMiddleware/AuthenticationsList.json";
     public static List<string>? DbFiles { get; set; } = new List<string> {  $"medius_database,{Directory.GetCurrentDirectory()}/static/DatabaseMiddleware/medius_database.sqlite" };
     public static List<string>? BannedIPs { get; set; }
@@ -32,7 +33,9 @@ public static class DatabaseMiddlewareServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            DatabaseAccessKey = GetValueOrDefault(config, "database_accesskey", DatabaseAccessKey);
+            string APIKey = GetValueOrDefault(config, "database_accesskey", DatabaseAccessKey);
+            if (DataTypesUtils.IsBase64String(APIKey))
+                DatabaseAccessKey = APIKey;
             AuthenticationsList = GetValueOrDefault(config, "authenticationslist", AuthenticationsList);
             // Deserialize DbConnectionsArray if it exists
             try
