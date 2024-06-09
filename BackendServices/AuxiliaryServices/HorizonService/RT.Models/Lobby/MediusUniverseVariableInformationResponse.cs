@@ -138,11 +138,11 @@ namespace Horizon.RT.Models
                         {
                             try
                             {
-                                homebetaver = Double.Parse(betafirstFiveElements, CultureInfo.InvariantCulture);
+                                homebetaver = double.Parse(betafirstFiveElements, CultureInfo.InvariantCulture);
                             }
                             catch
                             {
-                                homebetaver = 0;
+                                
                             }
                         }
 
@@ -165,11 +165,11 @@ namespace Horizon.RT.Models
                         {
                             try
                             {
-                                homeretailver = Double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
+                                homeretailver = double.Parse(firstFiveElements, CultureInfo.InvariantCulture);
                             }
                             catch
                             {
-                                homeretailver = 0;
+                                
                             }
                         }
 

@@ -12,6 +12,7 @@ using System.Net;
 using Horizon.PluginManager;
 using Horizon.RT.Models.MGCL;
 using Horizon.MUM;
+using System.Globalization;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -351,8 +352,34 @@ namespace Horizon.MEDIUS.Medius
                             int gameOrPartyId = 0;
                             int accountId = 0;
                             string msgId = string.Empty;
+                            List<int> approvedMaxPlayersAppIds = new() { 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
 
                             string[]? messageParts = joinGameResponse.MessageID?.Value.Split('-');
+
+                            if (data.ClientObject.ApplicationId == 20371 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionBetaHDK))
+                            {
+                                try
+                                {
+                                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionBetaHDK, CultureInfo.InvariantCulture) >= 01.21)
+                                        approvedMaxPlayersAppIds.Add(20371);
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+                            else if (data.ClientObject.ApplicationId == 20374 && !string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail))
+                            {
+                                try
+                                {
+                                    if (double.Parse(MediusClass.Settings.PlaystationHomeVersionRetail, CultureInfo.InvariantCulture) >= 01.21)
+                                        approvedMaxPlayersAppIds.Add(20374);
+                                }
+                                catch
+                                {
+
+                                }
+                            }
 
                             if (messageParts != null && messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
                             {
@@ -392,6 +419,7 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 rClient?.Queue(new MediusPartyJoinByIndexResponse()
                                 {
+                                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
                                     MessageID = new MessageId(msgId),
                                     StatusCode = MediusCallbackStatus.MediusSuccess,
                                     PartyHostType = party.PartyHostType,
@@ -419,6 +447,7 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 rClient?.Queue(new MediusJoinGameResponse()
                                 {
+                                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
                                     MessageID = new MessageId(msgId),
                                     StatusCode = MediusCallbackStatus.MediusFail
                                 });
@@ -436,6 +465,7 @@ namespace Horizon.MEDIUS.Medius
 
                                         rClient.Queue(new MediusJoinGameResponse()
                                         {
+                                            SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
                                             MessageID = new MessageId(msgId),
                                             StatusCode = MediusCallbackStatus.MediusSuccess,
                                             GameHostType = game.GameHostType,
@@ -468,6 +498,7 @@ namespace Horizon.MEDIUS.Medius
 
                                         rClient.Queue(new MediusJoinGameResponse()
                                         {
+                                            SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
                                             MessageID = new MessageId(msgId),
                                             StatusCode = MediusCallbackStatus.MediusSuccess,
                                             GameHostType = game.GameHostType,
@@ -501,6 +532,7 @@ namespace Horizon.MEDIUS.Medius
 
                                         rClient.Queue(new MediusJoinGameResponse()
                                         {
+                                            SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
                                             MessageID = new MessageId(msgId),
                                             StatusCode = MediusCallbackStatus.MediusSuccess,
                                             GameHostType = game.GameHostType,
@@ -544,6 +576,7 @@ namespace Horizon.MEDIUS.Medius
 
                                         rClient.Queue(new MediusJoinGameResponse()
                                         {
+                                            SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
                                             MessageID = new MessageId(msgId),
                                             StatusCode = MediusCallbackStatus.MediusSuccess,
                                             GameHostType = game.GameHostType,
@@ -572,6 +605,7 @@ namespace Horizon.MEDIUS.Medius
 
                                         rClient.Queue(new MediusJoinGameResponse()
                                         {
+                                            SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
                                             MessageID = new MessageId(msgId),
                                             StatusCode = MediusCallbackStatus.MediusSuccess,
                                             GameHostType = game.GameHostType,

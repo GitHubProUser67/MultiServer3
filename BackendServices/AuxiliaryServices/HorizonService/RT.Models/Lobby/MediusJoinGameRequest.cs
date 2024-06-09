@@ -9,25 +9,22 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.JoinGame;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
-        public string SessionKey; // SESSIONKEY_MAXLEN
+        public string? SessionKey; // SESSIONKEY_MAXLEN
         public int MediusWorldID;
         public MediusJoinType JoinType;
-        public string GamePassword; // GAMEPASSWORD_MAXLEN
+        public string? GamePassword; // GAMEPASSWORD_MAXLEN
         public MediusGameHostType GameHostType;
-        public RSA_KEY pubKey;
-        public NetAddressList AddressList;
+        public RSA_KEY? pubKey;
+        public NetAddressList? AddressList;
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
             MediusWorldID = reader.ReadInt32();
@@ -40,13 +37,10 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(new byte[2]);
             writer.Write(MediusWorldID);
