@@ -44,8 +44,8 @@ namespace MultiSocks.DirtySocks
 
             LoggerAccessor.LogInfo("New connection from " + IP + ".");
 
-            if (secure)
-                SecureKeyCert = new ProtoSSLUtils().GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
+            if (secure && context.SSLCache != null)
+                SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
 
             RecvThread = new Thread(RunLoop);
             RecvThread.Start();

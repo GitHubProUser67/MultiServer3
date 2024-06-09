@@ -1,6 +1,7 @@
 
 using CyberBackendLibrary.DataTypes;
 using MultiSocks.DirtySocks.Messages;
+using MultiSocks.Tls;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -14,7 +15,7 @@ namespace MultiSocks.DirtySocks
         public string? SKU = null;
         public bool lowlevel = false;
         public int SessionID = 1;
-
+        public ProtoSSLUtils? SSLCache = null;
         public List<DirtySockClient> DirtySocksClients = new();
         public TcpListener Listener;
 
@@ -33,6 +34,9 @@ namespace MultiSocks.DirtySocks
             this.email = email;
             this.Project = Project;
             this.SKU = SKU;
+
+            if (secure)
+                SSLCache = new ProtoSSLUtils();
 
             Listener = new TcpListener(IPAddress.Any, port);
             Listener.Start();

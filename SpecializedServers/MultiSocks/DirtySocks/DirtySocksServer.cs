@@ -6,42 +6,40 @@ namespace MultiSocks.DirtySocks
     public class DirtySocksServer : IDisposable
     {
         public static IDatabase Database = new DirtySocksJSONDatabase();
-        private AbstractDirtySockServer? RedirectorSSX3_NTSC_A;
-        private AbstractDirtySockServer? RedirectorSSX3_PAL;
-        private AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
-        private AbstractDirtySockServer? RedirectorTSBO_PAL;
-        private AbstractDirtySockServer? RedirectorNFLStreet_NTSC;
-        private AbstractDirtySockServer? RedirectorNFLStreet2_NTSC;
-        private AbstractDirtySockServer? RedirectorNFLStreet3_NTSC;
-        private AbstractDirtySockServer? Redirector007EverythingOrNothing_NTSC;
-        private AbstractDirtySockServer? RedirectorNCAAMM06_NTSC;
-        private AbstractDirtySockServer? RedirectorBOP_PS3;
-        private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
-        private AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC;
-        private AbstractDirtySockServer? RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC;
-        private AbstractDirtySockServer? RedirectorNASCAR08_PS3;
-        private AbstractDirtySockServer? RedirectorNASCAR09_PS3;
-        private AbstractDirtySockServer? RedirectorHASBROFAMILYGAMENIGH_PS3;
-        private AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
-        private AbstractDirtySockServer? BurnoutParadisePS3UltimateBoxMatchmaker;
-        private AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
-        private AbstractDirtySockServer? EverythingOrNothing007_NTSC_Matchmaker;
-        private AbstractDirtySockServer? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
-        private AbstractDirtySockServer? NCAAMM06_NTSC_Matchmaker;
-        private AbstractDirtySockServer? HASBROFAMILYGAMENIGHPS3Matchmaker;
-        private AbstractDirtySockServer? NFLStreet_NTSCMatchmaker;
-        private AbstractDirtySockServer? NFLStreet2_NTSCMatchmaker;
-        private AbstractDirtySockServer? NFLStreet3_NTSCMatchmaker;
-        private AbstractDirtySockServer? SimsMatchmaker;
-        private AbstractDirtySockServer? SSX3Matchmaker;
-        private AbstractDirtySockServer? EAMessenger;
-        //private AbstractDirtySockServer? RedirectorCRYSIS3_MPBETA_PS3; //For Blaze
+        private readonly AbstractDirtySockServer? RedirectorSSX3_NTSC_A;
+        private readonly AbstractDirtySockServer? RedirectorSSX3_PAL;
+        private readonly AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
+        private readonly AbstractDirtySockServer? RedirectorTSBO_PAL;
+        private readonly AbstractDirtySockServer? RedirectorNFLStreet_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorNFLStreet2_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorNFLStreet3_NTSC;
+        private readonly AbstractDirtySockServer? Redirector007EverythingOrNothing_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorNCAAMM06_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorBOP_PS3;
+        private readonly AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
+        private readonly AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC;
+        private readonly AbstractDirtySockServer? RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorNASCAR08_PS3;
+        private readonly AbstractDirtySockServer? RedirectorNASCAR09_PS3;
+        private readonly AbstractDirtySockServer? RedirectorHASBROFAMILYGAMENIGHT_PS3;
+        private readonly AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
+        private readonly AbstractDirtySockServer? BurnoutParadisePS3UltimateBoxMatchmaker;
+        private readonly AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
+        private readonly AbstractDirtySockServer? EverythingOrNothing007_NTSC_Matchmaker;
+        private readonly AbstractDirtySockServer? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
+        private readonly AbstractDirtySockServer? NCAAMM06_NTSC_Matchmaker;
+        private readonly AbstractDirtySockServer? HASBROFAMILYGAMENIGHTPS3Matchmaker;
+        private readonly AbstractDirtySockServer? NFLStreet_NTSCMatchmaker;
+        private readonly AbstractDirtySockServer? NFLStreet2_NTSCMatchmaker;
+        private readonly AbstractDirtySockServer? NFLStreet3_NTSCMatchmaker;
+        private readonly AbstractDirtySockServer? SimsMatchmaker;
+        private readonly AbstractDirtySockServer? SSX3Matchmaker;
+        private readonly AbstractDirtySockServer? EAMessenger;
         private bool disposedValue;
 
         public DirtySocksServer(CancellationToken cancellationToken)
         {
             string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
-
 
             #region Redirector
 
@@ -160,7 +158,7 @@ namespace MultiSocks.DirtySocks
             #region Burnout Paradise PC
             try
             {
-                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21842, false, "BURNOUT5", "PC", false, "pcburnout08.ea.com", "pcburnout08@ea.com");
+                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21842, false, "BURNOUT5", "PC", true, "pcburnout08.ea.com", "pcburnout08@ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] BOPULTIMATEBOX PC Started!");
             }
             catch (Exception ex)
@@ -194,12 +192,12 @@ namespace MultiSocks.DirtySocks
             #region Hasbro Family Game Night PS3
             try
             {
-                RedirectorHASBROFAMILYGAMENIGH_PS3 = new RedirectorServer(32950, ListenIP, 32951, false, "DPR-09", "PS3");
-                LoggerAccessor.LogInfo($"[Redirector] HASBROFAMILYGAMENIGH PS3 Started!");
+                RedirectorHASBROFAMILYGAMENIGHT_PS3 = new RedirectorServer(32950, ListenIP, 32951, false, "DPR-09", "PS3");
+                LoggerAccessor.LogInfo($"[Redirector] HASBROFAMILYGAMENIGHT PS3 Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[Redirector] HASBROFAMILYGAMENIGH PS3 Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Redirector] HASBROFAMILYGAMENIGHT PS3 Failed to start! Exception: {ex}");
             }
             #endregion
 
@@ -294,7 +292,7 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                HASBROFAMILYGAMENIGHPS3Matchmaker = new MatchmakerServer(32951, true, null, "DPR-09", "PS3");
+                HASBROFAMILYGAMENIGHTPS3Matchmaker = new MatchmakerServer(32951, true, null, "DPR-09", "PS3");
             }
             catch (Exception ex)
             {
@@ -388,7 +386,7 @@ namespace MultiSocks.DirtySocks
                     Redirector007EverythingOrNothing_NTSC?.Dispose();
                     RedirectorNASCAR08_PS3?.Dispose();
                     RedirectorNASCAR09_PS3?.Dispose();
-                    RedirectorHASBROFAMILYGAMENIGH_PS3?.Dispose();
+                    RedirectorHASBROFAMILYGAMENIGHT_PS3?.Dispose();
                     RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC?.Dispose();
                     RedirectorNFLStreet_NTSC?.Dispose();
                     RedirectorNFLStreet2_NTSC?.Dispose();
@@ -404,7 +402,7 @@ namespace MultiSocks.DirtySocks
                     NFLStreet2_NTSCMatchmaker?.Dispose();
                     NFLStreet3_NTSCMatchmaker?.Dispose();
                     NCAAMM06_NTSC_Matchmaker?.Dispose();
-                    HASBROFAMILYGAMENIGHPS3Matchmaker?.Dispose();
+                    HASBROFAMILYGAMENIGHTPS3Matchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();
 

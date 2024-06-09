@@ -14,6 +14,7 @@ using Org.BouncyCastle.X509;
 using CyberBackendLibrary.DataTypes;
 using CustomLogger;
 using Org.BouncyCastle.Asn1;
+using CyberBackendLibrary.SSL;
 
 namespace MultiSocks.Tls;
 
@@ -100,6 +101,10 @@ public class ProtoSSLUtils
         store.SetCertificateEntry(certDomain, certEntry);
         store.SetKeyEntry(certDomain, new AsymmetricKeyEntry(cKeyPair.Private), new[] { certEntry });
 
+        SSLUtils.WriteObjectToPEM(certEntry.Certificate, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{certDomain}.pem");
+        SSLUtils.WriteObjectToPEM(cKeyPair.Private, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{certDomain}_privkey.pem");
+        SSLUtils.WriteObjectToPEM(cKeyPair.Public, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{certDomain}_pubkey.pem");
+
         return (cKeyPair.Private, new Certificate(new TlsCertificate[] { new BcTlsCertificate(crypto, certEntry.Certificate.GetEncoded()) }));
     }
 
@@ -126,6 +131,10 @@ public class ProtoSSLUtils
 
         store.SetCertificateEntry(ChainCN, certEntry);
         store.SetKeyEntry(ChainCN, new AsymmetricKeyEntry(cKeyPair.Private), new[] { certEntry });
+
+        SSLUtils.WriteObjectToPEM(certEntry.Certificate, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{ChainCN}.pem");
+        SSLUtils.WriteObjectToPEM(cKeyPair.Private, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{ChainCN}_privkey.pem");
+        SSLUtils.WriteObjectToPEM(cKeyPair.Public, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{ChainCN}_pubkey.pem");
 
         return (cKeyPair.Private, new Certificate(new TlsCertificate[] { new BcTlsCertificate(crypto, certEntry.Certificate.GetEncoded()) }));
     }
