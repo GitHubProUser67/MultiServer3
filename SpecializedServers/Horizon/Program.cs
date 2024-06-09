@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
 using System.Reflection;
+using CyberBackendLibrary.DataTypes;
 
 public static class HorizonServerConfiguration
 {
@@ -28,7 +29,7 @@ public static class HorizonServerConfiguration
     public static string? MUISConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/muis.json";
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
-    public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc="; // Base64 only.
+    public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc=";
     public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
@@ -105,7 +106,9 @@ public static class HorizonServerConfiguration
             MUISConfig = GetValueOrDefault(config.muis, "config", MUISConfig);
             NATConfig = GetValueOrDefault(config.nat, "config", NATConfig);
             BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
-            MediusAPIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
+            string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
+            if (DataTypesUtils.IsBase64String(APIKey))
+                MediusAPIKey = APIKey;
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
         }
