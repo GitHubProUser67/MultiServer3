@@ -82,14 +82,18 @@ namespace SVO
 
             try
             {
-                string? UserAgent = ctx.Request.Useragent.ToLower();
+                string? UserAgent = null;
+
+                if (!string.IsNullOrEmpty(ctx.Request.Useragent))
+                    UserAgent = ctx.Request.Useragent.ToLower();
+
                 if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                 {
                     LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server while not being allowed!");
 
                     ctx.Response.StatusCode = (int)statusCode; // Send the other status.
                     ctx.Response.ContentType = "text/plain";
-                    sent = await ctx.Response.SendFinalChunk(Array.Empty<byte>());
+                    sent = await ctx.Response.Send();
 
                     return;
                 }
