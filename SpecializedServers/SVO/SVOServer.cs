@@ -166,7 +166,11 @@ namespace SVO
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
                 else
                 {
-                    string? UserAgent = ctx.Request.UserAgent.ToLower();
+                    string? UserAgent = null;
+
+                    if (!string.IsNullOrEmpty(ctx.Request.UserAgent))
+                        UserAgent = ctx.Request.UserAgent.ToLower();
+
                     if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                     {
                         ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
