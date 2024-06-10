@@ -1,10 +1,8 @@
-#if NETSTANDARD2_0_OR_GREATER
 using Figgle;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
 using Spectre.Console;
 using Spectre.Console.Json;
-#endif
 using System;
 using System.IO;
 using System.Threading;
@@ -31,8 +29,7 @@ namespace CustomLogger
             {
 
             }
-
-#if NETSTANDARD2_0_OR_GREATER
+			
             Directory.CreateDirectory(CurrentDir + $"/logs");
             Console.WriteLine(FiggleFonts.Ogre.Render(project));
 
@@ -68,9 +65,6 @@ namespace CustomLogger
                     builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
                 }).CreateLogger(string.Empty);
             }
-#else
-            Console.WriteLine(project + " Server is now starting!");
-#endif
 
 #if DEBUG
             if (Environment.OSVersion.Platform == PlatformID.Win32NT
@@ -145,7 +139,6 @@ namespace CustomLogger
         }
 
 #pragma warning disable
-#if NETSTANDARD2_0_OR_GREATER
         public static ILogger Logger { get; set; }
         public static FileLoggerProvider _fileLogger = null;
         public static void LogInfo(string message) { Logger.LogInformation(message, null); }
@@ -182,26 +175,6 @@ namespace CustomLogger
                     .RoundedBorder()
                     .BorderColor(ConsoleColor.Gray));
         }
-#else
-        public static void LogInfo(string message) { Console.WriteLine("\nINFO: " + message, null); }
-        public static void LogInfo(string message, params object[] args) { Console.WriteLine("\nINFO: " + message, args); }
-        public static void LogInfo(int? message, params object[] args) { Console.WriteLine("\nINFO: " + message.ToString(), args); }
-        public static void LogInfo(float? message, params object[] args) { Console.WriteLine("\nINFO: " + message.ToString(), args); }
-        public static void LogWarn(string message) { Console.WriteLine("\nWARN: " + message, null); }
-        public static void LogWarn(string message, params object[] args) { Console.WriteLine("\nWARN: " + message, args); }
-        public static void LogWarn(int? message, params object[] args) { Console.WriteLine("\nWARN: " + message.ToString(), args); }
-        public static void LogWarn(float? message, params object[] args) { Console.WriteLine("\nWARN: " + message.ToString(), args); }
-        public static void LogError(string message) { Console.WriteLine("\nERROR: " + message); }
-        public static void LogError(string message, params object[] args) { Console.WriteLine("\nERROR: " + message, args); }
-        public static void LogError(int? message, params object[] args) { Console.WriteLine("\nERROR: " + message.ToString(), args); }
-        public static void LogError(float? message, params object[] args) { Console.WriteLine("\nERROR: " + message.ToString(), args); }
-        public static void LogError(Exception exception) { Console.WriteLine("\nCRIT: " + exception.Message.ToString()); }
-        public static void LogDebug(string message) { Console.WriteLine("\nDEBUG: " + message, null); }
-        public static void LogDebug(string message, params object[] args) { Console.WriteLine("\nDEBUG: " + message, args); }
-        public static void LogDebug(int? message, params object[] args) { Console.WriteLine("\nDEBUG: " + message.ToString(), args); }
-        public static void LogDebug(float? message, params object[] args) { Console.WriteLine("\nDEBUG: " + message.ToString(), args); }
-        public static void LogJson(string message, string header = "JSON Data") { Console.WriteLine($"\nJSON ({header}): \n" + message); }
-#endif
 #pragma warning restore
     }
 }
