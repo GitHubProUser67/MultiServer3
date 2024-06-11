@@ -405,7 +405,7 @@ namespace CyberBackendLibrary.Crypto
                     .InitiateCTRBuffer(Convert.FromBase64String(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV);
         }
 
-        public static string? ProcessSecureCheckum(byte[] inputData, uint initialValue)
+        public static string? ProcessSecureCheckum(byte[] inputData, long initialValue)
         {
             byte currentByte = 0;
             int DataIndex = 0;
@@ -416,7 +416,7 @@ namespace CyberBackendLibrary.Crypto
 
             do
             {
-                currentByte = (byte)(inputData[DataIndex] ^ BitConverter.SingleToInt32Bits(tempFloat));
+                currentByte = (byte)(inputData[DataIndex] ^ BitConverter.SingleToInt32Bits(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(tempFloat) : tempFloat));
                 CheckSumBytes[DataIndex] = currentByte;
                 tempFloat = (ChecksumFloatBox[currentByte]) / 
                             (float)(((uint)(ChecksumByteBox[(uint)tempFloat & 0xFF]) << 0x10) |
