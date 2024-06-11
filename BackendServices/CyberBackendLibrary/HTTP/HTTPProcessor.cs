@@ -889,10 +889,10 @@ namespace CyberBackendLibrary.HTTP
 
             try
             {
-                // Attempt to acquire the lock
-                Monitor.TryEnter(_StackLock, ref lockTaken);
+                if (BufferSize <= 4096) // Make sure buffersize is not outside of tolerated stack space.
+                    Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock
 
-                if (lockTaken && BufferSize <= 4096) // Lock is free and buffersize is not outside of tolerated stack space.
+                if (lockTaken) // Lock is free.
                 {
                     Span<byte> buffer = stackalloc byte[BufferSize]; // Allocate buffer on the stack.
                     buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data.
