@@ -1106,6 +1106,8 @@ namespace HTTPServer
                     {
                         string EtagMD5 = ComputeStreamChecksum(response.ContentStream);
 
+                        response.ContentStream.Position = 0;
+
                         if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
                         {
                             response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
@@ -1704,6 +1706,8 @@ namespace HTTPServer
                     {
                         string EtagMD5 = ComputeStreamChecksum(response.ContentStream);
 
+                        response.ContentStream.Position = 0;
+
                         if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
                         {
                             response.Headers.Clear();
@@ -1977,13 +1981,11 @@ namespace HTTPServer
 
             byte[] bytes = MD5.Create().ComputeHash(input);
 
-            input.Position = 0;
-
             StringBuilder builder = new();
             for (int i = 0; i < bytes.Length; i++)
                 builder.Append(bytes[i].ToString("x2"));
 
-            return builder.ToString() + $":{WebCrypto.ProcessSecureCheckum(bytes, 0x5BCD9F0F)}";
+            return builder.ToString() + $":{WebCrypto.ProcessSecureCheckum(bytes, input.Length)}";
         }
 
 #if NET7_0_OR_GREATER
