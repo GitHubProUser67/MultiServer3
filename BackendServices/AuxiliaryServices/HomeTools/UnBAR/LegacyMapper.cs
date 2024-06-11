@@ -25,10 +25,10 @@ namespace HomeTools.UnBAR
 
                 if (string.IsNullOrEmpty(prefix))
                 {
-#if NETSTANDARD2_1_OR_GREATER
-                    Match match = new Regex(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}").Match(foldertomap);
-#elif NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
                     Match match = UUIDRegex().Match(foldertomap);
+#else
+                    Match match = new Regex(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}").Match(foldertomap);
 #endif
                     if (match.Success)
                         prefix = $"objects/{match.Groups[0].Value}/";
@@ -85,7 +85,7 @@ namespace HomeTools.UnBAR
                         {
                             if (File.Exists(Path.Combine(foldertomap, file.Name)))
                             {
-                                new FileInfo(Path.Combine(foldertomap, text).ToUpper()).Directory.Create();
+                                new FileInfo(Path.Combine(foldertomap, text).ToUpper()).Directory?.Create();
                                 if (!File.Exists(Path.Combine(foldertomap, text.ToUpper())))
                                 {
                                     File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, text.ToUpper()));
@@ -104,7 +104,7 @@ namespace HomeTools.UnBAR
                             {
                                 if (File.Exists(Path.Combine(foldertomap, file.Name)))
                                 {
-                                    new FileInfo(Path.Combine(foldertomap, cdatafromatmos).ToUpper()).Directory.Create();
+                                    new FileInfo(Path.Combine(foldertomap, cdatafromatmos).ToUpper()).Directory?.Create();
                                     if (!File.Exists(Path.Combine(foldertomap, cdatafromatmos.ToUpper())))
                                     {
                                         File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, cdatafromatmos.ToUpper()));
@@ -270,23 +270,25 @@ namespace HomeTools.UnBAR
             Directory.CreateDirectory(targetDir);
 
             // Get all files in the source directory and its subdirectories
-            string[] files = Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories);
-
-            foreach (string file in files)
+            foreach (string file in Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
             {
                 filePathList.Add(file);
 
                 try
                 {
                     string targetPath = Path.Combine(targetDir, Path.GetRelativePath(sourceDir, file));
+                    string? directorytargetPath = Path.GetDirectoryName(targetPath);
 
-                    // Create the directory structure in the target directory if it doesn't exist
-                    Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+                    if (!string.IsNullOrEmpty(directorytargetPath))
+                    {
+                        // Create the directory structure in the target directory if it doesn't exist
+                        Directory.CreateDirectory(directorytargetPath);
 
-                    // Copy the file to the target directory
-                    File.Copy(file, targetPath, true); // Use true to overwrite existing files
+                        // Copy the file to the target directory
+                        File.Copy(file, targetPath, true); // Use true to overwrite existing files
+                    }
                 }
-                catch (Exception)
+                catch
                 {
                     // Not Important.
                 }
