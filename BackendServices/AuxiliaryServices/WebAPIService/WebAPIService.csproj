@@ -1,15 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
+	<IsTrimmable>true</IsTrimmable>
 	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\HomeTools\HomeTools.csproj" />
     <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
-	<PackageReference Include="NLua" Version="1.7.2" />
+	<PackageReference Include="NLua" Version="1.7.3" />
 	<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
   </ItemGroup>
 

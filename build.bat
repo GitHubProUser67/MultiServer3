@@ -36,9 +36,9 @@ if exist "~BuildOutput/MultiServer/Debug/net6.0" (
     xcopy /E /Y /I "~BuildOutput/MultiServer/Debug/net6.0" "~BuildOutput/MultiServer/Debug"
 	@rmdir /S /Q "~BuildOutput/MultiServer/Debug/net6.0"
 )
-if exist "~BuildOutput/MultiServer/Debug/net6.0" (
-    xcopy /E /Y /I "~BuildOutput/MultiServer/Debug/net6.0" "~BuildOutput/MultiServer/Debug"
-	@rmdir /S /Q "~BuildOutput/MultiServer/Debug/net6.0"
+if exist "~BuildOutput/MultiServer/Release/net6.0" (
+    xcopy /E /Y /I "~BuildOutput/MultiServer/Release/net6.0" "~BuildOutput/MultiServer/Release"
+	@rmdir /S /Q "~BuildOutput/MultiServer/Release/net6.0"
 )
 if exist "~BuildOutput/Nautilus/Debug/net6.0-windows" (
     xcopy /E /Y /I "~BuildOutput/Nautilus/Debug/net6.0-windows" "~BuildOutput/Nautilus/Debug"

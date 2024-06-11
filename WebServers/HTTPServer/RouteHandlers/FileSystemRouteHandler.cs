@@ -36,7 +36,7 @@ namespace HTTPServer.RouteHandlers
                     byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
                     foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
-                        if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                        if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                         {
                             matched = true;
                             response.Headers["Content-Type"] = entry.Key;
@@ -68,7 +68,7 @@ namespace HTTPServer.RouteHandlers
                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
                 foreach (var entry in HTTPProcessor._PathernDictionary)
                 {
-                    if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                     {
                         ContentType = entry.Key;
                         break;

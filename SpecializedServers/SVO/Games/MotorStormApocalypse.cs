@@ -114,7 +114,7 @@ namespace SVO
                                         // Convert the modified data to a string
                                         psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
-                                        if (DataTypesUtils.FindbyteSequence(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                        if (DataTypesUtils.FindBytePattern(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                                             LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on RPCN");
                                         else
                                             LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on PSN");

@@ -11,11 +11,14 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Threading;
 
 namespace CyberBackendLibrary.HTTP
 {
-    public partial class HTTPProcessor
+    public class HTTPProcessor
     {
+        private static object _StackLock = new object();
+
         public static readonly Dictionary<string, string> _mimeTypes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
@@ -662,11 +665,11 @@ namespace CyberBackendLibrary.HTTP
         {
             if (string.IsNullOrEmpty(referer))
                 return string.Empty;
-#if NETSTANDARD2_1_OR_GREATER
-            Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
-#elif NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
             // Match the input string with the pattern
             Match match = DirtyProxyRegex().Match(referer);
+#else
+            Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
 #endif
 
             // Check if the pattern is matched
@@ -878,13 +881,43 @@ namespace CyberBackendLibrary.HTTP
         /// <param name="BufferSize">the buffersize for the copy.</param>
         private static void CopyStream(Stream input, Stream output, int BufferSize)
         {
-            int len = 0;
-            byte[] buffer = new byte[BufferSize];
-            while ((len = input.Read(buffer, 0, BufferSize)) > 0)
+            if (BufferSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
+
+            bool lockTaken = false;
+            int bytesRead = 0;
+
+            try
             {
-                output.Write(buffer, 0, len);
+                // Attempt to acquire the lock
+                Monitor.TryEnter(_StackLock, ref lockTaken);
+
+                if (lockTaken && BufferSize <= 4096) // Lock is free and buffersize is not outside of tolerated stack space.
+                {
+                    Span<byte> buffer = stackalloc byte[BufferSize]; // Allocate buffer on the stack.
+                    buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data.
+                    while ((bytesRead = input.Read(buffer)) > 0)
+                    {
+                        output.Write(buffer[..bytesRead]);
+                    }
+                    output.Flush();
+                }
+                else
+                {
+                    Span<byte> buffer = new byte[BufferSize];
+                    while ((bytesRead = input.Read(buffer)) > 0)
+                    {
+                        output.Write(buffer[..bytesRead]);
+                    }
+                    output.Flush();
+                }
             }
-            output.Flush();
+            finally
+            {
+                // Release the lock if it was acquired
+                if (lockTaken)
+                    Monitor.Exit(_StackLock);
+            }
         }
 #if NET7_0_OR_GREATER
         [GeneratedRegex("^(.*?http://.*?http://)([^/]+)(.*)$")]

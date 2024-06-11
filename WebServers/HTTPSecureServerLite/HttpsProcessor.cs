@@ -663,7 +663,7 @@ namespace HTTPSecureServerLite
                                                 extractedData[i] = 0x48;
                                         }
 
-                                        if (DataTypesUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                        if (DataTypesUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                         else
                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -1109,7 +1109,7 @@ namespace HTTPSecureServerLite
                                                             byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1339,7 +1339,7 @@ namespace HTTPSecureServerLite
                                                             byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1452,7 +1452,7 @@ namespace HTTPSecureServerLite
                                                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         matched = true;
                                                         response.ContentType = entry.Key;
@@ -1510,7 +1510,7 @@ namespace HTTPSecureServerLite
                                                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         ContentType = entry.Key;
                                                         break;

@@ -60,7 +60,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                         extractedData[i] = 0x20;
                 }
 
-                if (DataTypesUtils.FindbyteSequence(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                if (DataTypesUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HFGames] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
