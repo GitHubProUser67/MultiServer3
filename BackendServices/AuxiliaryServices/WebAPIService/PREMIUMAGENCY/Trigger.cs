@@ -42,6 +42,8 @@ namespace WebAPIService.PREMIUMAGENCY
             string MikuliveEventTriggerPath = $"{workpath}/eventController/MikuLiveEvent/Triggers/";
             string PrinnyJackTriggerPath = $"{workpath}/eventController/PrinnyJack/Triggers/";
             string RollyJukeboxTriggerPath = $"{workpath}/eventController/RollyJukebox/Triggers/";
+            string SCEAsiaChristmas2010OBJTrigger = $"{workpath}/eventController/Christmas/2010/OBJTrig/Triggers/";
+            string SCEAsiaChristmas2010SnowFall = $"{workpath}/eventController/Christmas/2010/Snowfall/Triggers/";
             string SonyAquariumRelocatorTriggerPath = $"{workpath}/eventController/SonyAquarium/Relocator/Triggers/";
             string SonyAquariumVideoConfigTriggerPath = $"{workpath}/eventController/SonyAquarium/VideoConfig/Triggers/";
 
@@ -1156,6 +1158,99 @@ namespace WebAPIService.PREMIUMAGENCY
                     }
                 #endregion
 
+                #region SCEAsia Xmas 2010 Obj Trigger PUBLIC
+                case "305":
+                    string SCEAsiaXmasObjTriggerPUBLICTriggerPath = SCEAsiaChristmas2010OBJTrigger + "getEventTrigger.xml";
+                    if (File.Exists(SCEAsiaXmasObjTriggerPUBLICTriggerPath))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC SCEAsia Christmas 2010 OBJ Trigger {eventId}!");
+                        string res = File.ReadAllText(SCEAsiaXmasObjTriggerPUBLICTriggerPath);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                            $"<trigger_count type=\"int\">{readcnt}</trigger_count>\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger FALLBACK sent for SCEAsia Christmas 2010 OBJ Trigger {eventId}!\nExpected path {SCEAsiaXmasObjTriggerPUBLICTriggerPath}");
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n" +
+                            $"<trigger_count type=\"int\">{readcnt}</trigger_count>\r\n\t" +
+                            "<trigger_time>\r\n\t\t" +
+                            "<trigger_id type=\"int\">1</trigger_id>\r\n" +
+                            "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
+                            "<start_year type=\"int\">2024</start_year>\r\n\t\t" +
+                            "<start_month type=\"int\">01</start_month>\r\n\t\t" +
+                            "<start_day type=\"int\">15</start_day>\r\n\t\t" +
+                            "<start_hour type=\"int\">00</start_hour>\r\n\t\t" +
+                            "<start_minutes type=\"int\">00</start_minutes>\r\n\t\t" +
+                            "<start_second type=\"int\">00</start_second>\r\n\r\n\t\t" +
+                            "<end_year type=\"int\">2124</end_year>\r\n\t\t" +
+                            "<end_month type=\"int\">02</end_month>\r\n\t\t" +
+                            "<end_day type=\"int\">20</end_day>\r\n\t\t" +
+                            "<end_hour type=\"int\">05</end_hour>\r\n\t\t" +
+                            "<end_minutes type=\"int\">45</end_minutes>\r\n\t\t" +
+                            "<end_second type=\"int\">0</end_second>\r\n\r\n\t\t" +
+                            "<trigger_flag type=\"int\">1</trigger_flag>\r\n\t" +
+                            "</trigger_time>\r\n" +
+                            "</xml>";
+                    }
+                #endregion
+
+                #region SCEAsia Xmas 2010 Snow Fall PUBLIC
+                case "306":
+                    string SCEAsiaXmasSnowFallPUBLICTriggerPath = SCEAsiaChristmas2010SnowFall + "getEventTrigger.xml";
+                    if (File.Exists(SCEAsiaXmasSnowFallPUBLICTriggerPath))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger sent for PUBLIC SCEAsia Christmas 2010 Snowfall {eventId}!");
+                        string res = File.ReadAllText(SCEAsiaXmasSnowFallPUBLICTriggerPath);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                            $"<trigger_count type=\"int\">{readcnt}</trigger_count>\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger FALLBACK sent for PUBLIC SCEAsia Christmas 2010 Snowfall {eventId}!\nExpected path {SCEAsiaXmasSnowFallPUBLICTriggerPath}");
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n" +
+                            $"<trigger_count type=\"int\">{readcnt}</trigger_count>\r\n\t" +
+                            "<trigger_time>\r\n\t\t" +
+                            "<trigger_id type=\"int\">1</trigger_id>\r\n" +
+                            "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
+                            "<start_year type=\"int\">2024</start_year>\r\n\t\t" +
+                            "<start_month type=\"int\">01</start_month>\r\n\t\t" +
+                            "<start_day type=\"int\">15</start_day>\r\n\t\t" +
+                            "<start_hour type=\"int\">00</start_hour>\r\n\t\t" +
+                            "<start_minutes type=\"int\">00</start_minutes>\r\n\t\t" +
+                            "<start_second type=\"int\">00</start_second>\r\n\r\n\t\t" +
+                            "<end_year type=\"int\">2124</end_year>\r\n\t\t" +
+                            "<end_month type=\"int\">02</end_month>\r\n\t\t" +
+                            "<end_day type=\"int\">20</end_day>\r\n\t\t" +
+                            "<end_hour type=\"int\">05</end_hour>\r\n\t\t" +
+                            "<end_minutes type=\"int\">45</end_minutes>\r\n\t\t" +
+                            "<end_second type=\"int\">0</end_second>\r\n\r\n\t\t" +
+                            "<trigger_flag type=\"int\">1</trigger_flag>\r\n\t" +
+                            "</trigger_time>\r\n" +
+                            "</xml>";
+                    }
+                #endregion
+
+
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - GetEventTrigger unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
@@ -1262,6 +1357,8 @@ namespace WebAPIService.PREMIUMAGENCY
             string RainbowEventTriggerPath = $"{workpath}/eventController/MikuLiveEvent/Triggers/";
             string PrinnyJackTriggerPath = $"{workpath}/eventController/PrinnyJack/Triggers/";
             string RollyJukeboxTriggerPath = $"{workpath}/eventController/RollyJukebox/Triggers/";
+            string SCEAsiaChristmas2010OBJTrigger = $"{workpath}/eventController/Christmas/2010/OBJTrig/Triggers/";
+            string SCEAsiaChristmas2010SnowFall = $"{workpath}/eventController/Christmas/2010/Snowfall/Triggers/";
             string SceasiaDistributionTriggerPath = $"{workpath}/eventController/Distribution/SCEAsia/lounge/Triggers/";
             string SonyAquariumRelocatorTriggerPath = $"{workpath}/eventController/SonyAquarium/Relocator/Triggers/";
             string SonyAquariumVideoConfigTriggerPath = $"{workpath}/eventController/SonyAquarium/VideoConfig/Triggers/";
@@ -1284,7 +1381,8 @@ namespace WebAPIService.PREMIUMAGENCY
                              "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
                              $"{res}\r\n" +
                              "</xml>";
-                    } else
+                    }
+                    else
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger FALLBACK sent for QA MikuLiveJack {eventId}!\nExpected path {MikuliveJackQATriggerPath}");
                         return "<xml>\r\n" +
@@ -2820,11 +2918,95 @@ namespace WebAPIService.PREMIUMAGENCY
                     }
                 #endregion
 
+                #region SCEAsia Christmas 2010 OBJ Trigger PUBLIC
+                case "305":
+                    string SCEAsiaXmasOBJTriggerPUBLICTriggerPath = SCEAsiaChristmas2010OBJTrigger + "confirmEventTrigger.xml";
+                    if (File.Exists(SCEAsiaXmasOBJTriggerPUBLICTriggerPath))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC SCEAsia Christmas 2010 OBJ Trigger {eventId}!");
+                        string res = File.ReadAllText(SCEAsiaXmasOBJTriggerPUBLICTriggerPath);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger FALLBACK sent for PUBLIC SCEAsia Christmas 2010 OBJ Trigger {eventId}!\nExpected path {SCEAsiaXmasOBJTriggerPUBLICTriggerPath}");
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n" +
+                            "<is_active type=\"bool\">true</is_active>\r\n" +
+                            "<trigger_id type=\"int\">1</trigger_id>\r\n\r\n" +
+                            "<start_year type=\"int\">2023</start_year>\r\n" +
+                            "<start_month type=\"int\">09</start_month>\r\n" +
+                            "<start_day type=\"int\">12</start_day>\r\n" +
+                            "<start_hour type=\"int\">08</start_hour>\r\n" +
+                            "<start_minutes type=\"int\">00</start_minutes>\r\n" +
+                            "<start_second type=\"int\">0</start_second>\r\n\r\n" +
+                            "<end_year type=\"int\">2100</end_year>\r\n" +
+                            "<end_month type=\"int\">09</end_month>\r\n" +
+                            "<end_day type=\"int\">17</end_day>\r\n" +
+                            "<end_hour type=\"int\">00</end_hour>\r\n" +
+                            "<end_minutes type=\"int\">30</end_minutes>\r\n" +
+                            "<end_second type=\"int\">0</end_second>\r\n\r\n" +
+                            "<trigger_flag type=\"int\">999</trigger_flag>\r\n\r\n" +
+                            "</xml>";
+                    }
+                #endregion
+
+                #region SCEAsia Christmas 2010 SnowFall PUBLIC
+                case "306":
+                    string SCEAsiaXmasSnowFallPUBLICTriggerPath = SCEAsiaChristmas2010SnowFall + "confirmEventTrigger.xml";
+                    if (File.Exists(SCEAsiaXmasSnowFallPUBLICTriggerPath))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for PUBLIC SCEAsia Christmas 2010 SnowFall 2010 {eventId}!");
+                        string res = File.ReadAllText(SCEAsiaXmasSnowFallPUBLICTriggerPath);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger FALLBACK sent for PUBLIC SCEAsia Christmas 2010 SnowFall 2010 {eventId}!\nExpected path {SCEAsiaXmasSnowFallPUBLICTriggerPath}");
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n" +
+                            "<is_active type=\"bool\">true</is_active>\r\n" +
+                            "<trigger_id type=\"int\">1</trigger_id>\r\n\r\n" +
+                            "<start_year type=\"int\">2023</start_year>\r\n" +
+                            "<start_month type=\"int\">09</start_month>\r\n" +
+                            "<start_day type=\"int\">12</start_day>\r\n" +
+                            "<start_hour type=\"int\">08</start_hour>\r\n" +
+                            "<start_minutes type=\"int\">00</start_minutes>\r\n" +
+                            "<start_second type=\"int\">0</start_second>\r\n\r\n" +
+                            "<end_year type=\"int\">2100</end_year>\r\n" +
+                            "<end_month type=\"int\">09</end_month>\r\n" +
+                            "<end_day type=\"int\">17</end_day>\r\n" +
+                            "<end_hour type=\"int\">00</end_hour>\r\n" +
+                            "<end_minutes type=\"int\">30</end_minutes>\r\n" +
+                            "<end_second type=\"int\">0</end_second>\r\n\r\n" +
+                            "<trigger_flag type=\"int\">999</trigger_flag>\r\n\r\n" +
+                            "</xml>";
+                    }
+                #endregion
+
                 default:
-                {
-                    LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger unhandled with eventId {eventId} contact the developers! \nPOSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-                    return null;
-                }
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEventTrigger unhandled with eventId {eventId} contact the developers! \nPOSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
+                        return null;
+                    }
             }
 
         }
