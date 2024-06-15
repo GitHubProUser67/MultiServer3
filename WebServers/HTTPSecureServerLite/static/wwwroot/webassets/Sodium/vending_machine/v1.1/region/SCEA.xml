@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<region>
+    <drink_defs>
+        <vetoxade></vetoxade>
+    </drink_defs>
+    <dialog_box_defs>
+        <vetoxade></vetoxade>
+    </dialog_box_defs>
+</region>

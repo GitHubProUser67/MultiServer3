@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<REGION>
+    <sodium_debug>
+        <SCEA type="bool">true</SCEA>
+    </sodium_debug>
+</REGION>

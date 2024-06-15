@@ -227,7 +227,7 @@ namespace WebAPIService.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                             }
                         }
                     }
@@ -245,7 +245,7 @@ namespace WebAPIService.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                             }
                         }
                     }

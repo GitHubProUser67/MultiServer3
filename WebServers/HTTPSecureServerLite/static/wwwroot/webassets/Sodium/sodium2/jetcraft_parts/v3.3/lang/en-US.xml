@@ -1,0 +1,120 @@
+<JetParts>
+    <ANY>
+        <ANY_empty><name>Empty</name></ANY_empty>
+    </ANY>
+
+    <AERO>
+        <AERO_Aerobatic><name>Steadfast</name></AERO_Aerobatic>
+        <AERO_Aerobatic_Sink><name>Steadfast DX</name></AERO_Aerobatic_Sink>
+        <AERO_Interceptor><name>Interceptor</name></AERO_Interceptor>
+        <AERO_Interceptor_Sink><name>Interceptor DX</name></AERO_Interceptor_Sink>
+        <AERO_Scythe><name>Aerobatic</name></AERO_Scythe>
+        <AERO_Scythe_Sink><name>Aerobatic DX</name></AERO_Scythe_Sink>
+        <AERO_basic><name>Albatross</name></AERO_basic>
+    </AERO>
+
+    <BRKS>
+        <BRKS_Frictodraulic><name>Inertia</name></BRKS_Frictodraulic>
+        <BRKS_Frictodraulic_Sink><name>Inertia DX</name></BRKS_Frictodraulic_Sink>
+        <BRKS_Icarus><name>Terminal Friction</name></BRKS_Icarus>
+        <BRKS_Icarus_Sink><name>Terminal Friction DX</name></BRKS_Icarus_Sink>
+        <BRKS_WakeBender><name>Wakebender</name></BRKS_WakeBender>
+        <BRKS_WakeBender_Sink><name>Wakebender DX</name></BRKS_WakeBender_Sink>
+        <BRKS_basic><name>Friction</name></BRKS_basic>
+    </BRKS>
+
+    <BURN>
+        <BURN_Ballistic><name>Forefront</name></BURN_Ballistic>
+        <BURN_Ballistic_Sink><name>Forefront DX</name></BURN_Ballistic_Sink>
+        <BURN_FDC><name>Live Wire</name></BURN_FDC>
+        <BURN_FDC_Sink><name>Live Wire DX</name></BURN_FDC_Sink>
+        <BURN_InjectionMatrix><name>Ignition</name></BURN_InjectionMatrix>
+        <BURN_InjectionMatrix_Sink><name>Ignition DX</name></BURN_InjectionMatrix_Sink>
+        <BURN_basic><name>Boneshaker</name></BURN_basic>
+    </BURN>
+
+    <ENGH>
+        <ENGH_basic><name>Turbine</name></ENGH_basic>
+        <ENGH_basic_2><name>Turbine DX</name></ENGH_basic_2>
+        <ENGH_Electrostatic><name>Electrostatic</name></ENGH_Electrostatic>
+        <ENGH_Electrostatic_Sink><name>Electrostatic DX</name></ENGH_Electrostatic_Sink>
+        <ENGH_Jetfan><name>Jetfan</name></ENGH_Jetfan>
+        <ENGH_Jetfan_Sink><name>Jetfan DX</name></ENGH_Jetfan_Sink>
+        <ENGH_VortexThruster><name>Vortex</name></ENGH_VortexThruster>
+        <ENGH_VortexThruster_Sink><name>Vortex DX</name></ENGH_VortexThruster_Sink>
+    </ENGH>
+
+    <ENG>
+        <ENG_HDC_Aerospike_HF><name>Thor</name></ENG_HDC_Aerospike_HF>
+        <ENG_HDC_Aerospike_HF_Sink><name>Thor DX</name></ENG_HDC_Aerospike_HF_Sink>
+        <ENG_JETBOX_ShockDriver_JB22><name>Titan</name></ENG_JETBOX_ShockDriver_JB22>
+        <ENG_JETBOX_ShockDriver_JB22_Sink><name>Titan DX</name></ENG_JETBOX_ShockDriver_JB22_Sink>
+        <ENG_LEXAN_EnyoJAR><name>Apollo</name></ENG_LEXAN_EnyoJAR>
+        <ENG_LEXAN_EnyoJAR_Sink><name>Apollo DX</name></ENG_LEXAN_EnyoJAR_Sink>
+        <ENG_Rascal><name>Thunderhorse DX</name></ENG_Rascal>
+        <ENG_basic><name>Thunderhorse</name></ENG_basic>
+    </ENG>
+
+    <FCOMP>
+        <FCOMP_AutoAdjustomator><name>Synapse</name></FCOMP_AutoAdjustomator>
+        <FCOMP_AutoAdjustomator_Sink><name>Synapse DX</name></FCOMP_AutoAdjustomator_Sink>
+        <FCOMP_Ray_The_Tube><name>Vector</name></FCOMP_Ray_The_Tube>
+        <FCOMP_Ray_The_Tube_Sink><name>Vector DX</name></FCOMP_Ray_The_Tube_Sink>
+        <FCOMP_Synap_9000><name>Volta</name></FCOMP_Synap_9000>
+        <FCOMP_Synap_9000_Sink><name>Volta DX</name></FCOMP_Synap_9000_Sink>
+        <FCOMP_basic><name>Halide</name></FCOMP_basic>
+    </FCOMP>
+
+    <FRAME>
+        <FRAME_Composite><name>Composite</name></FRAME_Composite>
+        <FRAME_Composite_Sink><name>Composite DX</name></FRAME_Composite_Sink>
+        <FRAME_NanoFiber><name>NanoFiber</name></FRAME_NanoFiber>
+        <FRAME_NanoFiber_Sink><name>NanoFiber DX</name></FRAME_NanoFiber_Sink>
+        <FRAME_Omniplex><name>Omniplex</name></FRAME_Omniplex>
+        <FRAME_Omniplex_Sink><name>Omniplex DX</name></FRAME_Omniplex_Sink>
+        <FRAME_basic><name>Carbon</name></FRAME_basic>
+    </FRAME>
+
+    <FUEL>
+        <FUEL_BioNomic><name>BioNomic</name></FUEL_BioNomic>
+        <FUEL_BioNomic_Sink><name>BioNomic DX</name></FUEL_BioNomic_Sink>
+        <FUEL_JP2><name>Oxidizer</name></FUEL_JP2>
+        <FUEL_JP2_Sink><name>Oxidizer DX</name></FUEL_JP2_Sink>
+        <FUEL_JP3><name>Igniter</name></FUEL_JP3>
+        <FUEL_JP3_Sink><name>Igniter DX</name></FUEL_JP3_Sink>
+    </FUEL>
+    
+    <JATO>
+        <JATO_Pulsar><name>Pulsar</name></JATO_Pulsar>
+        <JATO_Pulsar_Sink><name>Pulsar DX</name></JATO_Pulsar_Sink>
+        <JATO_Ride><name>Ride</name></JATO_Ride>
+        <JATO_Ride_Sink><name>Ride DX</name></JATO_Ride_Sink>
+        <JATO_SSRB_x><name>SSRB</name></JATO_SSRB_x>
+        <JATO_SSRB_x_Sink><name>SSRB DX</name></JATO_SSRB_x_Sink>
+        <JATO_uber><name>Touchstone</name></JATO_uber>
+        <JATO_uber_Sink><name>Touchstone DX</name></JATO_uber_Sink>
+        <JATO_basic_Sink><name>Firecracker DX</name></JATO_basic_Sink>
+        <JATO_basic><name>Firecracker</name></JATO_basic>
+    </JATO>
+
+    <SKIN>
+        <SKIN_basic><name>Silver</name></SKIN_basic>
+        <SKIN_basic_01><name>Crimson</name></SKIN_basic_01>
+        <SKIN_basic_02><name>Classic Green</name></SKIN_basic_02>
+        <SKIN_basic_03><name>Bumble Bee</name></SKIN_basic_03>
+        <SKIN_basic_04><name>Salamander</name></SKIN_basic_04>
+        <SKIN_basic_05><name>Sonic Camo</name></SKIN_basic_05>
+        <SKIN_basic_06><name>Phoenix</name></SKIN_basic_06>
+        <SKIN_basic_07><name>Marshmallow</name></SKIN_basic_07>
+        <SKIN_basic_08><name>Velocity Racer Green</name></SKIN_basic_08>
+        <SKIN_basic_09><name>Animal Magnetism</name></SKIN_basic_09>
+        <SKIN_basic_10><name>Fruit Salad</name></SKIN_basic_10>
+        <SKIN_basic_11><name>Sodium One Chili Red Edition</name></SKIN_basic_11>
+        <SKIN_basic_12><name>Blue Viper</name></SKIN_basic_12>
+        <SKIN_basic_13><name>Apple Twist</name></SKIN_basic_13>
+        <SKIN_basic_14><name>Union Jackson</name></SKIN_basic_14>
+        <SKIN_basic_15><name>Hiromaru Racer</name></SKIN_basic_15>
+        <SKIN_basic_16><name>Star Spangled</name></SKIN_basic_16>
+        <SKIN_basic_17><name>Season's Greetings</name></SKIN_basic_17>
+    </SKIN>
+</JetParts>

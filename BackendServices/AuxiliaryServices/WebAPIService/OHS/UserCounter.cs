@@ -7,7 +7,6 @@ using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using CyberBackendLibrary.HTTP;
-using System.Threading.Tasks;
 using System.Text;
 
 namespace WebAPIService.OHS
@@ -135,7 +134,7 @@ namespace WebAPIService.OHS
         public static string? Increment(byte[] PostData, string ContentType, string directorypath, string batchparams, int game, bool v2)
         {
             string? dataforohs = null;
-            string? output = null;
+            (string?, string?)? output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
@@ -183,27 +182,19 @@ namespace WebAPIService.OHS
                                 JToken? existingKey = jObjectFromFile.SelectToken($"$..{key}");
 
                                 if (existingKey != null && existingKey.Type == JTokenType.Integer)
-                                {
                                     // Increment the value of the existing key (assuming it's an integer)
-                                    int currentValue = existingKey.Value<int>();
-                                    int newValue = 0;
-
-                                    // CurrentValue is stored file value already, value is the requested change.
-                                    if (currentValue > value)
-                                        newValue = currentValue - value;
-                                    else
-                                        newValue = currentValue + value;
-
-                                    existingKey.Replace(newValue);
-
-                                    // Set the output to the incremented value
-                                    output = existingKey.ToString();
-                                }
-                                else
+                                    existingKey.Replace(existingKey.Value<int>() + value);
+                                else if (key != null)
                                 {
+                                    JToken? KeyEntry = jObjectFromFile["key"];
+
                                     existingKey = value;
-                                    output = existingKey.ToString();
+
+                                    if (KeyEntry != null)
+                                        KeyEntry[key] = existingKey;
                                 }
+
+                                output = (key?.ToString(), existingKey?.ToString());
 
                                 File.WriteAllText(profileCurDataString, jObjectFromFile.ToString(Formatting.Indented));
                             }
@@ -226,7 +217,173 @@ namespace WebAPIService.OHS
                                 File.WriteAllText(profileCurDataString, JsonConvert.SerializeObject(newProfile));
 
                                 // Set the output to incremented value
-                                output = value.ToString();
+                                output = (keystring, value.ToString());
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[UserCounter] - Json Format Error - {ex}");
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(batchparams))
+            {
+                if (output == null)
+                    return "{ }";
+                else
+                    return v2 ? $"{{ [\"{output.Value.Item1}\"] = {output.Value.Item2} }}" : output.Value.Item2;
+            }
+            else
+            {
+                if (output == null)
+                    dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
+                else
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {(v2 ? $"{{ [\"{output.Value.Item1}\"] = {output.Value.Item2} }}" : output.Value.Item2)} }}", game);
+            }
+
+            return dataforohs;
+        }
+
+        public static string? IncrementSetEntry(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        {
+            string? dataforohs = null;
+            string? output = null;
+
+            if (string.IsNullOrEmpty(batchparams))
+            {
+                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                if (!string.IsNullOrEmpty(boundary))
+                {
+                    using (MemoryStream ms = new MemoryStream(PostData))
+                    {
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
+                        ms.Flush();
+                    }
+                }
+            }
+            else
+                dataforohs = batchparams;
+
+            if (!string.IsNullOrEmpty(dataforohs))
+            {
+                // Deserialize the JSON data into a JObject
+                JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+
+                if (jObject != null)
+                {
+                    string? counter_key = jObject.Value<string>("counter_key");
+                    string? entry_project = jObject.Value<string>("entry_project");
+                    string? entry_key = jObject.Value<string>("entry_key");
+                    JObject? entry_value = jObject.Value<JObject>("entry_value");
+                    string? counter_project = jObject.Value<string>("counter_project");
+                    string? user = jObject.Value<string>("user");
+                    int counter_value = jObject.Value<int>("counter_value");
+
+                    try
+                    {
+                        string CounterDataStringPath = directorypath + $"/{counter_project}/User_Profiles/{user}_Stats.json";
+                        string EntryDataStringPath = directorypath + $"/{entry_project}/User_Profiles/{user}.json";
+
+                        // Step 1 : Update Counter
+
+                        if (File.Exists(CounterDataStringPath))
+                        {
+                            JObject? jObjectFromFile = JObject.Parse(File.ReadAllText(CounterDataStringPath));
+
+                            if (jObjectFromFile != null)
+                            {
+                                JToken? existingKey = jObjectFromFile.SelectToken($"$..{counter_key}");
+
+                                if (existingKey != null && existingKey.Type == JTokenType.Integer)
+                                    // Increment the value of the existing key (assuming it's an integer)
+                                    existingKey.Replace(existingKey.Value<int>() + counter_value);
+                                else if (counter_key != null)
+                                {
+                                    JToken? KeyEntry = jObjectFromFile["key"];
+
+                                    existingKey = counter_value;
+
+                                    if (KeyEntry != null)
+                                        KeyEntry[counter_key] = existingKey;
+                                }
+
+                                output = existingKey?.ToString();
+
+                                File.WriteAllText(CounterDataStringPath, jObjectFromFile.ToString(Formatting.Indented));
+                            }
+                        }
+                        else if (counter_key != null)
+                        {
+                            string? keystring = counter_key;
+
+                            if (!string.IsNullOrEmpty(keystring) && user != null)
+                            {
+                                // Create a new profile with the key field and set it to 1
+                                var newProfile = new OHSUserProfile
+                                {
+                                    user = user,
+                                    key = new JObject { { keystring, counter_value < 0 ? 0 : counter_value } }
+                                };
+
+                                Directory.CreateDirectory(directorypath + $"/{counter_project}/User_Profiles");
+
+                                File.WriteAllText(CounterDataStringPath, JsonConvert.SerializeObject(newProfile));
+
+                                // Set the output to incremented value
+                                output = counter_value.ToString();
+                            }
+                        }
+
+                        // Step 2 : Update User entry
+
+                        if (File.Exists(EntryDataStringPath))
+                        {
+                            string profiledata = File.ReadAllText(EntryDataStringPath);
+
+                            if (!string.IsNullOrEmpty(profiledata))
+                            {
+                                JObject? profilejObject = JObject.Parse(profiledata);
+
+                                if (profilejObject != null)
+                                {
+                                    // Check if the key name already exists in the JSON
+                                    JToken? existingKey = profilejObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == entry_key);
+
+                                    if (existingKey != null && entry_value != null)
+                                        // Update the value of the existing key
+                                        existingKey.Replace(JToken.FromObject(entry_value));
+                                    else if (entry_key != null && entry_value != null)
+                                    {
+                                        JToken? KeyEntry = profilejObject["key"];
+
+                                        if (KeyEntry != null)
+                                            // Step 2: Add a new entry to the "Key" object
+                                            KeyEntry[entry_key] = JToken.FromObject(entry_value);
+                                    }
+
+                                    File.WriteAllText(EntryDataStringPath, profilejObject.ToString(Formatting.Indented));
+                                }
+                            }
+                        }
+                        else if (entry_key != null)
+                        {
+                            string? keystring = entry_key;
+
+                            if (keystring != null && user != null && entry_value != null)
+                            {
+                                // Create a new profile with the key field
+                                OHSUserProfile newProfile = new OHSUserProfile
+                                {
+                                    user = user,
+                                    key = new JObject { { keystring, JToken.FromObject(entry_value) } }
+                                };
+
+                                File.WriteAllText(EntryDataStringPath, JsonConvert.SerializeObject(newProfile));
                             }
                         }
                     }
@@ -242,14 +399,14 @@ namespace WebAPIService.OHS
                 if (string.IsNullOrEmpty(output))
                     return "{ }";
                 else
-                    return v2 ? $"{{ [\"sessionCount\"] = {output} }}" : output;
+                    return output;
             }
             else
             {
                 if (string.IsNullOrEmpty(output))
                     dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {(v2 ? $"{{ [\"sessionCount\"] = {output} }}" : output)} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {output} }}", game);
             }
 
             return dataforohs;
@@ -300,7 +457,7 @@ namespace WebAPIService.OHS
                             // Check if the "key" property exists and if it is an object
                             if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 // Convert the JToken to a Lua table-like string
-                                output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                         }
                     }
                 }
@@ -539,27 +696,20 @@ namespace WebAPIService.OHS
                                         JToken? existingKey = jObjectFromFile.SelectToken($"$..{keys[i]}");
 
                                         if (existingKey != null && existingKey.Type == JTokenType.Integer)
-                                        {
                                             // Increment the value of the existing key (assuming it's an integer)
-                                            int currentValue = existingKey.Value<int>();
-                                            int newValue = 0;
-
-                                            // CurrentValue is stored file value already, value is the requested change.
-                                            if (currentValue > values[i])
-                                                newValue = currentValue - values[i];
-                                            else
-                                                newValue = currentValue + values[i];
-
-                                            existingKey.Replace(newValue);
-
-                                            // Set the output to the incremented value
-                                            IncrementResults.Add(keys[i], existingKey.ToString());
-                                        }
+                                            existingKey.Replace(existingKey.Value<int>() + values[i]);
                                         else
                                         {
+                                            JToken? KeyEntry = jObjectFromFile["key"];
+
                                             existingKey = values[i];
-                                            IncrementResults.Add(keys[i], values[i].ToString());
+
+                                            if (KeyEntry != null)
+                                                KeyEntry[keys[i]] = existingKey;
                                         }
+
+                                        // Set the output to the incremented value
+                                        IncrementResults.Add(keys[i], existingKey.ToString());
 
                                         File.WriteAllText(profileCurDataString, jObjectFromFile.ToString(Formatting.Indented));
                                     }

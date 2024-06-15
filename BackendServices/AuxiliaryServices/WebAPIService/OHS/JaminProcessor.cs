@@ -11,7 +11,7 @@ namespace WebAPIService.OHS
     {
         public static bool VerifyHash(string str, string referencehash)
         {
-            if (EncryptDecrypt.Hash32Str(str) == referencehash.ToUpper())
+            if (EncryptDecrypt.Hash32Str(str).Equals(referencehash, StringComparison.InvariantCultureIgnoreCase))
                 return true;
 
             return false;
@@ -309,8 +309,8 @@ namespace WebAPIService.OHS
         private static string ToLiteral(string input)
         {
             StringBuilder literal = new StringBuilder(input.Length + 2);
-            literal.Append("\"");
-            foreach (var c in input)
+            literal.Append('"');
+            foreach (char c in input)
             {
                 switch (c)
                 {
@@ -327,10 +327,8 @@ namespace WebAPIService.OHS
                     default:
                         // ASCII printable character
                         if (c >= 0x20 && c <= 0x7e)
-                        {
                             literal.Append(c);
                             // As UTF16 escaped character
-                        }
                         else
                         {
                             literal.Append(@"\u");
@@ -339,7 +337,7 @@ namespace WebAPIService.OHS
                         break;
                 }
             }
-            literal.Append("\"");
+            literal.Append('"');
             return literal.ToString();
         }
     }

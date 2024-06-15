@@ -1,0 +1,82 @@
+<trackDefs>
+    <tracks>
+        <league1>
+            <Track_1a>
+                <order type='num'>1</order>
+                <name>Industrial sector</name>
+                <desc>This track was constructed over the roads that once led in and out of the long abandoned tunnels and refineries of a former mining settlement.</desc>
+                <images>track_01/map.dds,track_01/preview_01.dds,track_01/preview_02.dds,track_01/preview_03.dds,track_01/preview_04.dds,track_01/thumbnail.dds</images>
+                <thumbnail>track_01/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_1a>
+            <Track_1a_rev>
+                <reverse type='bool'>true</reverse>
+                <order type='num'>5</order>
+                <name>Industrial sector (reverse)</name>
+                <desc>This track was constructed over the roads that once led in and out of the long abandoned tunnels and refineries of a former mining settlement.</desc>
+                <images>track_01/map_reverse.dds,track_01/preview_01.dds,track_01/preview_02.dds,track_01/preview_03.dds,track_01/preview_04.dds,track_01/thumbnail.dds</images>
+                <thumbnail>track_01/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_1a_rev>
+            <Track_2>
+                <order type='num'>2</order>
+                <name>Rocky speedway</name>
+                <desc>Soar through these ancient and monumental valleys to achieve blistering speeds in your Sodium2 craft!</desc>
+                <images>track_02/map.dds,track_02/preview_01.dds,track_02/preview_02.dds,track_02/preview_03.dds,track_02/preview_04.dds,track_02/thumbnail.dds</images>
+                <thumbnail>track_02/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_2>
+            <Track_2_rev>
+                <reverse type='bool'>true</reverse>
+                <order type='num'>6</order>
+                <name>Rocky speedway (reverse)</name>
+                <desc>Soar through these ancient and monumental valleys to achieve blistering speeds in your Sodium2 craft!</desc>
+                <images>track_02/map_reverse.dds,track_02/preview_01.dds,track_02/preview_02.dds,track_02/preview_03.dds,track_02/preview_04.dds,track_02/thumbnail.dds</images>
+                <thumbnail>track_02/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_2_rev>
+            <Track_3>
+                <expansionId type='num'>1</expansionId>
+                <order type='num'>3</order>
+                <name>Wasteland spires</name>
+                <desc>Set within the site of an ethically questionable and borderline illegal mining operation on the exoplanet Iridos, the twists and turns of this track will see you speeding past the abandoned machines and facilities that the long-gone corporations left behind. What’s more, you’ll also be able to prove your worth on the reverse version of this track.</desc>
+                <images>track_03/map.dds,track_03/preview_01.dds,track_03/preview_02.dds,track_03/preview_03.dds,track_03/preview_04.dds,track_03/thumbnail.dds</images>
+                <thumbnail>track_03/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_3>
+            <Track_3_rev>
+                <expansionId type='num'>1</expansionId>
+                <reverse type='bool'>true</reverse>
+                <order type='num'>7</order>
+                <name>Wasteland spires (reverse)</name>
+                <desc>Set within the site of an ethically questionable and borderline illegal mining operation on the exoplanet Iridos, the twists and turns of this track will see you speeding past the abandoned machines and facilities that the long-gone corporations left behind. What’s more, you’ll also be able to prove your worth on the reverse version of this track.</desc>
+                <images>track_03/map_reverse.dds,track_03/preview_01.dds,track_03/preview_02.dds,track_03/preview_03.dds,track_03/preview_04.dds,track_03/thumbnail.dds</images>
+                <thumbnail>track_03/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_3_rev>
+            <Track_4>
+                <expansionId type='num'>1</expansionId>
+                <order type='num'>4</order>
+                <name>Descent</name>
+                <desc>Descent is set within the network of cave left behind by an unregulated iridium mining operation deep below the surface of Sodium exoplanet Iridos. The Velocity Racing League has since claimed this area for the purposes of extreme underground racing. This dark and twisting track provides some serious thrills, and is also available in reverse mode!</desc>
+                <images>track_04/map.dds,track_04/preview_01.dds,track_04/preview_02.dds,track_04/preview_03.dds,track_04/preview_04.dds,track_04/thumbnail.dds</images>
+                <thumbnail>track_04/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_4>
+            <Track_4_rev>
+                <expansionId type='num'>1</expansionId>
+                <reverse type='bool'>true</reverse>
+                <order type='num'>8</order>
+                <name>Descent (reverse)</name>
+                <desc>Descent is set within the network of cave left behind by an unregulated iridium mining operation deep below the surface of Sodium exoplanet Iridos. The Velocity Racing League has since claimed this area for the purposes of extreme underground racing. This dark and twisting track provides some serious thrills, and is also available in reverse mode!</desc>
+                <images>track_04/map_reverse.dds,track_04/preview_01.dds,track_04/preview_02.dds,track_04/preview_03.dds,track_04/preview_04.dds,track_04/thumbnail.dds</images>
+                <thumbnail>track_04/thumbnail.dds</thumbnail>
+                <unlocked type='bool'>true</unlocked>
+            </Track_4_rev>
+        </league1>
+    </tracks>
+
+    <settings>
+        <serverUrl>https://scee-home.playstation.net/webassets/Sodium/sodium2/tracks/images/</serverUrl>
+    </settings>
+</trackDefs>

@@ -1,0 +1,465 @@
+<xp>
+    <s2>
+        <maxLevel type='num'>40</maxLevel>
+        <multiplier type='num'>6</multiplier>
+        <exponent type='num'>1.7</exponent>
+        <levelIconCols type='num'>10</levelIconCols>
+        <levelIconRows type='num'>5</levelIconRows>
+        <rewards>
+            <R439A4BAF-91A348BD-ACD0AF34-050AC05A>
+                <name>Sodium2 Touchstone DX Rocket Booster Ornament</name>
+                <deferredIcon>S2_touchstone_dx.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R439A4BAF-91A348BD-ACD0AF34-050AC05A>
+            
+            <REDDFBC3C-4FAD4F7D-8E47934E-6CDA8656>
+                <name>Sodium2 Trackside Lamp</name>
+                <deferredIcon>S2_trackside_lamp.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </REDDFBC3C-4FAD4F7D-8E47934E-6CDA8656>
+            
+            <R8A70C3D2-4BB542FD-B5EE796D-A7F49CD3>
+                <name>Sodium Poster</name>
+                <deferredIcon>S2_poster_reward.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R8A70C3D2-4BB542FD-B5EE796D-A7F49CD3>
+            
+            <RDEF3FCB2-AC7545B1-AB1A1621-136C462C>
+                <name>Sodium Sentry Chair - Yellow </name>
+                <deferredIcon>S2_teleport_chair_yellow.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RDEF3FCB2-AC7545B1-AB1A1621-136C462C>
+            
+            <RBA911609-2DAA4301-B02E3F9A-E01269FE>
+                <name>Sodium2 Personal Wind Farm Fan</name>
+                <deferredIcon>S2_fan_curved.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RBA911609-2DAA4301-B02E3F9A-E01269FE>
+            
+            <RF0084246-444D4B83-8995C76C-5921D8F7>
+                <name>Sodium2 Firecracker DX Rocket Booster Ornament</name>
+                <deferredIcon>S2_firecracker_dx.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RF0084246-444D4B83-8995C76C-5921D8F7>
+            
+            <RC217514D-9F444578-8BA0E84B-34355FB0>
+                <name>Sodium2 Industrial Counterweight Crane Replica</name>
+                <deferredIcon>S2_crane_wirey.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RC217514D-9F444578-8BA0E84B-34355FB0>
+            
+            <RB91BA7FD-EA1B4197-A696B577-FC7D896D>
+                <name>Velocity Racer - Level 10 Accolade</name>
+                <deferredIcon>S2_trophy_10.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RB91BA7FD-EA1B4197-A696B577-FC7D896D>
+            
+            <R79131EAD-2F1147A9-811866B1-90B093FD>
+                <name>Sodium2 Turbulence DX Rocket Booster Ornament</name>
+                <deferredIcon>S2_turbulence_dx.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R79131EAD-2F1147A9-811866B1-90B093FD>
+            
+            <R7083365D-2C1C4080-AC0B0BB9-C71EBF52>
+                <name>Sodium2 Blam! - Graphic Wall Art</name>
+                <deferredIcon>S2_grafitti_blam.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R7083365D-2C1C4080-AC0B0BB9-C71EBF52>
+            
+            <R35C7FC33-25D7450E-81FC5961-892A1033>
+                <name>Sodium Quintepede Table - Red</name>
+                <deferredIcon>S2_teleport_table_red.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R35C7FC33-25D7450E-81FC5961-892A1033>
+            
+            <REF0F8BD3-8C4D4B40-93B2556F-EF5E5F88>
+                <name>Sodium2 Sideline Lamp</name>
+                <deferredIcon>S2_trackside_lamp.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </REF0F8BD3-8C4D4B40-93B2556F-EF5E5F88>
+            
+            <R438100D8-19414A63-A59A5AF6-1892FD04>
+                <name>Sodium2 Terrapin DX Rocket Booster Ornament</name>
+                <deferredIcon>S2_terrapin_dx.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R438100D8-19414A63-A59A5AF6-1892FD04>
+            
+            <R97DFF09E-EDB24CBE-AB84B4F8-A2A58EDF>
+                <name>CoLD SToRAGE Head Logo Wall Mount</name>
+                <deferredIcon>S2_cs_head_logo.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R97DFF09E-EDB24CBE-AB84B4F8-A2A58EDF>
+            
+            <R9A7BA839-BD3D4240-B1C69409-F00DA59A>
+                <name>Velocity Racer - Level 20 Accolade</name>
+                <deferredIcon>S2_trophy_20.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R9A7BA839-BD3D4240-B1C69409-F00DA59A>
+            
+            <R608EA89E-B15A4C1E-B61433EB-1B01315F>
+                <name>Sodium Tripod Table - Red</name>
+                <deferredIcon>S2_pillar_table_red.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R608EA89E-B15A4C1E-B61433EB-1B01315F>
+            
+            <R083689E2-D22045C1-8E13C10F-73AF2055>
+                <name>Sodium2 Industrial Quadrapod Crane Replica</name>
+                <deferredIcon>S2_crane_tripod.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R083689E2-D22045C1-8E13C10F-73AF2055>
+            
+            <R72F64727-586C466C-88011156-E5395CCE>
+                <name>Sodium Sentry Chair - Red</name>
+                <deferredIcon>S2_teleport_chair_red.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R72F64727-586C466C-88011156-E5395CCE>
+            
+            <REE79E6E4-E3AF4FD8-96484D8F-C8022BDF>
+                <name>Sodium2 Whooosh! - Graphic Wall Art</name>
+                <deferredIcon>S2_grafitti_whoosh.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </REE79E6E4-E3AF4FD8-96484D8F-C8022BDF>
+            
+            <RC4A3725F-48784A9D-A7E18AC9-C88D57F0>
+                <name>Sodium2 Industrial Heavy Arm Crane Replica</name>
+                <deferredIcon>S2_crane_arm.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RC4A3725F-48784A9D-A7E18AC9-C88D57F0>
+            
+            <R7309219D-C64A4CD5-9D0B819C-224EF4A0>
+                <name>Velocity Racer - Level 30 Accolade</name>
+                <deferredIcon>S2_trophy_30.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R7309219D-C64A4CD5-9D0B819C-224EF4A0>
+            
+            <RF0E5D5C6-11684ABC-B81671A0-DE19284B>
+                <name>Sodium Tripod Table - Yellow</name>
+                <deferredIcon>S2_pillar_table_yellow.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RF0E5D5C6-11684ABC-B81671A0-DE19284B>
+            
+            <R9F1FCC3E-A20F4D98-AC0B1E59-A766E14F>
+                <name>Sodium2 Zoooom! - Graphic Wall Art</name>
+                <deferredIcon>S2_grafitti_zoom.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R9F1FCC3E-A20F4D98-AC0B1E59-A766E14F>
+            
+            <R507857EB-31574FC7-A9CB233C-7D685908>
+                <name>Sodium2 Industrial Buzz Saw Replica</name>
+                <deferredIcon>S2_buzzsaw.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R507857EB-31574FC7-A9CB233C-7D685908>
+            
+            <RFC278108-04CA4FE9-8C3500C2-7185EE39>
+                <name>Sodium Quintepede Table - Yellow</name>
+                <deferredIcon>S2_teleport_table_yellow.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RFC278108-04CA4FE9-8C3500C2-7185EE39>
+            
+            <R3A767A41-63004ACE-835FFE7D-3449FB7D>
+                <name>Sodium2 Whizzz! - Graphic Wall Art</name>
+                <deferredIcon>S2_grafitti_whizz.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R3A767A41-63004ACE-835FFE7D-3449FB7D>
+            
+            <R88737BB3-91F346F6-9A618F9D-1CF4C1FD>
+                <name>Velocity Racer - Level 40 Accolade</name>
+                <deferredIcon>S2_trophy_40.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R88737BB3-91F346F6-9A618F9D-1CF4C1FD>
+			
+			<RBEE355D8-6B7D4575-86AC55CD-DBD1B7C5>
+                <name>Sodium 2 Decibel Headphones (Male)</name>
+                <deferredIcon>S2_decibel_headphones_male.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+			</RBEE355D8-6B7D4575-86AC55CD-DBD1B7C5>
+			
+			<RC7220CE5-A7D34EC5-B7BB8DF9-CC2A9B36>
+                <name>Sodium 2 Decibel Headphones (Female)</name>
+                <deferredIcon>S2_decibel_headphones_female.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+			</RC7220CE5-A7D34EC5-B7BB8DF9-CC2A9B36>
+			
+			<!-- S2 Legendary Pilot outfit (Male) -->
+			<R9B27B977-F1C34DF1-97BEA5CB-47632FE9>
+                <name>Sodium2 Legendary Pilot Gloves (Male)</name>
+                <deferredIcon>S2_legendary_gloves_male.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R9B27B977-F1C34DF1-97BEA5CB-47632FE9>
+			<RE091F81B-5D9F4352-AB18EBFD-87320027>
+                <name>Sodium2 Legendary Pilot Trousers (Male)</name>
+                <deferredIcon>S2_legendary_trouser_male.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RE091F81B-5D9F4352-AB18EBFD-87320027>
+			<R44236601-115B4DE6-821E2137-3D33B2A1>
+                <name>Sodium2 Legendary Pilot Helmet (Male)</name>
+                <deferredIcon>S2_legendary_helmet_male.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R44236601-115B4DE6-821E2137-3D33B2A1>
+			<RB6D01A50-B11B4AD6-82A79C09-5E3D6EC7>
+                <name>Sodium2 Legendary Pilot Boots (Male)</name>
+                <deferredIcon>S2_legendary_boots_male.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RB6D01A50-B11B4AD6-82A79C09-5E3D6EC7>
+			<R85A80DF3-91FB4903-93B7E215-327D9E5C>
+                <name>Sodium2 Legendary Pilot Body Armor (Male)</name>
+                <deferredIcon>S2_legendary_torso_male.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R85A80DF3-91FB4903-93B7E215-327D9E5C>
+			<RBB7B23B7-C2374764-B47EEFE1-309BB88F>
+                <name>Sodium2 Legendary Pilot Visor (Male)</name>
+                <deferredIcon>S2_legendary_visor_male.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RBB7B23B7-C2374764-B47EEFE1-309BB88F>
+			
+			<!-- S2 Legendary Pilot outfit (Female) -->
+			<RDC983FC4-426D4EAE-B4C534FE-AE4267B9>
+                <name>Sodium2 Legendary Pilot Gloves (Female)</name>
+                <deferredIcon>S2_legendary_gloves_female.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </RDC983FC4-426D4EAE-B4C534FE-AE4267B9>
+			<R0057E076-43E94137-A75878B3-03102ED7>
+                <name>Sodium2 Legendary Pilot Trousers (Female)</name>
+                <deferredIcon>S2_legendary_trouser_female.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R0057E076-43E94137-A75878B3-03102ED7>
+			<R5F387D86-C75B4524-B97AE1D5-0F8833D2>
+                <name>Sodium2 Legendary Pilot Helmet (Female)</name>
+                <deferredIcon>S2_legendary_helmet_female.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R5F387D86-C75B4524-B97AE1D5-0F8833D2>
+			<R9546C97C-C693463C-8A57289B-CDF57000>
+                <name>Sodium2 Legendary Pilot Boots (Female)</name>
+                <deferredIcon>S2_legendary_boots_female.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R9546C97C-C693463C-8A57289B-CDF57000>
+			<R2CBE1B28-FB054809-B62AB297-93009051>
+                <name>Sodium2 Legendary Pilot Body Armor (Female)</name>
+                <deferredIcon>S2_legendary_torso_female.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R2CBE1B28-FB054809-B62AB297-93009051>
+			<R651CD402-B2FC4533-A9D7E531-34E54E23>
+                <name>Sodium2 Legendary Pilot Visor (Female)</name>
+                <deferredIcon>S2_legendary_visor_female.dds</deferredIcon>
+                <iconSize type='num'>128</iconSize>
+            </R651CD402-B2FC4533-A9D7E531-34E54E23>
+        </rewards>
+        <levelData>
+            <L1>
+                <colour type="vec">0,1,0.77,1</colour>
+                <rewards>
+                    <_>439A4BAF-91A348BD-ACD0AF34-050AC05A</_>
+                </rewards>
+            </L1>
+            <L2>
+                <colour type="vec">0,1,0.77,1</colour>
+                <rewards>
+                    <_>EDDFBC3C-4FAD4F7D-8E47934E-6CDA8656</_>
+                </rewards>
+            </L2>
+            <L3>
+                <colour type="vec">0,1,0.77,1</colour>
+                <rewards>
+                    <_>8A70C3D2-4BB542FD-B5EE796D-A7F49CD3</_>
+                </rewards>
+            </L3>
+            <L4>
+                <colour type="vec">0,1,0.77,1</colour>
+                <rewards>
+                    <_>DEF3FCB2-AC7545B1-AB1A1621-136C462C</_>
+                </rewards>
+            </L4>
+            <L5>
+                <colour type="vec">0,1,0.77,1</colour>
+                <rewards>
+                    <_>BA911609-2DAA4301-B02E3F9A-E01269FE</_>
+                </rewards>
+            </L5>
+            <L6>
+                <colour type="vec">0,1,0.77,1</colour>
+            </L6>
+            <L7>
+                <colour type="vec">0,1,0.77,1</colour>
+                <rewards>
+                    <_>F0084246-444D4B83-8995C76C-5921D8F7</_>
+                </rewards>
+            </L7>
+            <L8>
+                <colour type="vec">0,1,0.77,1</colour>
+                <rewards>
+                    <_>C217514D-9F444578-8BA0E84B-34355FB0</_>
+                </rewards>
+            </L8>
+            <L9>
+                <colour type="vec">0,1,0.77,1</colour>
+            </L9>
+            <L10>
+                <colour type="vec">1,0.68,0.15,1</colour>
+                <rewards>
+                    <_>B91BA7FD-EA1B4197-A696B577-FC7D896D</_>
+                </rewards>
+            </L10>
+            <L11>
+                <colour type="vec">1,0.68,0.15,1</colour>
+                <rewards>
+                    <_>79131EAD-2F1147A9-811866B1-90B093FD</_>
+                </rewards>
+            </L11>
+            <L12>
+                <colour type="vec">1,0.68,0.15,1</colour>
+                <rewards>
+                    <_>7083365D-2C1C4080-AC0B0BB9-C71EBF52</_>
+                </rewards>
+            </L12>
+            <L13>
+                <colour type="vec">1,0.68,0.15,1</colour>
+            </L13>
+            <L14>
+                <colour type="vec">1,0.68,0.15,1</colour>
+                <rewards>
+                    <_>35C7FC33-25D7450E-81FC5961-892A1033</_>
+                </rewards>
+            </L14>
+            <L15>
+                <colour type="vec">1,0.68,0.15,1</colour>
+            </L15>
+            <L16>
+                <colour type="vec">1,0.68,0.15,1</colour>
+                <rewards>
+                    <_>EF0F8BD3-8C4D4B40-93B2556F-EF5E5F88</_>
+                </rewards>
+            </L16>
+            <L17>
+                <colour type="vec">1,0.68,0.15,1</colour>
+                <rewards>
+                    <_>438100D8-19414A63-A59A5AF6-1892FD04</_>
+                </rewards>
+            </L17>
+            <L18>
+                <colour type="vec">1,0.68,0.15,1</colour>
+            </L18>
+            <L19>
+                <colour type="vec">1,0.68,0.15,1</colour>
+                <rewards>
+                    <_>97DFF09E-EDB24CBE-AB84B4F8-A2A58EDF</_>
+                </rewards>
+            </L19>
+            <L20>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>9A7BA839-BD3D4240-B1C69409-F00DA59A</_>
+					<_>BEE355D8-6B7D4575-86AC55CD-DBD1B7C5</_>
+					<_>C7220CE5-A7D34EC5-B7BB8DF9-CC2A9B36</_>
+                </rewards>
+            </L20>
+            <L21>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>608EA89E-B15A4C1E-B61433EB-1B01315F</_>
+                </rewards>
+            </L21>
+            <L22>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L22>
+            <L23>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>083689E2-D22045C1-8E13C10F-73AF2055</_>
+                </rewards>
+            </L23>
+            <L24>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L24>
+            <L25>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>72F64727-586C466C-88011156-E5395CCE</_>
+                </rewards>
+            </L25>
+            <L26>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>EE79E6E4-E3AF4FD8-96484D8F-C8022BDF</_>
+                </rewards>
+            </L26>
+            <L27>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L27>
+            <L28>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>C4A3725F-48784A9D-A7E18AC9-C88D57F0</_>
+                </rewards>
+            </L28>
+            <L29>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L29>
+            <L30>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>7309219D-C64A4CD5-9D0B819C-224EF4A0</_>
+                </rewards>
+            </L30>
+            <L31>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>F0E5D5C6-11684ABC-B81671A0-DE19284B</_>
+                </rewards>
+            </L31>
+            <L32>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>9F1FCC3E-A20F4D98-AC0B1E59-A766E14F</_>
+                </rewards>
+            </L32>
+            <L33>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L33>
+            <L34>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L34>
+            <L35>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>507857EB-31574FC7-A9CB233C-7D685908</_>
+                </rewards>
+            </L35>
+            <L36>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L36>
+            <L37>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>FC278108-04CA4FE9-8C3500C2-7185EE39</_>
+                </rewards>
+            </L37>
+            <L38>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+            </L38>
+            <L39>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>3A767A41-63004ACE-835FFE7D-3449FB7D</_>
+                </rewards>
+            </L39>
+            <L40>
+                <colour type="vec">1.0,0.9,0.5,1</colour>
+                <rewards>
+                    <_>88737BB3-91F346F6-9A618F9D-1CF4C1FD</_>
+					<_>9B27B977-F1C34DF1-97BEA5CB-47632FE9</_>
+					<_>E091F81B-5D9F4352-AB18EBFD-87320027</_>
+					<_>44236601-115B4DE6-821E2137-3D33B2A1</_>
+					<_>B6D01A50-B11B4AD6-82A79C09-5E3D6EC7</_>
+					<_>9546C97C-C693463C-8A57289B-CDF57000</_>
+					<_>0057E076-43E94137-A75878B3-03102ED7</_>
+					<_>DC983FC4-426D4EAE-B4C534FE-AE4267B9</_>
+					<_>2CBE1B28-FB054809-B62AB297-93009051</_>
+					<_>5F387D86-C75B4524-B97AE1D5-0F8833D2</_>
+					<_>85A80DF3-91FB4903-93B7E215-327D9E5C</_>
+					<_>BB7B23B7-C2374764-B47EEFE1-309BB88F</_>
+					<_>651CD402-B2FC4533-A9D7E531-34E54E23</_>
+                </rewards>
+            </L40>             
+        </levelData>
+    </s2>
+</xp>
