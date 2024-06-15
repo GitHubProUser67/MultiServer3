@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Threading;
 using CyberBackendLibrary.Extension;
+using Ionic.Exploration;
 
 namespace CyberBackendLibrary.HTTP
 {
@@ -757,10 +758,10 @@ namespace CyberBackendLibrary.HTTP
 
             using (MemoryStream output = new MemoryStream())
             {
-                using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, false))
+                using (ParallelGZipOutputStream gzipStream = new ParallelGZipOutputStream(output, Ionic.Zlib.CompressionLevel.BestSpeed, true))
                 {
                     gzipStream.Write(input, 0, input.Length);
-                    gzipStream.Flush();
+                    gzipStream.Close();
                 }
 
                 byteoutput = output.ToArray();
@@ -834,18 +835,18 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
-                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096);
-                outGStream.Flush();
+                ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true);
+                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
+                outGStream.Close();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
-                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096);
-                outGStream.Flush();
+                ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true);
+                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
+                outGStream.Close();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
@@ -880,7 +881,7 @@ namespace CyberBackendLibrary.HTTP
         /// <param name="input">The Stream to copy.</param>
         /// <param name="output">the Steam to copy to.</param>
         /// <param name="BufferSize">the buffersize for the copy.</param>
-        private static void CopyStream(Stream input, Stream output, int BufferSize)
+        private static void CopyStream(Stream input, Stream output, int BufferSize, bool flush = true)
         {
             if (BufferSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
@@ -901,7 +902,8 @@ namespace CyberBackendLibrary.HTTP
                     {
                         output.Write(buffer[..bytesRead]);
                     }
-                    output.Flush();
+                    if (flush)
+                        output.Flush();
                 }
                 else
                 {
@@ -910,7 +912,8 @@ namespace CyberBackendLibrary.HTTP
                     {
                         output.Write(buffer[..bytesRead]);
                     }
-                    output.Flush();
+                    if (flush)
+                        output.Flush();
                 }
             }
             finally
