@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LOCALIZATION>
+    <sodium_14>
+        <title>Talked to VICKIE</title>
+        <hints>
+            <_>If you are reading this, you already completed it!</_>
+        </hints>
+        <description>See, robots aren't scary!</description>
+    </sodium_14>
+    <sodium_44>
+        <title>Welcome to Sodium One</title>
+        <hints>
+            <_>Welcome to Sodium One, powered by Destination Home.</_>
+        </hints>
+        <description>Automatically Rewarded</description>
+    </sodium_44>
+    <sodium_45>
+        <title>Friendship is magic</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Be invited by a friend to Sodium One</description>   
+    </sodium_45>
+    <sodium_46>
+        <title>For the greater good</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Invite a friend to Sodium One</description>  
+    </sodium_46>
+    <sodium_66>
+        <title>I <![CDATA[ <3 ]]> Vickie!</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Own the vickie statue and a pair of vickie headphones</description>
+    </sodium_66>
+    <sodium_1>
+        <title>What Did It Ever Do To You?</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Stomp your first robotic scorpion</description>
+    </sodium_1>
+    <sodium_20>
+        <title>Twinkle Toes</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Stomp 20 robotic scorpions without being stung in a single session.</description>
+    </sodium_20>
+    <sodium_22>
+        <title>Mmmmm, Poison</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Expose yourself to the scorpion's sting while wearing boots</description>
+    </sodium_22>
+    <sodium_23>
+        <title>Supersonic Soles</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Stomp 30 robotic scorpions within 60 seconds.</description>
+    </sodium_23>
+    <sodium_24>
+        <title>Scorpion Dodger</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Achieve a multiplier score of 4.</description>
+    </sodium_24>
+    <sodium_25>
+        <title>Scorpion Scraper</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Achieve a multiplier score of 5.</description>
+    </sodium_25>
+    <sodium_26>
+        <title>Scorpion Overlord</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Achieve a multiplier score of 6.</description>
+    </sodium_26>
+    <sodium_39>
+        <title>Pincer Movement</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Stomp 50 robotic scorpions in a single session</description>
+    </sodium_39>
+    <sodium_40>
+        <title>Supersonic Soles</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Stomp 200 robotic scorpions in a single session</description>
+    </sodium_40>
+    <sodium_41>
+        <title>Supersonic Soles</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Stomp 500 robotic scorpions in a single session</description>
+    </sodium_41>
+    <sodium_97>
+        <title>Scorpion Stomp Newbie</title>
+        <hints>
+            <_>Stomp scorpions to reach this objective!</_>
+        </hints>
+        <description>Obtain the level 1 stomper boots</description>
+    </sodium_97>
+    <sodium_100>
+        <title>Scorpion Stomp Apprentice</title>
+        <hints>
+            <_>Stomp scorpions to reach this objective!</_>
+        </hints>
+        <description>Obtain the level 2 stomper boots</description>
+    </sodium_100>
+    <sodium_101>
+        <title>Scorpion Stomp Master</title>
+        <hints>
+            <_>Stomp scorpions to reach this objective!</_>
+        </hints>
+        <description>Obtain the level 3 stomper boots</description>
+    </sodium_101>
+    <sodium_102>
+        <title>Scorpion Stomp Tycoon</title>
+        <hints>
+            <_>Stomp scorpions to reach this objective!</_>
+        </hints>
+        <description>Obtain the level 4 stomper boots</description>
+    </sodium_102>
+    <sodium_103>
+        <title>Scorpion Stomp Legend</title>
+        <hints>
+            <_>Stomp scorpions to reach this objective!</_>
+        </hints>
+        <description>Obtain the level 5 stomper boots</description>
+    </sodium_103>
+    <sodium_98>
+        <title>1,111,111</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Collectively stomp 1,111,111 Scorpions</description>
+    </sodium_98>
+    <sodium_8>
+        <title>Your orders, my drinks</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Served a drink at scorpio's bar</description>
+    </sodium_8>
+    <sodium_9>
+        <title>A taste of success</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Had a drink at scorpio's bar</description>
+    </sodium_9>
+    <sodium_31>
+        <title>Papers, Please</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Entered the VIP area at Scorpio's</description>
+    </sodium_31>
+    <sodium_64>
+        <title>This gatorade tastes weird!</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Take your first drink of vetoxade</description>
+    </sodium_64>
+    <sodium_150>
+        <title>Novice Bartender</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Serve 5 Drinks at Scorpio's Bar</description>
+    </sodium_150>
+    <sodium_151>
+        <title>Apprentice Bartender</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Serve 25 Drinks at Scorpio's Bar</description>
+    </sodium_151>
+    <sodium_152>
+        <title>Bartender</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Serve 100 Drinks at Scorpio's Bar</description>
+    </sodium_152>
+    <sodium_153>
+        <title>Senior Bartender</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Serve 500 Drinks at Scorpio's Bar</description>
+    </sodium_153>
+    <sodium_154>
+        <title>Head Bartender</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Serve 1000 Drinks at Scorpio's Bar</description>
+    </sodium_154>
+    <sodium_18>
+        <title>Pew Pew Pew</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Play the salt shooter game</description>
+    </sodium_18>
+    <sodium_11>
+        <title>Rock Muncher</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Collect 250 resources</description>
+    </sodium_11>
+    <sodium_48>
+        <title>Salt Apprentice</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Complete level 3</description>
+    </sodium_48>
+    <sodium_49>
+        <title>Salt Intern</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Complete level 5</description>
+    </sodium_49>
+    <sodium_12>
+        <title>Salt Greenhorn</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Complete level 9</description>
+    </sodium_12>
+    <sodium_50>
+        <title>Salt Professional</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Complete level 30</description>
+    </sodium_50>
+    <sodium_13>
+        <title>Salt Master</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Complete level 40</description>
+    </sodium_13>
+    <sodium_19>
+        <title>Lock and Load</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Reach level 50</description>
+    </sodium_19>
+    <sodium_47>
+        <title>Worth your salt</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Complete level 50</description>
+    </sodium_47>
+    <sodium_51>
+        <title>Salt Legend</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Complete level 51</description>
+    </sodium_51>
+    <sodium_81>
+        <title>Joining The Fold</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Obtain the Light Assault Drone ornament</description>
+    </sodium_81>
+    <sodium_82>
+        <title>Salt Shooter Looter 1</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Obtain the Sand Stalker ornament</description>
+    </sodium_82>
+    <sodium_83>
+        <title>Salt Shooter Looter 2</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Obtain the Sand Skater ornament</description>
+    </sodium_83>
+    <sodium_84>
+        <title>Salt Shooter Looter 3</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Obtain the Skimmer Assault Drone ornament</description>
+    </sodium_84>
+    <sodium_85>
+        <title>Salt Shooter Looter 4</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Obtain the Heavy LRM Drone ornament</description>
+    </sodium_85>
+    <sodium_86>
+        <title>Salt Shooter Looter 5</title>
+        <hints>
+            <_>-</_>
+        </hints>
+        <description>Obtain the SodiumOne Mini MKII Hover Tank ornament</description>
+    </sodium_86>
+    <sodium_10>
+        <title>Salt Trainee</title>
+        <hints>
+            <_></_>
+        </hints>
+        <description>Play a round of the salt trainer</description>
+    </sodium_10>
+    <sodium_16>
+        <title>Salt Trainee Master</title>
+        <hints>
+            <_></_>
+        </hints>
+        <description>Reach a score of at least 10 in the trainer</description>
+    </sodium_16>
+    <sodium_17>
+        <title>Salt Trainee Guru</title>
+        <hints>
+            <_></_>
+        </hints>
+        <description>Reach a score of at least 15 in the trainer</description>
+    </sodium_17>
+</LOCALIZATION>

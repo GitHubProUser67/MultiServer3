@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System;
+using System.Linq;
 
 namespace WebAPIService.OHS
 {
@@ -374,13 +375,16 @@ namespace WebAPIService.OHS
                         {
                             foreach (var entry in entries)
                             {
-                                var rankData = new Dictionary<string, object>
-                            {
-                                { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
-                                { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
-                            };
+                                if (!string.IsNullOrEmpty(entry.Name))
+                                {
+                                    var rankData = new Dictionary<string, object>
+                                    {
+                                        { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
+                                        { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
+                                    };
 
-                                luaTable.Add(entry.Rank, rankData);
+                                    luaTable.Add(entry.Rank, rankData);
+                                }
                             }
 
                             // Step 3: Format the Lua table as a string using regex
@@ -421,7 +425,7 @@ namespace WebAPIService.OHS
                             {
                                 StringBuilder? resultBuilder = new StringBuilder();
 
-                                foreach (string user in data.Users)
+                                foreach (string user in data.Users.Where(user => !string.IsNullOrEmpty(user)))
                                 {
                                     string? scoreboarddata = File.ReadAllText(scoreboardfile);
 
@@ -441,7 +445,7 @@ namespace WebAPIService.OHS
                                                 {
                                                     foreach (var entry in entries)
                                                     {
-                                                        if (entry.Name == user)
+                                                        if (!string.IsNullOrEmpty(entry.Name) && entry.Name.Equals(user))
                                                         {
                                                             if (entry.Score != 0)
                                                             {
@@ -492,7 +496,7 @@ namespace WebAPIService.OHS
 
                                             foreach (var entry in scoreentries)
                                             {
-                                                if (i >= 1)
+                                                if (i >= 1 && !string.IsNullOrEmpty(entry.Name))
                                                 {
                                                     var rankData = new Dictionary<string, object>
                                                     {
@@ -564,11 +568,7 @@ namespace WebAPIService.OHS
                     string scoreboardfile = scoreboardpath + $"/scoreboard_{key}.json";
 
                     if (!File.Exists(scoreboardfile))
-                    {
-                        Scoreboard? scoreboard = GenerateSampleScoreboard(numEntries);
-                        File.WriteAllText(scoreboardfile, JsonConvert.SerializeObject(scoreboard, Formatting.Indented));
-                        scoreboard = null;
-                    }
+                        File.WriteAllText(scoreboardfile, JsonConvert.SerializeObject(GenerateSampleScoreboard(numEntries), Formatting.Indented));
 
                     scoreboardfile = File.ReadAllText(scoreboardfile);
 
@@ -596,7 +596,7 @@ namespace WebAPIService.OHS
 
                                     foreach (var entry in entries)
                                     {
-                                        if (i >= start)
+                                        if (i >= start && !string.IsNullOrEmpty(entry.Name))
                                         {
                                             var rankData = new Dictionary<string, object>
                                             {
@@ -632,15 +632,12 @@ namespace WebAPIService.OHS
         public static Scoreboard GenerateSampleScoreboard(int numEntries)
         {
             Scoreboard scoreboard = new Scoreboard();
-            Random? random = new Random();
 
-            scoreboard.Entries = new List<ScoreboardEntry>();
+            scoreboard.Entries = new List<ScoreboardEntry>(numEntries);
 
             for (int i = 1; i <= numEntries; i++)
             {
-                string playerName = ScoreboardNameGenerator.GenerateRandomName();
-                int score = random.Next(100, 1000); // Generate a random score between 100 and 999
-                scoreboard.Entries.Add(new ScoreboardEntry { Name = playerName, Score = score });
+                scoreboard.Entries.Add(new ScoreboardEntry { Name = string.Empty, Score = 0 });
             }
 
             // Sort the entries by score in descending order
@@ -651,8 +648,6 @@ namespace WebAPIService.OHS
             {
                 scoreboard.Entries[i].Rank = i + 1;
             }
-
-            random = null;
 
             return scoreboard;
         }
@@ -760,19 +755,6 @@ namespace WebAPIService.OHS
             public override void WriteJson(JsonWriter writer, ScoreBoardUpdate? value, JsonSerializer serializer)
             {
                 throw new NotImplementedException();
-            }
-        }
-
-        public class ScoreboardNameGenerator
-        {
-            private static Random random = new Random();
-
-            // List of silly French-sounding words to be used in the names
-            private static string[] sillyFrenchWords = { "Croissant", "Baguette", "Fougasse", "TarteAuFromage", "Tabernack", "UnePetiteContine", "ChuckNorris", "Pamplemousse", "JimCarrey", "Fromage" };
-
-            public static string GenerateRandomName()
-            {
-                return sillyFrenchWords[random.Next(0, sillyFrenchWords.Length)];
             }
         }
 

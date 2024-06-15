@@ -1,0 +1,9 @@
+<xpDefs>
+	<s2>
+		<maxLevel type="num">50</maxLevel>
+		<multiplier type="num">0.25</multiplier>
+		<exponent type="num">0.5</exponent>
+		<levelIconRows type="num">1</levelIconRows>
+		<levelIconCols type="num">1</levelIconCols>
+	</s2>
+</xpDefs>
