@@ -39,6 +39,7 @@ using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using WebAPIService.UBISOFT.gsconnect;
 using CyberBackendLibrary.Crypto;
+using CyberBackendLibrary.Extension;
 
 namespace HTTPServer
 {
@@ -962,13 +963,15 @@ namespace HTTPServer
                                                                         if (vid != null && vid.Available && vid.VideoStream != null)
                                                                         {
                                                                             using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
+                                                                            vid.VideoStream.Close();
+                                                                            vid.VideoStream.Dispose();
+                                                                            ms.Position = 0;
                                                                             response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                                                             {
                                                                                 HttpStatusCode = Models.HttpStatusCode.OK
                                                                             };
                                                                             response.Headers.Add("Content-Type", vid.ContentType);
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
-                                                                            ms.Flush();
                                                                         }
                                                                         else
                                                                             response = HttpBuilder.InternalServerError();

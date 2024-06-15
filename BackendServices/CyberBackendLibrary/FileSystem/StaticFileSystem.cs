@@ -31,8 +31,11 @@ namespace CyberBackendLibrary.FileSystem
 
         public static IEnumerable<string>? GetMediaFilesList(string directoryPath)
         {
+            // Define a set of valid extensions for media quick lookup
+            HashSet<string> validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".mp3", ".aac", ".ts" };
+
             return Directory.EnumerateFiles(directoryPath, "*.*")
-            .Where(s => (s.ToLower().EndsWith(".mp3") || s.ToLower().EndsWith(".aac") || s.ToLower().EndsWith(".ts")) && !File.GetAttributes(s).HasFlag(FileAttributes.Hidden));
+                            .Where(s => validExtensions.Contains(Path.GetExtension(s)) && !File.GetAttributes(s).HasFlag(FileAttributes.Hidden));
         }
 
         public static string? GetM3UStreamFromDirectory(string directoryPath, string httpdirectoryrequest)
