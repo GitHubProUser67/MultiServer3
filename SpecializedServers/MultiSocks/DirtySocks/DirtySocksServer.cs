@@ -5,7 +5,7 @@ namespace MultiSocks.DirtySocks
 {
     public class DirtySocksServer : IDisposable
     {
-        public static IDatabase Database = new DirtySocksJSONDatabase();
+        public static IDatabase? Database = null;
         private readonly AbstractDirtySockServer? RedirectorSSX3_NTSC_A;
         private readonly AbstractDirtySockServer? RedirectorSSX3_PAL;
         private readonly AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
@@ -40,6 +40,8 @@ namespace MultiSocks.DirtySocks
         public DirtySocksServer(CancellationToken cancellationToken)
         {
             string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+
+            Database = new DirtySocksJSONDatabase();
 
             #region Redirector
 
@@ -408,6 +410,9 @@ namespace MultiSocks.DirtySocks
 
                     //EA.COM Buddy Server
                     EAMessenger?.Dispose();
+
+                    //Database
+                    Database = null;
 
                     LoggerAccessor.LogWarn("DirtySocks Servers stopped...");
                 }

@@ -77,17 +77,29 @@ namespace MultiSocks.DirtySocks.Messages
             {
                 Game prevGame = user.CurrentGame;
 
-                prevGame.KickPlayerByUsername(user.Username);
-
                 lock (mc.Games)
-                    mc.Games.UpdateGame(prevGame);
+                {
+                    if (prevGame.RemovePlayerByUsername(user.Username))
+                        mc.Games.RemoveGame(prevGame);
+                    else
+                        mc.Games.UpdateGame(prevGame);
+                }
             }
 
             if (!string.IsNullOrEmpty(KICK))
             {
                 foreach (string player in KICK.Split(','))
                 {
-                    user.CurrentGame?.KickPlayerByUsername(player, 1);
+                    lock (mc.Games)
+                    {
+                        if (user.CurrentGame != null)
+                        {
+                            if (user.CurrentGame.RemovePlayerByUsername(player, 1))
+                                mc.Games.RemoveGame(user.CurrentGame);
+                            else
+                                mc.Games.UpdateGame(user.CurrentGame);
+                        }
+                    }
                 }
             }
 

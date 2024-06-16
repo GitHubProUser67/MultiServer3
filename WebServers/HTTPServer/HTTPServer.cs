@@ -88,7 +88,8 @@ namespace HTTPServer
                         }
                         catch (SocketException ex)
                         {
-                            if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted && ex.SocketErrorCode != SocketError.ConnectionRefused)
+                            if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted
+                            && ex.SocketErrorCode != SocketError.ConnectionRefused && ex.SocketErrorCode != SocketError.Interrupted)
                                 LoggerAccessor.LogError($"[HTTP] - Client loop thrown a SocketException: {ex}");
                             listener.Stop();
 

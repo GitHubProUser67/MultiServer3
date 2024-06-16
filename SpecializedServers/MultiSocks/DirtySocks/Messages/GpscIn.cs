@@ -34,10 +34,13 @@ namespace MultiSocks.DirtySocks.Messages
             {
                 Game prevGame = user.CurrentGame;
 
-                prevGame.KickPlayerByUsername(user.Username);
-
                 lock (mc.Games)
-                    mc.Games.UpdateGame(prevGame);
+                {
+                    if (prevGame.RemovePlayerByUsername(user.Username))
+                        mc.Games.RemoveGame(prevGame);
+                    else
+                        mc.Games.UpdateGame(prevGame);
+                }
             }
 
             int? parsedMinSize = int.TryParse(MINSIZE, out int minSize) ? minSize : null;

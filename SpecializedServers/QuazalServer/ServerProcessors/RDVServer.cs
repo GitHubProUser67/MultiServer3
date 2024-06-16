@@ -73,7 +73,7 @@ namespace QuazalServer.ServerProcessors
                     catch (Exception ex)
                     {
                         if (ex.InnerException is SocketException socketException &&
-                            socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
+                            socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted && socketException.SocketErrorCode != SocketError.Interrupted)
                             LoggerAccessor.LogError($"[Rendez-vous Service] - HandleClient thrown an exception : {ex}");
                         CurrentRecvTask = null;
                     }

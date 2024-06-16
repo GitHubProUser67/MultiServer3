@@ -74,7 +74,6 @@ namespace MultiSocks.DirtySocks
                             Games.RemoveGame(game);
                         }
                     }
-                    user.CurrentGame = null;
                 }
 
                 if (room != null)

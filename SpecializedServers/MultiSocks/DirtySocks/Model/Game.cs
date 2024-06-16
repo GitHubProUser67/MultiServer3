@@ -37,18 +37,30 @@ namespace MultiSocks.DirtySocks.Model
             RoomID = roomId;
         }
 
-        public bool RemoveUserAndCheckGameValidity(User user)
+        public bool RemoveUserAndCheckGameValidity(User user, int reason = 0)
         {
             lock (Users)
             {
                 Users.RemoveUser(user);
 
-                BroadcastPopulation();
+                user.CurrentGame = null;
 
-                if (Users.Count() < MinSize)
+                if (Users.Count() < MinSize || GPSHost == user) // End Game.
                 {
+                    if (!string.IsNullOrEmpty(user.Connection?.Context.Project))
+                    {
+                        if (user.Connection.Context.Project.Contains("DPR-09"))
+                            user.SendPlusWho(user, "DPR-09");
+                        else if (user.Connection.Context.Project.Contains("BURNOUT5"))
+                            user.SendPlusWho(user, "BURNOUT5");
+                    }
+                    else
+                        user.SendPlusWho(user, string.Empty);
+
                     foreach (User batchuser in Users.GetAll())
                     {
+                        Users.RemoveUser(batchuser);
+
                         batchuser.CurrentGame = null;
 
                         if (!string.IsNullOrEmpty(batchuser.Connection?.Context.Project))
@@ -64,6 +76,37 @@ namespace MultiSocks.DirtySocks.Model
 
                     return true;
                 }
+				else
+				{
+					if (reason == 1)
+					{
+						if (!string.IsNullOrEmpty(user.Connection?.Context.Project))
+						{
+							if (user.Connection.Context.Project.Contains("DPR-09"))
+								user.SendPlusWho(user, "DPR-09");
+							else if (user.Connection.Context.Project.Contains("BURNOUT5"))
+								user.SendPlusWho(user, "BURNOUT5");
+						}
+						else
+							user.SendPlusWho(user, string.Empty);
+
+						// user.Connection?.SendMessage(new PlusKik() { GAME = ID.ToString() }); // TODO, figure out why it crash client...
+					}
+					else
+					{
+						if (!string.IsNullOrEmpty(user.Connection?.Context.Project))
+						{
+							if (user.Connection.Context.Project.Contains("DPR-09"))
+								user.SendPlusWho(user, "DPR-09");
+							else if (user.Connection.Context.Project.Contains("BURNOUT5"))
+								user.SendPlusWho(user, "BURNOUT5");
+						}
+						else
+							user.SendPlusWho(user, string.Empty);
+					}
+					
+					BroadcastPopulation();
+				}
             }
 
             return false;
@@ -87,49 +130,14 @@ namespace MultiSocks.DirtySocks.Model
             Users.AddUser(user);
         }
 
-        public void KickPlayerByUsername(string? username, int reason = 0)
+        public bool RemovePlayerByUsername(string? username, int reason = 0)
         {
             User? userToRemove = Users.GetAll().FirstOrDefault(user => user.Username == username);
 
             if (userToRemove != null)
-            {
-                Users.RemoveUser(userToRemove);
+                return RemoveUserAndCheckGameValidity(userToRemove, reason);
 
-                if (reason == 1)
-                {
-                    userToRemove.CurrentGame = null;
-
-                    if (!string.IsNullOrEmpty(userToRemove.Connection?.Context.Project))
-                    {
-                        if (userToRemove.Connection.Context.Project.Contains("DPR-09"))
-                            userToRemove.SendPlusWho(userToRemove, "DPR-09");
-                        else if (userToRemove.Connection.Context.Project.Contains("BURNOUT5"))
-                            userToRemove.SendPlusWho(userToRemove, "BURNOUT5");
-                    }
-                    else
-                        userToRemove.SendPlusWho(userToRemove, string.Empty);
-
-                    // userToRemove.Connection?.SendMessage(new PlusKik() { GAME = ID.ToString() }); // TODO, figure out why it crash client...
-                }
-                else if (reason == 2)
-                {
-                    userToRemove.CurrentGame = null;
-
-                    if (!string.IsNullOrEmpty(userToRemove.Connection?.Context.Project))
-                    {
-                        if (userToRemove.Connection.Context.Project.Contains("DPR-09"))
-                            userToRemove.SendPlusWho(userToRemove, "DPR-09");
-                        else if (userToRemove.Connection.Context.Project.Contains("BURNOUT5"))
-                            userToRemove.SendPlusWho(userToRemove, "BURNOUT5");
-                    }
-                    else
-                        userToRemove.SendPlusWho(userToRemove, string.Empty);
-                }
-                else
-                    userToRemove.CurrentGame = null;
-
-                BroadcastPopulation();
-            }
+            return false;
         }
 
         public void SetGameStatus(bool status)
@@ -161,7 +169,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 
@@ -211,7 +219,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 
@@ -261,7 +269,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 
@@ -311,7 +319,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 
@@ -361,7 +369,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 
@@ -411,7 +419,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 
@@ -461,7 +469,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 
@@ -511,7 +519,7 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
                     PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
                     PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", string.Empty);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
                     PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
                 }
 

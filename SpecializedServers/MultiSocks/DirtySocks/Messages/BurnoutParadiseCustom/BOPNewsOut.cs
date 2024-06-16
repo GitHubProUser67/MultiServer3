@@ -7,7 +7,10 @@ namespace MultiSocks.DirtySocks.Messages
         public string? BUDDY_URL { get; set; } = "\"http://gos.ea.com/\"";
         public string? BUDDY_SERVER { get; set; } = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
         public string? BUDDY_PORT { get; set; } = "13505";
-        public string? GPS_REGIONS { get; set; } = "159.153.202.54,159.153.105.104,159.153.161.178,159.153.174.133";
+        public string? GPS_REGIONS { get; set; } = $"{(MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString())}," +
+            $"{(MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString())}," +
+            $"{(MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString())}," +
+            $"{(MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString())}";
         public string? EACONNECT_WEBOFFER_URL { get; set; } = "\"http://gos.ea.com/easo/editorial/common/2008/eaconnect/connect.jsp?site=easo&lkey=$LKEY$&lang=%s&country=%s\"";
         public string? TOSAC_URL { get; set; }
         public string? TOSA_URL { get; set; }
