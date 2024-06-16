@@ -30,6 +30,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? SLUS { get; set; }
         public string? LOC { get; set; }
         public string? DEFPER { get; set; }
+        public string? MID { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

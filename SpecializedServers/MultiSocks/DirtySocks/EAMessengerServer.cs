@@ -10,6 +10,7 @@ namespace MultiSocks.DirtySocks
             new Dictionary<string, Type?>()
             {
                 { "AUTH", typeof(EAMAuthIn) },
+                { "RGET", typeof(RgetIn) },
                 { "PSET", typeof(PsetIn) },
             };
 
