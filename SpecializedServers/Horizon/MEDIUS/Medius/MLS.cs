@@ -5505,9 +5505,6 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
 
-                                Thread.Sleep(new Random().Next(0, 6001)); // We simulate medius fetching delay between 0 and 6 seconds.
-                                                                             // Some games expect a delayed response and it's never the same for every clients.
-
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
                             }
@@ -5546,9 +5543,6 @@ namespace Horizon.MEDIUS.Medius
                             if (gameList.Length > 0)
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
-
-                                Thread.Sleep(new Random().Next(2000, 6001)); // We simulate medius fetching delay between 2 and 6 seconds.
-                                                                             // Some games expect a delayed response and it's never the same for every clients.
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);

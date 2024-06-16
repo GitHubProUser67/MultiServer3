@@ -106,10 +106,16 @@ namespace WebAPIService.OHS
                                         resultfromcommand = Leaderboard.Leaderboard_RequestByRank(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
                                     case "leaderboard/update/":
-                                        resultfromcommand = Leaderboard.Leaderboard_Update(PostData, ContentType, directorypath + $"/{project}/", data, game);
+                                        resultfromcommand = Leaderboard.Leaderboard_Update(PostData, ContentType, directorypath + $"/{project}/", data, game, false);
                                         break;
                                     case "leaderboard/updatessameentry/":
                                         resultfromcommand = Leaderboard.Leaderboard_UpdatesSameEntry(PostData, ContentType, directorypath + $"/{project}/", data, game);
+                                        break;
+                                    case "levelboard/getall/":
+                                        resultfromcommand = Leaderboard.Levelboard_GetAll(directorypath + $"/{project}/", game, true);
+                                        break;
+                                    case "levelboard/update/":
+                                        resultfromcommand = Leaderboard.Leaderboard_Update(PostData, ContentType, directorypath + $"/{project}/", data, game, true);
                                         break;
                                     case "usercounter/set/":
                                         resultfromcommand = UserCounter.Set(PostData, ContentType, directorypath + $"/{project}/", data, game);
