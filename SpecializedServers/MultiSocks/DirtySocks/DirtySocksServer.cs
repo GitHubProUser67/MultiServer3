@@ -34,7 +34,8 @@ namespace MultiSocks.DirtySocks
         private readonly AbstractDirtySockServer? NFLStreet3_NTSCMatchmaker;
         private readonly AbstractDirtySockServer? SimsMatchmaker;
         private readonly AbstractDirtySockServer? SSX3Matchmaker;
-        private readonly AbstractDirtySockServer? EAMessenger;
+        private readonly AbstractDirtySockServer? PS2EAMessenger;
+        private readonly AbstractDirtySockServer? PS3EAMessenger;
         private bool disposedValue;
 
         public DirtySocksServer(CancellationToken cancellationToken)
@@ -235,12 +236,22 @@ namespace MultiSocks.DirtySocks
 
             try
             {
-                EAMessenger = new EAMessengerServer(10899, true, null, null, "PS2");
-                LoggerAccessor.LogInfo($"[EAMessenger] Buddy Service Started!");
+                PS2EAMessenger = new EAMessengerServer(10899, true, null, null, "PS2");
+                LoggerAccessor.LogInfo($"[PS2EAMessenger] Buddy Service Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[EAMessenger] Buddy Service Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[PS2EAMessenger] Buddy Service Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                PS3EAMessenger = new EAMessengerServer(13505, true, null, null, "PS3");
+                LoggerAccessor.LogInfo($"[PS3EAMessenger] Buddy Service Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[PS3EAMessenger] Buddy Service Failed to start! Exception: {ex}");
             }
 
             #endregion
@@ -409,7 +420,8 @@ namespace MultiSocks.DirtySocks
                     SSX3Matchmaker?.Dispose();
 
                     //EA.COM Buddy Server
-                    EAMessenger?.Dispose();
+                    PS2EAMessenger?.Dispose();
+                    PS3EAMessenger?.Dispose();
 
                     //Database
                     Database = null;
