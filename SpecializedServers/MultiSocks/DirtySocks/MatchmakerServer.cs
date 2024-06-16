@@ -36,7 +36,7 @@ namespace MultiSocks.DirtySocks
                 { "slst", typeof(SlstIn) }, //lobby details?
                 { "sviw", typeof(Sviw) }, //pers with Ping.
                 { "user", typeof(UserIn) }, //get my user info
-                { "usld", typeof(UsldIn) }, //Ping Equiv?
+                { "usld", typeof(UsldIn) }, // User Settings Load -- load a user's (persona's) common game specific settings.
                 { "onln", typeof(OnlnIn) }, //search for a user's info
                 { "opup", typeof(OpupIn) }, //?
                 { "rent", typeof(RentIn) }, // Refresh Entitlements
