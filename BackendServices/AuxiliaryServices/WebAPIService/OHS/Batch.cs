@@ -129,6 +129,9 @@ namespace WebAPIService.OHS
                                     case "usercounter/incrementmany/":
                                         resultfromcommand = UserCounter.Increment_Many(PostData, ContentType, directorypath, data, game);
                                         break;
+                                    case "usercounter/increment_setentry/":
+                                        resultfromcommand = UserCounter.IncrementSetEntry(PostData, ContentType, directorypath, data, game);
+                                        break;
                                     case "userinventory/addglobalitems/":
                                         resultfromcommand = UserInventory.AddGlobalItems(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;

@@ -80,7 +80,7 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                if (DataTypesUtils.FindbyteSequence(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                if (DataTypesUtils.FindBytePattern(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                 {
                     rpcn = true;
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");

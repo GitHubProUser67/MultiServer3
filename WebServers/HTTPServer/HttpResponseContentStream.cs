@@ -48,10 +48,13 @@ namespace HTTPServer
 		{
 			if (UseChunkedTransfer)
 			{
-				// Send chunk
-				inner.Write(Encoding.ASCII.GetBytes((count - offset).ToString("X") + "\r\n").AsSpan());
+				byte[] ChunckHeader = Encoding.ASCII.GetBytes((count - offset).ToString("X") + "\r\n");
+                byte[] ChunckFooter = Encoding.ASCII.GetBytes("\r\n");
+
+                // Send chunk
+                inner.Write(ChunckHeader, 0, ChunckHeader.Length);
 				inner.Write(buffer, offset, count);
-				inner.Write(Encoding.ASCII.GetBytes("\r\n").AsSpan());
+				inner.Write(ChunckFooter, 0, ChunckFooter.Length);
 			}
 			else
                 // Just write the body
@@ -67,11 +70,14 @@ namespace HTTPServer
 		{
 			if (UseChunkedTransfer)
 			{
-				// Write terminating chunk if need
-				try
-				{
-					inner.Write(Encoding.ASCII.GetBytes("0\r\n").AsSpan());
-					inner.Write(Encoding.ASCII.GetBytes(trailer + "\r\n").AsSpan());
+				byte[] TrailerHeader = Encoding.ASCII.GetBytes("0\r\n");
+                byte[] TrailerFooter = Encoding.ASCII.GetBytes(trailer + "\r\n");
+
+                // Write terminating chunk if need
+                try
+                {
+					inner.Write(TrailerHeader, 0, TrailerHeader.Length);
+					inner.Write(TrailerFooter, 0, TrailerFooter.Length);
 				}
 				catch { /* Sometimes an connection lost may occur here. It's not a reason to worry. */ };
 			}

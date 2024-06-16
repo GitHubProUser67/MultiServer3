@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Authors>Shreyas Zare</Authors>
     <Company>Technitium</Company>
     <Product>Technitium Library</Product>
@@ -11,6 +11,7 @@
     <Description></Description>
     <PackageId>TechnitiumLibrary.Net</PackageId>
     <Version>5.0</Version>
+	<IsTrimmable>true</IsTrimmable>
 	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
 

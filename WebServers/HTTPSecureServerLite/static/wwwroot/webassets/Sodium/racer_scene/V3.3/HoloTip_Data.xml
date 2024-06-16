@@ -1,0 +1,1527 @@
+<HoloTips>
+    <CP01_04>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.64,0.725,1.3385,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-10.86,5.9063,-12.785,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.116,0.3,0.75</tint>
+            <tintLevel type='num'>2.4685</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-10.92,5.1705,-14.174,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>Commerce_Point</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>6.2835</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>14.393</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>27.3</tilt>
+    </CP01_04>
+    <CP01_05>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4421,1.379,1.0167,1.5</beamScale>
+        <beamSquash type='vec'>1.8698,1.1111,0.77085,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>NOT</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>0.46</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-11.088,5.4876,-11.156,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.75</tint>
+            <tintLevel type='num'>1.9117</tintLevel>
+        </models>
+        <pos type='vec'>-10.959,5.0841,-7.2328,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>Sodium2-ProjectVelocity</_>
+            <_>Is_downloading</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>5.4219</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>10.741</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44852,1,0.189,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.29715,0.451,0.28377,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <_>Please_wait</_>
+            <X_size type='num'>5.4219</X_size>
+            <Y_size type='num'>10.741</Y_size>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44852,1,0.189,1</colour>
+            <condition>
+                <_>AND</_>
+                <_>Timer_5sec</_>
+            </condition>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.29715,0.451,0.28377,0.63</shadowColour>
+        </textDataConditional>
+        <tilt type='num'>17.3</tilt>
+    </CP01_05>
+    <CP01_06>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-11.054,5.8951,-11.82,1</look>
+        <models></models>
+        <pos type='vec'>-10.959,6.0178,-7.1202,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.13426,0.81,0.0243,0.00099999</tint>
+                <tintLevel type='num'>5.1298</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>359.9</tilt>
+    </CP01_06>
+    <CP01_07>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.6039</innerRadius>
+        <look type='vec'>-26.604,5.7895,-11.668,1</look>
+        <models></models>
+        <pos type='vec'>-26.637,5.7903,-10.063,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.13426,0.81,0.0243,0.00099999</tint>
+                <tintLevel type='num'>5.1298</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <condition>
+                <_>AND</_>
+                <_>NOT</_>
+                <_>RACER</_>
+            </condition>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.025371,0.031,0.024459,0.00099999</tint>
+                <tintLevel type='num'>2.8775</tintLevel>
+            </holoModel>
+        </textDataConditional>
+        <tilt type='num'>359.9</tilt>
+    </CP01_07>
+    <CP01_08>
+        <activateSpeed type='num'>8.44</activateSpeed>
+        <beamScale type='vec'>4.1733,2.1193,0.29658,1.5</beamScale>
+        <beamSquash type='vec'>1.5828,1.0705,0.97431,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>1</height>
+        <innerRadius type='num'>0.51386</innerRadius>
+        <look type='vec'>-20.942,6.585,-13.92,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.0525,0.35,0.08272,0.63</tint>
+            <tintLevel type='num'>1.2641</tintLevel>
+        </models>
+        <pos type='vec'>-25.939,8.4916,-13.73,1</pos>
+        <radius type='num'>59.804</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>MULTIPLAYER</_>
+            <X_size type='num'>7.3599</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_size type='num'>22.287</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.038578,1,0.019,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>1.4238</jitterHi>
+            <jitterLow type='num'>1.4078</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.13036,0.931,0,0.38</shadowColour>
+        </textData>
+        <tilt type='num'>12.4</tilt>
+    </CP01_08>
+    <CP01_09>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.6039</innerRadius>
+        <look type='vec'>-26.442,5.6856,-15.681,1</look>
+        <models></models>
+        <pos type='vec'>-26.653,5.747,-17.604,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.13426,0.81,0.0243,0.00099999</tint>
+                <tintLevel type='num'>5.1298</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <condition>
+                <_>AND</_>
+                <_>NOT</_>
+                <_>RACER</_>
+            </condition>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.025371,0.031,0.024459,0.00099999</tint>
+                <tintLevel type='num'>2.8775</tintLevel>
+            </holoModel>
+        </textDataConditional>
+        <tilt type='num'>359.9</tilt>
+    </CP01_09>
+    <CP01_10>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.6039</innerRadius>
+        <look type='vec'>-26.376,6.0589,-13.696,1</look>
+        <models></models>
+        <pos type='vec'>-37.74,6.0749,-13.944,1</pos>
+        <radius type='num'>16.614</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.13426,0.81,0.0243,0.00099999</tint>
+                <tintLevel type='num'>5.1298</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <condition>
+                <_>AND</_>
+                <_>NOT</_>
+                <_>RACER</_>
+            </condition>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.025371,0.031,0.024459,0.00099999</tint>
+                <tintLevel type='num'>2.8775</tintLevel>
+            </holoModel>
+        </textDataConditional>
+        <tilt type='num'>359.9</tilt>
+    </CP01_10>
+    <CP01_11>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>1.2841,6.026,-12.626,1</look>
+        <models></models>
+        <pos type='vec'>0.93245,5.9668,-7.0815,1</pos>
+        <radius type='num'>9.4059</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.13426,0.81,0.0243,0.00099999</tint>
+                <tintLevel type='num'>5.1298</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <condition>
+                <_>AND</_>
+                <_>NOT</_>
+                <_>RACER</_>
+            </condition>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.025371,0.031,0.024459,0.00099999</tint>
+                <tintLevel type='num'>2.8775</tintLevel>
+            </holoModel>
+        </textDataConditional>
+        <tilt type='num'>1.7</tilt>
+    </CP01_11>
+    <CP01_12>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4481,0.65475,0.53979,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-26.654,6.3678,-12.477,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.61</tint>
+            <tintLevel type='num'>1.5032</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-26.66,4.9439,-10.297,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>GARAGE</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>27.3</tilt>
+    </CP01_12>
+    <CP01_13>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4481,0.65475,0.53979,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-26.64,6.3481,-14.65,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.61</tint>
+            <tintLevel type='num'>1.5032</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-26.64,4.9526,-17.25,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>GARAGE</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>27.3</tilt>
+    </CP01_13>
+    <CP01_14>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4481,0.65475,0.53979,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-14.195,12.401,-3.0124,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.61</tint>
+            <tintLevel type='num'>1.5032</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-11.677,10.072,-2.9768,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>GARAGE</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,1</shadowColour>
+        </textData>
+        <tilt type='num'>27.3</tilt>
+    </CP01_14>
+    <CP01_15>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4481,0.65475,0.53979,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-14.08,12.059,3.4644,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.61</tint>
+            <tintLevel type='num'>1.5032</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-11.67,10.066,3.4032,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>GARAGE</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.35316,0.49128,0.981,1</shadowColour>
+        </textData>
+        <tilt type='num'>27.3</tilt>
+    </CP01_15>
+    <CP01_16>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>2.0962,0.79739,1.4189,1.5</beamScale>
+        <beamSquash type='vec'>1.4422,2.0545,1.286,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-19.151,5.2331,16.22,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.0975,0.25133,0.65,0.75</tint>
+            <tintLevel type='num'>2.4685</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-19.154,4.9607,19.998,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>Sodium_Hub</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>6.2835</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>14.393</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.99956,1,0.999,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0,0.21584,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>20.7</tilt>
+    </CP01_16>
+    <CP01_17>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4481,0.65475,0.53979,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-35.451,6.1578,-13.929,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.61</tint>
+            <tintLevel type='num'>1.5032</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-37.342,4.9621,-13.938,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>MULTIPLAYER</_>
+            <X_pos type='num'>5.5997</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>95.2</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>27.3</tilt>
+    </CP01_17>
+    <CP01_18>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>2.0962,0.79739,1.4189,1.5</beamScale>
+        <beamSquash type='vec'>1.4422,2.0545,1.286,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-19.103,5.5965,-15.531,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.3,0.045,0.1364,0.75</tint>
+            <tintLevel type='num'>2.4685</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-19.13,4.9515,-19.763,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>SodiumOne</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>6.2835</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>14.393</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.99956,1,0.999,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.981,0,1.684e-05,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>20.7</tilt>
+    </CP01_18>
+    <CP01_19>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4421,1.379,1.0167,1.5</beamScale>
+        <beamSquash type='vec'>1.8698,1.1111,0.77085,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>0.46</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-11.088,5.4876,-11.156,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.75</tint>
+            <tintLevel type='num'>1.9117</tintLevel>
+        </models>
+        <pos type='vec'>-10.959,5.0841,-7.2328,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>Main_Menu</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>5.4219</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>10.741</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44852,1,0.189,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.29715,0.451,0.28377,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>17.3</tilt>
+    </CP01_19>
+    <CP01_20>
+        <activateSpeed type='num'>19.18</activateSpeed>
+        <beamScale type='vec'>1.0729,0.81162,0.66361,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>19.26</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-3.948,5.4433,-13.751,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.083763,0.15,0,0.75</tint>
+            <tintLevel type='num'>1.5479</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-3.9465,5.0941,-14.986,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>FastForward1</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>19.834</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>30</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.26,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <_>FastForward3</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>19.834</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>30</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.98,1,0,1</colour>
+            <condition>
+                <_>AND</_>
+                <_>FastForward</_>
+            </condition>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textDataConditional>
+        <tilt type='num'>28</tilt>
+    </CP01_20>
+    <CP01_21>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.7077,0.96661,3.2654,1.5</beamScale>
+        <beamSquash type='vec'>1.239,0.11124,1.3988,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <dotFov type='num'>0</dotFov>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-36.08,6.7497,-13.918,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <screen>Holo_Screen1</screen>
+            <tint type='vec'>0.045,0.116,0.3,0.75</tint>
+            <tintLevel type='num'>1.6083</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-38.982,5.3453,-13.974,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>Session_List</_>
+            <_>Coming_Soon</_>
+            <X_pos type='num'>-2.8002</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>12.6</X_step>
+            <Y_pos type='num'>375.2</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-275.4</Y_step>
+            <alignment>center</alignment>
+            <maxWidth type='num'>1280</maxWidth>
+        </textData>
+        <tilt type='num'>27</tilt>
+    </CP01_21>
+    <CP01_22>
+        <activateSpeed type='num'>19.18</activateSpeed>
+        <beamScale type='vec'>1.0729,0.81162,0.66361,1.5</beamScale>
+        <beamSquash type='vec'>1.109,0.216,1.467,0</beamSquash>
+        <deactivateSpeed type='num'>19.26</deactivateSpeed>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-2.0177,5.4546,-13.661,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.083763,0.15,0,0.75</tint>
+            <tintLevel type='num'>1.5479</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-2.0233,5.0825,-14.993,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>FastForward1</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>19.834</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>30</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.26,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <_>FastForward3</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>19.834</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>30</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.98,1,0,1</colour>
+            <condition>
+                <_>AND</_>
+                <_>FastForward</_>
+            </condition>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textDataConditional>
+        <tilt type='num'>28</tilt>
+    </CP01_22>
+    <CP01_23>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4421,1.379,1.0167,1.5</beamScale>
+        <beamSquash type='vec'>1.8698,1.1111,0.77085,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>NOT</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>0.46</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>0.94435,5.3569,-10.934,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.75</tint>
+            <tintLevel type='num'>1.9117</tintLevel>
+        </models>
+        <pos type='vec'>0.93407,5.0856,-7.2015,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>Sodium2-ProjectVelocity</_>
+            <_>Is_downloading</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>5.4219</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>10.741</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44852,1,0.189,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.29715,0.451,0.28377,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <_>Please_wait</_>
+            <X_size type='num'>5.4219</X_size>
+            <Y_size type='num'>10.741</Y_size>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44852,1,0.189,1</colour>
+            <condition>
+                <_>AND</_>
+                <_>Timer_5sec</_>
+            </condition>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.29715,0.451,0.28377,0.63</shadowColour>
+        </textDataConditional>
+        <tilt type='num'>17.3</tilt>
+    </CP01_23>
+    <CP01_24>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.4421,1.379,1.0167,1.5</beamScale>
+        <beamSquash type='vec'>1.8698,1.1111,0.77085,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>0.46</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>0.94435,5.3569,-10.934,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.75</tint>
+            <tintLevel type='num'>1.9117</tintLevel>
+        </models>
+        <pos type='vec'>0.93407,5.0856,-7.2015,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>Main_Menu</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>5.4219</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>10.741</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44852,1,0.189,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.29715,0.451,0.28377,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>17.3</tilt>
+    </CP01_24>
+    <CP01_25>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.6378,0.78674,0.53357,1.5</beamScale>
+        <beamSquash type='vec'>1.1027,0.082255,1.37,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>NOT</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>-35.465,6.172,-13.954,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.3,0.1015,0.61</tint>
+            <tintLevel type='num'>1.5032</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-37.344,4.9582,-13.94,1</pos>
+        <radius type='num'>5.9928</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <textData>
+            <_>MULTIPLAYER</_>
+            <_>Is_downloading</_>
+            <X_pos type='num'>30.8</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>-12.6</X_step>
+            <Y_pos type='num'>386.4</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-289.8</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44,1,0,1</colour>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <_>Please_wait</_>
+            <X_pos type='num'>22.4</X_pos>
+            <X_size type='num'>9.2436</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>61.6</Y_pos>
+            <Y_size type='num'>19.416</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.44,1,0,1</colour>
+            <condition>
+                <_>AND</_>
+                <_>Timer_5sec</_>
+            </condition>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textDataConditional>
+        <tilt type='num'>27.3</tilt>
+    </CP01_25>
+    <CP01_26>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.6039</innerRadius>
+        <look type='vec'>-15.05,10.959,-2.8957,1</look>
+        <models></models>
+        <pos type='vec'>-11.48,10.911,-2.9884,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.13426,0.81,0.0243,0.00099999</tint>
+                <tintLevel type='num'>5.1298</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <condition>
+                <_>AND</_>
+                <_>NOT</_>
+                <_>RACER</_>
+            </condition>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.025371,0.031,0.024459,0.00099999</tint>
+                <tintLevel type='num'>2.8775</tintLevel>
+            </holoModel>
+        </textDataConditional>
+        <tilt type='num'>359.9</tilt>
+    </CP01_26>
+    <CP01_27>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.6039</innerRadius>
+        <look type='vec'>-14.611,10.836,3.4414,1</look>
+        <models></models>
+        <pos type='vec'>-11.473,10.914,3.3886,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.13426,0.81,0.0243,0.00099999</tint>
+                <tintLevel type='num'>5.1298</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <textDataConditional>
+            <condition>
+                <_>AND</_>
+                <_>NOT</_>
+                <_>RACER</_>
+            </condition>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.025371,0.031,0.024459,0.00099999</tint>
+                <tintLevel type='num'>2.8775</tintLevel>
+            </holoModel>
+        </textDataConditional>
+        <tilt type='num'>359.9</tilt>
+    </CP01_27>
+    <CP01_28>
+        <activateSpeed type='num'>1.86</activateSpeed>
+        <beamScale type='vec'>2.1521,2.1516,2.1561,1.5</beamScale>
+        <beamSquash type='vec'>0.97805,0.978,1.001,0</beamSquash>
+        <deactivateSpeed type='num'>5.78</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>NOT</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>1</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-11.054,5.8951,-11.82,1</look>
+        <models></models>
+        <pos type='vec'>-10.959,6.0178,-7.1202,1</pos>
+        <radius type='num'>3.2679</radius>
+        <scale type='vec'>1.101,1.048,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>blank</_>
+            <X_pos type='num'>9.7998</X_pos>
+            <X_size type='num'>4.2558</X_size>
+            <X_step type='num'>-9</X_step>
+            <Y_pos type='num'>240.8</Y_pos>
+            <Y_size type='num'>13.85</Y_size>
+            <Y_step type='num'>-227.4</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>1,1,1,1</colour>
+            <holoModel>
+                <UV>
+                    <U_move type='num'>5</U_move>
+                    <U_pos type='num'>0.14</U_pos>
+                    <V_move type='num'>4.9</V_move>
+                    <V_pos type='num'>0.0059994</V_pos>
+                </UV>
+                <X_pos type='num'>7.1526e-07</X_pos>
+                <X_scale type='num'>2.124</X_scale>
+                <Y_pos type='num'>0.192</Y_pos>
+                <Y_scale type='num'>1.776</Y_scale>
+                <depth type='num'>1.0196</depth>
+                <model>pad_1</model>
+                <offAxis type='vec'>90,0.00018312,270,0</offAxis>
+                <out_pos type='num'>-0.5592</out_pos>
+                <spin type='vec'>100,-0.0018704,-0.0020564,0</spin>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/TestTexture.dds</texture>
+                <tint type='vec'>0.025371,0.031,0.024459,0.00099999</tint>
+                <tintLevel type='num'>2.8775</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>359.9</tilt>
+    </CP01_28>
+    <CP01_29>
+        <activateSpeed type='num'>4.44</activateSpeed>
+        <beamScale type='vec'>1.2937,1.1002,0.16974,1.5</beamScale>
+        <beamSquash type='vec'>1.0737,1.0507,0.88889,0</beamSquash>
+        <deactivateSpeed type='num'>4.96</deactivateSpeed>
+        <height type='num'>-3.7253e-09</height>
+        <innerRadius type='num'>0.49239</innerRadius>
+        <look type='vec'>1.3691,6.7721,-14.73,1</look>
+        <models>
+            <tint type='vec'>0.00055841,0.00099999,0,0.75</tint>
+            <tintLevel type='num'>1.5479</tintLevel>
+            <unit>plain_screen</unit>
+        </models>
+        <pos type='vec'>1.505,6.7574,-16.223,1</pos>
+        <radius type='num'>7.919</radius>
+        <scale type='vec'>1.9115,1.5636,1.5,1.5</scale>
+        <screenTransition type='bool'>true</screenTransition>
+        <textData>
+            <_>Key</_>
+            <_>blank</_>
+            <_>Friend</_>
+            <_>Challenger</_>
+            <_>LocalPlayer</_>
+            <X_pos type='num'>-364</X_pos>
+            <X_size type='num'>4.7644</X_size>
+            <X_step type='num'>1.8</X_step>
+            <Y_pos type='num'>352.8</Y_pos>
+            <Y_size type='num'>6.08</Y_size>
+            <Y_step type='num'>-112.2</Y_step>
+            <alignment>left</alignment>
+            <colour type='vec'>0.99926,1,0.999,1</colour>
+            <holoModel>
+                <X_pos type='num'>-0.33</X_pos>
+                <X_scale type='num'>0.046</X_scale>
+                <Y_pos type='num'>-0.08</Y_pos>
+                <Y_scale type='num'>0.328</Y_scale>
+                <model>Holo_Screen1</model>
+                <out_pos type='num'>0.0055075</out_pos>
+                <texture>https://www.outso-srv1.com/webassets/Sodium/Holotip_images/Friend.dds</texture>
+                <tint type='vec'>1,1,1,1</tint>
+                <tintLevel type='num'>2.9511</tintLevel>
+            </holoModel>
+            <itterations type='num'>3</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <shadowColour type='vec'>0.372,0.506,0.981,0.63</shadowColour>
+        </textData>
+        <tilt type='num'>356.4</tilt>
+    </CP01_29>
+    <HOLOBOARD01>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.9,4.7581,1.8954,1.5</beamScale>
+        <beamSquash type='vec'>0.93784,0.089205,1.1725,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>-0.9</height>
+        <holoBoardId type='num'>1</holoBoardId>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-4.6215,6.0453,-15.081,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <screen>Holo_Screen1</screen>
+            <tint type='vec'>0.112,0.045,0.3,0.75</tint>
+            <tintLevel type='num'>2.2142</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-4.6262,5.3636,-16.291,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.6533,1.9895,1.5,1.5</scale>
+        <textData>
+            <_>blank</_>
+        </textData>
+        <tilt type='num'>13.5</tilt>
+    </HOLOBOARD01>
+    <HOLOBOARD01_01>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>1.9,4.7581,1.8954,1.5</beamScale>
+        <beamSquash type='vec'>0.93784,0.089205,1.1725,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>-0.9</height>
+        <holoBoardId type='num'>2.5034</holoBoardId>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-1.3497,5.9852,-15.106,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <screen>Holo_Screen1</screen>
+            <tint type='vec'>0.112,0.045,0.3,0.75</tint>
+            <tintLevel type='num'>2.2142</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-1.3457,5.3027,-16.397,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.6533,1.9895,1.5,1.5</scale>
+        <textData>
+            <_>blank</_>
+        </textData>
+        <tilt type='num'>13.5</tilt>
+    </HOLOBOARD01_01>
+    <HOLOBOARD01_02>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>7.6569,14.012,5.9648,1.5</beamScale>
+        <beamSquash type='vec'>0.68946,2.0008,0.24478,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <dotFov type='num'>0</dotFov>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>1</height>
+        <holoBoardId type='num'>3.25</holoBoardId>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-39.914,13.087,-6.6711,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <screen>Holo_Screen1</screen>
+            <tint type='vec'>0.112,0.045,0.3,0.75</tint>
+            <tintLevel type='num'>2.2142</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-42.961,9.8276,-7.4628,1</pos>
+        <radius type='num'>31.711</radius>
+        <scale type='vec'>1.1088,0.35716,0.94029,1.5</scale>
+        <textData>
+            <_>blank</_>
+        </textData>
+        <tilt type='num'>11.072</tilt>
+    </HOLOBOARD01_02>
+    <HOLOBOARD_TITLE>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>3.9799,2.0637,0.8811,1.5</beamScale>
+        <beamSquash type='vec'>1.097,0.19168,1.088,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>-1</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-3.0339,4.8931,-14.455,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.116,0.3,0.75</tint>
+            <tintLevel type='num'>2.4685</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-3.0488,5.3611,-16.317,1</pos>
+        <radius type='num'>12</radius>
+        <scale type='vec'>1.3725,1.2497,1.5,1.5</scale>
+        <textData>
+            <_>holoboard_channel_name</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>5.0277</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>13.915</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.189,0.417,0.86,1</colour>
+            <itterations type='num'>2.24</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.981,0.981,0.35</shadowColour>
+        </textData>
+        <tilt type='num'>50.435</tilt>
+    </HOLOBOARD_TITLE>
+    <HOLOBOARD_TITLE_01>
+        <activateSpeed type='num'>9.88</activateSpeed>
+        <beamScale type='vec'>3.9799,2.7532,0.8811,1.5</beamScale>
+        <beamSquash type='vec'>1.097,0.61236,1.088,0</beamSquash>
+        <deactivateSpeed type='num'>6.68</deactivateSpeed>
+        <enableCondition>
+            <_>AND</_>
+            <_>RACER</_>
+        </enableCondition>
+        <height type='num'>-0.0041076</height>
+        <innerRadius type='num'>1.1852</innerRadius>
+        <look type='vec'>-33.456,8.4024,-5.038,1</look>
+        <models>
+            <beam>HoloBeam</beam>
+            <tint type='vec'>0.045,0.116,0.3,0.75</tint>
+            <tintLevel type='num'>2.4685</tintLevel>
+            <unit>HoloUnit</unit>
+        </models>
+        <pos type='vec'>-43.081,9.81,-7.4062,1</pos>
+        <radius type='num'>31.336</radius>
+        <scale type='vec'>2.061,2.0736,1.5,1.5</scale>
+        <textData>
+            <_>holoboard_channel_name</_>
+            <X_pos type='num'>-7.0003</X_pos>
+            <X_size type='num'>5.835</X_size>
+            <X_step type='num'>-19.8</X_step>
+            <Y_pos type='num'>50.4</Y_pos>
+            <Y_size type='num'>16.785</Y_size>
+            <Y_step type='num'>-150.6</Y_step>
+            <alignment>center</alignment>
+            <colour type='vec'>0.189,0.417,0.86,1</colour>
+            <itterations type='num'>2.24</itterations>
+            <jitterBias type='num'>0.14</jitterBias>
+            <jitterHi type='num'>15</jitterHi>
+            <jitterLow type='num'>5</jitterLow>
+            <maxWidth type='num'>1280</maxWidth>
+            <shadowColour type='vec'>0.372,0.981,0.981,0.35</shadowColour>
+        </textData>
+        <tilt type='num'>11.302</tilt>
+    </HOLOBOARD_TITLE_01>
+</HoloTips>

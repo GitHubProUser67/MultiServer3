@@ -12,6 +12,7 @@ using Org.BouncyCastle.Crypto;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace CyberBackendLibrary.SSL
 {
@@ -272,8 +273,11 @@ namespace CyberBackendLibrary.SSL
             if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
                 RootCACertificate = CreateRootCertificateAuthority(directoryPath, Hashing);
             else
+#if NET6_0_OR_GREATER
+                RootCACertificate = X509Certificate2.CreateFromPemFile(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");
+#else
                 RootCACertificate = LoadPemCertificate(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");
-
+#endif
             CreateChainSignedCert(RootCACertificate, Hashing, certpath, certPassword, DnsList);
         }
 
@@ -321,8 +325,12 @@ namespace CyberBackendLibrary.SSL
         /// <returns>A long.</returns>
         private static long GetRandomInt64(long minValue, long maxValue)
         {
+#if NET6_0_OR_GREATER
+            return new Random().NextInt64(minValue, maxValue);
+#else
             Random random = new Random();
             return (long)(((random.Next() << 32) | random.Next()) * (double)(maxValue - minValue) / 0xFFFFFFFFFFFFFFFF) + minValue;
+#endif
         }
 
         /// <summary>
@@ -340,24 +348,29 @@ namespace CyberBackendLibrary.SSL
 
         private static async Task WaitForFileDeletionAsync(string filePath)
         {
-            using FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(Path.GetDirectoryName(filePath));
-            TaskCompletionSource<bool> deletionCompletionSource = new TaskCompletionSource<bool>();
+            string? directoryPath = Path.GetDirectoryName(filePath);
 
-            // Watch for file deletion
-            fileSystemWatcher.Deleted += (sender, e) =>
+            if (!string.IsNullOrEmpty(directoryPath))
             {
-                if (e.Name == Path.GetFileName(filePath))
+                using FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(directoryPath);
+                TaskCompletionSource<bool> deletionCompletionSource = new TaskCompletionSource<bool>();
+
+                // Watch for file deletion
+                fileSystemWatcher.Deleted += (sender, e) =>
                 {
-                    // Signal that the file has been deleted
-                    deletionCompletionSource.SetResult(true);
-                }
-            };
+                    if (e.Name == Path.GetFileName(filePath))
+                    {
+                        // Signal that the file has been deleted
+                        deletionCompletionSource.SetResult(true);
+                    }
+                };
 
-            // Enable watching
-            fileSystemWatcher.EnableRaisingEvents = true;
+                // Enable watching
+                fileSystemWatcher.EnableRaisingEvents = true;
 
-            // Wait for the file to be deleted or for cancellation
-            await deletionCompletionSource.Task;
+                // Wait for the file to be deleted or for cancellation
+                await deletionCompletionSource.Task;
+            }
         }
     }
 

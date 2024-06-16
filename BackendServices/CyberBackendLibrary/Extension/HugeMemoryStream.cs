@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace CyberBackendLibrary.HTTP
+namespace CyberBackendLibrary.Extension
 {
     // This class removes the 2gb limit of the classic MemoryStream (but might consume more ram).
     public class HugeMemoryStream : Stream
@@ -25,32 +25,23 @@ namespace CyberBackendLibrary.HTTP
 
         public HugeMemoryStream(Stream st)
         {
-            st.Position = 0;
             st.CopyTo(this);
-            st.Close();
-            st.Dispose();
-            Position = 0;
         }
 
         public HugeMemoryStream(Stream st, long BufferSize)
         {
             int bytesRead = 0;
-            byte[] buffer = new byte[BufferSize];
-
-            // Read from source and write to destination in chunks
-            while ((bytesRead = st.Read(buffer, 0, buffer.Length)) > 0)
+            Span<byte> buffer = new byte[BufferSize];
+            while ((bytesRead = st.Read(buffer)) > 0)
             {
-                Write(buffer, 0, bytesRead);
+                Write(buffer[..bytesRead]);
             }
-            st.Close();
-            st.Dispose();
-            Position = 0;
+            Flush();
         }
 
         public HugeMemoryStream(Span<byte> SpanToMem)
         {
             Write(SpanToMem);
-            Position = 0;
         }
 
         public HugeMemoryStream()
@@ -62,7 +53,7 @@ namespace CyberBackendLibrary.HTTP
         {
             int pageCount = (int)(length / PAGE_SIZE) + 1;
 
-            if ((length % PAGE_SIZE) == 0)
+            if (length % PAGE_SIZE == 0)
                 pageCount--;
 
             return pageCount;

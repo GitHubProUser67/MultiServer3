@@ -57,20 +57,31 @@ namespace CyberBackendLibrary.GeoLocalization
         {
             DatabaseReader? reader;
 
-            if (File.Exists($"{currentdir}/static/GeoIP2-Country.mmdb"))
+            try
             {
-                reader = new DatabaseReader($"{currentdir}/static/GeoIP2-Country.mmdb");
-                System.Diagnostics.Debug.WriteLine("[GeoIPUtils] - Loaded GeoIP2-Country.mmdb Database...");
-            }
-            else if (File.Exists($"{currentdir}/static/GeoLite2-Country.mmdb"))
-            {
-                reader = new DatabaseReader($"{currentdir}/static/GeoLite2-Country.mmdb");
-                System.Diagnostics.Debug.WriteLine("[GeoIPUtils] - Loaded GeoLite2-Country.mmdb Database...");
-            }
-            else
-                reader = null;
+                if (File.Exists($"{currentdir}/static/GeoIP2-Country.mmdb"))
+                {
+                    reader = new DatabaseReader($"{currentdir}/static/GeoIP2-Country.mmdb");
+                    System.Diagnostics.Debug.WriteLine("[GeoIPUtils] - Loaded GeoIP2-Country.mmdb Database...");
+                }
+                else if (File.Exists($"{currentdir}/static/GeoLite2-Country.mmdb"))
+                {
+                    reader = new DatabaseReader($"{currentdir}/static/GeoLite2-Country.mmdb");
+                    System.Diagnostics.Debug.WriteLine("[GeoIPUtils] - Loaded GeoLite2-Country.mmdb Database...");
+                }
+                else
+                    reader = null;
 
-            _instance = new GeoIP(reader);
+                _instance = new GeoIP(reader);
+            }
+            catch (IOException)
+            {
+                Initialize(); // Try again...
+            }
+            catch (Exception e)
+            {
+                CustomLogger.LoggerAccessor.LogError($"[GeoIP] - Initialize() - Failed to initialize GeoIP engine (exception: {e})");
+            }
         }
 
         public static string? GetGeoCodeFromIP(IPAddress IPAddr)

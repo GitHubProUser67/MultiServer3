@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
+		<TargetFramework>net6.0</TargetFramework>
 		<Version>6.1.9</Version>
 		<PackageId>Watson.Core</PackageId>
 		<Title>Watson Webserver Core</Title>
@@ -14,6 +14,7 @@
 		<RepositoryType>github</RepositoryType>
 		<PackageTags>web server rest restful http https api async ssl</PackageTags>
 		<PackageReleaseNotes>Major update with breaking changes</PackageReleaseNotes>
+		<IsTrimmable>true</IsTrimmable>
 		<IsPublishable>false</IsPublishable>
 	</PropertyGroup>
 

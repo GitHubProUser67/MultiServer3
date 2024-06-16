@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
 	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
     <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
 
@@ -16,6 +16,7 @@
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
 	<DefineConstants />
     <Optimize>True</Optimize>
+	<IsTrimmable>true</IsTrimmable>
 	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
 

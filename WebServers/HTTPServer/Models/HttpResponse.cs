@@ -1,5 +1,4 @@
 // Copyright (C) 2016 by Barend Erasmus and donated to the public domain
-using CyberBackendLibrary.HTTP;
 using HTTPServer.Extensions;
 using System;
 using System.Collections.Generic;
@@ -155,7 +154,14 @@ namespace HTTPServer.Models
                 if (streamtosend.CanSeek)
                     response.ContentStream = streamtosend;
                 else
-                    response.ContentStream = new HugeMemoryStream(streamtosend, HTTPServerConfiguration.BufferSize);
+                {
+                    response.ContentStream = new CyberBackendLibrary.Extension.HugeMemoryStream(streamtosend, HTTPServerConfiguration.BufferSize)
+                    {
+                        Position = 0
+                    };
+                    streamtosend.Close();
+                    streamtosend.Dispose();
+                }
             }
             else
                 response.ContentStream = null;

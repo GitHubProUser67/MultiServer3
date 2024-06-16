@@ -4,6 +4,7 @@ using WatsonWebserver.Core;
 using CyberBackendLibrary.HTTP;
 using System.IO;
 using System;
+using CyberBackendLibrary.Extension;
 
 namespace HTTPSecureServerLite
 {

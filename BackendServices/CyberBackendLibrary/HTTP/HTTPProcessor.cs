@@ -11,11 +11,16 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Threading;
+using CyberBackendLibrary.Extension;
+using Ionic.Exploration;
 
 namespace CyberBackendLibrary.HTTP
 {
-    public partial class HTTPProcessor
+    public class HTTPProcessor
     {
+        private static object _StackLock = new object();
+
         public static readonly Dictionary<string, string> _mimeTypes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
@@ -662,11 +667,11 @@ namespace CyberBackendLibrary.HTTP
         {
             if (string.IsNullOrEmpty(referer))
                 return string.Empty;
-#if NETSTANDARD2_1_OR_GREATER
-            Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
-#elif NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
             // Match the input string with the pattern
             Match match = DirtyProxyRegex().Match(referer);
+#else
+            Match match = new Regex(@"^(.*?http://.*?http://)([^/]+)(.*)$").Match(referer);
 #endif
 
             // Check if the pattern is matched
@@ -753,10 +758,10 @@ namespace CyberBackendLibrary.HTTP
 
             using (MemoryStream output = new MemoryStream())
             {
-                using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, false))
+                using (ParallelGZipOutputStream gzipStream = new ParallelGZipOutputStream(output, Ionic.Zlib.CompressionLevel.BestSpeed, true))
                 {
                     gzipStream.Write(input, 0, input.Length);
-                    gzipStream.Flush();
+                    gzipStream.Close();
                 }
 
                 byteoutput = output.ToArray();
@@ -830,18 +835,18 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
-                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096);
-                outGStream.Flush();
+                ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true);
+                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
+                outGStream.Close();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, false);
-                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096);
-                outGStream.Flush();
+                ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true);
+                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
+                outGStream.Close();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
@@ -876,15 +881,47 @@ namespace CyberBackendLibrary.HTTP
         /// <param name="input">The Stream to copy.</param>
         /// <param name="output">the Steam to copy to.</param>
         /// <param name="BufferSize">the buffersize for the copy.</param>
-        private static void CopyStream(Stream input, Stream output, int BufferSize)
+        private static void CopyStream(Stream input, Stream output, int BufferSize, bool flush = true)
         {
-            int len = 0;
-            byte[] buffer = new byte[BufferSize];
-            while ((len = input.Read(buffer, 0, BufferSize)) > 0)
+            if (BufferSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
+
+            bool lockTaken = false;
+            int bytesRead = 0;
+
+            try
             {
-                output.Write(buffer, 0, len);
+                if (BufferSize <= 4096) // Make sure buffersize is not outside of tolerated stack space.
+                    Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock
+
+                if (lockTaken) // Lock is free.
+                {
+                    Span<byte> buffer = stackalloc byte[BufferSize]; // Allocate buffer on the stack.
+                    buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data.
+                    while ((bytesRead = input.Read(buffer)) > 0)
+                    {
+                        output.Write(buffer[..bytesRead]);
+                    }
+                    if (flush)
+                        output.Flush();
+                }
+                else
+                {
+                    Span<byte> buffer = new byte[BufferSize];
+                    while ((bytesRead = input.Read(buffer)) > 0)
+                    {
+                        output.Write(buffer[..bytesRead]);
+                    }
+                    if (flush)
+                        output.Flush();
+                }
             }
-            output.Flush();
+            finally
+            {
+                // Release the lock if it was acquired
+                if (lockTaken)
+                    Monitor.Exit(_StackLock);
+            }
         }
 #if NET7_0_OR_GREATER
         [GeneratedRegex("^(.*?http://.*?http://)([^/]+)(.*)$")]

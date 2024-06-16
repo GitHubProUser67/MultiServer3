@@ -38,6 +38,8 @@ using CyberBackendLibrary.HTTP.PluginManager;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using WebAPIService.UBISOFT.gsconnect;
+using CyberBackendLibrary.Crypto;
+using CyberBackendLibrary.Extension;
 
 namespace HTTPServer
 {
@@ -627,7 +629,7 @@ namespace HTTPServer
                                                                 extractedData[i] = 0x48;
                                                         }
 
-                                                        if (DataTypesUtils.FindbyteSequence(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }))
+                                                        if (DataTypesUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                                         else
                                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -961,13 +963,15 @@ namespace HTTPServer
                                                                         if (vid != null && vid.Available && vid.VideoStream != null)
                                                                         {
                                                                             using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
+                                                                            vid.VideoStream.Close();
+                                                                            vid.VideoStream.Dispose();
+                                                                            ms.Position = 0;
                                                                             response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
                                                                             {
                                                                                 HttpStatusCode = Models.HttpStatusCode.OK
                                                                             };
                                                                             response.Headers.Add("Content-Type", vid.ContentType);
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
-                                                                            ms.Flush();
                                                                         }
                                                                         else
                                                                             response = HttpBuilder.InternalServerError();
@@ -1000,7 +1004,7 @@ namespace HTTPServer
                                                                 byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
                                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                                 {
-                                                                    if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                                                                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                     {
                                                                         ContentType = entry.Key;
                                                                         break;
@@ -1103,7 +1107,9 @@ namespace HTTPServer
 
                     if (response.ContentStream != null) // Safety.
                     {
-                        string EtagMD5 = ComputeStreamMD5(response.ContentStream);
+                        string EtagMD5 = ComputeStreamChecksum(response.ContentStream);
+
+                        response.ContentStream.Position = 0;
 
                         if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
                         {
@@ -1252,7 +1258,7 @@ namespace HTTPServer
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
                         foreach (var entry in HTTPProcessor._PathernDictionary)
                         {
-                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                            if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                             {
                                 ContentType = entry.Key;
                                 break;
@@ -1550,7 +1556,7 @@ namespace HTTPServer
                         byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
                         foreach (var entry in HTTPProcessor._PathernDictionary)
                         {
-                            if (DataTypesUtils.FindbyteSequence(VerificationChunck, entry.Value))
+                            if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                             {
                                 ContentType = entry.Key;
                                 break;
@@ -1610,7 +1616,7 @@ namespace HTTPServer
                     {
                         foreach (var entry in HTTPProcessor._PathernDictionary)
                         {
-                            if (DataTypesUtils.FindbyteSequence(DataTypesUtils.ReadSmallFileChunck(local_path, 10), entry.Value))
+                            if (DataTypesUtils.FindBytePattern(DataTypesUtils.ReadSmallFileChunck(local_path, 10), entry.Value) != -1)
                             {
                                 ContentType = entry.Key;
                                 break;
@@ -1701,7 +1707,9 @@ namespace HTTPServer
 
                     if (response.ContentStream != null) // Safety.
                     {
-                        string EtagMD5 = ComputeStreamMD5(response.ContentStream);
+                        string EtagMD5 = ComputeStreamChecksum(response.ContentStream);
+
+                        response.ContentStream.Position = 0;
 
                         if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
                         {
@@ -1964,27 +1972,23 @@ namespace HTTPServer
 		}
 
         /// <summary>
-        /// Compute the MD5 checksum of a stream.
-        /// <para>Calcul la somme des contr�les en MD5 d'un stream.</para>
+        /// Compute the checksum of a stream.
+        /// <para>Calcul la somme des contr�les d'un stream.</para>
         /// </summary>
         /// <param name="input">The input stream (must be seekable).</param>
         /// <returns>A string.</returns>
-        private static string ComputeStreamMD5(Stream input)
+        private static string ComputeStreamChecksum(Stream input)
         {
             if (!input.CanSeek)
                 return string.Empty;
 
-            // ComputeHash - returns byte array  
             byte[] bytes = MD5.Create().ComputeHash(input);
 
-            input.Position = 0;
-
-            // Convert byte array to a string   
             StringBuilder builder = new();
             for (int i = 0; i < bytes.Length; i++)
                 builder.Append(bytes[i].ToString("x2"));
 
-            return builder.ToString();
+            return builder.ToString() + $":{WebCrypto.ProcessSecureCheckum(bytes, input.Length)}";
         }
 
 #if NET7_0_OR_GREATER
@@ -1995,6 +1999,6 @@ namespace HTTPServer
         [GeneratedRegex("\\b\\d{3}\\b")]
         private static partial Regex HttpStatusCodeRegex();
 #endif
-#endregion
+        #endregion
     }
 }
