@@ -88,7 +88,7 @@ namespace WebAPIService.OHS
                         else if (absolutepath.Contains(Commands[22]))
                             res = Leaderboard.Leaderboard_RequestByRank(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[23]))
-                            res = Leaderboard.Leaderboard_Update(PostData, ContentType, directoryPath, string.Empty, game);
+                            res = Leaderboard.Leaderboard_Update(PostData, ContentType, directoryPath, string.Empty, game, false);
                         else if (absolutepath.Contains(Commands[24]))
                             res = Leaderboard.Leaderboard_UpdatesSameEntry(PostData, ContentType, directoryPath, string.Empty, game);
                         else if (absolutepath.Contains(Commands[25]))
