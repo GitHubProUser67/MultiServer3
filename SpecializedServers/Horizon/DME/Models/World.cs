@@ -293,6 +293,12 @@ namespace Horizon.DME.Models
 
         public Task OnPlayerJoined(ClientObject player)
         {
+            if (player.RemoteUdpEndpoint == null)
+            {
+                LoggerAccessor.LogError($"[World] - OnPlayerJoined - player {player.IP} on ApplicationId {player.ApplicationId} has no UdpEndpoint!");
+                return Task.CompletedTask;
+            }
+
             lock (_Lock)
             {
                 player.HasJoined = true;
@@ -314,28 +320,21 @@ namespace Horizon.DME.Models
                     {
                         PlayerIndex = (short)player.DmeId,
                         ScertId = (short)player.ScertId,
-                        IP = player.RemoteUdpEndpoint?.Address ?? MediusClass.SERVER_IP
+                        IP = player.RemoteUdpEndpoint.Address
                     });
                 }
 
                 _ = Task.Run(() => {
                     foreach (ushort token in clientTokens.Keys)
                     {
-                        try
+                        if (clientTokens.TryGetValue(token, out List<int>? value) && value.Count > 0)
                         {
-                            if (clientTokens.TryGetValue(token, out List<int>? value) && value.Count > 0)
+                            player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
                             {
-                                player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
-                                {
-                                    tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
-                                    TokenID = token,
-                                    TokenHost = (ushort)value[0],
-                                });
-                            }
-                        }
-                        catch
-                        {
-
+                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
+                                TokenID = token,
+                                TokenHost = (ushort)value[0],
+                            });
                         }
                     }
                 });
@@ -354,6 +353,12 @@ namespace Horizon.DME.Models
 
         public async Task OnPlayerLeft(ClientObject player)
         {
+            if (player.RemoteUdpEndpoint == null)
+            {
+                LoggerAccessor.LogError($"[World] - OnPlayerLeft - player {player.IP} on ApplicationId {player.ApplicationId} has no UdpEndpoint!");
+                return;
+            }
+
             player.HasJoined = false;
 
             // Plugin
@@ -383,7 +388,7 @@ namespace Horizon.DME.Models
                 {
                     PlayerIndex = (short)player.DmeId,
                     ScertId = (short)player.ScertId,
-                    IP = player.RemoteUdpEndpoint?.Address ?? MediusClass.SERVER_IP
+                    IP = player.RemoteUdpEndpoint.Address
                 });
             }
 
