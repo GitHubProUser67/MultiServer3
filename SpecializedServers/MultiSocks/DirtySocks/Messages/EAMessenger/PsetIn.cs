@@ -10,12 +10,21 @@
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
+            client.SendMessage(new PgetOut()
+            {
+                USER = "TEMP"
+            });
+            
             client.SendMessage(new PsetOut()
             {
+                CHNG = "1",
                 SHOW = SHOW,
                 PROD = PROD,
                 STAT = STAT,
+                P = "en",
+                en = "en"
             });
+            
         }
     }
 }
