@@ -79,7 +79,10 @@ namespace MultiSocks.DirtySocks.Messages
             }
 
             CustomLogger.LoggerAccessor.LogInfo("Logged in: " + user.Username);
-            mc.TryLogin(user, client, VERS);
+            if (!string.IsNullOrEmpty(MAC))
+                mc.TryLogin(user, client, MAC, VERS);
+            else
+                mc.TryLogin(user, client, "", VERS);
         }
     }
 }

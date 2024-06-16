@@ -23,10 +23,13 @@ namespace MultiSocks.DirtySocks.Messages
 
                     Game prevGame = user.CurrentGame;
 
-                    prevGame.KickPlayerByUsername(user.Username, 2);
-
                     lock (mc.Games)
-                        mc.Games.UpdateGame(prevGame);
+                    {
+                        if (prevGame.RemovePlayerByUsername(user.Username))
+                            mc.Games.RemoveGame(prevGame);
+                        else
+                            mc.Games.UpdateGame(prevGame);
+                    }
                 }
                 else
                 {

@@ -128,7 +128,7 @@ namespace SVO
                 }
                 catch (HttpListenerException e)
                 {
-                    if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
+                    if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - A HttpListenerException Occured: " + e.Message);
                     listener.Stop();
 
                     if (!listener.IsListening) // Check if server is closed, then, start it again.

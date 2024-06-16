@@ -129,7 +129,6 @@ namespace MultiSocks.DirtySocks
                             Games.RemoveGame(game);
                         }
                     }
-                    user.CurrentGame = null;
                 }
 
                 if (room != null)
@@ -147,7 +146,7 @@ namespace MultiSocks.DirtySocks
                 user.Connection?.SendMessage(msg);
         }
 
-        public void TryLogin(DbAccount user, DirtySockClient client, string VERS = "")
+        public void TryLogin(DbAccount user, DirtySockClient client, string MAC = "", string VERS = "")
         {
             //is someone else already logged in as this user?
             User? oldUser = Users.GetUserByName(user.Username);
@@ -163,9 +162,10 @@ namespace MultiSocks.DirtySocks
                 personas[i] = user.Personas[i];
             }
 
-            //make a user object from DB user
+            // make a user object from DB user
             User user2 = new()
             {
+                MAC = MAC,
                 Connection = client,
                 ID = user.ID,
                 Personas = personas,

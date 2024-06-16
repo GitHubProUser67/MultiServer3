@@ -1,4 +1,5 @@
 
+using CustomLogger;
 using CyberBackendLibrary.DataTypes;
 using MultiSocks.DirtySocks.Messages;
 using MultiSocks.Tls;
@@ -17,7 +18,7 @@ namespace MultiSocks.DirtySocks
         public int SessionID = 1;
         public ProtoSSLUtils? SSLCache = null;
         public List<DirtySockClient> DirtySocksClients = new();
-        public TcpListener Listener;
+        public TcpListener? Listener;
 
         private bool secure = false;
         private bool WeakChainSignedRSAKey = false;
@@ -52,7 +53,7 @@ namespace MultiSocks.DirtySocks
                 while (true)
                 {
                     //blocks til we get a new connection
-                    TcpClient client = Listener.AcceptTcpClient();
+                    TcpClient? client = Listener?.AcceptTcpClient();
                     if (client != null)
                     {
                         AddClient(new DirtySockClient(this, client, secure, CN, email, WeakChainSignedRSAKey)
@@ -63,9 +64,22 @@ namespace MultiSocks.DirtySocks
                     await Task.Delay(1);
                 }
             }
+            catch (IOException ex)
+            {
+                if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
+                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
+                    && socketException.SocketErrorCode != SocketError.ConnectionRefused)
+                    LoggerAccessor.LogError($"TCP DirtySock listener thrown a IOException! (IOException: {ex})");
+            }
+            catch (SocketException ex)
+            {
+                if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted 
+                    && ex.SocketErrorCode != SocketError.ConnectionRefused && ex.SocketErrorCode != SocketError.Interrupted)
+                    LoggerAccessor.LogError($"TCP DirtySock listener thrown a SocketException! (SocketException: {ex})");
+            }
             catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"TCP DirtySock listener stopped working! (reason:{ex})");
+                if (ex.HResult != 995) LoggerAccessor.LogError($"TCP DirtySock listener thrown an assertion! (Exception: {ex})");
             }
         }
 
@@ -127,7 +141,7 @@ namespace MultiSocks.DirtySocks
                 Type? c;
                 if (!NameToClass.TryGetValue(name, out c))
                 {
-                    CustomLogger.LoggerAccessor.LogError($"{client.IP} Requested an unexpected message Type {name} : {body.Replace("\n", "")}");
+                    LoggerAccessor.LogError($"{client.IP} Requested an unexpected message Type {name} : {body.Replace("\n", "")}");
                     return;
                 }
 
@@ -150,13 +164,15 @@ namespace MultiSocks.DirtySocks
             }
             catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogError($"[AbstractDirtySockServer] - HandleMessage thrown an exception : {ex}");
+                LoggerAccessor.LogError($"[AbstractDirtySockServer] - HandleMessage thrown an exception : {ex}");
             }
         }
 
         public void Dispose()
         {
-
+            Listener?.Stop();
+            Listener = null;
+            ListenerThread.Join();
         }
     }
 }
