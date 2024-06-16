@@ -46,11 +46,7 @@ namespace CyberBackendLibrary.DataTypes
             for (int i = 0; i < arr1.Length; i++)
             {
 #if NETCOREAPP3_0_OR_GREATER
-                if (Avx2.IsSupported && Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, arr1[i]), Vector256<byte>.Zero.WithElement(0, arr2[i]))) == 0)
-                    return false;
-                else if (Sse2.IsSupported && Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, arr1[i]), Vector128<byte>.Zero.WithElement(0, arr2[i]))) == 0)
-                    return false;
-                else if (arr1[i] != arr2[i])
+                if (!AreBytesIdentical(arr1[i], arr2[i]))
                     return false;
 #else
                 if (arr1[i] != arr2[i])
@@ -197,70 +193,14 @@ namespace CyberBackendLibrary.DataTypes
                 for (int i = offset; i <= buffer.Length - searchPattern.Length; i++)
                 {
 #if NETCOREAPP3_0_OR_GREATER
-                    if (Avx2.IsSupported)
-                    {
-                        if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]))) != 0)
-                        {
-                            if (buffer.Length > 1)
-                            {
-                                bool matched = true;
-                                for (int y = 1; y <= searchPattern.Length - 1; y++)
-                                {
-                                    if (Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i + y]), Vector256<byte>.Zero.WithElement(0, searchPattern[y]))) == 0)
-                                    {
-                                        matched = false;
-                                        break;
-                                    }
-                                }
-                                if (matched)
-                                {
-                                    found = i;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                found = i;
-                                break;
-                            }
-                        }
-                    }
-                    else if (Sse2.IsSupported)
-                    {
-                        if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]))) != 0)
-                        {
-                            if (buffer.Length > 1)
-                            {
-                                bool matched = true;
-                                for (int y = 1; y <= searchPattern.Length - 1; y++)
-                                {
-                                    if (Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i + y]), Vector128<byte>.Zero.WithElement(0, searchPattern[y]))) == 0)
-                                    {
-                                        matched = false;
-                                        break;
-                                    }
-                                }
-                                if (matched)
-                                {
-                                    found = i;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                found = i;
-                                break;
-                            }
-                        }
-                    }
-                    else if (buffer[i] == searchPattern[0])
+                    if (AreBytesIdentical(buffer[i], searchPattern[0]))
                     {
                         if (buffer.Length > 1)
                         {
                             bool matched = true;
                             for (int y = 1; y <= searchPattern.Length - 1; y++)
                             {
-                                if (buffer[i + y] != searchPattern[y])
+                                if (!AreBytesIdentical(buffer[i + y], searchPattern[y]))
                                 {
                                     matched = false;
                                     break;
@@ -326,11 +266,7 @@ namespace CyberBackendLibrary.DataTypes
             for (int i = offset; i < buffer.Length - searchPattern.Length + 1; i++)
             {
 #if NETCOREAPP3_0_OR_GREATER
-                if (Avx2.IsSupported && Avx2.MoveMask(Avx2.CompareEqual(Vector256<byte>.Zero.WithElement(0, buffer[i]), Vector256<byte>.Zero.WithElement(0, searchPattern[0]))) != 0 && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
-                    return i;
-                else if (Sse2.IsSupported && Sse2.MoveMask(Sse2.CompareEqual(Vector128<byte>.Zero.WithElement(0, buffer[i]), Vector128<byte>.Zero.WithElement(0, searchPattern[0]))) != 0 && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
-                    return i;
-                else if (buffer[i] == searchPattern[0] && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
+                if (AreBytesIdentical(buffer[i], searchPattern[0]) && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
                     return i;
 #else
                 if (buffer[i] == searchPattern[0] && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
@@ -349,6 +285,18 @@ namespace CyberBackendLibrary.DataTypes
                 return Avx2.CompareEqual(Vector256.Create(a), Vector256.Create(b)).Equals(Vector256<int>.AllBitsSet);
             else if (Sse2.IsSupported)
                 return Sse2.CompareEqual(Vector128.Create(a), Vector128.Create(b)).Equals(Vector128<int>.AllBitsSet);
+#endif
+            return a == b;
+        }
+
+        public static bool AreBytesIdentical(byte a, byte b)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            // With SIMD, Check if the comparison results are all 1's (indicating equality)
+            if (Avx2.IsSupported)
+                return Avx2.CompareEqual(Vector256.Create(a), Vector256.Create(b)).Equals(Vector256<byte>.AllBitsSet);
+            else if (Sse2.IsSupported)
+                return Sse2.CompareEqual(Vector128.Create(a), Vector128.Create(b)).Equals(Vector128<byte>.AllBitsSet);
 #endif
             return a == b;
         }
