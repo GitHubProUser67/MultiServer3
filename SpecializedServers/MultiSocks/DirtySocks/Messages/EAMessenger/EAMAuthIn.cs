@@ -20,7 +20,7 @@ namespace MultiSocks.DirtySocks.Messages
             DbAccount? user = DirtySocksServer.Database.GetByName(USER.Split("/").First());
             if (user == null)
             {
-                client.SendMessage(new AuthImst());
+                client.SendMessage(new EAMAuthOut());
                 return;
             }
 

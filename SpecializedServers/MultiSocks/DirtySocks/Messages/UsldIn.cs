@@ -11,7 +11,6 @@ namespace MultiSocks.DirtySocks.Messages
 
             client.SendMessage(new UsldOut());
 
-            client.Ping = (int)new TimeSpan(DateTime.Now.Ticks - client.PingSendTick).TotalMilliseconds;
         }
     }
 }
