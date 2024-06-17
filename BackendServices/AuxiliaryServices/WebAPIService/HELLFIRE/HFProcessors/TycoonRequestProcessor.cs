@@ -101,7 +101,7 @@ namespace TycoonServer.HFProcessors
                         case "RequestTownInstance":
                             return TownInstance.RequestTownInstance(UserID, DisplayName, PHPSessionID);
                         case "RequestTown":
-                            Thread.Sleep(1000); // Why is that in here? Because the game is so bugged that responding too fast makes it crash.
+                            Thread.Sleep(3000); // Why is that in here? Because the game is so bugged that responding too fast makes it crash.
                             return TownInstance.RequestTown(UserID, InstanceID, DisplayName, WorkPath);
                         case "RequestUser":
                             if (File.Exists($"{WorkPath}/TYCOON/User_Data/{UserID}.xml"))

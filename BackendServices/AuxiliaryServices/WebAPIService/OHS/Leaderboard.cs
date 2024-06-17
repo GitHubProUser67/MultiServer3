@@ -159,13 +159,17 @@ namespace WebAPIService.OHS
 
                         string scoreboardfile = directorypath + $"/{(levelboard ? $"Levelboard_Data/levelboard_{key}.json" : $"Leaderboard_Data/scoreboard_{key}.json")}";
 
-                        if (File.Exists(scoreboardfile))
+                        if (File.Exists(scoreboardfile) && !string.IsNullOrEmpty(user))
                         {
                             string tempreader = File.ReadAllText(scoreboardfile);
-                            if (tempreader != null && user != null)
+                            if (tempreader != null)
                                 dataforohs = UpdateScoreboard(tempreader, user, score, scoreboardfile);
                         }
+                        else
+                            dataforohs = null;
                     }
+                    else
+                        dataforohs = null;
                 }
             }
             catch (Exception ex)
@@ -322,34 +326,26 @@ namespace WebAPIService.OHS
 
                     // Step 2: Add the new entry at the appropriate position
                     if (newIndex >= 0)
-                    {
-                        scoreboard.Entries.Insert(newIndex, new ScoreboardEntry
+                        scoreboard.Entries[newIndex] = new ScoreboardEntry
                         {
                             Name = nameToUpdate,
                             Score = newScore
-                        });
-
-                        // Step 3: Remove any excess entries if the scoreboard exceeds the calculated number of entries
-                        while (scoreboard.Entries.Count >= scoreboard.Entries.Count)
-                        {
-                            scoreboard.Entries.RemoveAt(scoreboard.Entries.Count - 1);
-                        }
-                    }
+                        };
                     else
                         noedits = true;
 
                     if (!noedits)
                     {
-                        // Step 4: Sort the entries based on the new scores
+                        // Step 3: Sort the entries based on the new scores
                         scoreboard.Entries.Sort((a, b) => b.Score.CompareTo(a.Score));
 
-                        // Step 5: Adjust the ranks accordingly
+                        // Step 4: Adjust the ranks accordingly
                         for (int i = 0; i < scoreboard.Entries.Count; i++)
                         {
                             scoreboard.Entries[i].Rank = i + 1;
                         }
 
-                        // Step 6: Serialize the updated object back to a JSON string
+                        // Step 5: Serialize the updated object back to a JSON string
                         string updatedscoreboard = JsonConvert.SerializeObject(scoreboard, Formatting.Indented);
 
                         if (!string.IsNullOrEmpty(updatedscoreboard))
@@ -563,7 +559,7 @@ namespace WebAPIService.OHS
 
                 if (!string.IsNullOrEmpty(jsontable))
                 {
-                    JObject? jsonDatainit = JsonStringtoJObject(jsontable);
+                    JObject? jsonDatainit = JObject.Parse(jsontable);
 
                     if (jsonDatainit != null)
                     {
@@ -644,7 +640,7 @@ namespace WebAPIService.OHS
 
             scoreboard.Entries = new List<ScoreboardEntry>(numEntries);
 
-            for (int i = 1; i <= numEntries; i++)
+            for (int i = 0; i < numEntries; i++)
             {
                 scoreboard.Entries.Add(new ScoreboardEntry { Name = string.Empty, Score = 0 });
             }
@@ -664,43 +660,27 @@ namespace WebAPIService.OHS
         // Helper method to format the Lua table as a string
         private static string FormatScoreBoardLuaTable(Dictionary<int, Dictionary<string, object>> luaTable)
         {
-            string luaString = "{\n";
+            string luaString = "{ ";
             foreach (var rankData in luaTable)
             {
-                luaString += $"    [{rankData.Key}] = {{\n";
+                luaString += $"[{rankData.Key}] = {{ ";
                 foreach (var kvp in rankData.Value)
                 {
-                    luaString += $"        {kvp.Key} = {kvp.Value},\n"; // We already formatted the keys and values accordingly
+                    luaString += $"{kvp.Key} = {kvp.Value}, "; // We already formatted the keys and values accordingly
                 }
                 luaString = RemoveTrailingComma(luaString); // Remove the trailing comma for the last element in each number category
-                luaString += "    },\n";
+                luaString += " }, ";
             }
-            luaString += "}";
+            luaString += " }";
 
             // Remove trailing commas
-            luaString = RemoveTrailingComma(luaString);
-
-            return luaString;
+            return RemoveTrailingComma(luaString);
         }
 
         // Helper method to remove the trailing comma from the Lua table string
         private static string RemoveTrailingComma(string input)
         {
             return Regex.Replace(input, @",(\s*})|(\s*]\s*})", "$1$2");
-        }
-
-        private static JObject? JsonStringtoJObject(string json)
-        {
-            try
-            {
-                return JObject.Parse(json);
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"Error while parsing JSON: {ex}");
-            }
-
-            return null;
         }
 
         public class Scoreboard
@@ -778,7 +758,7 @@ namespace WebAPIService.OHS
                 ScoreBoardUpdate entry = new ScoreBoardUpdate
                 {
                     user = jsonObject["user"]?.ToString(),
-                    key = jsonObject["keys"]?.ToObject<string>(),
+                    key = jsonObject["key"]?.ToObject<string>(),
                     score = jsonObject["score"]?.ToObject<int>() ?? 0
                 };
 

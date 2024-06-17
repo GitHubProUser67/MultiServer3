@@ -1,7 +1,7 @@
 using DatabaseMiddleware.SQLiteEngine;
 using System.Runtime.InteropServices;
 
-namespace DatabaseMiddleware.Controllers.Horizon
+namespace DatabaseMiddleware.Controllers.HorizonDatabase
 {
     public class World
     {

@@ -3,7 +3,6 @@ using System.Linq;
 using System.IO;
 using System;
 using System.Threading;
-
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics;
