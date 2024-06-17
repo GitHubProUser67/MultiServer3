@@ -2,6 +2,8 @@ using System.Text;
 using System.Linq;
 using System.IO;
 using System;
+using System.Threading;
+
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics;
@@ -299,6 +301,23 @@ namespace CyberBackendLibrary.DataTypes
                 return Sse2.CompareEqual(Vector128.Create(a), Vector128.Create(b)).Equals(Vector128<byte>.AllBitsSet);
 #endif
             return a == b;
+        }
+
+        public static bool IsObjectLocked(object obj)
+        {
+            // Try to acquire the lock
+            bool lockTaken = false;
+            try
+            {
+                Monitor.TryEnter(obj, ref lockTaken);
+                return !lockTaken;
+            }
+            finally
+            {
+                // Release the lock if it was taken
+                if (lockTaken)
+                    Monitor.Exit(obj);
+            }
         }
     }
 }
