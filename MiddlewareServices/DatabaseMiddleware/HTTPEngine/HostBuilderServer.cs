@@ -3,7 +3,7 @@ using CyberBackendLibrary.GeoLocalization;
 using CyberBackendLibrary.Crypto;
 using CyberBackendLibrary.DataTypes;
 using CustomLogger;
-using DatabaseMiddleware.Controllers.Horizon;
+using DatabaseMiddleware.Controllers.HorizonDatabase;
 using DatabaseMiddleware.Models;
 using Horizon.LIBRARY.Database.Models;
 using Newtonsoft.Json;

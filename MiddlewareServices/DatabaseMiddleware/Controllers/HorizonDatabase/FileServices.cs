@@ -4,7 +4,7 @@ using Horizon.LIBRARY.Database.Entities;
 using FileAttributes = Horizon.LIBRARY.Database.Entities.FileAttributes;
 using System.Data.Entity;
 
-namespace DatabaseMiddleware.Controllers.Horizon
+namespace DatabaseMiddleware.Controllers.HorizonDatabase
 {
     public class FileServices
     {

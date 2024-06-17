@@ -2,7 +2,7 @@ using DatabaseMiddleware.SQLiteEngine;
 using Horizon.LIBRARY.Database.Entities;
 using Horizon.LIBRARY.Database.Models;
 
-namespace DatabaseMiddleware.Controllers.Horizon
+namespace DatabaseMiddleware.Controllers.HorizonDatabase
 {
     public class Logs
     {

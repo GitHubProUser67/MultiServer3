@@ -152,7 +152,7 @@ namespace WebAPIService.OHS
                     }
 
                     if (value != null)
-                        output = JaminProcessor.JsonValueToLuaValue(JToken.FromObject(value));
+                        output = LuaUtils.JsonValueToLuaValue(JToken.FromObject(value));
                 }
             }
             catch (Exception ex)
@@ -227,7 +227,7 @@ namespace WebAPIService.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
+                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                             }
                         }
                     }
@@ -245,7 +245,7 @@ namespace WebAPIService.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
+                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                             }
                         }
                     }
@@ -321,11 +321,8 @@ namespace WebAPIService.OHS
 
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                {
-                                    string outputOriginal = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
-                                    //We lower them for True/False edgecase, otherwise Jamin will not return them!
-                                    output = outputOriginal.ToLower();
-                                }
+                                    // We lower them for True/False edgecase, otherwise Jamin will not return them!
+                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false).ToLower();
                             }
                         }
 
@@ -344,7 +341,7 @@ namespace WebAPIService.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
                         else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
@@ -436,34 +433,25 @@ namespace WebAPIService.OHS
                                         // Check if the "key" property exists and if it is an object
                                         if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                         {
-                                            //string playerNameToAppend = $"\"[ {ohsUserName} = {keyValueToken.Value<int>()}\"";
+                                            // string playerNameToAppend = $"\"[ {ohsUserName} = {keyValueToken.Value<int>()}\"";
 
-                                            string outputOriginal = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
-                                            //We lower them for True/False edgecase, otherwise Jamin will not return them!
-
+                                            string outputOriginal = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
+                                            // We lower them for True/False edgecase, otherwise Jamin will not return them!
 
                                             if (ohsUserName == usersArray.Last().ToString())
-                                            {
                                                 output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
-                                            }
                                             else
-                                            {
                                                 output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
-                                            }
-
                                         }
 
                                     }
-                                } else {
-
+                                }
+                                else
+                                {
                                     if (ohsUserName == usersArray.Last().ToString())
-                                    {
                                         output += $"{{ [\"{ohsUserName}\"] = \"0\" }}";
-                                    }
                                     else
-                                    {
                                         output += $"{{ [\"{ohsUserName}\"] = \"0\" }}, ";
-                                    }
                                 }
                             }
                             catch (Exception e)
@@ -547,7 +535,7 @@ namespace WebAPIService.OHS
                                     // Check if the "key" property exists and if it is an object
                                     if (userProfile.TryGetValue(key, out JToken? keyValueToken))
                                         // Convert the JToken to a Lua table-like string
-                                        output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                        output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                                 }
 
                             }
@@ -567,7 +555,7 @@ namespace WebAPIService.OHS
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken))
                                     // Convert the JToken to a Lua table-like string
-                                    output = JaminProcessor.ConvertJTokenToLuaTable(keyValueToken, false);
+                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
                         else if (keys.Contains("heatmap_samples_to_send") && keys.Contains("heatmap_sample_period"))
@@ -778,7 +766,7 @@ namespace WebAPIService.OHS
                 {
                     // Check if the "key" property exists and if it is an object
                     if (jsonObject.TryGetValue("keys", out JToken? keyValueToken))
-                        response += JaminProcessor.ConvertJTokenToLuaTable(jsonObject[key].ToString(), false);
+                        response += LuaUtils.ConvertJTokenToLuaTable(jsonObject[key]?.ToString(), false);
                 }
                 else
                 {

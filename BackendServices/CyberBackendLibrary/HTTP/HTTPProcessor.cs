@@ -896,7 +896,7 @@ namespace CyberBackendLibrary.HTTP
 
                 if (lockTaken) // Lock is free.
                 {
-                    Span<byte> buffer = stackalloc byte[BufferSize]; // Allocate buffer on the stack.
+                    Span<byte> buffer = stackalloc byte[BufferSize / 2]; // Allocate buffer on the stack.
                     buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data.
                     while ((bytesRead = input.Read(buffer)) > 0)
                     {
