@@ -891,12 +891,12 @@ namespace CyberBackendLibrary.HTTP
 
             try
             {
-                if (BufferSize <= 4096) // Make sure buffersize is not outside of tolerated stack space.
+                if (BufferSize <= 4096) // Make sure to not use stack based optimization for large data (ends up being slower).
                     Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock
 
                 if (lockTaken) // Lock is free.
                 {
-                    Span<byte> buffer = stackalloc byte[BufferSize / 2]; // Allocate buffer on the stack.
+                    Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommanded value for stackalloc).
                     buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data.
                     while ((bytesRead = input.Read(buffer)) > 0)
                     {
