@@ -75,6 +75,7 @@ namespace Horizon.MUM
         public MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
         public bool hasHostJoined = false;
         public DateTime utcTimeCreated;
+        public DateTime? utcLastJoined;
         public DateTime? utcTimeStarted;
         public DateTime? utcTimeEnded;
         public DateTime? utcTimeEmpty;
@@ -393,6 +394,8 @@ namespace Horizon.MUM
 
         public virtual async Task OnPlayerJoined(GameClient player)
         {
+            utcLastJoined = DateTime.UtcNow;
+
             bool ishost = false;
 
             player.InGame = true;
