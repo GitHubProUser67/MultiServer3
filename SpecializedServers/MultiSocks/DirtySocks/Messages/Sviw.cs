@@ -18,7 +18,14 @@ namespace MultiSocks.DirtySocks.Messages
             if (user == null) return;
 
             if (VIEW == "DLC" || VIEW == "lobby")
+            {
+
                 client.SendMessage(new Dlc());
+            } else if (VIEW == "PS2")
+            {
+                client.SendMessage(new BORSviwOut());
+                client.User.SendPlusWho(user, "FLM/A1");
+            }
             else
             {
                 if (user.SelectedPersona != -1) return;
