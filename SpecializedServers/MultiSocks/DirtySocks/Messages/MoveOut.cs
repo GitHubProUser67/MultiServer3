@@ -8,5 +8,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? NAME { get; set; }
         public string? COUNT { get; set; }
         public string FLAGS { get; set; } = "C";
+        public string? LIDENT { get; set; }
+        public string? LCOUNT { get; set; }
     }
 }

@@ -6,9 +6,7 @@ namespace MultiSocks.DirtySocks.Messages
     {
         public override string _Name { get => "chal"; }
 
-        public string? HOST { get; set; }
-        public string? KIND { get; set; }
-        public string? PERS { get; set; }
+        public string? MODE { get; set; }
 
     }
 }
