@@ -53,8 +53,6 @@ namespace MultiSocks.DirtySocks.Messages
             else
             {
                 // TODO, send dirtysocks error.
-                client.SendMessage(new GseaOut());
-                return;
             }
         }
     }
