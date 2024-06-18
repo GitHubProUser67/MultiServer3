@@ -23,6 +23,7 @@ namespace MultiSocks.DirtySocks
         private readonly AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         private readonly AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC;
         private readonly AbstractDirtySockServer? RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorNascarThunder04_NTSC;
         private readonly AbstractDirtySockServer? RedirectorNASCAR08_PS3;
         private readonly AbstractDirtySockServer? RedirectorNASCAR09_PS3;
         private readonly AbstractDirtySockServer? RedirectorHASBROFAMILYGAMENIGHT_PS3;
@@ -33,6 +34,7 @@ namespace MultiSocks.DirtySocks
         private readonly AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
         private readonly AbstractDirtySockServer? EverythingOrNothing007_NTSC_Matchmaker;
         private readonly AbstractDirtySockServer? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
+        private readonly AbstractDirtySockServer? NascarThunder04_NTSC_Matchmaker;
         private readonly AbstractDirtySockServer? NCAAMM06_NTSC_Matchmaker;
         private readonly AbstractDirtySockServer? HASBROFAMILYGAMENIGHTPS3Matchmaker;
         private readonly AbstractDirtySockServer? NFLStreet_NTSCMatchmaker;
@@ -190,7 +192,18 @@ namespace MultiSocks.DirtySocks
             }
             #endregion
 
-            #region Nascar PS3
+            #region Nascar
+
+            try
+            {
+                RedirectorNascarThunder04_NTSC = new RedirectorServer(10600, ListenIP, 10601, false, "NASCAR-PS2-2004", "PS2", false, "ps2nascar04.ea.com", "ps2nascar04@ea.com");
+                LoggerAccessor.LogInfo($"[Redirector] NASCAR Thunder 04 Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] NASCAR08 Thunder 04 Failed to start! Exception: {ex}");
+            }
+
             try
             {
                 RedirectorNASCAR08_PS3 = new RedirectorServer(20651, ListenIP, 20652, false, "NASCAR08", "PS3", true, "ps3nascar08.ea.com", "ps3nascar08@ea.com");
@@ -250,7 +263,6 @@ namespace MultiSocks.DirtySocks
             }
             #endregion
 
-
             #region Burnout 3 Takedown
             try
             {
@@ -305,6 +317,16 @@ namespace MultiSocks.DirtySocks
             #endregion
 
             #region Matchmaker
+
+
+            try
+            {
+                NascarThunder04_NTSC_Matchmaker = new MatchmakerServer(10601, true, null, "NASCAR-PS2-2004", "PS2");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Nascar Thunder 04 NTSC Matchmaker] Failed to start! Exception: {ex}");
+            }
 
             try
             {

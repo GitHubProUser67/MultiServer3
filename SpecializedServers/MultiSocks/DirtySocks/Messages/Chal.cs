@@ -20,7 +20,7 @@ namespace MultiSocks.DirtySocks.Messages
             {
                 client.SendMessage(new ChalOut()
                 {
-                    HOST = "0"
+                    MODE = "idle"
                 });
                 return;
             }
@@ -30,7 +30,7 @@ namespace MultiSocks.DirtySocks.Messages
             {
                 client.SendMessage(new ChalOut()
                 {
-                    HOST = "0"
+                    MODE = "idle"
                 });
                 return;
             }
@@ -39,7 +39,7 @@ namespace MultiSocks.DirtySocks.Messages
             if (room == null) {
                 client.SendMessage(new ChalOut()
                 {
-                    HOST = "0"
+                    MODE = "idle"
                 });
                 return;
             }
@@ -55,7 +55,7 @@ namespace MultiSocks.DirtySocks.Messages
                     //we don't want to play with anyone anymore
                     client.SendMessage(new ChalOut()
                     {
-                        HOST = "0"
+                        MODE = "0"
                     });
 
                     return;

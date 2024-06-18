@@ -11,8 +11,9 @@
         public string? CHAR { get; set; }
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
-            //client.SendMessage(new QuikOut());
-            client.SendMessage(new GcreOut());
+            client.SendMessage(new QuikOut());
+            // For now I keep game create commented out until I know proper flow for game creation if no matches were found
+            //client.SendMessage(new GcreOut());
         }
     }
 }
