@@ -25,7 +25,7 @@ namespace MultiSocks.DirtySocks.Messages
             }
 
             CustomLogger.LoggerAccessor.LogInfo("EA Messenger Logged in: " + user.Username);
-            mc.TryLogin(user, client, VERS);
+            mc.TryEAMLogin(user, client, VERS);
         }
     }
 }

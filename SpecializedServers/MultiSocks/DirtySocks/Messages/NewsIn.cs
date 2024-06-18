@@ -62,24 +62,32 @@ namespace MultiSocks.DirtySocks.Messages
 
                 if (!string.IsNullOrEmpty(context.Project))
                 {
-                    if (context.Project.Contains("DPR-09"))
-                        user.SendPlusWho(user, "DPR-09");
-                    else if (context.Project.Contains("BURNOUT5"))
-                        user.SendPlusWho(user, "BURNOUT5");
+                    switch(context.Project)
+                    {
+                        case "DPR-09":
+                            user.SendPlusWho(user, "DPR-09");
+                            break;
+                        case "BURNOUT5":
+                            user.SendPlusWho(user, "BURNOUT5");
+                            break;
+                        default:
+                            user.SendPlusWho(user, string.Empty);
+                            break;
+                    }
                 }
                 else
                     user.SendPlusWho(user, string.Empty);
 
                 client.SendMessage(new Newsnew8());
             }
-            // NCAA MM 06
-            else if (NAME == "quickmsgs.en")
+            // NCAA MM 06, Madden NFL 06
+            else if (NAME.Contains("quickmsgs"))
             {
                 client.SendMessage(new NewsOut());
             }
             else if (NAME.Contains("webconfig."))
             {
-                client.SendMessage(new WebConfigNewsOut() { BILLBOARD_URL = "http://gos.ea.com/easo/", BILLBOARD_TEXT = "Test" });
+                client.SendMessage(new WebConfigNewsOut () { BILLBOARD_URL = "http://gos.ea.com/easo/", BILLBOARD_TEXT = "Test" });
             }
             else
                 CustomLogger.LoggerAccessor.LogWarn($"[DirtySocks] - News - Client Requested an unknown config type: {NAME}, not responding");

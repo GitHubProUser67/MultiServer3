@@ -34,7 +34,7 @@ namespace MultiSocks.DirtySocks
                 { "sele", typeof(SeleIn) }, //gets info for the current server
                 { "skey", typeof(SKeyIn) }, //session key?
                 { "slst", typeof(SlstIn) }, //lobby details?
-                { "sviw", typeof(Sviw) }, //pers with Ping.
+                { "sviw", typeof(Sviw) }, // Request names for each fields in a user's stats record.
                 { "user", typeof(UserIn) }, //get my user info
                 { "usld", typeof(UsldIn) }, // User Settings Load -- load a user's (persona's) common game specific settings.
                 { "onln", typeof(OnlnIn) }, //search for a user's info
@@ -65,6 +65,7 @@ namespace MultiSocks.DirtySocks
                 { "rcat", typeof(RcatIn) }, // Fetch room category information
                 { "priv", typeof(PrivIn) }, // Set Private Message mode.
                 { "flag", typeof(FlagIn) }, // Set attribute flags.
+                { "ucre", typeof(UcreIn) }, // Create a new user set. A user set maps a set of online users into a group.
                 { "uatr", typeof(UatrIn) }, // Update user attributes and hardware flags
                 { "lggr", typeof(Lggr) } // Client -> Server logger 
             };

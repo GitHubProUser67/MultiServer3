@@ -36,8 +36,12 @@ namespace MultiSocks.DirtySocks.Messages
                     .Take(count)
                     .ToList();
 
-                if (!string.IsNullOrEmpty(LANG) && LANG != "-1" && !string.IsNullOrEmpty(context.Project) && context.Project.Contains("DPR-09")) // Hasbro Family game Night does custom filtering on top for region specific lobbies.
-                    MatchingList = MatchingList.Where(game => game.Params.Contains($"LANG%3d{LANG}") && game.Params.Contains($"VER%3d{VER}")).ToList();
+                if (!string.IsNullOrEmpty(LANG) && LANG != "-1" 
+                    && !string.IsNullOrEmpty(context.Project) 
+                    && context.Project.Contains("DPR-09")) // Hasbro Family game Night does custom filtering on top for region specific lobbies.
+                    
+                    MatchingList = MatchingList.Where(game => game.Params.Contains($"LANG%3d{LANG}") 
+                    && game.Params.Contains($"VER%3d{VER}")).ToList();
 
                 client.SendMessage(new GseaOut() { COUNT = MatchingList.Count.ToString() });
 
@@ -49,6 +53,8 @@ namespace MultiSocks.DirtySocks.Messages
             else
             {
                 // TODO, send dirtysocks error.
+                client.SendMessage(new GseaOut());
+                return;
             }
         }
     }
