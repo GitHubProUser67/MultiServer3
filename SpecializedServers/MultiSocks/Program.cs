@@ -56,27 +56,26 @@ public static class MultiSocksServerConfiguration
     // Helper method to get a value or default value if not present
     public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
-        if (obj != null)
+        try
         {
-            if (obj is JObject jObject)
+            if (obj != null)
             {
-                if (jObject.TryGetValue(propertyName, out JToken? value))
+                if (obj is JObject jObject)
                 {
-                    T? returnvalue = value.ToObject<T>();
-                    if (returnvalue != null)
-                        return returnvalue;
-                }
-            }
-            else if (obj is JArray jArray)
-            {
-                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
-                {
-                    T? returnvalue = jArray[index].ToObject<T>();
-                    if (returnvalue != null)
-                        return returnvalue;
+                    if (jObject.TryGetValue(propertyName, out JToken? value))
+                    {
+                        T? returnvalue = value.ToObject<T>();
+                        if (returnvalue != null)
+                            return returnvalue;
+                    }
                 }
             }
         }
+        catch (Exception ex)
+        {
+            LoggerAccessor.LogError($"[Program] - GetValueOrDefault thrown an exception: {ex}");
+        }
+
         return defaultValue;
     }
 }
