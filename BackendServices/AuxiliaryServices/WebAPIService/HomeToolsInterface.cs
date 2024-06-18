@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 using CyberBackendLibrary.Crypto;
+using System.Linq;
 
 namespace WebAPIService
 {
@@ -38,7 +39,6 @@ namespace WebAPIService
                     PostData.CopyTo(ms);
                     ms.Position = 0;
                     ushort SDATVersion = 4;
-                    int i = 0;
                     string filename = string.Empty;
                     var data = MultipartFormDataParser.Parse(ms, boundary);
                     string mode = data.GetParameterValue("mode");
@@ -310,7 +310,6 @@ namespace WebAPIService
                         if (Directory.Exists(tempdir))
                             Directory.Delete(tempdir, true);
 
-                        i++;
                         filedata.Flush();
                     }
                     ms.Flush();
@@ -362,7 +361,6 @@ namespace WebAPIService
                     using MemoryStream ms = new MemoryStream();
                     PostData.CopyTo(ms);
                     ms.Position = 0;
-                    int i = 0;
                     string filename = string.Empty;
                     string ogfilename = string.Empty;
                     var data = MultipartFormDataParser.Parse(ms, boundary);
@@ -394,7 +392,9 @@ namespace WebAPIService
                     {
                         // Not Important
                     }
-                    foreach (FilePart? multipartfile in data.Files)
+                    foreach (FilePart? multipartfile in data.Files.Where(file => file.FileName.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase)
+                    || file.FileName.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase) || file.FileName.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase)
+                    || file.FileName.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)))
                     {
                         using Stream filedata = multipartfile.Data;
                         filedata.Position = 0;
@@ -410,35 +410,58 @@ namespace WebAPIService
 
                         filename = multipartfile.FileName;
 
+                        string mapfilepath = filename + ".map";
+
                         string tempdir = $"{maindir}/{GenerateDynamicCacheGuid(filename)}";
 
                         string unbardir = tempdir + $"/unbar";
 
                         string barfile = tempdir + $"/{filename}";
 
+                        FilePart? mapmultipartfile = data.Files.Where(file => file.FileName.Equals(mapfilepath, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+
                         Directory.CreateDirectory(unbardir);
 
                         File.WriteAllBytes(barfile, buffer);
 
-                        if (filename.ToLower().EndsWith(".bar") || filename.ToLower().EndsWith(".dat"))
+                        if (mapmultipartfile != null)
+                        {
+                            using Stream mapfiledata = mapmultipartfile.Data;
+                            mapfiledata.Position = 0;
+
+                            // Find the number of bytes in the stream
+                            contentLength = (int)mapfiledata.Length;
+
+                            // Create a byte array
+                            buffer = new byte[contentLength];
+
+                            // Read the contents of the memory stream into the byte array
+                            mapfiledata.Read(buffer, 0, contentLength);
+
+                            File.WriteAllBytes(tempdir + $"/{mapfilepath}", buffer);
+
+                            mapfiledata.Flush();
+                        }
+
+                        if (filename.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase) || filename.EndsWith(".dat", StringComparison.InvariantCultureIgnoreCase))
                         {
                             await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false);
                             ogfilename = filename;
                             filename = filename[..^4].ToUpper();
                         }
-                        else if (filename.ToLower().EndsWith(".sharc"))
+                        else if (filename.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase))
                         {
                             await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false);
                             ogfilename = filename;
                             filename = filename[..^6].ToUpper();
                         }
-                        else if (filename.ToLower().EndsWith(".sdat"))
+                        else if (filename.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase))
                         {
                             await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, true);
                             ogfilename = filename;
                             filename = filename[..^5].ToUpper();
                         }
-                        else if (filename.ToLower().EndsWith(".zip"))
+                        else if (filename.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
                         {
                             UncompressFile(barfile, unbardir);
                             ogfilename = filename;
@@ -449,14 +472,13 @@ namespace WebAPIService
                             if (Directory.Exists(tempdir))
                                 Directory.Delete(tempdir, true);
 
-                            i++;
                             filedata.Flush();
                             continue;
                         }
 
                         LegacyMapper? map = new LegacyMapper();
 
-                        if (Directory.Exists(unbardir + $"/{filename}") && (ogfilename.ToLower().EndsWith(".bar") || ogfilename.ToLower().EndsWith(".sharc") || ogfilename.ToLower().EndsWith(".sdat")))
+                        if (Directory.Exists(unbardir + $"/{filename}") && (ogfilename.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase) || ogfilename.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase) || ogfilename.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase)))
                         {
                             if (subfolder == "on")
                             {
@@ -564,7 +586,6 @@ namespace WebAPIService
                         if (Directory.Exists(tempdir))
                             Directory.Delete(tempdir, true);
 
-                        i++;
                         filedata.Flush();
                     }
                     ms.Flush();

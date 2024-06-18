@@ -39,7 +39,7 @@ public static class HTTPSServerConfiguration
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
 #pragma warning disable
-    public static SslProtocols HTTPSProtocols { get; set; } = SslProtocols.Ssl2 | SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+    public static SslProtocols HTTPSProtocols { get; set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 #pragma warning restore
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnableHTTPCompression { get; set; } = true;

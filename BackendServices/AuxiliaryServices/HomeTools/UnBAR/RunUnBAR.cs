@@ -311,9 +311,9 @@ namespace HomeTools.UnBAR
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
             if (string.IsNullOrEmpty(tableOfContent.Path))
-                path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, fileType);
+                path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, fileType).ToUpper();
             else
-                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar));
+                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar)).ToUpper();
             string? outdirectory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(outdirectory))
             {
@@ -461,7 +461,7 @@ namespace HomeTools.UnBAR
             TOCEntry? tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
             if (!string.IsNullOrEmpty(tableOfContent.Path))
-                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar));
+                path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar)).ToUpper();
             byte[] data = tableOfContent.GetData(archive.GetHeader().Flags);
             if (tableOfContent.Compression == CompressionMethod.Encrypted)
             {
@@ -508,7 +508,7 @@ namespace HomeTools.UnBAR
                 }
 
                 if (path == string.Empty)
-                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
+                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension).ToUpper();
 
                 string? outdirectory = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(outdirectory))
@@ -537,7 +537,7 @@ namespace HomeTools.UnBAR
                 }
 
                 if (path == string.Empty)
-                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension);
+                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension).ToUpper();
 
                 string? outdirectory = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(outdirectory))
