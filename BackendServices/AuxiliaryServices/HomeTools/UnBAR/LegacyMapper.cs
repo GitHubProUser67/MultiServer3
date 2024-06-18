@@ -38,9 +38,9 @@ namespace HomeTools.UnBAR
                     filePathList.Add(foldertomap + "/ObjectXMLBruteforce.xml");
                 }
 
-                IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".mdl") || s.ToLower().EndsWith(".atmos")
-                || s.ToLower().EndsWith(".efx") || s.ToLower().EndsWith(".xml") || s.ToLower().EndsWith(".scene") || s.ToLower().EndsWith(".map")
-                || s.ToLower().EndsWith(".lua") || s.ToLower().EndsWith(".luac") || s.ToLower().EndsWith(".unknown") || s.ToLower().EndsWith(".txt"));
+                IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mdl", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".atmos", StringComparison.InvariantCultureIgnoreCase)
+                || s.EndsWith(".efx", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".xml", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".scene", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".map", StringComparison.InvariantCultureIgnoreCase)
+                || s.EndsWith(".lua", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".luac", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".unknown", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".txt", StringComparison.InvariantCultureIgnoreCase));
                 List<MappedList> mappedListList = new List<MappedList>();
                 int i = 0;
                 foreach (string sourceFile in strings)
