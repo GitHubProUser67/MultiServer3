@@ -54,13 +54,12 @@ namespace MultiSocks.DirtySocks
                 {
                     //blocks til we get a new connection
                     TcpClient? client = Listener?.AcceptTcpClient();
-                    if (client != null)
-                    {
+                    if (client != null && client.Client.RemoteEndPoint is IPEndPoint remoteEndPoint && remoteEndPoint.AddressFamily == AddressFamily.InterNetwork)
                         AddClient(new DirtySockClient(this, client, secure, CN, email, WeakChainSignedRSAKey)
                         {
+                            ADDR = remoteEndPoint.Address.MapToIPv4().ToString(),
                             SessionID = SessionID++
                         });
-                    }
                     await Task.Delay(1);
                 }
             }
