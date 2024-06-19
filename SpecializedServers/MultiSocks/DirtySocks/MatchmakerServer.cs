@@ -80,7 +80,7 @@ namespace MultiSocks.DirtySocks
             Rooms.Server = this;
 
             lock (Users)
-                Users.AddUser(new User() { Username = "@brobot24", ID = 24 }); // Admin player.
+                Users.AddUser(new User() { ID = 24 }); // Admin player.
 
             PingThread = new Thread(PingLoop);
             PingThread.Start();
@@ -170,6 +170,8 @@ namespace MultiSocks.DirtySocks
                 ID = user.ID,
                 Personas = personas,
                 Username = user.Username,
+                ADDR = client.ADDR,
+                LADDR = client.LADDR
             };
 
             Users.AddUser(user2);
@@ -193,7 +195,7 @@ namespace MultiSocks.DirtySocks
                     SPAM = "YN",
                     SINCE = "2008.1.1-00:00:00",
                     GFIDS = "1",
-                    ADDR = client.IP,
+                    ADDR = client.ADDR,
                     TOKEN = "pc6r0gHSgZXe1dgwo_CegjBCn24uzUC7KVq1LJDKJ0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                 });
             else

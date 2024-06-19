@@ -155,27 +155,6 @@ namespace MultiSocks.DirtySocks.Model
 
         public PlusMgm GetPlusMgm()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new PlusMgm()
             {
                 IDENT = ID.ToString(),
@@ -199,33 +178,12 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
         public PlusGam GetPlusGam()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new PlusGam()
             {
                 IDENT = ID.ToString(),
@@ -249,33 +207,12 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
         public PlusSesV2 GetPlusSesV2()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new PlusSesV2()
             {
                 IDENT = ID.ToString(),
@@ -287,7 +224,7 @@ namespace MultiSocks.DirtySocks.Model
                 COUNT = Users?.Count().ToString() ?? "1",
                 PRIV = Priv ? "1" : "0",
                 CUSTFLAGS = CustFlags,
-                SYSFLAGS = "528448",
+                SYSFLAGS = "528448", // Needed for Burnout Paradise to start the session.
                 EVGID = "0",
                 SEED = ID.ToString(),
                 GPSHOST = GPSHost?.Username,
@@ -299,33 +236,12 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
         public GcreOut GetGcreOut()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new GcreOut()
             {
                 IDENT = ID.ToString(),
@@ -349,33 +265,12 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
         public GsetOut GetGsetOut()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new GsetOut()
             {
                 IDENT = ID.ToString(),
@@ -399,33 +294,12 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
         public GjoiOut GetGjoiOut()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new GjoiOut()
             {
                 IDENT = ID.ToString(),
@@ -449,33 +323,12 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
         public GqwkOut GetGqwkOut()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new GqwkOut()
             {
                 IDENT = ID.ToString(),
@@ -499,33 +352,12 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
         public GleaOut GetGleaOut()
         {
-            int i = 0;
-            Dictionary<string, string> PLAYERSLIST = new();
-
-            foreach (User? user in Users.GetAll())
-            {
-                if (user != null)
-                {
-                    PLAYERSLIST.Add($"OPPO{i}", user.Username ?? "@brobot24");
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"LADDR{i}", ((user.Username ?? "@brobot24") == "@brobot24") ? "127.0.0.1" : user.Connection?.IP ?? "127.0.0.1");
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
-                }
-
-                i++;
-            }
-
             return new GleaOut()
             {
                 IDENT = ID.ToString(),
@@ -549,7 +381,7 @@ namespace MultiSocks.DirtySocks.Model
                 NUMPART = "1",
                 PARTSIZE0 = MaxSize.ToString(),
                 PARTPARAMS0 = string.Empty,
-                PLAYERSLIST = PLAYERSLIST
+                PLAYERSLIST = GetPlayersList()
             };
         }
 
@@ -561,6 +393,32 @@ namespace MultiSocks.DirtySocks.Model
         public void BroadcastPlusSesV2()
         {
             Users.Broadcast(GetPlusSesV2());
+        }
+
+        private Dictionary<string, string> GetPlayersList()
+        {
+            int i = 0;
+            Dictionary<string, string> PLAYERSLIST = new();
+
+            foreach (User? user in Users.GetAll())
+            {
+                if (user != null)
+                {
+                    PLAYERSLIST.Add($"OPPO{i}", user.Username);
+                    PLAYERSLIST.Add($"OPPART{i}", "0");
+                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
+                    PLAYERSLIST.Add($"PRES{i}", "0");
+                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
+                    PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
+                    PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
+                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
+                }
+
+                i++;
+            }
+
+            return PLAYERSLIST;
         }
     }
 }

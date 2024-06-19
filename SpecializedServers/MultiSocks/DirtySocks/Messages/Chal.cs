@@ -64,7 +64,7 @@ namespace MultiSocks.DirtySocks.Messages
 
                             OPID = users.Select(x => x?.ID.ToString()).ToArray(),
                             OPPO = users.Select(x => x?.PersonaName).ToArray(),
-                            ADDR = users.Select(x => x?.Connection?.IP).ToArray(),
+                            ADDR = users.Select(x => x?.Connection?.ADDR).ToArray(),
 
                             SEED = new Random().Next().ToString(),
                             SELF = user.PersonaName
