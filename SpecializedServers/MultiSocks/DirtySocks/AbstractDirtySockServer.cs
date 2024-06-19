@@ -121,7 +121,7 @@ namespace MultiSocks.DirtySocks
                 {
                     string hexdata = DataTypesUtils.ByteArrayToHexString(data);
 
-                    CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Packet {name}:{hexdata}:{{{body.Replace("\n", "")}}}");
+                    LoggerAccessor.LogInfo($"{client.ADDR} Requested Packet {name}:{hexdata}:{{{body.Replace("\n", string.Empty)}}}");
 
                     switch (hexdata)
                     {
@@ -136,12 +136,12 @@ namespace MultiSocks.DirtySocks
                     }
                 }
                 else
-                    CustomLogger.LoggerAccessor.LogInfo($"{client.IP} Requested Type {name} : {body.Replace("\n", "")}");
+                    LoggerAccessor.LogInfo($"{client.ADDR} Requested Type {name} : {body.Replace("\n", "")}");
 
                 Type? c;
                 if (!NameToClass.TryGetValue(name, out c))
                 {
-                    LoggerAccessor.LogError($"{client.IP} Requested an unexpected message Type {name} : {body.Replace("\n", "")}");
+                    LoggerAccessor.LogError($"{client.ADDR} Requested an unexpected message Type {name} : {body.Replace("\n", "")}");
                     return;
                 }
 

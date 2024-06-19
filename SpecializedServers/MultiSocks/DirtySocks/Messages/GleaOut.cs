@@ -28,15 +28,6 @@
         public string? NUMPART { get; set; }
         public string? PARTSIZE0 { get; set; }
         public string PARTPARAMS0 { get; set; } = string.Empty;
-        public string OPPO0 { get; set; } = "@brobot24";
-        public string? OPPART0 { get; set; }
-        public string? OPFLAG0 { get; set; }
-        public string? PRES0 { get; set; }
-        public string OPID0 { get; set; } = "24";
-        public string ADDR0 { get; set; } = "127.0.0.1";
-        public string LADDR0 { get; set; } = "127.0.0.1";
-        public string MADDR0 { get; set; } = string.Empty;
-        public string? OPPARAM0 { get; set; }
         public Dictionary<string, string>? PLAYERSLIST { get; set; }
     }
 }

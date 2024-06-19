@@ -71,7 +71,7 @@ namespace MultiSocks.DirtySocks.Messages
                     NAME = match.Groups[1].Value;
             }
 
-            DbAccount? user = DirtySocksServer.Database.GetByName(NAME);
+            DbAccount? user = DirtySocksServer.Database?.GetByName(NAME);
             if (user == null)
             {
                 client.SendMessage(new AuthImst());
