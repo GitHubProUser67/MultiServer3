@@ -41,7 +41,6 @@ namespace MultiSocks.DirtySocks
             this.secure = secure;
             Context = context;
             ClientTcp = client;
-            ADDR = ((IPEndPoint?)client.Client.RemoteEndPoint)?.Address.MapToIPv4().ToString() ?? "0.0.0.0";
 
             LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
@@ -92,11 +91,11 @@ namespace MultiSocks.DirtySocks
                 ClientStream = ClientTcp.GetStream();
 
             int len = 0;
-            byte[] bytes = new byte[65536];
+            Span<byte> bytes = new byte[65536];
 
             try
             {
-                while ((len = ClientStream.Read(bytes, 0, bytes.Length)) != 0)
+                while ((len = ClientStream.Read(bytes)) != 0)
                 {
                     int off = 0;
                     while (len > 0)
@@ -114,7 +113,7 @@ namespace MultiSocks.DirtySocks
                         if (TempData != null)
                         {
                             int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                            Array.Copy(bytes, off, TempData, TempDatOff, copyLen);
+                            Array.Copy(bytes.ToArray(), off, TempData, TempDatOff, copyLen);
                             off += copyLen;
                             TempDatOff += copyLen;
                             len -= copyLen;
