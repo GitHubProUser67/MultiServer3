@@ -10,7 +10,7 @@ namespace MultiSocks.DirtySocks.Messages
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
             client.Port = PORT;
-            client.IP = ADDR;
+            client.LADDR = ADDR;
 
             client.SendMessage(new Ping()
             {

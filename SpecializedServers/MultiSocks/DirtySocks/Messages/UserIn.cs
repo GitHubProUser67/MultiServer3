@@ -19,7 +19,7 @@ namespace MultiSocks.DirtySocks.Messages
             {
                 PERS = user.PersonaName,
                 MESG = user.Username,
-                ADDR = client.IP,
+                ADDR = user.ADDR,
             };
 
             client.SendMessage(result);

@@ -21,7 +21,7 @@ namespace MultiSocks.DirtySocks
         public EAMessengerServer(ushort port, bool lowlevel, List<Tuple<string, bool>>? RoomToAdd = null, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false) : base(port, lowlevel, Project, SKU, secure, CN, email, WeakChainSignedRSAKey)
         {
             lock (Users)
-                Users.AddUser(new User() { Username = "@brobot24", ID = 24 }); // Admin player.
+                Users.AddUser(new User() { ID = 24 }); // Admin player.
 
             PingThread = new Thread(PingLoop);
             PingThread.Start();
@@ -73,6 +73,8 @@ namespace MultiSocks.DirtySocks
                 ID = user.ID,
                 Personas = personas,
                 Username = user.Username,
+                ADDR = client.ADDR,
+                LADDR = client.LADDR
             };
 
             Users.AddUser(user2);

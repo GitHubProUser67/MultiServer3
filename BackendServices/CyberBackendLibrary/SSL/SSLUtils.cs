@@ -5,14 +5,9 @@ using System.Security.Cryptography.X509Certificates;
 using CyberBackendLibrary.DataTypes;
 using System;
 using System.IO;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.OpenSsl;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace CyberBackendLibrary.SSL
 {
@@ -50,6 +45,44 @@ namespace CyberBackendLibrary.SSL
             "bYQLCIt+jerXmCHG8+c8eS9enNFMFY3h7CI3zJpDC5fcgJCNs2ebb0gIFVbPv/Er\r\n" +
             "fF6adulZkMV8gzURZVE=\r\n" +
             "-----END CERTIFICATE-----\n";
+        private static readonly RSAParameters ROOT_CA_PARAMETERS = new()
+        {
+            Modulus = Convert.FromBase64String("2ZTXqhDKcw0ncDFYMh4MVTwV/2f8e" +
+                "GMjFom88ZB/a25TT95iziXfz6O+AB57wGvpUGnnRpkYtJ1GnSvUNWzUtGK3G" +
+                "XaYIbPywn6FoUssw9W7kOh2VR8vSulKJsF7xzZRb7X/c5UpWlrU3pMPweAu3" +
+                "svz+v8C9ZXBPZkbdkWjAOzIvzeItoMt+2XX91MJSji78NaGw9y3tGvzl3QaS" +
+                "t2rZqRg3VMWSMl+02CRuYK14ATrgzj6i7fzXKP3HE1Ri9eBhxUhHv2hcV/M5" +
+                "innIOePVvvVGoro8KWI13g+dm7kIlovo1DngmxthaI6mbhHa9/HkqmvIgKnq" +
+                "AbgDKzWhmStqQ=="),
+            Exponent = Convert.FromBase64String("AQAB"),
+            D = Convert.FromBase64String("grvuQZ9JJYwX0E+14Jcxbd1mkkoW5vcaVCZ" +
+                "6wuLBzPlDUdAbqiYTrp2CQmwOi3XLgKfBcSf4Mj31+eYl4dv8ik5uGfyqOEX" +
+                "5bWe8P0f+I8U+qDklMMxGDErUZSkIiJBYqji+vuI3MLU3Bm1yoFllkDUX6g5" +
+                "j5tAOhkaCu7Pn11tS8HAy2hdhWdq+30FBG4XShDjLqyust2sFRxoICeoh/2n" +
+                "PAnjJeykrFia3awH1s2zEQ9ET4TtXYcA+jrzKB4zaowqmyFMsu3kIJ0qs7Ut" +
+                "qEfZLwi9CFCDX7PFTVVcbTu4IEO18VkdUoKgMDaoT8B/038quxgwFIh2h3wu" +
+                "arIVe6Q=="),
+            P = Convert.FromBase64String("9x8uZXEtImprq9b8cmeiPUZNE8B5RzdCvMr" +
+                "M0+NKmXQ2JV17wn/aXjuY+b4BEKRJZznvPl5nU3tnCCUHYXIfWG2GIONYvD+" +
+                "JpQKpN5pIc9oas8BQnH0e7EIzl/i6EAMM1dJozisxityCfRINEHkWiJx37G7" +
+                "uPDm7OkNyYBE+E/8="),
+            Q = Convert.FromBase64String("4WX5Oku7T1ALMAA/fsLRRwQ6/qt/eQzc4v/" +
+                "i8pfFwND6LBO0CidkB0GM6umD9ImjdvffZGWyjZDPFskEAweJXU3lorcFqea" +
+                "HiLa+Z9T/F/fgsKV6ToJ1l2jbifW9WpPe+1lUFj9s2M4ZCiQE61bgq1zPfIJ" +
+                "NrHDdbZy5rYwMHlc="),
+            DP = Convert.FromBase64String("fl5Ckns6clPrNVddhn86No1Bku0k12cJyJ" +
+                "MIBP5AwpHrslXImKBaoT9mracc0k7Afnngvor12XnMKR0OViVOpCB1q1G2qa" +
+                "TwFSJ0N8u8awnIB807K5rL+lKsIXV+Z/u3T4wmLe9miTTTwXM+nQLepAMnTA" +
+                "854jA/br7YuQl4Li8="),
+            DQ = Convert.FromBase64String("lOxQWDETaFrlmWiAi1ti9L4Z0Iw1ZCCYjS" +
+                "8unsSitzwcHyVBjnfqQlUQK2HwepC6PW+W3PnImHp2KYLVML85BjnioLi2eE" +
+                "RFhpHfijET/p0bivs6rUbLNSfl7eg8nO0Ypg+mXDC51SGPL8EOswOq2+4tdQ" +
+                "GPGoFT/AlSMRVYKG8="),
+            InverseQ = Convert.FromBase64String("KSuQxwk41mqOaEBazuMd7xDvsbV7" +
+                "yrJMlxg14nhMusVJRSUciJdJ34RrJgHCA0zxgxvRSX3T7l0j7VcCtcrgBwcX" +
+                "wwZ+eoQTa+wMnM2WF4H7HkgWGdJFBmE/nxyVPoix9Zgl9yft/3a5i9MJQQYv" +
+                "UgfijpR+3SzmknNWj8sMcZM=")
+        };
 
         private static readonly string[] tlds = {
             ".com", ".org", ".net", ".int", ".edu", ".gov", ".mil", // Generic TLDs
@@ -99,13 +132,12 @@ namespace CyberBackendLibrary.SSL
         {
             File.WriteAllText(directoryPath + "/lock.txt", string.Empty);
 
-            DateTime CurrentDate = DateTime.Now;
-
             byte[] certSerialNumber = new byte[16];
-            new Random().NextBytes(certSerialNumber);
 
             // Generate a new RSA key pair
             using RSA rsa = RSA.Create();
+
+            rsa.ImportParameters(ROOT_CA_PARAMETERS);
 
             // Create a certificate request with the RSA key pair
             CertificateRequest request = new CertificateRequest($"CN={CN}, OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
@@ -123,8 +155,8 @@ namespace CyberBackendLibrary.SSL
             X509Certificate2 RootCACertificate = request.Create(
                 request.SubjectName,
                 new RsaPkcs1SignatureGenerator(rsa),
-                new DateTimeOffset(CurrentDate.AddDays(-1)),
-                new DateTimeOffset(CurrentDate.AddYears(100)),
+                new DateTimeOffset(new DateTime(2011, 1, 1)),
+                new DateTimeOffset(new DateTime(2130, 1, 1)),
                 certSerialNumber).CopyWithPrivateKey(rsa);
 
             string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
@@ -133,13 +165,13 @@ namespace CyberBackendLibrary.SSL
             File.WriteAllText(directoryPath + "/MultiServer_rootca_privkey.pem",
                 PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
+            rsa.Clear();
+
             // Export the certificate.
             File.WriteAllText(directoryPath + "/MultiServer_rootca.pem", PemRootCACertificate);
 
             // Export the certificate in PFX format.
             File.WriteAllBytes(directoryPath + "/MultiServer_rootca.pfx", RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
-
-            rsa.Clear();
 
             CreateCertificatesTextFile(PemRootCACertificate, directoryPath + "/CERTIFICATES.TXT");
 
@@ -271,7 +303,7 @@ namespace CyberBackendLibrary.SSL
                 WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
 
             if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
-                RootCACertificate = CreateRootCertificateAuthority(directoryPath, Hashing);
+                RootCACertificate = CreateRootCertificateAuthority(directoryPath, HashAlgorithmName.SHA256);
             else
 #if NET6_0_OR_GREATER
                 RootCACertificate = X509Certificate2.CreateFromPemFile(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");

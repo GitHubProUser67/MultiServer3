@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace WebAPIService.Utils
 {
@@ -19,21 +20,42 @@ namespace WebAPIService.Utils
 
                 if (valueToken != null)
                 {
-                    if (valueToken.Type == JTokenType.Object || valueToken.Type == JTokenType.Array)
-                        return valueToken.ToObject<object>();
-                    else if (valueToken.Type == JTokenType.Integer)
-                        return valueToken.ToObject<int>();
-                    else if (valueToken.Type == JTokenType.String)
-                        return valueToken.ToObject<string>();
-                    else if (valueToken.Type == JTokenType.Boolean)
-                        return valueToken.ToObject<bool>();
-                    else if (valueToken.Type == JTokenType.Float)
-                        return valueToken.ToObject<float>();
+                    switch (valueToken.Type)
+                    {
+                        case JTokenType.Object:
+                        case JTokenType.Array:
+                            return valueToken.ToObject<object>();
+                        case JTokenType.Integer:
+                            return valueToken.ToObject<int>();
+                        case JTokenType.String:
+                            return valueToken.ToObject<string>();
+                        case JTokenType.Boolean:
+                            return valueToken.ToObject<bool>();
+                        case JTokenType.Float:
+                            return valueToken.ToObject<float>();
+                        case JTokenType.Null:
+                            return null;
+                        case JTokenType.Date:
+                            return valueToken.ToObject<DateTime>();
+                        case JTokenType.Bytes:
+                            return valueToken.ToObject<byte[]>();
+                        case JTokenType.Guid:
+                            return valueToken.ToObject<Guid>();
+                        case JTokenType.Uri:
+                            return valueToken.ToObject<Uri>();
+                        case JTokenType.TimeSpan:
+                            return valueToken.ToObject<TimeSpan>();
+                        default:
+                            {
+                                CustomLogger.LoggerAccessor.LogWarn($"[JtokenUtils] - GetValueFromJToken - Unsupported JTokenType: {valueToken.Type}");
+                                break;
+                            }
+                    }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Not Important.
+                CustomLogger.LoggerAccessor.LogError($"[JtokenUtils] - GetValueFromJToken - thrown an exception: {ex}");
             }
 
             return null;

@@ -39,7 +39,7 @@ public static class HTTPSServerConfiguration
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
 #pragma warning disable
-    public static SslProtocols HTTPSProtocols { get; set; } = SslProtocols.Ssl2 | SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+    public static SslProtocols HTTPSProtocols { get; set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 #pragma warning restore
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnableHTTPCompression { get; set; } = true;
@@ -244,27 +244,26 @@ public static class HTTPSServerConfiguration
     // Helper method to get a value or default value if not present
     public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
-        if (obj != null)
+        try
         {
-            if (obj is JObject jObject)
+            if (obj != null)
             {
-                if (jObject.TryGetValue(propertyName, out JToken? value))
+                if (obj is JObject jObject)
                 {
-                    T? returnvalue = value.ToObject<T>();
-                    if (returnvalue != null)
-                        return returnvalue;
-                }
-            }
-            else if (obj is JArray jArray)
-            {
-                if (int.TryParse(propertyName, out int index) && index >= 0 && index < jArray.Count)
-                {
-                    T? returnvalue = jArray[index].ToObject<T>();
-                    if (returnvalue != null)
-                        return returnvalue;
+                    if (jObject.TryGetValue(propertyName, out JToken? value))
+                    {
+                        T? returnvalue = value.ToObject<T>();
+                        if (returnvalue != null)
+                            return returnvalue;
+                    }
                 }
             }
         }
+        catch (Exception ex)
+        {
+            LoggerAccessor.LogError($"[Program] - GetValueOrDefault thrown an exception: {ex}");
+        }
+
         return defaultValue;
     }
 

@@ -4,7 +4,7 @@ using Horizon.LIBRARY.Database.Models;
 using System.Data.Entity;
 using AppIdDTO = Horizon.LIBRARY.Database.Models.AppIdDTO;
 
-namespace DatabaseMiddleware.Controllers.Horizon
+namespace DatabaseMiddleware.Controllers.HorizonDatabase
 {
     public class Keys
     {

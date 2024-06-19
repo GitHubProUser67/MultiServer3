@@ -14,7 +14,8 @@ namespace MultiSocks.DirtySocks
     {
         public AbstractDirtySockServer Context;
         public User? User;
-        public string IP = "127.0.0.1";
+        public string ADDR = "127.0.0.1";
+        public string LADDR = "127.0.0.1";
         public string? Port = null;
         public int SessionID;
 
@@ -40,9 +41,9 @@ namespace MultiSocks.DirtySocks
             this.secure = secure;
             Context = context;
             ClientTcp = client;
-            IP = ((IPEndPoint?)client.Client.RemoteEndPoint)?.Address.ToString() ?? "127.0.0.1";
+            ADDR = ((IPEndPoint?)client.Client.RemoteEndPoint)?.Address.MapToIPv4().ToString() ?? "0.0.0.0";
 
-            LoggerAccessor.LogInfo("New connection from " + IP + ".");
+            LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
             if (secure && context.SSLCache != null)
                 SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
@@ -79,7 +80,7 @@ namespace MultiSocks.DirtySocks
 
                     ClientStream?.Dispose();
                     ClientTcp.Dispose();
-                    LoggerAccessor.LogInfo($"User {IP} Disconnected.");
+                    LoggerAccessor.LogInfo($"User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 
                     return;
@@ -156,7 +157,7 @@ namespace MultiSocks.DirtySocks
 
             ClientStream?.Dispose();
             ClientTcp.Dispose();
-            LoggerAccessor.LogInfo($"User {IP} Disconnected.");
+            LoggerAccessor.LogInfo($"User {ADDR} Disconnected.");
             Context.RemoveClient(this);
         }
 

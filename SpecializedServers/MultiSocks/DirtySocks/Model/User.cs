@@ -8,7 +8,9 @@ namespace MultiSocks.DirtySocks.Model
         public Game? CurrentGame;
         public Room? CurrentRoom;
         public DirtySockClient? Connection;
-        public string? Username;
+        public string LADDR = "127.0.0.1";
+        public string ADDR = "127.0.0.1";
+        public string Username = "@brobot24";
         public string MAC = string.Empty;
         public string Params = "PUSMC01?????,,,-1,-1,,d";
         public string[] Personas = new string[4];
@@ -33,7 +35,7 @@ namespace MultiSocks.DirtySocks.Model
                 I = ID.ToString(),
                 N = PersonaName ?? string.Empty,
                 M = Username,
-                A = Connection?.IP,
+                A = ADDR,
                 X = Auxiliary,
                 G = (CurrentGame?.ID ?? 0).ToString(),
                 P = Connection?.Ping.ToString()
@@ -74,7 +76,7 @@ namespace MultiSocks.DirtySocks.Model
                     N = info.N,
                     M = info.M,
                     A = info.A ?? string.Empty,
-                    LA = info.A ?? string.Empty,
+                    LA = user.LADDR ?? string.Empty,
                     X = info.X,
                     R = user.CurrentRoom?.Name,
                     RI = user.CurrentRoom?.ID.ToString()
@@ -96,7 +98,7 @@ namespace MultiSocks.DirtySocks.Model
                     CL = "511",
                     LV = "1049601",
                     MD = "0",
-                    LA = info.A ?? string.Empty,
+                    LA = user.LADDR ?? string.Empty,
                     HW = "0",
                     RP = "0",
                     MA = "$000000000000",
@@ -159,7 +161,7 @@ namespace MultiSocks.DirtySocks.Model
                     N = info.N,
                     M = info.M,
                     A = info.A ?? string.Empty,
-                    LA = info.A ?? string.Empty,
+                    LA = user.LADDR ?? string.Empty,
                     X = info.X,
                     R = user.CurrentRoom?.Name,
                     RI = user.CurrentRoom?.ID.ToString()
@@ -181,7 +183,7 @@ namespace MultiSocks.DirtySocks.Model
                     CL = "511",
                     LV = "1049601",
                     MD = "0",
-                    LA = info.A ?? string.Empty,
+                    LA = user.LADDR ?? string.Empty,
                     HW = "0",
                     RP = "0",
                     MA = "$000000000000",

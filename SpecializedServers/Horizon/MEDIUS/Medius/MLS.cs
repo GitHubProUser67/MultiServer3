@@ -5486,7 +5486,7 @@ namespace Horizon.MEDIUS.Medius
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize)
-                                .Where(x => x.Host != null && x.PlayerCount > 0)
+                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5504,9 +5504,6 @@ namespace Horizon.MEDIUS.Medius
                             if (gameList.Length > 0)
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
-
-                                Thread.Sleep(new Random().Next(0, 6001)); // We simulate medius fetching delay between 0 and 6 seconds.
-                                                                             // Some games expect a delayed response and it's never the same for every clients.
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5528,7 +5525,7 @@ namespace Horizon.MEDIUS.Medius
                                gameListRequest.PageID,
                                gameListRequest.PageSize,
                                data.ClientObject.GameListFilters)
-                                .Where(x => x.Host != null && x.PlayerCount > 0)
+                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5546,9 +5543,6 @@ namespace Horizon.MEDIUS.Medius
                             if (gameList.Length > 0)
                             {
                                 gameList[gameList.Length - 1].EndOfList = true;
-
-                                Thread.Sleep(new Random().Next(2000, 6001)); // We simulate medius fetching delay between 2 and 6 seconds.
-                                                                             // Some games expect a delayed response and it's never the same for every clients.
 
                                 // Add to responses
                                 data.ClientObject.Queue(gameList);
@@ -5591,6 +5585,7 @@ namespace Horizon.MEDIUS.Medius
                                gameList_ExtraInfoRequest.PageID,
                                gameList_ExtraInfoRequest.PageSize,
                                data.ClientObject.GameListFilters)
+                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
                             .Select(x => new MediusGameList_ExtraInfoResponse()
                             {
                                 MessageID = gameList_ExtraInfoRequest.MessageID,
@@ -5646,6 +5641,7 @@ namespace Horizon.MEDIUS.Medius
                                 data.ClientObject.ApplicationId,
                                 gameList_ExtraInfoRequest.PageID,
                                 gameList_ExtraInfoRequest.PageSize)
+                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
                                 .Select(x => new MediusGameList_ExtraInfoResponse()
                                 {
                                     MessageID = gameList_ExtraInfoRequest.MessageID,
@@ -5718,6 +5714,7 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.ApplicationId,
                             gameList_ExtraInfoRequest0.PageID,
                             gameList_ExtraInfoRequest0.PageSize)
+                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
                             .Select(x => new MediusGameList_ExtraInfoResponse0()
                             {
                                 MessageID = gameList_ExtraInfoRequest0.MessageID,
@@ -5770,6 +5767,7 @@ namespace Horizon.MEDIUS.Medius
                                 gameList_ExtraInfoRequest0.PageID,
                                 gameList_ExtraInfoRequest0.PageSize,
                                 data.ClientObject.GameListFilters)
+                                    .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
                                 .Select(x => new MediusGameList_ExtraInfoResponse0()
                                 {
                                     MessageID = gameList_ExtraInfoRequest0.MessageID,
@@ -5800,6 +5798,7 @@ namespace Horizon.MEDIUS.Medius
                                 gameList_ExtraInfoRequest0.PageID,
                                 gameList_ExtraInfoRequest0.PageSize,
                                 data.ClientObject.GameListFilters)
+                                    .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
                                 .Select(x => new MediusGameList_ExtraInfoResponse0()
                                 {
                                     MessageID = gameList_ExtraInfoRequest0.MessageID,
@@ -10936,6 +10935,12 @@ namespace Horizon.MEDIUS.Medius
             }
 
             return null;
+        }
+
+        public bool IsAtLeastLater(DateTime utcTimeCreated, double seconds) // Needed to prevent GameList collision issue.
+        {
+            // Check the difference
+            return (DateTime.UtcNow - utcTimeCreated).TotalSeconds >= seconds;
         }
 
         #region GuestLogin
