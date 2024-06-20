@@ -4,6 +4,6 @@
     {
         public override string _Name { get => "+kik"; }
 
-        public string? GAME { get; set; } // Game ID
+        public string? REASON { get; set; }
     }
 }

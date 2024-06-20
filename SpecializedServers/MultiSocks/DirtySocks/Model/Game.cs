@@ -37,7 +37,7 @@ namespace MultiSocks.DirtySocks.Model
             RoomID = roomId;
         }
 
-        public bool RemoveUserAndCheckGameValidity(User user, int reason = 0)
+        public bool RemoveUserAndCheckGameValidity(User user, int reason = 0, string? KickReason = "")
         {
             lock (Users)
             {
@@ -53,6 +53,8 @@ namespace MultiSocks.DirtySocks.Model
                             user.SendPlusWho(user, "DPR-09");
                         else if (user.Connection.Context.Project.Contains("BURNOUT5"))
                             user.SendPlusWho(user, "BURNOUT5");
+                        else
+                            user.SendPlusWho(user, string.Empty);
                     }
                     else
                         user.SendPlusWho(user, string.Empty);
@@ -69,6 +71,8 @@ namespace MultiSocks.DirtySocks.Model
                                 batchuser.SendPlusWho(batchuser, "DPR-09");
                             else if (batchuser.Connection.Context.Project.Contains("BURNOUT5"))
                                 batchuser.SendPlusWho(batchuser, "BURNOUT5");
+                            else
+                                batchuser.SendPlusWho(batchuser, string.Empty);
                         }
                         else
                             batchuser.SendPlusWho(batchuser, string.Empty);
@@ -79,28 +83,18 @@ namespace MultiSocks.DirtySocks.Model
 				else
 				{
 					if (reason == 1)
-					{
+                        user.Connection?.SendMessage(new PlusKik() { REASON = KickReason }); // Thank you Bo98!
+                    else
+                    {
 						if (!string.IsNullOrEmpty(user.Connection?.Context.Project))
 						{
 							if (user.Connection.Context.Project.Contains("DPR-09"))
 								user.SendPlusWho(user, "DPR-09");
 							else if (user.Connection.Context.Project.Contains("BURNOUT5"))
 								user.SendPlusWho(user, "BURNOUT5");
-						}
-						else
-							user.SendPlusWho(user, string.Empty);
-
-						// user.Connection?.SendMessage(new PlusKik() { GAME = ID.ToString() }); // TODO, figure out why it crash client...
-					}
-					else
-					{
-						if (!string.IsNullOrEmpty(user.Connection?.Context.Project))
-						{
-							if (user.Connection.Context.Project.Contains("DPR-09"))
-								user.SendPlusWho(user, "DPR-09");
-							else if (user.Connection.Context.Project.Contains("BURNOUT5"))
-								user.SendPlusWho(user, "BURNOUT5");
-						}
+                            else
+                                user.SendPlusWho(user, string.Empty);
+                        }
 						else
 							user.SendPlusWho(user, string.Empty);
 					}
@@ -130,12 +124,12 @@ namespace MultiSocks.DirtySocks.Model
             Users.AddUser(user);
         }
 
-        public bool RemovePlayerByUsername(string? username, int reason = 0)
+        public bool RemovePlayerByUsername(string? username, int reason = 0, string? KickReason = "")
         {
             User? userToRemove = Users.GetAll().FirstOrDefault(user => user.Username == username);
 
             if (userToRemove != null)
-                return RemoveUserAndCheckGameValidity(userToRemove, reason);
+                return RemoveUserAndCheckGameValidity(userToRemove, reason, KickReason);
 
             return false;
         }
@@ -412,7 +406,27 @@ namespace MultiSocks.DirtySocks.Model
                     PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
                     PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
                     PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-                    PLAYERSLIST.Add($"OPPARAM{i}", user.Params);
+
+                    if (!string.IsNullOrEmpty(user.Connection?.Context.Project))
+                    {
+                        if (user.Connection.Context.Project.Contains("BURNOUT5"))
+                        {
+                            // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
+                            string PlayerColorModifer(int index, string param)
+                            {
+                                if (index == 3 && param.StartsWith("ff")) // Struct is weird as ****
+                                    return (i - 1).ToString() + ',' + param[2..];
+
+                                return param;
+                            }
+
+                            PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
+                        }
+                        else
+                            PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
+                    }
+                    else
+                        PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
                 }
 
                 i++;

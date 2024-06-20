@@ -45,6 +45,8 @@ namespace MultiSocks.DirtySocks.Model
                             user.SendPlusWho(user, "DPR-09");
                         else if (user.Connection.Context.Project.Contains("BURNOUT5"))
                             user.SendPlusWho(user, "BURNOUT5");
+                        else
+                            user.SendPlusWho(user, string.Empty);
                     }
                     else
                         user.SendPlusWho(user, string.Empty);

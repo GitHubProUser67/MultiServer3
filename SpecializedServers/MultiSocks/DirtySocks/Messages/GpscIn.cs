@@ -28,7 +28,7 @@ namespace MultiSocks.DirtySocks.Messages
             if (user == null) return;
 
             if (!string.IsNullOrEmpty(USERPARAMS))
-                user.Params = USERPARAMS;
+                user.SetParametersFromString(USERPARAMS);
 
             if (!string.IsNullOrEmpty(FORCE_LEAVE) && FORCE_LEAVE == "1" && user.CurrentGame != null)
             {
@@ -82,6 +82,8 @@ namespace MultiSocks.DirtySocks.Messages
                             user.SendPlusWho(user, "DPR-09");
                         else if (context.Project.Contains("BURNOUT5"))
                             user.SendPlusWho(user, "BURNOUT5");
+                        else
+                            user.SendPlusWho(user, string.Empty);
                     }
                     else
                         user.SendPlusWho(user, string.Empty);
