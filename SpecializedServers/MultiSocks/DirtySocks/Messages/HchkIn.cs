@@ -19,6 +19,8 @@ namespace MultiSocks.DirtySocks.Messages
                     user.SendPlusWho(user, "DPR-09");
                 else if (context.Project.Contains("BURNOUT5"))
                     user.SendPlusWho(user, "BURNOUT5");
+                else
+                    user.SendPlusWho(user, string.Empty);
             }
             else
                 user.SendPlusWho(user, string.Empty);

@@ -41,14 +41,14 @@ namespace MultiSocks.DirtySocks.Messages
 
                 if (otherUser != null && !string.IsNullOrEmpty(USERPARAMS))
                 {
-                    otherUser.Params = USERPARAMS;
+                    otherUser.SetParametersFromString(USERPARAMS);
                     otherUser.CurrentGame?.UpdatePlayerParams(otherUser);
                 }
             }
             else if (!string.IsNullOrEmpty(USERPARAMS))
             {
                 UpdatePlayerParams = true;
-                user.Params = USERPARAMS;
+                user.SetParametersFromString(USERPARAMS);
             }
 
             int? parsedMinSize = int.TryParse(MINSIZE, out int minSize) ? minSize : null;
@@ -94,7 +94,7 @@ namespace MultiSocks.DirtySocks.Messages
                     {
                         if (user.CurrentGame != null)
                         {
-                            if (user.CurrentGame.RemovePlayerByUsername(player, 1))
+                            if (user.CurrentGame.RemovePlayerByUsername(player, 1, KICK_REASON))
                                 mc.Games.RemoveGame(user.CurrentGame);
                             else
                                 mc.Games.UpdateGame(user.CurrentGame);
