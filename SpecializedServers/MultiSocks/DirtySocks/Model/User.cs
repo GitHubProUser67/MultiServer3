@@ -1,4 +1,5 @@
 using MultiSocks.DirtySocks.Messages;
+using System.Text;
 
 namespace MultiSocks.DirtySocks.Model
 {
@@ -12,9 +13,9 @@ namespace MultiSocks.DirtySocks.Model
         public string ADDR = "127.0.0.1";
         public string Username = "@brobot24";
         public string MAC = string.Empty;
-        public string Params = "PUSMC01?????,,,-1,-1,,d";
         public string[] Personas = new string[4];
         public string Auxiliary = string.Empty;
+        private string[] Parameters = new string[] { "PUSMC01?????", string.Empty, string.Empty, "-1", "-1", string.Empty, "d" };
 
         public int SelectedPersona = -1;
 
@@ -26,6 +27,54 @@ namespace MultiSocks.DirtySocks.Model
                 return;
 
             SelectedPersona = Array.IndexOf(Personas, name);
+        }
+
+        public void SetParametersFromString(string Parameters)
+        {
+            List<string> ParametersToAdd = new();
+
+            foreach (string param in Parameters.Split(','))
+            {
+                ParametersToAdd.Add(param);
+            }
+
+            SetParameters(ParametersToAdd);
+        }
+
+        public void SetParameters(List<string> Parameters)
+        {
+            this.Parameters = new string[Parameters.Count];
+
+            Parameters.CopyTo(this.Parameters);
+        }
+
+        public string GetParametersString(Func<int, string, string>? CustomParameterProcess = null)
+        {
+            StringBuilder st = new();
+
+            int i = 0;
+
+            foreach (string param in Parameters)
+            {
+                if (st.Length != 0)
+                {
+                    if (CustomParameterProcess != null)
+                        st.Append("," + CustomParameterProcess(i, param));
+                    else
+                        st.Append("," + param);
+                }
+                else
+                {
+                    if (CustomParameterProcess != null)
+                        st.Append(CustomParameterProcess(i, param));
+                    else
+                        st.Append(param);
+                }
+
+                i++;
+            }
+
+            return st.ToString();
         }
 
         public PlusUser GetInfo()
