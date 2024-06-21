@@ -195,7 +195,7 @@ namespace HTTPServer
                                                 {
                                                     // Compare the regex rule against the test URL
                                                     if (Regex.IsMatch(absolutepath, match.Groups[2].Value))
-                                                        response = HttpBuilder.RedirectFromApacheRules(match.Groups[3].Value, int.Parse(match.Groups[1].Value));
+                                                        response = HttpBuilder.RedirectFromApacheRules(request.RetrieveHeaderValue("Connection") == "keep-alive", match.Groups[3].Value, int.Parse(match.Groups[1].Value));
                                                 }
                                             }
                                             else if (RouteRule.StartsWith("Permanent "))
@@ -203,7 +203,7 @@ namespace HTTPServer
                                                 string[] parts = RouteRule.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
                                                 if (parts.Length == 3 && (parts[1] == "/" || parts[1] == absolutepath))
-                                                    response = HttpBuilder.PermanantRedirect(parts[2]);
+                                                    response = HttpBuilder.PermanantRedirect(request.RetrieveHeaderValue("Connection") == "keep-alive", parts[2]);
                                             }
                                             else if (RouteRule.StartsWith(' '))
                                             {
@@ -217,19 +217,19 @@ namespace HTTPServer
 #elif NET7_0_OR_GREATER
                                                     if (HttpMethodRegex().Match(parts[0]).Success && Method == parts[0])
 #endif
-                                                        response = HttpBuilder.Found(parts[2]);
+                                                        response = HttpBuilder.Found(request.RetrieveHeaderValue("Connection") == "keep-alive", parts[2]);
                                                     // Check if the input string contains a status code
 #if NET6_0
                                                     else if (new Regex(@"\\b\\d{3}\\b").Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
 #elif NET7_0_OR_GREATER
                                                     else if (HttpStatusCodeRegex().Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
 #endif
-                                                        response = HttpBuilder.RedirectFromApacheRules(parts[2], statuscode);
+                                                        response = HttpBuilder.RedirectFromApacheRules(request.RetrieveHeaderValue("Connection") == "keep-alive", parts[2], statuscode);
                                                     else if (parts[1] == "permanent")
-                                                        response = HttpBuilder.PermanantRedirect(parts[2]);
+                                                        response = HttpBuilder.PermanantRedirect(request.RetrieveHeaderValue("Connection") == "keep-alive", parts[2]);
                                                 }
                                                 else if (parts.Length == 2 && (parts[0] == "/" || parts[0] == absolutepath))
-                                                    response = HttpBuilder.Found(parts[1]);
+                                                    response = HttpBuilder.Found(request.RetrieveHeaderValue("Connection") == "keep-alive", parts[1]);
                                             }
                                         }
                                     }
@@ -338,9 +338,9 @@ namespace HTTPServer
                                                 }
 												
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
+                                                    response = HttpResponse.Send(false, $"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
                                             }
                                             #endregion
 
@@ -360,9 +360,9 @@ namespace HTTPServer
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "text/xml");
+                                                    response = HttpResponse.Send(false, res, "text/xml");
                                             }
                                             #endregion
 
@@ -382,13 +382,13 @@ namespace HTTPServer
                                                     postdata.Flush();
 
                                                     if (string.IsNullOrEmpty(res.Item1))
-                                                        response = HttpBuilder.InternalServerError();
+                                                        response = HttpBuilder.InternalServerError(false);
                                                     else
                                                     {
                                                         if (!string.IsNullOrEmpty(res.Item2))
-                                                            response = HttpResponse.Send(res.Item1, res.Item2);
+                                                            response = HttpResponse.Send(false, res.Item1, res.Item2);
                                                         else
-                                                            response = HttpResponse.Send(res.Item1, "text/plain");
+                                                            response = HttpResponse.Send(false, res.Item1, "text/plain");
                                                     }
                                                 }
                                                 else
@@ -396,13 +396,13 @@ namespace HTTPServer
                                                     (string?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(null, request.GetContentType(), absolutepath);
 
                                                     if (string.IsNullOrEmpty(res.Item1))
-                                                        response = HttpBuilder.InternalServerError();
+                                                        response = HttpBuilder.InternalServerError(false);
                                                     else
                                                     {
                                                         if (!string.IsNullOrEmpty(res.Item2))
-                                                            response = HttpResponse.Send(res.Item1, res.Item2);
+                                                            response = HttpResponse.Send(false, res.Item1, res.Item2);
                                                         else
-                                                            response = HttpResponse.Send(res.Item1, "text/plain");
+                                                            response = HttpResponse.Send(false, res.Item1, "text/plain");
                                                     }
                                                 }
                                             }
@@ -431,9 +431,9 @@ namespace HTTPServer
 
                                                 ndreams.Dispose();
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "text/xml");
+                                                    response = HttpResponse.Send(false, res, "text/xml");
                                             }
                                             #endregion
 
@@ -453,9 +453,9 @@ namespace HTTPServer
                                                 }
 
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
+                                                    response = HttpResponse.Send(false, res, "application/xml;charset=UTF-8");
                                             }
                                             #endregion
 
@@ -479,11 +479,11 @@ namespace HTTPServer
                                                     res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder);
                                                 juggernaut.Dispose();
                                                 if (res == null)
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else if (res == string.Empty)
-                                                    response = HttpBuilder.OK();
+                                                    response = HttpBuilder.OK(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "text/xml");
+                                                    response = HttpResponse.Send(false, res, "text/xml");
                                             }
                                             #endregion
 
@@ -507,9 +507,9 @@ namespace HTTPServer
                                                     res = loot.ProcessRequest(request.QueryParameters);
 
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
+                                                    response = HttpResponse.Send(false, res, "application/xml;charset=UTF-8");
                                             }
                                             #endregion
 
@@ -534,9 +534,9 @@ namespace HTTPServer
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "text/xml");
+                                                    response = HttpResponse.Send(false, res, "text/xml");
                                             }
                                             #endregion
 
@@ -554,9 +554,9 @@ namespace HTTPServer
                                                     postdata.Flush();
                                                 }
                                                 if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res.Item1, res.Item2, res.Item3);
+                                                    response = HttpResponse.Send(false, res.Item1, res.Item2, res.Item3);
                                             }
                                             #endregion
 
@@ -578,7 +578,7 @@ namespace HTTPServer
                                                     res = gsconn.ProcessRequest(request.QueryParameters);
 
                                                 if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
                                                 {
                                                     response = new(false, "1.0")
@@ -649,13 +649,13 @@ namespace HTTPServer
                                                         postdata.Flush();
 
                                                         if (string.IsNullOrEmpty(res.Item1))
-                                                            response = HttpBuilder.InternalServerError();
+                                                            response = HttpBuilder.InternalServerError(false);
                                                         else
                                                         {
                                                             if (!string.IsNullOrEmpty(res.Item2))
-                                                                response = HttpResponse.Send(res.Item1, res.Item2);
+                                                                response = HttpResponse.Send(false, res.Item1, res.Item2);
                                                             else
-                                                                response = HttpResponse.Send(res.Item1, "text/plain");
+                                                                response = HttpResponse.Send(false, res.Item1, "text/plain");
 
                                                             response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
                                                             response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
@@ -669,13 +669,13 @@ namespace HTTPServer
                                                             .ProcessRequest(null, request.GetContentType());
 
                                                         if (string.IsNullOrEmpty(res.Item1))
-                                                            response = HttpBuilder.InternalServerError();
+                                                            response = HttpBuilder.InternalServerError(false);
                                                         else
                                                         {
                                                             if (!string.IsNullOrEmpty(res.Item2))
-                                                                response = HttpResponse.Send(res.Item1, res.Item2);
+                                                                response = HttpResponse.Send(false, res.Item1, res.Item2);
                                                             else
-                                                                response = HttpResponse.Send(res.Item1, "text/plain");
+                                                                response = HttpResponse.Send(false, res.Item1, "text/plain");
 
                                                             response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
                                                             response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
@@ -684,7 +684,7 @@ namespace HTTPServer
                                                     }
                                                 }
                                                 else
-                                                    response = HttpBuilder.NotAllowed();
+                                                    response = HttpBuilder.NotAllowed(false);
                                             }
                                             #endregion
 
@@ -716,9 +716,9 @@ namespace HTTPServer
                                                 }
 
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "text/xml");
+                                                    response = HttpResponse.Send(false, res, "text/xml");
                                             }
                                             #endregion
 
@@ -737,9 +737,9 @@ namespace HTTPServer
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
+                                                    response = HttpBuilder.InternalServerError(false);
                                                 else
-                                                    response = HttpResponse.Send(res, "text/xml");
+                                                    response = HttpResponse.Send(false, res, "text/xml");
                                             }
                                             #endregion
 
@@ -754,7 +754,7 @@ namespace HTTPServer
                                                         {
                                                             #region PSN Network Test
                                                             case "/networktest/get_2m":
-                                                                response = HttpResponse.Send(new byte[2097152]);
+                                                                response = HttpResponse.Send(false, new byte[2097152]);
                                                                 break;
                                                             #endregion
 
@@ -769,7 +769,7 @@ namespace HTTPServer
                                                                         seed.Add(current.Key, current.Value);
                                                                         return seed;
                                                                     }), $"http://{ServerIP}/!webvideo/?");
-                                                                response = HttpResponse.Send(WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
+                                                                response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
                                                                 WebPlayer = null;
                                                                 break;
                                                             #endregion
@@ -778,7 +778,7 @@ namespace HTTPServer
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
-                                                                    response = HttpBuilder.NotAllowed();
+                                                                    response = HttpBuilder.NotAllowed(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                                 else
                                                                 {
                                                                     Dictionary<string, string>? QueryDic = request.QueryParameters;
@@ -786,7 +786,7 @@ namespace HTTPServer
                                                                     {
                                                                         WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
                                                                         if (vid != null && vid.Available)
-                                                                            response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
                                                                                 Models.HttpStatusCode.OK);
                                                                         else
                                                                             response = new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
@@ -821,27 +821,27 @@ namespace HTTPServer
 
                                                             default:
                                                                 if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                    response = HttpBuilder.PermanantRedirect(request.RetrieveHeaderValue("Connection") == "keep-alive", $"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
+                                                                    response = HttpBuilder.PermanantRedirect(request.RetrieveHeaderValue("Connection") == "keep-alive", $"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
                                                                         else if (encoding.Contains("br"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
                                                                         else if (encoding.Contains("gzip"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                         else if (encoding.Contains("deflate"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
                                                                         else
-                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                     }
                                                                     else
-                                                                        response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                        response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
                                                                 else
                                                                 {
@@ -858,33 +858,33 @@ namespace HTTPServer
                                                         {
                                                             #region PSN Network Test
                                                             case "/networktest/post_128":
-                                                                response = HttpBuilder.OK();
+                                                                response = HttpBuilder.OK(false);
                                                                 break;
                                                             #endregion
 															
                                                             default:
                                                                 if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                    response = HttpBuilder.PermanantRedirect(request.RetrieveHeaderValue("Connection") == "keep-alive", $"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
+                                                                    response = HttpBuilder.PermanantRedirect(request.RetrieveHeaderValue("Connection") == "keep-alive", $"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
                                                                         else if (encoding.Contains("br"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
                                                                         else if (encoding.Contains("gzip"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                                                         else if (encoding.Contains("deflate"))
-                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
                                                                         else
-                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                     }
                                                                     else
-                                                                        response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                        response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                 }
                                                                 else
                                                                 {
@@ -932,19 +932,19 @@ namespace HTTPServer
                                                                         }
                                                                     }
 
-                                                                    response = HttpBuilder.OK();
+                                                                    response = HttpBuilder.OK(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                                 }
                                                                 else
-                                                                    response = HttpBuilder.NotAllowed();
+                                                                    response = HttpBuilder.NotAllowed(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                             }
                                                             else
-                                                                response = HttpBuilder.NotAllowed();
+                                                                response = HttpBuilder.NotAllowed(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                         }
                                                         else
-                                                            response = HttpBuilder.NotAllowed();
+                                                            response = HttpBuilder.NotAllowed(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                         break;
                                                     case "DELETE":
-                                                        response = HttpBuilder.NotAllowed();
+                                                        response = HttpBuilder.NotAllowed(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                         break;
                                                     case "HEAD":
                                                         switch (absolutepath)
@@ -953,7 +953,7 @@ namespace HTTPServer
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
                                                                 if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
-                                                                    response = HttpBuilder.NotAllowed();
+                                                                    response = HttpBuilder.NotAllowed(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                                 else
                                                                 {
                                                                     Dictionary<string, string>? QueryDic = request.QueryParameters;
@@ -974,10 +974,10 @@ namespace HTTPServer
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
                                                                         }
                                                                         else
-                                                                            response = HttpBuilder.InternalServerError();
+                                                                            response = HttpBuilder.InternalServerError(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                                     }
                                                                     else
-                                                                        response = HttpBuilder.MissingParameters();
+                                                                        response = HttpBuilder.MissingParameters(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                                 }
                                                                 break;
                                                             #endregion
@@ -988,7 +988,7 @@ namespace HTTPServer
                                                         }
                                                         break;
                                                     case "OPTIONS":
-                                                        response = HttpBuilder.OK();
+                                                        response = HttpBuilder.OK(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                         response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST");
                                                         break;
                                                     case "PROPFIND":
@@ -1012,7 +1012,7 @@ namespace HTTPServer
                                                                 }
                                                             }
 
-                                                            response = HttpResponse.Send("<?xml version=\"1.0\"?>\r\n" +
+                                                            response = HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", "<?xml version=\"1.0\"?>\r\n" +
                                                                 "<a:multistatus\r\n" +
                                                                 $"  xmlns:b=\"urn:uuid:{Guid.NewGuid()}/\"\r\n" +
                                                                 "  xmlns:a=\"DAV:\">\r\n" +
@@ -1029,10 +1029,10 @@ namespace HTTPServer
                                                                 "</a:multistatus>", "text/xml", null, Models.HttpStatusCode.MultiStatus);
                                                         }
                                                         else
-                                                            response = HttpBuilder.NotFound(request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                                                            response = HttpBuilder.NotFound(request.RetrieveHeaderValue("Connection") == "keep-alive", request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
                                                         break;
                                                     default:
-                                                        response = HttpBuilder.NotAllowed();
+                                                        response = HttpBuilder.NotAllowed(request.RetrieveHeaderValue("Connection") == "keep-alive");
                                                         break;
                                                 }
                                             }

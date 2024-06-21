@@ -226,63 +226,63 @@ namespace HomeWebTools
                                     if (makeres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/UnBar/":
                                     (byte[]?, string)? unbarres = HomeToolsInterface.UnBar(APIStaticFolder, request.GetDataStream, request.GetContentType(), APIStaticFolder + "/HelperFiles").Result;
                                     if (unbarres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, unbarres.Value.Item1, unbarres.Value.Item2);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/CDS/":
                                     (byte[]?, string)? cdsres = HomeToolsInterface.CDS(request.GetDataStream, request.GetContentType());
                                     if (cdsres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsres.Value.Item1, cdsres.Value.Item2);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/CDSBruteforce/":
                                     (byte[]?, string)? cdsbruteres = HomeToolsInterface.CDSBruteforce(request.GetDataStream, request.GetContentType());
                                     if (cdsbruteres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, cdsbruteres.Value.Item1, cdsbruteres.Value.Item2);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/HCDBUnpack/":
                                     (byte[]?, string)? hcdbres = HomeToolsInterface.HCDBUnpack(request.GetDataStream, request.GetContentType());
                                     if (hcdbres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, hcdbres.Value.Item1, hcdbres.Value.Item2);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/TicketList/":
                                     (byte[]?, string)? ticketlistres = HomeToolsInterface.TicketList(request.GetDataStream, request.GetContentType());
                                     if (ticketlistres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, ticketlistres.Value.Item1, ticketlistres.Value.Item2);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/INF/":
                                     (byte[]?, string)? infres = HomeToolsInterface.INF(request.GetDataStream, request.GetContentType());
                                     if (infres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, infres.Value.Item1, infres.Value.Item2);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/ChannelID/":
                                     string? channelres = HomeToolsInterface.ChannelID(request.GetDataStream, request.GetContentType());
                                     if (!string.IsNullOrEmpty(channelres))
-                                        response = HttpResponse.Send(channelres);
+                                        response = HttpResponse.Send(false, channelres);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                 case "/!HomeTools/SceneID/":
                                     string? sceneres = HomeToolsInterface.SceneID(request.GetDataStream, request.GetContentType());
                                     if (!string.IsNullOrEmpty(sceneres))
-                                        response = HttpResponse.Send(sceneres);
+                                        response = HttpResponse.Send(false, sceneres);
                                     else
-                                        response = HttpBuilder.InternalServerError();
+                                        response = HttpBuilder.InternalServerError(false);
                                     break;
                                     #endregion
 

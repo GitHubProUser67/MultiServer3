@@ -28,6 +28,7 @@ public static class HTTPServerConfiguration
     public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static bool NotFoundSuggestions { get; set; } = false;
+    public static bool EnableHTTPChunkedTransfers { get; set; } = false;
     public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
@@ -74,6 +75,7 @@ public static class HTTPServerConfiguration
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
+                new JProperty("enable_http_chunked_transfers", EnableHTTPChunkedTransfers),
                 new JProperty("enable_http_compression", EnableHTTPCompression),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("enable_image_upscale", EnableImageUpscale),
@@ -107,6 +109,7 @@ public static class HTTPServerConfiguration
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
+            EnableHTTPChunkedTransfers = GetValueOrDefault(config, "enable_http_chunked_transfers", EnableHTTPChunkedTransfers);
             EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
             EnableImageUpscale = GetValueOrDefault(config, "enable_image_upscale", EnableImageUpscale);
