@@ -152,7 +152,7 @@ namespace WebAPIService.OHS
                     }
 
                     if (value != null)
-                        output = LuaUtils.JsonValueToLuaValue(JToken.FromObject(value));
+                        output = LuaUtils.ConvertJTokenToLuaTable(JToken.FromObject(value), true);
                 }
             }
             catch (Exception ex)
@@ -310,7 +310,7 @@ namespace WebAPIService.OHS
                         string? ohsUserName = (string?)jsonObject["user"];
                         string? ohsKey = (string?)jsonObject["key"];
 
-                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
+                        if (!string.IsNullOrEmpty(ohsUserName) && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
                         {
                             string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{ohsUserName}.json");
 
@@ -321,11 +321,11 @@ namespace WebAPIService.OHS
 
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                    // We lower them for True/False edgecase, otherwise Jamin will not return them!
-                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false).ToLower();
+                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
-
+                        else if (!string.IsNullOrEmpty(ohsKey) && ohsKey == "GameState" && directorypath.Contains("shooter_game"))
+                            output = "{ [\"currentLevel\"] = 1, [\"currentMaxLevel\"] = 50, [\"items\"] = { }, [\"loadout\"] = { }, [\"scores\"] = { } }";
                     }
                     else
                     {
@@ -340,7 +340,6 @@ namespace WebAPIService.OHS
 
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                    // Convert the JToken to a Lua table-like string
                                     output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
@@ -513,35 +512,46 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? jsonObject = JObject.Parse(dataforohs);
+                    JObject? globalProfile = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string?)jsonObject["user"];
-                    string[]? keys = jsonObject["keys"]?.ToObject<string[]>();
+                    dataforohs = (string?)globalProfile["user"];
+                    string[]? keys = globalProfile["keys"]?.ToObject<string[]>();
 
                     if (!global)
                     {
-                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
+                        if (keys != null && !string.IsNullOrEmpty(dataforohs) && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
                             string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
 
                             if (!string.IsNullOrEmpty(userprofile))
                             {
-                                // Parse the JSON string to a JObject
-                                JObject userProfile = JObject.Parse(userprofile);
-
-                                foreach (string key in keys)
+                                // Check if the "key" property exists and if it is an object
+                                if (JObject.Parse(userprofile).TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 {
-                                    // Check if the "key" property exists and if it is an object
-                                    if (userProfile.TryGetValue(key, out JToken? keyValueToken))
-                                        // Convert the JToken to a Lua table-like string
-                                        output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
-                                }
+                                    JObject keyObject = (JObject)keyValueToken;
 
+                                    StringBuilder st = new("{ ");
+
+                                    foreach (string key in keys)
+                                    {
+                                        // Check if the specific key exists in the JObject
+                                        if (keyObject.TryGetValue(key, out JToken? valueToken))
+                                        {
+                                            if (st.Length != 2)
+                                                st.Append($", [\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                            else
+                                                st.Append($"[\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                        }
+                                    }
+
+                                    st.Append(" }");
+                                    output = st.ToString();
+                                }
                             }
                         }
                     }
-                    else
+                    else if (keys != null)
                     {
                         if (File.Exists(directorypath + $"/Global.json"))
                         {
@@ -549,18 +559,32 @@ namespace WebAPIService.OHS
 
                             if (!string.IsNullOrEmpty(globaldata))
                             {
-                                // Parse the JSON string to a JObject
-                                jsonObject = JObject.Parse(globaldata);
-
                                 // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken))
-                                    // Convert the JToken to a Lua table-like string
-                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
+                                if (JObject.Parse(globaldata).TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                {
+                                    JObject keyObject = (JObject)keyValueToken;
+
+                                    StringBuilder st = new("{ ");
+
+                                    foreach (string key in keys)
+                                    {
+                                        // Check if the specific key exists in the JObject
+                                        if (keyObject.TryGetValue(key, out JToken? valueToken))
+                                        {
+                                            if (st.Length != 2)
+                                                st.Append($", [\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                            else
+                                                st.Append($"[\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                        }
+                                    }
+
+                                    st.Append(" ]");
+                                    output = st.ToString();
+                                }
                             }
                         }
                         else if (keys.Contains("heatmap_samples_to_send") && keys.Contains("heatmap_sample_period"))
                             output = "{[\"heatmap_samples_to_send\"] = 1, [\"heatmap_sample_period\"] = 5}";
-
                     }
                 }
             }

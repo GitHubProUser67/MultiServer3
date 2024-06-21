@@ -150,6 +150,9 @@ namespace WebAPIService.OHS
                                     case "userinventory/getuserinventory/":
                                         resultfromcommand = UserInventory.GetUserInventory(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
+                                    case "register/":
+                                        resultfromcommand = "{ }"; // Just bounce for now.
+                                        break;
                                     default:
                                         LoggerAccessor.LogWarn($"[OHS] - Batch requested a method I don't know about, please report it to GITHUB {method} in {project} with data {data}");
                                         break;
