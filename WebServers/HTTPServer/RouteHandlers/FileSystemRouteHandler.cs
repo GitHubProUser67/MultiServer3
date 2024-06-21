@@ -18,7 +18,7 @@ namespace HTTPServer.RouteHandlers
             else if (File.Exists(filepath))
                 return Handle_LocalFile(request, filepath);
             else
-                return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                return HttpBuilder.NotFound(request.RetrieveHeaderValue("Connection") == "keep-alive", request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
         public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string Host, string local_path, string Accept, string ServerIP, ushort ListenerPort)
@@ -54,7 +54,7 @@ namespace HTTPServer.RouteHandlers
                 return response;
             }
             else
-                return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                return HttpBuilder.NotFound(request.RetrieveHeaderValue("Connection") == "keep-alive", request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
         private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
@@ -246,22 +246,22 @@ namespace HTTPServer.RouteHandlers
                 if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
                     if (encoding.Contains("zstd"))
-                        return HttpResponse.Send(HTTPProcessor.CompressZstd(
+                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "zstd" } });
                     else if (encoding.Contains("br"))
-                        return HttpResponse.Send(HTTPProcessor.CompressBrotli(
+                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "br" } });
                     else if (encoding.Contains("gzip"))
-                        return HttpResponse.Send(HTTPProcessor.CompressGzip(
+                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                     else if (encoding.Contains("deflate"))
-                        return HttpResponse.Send(HTTPProcessor.Inflate(
+                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                     else
-                        return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
+                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
                 }
                 else
-                    return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
+                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
             }
             else if (request.QueryParameters != null && request.QueryParameters.TryGetValue("m3u", out queryparam) && queryparam == "on")
             {
@@ -271,21 +271,21 @@ namespace HTTPServer.RouteHandlers
                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                     {
                         if (encoding.Contains("zstd"))
-                            return HttpResponse.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "zstd" } });
                         else if (encoding.Contains("br"))
-                            return HttpResponse.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "br" } });
+                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "br" } });
                         else if (encoding.Contains("gzip"))
-                            return HttpResponse.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                         else if (encoding.Contains("deflate"))
-                            return HttpResponse.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "deflate" } });
+                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                         else
-                            return HttpResponse.Send(m3ufile, "audio/x-mpegurl");
+                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", m3ufile, "audio/x-mpegurl");
                     }
                     else
-                        return HttpResponse.Send(m3ufile, "audio/x-mpegurl");
+                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", m3ufile, "audio/x-mpegurl");
                 }
                 else
-                    return HttpBuilder.NoContent();
+                    return HttpBuilder.NoContent(request.RetrieveHeaderValue("Connection") == "keep-alive");
             }
             else
             {
@@ -299,36 +299,36 @@ namespace HTTPServer.RouteHandlers
                             if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                             {
                                 if (encoding.Contains("zstd"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
                                 else if (encoding.Contains("br"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
                                 else if (encoding.Contains("gzip"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                 else if (encoding.Contains("deflate"))
-                                    return HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
                                 else
-                                    return HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
                             }
                             else
-                                return HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
                         }
                         else
                         {
                             if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                             {
                                 if (encoding.Contains("zstd"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressZstd(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" } });
                                 else if (encoding.Contains("br"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressBrotli(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "br" } });
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "br" } });
                                 else if (encoding.Contains("gzip"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressGzip(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                                 else if (encoding.Contains("deflate"))
-                                    return HttpResponse.Send(HTTPProcessor.Inflate(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" } });
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                                 else
-                                    return HttpResponse.Send(File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                             }
                             else
-                                return HttpResponse.Send(File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                         }
                     }
                 }

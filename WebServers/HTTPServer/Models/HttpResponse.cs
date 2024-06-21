@@ -61,7 +61,7 @@ namespace HTTPServer.Models
             else
                 Headers = new Dictionary<string, string>();
 
-            if (HttpVersion == "1.1")
+            if (HttpVersion == "1.1" && HTTPServerConfiguration.EnableHTTPChunkedTransfers)
                 Headers.Add("Transfer-Encoding", "chunked");
         }
 
@@ -74,9 +74,9 @@ namespace HTTPServer.Models
             return string.Format("{0} {1}", (int)HttpStatusCode, HttpStatusCode.ToString());
         }
 
-        public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(bool keepalive, string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
         {
-            HttpResponse response = new(false)
+            HttpResponse response = new(keepalive)
             {
                 HttpStatusCode = statuscode
             };
@@ -87,12 +87,7 @@ namespace HTTPServer.Models
                 {
                     // Ensure the inner array has at least two elements
                     if (innerArray.Length >= 2)
-                    {
-                        // Extract two values from the inner array
-                        string value1 = innerArray[0];
-                        string value2 = innerArray[1];
-                        response.Headers.Add(value1, value2);
-                    }
+                        response.Headers.Add(innerArray[0], innerArray[1]);
                 }
             }
             if (stringtosend != null)
@@ -103,9 +98,9 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(bool keepalive, byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
         {
-            HttpResponse response = new(false)
+            HttpResponse response = new(keepalive)
             {
                 HttpStatusCode = statuscode
             };
@@ -132,9 +127,9 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, string? HttpVersionOverride = null)
+        public static HttpResponse Send(bool keepalive, Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, string? HttpVersionOverride = null)
         {
-            HttpResponse response = new(false, HttpVersionOverride)
+            HttpResponse response = new(keepalive, HttpVersionOverride)
             {
                 HttpStatusCode = statuscode
             };

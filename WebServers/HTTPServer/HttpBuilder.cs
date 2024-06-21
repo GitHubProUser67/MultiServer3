@@ -1,6 +1,5 @@
 using CyberBackendLibrary.HTTP;
 using HTTPServer.Models;
-using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Collections.Generic;
 
 namespace HTTPServer
@@ -14,7 +13,7 @@ namespace HTTPServer
     {
         #region Public Methods
 
-        public static HttpResponse OK(bool KeepAlive = false)
+        public static HttpResponse OK(bool KeepAlive)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -22,7 +21,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse NotImplemented(bool KeepAlive = false)
+        public static HttpResponse NotImplemented(bool KeepAlive)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -30,7 +29,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse InternalServerError(bool KeepAlive = false)
+        public static HttpResponse InternalServerError(bool KeepAlive)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -38,7 +37,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse MovedPermanently(string url, bool KeepAlive = false)
+        public static HttpResponse MovedPermanently(bool KeepAlive, string url)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -50,7 +49,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse PermanantRedirect(string url, bool KeepAlive = false)
+        public static HttpResponse PermanantRedirect(bool KeepAlive, string url)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -62,7 +61,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse Found(string url, bool KeepAlive = false)
+        public static HttpResponse Found(bool KeepAlive, string url)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -74,7 +73,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse RedirectFromApacheRules(string url, int statuscode, bool KeepAlive = false)
+        public static HttpResponse RedirectFromApacheRules(bool KeepAlive, string url, int statuscode)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -86,7 +85,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse NoContent(bool KeepAlive = false)
+        public static HttpResponse NoContent(bool KeepAlive)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -94,7 +93,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse NotFound(HttpRequest request, string absolutepath, string Host, string ServerIP, string serverPort, bool HTMLResponse)
+        public static HttpResponse NotFound(bool KeepAlive, HttpRequest request, string absolutepath, string Host, string ServerIP, string serverPort, bool HTMLResponse)
         {
             if (!HTMLResponse)
                 return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
@@ -102,11 +101,11 @@ namespace HTTPServer
                     HttpStatusCode = HttpStatusCode.Not_Found,
                 };
             else
-                return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                return HttpResponse.Send(KeepAlive, DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
                     HTTPServerConfiguration.HTTPStaticFolder, "Apache 2.2.22 (Unix) DAV/2", serverPort, HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.Not_Found);
         }
 
-        public static HttpResponse NotAllowed(bool KeepAlive = false)
+        public static HttpResponse NotAllowed(bool KeepAlive)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -114,7 +113,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse MethodNotAllowed(bool KeepAlive = false)
+        public static HttpResponse MethodNotAllowed(bool KeepAlive)
         {
             return new HttpResponse(KeepAlive)
             {
@@ -122,7 +121,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse MissingParameters(bool KeepAlive = false)
+        public static HttpResponse MissingParameters(bool KeepAlive)
         {
             return new HttpResponse(KeepAlive)
             {
