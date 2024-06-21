@@ -50,8 +50,12 @@ namespace WebAPIService.OHS
 
                     return resultBuilder.ToString();
                 }
+                else if (token.Type == JTokenType.Array)
+                    return ReplaceFirstAndLast(token.ToString(), '{', '}');
                 else if (token.Type == JTokenType.String)
                     return $"\"{token.Value<string>()}\"";
+                else if (token.Type == JTokenType.Boolean)
+                    return token.ToString().ToLower();
                 else
                     return token.ToString(); // For other value types, use their raw string representation
             }
@@ -59,7 +63,7 @@ namespace WebAPIService.OHS
             {
                 if (token.Type == JTokenType.Object)
                 {
-                    StringBuilder resultBuilder = new StringBuilder("{ ");
+                    StringBuilder resultBuilder = new StringBuilder();
 
                     foreach (JProperty property in token.Children<JProperty>())
                     {
@@ -87,12 +91,14 @@ namespace WebAPIService.OHS
                     if (resultBuilder.Length > 2)
                         resultBuilder.Length -= 2;
 
-                    resultBuilder.Append(" }");
-
                     return resultBuilder.ToString();
                 }
+                else if (token.Type == JTokenType.Array)
+                    return ReplaceFirstAndLast(token.ToString(), '{', '}');
                 else if (token.Type == JTokenType.String)
                     return $"\"{token.Value<string>()}\"";
+                else if (token.Type == JTokenType.Boolean)
+                    return token.ToString().ToLower();
                 else
                     return token.ToString(); // For other value types, use their raw string representation
             }
@@ -124,17 +130,6 @@ namespace WebAPIService.OHS
             }
 
             return returnValues;
-        }
-
-        public static string JsonValueToLuaValue(JToken token)
-        {
-            return token.Type switch
-            {
-                JTokenType.Object => ConvertJObjectStringToLuaTable(JObject.Parse(token.ToString())),
-                JTokenType.Array => ConvertJTokenToLuaTable(token, false),
-                JTokenType.String => $"\"{token}\"",
-                _ => token.ToString().ToLower(),
-            };
         }
 
         public static string ToLiteral(string input)
@@ -172,22 +167,16 @@ namespace WebAPIService.OHS
             return literal.ToString();
         }
 
-        private static string ConvertJObjectStringToLuaTable(JObject jsonObj)
+        private static string ReplaceFirstAndLast(string input, char newFirstChar, char newLastChar)
         {
-            StringBuilder luaTableStringBuilder = new StringBuilder();
-            luaTableStringBuilder.Append("{ ");
+            if (string.IsNullOrEmpty(input) || input.Length <= 1)
+                return input;
 
-            foreach (JProperty? property in jsonObj.Properties())
-            {
-                luaTableStringBuilder.AppendFormat("[\"{0}\"] = {1}, ", property.Name, JsonValueToLuaValue(property.Value));
-            }
+            char[] chars = input.ToCharArray();
+            chars[0] = newFirstChar;
+            chars[^1] = newLastChar;
 
-            // Remove the trailing comma and space if the string builder has more than the initial length
-            if (luaTableStringBuilder.Length > 2)
-                luaTableStringBuilder.Length -= 2;
-
-            luaTableStringBuilder.Append(" }");
-            return luaTableStringBuilder.ToString();
+            return new string(chars);
         }
     }
 }

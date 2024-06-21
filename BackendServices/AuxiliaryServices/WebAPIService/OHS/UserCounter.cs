@@ -105,7 +105,7 @@ namespace WebAPIService.OHS
                     }
 
                     if (value != null)
-                        output = LuaUtils.JsonValueToLuaValue(JToken.FromObject(value));
+                        output = LuaUtils.ConvertJTokenToLuaTable(JToken.FromObject(value), true);
                 }
                 catch (Exception ex)
                 {
@@ -279,7 +279,7 @@ namespace WebAPIService.OHS
                     string? counter_key = jObject.Value<string>("counter_key");
                     string? entry_project = jObject.Value<string>("entry_project");
                     string? entry_key = jObject.Value<string>("entry_key");
-                    JObject? entry_value = jObject.Value<JObject>("entry_value");
+                    object? entry_value = jObject.Value<object>("entry_value");
                     string? counter_project = jObject.Value<string>("counter_project");
                     string? user = jObject.Value<string>("user");
                     int counter_value = jObject.Value<int>("counter_value");
@@ -356,14 +356,14 @@ namespace WebAPIService.OHS
 
                                     if (existingKey != null && entry_value != null)
                                         // Update the value of the existing key
-                                        existingKey.Replace(JToken.FromObject(entry_value));
+                                        existingKey.Replace(entry_value is JToken ? (JToken)entry_value : JToken.FromObject(entry_value));
                                     else if (entry_key != null && entry_value != null)
                                     {
                                         JToken? KeyEntry = profilejObject["key"];
 
                                         if (KeyEntry != null)
-                                            // Step 2: Add a new entry to the "Key" object
-                                            KeyEntry[entry_key] = JToken.FromObject(entry_value);
+                                            // Add a new entry to the "Key" object
+                                            KeyEntry[entry_key] = entry_value is JToken ? (JToken)entry_value : JToken.FromObject(entry_value);
                                     }
 
                                     File.WriteAllText(EntryDataStringPath, profilejObject.ToString(Formatting.Indented));
@@ -382,6 +382,8 @@ namespace WebAPIService.OHS
                                     user = user,
                                     key = new JObject { { keystring, JToken.FromObject(entry_value) } }
                                 };
+
+                                Directory.CreateDirectory(directorypath + $"/{entry_project}/User_Profiles");
 
                                 File.WriteAllText(EntryDataStringPath, JsonConvert.SerializeObject(newProfile));
                             }
