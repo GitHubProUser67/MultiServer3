@@ -149,9 +149,9 @@ namespace WebAPIService.OHS
                         int score = rootObject.score;
                         string? key = rootObject.key;
 
-                        if (rootObject.value != null && rootObject.value.Length > 0 && rootObject.value[0] is string)
+                        if (rootObject.value != null && rootObject.value.Length > 0 && rootObject.value[0] is string v)
                         {
-                            value = JaminProcessor.JaminDeFormat((string)rootObject.value[0], false, 0, false);
+                            value = JaminProcessor.JaminDeFormat(v, false, 0, false);
 
                             if (!string.IsNullOrEmpty(value))
                                 LoggerAccessor.LogInfo($"[OHS] : {(levelboard ? "Levelboard" : "Leaderboard")} has extra data: {value}");
@@ -159,11 +159,31 @@ namespace WebAPIService.OHS
 
                         string scoreboardfile = directorypath + $"/{(levelboard ? $"Levelboard_Data/levelboard_{key}.json" : $"Leaderboard_Data/scoreboard_{key}.json")}";
 
-                        if (File.Exists(scoreboardfile) && !string.IsNullOrEmpty(user))
+                        if (!string.IsNullOrEmpty(user))
                         {
-                            string tempreader = File.ReadAllText(scoreboardfile);
-                            if (tempreader != null)
-                                dataforohs = UpdateScoreboard(tempreader, user, score, scoreboardfile);
+                            if (File.Exists(scoreboardfile))
+                            {
+                                string tempreader = File.ReadAllText(scoreboardfile);
+                                if (tempreader != null)
+                                    dataforohs = UpdateScoreboard(tempreader, user, score, scoreboardfile);
+                            }
+                            else // Apparently update can be used to generate the scoreboard.
+                            {
+                                string? boardDirectoryPath = Path.GetDirectoryName(scoreboardfile);
+
+                                if (!string.IsNullOrEmpty(boardDirectoryPath))
+                                {
+                                    string JsonSerializedData = JsonConvert.SerializeObject(GenerateSampleScoreboard(10 /* Just because it is most common value */), Formatting.Indented);
+
+                                    Directory.CreateDirectory(boardDirectoryPath);
+
+                                    File.WriteAllText(scoreboardfile, JsonSerializedData);
+
+                                    dataforohs = UpdateScoreboard(JsonSerializedData, user, score, scoreboardfile);
+                                }
+                                else
+                                    dataforohs = null;
+                            }
                         }
                         else
                             dataforohs = null;

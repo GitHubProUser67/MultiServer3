@@ -123,6 +123,9 @@ namespace WebAPIService.OHS
         {
             try
             {
+
+                dataforohs = dataforohs.Replace("= True", "= true").Replace("= False", "= false"); // We lowercase boolean attributes.
+
 #if DEBUG
                 LoggerAccessor.LogInfo($"[OHS] - JaminFormat Input Data: {dataforohs}");
 #endif
