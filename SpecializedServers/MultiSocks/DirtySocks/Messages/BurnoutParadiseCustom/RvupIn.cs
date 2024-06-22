@@ -10,6 +10,9 @@
         public string? RIVAL4 { get; set; }
         public string? RIVAL5 { get; set; }
         public string? RIVAL6 { get; set; }
+        public string? RIVAL7 { get; set; }
+        public string? RIVAL8 { get; set; }
+        public string? RIVAL9 { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

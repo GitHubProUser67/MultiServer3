@@ -17,6 +17,9 @@ namespace MultiSocks.DirtySocks.Messages
         public string? TEAM1 { get; set; }
         public string? WEIGHT1 { get; set; }
         public string? USERPARAMS { get; set; }
+        public string? GEN { get; set; }
+        public string? RACE0 { get; set; }
+        public string? STAT { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
