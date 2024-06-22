@@ -327,14 +327,21 @@ namespace Horizon.DME.Models
                 _ = Task.Run(() => {
                     foreach (ushort token in clientTokens.Keys)
                     {
-                        if (clientTokens.TryGetValue(token, out List<int>? value) && value.Count > 0)
+                        try
                         {
-                            player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
+                            if (clientTokens.TryGetValue(token, out List<int>? value) && value.Count > 0)
                             {
-                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
-                                TokenID = token,
-                                TokenHost = (ushort)value[0],
-                            });
+                                player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to actualize client with every owned tokens.
+                                {
+                                    tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
+                                    TokenID = token,
+                                    TokenHost = (ushort)value[0],
+                                });
+                            }
+                        }
+                        catch
+                        {
+
                         }
                     }
                 });
