@@ -167,6 +167,55 @@ namespace WebAPIService.OHS
             return literal.ToString();
         }
 
+        public static string HotfixBooleanValuesForLUA(string luaScript)
+        {
+            bool inSingleQuoteString = false;
+            bool inDoubleQuoteString = false;
+            StringBuilder result = new StringBuilder();
+
+            for (int i = 0; i < luaScript.Length; i++)
+            {
+                char currentChar = luaScript[i];
+
+                // Toggle state if inside string literals
+                if (currentChar == '\'' && !inDoubleQuoteString)
+                {
+                    inSingleQuoteString = !inSingleQuoteString;
+                    result.Append(currentChar);
+                    continue;
+                }
+                else if (currentChar == '"' && !inSingleQuoteString)
+                {
+                    inDoubleQuoteString = !inDoubleQuoteString;
+                    result.Append(currentChar);
+                    continue;
+                }
+
+                // If inside a string, just append the character
+                if (inSingleQuoteString || inDoubleQuoteString)
+                {
+                    result.Append(currentChar);
+                    continue;
+                }
+
+                // Detect and replace booleans outside of strings
+                if (i + 3 < luaScript.Length && luaScript.Substring(i, 4).Equals("True", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Append("true");
+                    i += 3; // skip the next 3 characters as they are part of "True"
+                }
+                else if (i + 4 < luaScript.Length && luaScript.Substring(i, 5).Equals("False", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Append("false");
+                    i += 4; // skip the next 4 characters as they are part of "False"
+                }
+                else
+                    result.Append(currentChar);
+            }
+
+            return result.ToString();
+        }
+
         private static string ReplaceFirstAndLast(string input, char newFirstChar, char newLastChar)
         {
             if (string.IsNullOrEmpty(input) || input.Length <= 1)
