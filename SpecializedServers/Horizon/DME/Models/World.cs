@@ -5,7 +5,6 @@ using Horizon.DME.PluginArgs;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Horizon.PluginManager;
-using Horizon.MEDIUS;
 
 namespace Horizon.DME.Models
 {
@@ -92,9 +91,11 @@ namespace Horizon.DME.Models
         
         public World(MPSClient manager, int appId, int maxPlayers, uint WorldId)
         {
-            if (maxPlayers > MAX_CLIENTS_PER_WORLD)
+            MaxPlayers = (DmeClass.Settings.MaxClientsOverride != -1) ? DmeClass.Settings.MaxClientsOverride : maxPlayers;
+
+            if (MaxPlayers > MAX_CLIENTS_PER_WORLD)
             {
-                LoggerAccessor.LogError("[DMEWorld] - maxPlayers from request is higher than MaxClientsPerWorld allowed in DME config, world will not be created!");
+                LoggerAccessor.LogError($"[DMEWorld] - maxPlayers from {((DmeClass.Settings.MaxClientsOverride != -1) ? "dme config override parameter" : "request")} is higher than MaxClientsPerWorld allowed in DME config, world will not be created!");
                 return;
             }
 
@@ -106,7 +107,6 @@ namespace Horizon.DME.Models
                 _pIdIsUsed.TryAdd(i, false);
 
             RegisterWorld(WorldId);
-            MaxPlayers = maxPlayers;
         }
 
         public void Dispose()
