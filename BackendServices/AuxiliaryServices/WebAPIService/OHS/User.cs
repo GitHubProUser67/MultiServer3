@@ -325,7 +325,31 @@ namespace WebAPIService.OHS
                             }
                         }
                         else if (!string.IsNullOrEmpty(ohsKey) && ohsKey == "GameState" && directorypath.Contains("shooter_game"))
-                            output = "{ [\"currentLevel\"] = 1, [\"currentMaxLevel\"] = 50, [\"items\"] = { }, [\"loadout\"] = { }, [\"scores\"] = { } }";
+                            output = "{ [\"currentLevel\"] = 1, [\"currentMaxLevel\"] = 50, [\"items\"] = {\t{ type = \"guns\"  \t\t , name=\"repeater\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                ",\t{ type = \"tank\"  \t\t , name=\"plating1\"\t\t\t, level=0 , inUse = false }\r\n" +
+                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                "}, [\"loadout\"] = { { mount='thrusters' , slot='left'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                ", { mount='thrusters' , slot='right' \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                ", { mount='thrusters' , slot='rear'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                ", { mount='guns'      , slot=1       \t\t\t ,name=\"repeater\", level=1 }\r\n" +
+                                ", { mount='guns'      , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='missiles'  , slot=1       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
+                                ", { mount='missiles'  , slot=2       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
+                                ", { mount='counters'  , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='counters'  , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='burner'    , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='tank'      , slot=1       \t\t\t ,name=\"plating1\", level=0 }\r\n" +
+                                ", { mount='module'    , slot='fireRateAug' ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='handlingAug' ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='engineAug'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='targeting'\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='module'    , slot='ammoStore'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='armour'\t\t\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='autoRepair'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='heatSink'\t\t ,name=\"none\" \t , level=0 }\r\n" +
+                                "}, [\"scores\"] = { } }";
                     }
                     else
                     {
@@ -435,12 +459,11 @@ namespace WebAPIService.OHS
                                             // string playerNameToAppend = $"\"[ {ohsUserName} = {keyValueToken.Value<int>()}\"";
 
                                             string outputOriginal = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
-                                            // We lower them for True/False edgecase, otherwise Jamin will not return them!
 
                                             if (ohsUserName == usersArray.Last().ToString())
-                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal}\" }}";
                                             else
-                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal}\" }}, ";
                                         }
 
                                     }
