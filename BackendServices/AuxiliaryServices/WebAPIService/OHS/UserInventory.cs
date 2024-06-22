@@ -107,7 +107,7 @@ namespace WebAPIService.OHS
                     }
 
                     if (value != null)
-                        output = LuaUtils.JsonValueToLuaValue(JToken.FromObject(value));
+                        output = LuaUtils.ConvertJTokenToLuaTable(JToken.FromObject(value), true);
 
                     /*
                     // Process the data and add it to the JSON file

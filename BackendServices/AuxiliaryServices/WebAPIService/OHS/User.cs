@@ -152,7 +152,7 @@ namespace WebAPIService.OHS
                     }
 
                     if (value != null)
-                        output = LuaUtils.JsonValueToLuaValue(JToken.FromObject(value));
+                        output = LuaUtils.ConvertJTokenToLuaTable(JToken.FromObject(value), true);
                 }
             }
             catch (Exception ex)
@@ -310,7 +310,7 @@ namespace WebAPIService.OHS
                         string? ohsUserName = (string?)jsonObject["user"];
                         string? ohsKey = (string?)jsonObject["key"];
 
-                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
+                        if (!string.IsNullOrEmpty(ohsUserName) && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
                         {
                             string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{ohsUserName}.json");
 
@@ -321,11 +321,35 @@ namespace WebAPIService.OHS
 
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                    // We lower them for True/False edgecase, otherwise Jamin will not return them!
-                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false).ToLower();
+                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
-
+                        else if (!string.IsNullOrEmpty(ohsKey) && ohsKey == "GameState" && directorypath.Contains("shooter_game"))
+                            output = "{ [\"currentLevel\"] = 1, [\"currentMaxLevel\"] = 50, [\"items\"] = {\t{ type = \"guns\"  \t\t , name=\"repeater\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                ",\t{ type = \"tank\"  \t\t , name=\"plating1\"\t\t\t, level=0 , inUse = false }\r\n" +
+                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                "}, [\"loadout\"] = { { mount='thrusters' , slot='left'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                ", { mount='thrusters' , slot='right' \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                ", { mount='thrusters' , slot='rear'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                ", { mount='guns'      , slot=1       \t\t\t ,name=\"repeater\", level=1 }\r\n" +
+                                ", { mount='guns'      , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='missiles'  , slot=1       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
+                                ", { mount='missiles'  , slot=2       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
+                                ", { mount='counters'  , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='counters'  , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='burner'    , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='tank'      , slot=1       \t\t\t ,name=\"plating1\", level=0 }\r\n" +
+                                ", { mount='module'    , slot='fireRateAug' ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='handlingAug' ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='engineAug'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='targeting'\t ,name=\"none\"    , level=0 }\r\n" +
+                                ", { mount='module'    , slot='ammoStore'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='armour'\t\t\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='autoRepair'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                ", { mount='module'    , slot='heatSink'\t\t ,name=\"none\" \t , level=0 }\r\n" +
+                                "}, [\"scores\"] = { } }";
                     }
                     else
                     {
@@ -340,7 +364,6 @@ namespace WebAPIService.OHS
 
                                 // Check if the "key" property exists and if it is an object
                                 if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                    // Convert the JToken to a Lua table-like string
                                     output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
@@ -436,12 +459,11 @@ namespace WebAPIService.OHS
                                             // string playerNameToAppend = $"\"[ {ohsUserName} = {keyValueToken.Value<int>()}\"";
 
                                             string outputOriginal = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
-                                            // We lower them for True/False edgecase, otherwise Jamin will not return them!
 
                                             if (ohsUserName == usersArray.Last().ToString())
-                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}";
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal}\" }}";
                                             else
-                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal.ToLower()}\" }}, ";
+                                                output += $"{{ [\"{ohsUserName}\"] = \"{outputOriginal}\" }}, ";
                                         }
 
                                     }
@@ -513,35 +535,46 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? jsonObject = JObject.Parse(dataforohs);
+                    JObject? globalProfile = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string?)jsonObject["user"];
-                    string[]? keys = jsonObject["keys"]?.ToObject<string[]>();
+                    dataforohs = (string?)globalProfile["user"];
+                    string[]? keys = globalProfile["keys"]?.ToObject<string[]>();
 
                     if (!global)
                     {
-                        if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
+                        if (keys != null && !string.IsNullOrEmpty(dataforohs) && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
                             string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}.json");
 
                             if (!string.IsNullOrEmpty(userprofile))
                             {
-                                // Parse the JSON string to a JObject
-                                JObject userProfile = JObject.Parse(userprofile);
-
-                                foreach (string key in keys)
+                                // Check if the "key" property exists and if it is an object
+                                if (JObject.Parse(userprofile).TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 {
-                                    // Check if the "key" property exists and if it is an object
-                                    if (userProfile.TryGetValue(key, out JToken? keyValueToken))
-                                        // Convert the JToken to a Lua table-like string
-                                        output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
-                                }
+                                    JObject keyObject = (JObject)keyValueToken;
 
+                                    StringBuilder st = new("{ ");
+
+                                    foreach (string key in keys)
+                                    {
+                                        // Check if the specific key exists in the JObject
+                                        if (keyObject.TryGetValue(key, out JToken? valueToken))
+                                        {
+                                            if (st.Length != 2)
+                                                st.Append($", [\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                            else
+                                                st.Append($"[\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                        }
+                                    }
+
+                                    st.Append(" }");
+                                    output = st.ToString();
+                                }
                             }
                         }
                     }
-                    else
+                    else if (keys != null)
                     {
                         if (File.Exists(directorypath + $"/Global.json"))
                         {
@@ -549,18 +582,32 @@ namespace WebAPIService.OHS
 
                             if (!string.IsNullOrEmpty(globaldata))
                             {
-                                // Parse the JSON string to a JObject
-                                jsonObject = JObject.Parse(globaldata);
-
                                 // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken))
-                                    // Convert the JToken to a Lua table-like string
-                                    output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
+                                if (JObject.Parse(globaldata).TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                {
+                                    JObject keyObject = (JObject)keyValueToken;
+
+                                    StringBuilder st = new("{ ");
+
+                                    foreach (string key in keys)
+                                    {
+                                        // Check if the specific key exists in the JObject
+                                        if (keyObject.TryGetValue(key, out JToken? valueToken))
+                                        {
+                                            if (st.Length != 2)
+                                                st.Append($", [\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                            else
+                                                st.Append($"[\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
+                                        }
+                                    }
+
+                                    st.Append(" ]");
+                                    output = st.ToString();
+                                }
                             }
                         }
                         else if (keys.Contains("heatmap_samples_to_send") && keys.Contains("heatmap_sample_period"))
                             output = "{[\"heatmap_samples_to_send\"] = 1, [\"heatmap_sample_period\"] = 5}";
-
                     }
                 }
             }

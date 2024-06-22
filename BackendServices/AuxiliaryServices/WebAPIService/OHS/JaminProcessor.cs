@@ -65,7 +65,7 @@ namespace WebAPIService.OHS
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[OHS] - JaminDeFormatWithWriteKey function JaminDeFormat failed - {ex}");
+                LoggerAccessor.LogError($"[OHS] - JaminDeFormatWithWriteKey function JaminDeFormat failed - {ex}");
             }
 
             return ("11111111", null);
@@ -113,7 +113,7 @@ namespace WebAPIService.OHS
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[OHS] - JaminDeFormat function JaminDeFormat failed - {ex}");
+                LoggerAccessor.LogError($"[OHS] - JaminDeFormat function JaminDeFormat failed - {ex}");
             }
 
             return null;
@@ -123,6 +123,9 @@ namespace WebAPIService.OHS
         {
             try
             {
+
+                dataforohs = LuaUtils.HotfixBooleanValuesForLUA(dataforohs); // We lowercase boolean attributes.
+
 #if DEBUG
                 LoggerAccessor.LogInfo($"[OHS] - JaminFormat Input Data: {dataforohs}");
 #endif
@@ -144,7 +147,7 @@ namespace WebAPIService.OHS
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogWarn($"[OHS] - JaminFormat function JaminFormat failed - {ex}");
+                LoggerAccessor.LogError($"[OHS] - JaminFormat function JaminFormat failed - {ex}");
             }
 
             return null;
