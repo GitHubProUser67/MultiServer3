@@ -1,6 +1,5 @@
-using System.IO;
-using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
 using System;
 
 namespace Horizon.RT.Models
@@ -18,10 +17,8 @@ namespace Horizon.RT.Models
         /// Session Key
         /// </summary>
         public string? SessionKey; // SESSIONKEY_MAXLEN
-        /// <summary>
-        /// Ticket Size
-        /// </summary>
-        public uint TicketSize; 
+
+        public uint UNK0; 
         public byte[]? TicketData;
 
         public override void Deserialize(MessageReader reader)
@@ -31,9 +28,8 @@ namespace Horizon.RT.Models
             MessageID = reader.Read<MessageId>();
 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
-            reader.ReadBytes(2);
-            TicketSize = reader.ReadUInt32();
-            TicketData = reader.ReadBytes((int)TicketSize);
+            UNK0 = reader.ReadUInt32();
+            TicketData = reader.ReadBytes(Constants.XI5TICKET_21_LENGTH);
         }
 
         public override void Serialize(MessageWriter writer)
@@ -43,9 +39,8 @@ namespace Horizon.RT.Models
             writer.Write(MessageID ?? MessageId.Empty);
 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
-            writer.Write(2);
-            writer.Write(TicketSize);
-            writer.Write(TicketData ?? new byte[TicketSize]);
+            writer.Write(UNK0);
+            writer.Write(TicketData ?? new byte[Constants.XI5TICKET_21_LENGTH]);
         }
 
         public override string ToString()
@@ -53,14 +48,8 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID:{MessageID} " +
                 $"SessionKey:{SessionKey} " +
-                $"TicketSize: {TicketSize} " +
+                $"UNK0: {UNK0} " +
                 $"TicketData: {(TicketData != null ? BitConverter.ToString(TicketData) : string.Empty)} ";
-        }
-
-        public static uint ReverseBytes(uint value)
-        {
-            return (value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
-                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24;
         }
     }
 }
