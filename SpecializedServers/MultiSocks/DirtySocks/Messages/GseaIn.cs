@@ -24,7 +24,7 @@ namespace MultiSocks.DirtySocks.Messages
 
             if (CANCEL == "1")
             {
-                client.SendMessage(new GseaOut());
+                client.SendMessage(this);
                 return;
             }
 

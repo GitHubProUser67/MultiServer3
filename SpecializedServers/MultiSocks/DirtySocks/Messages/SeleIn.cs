@@ -6,17 +6,17 @@ namespace MultiSocks.DirtySocks.Messages
     {
         public override string _Name { get => "sele"; }
 
-        public string? MYGAME { get; set; } = "0";
+        public string MYGAME { get; set; } = "0";
         public string GAMES { get; set; } = "0";
         public string ROOMS { get; set; } = "0";
         public string USERS { get; set; } = "0";
         public string MESGS { get; set; } = "1";
-        public string? MESGTYPES { get; set; } = "P";
-        public string? STATS { get; set; } = "0";
+        public string MESGTYPES { get; set; } = "P";
+        public string? STATS { get; set; }
         public string RANKS { get; set; } = "1";
-        public string? USERSETS { get; set; } = "0";
-        public string? INGAME { get; set; } = "0";
-        public string? ASYNC { get; set; } = "0";
+        public string USERSETS { get; set; } = "0";
+        public string? INGAME { get; set; }
+        public string ASYNC { get; set; } = "0";
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
@@ -24,42 +24,52 @@ namespace MultiSocks.DirtySocks.Messages
 
             if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
             {
-                if (context.SKU == "PS3")
+                if (STATS == null && INGAME == null)
                     client.SendMessage(new SeleOut()
                     {
-                        GAMES = GAMES,
-                        MYGAME = MYGAME,
-                        USERS = USERS,
-                        ROOMS = ROOMS,
-                        USERSETS = USERSETS,
-                        MESGS = MESGS,
-                        MESGTYPES = MESGTYPES,
-                        ASYNC = ASYNC,
-                        CTRL = "0",
-                        STATS = STATS,
-                        SLOTS = "280",
-                        INGAME = INGAME,
-                        DP = "PS3/Burnout-Dec2007/mod"
+                        MORE = "0",
+                        SLOTS = "4",
+                        STATS = "0"
                     });
                 else
-                    client.SendMessage(new SeleOut()
-                    {
-                        GAMES = GAMES,
-                        MYGAME = MYGAME,
-                        USERS = USERS,
-                        ROOMS = ROOMS,
-                        USERSETS = USERSETS,
-                        MESGS = MESGS,
-                        MESGTYPES = MESGTYPES,
-                        ASYNC = ASYNC,
-                        CTRL = "0",
-                        STATS = STATS,
-                        SLOTS = "280",
-                        INGAME = INGAME,
-                        DP = "PC/Burnout-Dec2007/mod",
-                        GFID = "\"ODS:19038.110.Base Product;BURNOUT PARADISE ULTIMATE EDITION_PC_ONLINE_ACCESS\"",
-                        PSID = "PS-REG-BURNOUT2008"
-                    });
+                {
+                    if (context.SKU == "PS3")
+                        client.SendMessage(new SeleOut()
+                        {
+                            GAMES = GAMES,
+                            MYGAME = MYGAME,
+                            USERS = USERS,
+                            ROOMS = ROOMS,
+                            USERSETS = USERSETS,
+                            MESGS = MESGS,
+                            MESGTYPES = MESGTYPES,
+                            ASYNC = ASYNC,
+                            CTRL = "0",
+                            STATS = STATS,
+                            SLOTS = "280",
+                            INGAME = INGAME,
+                            DP = "PS3/Burnout-Dec2007/mod"
+                        });
+                    else
+                        client.SendMessage(new SeleOut()
+                        {
+                            GAMES = GAMES,
+                            MYGAME = MYGAME,
+                            USERS = USERS,
+                            ROOMS = ROOMS,
+                            USERSETS = USERSETS,
+                            MESGS = MESGS,
+                            MESGTYPES = MESGTYPES,
+                            ASYNC = ASYNC,
+                            CTRL = "0",
+                            STATS = STATS,
+                            SLOTS = "280",
+                            INGAME = INGAME,
+                            DP = "PC/Burnout-Dec2007/mod",
+                            GFID = "\"ODS:19038.110.Base Product;BURNOUT PARADISE ULTIMATE EDITION_PC_ONLINE_ACCESS\"",
+                            PSID = "PS-REG-BURNOUT2008"
+                        });
+                }
             }
             else
                 client.SendMessage(new SeleOut()
@@ -73,7 +83,7 @@ namespace MultiSocks.DirtySocks.Messages
                     SLOTS = "36"
                 });
 
-            if (user != null && (USERSETS != "0" || INGAME != "0"))
+            if (user != null && (STATS != null || INGAME != null))
             {
                 if (!string.IsNullOrEmpty(context.Project))
                 {
