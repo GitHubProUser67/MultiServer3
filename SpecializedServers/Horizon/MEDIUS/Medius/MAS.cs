@@ -1711,16 +1711,31 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusTicketLoginRequest ticketLoginRequest:
                     {
-                        // ERROR - Need a session and online id
-                        if (data.ClientObject == null || string.IsNullOrEmpty(ticketLoginRequest.UserOnlineId))
+                        // ERROR - Need a session and XI5 Ticket
+                        if (data.ClientObject == null || ticketLoginRequest.TicketData == null)
                         {
-                            LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {ticketLoginRequest} without a session or UserOnlineId.");
+                            LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {ticketLoginRequest} without a session or XI5 Ticket.");
                             break;
                         }
 
-                        string UserOnlineId = ticketLoginRequest.UserOnlineId;
+                        // Extract the desired portion of the binary data for a npticket 4.0
+                        byte[] extractedData = new byte[0x61 - 0x52 + 1];
 
-                        if (ticketLoginRequest.UNK3 != null && DataTypesUtils.FindBytePattern(ticketLoginRequest.UNK3, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 24) != -1)
+                        // Copy it
+                        Array.Copy(ticketLoginRequest.TicketData, 0x52, extractedData, 0, extractedData.Length);
+
+                        // Trim null bytes
+                        int nullByteIndex = Array.IndexOf(extractedData, (byte)0x00);
+                        if (nullByteIndex >= 0)
+                        {
+                            byte[] trimmedData = new byte[nullByteIndex];
+                            Array.Copy(extractedData, trimmedData, nullByteIndex);
+                            extractedData = trimmedData;
+                        }
+
+                        string UserOnlineId = Encoding.UTF8.GetString(extractedData);
+
+                        if (DataTypesUtils.FindBytePattern(ticketLoginRequest.TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                         {
                             LoggerAccessor.LogInfo($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN");
                             data.ClientObject.IsOnRPCN = true;
