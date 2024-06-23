@@ -174,11 +174,7 @@ namespace Horizon.RT.Common
 
         #region PSN Specific Ticket
 
-        public const int TICKET_SERIAL_ID_MAXLEN = 20;
-        public const int USER_ONLINE_ID_MAXLEN = 16;
-        public const int USER_REGION_MAXLEN = 4;
-        public const int USER_DOMAIN_MAXLEN = 4;
-        public const int SERVICE_ID_MAXLEN = 24;
+        public const int XI5TICKET_21_LENGTH = 212;
 
         #endregion
 

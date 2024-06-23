@@ -1719,10 +1719,10 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         // Extract the desired portion of the binary data for a npticket 4.0
-                        byte[] extractedData = new byte[0x61 - 0x52 + 1];
+                        byte[] extractedData = new byte[0x63 - 0x54 + 1];
 
                         // Copy it
-                        Array.Copy(ticketLoginRequest.TicketData, 0x52, extractedData, 0, extractedData.Length);
+                        Array.Copy(ticketLoginRequest.TicketData, 0x54, extractedData, 0, extractedData.Length);
 
                         // Trim null bytes
                         int nullByteIndex = Array.IndexOf(extractedData, (byte)0x00);
