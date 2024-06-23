@@ -13,8 +13,8 @@ namespace QuazalServer.RDVServices.Services
 	/// <summary>
 	/// Authentication service (ticket granting)
 	/// </summary>
-	[RMCService(RMCProtocolId.TicketGrantingService)]
-	public class TicketGrantingService : RMCServiceBase
+	[RMCService(RMCProtocolId.TicketGrantingServiceLoginData)]
+	public class TicketGrantingServiceLoginData : RMCServiceBase
 	{
 		[RMCMethod(1)]
 		public RMCResult Login(string userName)
@@ -233,7 +233,7 @@ namespace QuazalServer.RDVServices.Services
 		/// Function where client login is performed by account ID and password
 		/// </summary>
 		[RMCMethod(2)]
-		public RMCResult LoginEx(string userName, AnyData<UbiAuthenticationLoginCustomData> oExtraData)
+		public RMCResult LoginEx(string userName, AnyData<LoginData> oExtraData)
 		{
 			if (Context != null)
 			{
@@ -257,27 +257,7 @@ namespace QuazalServer.RDVServices.Services
 
                     User? user = DBHelper.GetUserByName(userName, Context.Handler.AccessKey);
 
-                    if (user != null)
-                    {
-                        bool passwordCheckResult = false;
-                        try
-                        {
-                            passwordCheckResult = oExtraData.data.password == user.Password || SecurePasswordHasher.Verify($"{user.Id}-{user.PlayerNickName}", oExtraData.data.password);
-                        }
-                        catch (Exception)
-                        {
-                            passwordCheckResult = false;
-                        }
-
-                        if (passwordCheckResult)
-                            CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName} - success");
-                        else
-                        {
-                            CustomLogger.LoggerAccessor.LogWarn($"[RMC Authentication] - User login request {userName} - invalid password");
-                            loginCode = ErrorCode.RendezVous_InvalidPassword;
-                        }
-                    }
-                    else
+                    if (user == null)
                     {
                         CustomLogger.LoggerAccessor.LogWarn($"[RMC Authentication] - User login request {userName} - invalid user name");
                         loginCode = ErrorCode.RendezVous_InvalidUsername;
@@ -300,6 +280,8 @@ namespace QuazalServer.RDVServices.Services
                     }
                     else
                     {
+                        Login loginData;
+
                         plInfo = NetworkPlayers.CreatePlayerInfo(Context.Client);
 
                         if (user != null)
@@ -314,9 +296,25 @@ namespace QuazalServer.RDVServices.Services
                             plInfo.Name = userName;
                         }
 
+                        if (!File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{userName}_{plInfo.PID}_password.txt"))
+                        {
+                            loginData = new(0)
+                            {
+                                retVal = (int)ErrorCode.RendezVous_InvalidPassword,
+                                pConnectionData = new RVConnectionData()
+                                {
+                                    m_urlRegularProtocols = new StationURL("prudp:/")
+                                },
+                                strReturnMsg = string.Empty,
+                                pbufResponse = Array.Empty<byte>()
+                            };
+
+                            return Result(loginData);
+                        }
+
                         KerberosTicket kerberos = new(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket);
 
-                        Login loginData = new(plInfo.PID)
+                        loginData = new(plInfo.PID)
                         {
                             retVal = (uint)loginCode,
                             pConnectionData = new RVConnectionData()
@@ -325,16 +323,16 @@ namespace QuazalServer.RDVServices.Services
                                     "prudps",
                                     prudplink,
                                     new Dictionary<string, int>() {
-                                    { "port", Context.Handler.BackendPort },
-                                    { "CID", 1 },
-                                    { "PID", (int)Context.Client.sPID },
-                                    { "sid", 1 },
-                                    { "stream", 3 },
-                                    { "type", 2 } // Public, not BehindNAT
+                                        { "port", Context.Handler.BackendPort },
+                                        { "CID", 1 },
+                                        { "PID", (int)Context.Client.sPID },
+                                        { "sid", 1 },
+                                        { "stream", 3 },
+                                        { "type", 2 } // Public, not BehindNAT
                                     })
                             },
                             strReturnMsg = string.Empty,
-                            pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey)
+                            pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{userName}_{plInfo.PID}_password.txt"))
                         };
 
                         return Result(loginData);

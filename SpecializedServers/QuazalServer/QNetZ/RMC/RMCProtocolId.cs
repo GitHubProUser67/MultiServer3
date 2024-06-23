@@ -53,7 +53,8 @@ namespace QuazalServer.QNetZ
         _200Service                     = 200,
         OverlordCoreProtocolService     = 5003,
         OverlordFriendsService          = 5005,
-        PS3SecureConnectionService = int.MaxValue -1, // Custom built for PS3 Ubisoft Rendez-vous clients.
+        TicketGrantingServiceLoginData = int.MaxValue - 2, // Custom built for Riding Club Championships LoginData.
+        PS3SecureConnectionService = int.MaxValue - 1, // Custom built for PS3 Ubisoft Rendez-vous clients.
         LegacyFriendsService = int.MaxValue // Custom built for older Rendez-vous clients.
     }
 }

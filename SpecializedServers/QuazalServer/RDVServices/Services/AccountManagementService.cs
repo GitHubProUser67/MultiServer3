@@ -162,10 +162,13 @@ namespace QuazalServer.RDVServices.Services
         }
 
         [RMCMethod(21)]
-        public RMCResult CreateAccountWithCustomData()
+        public void CreateAccountWithCustomData(string strPrincipalName, string strKey, uint uiGroups, string strEmail, AnyData<PlayerData> oPublicData, AnyData<AccountInfoPrivateData> oPrivateData)
         {
-            UNIMPLEMENTED();
-            return Error(0);
+            if (oPrivateData.data == null || oPublicData.data == null)
+                CustomLogger.LoggerAccessor.LogError($"[AccountManagementService] - Public or Private data returned a null result - Private: {oPrivateData?.className} | Public: {oPublicData?.className}");
+
+            if (Context != null && Context.Handler.AccessKey != null)
+                DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail, Context.Handler.AccessKey);
         }
 
         [RMCMethod(22)]

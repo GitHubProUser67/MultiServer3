@@ -230,6 +230,7 @@ namespace QuazalServer.QNetZ
                 case "hg7j1":
                 case "yh64s":
                 case "uG9Kv3p":
+                case "1WguH+y":
                     using (LzoStream lzo = new(new MemoryStream(InData), System.IO.Compression.CompressionMode.Decompress))
                     {
                         lzo.CopyTo(memoryStream);

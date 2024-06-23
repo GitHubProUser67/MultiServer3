@@ -9,10 +9,10 @@ namespace QuazalServer.RDVServices
 		{
             if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}"))
             {
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{name}_*.json");
+                string? parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{name}_*.json").Where(file => !file.Contains("password")).FirstOrDefault();
 
-                if (File.Exists(parts[0])) // Unsafe, please fix.
-                    return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts[0]));
+                if (!string.IsNullOrEmpty(parts) && File.Exists(parts))
+                    return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts));
             }
             
             return null;
@@ -22,10 +22,10 @@ namespace QuazalServer.RDVServices
 		{
             if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}"))
             {
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"*_{PID}.json");
+                string? parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"*_{PID}.json").Where(file => !file.Contains("password")).FirstOrDefault();
 
-                if (File.Exists(parts[0])) // Unsafe, please fix.
-                    return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts[0]));
+                if (!string.IsNullOrEmpty(parts) && File.Exists(parts))
+                    return JsonConvert.DeserializeObject<User>(File.ReadAllText(parts));
             }
 
             return null;
@@ -59,7 +59,7 @@ namespace QuazalServer.RDVServices
 
                 string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{strPrincipalName}_*.json");
 
-                if (parts.Length <= 0 ) // Not create account with same name.
+                if (parts.Length == 0) // Not create account with same name.
                 {
                     File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}.json", json);
                     File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_password.txt", strKey);
@@ -96,7 +96,7 @@ namespace QuazalServer.RDVServices
 
                 string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{strPrincipalName}_*.json");
 
-                if (parts.Length <= 0) // Not create account with same name.
+                if (parts.Length == 0) // Not create account with same name.
                 {
                     File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}.json", json);
                     File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_password.txt", strKey);
