@@ -13,7 +13,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
         /// <summary>
         /// Session Key
         /// </summary>
@@ -31,9 +31,9 @@ namespace Horizon.RT.Models
         public string? UserOnlineId;
         public string? UserRegion;
         public string? UserDomain;
-        public uint UserStatus;
         public byte[]? UNK1;
         public byte[]? UNK2;
+        public byte[]? UNK3;
         /// <summary>
         /// NP Service ID
         /// </summary>
@@ -57,7 +57,7 @@ namespace Horizon.RT.Models
             UserRegion = reader.ReadString(Constants.USER_REGION_MAXLEN);
             UNK1 = reader.ReadBytes(12);
             ServiceID = reader.ReadString(Constants.SERVICE_ID_MAXLEN);
-            UserStatus = reader.ReadUInt32();
+            UNK3 = reader.ReadBytes(98);
         }
 
         public override void Serialize(MessageWriter writer)
@@ -77,7 +77,7 @@ namespace Horizon.RT.Models
             writer.Write(UserDomain, Constants.USER_DOMAIN_MAXLEN);
             writer.Write(UNK1 ?? new byte[12], 12);
             writer.Write(ServiceID ?? string.Empty, Constants.SERVICE_ID_MAXLEN);
-            writer.Write(UserStatus);
+            writer.Write(UNK3 ?? new byte[98], 98);
         }
 
         public override string ToString()
@@ -86,16 +86,15 @@ namespace Horizon.RT.Models
                 $"MessageID:{MessageID} " +
                 $"SessionKey:{SessionKey} " +
                 $"TicketSize: {TicketSize} " +
-                $"UNK0: {UNK0} " +
-                //$"UNK0: {BitConverter.ToString(UNK2)} " +
+                $"UNK0: {(UNK0 != null ? BitConverter.ToString(UNK0) : string.Empty)} " +
                 $"UserAccountId: {ReverseBytes(UserAccountId)} " +
                 $"UserOnlineIDLen: {Convert.ToInt32(UserOnlineIDLen)} " +
                 $"UserOnlineId: {UserOnlineId} " +
                 $"UserRegion: {UserRegion} " +
                 $"UserDomain: {UserDomain} " +
-                $"UNK1: {UNK1} " +
+                $"UNK1: {(UNK1 != null ? BitConverter.ToString(UNK1) : string.Empty)} " +
                 $"ServiceID: {ServiceID} " +
-                $"UserStatus: {UserStatus} ";
+                $"UNK3: {(UNK3 != null ? BitConverter.ToString(UNK3) : string.Empty)} ";
         }
 
         public static uint ReverseBytes(uint value)

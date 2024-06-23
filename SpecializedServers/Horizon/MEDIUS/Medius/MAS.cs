@@ -18,6 +18,7 @@ using System.Text;
 using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
 using Horizon.HTTPSERVICE;
+using System.Buffers;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -1710,16 +1711,28 @@ namespace Horizon.MEDIUS.Medius
 
                 case MediusTicketLoginRequest ticketLoginRequest:
                     {
-
-                        // ERROR - Need a session
-                        if (data.ClientObject == null)
+                        // ERROR - Need a session and online id
+                        if (data.ClientObject == null || string.IsNullOrEmpty(ticketLoginRequest.UserOnlineId))
                         {
-                            LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {ticketLoginRequest} without a session.");
+                            LoggerAccessor.LogError($"INVALID OPERATION: {clientChannel} sent {ticketLoginRequest} without a session or UserOnlineId.");
                             break;
                         }
 
+                        string UserOnlineId = ticketLoginRequest.UserOnlineId;
+
+                        if (ticketLoginRequest.UNK3 != null && DataTypesUtils.FindBytePattern(ticketLoginRequest.UNK3, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 24) != -1)
+                        {
+                            LoggerAccessor.LogInfo($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN");
+                            data.ClientObject.IsOnRPCN = true;
+                            UserOnlineId += "RPCN";
+                        }
+                        else
+                            LoggerAccessor.LogInfo($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on PSN");
+
+                        ClientObject? ExsitingClient = MediusClass.Manager.GetClientByAccountName(UserOnlineId, data.ClientObject.ApplicationId);
+
                         // Check the client isn't already logged in
-                        if (MediusClass.Manager.GetClientByAccountName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId)?.IsLoggedIn ?? false)
+                        if (ExsitingClient != null && ExsitingClient.IsLoggedIn)
                         {
                             data.ClientObject.Queue(new MediusAccountLoginResponse()
                             {
@@ -1756,7 +1769,7 @@ namespace Horizon.MEDIUS.Medius
                                     }
                                     else
                                     {
-                                        await HorizonServerConfiguration.Database.GetAccountByName(ticketLoginRequest.UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                        await HorizonServerConfiguration.Database.GetAccountByName(UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
                                         {
                                             if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                                 return;
@@ -1861,14 +1874,14 @@ namespace Horizon.MEDIUS.Medius
                                                     {
                                                         _ = HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                                                         {
-                                                            AccountName = ticketLoginRequest.UserOnlineId,
+                                                            AccountName = UserOnlineId,
                                                             AccountPassword = "UNSET",
                                                             MachineId = data.MachineId,
                                                             MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                                                             AppId = data.ClientObject.ApplicationId
                                                         }, clientChannel).ContinueWith(async (r) =>
                                                         {
-                                                            LoggerAccessor.LogInfo($"Creating New Account for user {ticketLoginRequest.UserOnlineId}!");
+                                                            LoggerAccessor.LogInfo($"Creating New Account for user {UserOnlineId}!");
 
                                                             if (r.IsCompletedSuccessfully && r.Result != null)
                                                             {
