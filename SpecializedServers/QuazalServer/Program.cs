@@ -16,6 +16,7 @@ public static class QuazalServerConfiguration
                     {
                         Tuple.Create(30201, "yh64s"), // TDUPS2
                         Tuple.Create(30216, "hg7j1"), // TDUPS2BETA
+                        Tuple.Create(30551, "1WguH+y"), // RIDINGCLUBPC
                         Tuple.Create(60106, "w6kAtr3T"), // DFSPC
                         Tuple.Create(61111, "QusaPha9"), // DFSPS3
                         Tuple.Create(62111, "QusaPha9"), // DFSPS3NTSCLOBBY
@@ -40,6 +41,7 @@ public static class QuazalServerConfiguration
                     {
                         Tuple.Create(30200, 30201, "yh64s"), // TDUPS2
                         Tuple.Create(30215, 30216, "hg7j1"), // TDUPS2BETA
+                        Tuple.Create(30550, 30551, "1WguH+y"), // RIDINGCLUBPC
                         Tuple.Create(60105, 60106, "w6kAtr3T"), // DFSPC
                         Tuple.Create(61110, 61111, "QusaPha9"), // DFSPS3
                         Tuple.Create(62110, 62111, "QusaPha9"), // DFSPS3NTSCLOBBY

@@ -65,6 +65,12 @@ namespace QuazalServer.QNetZ
                             if (proto == RMCProtocolId.FriendsService)
                                 proto = RMCProtocolId.LegacyFriendsService;
                             break;
+						case "1WguH+y":
+                            if (proto == RMCProtocolId.FriendsService)
+                                proto = RMCProtocolId.LegacyFriendsService;
+                            else if (proto == RMCProtocolId.TicketGrantingService)
+								proto = RMCProtocolId.TicketGrantingServiceLoginData;
+                            break;
 					}
                 }
                 catch
@@ -131,9 +137,11 @@ namespace QuazalServer.QNetZ
 		{
             MemoryStream packetData = new();
 
-			if (proto == RMCProtocolId.PS3SecureConnectionService) // We need this workaround, Ubisoft client code expect the correct ID for the service.
-																   // Else, it denies the request... great...
+			// We need those workarounds, Quazal services expect the correct RMC service to return.
+			if (proto == RMCProtocolId.PS3SecureConnectionService)
 				proto = RMCProtocolId.SecureConnectionService;
+			else if (proto == RMCProtocolId.TicketGrantingServiceLoginData)
+				proto = RMCProtocolId.TicketGrantingService;
 
             if ((ushort)proto < 0x7F)
 			{
