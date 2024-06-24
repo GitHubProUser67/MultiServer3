@@ -41,7 +41,9 @@ namespace QuazalServer.RDVServices.Services
                 }
 				else
 				{
-                    User? user = DBHelper.GetUserByPID(plInfo.PID, Context.Handler.AccessKey);
+                    var keypair = DBHelper.GetUserByPID(plInfo.PID, Context.Handler.AccessKey);
+
+                    User? user = keypair?.Item3;
 
                     if (user != null)
 					{

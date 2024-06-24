@@ -42,7 +42,9 @@ namespace QuazalServer.RDVServices.Services
 
                 plInfo = NetworkPlayers.CreatePlayerInfo(Context.Client);
 
-                User? user = DBHelper.GetUserByName(userName, Context.Handler.AccessKey);
+                var keypair = DBHelper.GetUserByName(userName, Context.Handler.AccessKey);
+
+                User? user = keypair?.Item3;
 
                 if (user != null || userName == "guest" || userName == "Tracking")
                 {
@@ -255,7 +257,9 @@ namespace QuazalServer.RDVServices.Services
                         NetworkPlayers.DropPlayerInfo(plInfo);
                     }
 
-                    User? user = DBHelper.GetUserByName(userName, Context.Handler.AccessKey);
+                    var keypair = DBHelper.GetUserByName(userName, Context.Handler.AccessKey);
+
+                    User? user = keypair?.Item3;
 
                     if (user != null)
                     {
@@ -369,7 +373,9 @@ namespace QuazalServer.RDVServices.Services
                     ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
                 {
-                    User? user = DBHelper.GetUserByPID(sourcePID, Context.Handler.AccessKey);
+                    var keypair = DBHelper.GetUserByPID(sourcePID, Context.Handler.AccessKey);
+
+                    User? user = keypair?.Item3;
 
                     if (user != null && File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{user.Name}_{sourcePID}_password.txt"))
                         ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}/{user.Name}_{sourcePID}_password.txt"));
