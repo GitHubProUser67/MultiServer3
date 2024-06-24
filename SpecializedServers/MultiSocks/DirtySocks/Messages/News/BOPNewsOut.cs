@@ -16,7 +16,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? TOSA_URL { get; set; }
         public string? TOS_URL { get; set; }
         public string? USE_GLOBAL_ROAD_RULE_SCORES { get; set; } = "0";
-        public string? ROAD_RULES_RESET_DATE { get; set; } = "2007.10.11 18:00:00";
+        public string? ROAD_RULES_RESET_DATE { get; set; } = "2024.10.11 18:00:00";
         public string? CAR_OLD_ROAD_RULES_TAGFIELD { get; set; } = "\"RULES,RULES1,RULES2,RULES3,RULES4,RULES5,RULES6,RULES7,RULES8,RULES9,RULES10,RULES11,RULES12,RULES13,RULES14,RULES15,RULES16\"";
         public string? CAR_ROAD_RULES_TAGFIELD { get; set; } = "\"RULES17\"";
         public string? BIKE_DAY_OLD_ROAD_RULES_TAGFIELD { get; set; } = "\"BIKEDAYRULES1,BIKEDAYRULES2\"";
