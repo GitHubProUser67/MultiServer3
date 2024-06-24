@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<global>
-  <drink_defs>
-    <vetoxade>
-      <cost type="num">100</cost>
-    </vetoxade>
-  </drink_defs>
-</global>
