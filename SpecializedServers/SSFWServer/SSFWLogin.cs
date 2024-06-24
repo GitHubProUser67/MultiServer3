@@ -64,7 +64,7 @@ namespace SSFWServer
         {
             if (bufferwrite != null)
             {
-                bool rpcn = false;
+                bool IsRPCN = false;
                 string salt = string.Empty;
 
                 // Extract the desired portion of the binary data
@@ -82,7 +82,7 @@ namespace SSFWServer
 
                 if (DataTypesUtils.FindBytePattern(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                 {
-                    rpcn = true;
+                    IsRPCN = true;
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                 }
                 else
@@ -112,7 +112,7 @@ namespace SSFWServer
 
                 SessionIDs.Item2 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item2);
 
-                if (rpcn)
+                if (IsRPCN)
                 {
                     // Convert the modified data to a string
                     UserNames.Item1 = ResultStrings.Item1 = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
@@ -145,7 +145,7 @@ namespace SSFWServer
                 }
                 else if (!string.IsNullOrEmpty(UserNames.Item2) && !string.IsNullOrEmpty(SessionIDs.Item2))
                 {
-                    rpcn = false;
+                    IsRPCN = false;
 
                     SSFWUserSessionManager.RegisterUser(UserNames.Item2, SessionIDs.Item2);
                 }
@@ -155,22 +155,22 @@ namespace SSFWServer
                     return null;
                 }
 
-                int logoncount = SSFWAccountManagement.ReadOrMigrateAccount(extractedData, rpcn ? UserNames.Item1 : UserNames.Item2, rpcn ? SessionIDs.Item1 : SessionIDs.Item2, key);
+                int logoncount = SSFWAccountManagement.ReadOrMigrateAccount(extractedData, IsRPCN ? UserNames.Item1 : UserNames.Item2, IsRPCN ? SessionIDs.Item1 : SessionIDs.Item2, key);
 
                 if (logoncount <= 0)
                 {
-                    LoggerAccessor.LogError($"[SSFWLogin] - Invalid Account or LogonCount value for user: {(rpcn ? UserNames.Item1 : UserNames.Item2)}");
+                    LoggerAccessor.LogError($"[SSFWLogin] - Invalid Account or LogonCount value for user: {(IsRPCN ? UserNames.Item1 : UserNames.Item2)}");
                     return null;
                 }
 
-                if (rpcn && Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item2}") && !Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item1}"))
+                if (IsRPCN && Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item2}") && !Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item1}"))
                     SSFWDataMigrator.MigrateSSFWData(SSFWServerConfiguration.SSFWStaticFolder, ResultStrings.Item2, ResultStrings.Item1);
 
-                string? resultString = rpcn ? ResultStrings.Item1 : ResultStrings.Item2;
+                string? resultString = IsRPCN ? ResultStrings.Item1 : ResultStrings.Item2;
 
                 if (string.IsNullOrEmpty(resultString))
                 {
-                    LoggerAccessor.LogError($"[SSFWLogin] - Invalid ResultString value for user: {(rpcn ? UserNames.Item1 : UserNames.Item2)}");
+                    LoggerAccessor.LogError($"[SSFWLogin] - Invalid ResultString value for user: {(IsRPCN ? UserNames.Item1 : UserNames.Item2)}");
                     return null;
                 }
 
@@ -232,7 +232,7 @@ namespace SSFWServer
                 if (!File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{resultString}/list.json"))
                     File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{resultString}/list.json", "[]");
 
-                return $"{{\"session\":[{{\"@id\":\"{(rpcn ? SessionIDs.Item1 : SessionIDs.Item2)}\",\"person\":{{\"@id\":\"{resultString}\",\"logonCount\":\"{logoncount}\"}}}}]}}";
+                return $"{{\"session\":[{{\"@id\":\"{(IsRPCN ? SessionIDs.Item1 : SessionIDs.Item2)}\",\"person\":{{\"@id\":\"{resultString}\",\"logonCount\":\"{logoncount}\"}}}}]}}";
             }
 
             return null;
