@@ -9,7 +9,7 @@ namespace MultiSocks.DirtySocks.Messages
         public string? EXticker { get; set; }
         public string? IDLE { get; set; }
         public string? LA { get; set; }
-        public string LKEY { get; set; }
+        public string LKEY { get; set; } = "3fcf27540c92935b0a66fd3b0000283c";
         public string? LOC { get; set; }
         public string? MA { get; set; } 
         public string? NAME { get; set; }
