@@ -14,7 +14,7 @@ namespace QuazalServer.RDVServices.Services
         public RMCResult CreateAccount(string strPrincipalName, string strKey, uint uiGroups, string strEmail)
         {
             if (Context != null && Context.Handler.AccessKey != null && DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail, Context.Handler.AccessKey))
-                return new RMCResult(new RMCPResponseEmpty(), true, 0);
+                return new RMCResult(new RMCPResponseEmpty());
             else
                 return Error((int)ErrorCode.Core_RegistrationError);
         }
@@ -162,19 +162,33 @@ namespace QuazalServer.RDVServices.Services
         }
 
         [RMCMethod(21)]
-        public void CreateAccountWithCustomData(string strPrincipalName, string strKey, uint uiGroups, string strEmail, AnyData<PlayerData> oPublicData, AnyData<AccountInfoPrivateData> oPrivateData)
+        public RMCResult CreateAccountWithCustomData(string strPrincipalName, string strKey, uint uiGroups, string strEmail, AnyData<PlayerData> oPublicData, AnyData<AccountInfoPrivateData> oPrivateData)
         {
             if (oPrivateData.data == null || oPublicData.data == null)
                 CustomLogger.LoggerAccessor.LogError($"[AccountManagementService] - Public or Private data returned a null result - Private: {oPrivateData?.className} | Public: {oPublicData?.className}");
 
-            if (Context != null && Context.Handler.AccessKey != null)
-                DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail, Context.Handler.AccessKey);
+            if (Context != null && Context.Handler.AccessKey != null && DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail, Context.Handler.AccessKey, oPublicData, oPrivateData))
+                return new RMCResult(new RMCPResponseEmpty());
+            else
+                return Error((int)ErrorCode.Core_RegistrationError);
         }
 
         [RMCMethod(22)]
         public RMCResult RetrieveAccount()
         {
-            UNIMPLEMENTED();
+            if (Context != null && Context.Client.PlayerInfo != null)
+            {
+                PlayerInfo? playerInfo = Context.Client.PlayerInfo;
+
+                if (playerInfo != null)
+                {
+                    var keypair = DBHelper.GetUserByPID(playerInfo.PID, Context.Handler.AccessKey, true);
+
+                    if (keypair != null)
+                        return Result(new { oAccountData = keypair.Value.Item3, oPublicData = keypair.Value.Item1?.Value, oPrivateData = keypair.Value.Item2?.Value });
+                }
+            }
+
             return Error(0);
         }
 

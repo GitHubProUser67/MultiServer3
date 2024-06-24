@@ -6,7 +6,28 @@ namespace QuazalServer.QNetZ.DDL
 		void Write(Stream s);
 	}
 
-	public class qBuffer : IAnyData
+    public class Buffer : IAnyData
+    {
+        public Buffer()
+        {
+            data = Array.Empty<byte>();
+        }
+
+        public byte[] data;
+        public void Read(Stream s)
+        {
+            data = new byte[Helper.ReadU32(s)];
+            s.Read(data, 0, data.Length);
+        }
+
+        public void Write(Stream s)
+        {
+            Helper.WriteU32(s, (uint)data.Length);
+            s.Write(data, 0, data.Length);
+        }
+    }
+
+    public class qBuffer : IAnyData
 	{
 		public qBuffer()
 		{
@@ -16,9 +37,8 @@ namespace QuazalServer.QNetZ.DDL
 		public byte[] data;
 		public void Read(Stream s)
 		{
-			ushort thisSize = Helper.ReadU16(s);
-			data = new byte[thisSize];
-			s.Read(data, 0, thisSize);
+			data = new byte[Helper.ReadU16(s)];
+			s.Read(data, 0, data.Length);
 		}
 
 		public void Write(Stream s)
@@ -40,7 +60,7 @@ namespace QuazalServer.QNetZ.DDL
 			data = _data;
 		}
 
-		public string className;
+        public string className;
 		public T? data;
 
 		public void Read(Stream s)
