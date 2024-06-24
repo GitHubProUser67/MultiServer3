@@ -21,10 +21,6 @@ namespace MultiSocks.DirtySocks.Messages
             {
 
                 client.SendMessage(new Dlc());
-            } else if (VIEW == "PS2")
-            {
-                client.SendMessage(new BORSviwOut());
-                client.User.SendPlusWho(user, "FLM/A1");
             }
             else
             {
