@@ -102,6 +102,12 @@ namespace Horizon.DME.Config
         /// number of worlds.
         ///</summary>
         public short MaxClientsPerWorld = 256; //			# (DEFAULT 2.10: 32 - DEFAULT: 256)
+
+        /// <summary>
+        /// If set to a different than -1 value, this will override the MaxClient
+        /// atribute sent via Medius, use at your own risk!
+        ///</summary>
+        public int MaxClientsOverride = -1;
     }
 
     public class MASSettings

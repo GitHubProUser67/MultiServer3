@@ -1,8 +1,0 @@
-<wallet>
-    <credits>
-        <id type='num'>1</id>
-        <colour type='vec'>255,255,255,255</colour>
-        <value>1</value>
-        <qty type='num'>1</qty>
-    </credits>
-</wallet>

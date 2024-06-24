@@ -32,6 +32,11 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
+        public bool IsOnRPCN = false;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public int UdpPort = 0;
 
         /// <summary>

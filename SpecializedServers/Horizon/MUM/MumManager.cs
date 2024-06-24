@@ -2219,44 +2219,41 @@ namespace Horizon.MUM
 
                 while (_addQueue.TryDequeue(out ClientObject? newClient))
                 {
+                    if (newClient == null)
+                        continue;
+
                     if (!_lookupsByAppId.TryGetValue(newClient.ApplicationId, out QuickLookup? quickLookup))
                         _lookupsByAppId.Add(newClient.ApplicationId, quickLookup = new QuickLookup());
 
-                    try
+                    if (!string.IsNullOrEmpty(newClient.AccountName) && !string.IsNullOrEmpty(newClient.Token) && !string.IsNullOrEmpty(newClient.SessionKey))
                     {
-                        if (!string.IsNullOrEmpty(newClient.AccountName) &&
-                            !string.IsNullOrEmpty(newClient.Token) &&
-                            !string.IsNullOrEmpty(newClient.SessionKey) &&
-                            !quickLookup.AccountIdToClient.ContainsKey(newClient.AccountId) &&
-                            !quickLookup.AccountNameToClient.ContainsKey(newClient.AccountName.ToLower()) &&
-                            !quickLookup.AccessTokenToClient.ContainsKey(newClient.Token) &&
-                            !quickLookup.SessionKeyToClient.ContainsKey(newClient.SessionKey))
+                        try
                         {
-                            quickLookup.AccountIdToClient.Add(newClient.AccountId, newClient);
-                            quickLookup.AccountNameToClient.Add(newClient.AccountName.ToLower(), newClient);
-                            quickLookup.AccessTokenToClient.Add(newClient.Token, newClient);
-                            quickLookup.SessionKeyToClient.Add(newClient.SessionKey, newClient);
+                            if (quickLookup.AccountIdToClient.TryAdd(newClient.AccountId, newClient))
+                            {
+                                if (quickLookup.AccountNameToClient.TryAdd(newClient.AccountName.ToLower(), newClient))
+                                {
+                                    if (quickLookup.AccessTokenToClient.TryAdd(newClient.Token, newClient))
+                                    {
+                                        if (!quickLookup.SessionKeyToClient.TryAdd(newClient.SessionKey, newClient))
+                                            LoggerAccessor.LogWarn($"[Mummanager] - TickClients - Could not add SessionKey for Client: {newClient.AccountId}");
+                                    }
+                                    else
+                                        LoggerAccessor.LogWarn($"[Mummanager] - TickClients - Could not add AccessToken for Client: {newClient.AccountId}");
+                                }
+                                else
+                                    LoggerAccessor.LogWarn($"[Mummanager] - TickClients - Could not add AccountName for Client: {newClient.AccountId}");
+                            }
+                            else
+                                LoggerAccessor.LogWarn($"[Mummanager] - TickClients - Could not add AccountId for Client: {newClient.AccountId}");
+                        }
+                        catch (Exception e)
+                        {
+                            LoggerAccessor.LogError($"[Mummanager] - TickClients - Errored out while adding Client: {newClient.AccountId} with Exception: {e}");
                         }
                     }
-                    catch (Exception e)
-                    {
-                        // clean up
-                        if (newClient != null)
-                        {
-                            quickLookup.AccountIdToClient.Remove(newClient.AccountId);
-
-                            if (newClient.AccountName != null)
-                                quickLookup.AccountNameToClient.Remove(newClient.AccountName.ToLower());
-
-                            if (newClient.Token != null)
-                                quickLookup.AccessTokenToClient.Remove(newClient.Token);
-
-                            if (newClient.SessionKey != null)
-                                quickLookup.SessionKeyToClient.Remove(newClient.SessionKey);
-                        }
-
-                        LoggerAccessor.LogError(e);
-                    }
+                    else
+                        LoggerAccessor.LogWarn($"[Mummanager] - TickClients - Client: {newClient.AccountId} was not added to the QuickLookup due to invalid properties.");
                 }
 
                 foreach (var quickLookup in _lookupsByAppId)

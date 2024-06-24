@@ -232,3 +232,4 @@ us.playstation.com,Redirect,IP
 nDreams.blueprint.s3.amazonaws.com,Redirect,IP
 cdn.bdlivenetwork.sonypictures.com,Redirect,IP
 bad.cold.pw,Redirect,IP
+ridingclubpclive.quazal.net,Redirect,IP
