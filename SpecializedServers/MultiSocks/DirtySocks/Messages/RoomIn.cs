@@ -15,6 +15,7 @@ namespace MultiSocks.DirtySocks.Messages
                                               // 1 = if room exists, ignore the create failure and just move into the room
         public string? IGNPROFNAME { get; set; } // 0 = fail if room name is profane
                                                  // 1 = do not check for profane room name
+        public string? LVLRNG { get; set; } // Level Range 
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
