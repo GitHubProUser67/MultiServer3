@@ -16,13 +16,33 @@ namespace MultiSocks.DirtySocks.Messages
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {
             var mc = context as MatchmakerServer;
-            if (mc == null) return;
+            if (mc == null)
+            {
+                client.SendMessage(new ChalOut()
+                {
+                    MODE = "idle"
+                });
+                return;
+            }
 
             User? user = client.User;
-            if (user == null) return;
+            if (user == null)
+            {
+                client.SendMessage(new ChalOut()
+                {
+                    MODE = "idle"
+                });
+                return;
+            }
 
             Room? room = user.CurrentRoom;
-            if (room == null) return;
+            if (room == null) {
+                client.SendMessage(new ChalOut()
+                {
+                    MODE = "idle"
+                });
+                return;
+            }
 
             _From = user.PersonaName;
             _FromUser = user;
@@ -31,8 +51,16 @@ namespace MultiSocks.DirtySocks.Messages
             {
                 room.RemoveChallenges(user); //remove any challenges we made before
                 if (PERS == "*")
+                {
                     //we don't want to play with anyone anymore
+                    client.SendMessage(new ChalOut()
+                    {
+                        MODE = "0"
+                    });
+
                     return;
+
+                }
                 //firstly, is someone wanting to play with us yet
                 else if (user.PersonaName != null && room.ChallengeMap.ContainsKey(user.PersonaName))
                 {

@@ -25,6 +25,10 @@ namespace MultiSocks.DirtySocks.Messages
         public string? TYPE { get; set; }
         public string? MODE { get; set; }
         public string? SESSION { get; set; }
+        public string? BBND { get; set; }
+        public string? BPSD { get; set; }
+        public string? DNF { get; set; }
+        public string? LEVEL { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

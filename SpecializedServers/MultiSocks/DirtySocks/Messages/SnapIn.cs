@@ -9,6 +9,11 @@
         public string? RANGE { get; set; }
         public string? CHAN {  get; set; }
         public string? SEQN { get; set; }
+        public string? CI { get; set; }
+        public string? II { get; set; }
+        public string? VI { get; set; }
+        public string? COLS { get; set; }
+        public string? VIEW { get; set; }
 
         public override void Process(AbstractDirtySockServer context, DirtySockClient client)
         {

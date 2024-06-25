@@ -10,28 +10,47 @@ namespace MultiSocks.DirtySocks
         private readonly AbstractDirtySockServer? RedirectorSSX3_PAL;
         private readonly AbstractDirtySockServer? RedirectorTSBO_NTSC_A;
         private readonly AbstractDirtySockServer? RedirectorTSBO_PAL;
+        private readonly AbstractDirtySockServer? RedirectorFightNight_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorFightNightR2_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorFifa06_NTSC;
         private readonly AbstractDirtySockServer? RedirectorNFLStreet_NTSC;
         private readonly AbstractDirtySockServer? RedirectorNFLStreet2_NTSC;
         private readonly AbstractDirtySockServer? RedirectorNFLStreet3_NTSC;
         private readonly AbstractDirtySockServer? Redirector007EverythingOrNothing_NTSC;
         private readonly AbstractDirtySockServer? RedirectorNCAAMM06_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorMaddenNFL06_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorBurnout3Takedown_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorBurnoutRevenge_NTSC;
         private readonly AbstractDirtySockServer? RedirectorBOP_PS3;
         private readonly AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PS3;
         private readonly AbstractDirtySockServer? RedirectorBOPULTIMATEBOX_PC;
         private readonly AbstractDirtySockServer? RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC;
+        private readonly AbstractDirtySockServer? RedirectoNFSMWA124_PAL;
+        private readonly AbstractDirtySockServer? RedirectorNascarThunder04_NTSC;
+        private readonly AbstractDirtySockServer? RedirectorMarvelNemesis06_NTSC;
         private readonly AbstractDirtySockServer? RedirectorNASCAR08_PS3;
         private readonly AbstractDirtySockServer? RedirectorNASCAR09_PS3;
         private readonly AbstractDirtySockServer? RedirectorHASBROFAMILYGAMENIGHT_PS3;
+
+        private readonly AbstractDirtySockServer? Burnout3Takedown_NTSCMatchmaker;
+        private readonly AbstractDirtySockServer? BurnoutRevenge_NTSCMatchmaker;
         private readonly AbstractDirtySockServer? BurnoutParadisePS3Matchmaker;
         private readonly AbstractDirtySockServer? BurnoutParadisePS3UltimateBoxMatchmaker;
         private readonly AbstractDirtySockServer? BurnoutParadisePCUltimateBoxMatchmaker;
         private readonly AbstractDirtySockServer? EverythingOrNothing007_NTSC_Matchmaker;
         private readonly AbstractDirtySockServer? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
+        private readonly AbstractDirtySockServer? NascarThunder04_NTSC_Matchmaker;
         private readonly AbstractDirtySockServer? NCAAMM06_NTSC_Matchmaker;
         private readonly AbstractDirtySockServer? HASBROFAMILYGAMENIGHTPS3Matchmaker;
         private readonly AbstractDirtySockServer? NFLStreet_NTSCMatchmaker;
         private readonly AbstractDirtySockServer? NFLStreet2_NTSCMatchmaker;
         private readonly AbstractDirtySockServer? NFLStreet3_NTSCMatchmaker;
+        private readonly AbstractDirtySockServer? FightNight_NTSCMatchmaker;
+        private readonly AbstractDirtySockServer? FightNightR2_NTSCMatchmaker;
+        private readonly AbstractDirtySockServer? Fifa06_NTSC_Matchmaker;
+        private readonly AbstractDirtySockServer? MaddenNFL06_NTSC_Matchmaker;
+        private readonly AbstractDirtySockServer? NFSMWA124_PAL_Matchmaker;
+        private readonly AbstractDirtySockServer? MarvelNemesis_NTSC_Matchmaker;
         private readonly AbstractDirtySockServer? SimsMatchmaker;
         private readonly AbstractDirtySockServer? SSX3Matchmaker;
         private readonly AbstractDirtySockServer? PS2EAMessenger;
@@ -87,6 +106,20 @@ namespace MultiSocks.DirtySocks
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[Redirector] TSBO_PAL Failed to start! Exception: {ex}");
+            }
+            #endregion
+
+            #region Fight Night 
+            try
+            {
+                RedirectorFightNight_NTSC = new RedirectorServer(11500, ListenIP, 11501, false, "KKING-PS2-2004", "PS2", false, "ps2kok04.ea.com", "ps2kok04@ea.com");
+                RedirectorFightNightR2_NTSC = new RedirectorServer(21500, ListenIP, 21501, false, "KKING-PS2-2005", "PS2", false, "ps2kok05.ea.com", "ps2kok05@ea.com");
+
+                LoggerAccessor.LogInfo($"[Redirector] Fight Night NTSC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] Fight Night NTSC Failed to start! Exception: {ex}");
             }
             #endregion
 
@@ -170,7 +203,18 @@ namespace MultiSocks.DirtySocks
             }
             #endregion
 
-            #region Nascar PS3
+            #region Nascar
+
+            try
+            {
+                RedirectorNascarThunder04_NTSC = new RedirectorServer(10600, ListenIP, 10601, false, "NASCAR-PS2-2004", "PS2", false, "ps2nascar04.ea.com", "ps2nascar04@ea.com");
+                LoggerAccessor.LogInfo($"[Redirector] NASCAR Thunder 04 Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] NASCAR08 Thunder 04 Failed to start! Exception: {ex}");
+            }
+
             try
             {
                 RedirectorNASCAR08_PS3 = new RedirectorServer(20651, ListenIP, 20652, false, "NASCAR08", "PS3", true, "ps3nascar08.ea.com", "ps3nascar08@ea.com");
@@ -217,6 +261,71 @@ namespace MultiSocks.DirtySocks
             }
             #endregion
 
+            #region Madden NFL 06
+            try
+            {
+                RedirectorMaddenNFL06_NTSC = new RedirectorServer(30000, ListenIP, 30001, false, "PS2-MM-2006", "PS2", false, "ps2madden06.ea.com", "ps2madden06@ea.com");
+
+                LoggerAccessor.LogInfo($"[Redirector] Madden NFL 06 NTSC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] Madden NFL 06 NTSC Failed to start! Exception: {ex}");
+            }
+            #endregion
+
+            #region Fifa 06
+            try
+            {
+                RedirectorFifa06_NTSC = new RedirectorServer(30400, ListenIP, 30401, false, "PS2-MM-2006", "PS2", false, "ps2fifa06.ea.com", "ps2fifa06@ea.com");
+
+                LoggerAccessor.LogInfo($"[Redirector] Fifa 06 NTSC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] Fifa 06 NTSC Failed to start! Exception: {ex}");
+            }
+            #endregion
+
+            #region Marvel Nemesis 
+            try
+            {
+                RedirectorMarvelNemesis06_NTSC = new RedirectorServer(31700, ListenIP, 31701, false, "NFLSTREET-PS2-2005", "PS2");
+                LoggerAccessor.LogInfo($"[Redirector] Marvel Nemesis - Rise of the Imperfects NTSC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] Marvel Nemesis - Rise of the Imperfects NTSC Failed to start! Exception: {ex}");
+            }
+
+            #endregion
+
+            #region Burnout 3 Takedown
+            try
+            {
+                RedirectorBurnoutRevenge_NTSC = new RedirectorServer(21800, ListenIP, 21801, false, "BR-PS2-2004", "PS2", false, "ps2burnout05.ea.com", "ps2burnout05@ea.com");
+
+                LoggerAccessor.LogInfo($"[Redirector] Burnout 3 Takedown NTSC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] Burnout 3 Takedown NTSC Failed to start! Exception: {ex}");
+            }
+            #endregion
+
+            #region Burnout Revenge
+            try
+            {
+                RedirectorBurnoutRevenge_NTSC = new RedirectorServer(31800, ListenIP, 31801, false, "BR-PS2-2004", "PS2", false, "ps2burnout06.ea.com", "ps2burnout06@ea.com");
+
+                LoggerAccessor.LogInfo($"[Redirector] Burnout Revenge NTSC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] Burnout Revenge NTSC Failed to start! Exception: {ex}");
+            }
+            #endregion
+
             #region 007: Everything or Nothing
             try
             {
@@ -229,11 +338,23 @@ namespace MultiSocks.DirtySocks
                 LoggerAccessor.LogError($"[Redirector] 007 Everything Or Nothing NTSC Failed to start! Exception: {ex}");
             }
             #endregion
-			
+
+            #region NFS:MW A124
+            try
+            {
+                RedirectoNFSMWA124_PAL = new RedirectorServer(30900, ListenIP, 30901, false, "nfs-ps2-2006", "PS2", false, "ps2nfs06.ea.com", "ps2nfs06@ea.com");
+
+                LoggerAccessor.LogInfo($"[Redirector] Need for Speed: Most Wanted Alpha 124 PAL Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] Need for Speed: Most Wanted Alpha 124 PAL Failed to start! Exception: {ex}");
+            }
             #endregion
 
-            #region EA Messenger
+            #endregion
 
+            #region EA.com Messenger Buddy Server
             try
             {
                 PS2EAMessenger = new EAMessengerServer(10899, true, null, null, "PS2");
@@ -253,10 +374,17 @@ namespace MultiSocks.DirtySocks
             {
                 LoggerAccessor.LogError($"[PS3EAMessenger] Buddy Service Failed to start! Exception: {ex}");
             }
-
             #endregion
 
             #region Matchmaker
+            try
+            {
+                NascarThunder04_NTSC_Matchmaker = new MatchmakerServer(10601, true, null, "NASCAR-PS2-2004", "PS2");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Nascar Thunder 04 NTSC Matchmaker] Failed to start! Exception: {ex}");
+            }
 
             try
             {
@@ -283,6 +411,78 @@ namespace MultiSocks.DirtySocks
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[NFL Street NTSC Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+
+            #region Madden NFL 06
+            try
+            {
+                MaddenNFL06_NTSC_Matchmaker = new MatchmakerServer(30001, true, null, "MADDEN-06", "PS2", false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Madden NFL 06 Matchmaker] Failed to start! Exception: {ex}");
+            }
+            #endregion
+
+            try
+            {
+                FightNight_NTSCMatchmaker = new MatchmakerServer(11501, true, null, "KKING-PS2-2004", "PS2", false);
+                FightNightR2_NTSCMatchmaker = new MatchmakerServer(21501, true, null, "KKING-PS2-2005", "PS2", false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Fight Night 04 Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+
+            try
+            {
+                Burnout3Takedown_NTSCMatchmaker = new MatchmakerServer(21801, true, null, "BR-2005-PS2", "PS2", false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Burnout Revenge Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+
+            try
+            {
+                MarvelNemesis_NTSC_Matchmaker = new MatchmakerServer(31701, true, new List<Tuple<string, bool>>()
+                {
+                    new("Earth", true)
+                    }, "NASCAR-PS2-2004", "PS2");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Marvel Nemesis NTSC Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                BurnoutRevenge_NTSCMatchmaker = new MatchmakerServer(31801, true, null, "BR-2005-PS2", "PS2", false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Burnout Revenge Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                Fifa06_NTSC_Matchmaker = new MatchmakerServer(30401, true, null, "BR-2005-PS2", "PS2", false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Fifa 06 Matchmaker] Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                NFSMWA124_PAL_Matchmaker = new MatchmakerServer(30901, true, null, "nfs-ps2-2006", "PS2", false);
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Matchmaker] Need for Speed: Most Wanted A124 Failed to start! Exception: {ex}");
             }
 
             try
@@ -392,13 +592,22 @@ namespace MultiSocks.DirtySocks
                     RedirectorSSX3_PAL?.Dispose();
                     RedirectorTSBO_NTSC_A?.Dispose();
                     RedirectorTSBO_PAL?.Dispose();
+                    RedirectorFifa06_NTSC?.Dispose();
+                    RedirectorFightNight_NTSC?.Dispose();
+                    RedirectorFightNightR2_NTSC?.Dispose();
                     RedirectorNCAAMM06_NTSC?.Dispose();
+                    RedirectorMaddenNFL06_NTSC?.Dispose();
+                    RedirectorBurnout3Takedown_NTSC?.Dispose();
+                    RedirectorBurnoutRevenge_NTSC?.Dispose();
                     RedirectorBOP_PS3?.Dispose();
                     RedirectorBOPULTIMATEBOX_PS3?.Dispose();
                     RedirectorBOPULTIMATEBOX_PC?.Dispose();
                     Redirector007EverythingOrNothing_NTSC?.Dispose();
+                    RedirectorMarvelNemesis06_NTSC?.Dispose();
+                    RedirectorNascarThunder04_NTSC?.Dispose();
                     RedirectorNASCAR08_PS3?.Dispose();
                     RedirectorNASCAR09_PS3?.Dispose();
+                    RedirectoNFSMWA124_PAL?.Dispose();
                     RedirectorHASBROFAMILYGAMENIGHT_PS3?.Dispose();
                     RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC?.Dispose();
                     RedirectorNFLStreet_NTSC?.Dispose();
@@ -406,15 +615,24 @@ namespace MultiSocks.DirtySocks
                     RedirectorNFLStreet3_NTSC?.Dispose();
 
                     //Matchmakers
+                    Burnout3Takedown_NTSCMatchmaker?.Dispose();
+                    BurnoutRevenge_NTSCMatchmaker?.Dispose();
                     BurnoutParadisePS3Matchmaker?.Dispose();
                     BurnoutParadisePCUltimateBoxMatchmaker?.Dispose();
                     BurnoutParadisePS3UltimateBoxMatchmaker?.Dispose();
+                    Fifa06_NTSC_Matchmaker?.Dispose();
+                    FightNight_NTSCMatchmaker?.Dispose();
+                    FightNightR2_NTSCMatchmaker?.Dispose();
                     LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker?.Dispose();
                     EverythingOrNothing007_NTSC_Matchmaker?.Dispose();
                     NFLStreet_NTSCMatchmaker?.Dispose();
                     NFLStreet2_NTSCMatchmaker?.Dispose();
                     NFLStreet3_NTSCMatchmaker?.Dispose();
+                    NascarThunder04_NTSC_Matchmaker?.Dispose();
+                    MaddenNFL06_NTSC_Matchmaker?.Dispose();
+                    MarvelNemesis_NTSC_Matchmaker?.Dispose();
                     NCAAMM06_NTSC_Matchmaker?.Dispose();
+                    NFSMWA124_PAL_Matchmaker?.Dispose();
                     HASBROFAMILYGAMENIGHTPS3Matchmaker?.Dispose();
                     SimsMatchmaker?.Dispose();
                     SSX3Matchmaker?.Dispose();
