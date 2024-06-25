@@ -30,6 +30,31 @@ namespace CyberBackendLibrary.DataTypes
             return hex.ToString();
         }
 
+        public static string StringToHexString(string str)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            foreach (byte t in bytes)
+            {
+                sb.Append(t.ToString("X2"));
+            }
+
+            return sb.ToString();
+        }
+
+        public static string HexStringToString(string hexString)
+        {
+            byte[] bytes = new byte[hexString.Length / 2];
+
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = Convert.ToByte(hexString.Substring(i * 2, 2), 16);
+            }
+
+            return Encoding.UTF8.GetString(bytes);
+        }
+
         /// <summary>
         /// Check if 2 byte arrays are strictly identical.
         /// <para>Savoir si 2 tableaux de bytes sont strictement identiques.</para>

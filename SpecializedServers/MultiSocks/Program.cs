@@ -1,5 +1,5 @@
 using CustomLogger;
-using MultiSocks.DirtySocks;
+using MultiSocks.Aries;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Runtime;
@@ -85,13 +85,13 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "MultiSocks.json";
     private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
-    private static DirtySocksServer? DSServer;
+    private static AriesServer? DSServer;
 
     private static void StartOrUpdateServer()
     {
         Directory.CreateDirectory(MultiSocksServerConfiguration.ProtoSSLCertificateCachePath);
         DSServer?.Dispose();
-        DSServer = new DirtySocksServer(new CancellationTokenSource().Token);
+        DSServer = new AriesServer(new CancellationTokenSource().Token);
     }
 
     static void Main()
