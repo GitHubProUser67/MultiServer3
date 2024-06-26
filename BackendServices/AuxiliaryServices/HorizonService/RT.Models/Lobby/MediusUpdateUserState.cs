@@ -12,12 +12,12 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.UpdateUserState;
 
-        public MessageId MessageID { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public MessageId? MessageID { get; set; }
 
         /// <summary>
         /// Session Key
         /// </summary>
-        public string SessionKey; // SESSIONKEY_MAXLEN
+        public string? SessionKey; // SESSIONKEY_MAXLEN
         /// <summary>
         /// Change to in chat channel, left game, or left party
         /// </summary>
@@ -25,10 +25,8 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(3);
             UserAction = reader.Read<MediusUserAction>();
@@ -36,10 +34,8 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(new byte[3]);
             writer.Write(UserAction);
