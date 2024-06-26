@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Text;
 using CustomLogger;
@@ -29,6 +30,7 @@ namespace MultiSocks.Aries.SDK_v6
         private TcpClient ClientTcp;
         private Stream? ClientStream;
         private Thread RecvThread;
+        private ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
         private byte[]? TempData = null;
         private int TempDatOff;
         private string CommandName = "null";
@@ -46,7 +48,7 @@ namespace MultiSocks.Aries.SDK_v6
             Context = context;
             ClientTcp = client;
 
-            LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
+            LoggerAccessor.LogInfo("[Aries] - New connection from " + ADDR + ".");
 
             if (secure && context.SSLCache != null)
                 SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
@@ -75,7 +77,7 @@ namespace MultiSocks.Aries.SDK_v6
                 }
                 catch (Exception e)
                 {
-                    LoggerAccessor.LogError($"[DirtySocks ProtoSSL] - Failed to accept connection:{e}");
+                    LoggerAccessor.LogError($"[Aries] - Failed to accept secure connection:{e}");
 
                     serverProtocol.Flush();
                     serverProtocol.Close();
@@ -83,7 +85,7 @@ namespace MultiSocks.Aries.SDK_v6
 
                     ClientStream?.Dispose();
                     ClientTcp.Dispose();
-                    LoggerAccessor.LogInfo($"User {ADDR} Disconnected.");
+                    LoggerAccessor.LogInfo($"[Aries] - User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 
                     return;
@@ -160,11 +162,46 @@ namespace MultiSocks.Aries.SDK_v6
 
             ClientStream?.Dispose();
             ClientTcp.Dispose();
-            LoggerAccessor.LogInfo($"User {ADDR} Disconnected.");
+            LoggerAccessor.LogInfo($"[Aries] - User {ADDR} Disconnected.");
             Context.RemoveClient(this);
         }
 
+        public void EnqueueAsyncMessage(AbstractMessage msg)
+        {
+            AsyncMessageQueue.Enqueue(msg);
+        }
+
+        public void DequeueAsyncMessage()
+        {
+            while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
+            {
+                if (msg != null)
+                {
+                    SendAsyncMessage(msg);
+                }
+            }
+        }
+
         public void SendMessage(AbstractMessage msg)
+        {
+            if (msg._Name.Equals("+gam") && !CanAsyncGameSearch)
+                return;
+            else if (msg._Name.StartsWith('+') && !CanAsync)
+                return;
+
+            try
+            {
+                ClientStream?.Write(msg.GetData());
+            }
+            catch
+            {
+                // something bad happened :(
+            }
+
+            DequeueAsyncMessage();
+        }
+
+        public void SendAsyncMessage(AbstractMessage msg)
         {
             if (msg._Name.Equals("+gam") && !CanAsyncGameSearch)
                 return;

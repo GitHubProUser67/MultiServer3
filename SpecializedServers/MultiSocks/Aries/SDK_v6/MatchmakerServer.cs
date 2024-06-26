@@ -57,7 +57,7 @@ namespace MultiSocks.Aries.SDK_v6
 
         private readonly Thread PingThread;
 
-        public MatchmakerServer(ushort port, bool lowlevel, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false) : base(port, lowlevel, Project, SKU, secure, CN, email, WeakChainSignedRSAKey)
+        public MatchmakerServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false) : base(port, listenIP, Project, SKU, secure, CN, email, WeakChainSignedRSAKey)
         {
             lock (Users)
                 Users.AddUser(new User() { ID = 24 }); // Admin player.
@@ -130,17 +130,15 @@ namespace MultiSocks.Aries.SDK_v6
 
             string? DecryptedPass = passutils.ssc2Decode(PASS, client.SKEY);
 
-            if (DecryptedPass != null && DecryptedPass == string.Empty && "PS3".Equals(client.SKU)) // EA assumed that Consoles protect the login so they crypt an empty password, extremly bad, but can't do anything.
+            if (DecryptedPass != null && DecryptedPass == string.Empty && ("PS3".Equals(client.SKU))) // EA assumed that Consoles protect the login so they crypt an empty password, extremly bad, but can't do anything.
             {
                 
             }
             else
             {
-                string? AccountPassword = passutils.ssc2Decode(user.Password, client.SKEY);
-
-                if (!string.IsNullOrEmpty(AccountPassword))
+                if (!string.IsNullOrEmpty(user.Password))
                 {
-                    if (!AccountPassword.Equals(DecryptedPass))
+                    if (!user.Password.Equals(DecryptedPass))
                     {
                         client.SendMessage(new AuthPass());
                         return;
@@ -150,7 +148,7 @@ namespace MultiSocks.Aries.SDK_v6
 
             CustomLogger.LoggerAccessor.LogInfo("Logged in: " + user.Username);
 
-            string[] personas = new string[4];
+            string[] personas = new string[user.Personas.Count];
             for (int i = 0; i < user.Personas.Count; i++)
             {
                 personas[i] = user.Personas[i];
@@ -183,7 +181,7 @@ namespace MultiSocks.Aries.SDK_v6
                 { "MAIL", user.MAIL }, { "BORN", "19700101" },
                 { "FROM", user2.LOC[2..] },
                 { "LOC", user2.LOC },
-                { "SPAM", "YN" },
+                { "SPAM", "NN" },
                 { "SINCE", "2008.1.1-00:00:00" },
                 { "GFIDS", "1" },
                 { "ADDR", client.ADDR },

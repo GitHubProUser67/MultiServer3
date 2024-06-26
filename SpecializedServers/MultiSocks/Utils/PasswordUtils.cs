@@ -12,6 +12,9 @@ namespace MultiSocks.Utils
 
             if (!string.IsNullOrEmpty(encodedPassword))
             {
+                if (ssc2Key.StartsWith('$'))
+                    ssc2Key = ssc2Key[1..];
+
                 byte[] decodeHexKey = DataTypesUtils.HexStringToByteArray(ssc2Key);
                 byte[] decodeBuffer = new byte[32];
                 CryptSSC2.cryptSSC2StringDecrypt(decodeBuffer, decodeBuffer.Length, Encoding.UTF8.GetBytes(encodedPassword), decodeHexKey, decodeHexKey.Length, decodeHexKey.Length);

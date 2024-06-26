@@ -23,6 +23,9 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                             {
                                 client.SendMessage(new BOPNewsOut()
                                 {
+                                    BUDDY_SERVER = context.listenIP,
+                                    QOS_LOBBY = context.listenIP,
+                                    GPS_REGIONS = $"{context.listenIP},{context.listenIP},{context.listenIP},{context.listenIP}",
                                     NEWS_URL = "\"http://gos.ea.com/easo/editorial/common/2008/news/news.jsp?lang=%s&from=%s&game=Burnout&platform=ps3\"",
                                     LIVE_NEWS_URL = !MultiSocksServerConfiguration.RPCS3Workarounds ? "\"http://gos.ea.com/easo/editorial/Burnout/2008/livedata/main.jsp?lang=%s&from=%s&game=Burnout&platform=ps3&env=live&nToken=%s\"" : null, // RPCS3 Emulator not emulate the webbrowser (causes the game to be stuck at boot).
                                     LIVE_NEWS2_URL = "\"http://gos.ea.com/easo/editorial/Burnout/2008/livedata/main.jsp?lang=%s&from=%s&game=Burnout&platform=ps3&env=live&nToken=%s\"",
@@ -37,6 +40,9 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                             {
                                 client.SendMessage(new BOPNewsOut()
                                 {
+                                    BUDDY_SERVER = context.listenIP,
+                                    QOS_LOBBY = context.listenIP,
+                                    GPS_REGIONS = $"{context.listenIP},{context.listenIP},{context.listenIP},{context.listenIP}",
                                     NEWS_URL = "\"http://gos.ea.com/easo/editorial/common/2008/news/news.jsp?lang=%s&from=%s&game=Burnout&platform=pc\"",
                                     LIVE_NEWS_URL = "\"http://gos.ea.com/easo/editorial/Burnout/2008/livedata/main.jsp?lang=%s&from=%s&game=Burnout&platform=pc&env=live&nToken=%s\"",
                                     LIVE_NEWS2_URL = "\"http://gos.ea.com/easo/editorial/Burnout/2008/livedata/main.jsp?lang=%s&from=%s&game=Burnout&platform=pc&env=live&nToken=%s\"",

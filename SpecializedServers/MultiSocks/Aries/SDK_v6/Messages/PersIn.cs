@@ -30,7 +30,9 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                 IDLE = "50000"
             });
 
-            user.SendPlusWho(user);
+            /* Explanation, Burnout Paradise (PC UltimateBox most specifically, but others are impacted too) has a bug client side, where there is a race condition with this specific +who.
+               They expect it to arrive after newsnew8 because of the delay original server had, so we must "simulate" this delay. */
+            user.SendPlusWho(user, !string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"));
         }
     }
 }

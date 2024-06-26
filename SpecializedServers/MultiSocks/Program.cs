@@ -91,7 +91,7 @@ class Program
     {
         Directory.CreateDirectory(MultiSocksServerConfiguration.ProtoSSLCertificateCachePath);
         DSServer?.Dispose();
-        DSServer = new AriesServer(new CancellationTokenSource().Token);
+        DSServer = new AriesServer();
     }
 
     static void Main()

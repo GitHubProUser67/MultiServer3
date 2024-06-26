@@ -13,7 +13,7 @@ namespace MultiSocks.Aries.SDK_v6
         public abstract Dictionary<string, Type?> NameToClass { get; }
         public string? Project = null;
         public string? SKU = null;
-        public bool lowlevel = false;
+        public string listenIP = string.Empty;
         public int SessionID = 1;
         public ProtoSSLUtils? SSLCache = null;
         public List<AriesClient> DirtySocksClients = new();
@@ -25,10 +25,10 @@ namespace MultiSocks.Aries.SDK_v6
         private string email = string.Empty;
         private Thread ListenerThread;
 
-        public AbstractAriesServer(ushort port, bool lowlevel, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false)
+        public AbstractAriesServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false)
         {
+            this.listenIP = listenIP;
             this.secure = secure;
-            this.lowlevel = lowlevel;
             this.WeakChainSignedRSAKey = WeakChainSignedRSAKey;
             this.CN = CN;
             this.email = email;
@@ -113,32 +113,14 @@ namespace MultiSocks.Aries.SDK_v6
         {
             try
             {
-                string body = Encoding.ASCII.GetString(data);
-
-                if (lowlevel) // Can be used a SSL workaround for testing.
-                {
-                    string hexdata = DataTypesUtils.ByteArrayToHexString(data);
-
-                    LoggerAccessor.LogInfo($"{client.ADDR} Requested Packet {name}:{hexdata}:{{{body.Replace("\n", string.Empty)}}}");
-
-                    switch (hexdata)
-                    {
-                        /*case "5243342B4D44352D563200": // BOP_PS3 RC4_MD5.
-                            client.SendMessage(new MiscUtils().HexStringToByteArray("407469630000000000000060ba55778b9e10d44294388" +
-                                "f79f770afe3cec0ddfffba532a61ff67726dc862f5104b224c1" +
-                                "b76d7e1d649c57c7ae5071a1651b988d1baabfd3c3c77b4c0c0" +
-                                "8c998e6ccd21cea00f94b90bdd38cd08838fd5d4506e2"));
-                            return; Workaround is to not respond at all */
-                        default: // Fallback to classic handler.
-                            break;
-                    }
-                }
-                else
-                    LoggerAccessor.LogInfo($"{client.ADDR} Requested Type {name} : {body.Replace("\n", string.Empty)}");
-
+#if DEBUG
+                LoggerAccessor.LogInfo($"{client.ADDR} Requested Type {name} : {{{DataTypesUtils.ByteArrayToHexString(data).Replace("\n", string.Empty)}}}");
+#else
+                LoggerAccessor.LogInfo($"{client.ADDR} Requested Type {name}");
+#endif
                 if (!NameToClass.TryGetValue(name, out Type? c))
                 {
-                    LoggerAccessor.LogError($"{client.ADDR} Requested an unexpected message Type {name} : {body.Replace("\n", string.Empty)}");
+                    LoggerAccessor.LogError($"{client.ADDR} Requested an unexpected message Type {name}");
                     return;
                 }
 
@@ -155,7 +137,7 @@ namespace MultiSocks.Aries.SDK_v6
 
                 if (msg != null)
                 {
-                    msg.Read(body);
+                    msg.Read(Encoding.ASCII.GetString(data));
                     msg.Process(this, client);
                 }
             }

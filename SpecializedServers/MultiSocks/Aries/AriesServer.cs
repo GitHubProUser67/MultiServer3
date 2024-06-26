@@ -16,7 +16,7 @@ namespace MultiSocks.Aries
 
         private bool disposedValue;
 
-        public AriesServer(CancellationToken cancellationToken)
+        public AriesServer()
         {
             string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
@@ -27,7 +27,7 @@ namespace MultiSocks.Aries
             #region Burnout Paradise PS3
             try
             {
-                RedirectorBOP_PS3 = new SDK_v6.RedirectorServer(21850, ListenIP, 21851, false, "BURNOUT5", "PS3");
+                RedirectorBOP_PS3 = new SDK_v6.RedirectorServer(21850, ListenIP, 21851, "BURNOUT5", "PS3");
                 LoggerAccessor.LogInfo($"[Redirector] BOP PS3 Started!");
             }
             catch (Exception ex)
@@ -37,7 +37,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PS3 = new SDK_v6.RedirectorServer(21870, ListenIP, 21871, false, "BURNOUT5", "PS3");
+                RedirectorBOPULTIMATEBOX_PS3 = new SDK_v6.RedirectorServer(21870, ListenIP, 21871, "BURNOUT5", "PS3");
                 LoggerAccessor.LogInfo($"[Redirector] BOPULTIMATEBOX PS3 Started!");
             }
             catch (Exception ex)
@@ -50,7 +50,7 @@ namespace MultiSocks.Aries
             #region Hasbro Family Game Night PS3
             try
             {
-                RedirectorHASBROFAMILYGAMENIGHT_PS3 = new SDK_v6.RedirectorServer(32950, ListenIP, 32951, false, "DPR-09", "PS3");
+                RedirectorHASBROFAMILYGAMENIGHT_PS3 = new SDK_v6.RedirectorServer(32950, ListenIP, 32951, "DPR-09", "PS3");
                 LoggerAccessor.LogInfo($"[Redirector] HASBROFAMILYGAMENIGHT PS3 Started!");
             }
             catch (Exception ex)
@@ -65,7 +65,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                BurnoutParadisePS3Matchmaker = new SDK_v6.MatchmakerServer(21851, false, "BURNOUT5", "PS3");
+                BurnoutParadisePS3Matchmaker = new SDK_v6.MatchmakerServer(21851, ListenIP, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -74,7 +74,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                BurnoutParadisePS3UltimateBoxMatchmaker = new SDK_v6.MatchmakerServer(21871, false, "BURNOUT5", "PS3");
+                BurnoutParadisePS3UltimateBoxMatchmaker = new SDK_v6.MatchmakerServer(21871, ListenIP, "BURNOUT5", "PS3");
             }
             catch (Exception ex)
             {
@@ -83,7 +83,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                HASBROFAMILYGAMENIGHTPS3Matchmaker = new SDK_v6.MatchmakerServer(32951, false, "DPR-09", "PS3");
+                HASBROFAMILYGAMENIGHTPS3Matchmaker = new SDK_v6.MatchmakerServer(32951, ListenIP, "DPR-09", "PS3");
             }
             catch (Exception ex)
             {

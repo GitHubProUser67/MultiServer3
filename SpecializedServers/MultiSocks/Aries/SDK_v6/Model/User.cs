@@ -92,13 +92,13 @@ namespace MultiSocks.Aries.SDK_v6.Model
             };
         }
 
-        public void SendPlusWho(User user)
+        public void SendPlusWho(User user, bool async = false)
         {
             //send who to this user to tell them who they are
 
             PlusUser info = user.GetInfo();
 
-            user.Connection?.SendMessage(new PlusWho()
+            PlusWho who = new()
             {
                 I = info.I ?? string.Empty,
                 N = info.N,
@@ -122,7 +122,12 @@ namespace MultiSocks.Aries.SDK_v6.Model
                 PRES = "1",
                 VER = "7",
                 C = ",,,,,,,,"
-            });
+            };
+
+            if (async)
+                user.Connection?.EnqueueAsyncMessage(who);
+            else
+                user.Connection?.SendMessage(who);
         }
 
         public OnlnOut SendOnlnOut(User user)

@@ -48,7 +48,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                     TOS = TOS,
                     SHARE = SHARE,
                     MAIL = MAIL,
-                    Password = PASS,
+                    Password = DecryptedPass,
                 };
 
                 bool? created = AriesServer.Database?.CreateNew(info);
