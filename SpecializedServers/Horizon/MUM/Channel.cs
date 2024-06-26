@@ -279,7 +279,7 @@ namespace Horizon.MUM
         #endregion
 
         #region Messages
-        public void BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage msg)
+        public Task BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage msg)
         {
             foreach (var client in LocalClients.Where(x => x != source))
             {
@@ -290,9 +290,11 @@ namespace Horizon.MUM
                     Message = msg.Message
                 });
             }
+
+            return Task.CompletedTask;
         }
 
-        public void BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage1 msg)
+        public Task BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage1 msg)
         {
             foreach (var client in LocalClients.Where(x => x != source))
             {
@@ -305,10 +307,12 @@ namespace Horizon.MUM
                     Message = msg.Message
                 });
             }
+
+            return Task.CompletedTask;
         }
 
         #region GenericChatMessages
-        public void BroadcastChatMessage(IEnumerable<ClientObject> targets, ClientObject source, string message)
+        public Task BroadcastChatMessage(IEnumerable<ClientObject> targets, ClientObject source, string message)
         {
             foreach (var target in targets)
             {
@@ -335,9 +339,11 @@ namespace Horizon.MUM
                     });
                 }
             }
+
+            return Task.CompletedTask;
         }
 
-        public void WhisperChatMessage(IEnumerable<ClientObject> targets, ClientObject source, string message)
+        public Task WhisperChatMessage(IEnumerable<ClientObject> targets, ClientObject source, string message)
         {
             foreach (var target in targets)
             {
@@ -364,9 +370,11 @@ namespace Horizon.MUM
                     });
                 }
             }
+
+            return Task.CompletedTask;
         }
 
-        public void ClanChatMessage(IEnumerable<ClientObject> targets, ClientObject source, string message)
+        public Task ClanChatMessage(IEnumerable<ClientObject> targets, ClientObject source, string message)
         {
             foreach (var target in targets)
             {
@@ -393,6 +401,8 @@ namespace Horizon.MUM
                     });
                 }
             }
+
+            return Task.CompletedTask;
         }
         #endregion
 
@@ -401,7 +411,7 @@ namespace Horizon.MUM
         /// </summary>
         /// <param name="client"></param>
         /// <param name="message"></param>
-        public void SendSystemMessage(ClientObject client, string message)
+        public Task SendSystemMessage(ClientObject client, string message)
         {
             if (client.MediusVersion >= 112)
             {
@@ -425,6 +435,8 @@ namespace Horizon.MUM
                     TimeStamp = Utils.GetUnixTime()
                 });
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -432,7 +444,7 @@ namespace Horizon.MUM
         /// </summary>
         /// <param name="targets"></param>
         /// <param name="message"></param>
-        public void BroadcastSystemMessage(IEnumerable<ClientObject> targets, string message)
+        public Task BroadcastGenericChatMessage(IEnumerable<ClientObject> targets, string message)
         {
             foreach (var target in targets)
             {
@@ -459,6 +471,26 @@ namespace Horizon.MUM
                     });
                 }
             }
+
+            return Task.CompletedTask;
+        }
+
+
+        public Task BroadcastSystemMessage(IEnumerable<ClientObject> targets, string msg, byte severity)
+        {
+            foreach (var target in targets)
+            {
+                target?.Queue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
+                {
+                    Severity = severity,
+                    EncodingType = DME_SERVER_ENCODING_TYPE.DME_SERVER_ENCODING_UTF8,
+                    LanguageType = DME_SERVER_LANGUAGE_TYPE.DME_SERVER_LANGUAGE_US_ENGLISH,
+                    EndOfMessage = true,
+                    Message = msg
+                });
+            }
+
+            return Task.CompletedTask;
         }
         #endregion
     }

@@ -10,7 +10,7 @@ namespace Horizon.RT.Models
 
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.BinaryFwdMessage;
 
-        public MessageId MessageID { get; set; }
+        public MessageId? MessageID { get; set; }
 
         public int OriginatorAccountID;
         public MediusBinaryMessageType MessageType;

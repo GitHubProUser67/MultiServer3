@@ -132,7 +132,18 @@ namespace Horizon.RT.Models
                         double homebetaver = 0;
                         string? betafirstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
-                            betafirstFiveElements = ExtendedInfo[..Math.Min(5, ExtendedInfo.Length)];
+                        {
+                            if (ExtendedInfo[0] == '*')
+                            {
+                                LoggerAccessor.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
+                                if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
+                                    writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
+
+                                break;
+                            }
+                            else
+                                betafirstFiveElements = ExtendedInfo[..Math.Min(5, ExtendedInfo.Length)];
+                        }
 
                         if (!string.IsNullOrEmpty(betafirstFiveElements))
                         {

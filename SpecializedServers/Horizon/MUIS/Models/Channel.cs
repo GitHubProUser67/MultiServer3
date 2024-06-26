@@ -168,6 +168,7 @@ namespace Horizon.MUIS.Models
                 {
                     MessageType = msg.MessageType,
                     OriginatorAccountID = source.AccountId,
+                    MessageSize = msg.MessageSize,
                     Message = msg.Message
                 });
             }

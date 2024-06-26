@@ -21,8 +21,6 @@ using System.Text;
 using EndianTools;
 using CyberBackendLibrary.DataTypes;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -284,7 +282,11 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x101590b0:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
-                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -301,7 +303,11 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x10050500:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
                                                     {
-                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -310,7 +316,11 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x10074820:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
                                                     {
-                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -319,7 +329,11 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x50A7DEEC:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 1 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x01 }))
                                                     {
-                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: CONSOLE USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: CONSOLE USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
                                                             BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
@@ -332,7 +346,11 @@ namespace Horizon.MEDIUS.Medius
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataTypesUtils.AreArraysIdentical(QueryData, Ref1) 
                                                         || DataTypesUtils.AreArraysIdentical(QueryData, Ref2) || DataTypesUtils.AreArraysIdentical(QueryData, Ref4)))
                                                     {
-                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
                                                             BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
@@ -344,7 +362,11 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x100BA820:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
-                                                        LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
                                                             BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
@@ -356,6 +378,9 @@ namespace Horizon.MEDIUS.Medius
                                                 case 270088564U:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                     {
+                                                        if (data.ClientObject != null && data.ClientObject.IsOnRPCN)
+                                                            break;
+
                                                         byte[] WireFrame = new byte[4] { 16, 0x00, 0x00, 0x00 };
 
                                                         if (!DataTypesUtils.AreArraysIdentical(QueryData, WireFrame))
@@ -381,7 +406,7 @@ namespace Horizon.MEDIUS.Medius
                                                                         {
                                                                             CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
 
-                                                                            Thread.Sleep(4000);
+                                                                            Thread.Sleep(3000);
                                                                         }
 
                                                                         Thread.Sleep(3000);
@@ -396,7 +421,8 @@ namespace Horizon.MEDIUS.Medius
                                                             {
                                                                 if (BannedClients[(data.ClientObject.IP, data.MachineId)] >= DateTime.Now)
                                                                 {
-                                                                    PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
+                                                                    if (!data.ClientObject.IsOnRPCN)
+                                                                        PokeAddress(data.ClientObject.HomePointer + 0x1488, Encoding.UTF8.GetBytes("Cheater Exposed"), clientChannel);
                                                                     CheatQuery(270088564U, 4, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                                 }
                                                                 else
@@ -410,7 +436,11 @@ namespace Horizon.MEDIUS.Medius
                                                     {
                                                         if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 6928U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataTypesUtils.AreArraysIdentical(QueryData, Ref5))
                                                         {
-                                                            LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
+                                                            string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}";
+
+                                                            _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                            LoggerAccessor.LogError(anticheatMsg);
 
                                                             if (data.ClientObject.IP != IPAddress.Any)
                                                                 BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
@@ -420,7 +450,11 @@ namespace Horizon.MEDIUS.Medius
                                                         }
                                                         else if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 5300U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && DataTypesUtils.AreArraysIdentical(QueryData, Ref6))
                                                         {
-                                                            LoggerAccessor.LogError($"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}");
+                                                            string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}";
+
+                                                            _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                            LoggerAccessor.LogError(anticheatMsg);
 
                                                             if (data.ClientObject.IP != IPAddress.Any)
                                                                 BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
@@ -459,6 +493,7 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_SERVER_ECHO serverEchoReply:
                     {
+                        
                         break;
                     }
                 case RT_MSG_CLIENT_ECHO clientEcho:
@@ -509,7 +544,7 @@ namespace Horizon.MEDIUS.Medius
             return;
         }
 
-        protected virtual async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)
+        protected virtual async Task ProcessMediusMessage(BaseMediusMessage? message, IChannel clientChannel, ChannelData data)
         {
             if (message == null)
                 return;
@@ -3523,10 +3558,10 @@ namespace Horizon.MEDIUS.Medius
                                         // Join new channel
                                         await data.ClientObject.JoinChannel(foundchannel);
 
-                                        LoggerAccessor.LogInfo($"Successfully JoinedChatWorld [{foundchannel.Id}] {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                        LoggerAccessor.LogInfo($"[MLS] - Successfully JoinedChatWorld [{foundchannel.Id}] {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     }
                                     else
-                                        LoggerAccessor.LogError($"Requested a non-existant JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                        LoggerAccessor.LogError($"[MLS] - Requested a non-existant JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     break;
                                 }
                             case MediusUserAction.LeftGameWorld:
@@ -3534,10 +3569,10 @@ namespace Horizon.MEDIUS.Medius
                                     if (data.ClientObject.CurrentGame != null)
                                     {
                                         await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
-                                        LoggerAccessor.LogInfo($"Successfully LeftGameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                        LoggerAccessor.LogInfo($"[MLS] - Successfully LeftGameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     }
                                     else
-                                        LoggerAccessor.LogWarn($"LeftGameWorld but client wasn't in a Game! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                        LoggerAccessor.LogWarn($"[MLS] - LeftGameWorld but client wasn't in a Game! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
 
                                     MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
                                     break;
@@ -3547,16 +3582,16 @@ namespace Horizon.MEDIUS.Medius
                                     if (data.ClientObject.CurrentParty != null)
                                     {
                                         await data.ClientObject.LeaveParty(data.ClientObject.CurrentParty);
-                                        LoggerAccessor.LogInfo($"Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                        LoggerAccessor.LogInfo($"[MLS] - Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     }
                                     else
-                                        LoggerAccessor.LogWarn($"LeftPartyWorld but client wasn't in a Party! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                        LoggerAccessor.LogWarn($"[MLS] - LeftPartyWorld but client wasn't in a Party! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
 
                                     break;
                                 }
                             default:
                                 {
-                                    LoggerAccessor.LogWarn($"Requested a non-existant UserState {data.ClientObject.AccountId}:{data.ClientObject.AccountName}, please report to GITHUB.");
+                                    LoggerAccessor.LogWarn($"[MLS] - Requested a non-existant UserState {data.ClientObject.AccountId}:{data.ClientObject.AccountName}, please report to GITHUB.");
                                     break;
                                 }
                         }
@@ -7385,8 +7420,7 @@ namespace Horizon.MEDIUS.Medius
 
                         Channel? channel = MumChannelHandler.GetRemoteChannelById(joinChannelRequest.WorldID, data.ClientObject.ApplicationId, data.ClientObject.IP);
 
-                        if (channel == null)
-                            channel = MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.WorldID, data.ClientObject.ApplicationId);
+                        channel ??= MediusClass.Manager.GetChannelByChannelId(joinChannelRequest.WorldID, data.ClientObject.ApplicationId);
 
                         if (channel == null)
                         {
@@ -9638,7 +9672,7 @@ namespace Horizon.MEDIUS.Medius
                                     if (iNumPlayersReturned > 256)
                                         LoggerAccessor.LogWarn("iNumPlayersReturned <= 256");
                                     else if (iNumPlayersReturned > 0)
-                                        data.ClientObject.CurrentChannel?.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
+                                        _ = data.ClientObject.CurrentChannel?.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
                                     else
                                         LoggerAccessor.LogWarn("No players found to send binary msg to.");
                                     break;
@@ -9672,7 +9706,7 @@ namespace Horizon.MEDIUS.Medius
 
                                     foreach (var channel in channels)
                                     {
-                                        channel.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
+                                        _ = channel.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
                                     }
 
                                     //MUMBinaryFwdFromLobby() Error %d MID %s, Orig AID %d, Whisper Target AID %d
@@ -9708,7 +9742,7 @@ namespace Horizon.MEDIUS.Medius
 
                             case MediusBinaryMessageType.BroadcastBinaryMsg:
                                 {
-                                    data.ClientObject.CurrentChannel?.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
+                                    _ = data.ClientObject.CurrentChannel?.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
                                     break;
                                 }
                             case MediusBinaryMessageType.TargetBinaryMsg:
@@ -10567,19 +10601,19 @@ namespace Horizon.MEDIUS.Medius
                 case MediusChatMessageType.Broadcast:
                     {
                         // Relay
-                        channel.BroadcastChatMessage(allButSender, clientObject, chatMessage.Message);
+                        _ = channel.BroadcastChatMessage(allButSender, clientObject, chatMessage.Message);
                         break;
                     }
                 case MediusChatMessageType.Whisper:
                     {
                         //Whisper
-                        channel.WhisperChatMessage(allButSender, clientObject, chatMessage.Message);
+                        _ = channel.WhisperChatMessage(allButSender, clientObject, chatMessage.Message);
                         break;
                     }
                 case MediusChatMessageType.Clan:
                     {
                         //Clan
-                        channel.ClanChatMessage(allInClan, clientObject, chatMessage.Message);
+                        _ = channel.ClanChatMessage(allInClan, clientObject, chatMessage.Message);
                         break;
                     }
                 default:
@@ -11053,6 +11087,23 @@ namespace Horizon.MEDIUS.Medius
             }
 
             return true;
+        }
+        #endregion
+
+        #region SystemMessages
+        public Task QueueSystemMessage(string msg, byte severity)
+        {
+            // Send ban message
+            Queue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
+            {
+                Severity = severity,
+                EncodingType = DME_SERVER_ENCODING_TYPE.DME_SERVER_ENCODING_UTF8,
+                LanguageType = DME_SERVER_LANGUAGE_TYPE.DME_SERVER_LANGUAGE_US_ENGLISH,
+                EndOfMessage = true,
+                Message = msg
+            });
+
+            return Task.CompletedTask;
         }
         #endregion
 

@@ -177,7 +177,11 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x10050500:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
                                                     {
-                                                        LoggerAccessor.LogError($"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -186,7 +190,11 @@ namespace Horizon.MEDIUS.Medius
                                                 case 0x10074820:
                                                     if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
                                                     {
-                                                        LoggerAccessor.LogError($"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}");
+                                                        string anticheatMsg = $"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -418,6 +426,9 @@ namespace Horizon.MEDIUS.Medius
 
                             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
+                            // Put client in default channel
+                            await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+
                             //Send NAT Service
                             data.ClientObject.Queue(new MediusServerSessionBeginResponse()
                             {
@@ -460,6 +471,9 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.OnConnected();
 
                             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
+
+                            // Put client in default channel
+                            await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
 
                             //Send NAT Service
                             data.ClientObject.Queue(new MediusServerSessionBeginResponse()
@@ -547,8 +561,6 @@ namespace Horizon.MEDIUS.Medius
 
                             if (nonSecure.Contains(data.ClientObject.ApplicationId))
                             {
-                                IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
-
                                 data.ClientObject.Queue(new MediusServerAuthenticationResponse()
                                 {
                                     MessageID = mgclAuthRequest.MessageID,
@@ -671,6 +683,9 @@ namespace Horizon.MEDIUS.Medius
                         data.ClientObject.MediusConnectionType = extendedSessionBeginRequest.ConnectionClass;
                         data.ClientObject.OnConnected();
 
+                        // Put client in default channel
+                        await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+
                         await HorizonServerConfiguration.Database.GetServerFlags().ContinueWith((r) =>
                         {
                             if (r.IsCompletedSuccessfully && r.Result != null && r.Result.MaintenanceMode != null)
@@ -710,6 +725,9 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.MediusConnectionType = sessionBeginRequest.ConnectionClass;
                             data.ClientObject.OnConnected();
+
+                            // Put client in default channel
+                            await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
 
                             LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
@@ -756,10 +774,13 @@ namespace Horizon.MEDIUS.Medius
                         data.ClientObject.MediusConnectionType = sessionBeginRequest1.ConnectionClass;
                         data.ClientObject.OnConnected();
 
+                        // Put client in default channel
+                        await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+
                         LoggerAccessor.LogInfo($"Retrieved ApplicationID {data.ClientObject.ApplicationId} from client connection");
 
                         #region SystemMessageSingleTest Disabled?
-                        if (MediusClass.Settings.SystemMessageSingleTest != false)
+                        if (MediusClass.Settings.SystemMessageSingleTest)
                         {
                             await QueueBanMessage(data, "MAS.Notification Test:\nYou have been banned from this server.");
 
@@ -1718,6 +1739,8 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
+                        string accountLoggingMsg = string.Empty;
+
                         // Extract the desired portion of the binary data for a npticket 4.0
                         byte[] extractedData = new byte[0x63 - 0x54 + 1];
 
@@ -1737,12 +1760,16 @@ namespace Horizon.MEDIUS.Medius
 
                         if (DataTypesUtils.FindBytePattern(ticketLoginRequest.TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                         {
-                            LoggerAccessor.LogInfo($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN");
+                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN";
                             data.ClientObject.IsOnRPCN = true;
                             UserOnlineId += "RPCN";
                         }
                         else
-                            LoggerAccessor.LogInfo($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on PSN");
+                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on PSN";
+
+                        _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), accountLoggingMsg, byte.MinValue);
+
+                        LoggerAccessor.LogInfo(accountLoggingMsg);
 
                         ClientObject? ExsitingClient = MediusClass.Manager.GetClientByAccountName(UserOnlineId, data.ClientObject.ApplicationId);
 
@@ -2652,93 +2679,46 @@ namespace Horizon.MEDIUS.Medius
                 LoggerAccessor.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
 
                 // Tell client
-                if (ticket == true)
+                if (ticket)
                 {
-                    #region PS Home PS3
-                    //If PS Home don't GetOrCreateDefaultLobbyChannel, Home creates their own channels
-                    if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
+                    #region IF PS3 Client
+                    data.ClientObject.Queue(new MediusTicketLoginResponse()
                     {
-                        data.ClientObject.Queue(new MediusTicketLoginResponse()
+                        //TicketLoginResponse
+                        MessageID = messageId,
+                        StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
+                        PasswordType = MediusPasswordType.MediusPasswordNotSet,
+
+                        //AccountLoginResponse Wrapped
+                        MessageID2 = messageId,
+                        StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
+                        AccountID = data.ClientObject.AccountId,
+                        AccountType = MediusAccountType.MediusMasterAccount,
+                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                        ConnectInfo = new NetConnectionInfo()
                         {
-                            //TicketLoginResponse
-                            MessageID = messageId,
-                            StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
-                            PasswordType = MediusPasswordType.MediusPasswordNotSet,
-
-                            //AccountLoginResponse Wrapped
-                            MessageID2 = messageId,
-                            StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = 1, // Reserved
-                            ConnectInfo = new NetConnectionInfo()
+                            AccessKey = data.ClientObject.Token,
+                            SessionKey = data.ClientObject.SessionKey,
+                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
+                            AddressList = new NetAddressList()
                             {
-                                AccessKey = data.ClientObject.Token,
-                                SessionKey = data.ClientObject.SessionKey,
-                                WorldID = 1, // Reserved,
-                                ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
-                                AddressList = new NetAddressList()
+                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                {
-                                new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = (MediusClass.Settings.NpMLSPortOverride != -1) ? MediusClass.Settings.NpMLSPortOverride : MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                            },
-                        });
-                    }
-                    #endregion
-
-                    //Default
-                    else
-                    {
-                        // Put client in default channel
-                        await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
-
-                        #region IF PS3 Client
-                        data.ClientObject.Queue(new MediusTicketLoginResponse()
-                        {
-                            //TicketLoginResponse
-                            MessageID = messageId,
-                            StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
-                            PasswordType = MediusPasswordType.MediusPasswordNotSet,
-
-                            //AccountLoginResponse Wrapped
-                            MessageID2 = messageId,
-                            StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                AccessKey = data.ClientObject.Token,
-                                SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                                ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
-                                AddressList = new NetAddressList()
-                                {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
                                     new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = (MediusClass.Settings.NpMLSPortOverride != -1) ? MediusClass.Settings.NpMLSPortOverride : MediusClass.LobbyServer.TCPPort , AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                                }
                             },
-                        });
-                        #endregion
-                    }
+                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                        },
+                    });
+                    #endregion
 
                     // Prepare for transition to lobby server
                     data.ClientObject.KeepAliveUntilNextConnection();
                 }
                 else
                 {
-                    // Put client in default channel
-                    //await data.ClientObject.JoinChannel(MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
-
                     #region If PS2/PSP
 
                     if (data.ClientObject.MediusVersion > 108)
@@ -2866,9 +2846,6 @@ namespace Horizon.MEDIUS.Medius
                 MediusClass.Manager.AddClient(data.ClientObject);
 
                 LoggerAccessor.LogInfo($"LOGGING IN ANONYMOUSLY AS {data.ClientObject.AccountDisplayName} with access token {data.ClientObject.Token}");
-
-                // Put client in default channel
-                //await data.ClientObject.JoinChannel(MediusStarter.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
 
                 // Tell client
                 data.ClientObject.Queue(new MediusAnonymousLoginResponse()
