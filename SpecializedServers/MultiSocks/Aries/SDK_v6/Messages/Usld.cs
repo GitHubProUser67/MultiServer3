@@ -15,7 +15,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
             OutputCache.Add("QMSG3", "Mmmm... doughnuts.");
             OutputCache.Add("QMSG04", "What time is it?");
             OutputCache.Add("QMSG05", "The truth is out of style.");
-            OutputCache.Add("SPM_EA", "1");
+            OutputCache.Add("SPM_EA", "0");
             OutputCache.Add("SPM_PART", "0");
             OutputCache.Add("UID", "$00000000000003fe");
 

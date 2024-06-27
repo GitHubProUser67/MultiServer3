@@ -15,7 +15,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
             string? MADDR = GetInputCacheValue("MADDR");
             string? NAME = GetInputCacheValue("NAME");
             string? PASS = GetInputCacheValue("PASS");
-            string? TOS = GetInputCacheValue(" TOS");
+            string? TOS = GetInputCacheValue("TOS");
             string? SHARE = GetInputCacheValue("SHARE");
             string? MAIL = GetInputCacheValue("MAIL");
 

@@ -1,4 +1,3 @@
-using MultiSocks.Aries.SDK_v6.Messages.ErrorCodes;
 using MultiSocks.Aries.SDK_v6.Model;
 
 namespace MultiSocks.Aries.SDK_v6.Messages
