@@ -430,6 +430,8 @@ namespace WebAPIService.OHS
 
                             if (entries != null)
                             {
+                                string boardName = RemoveAfterDot(parts[1]);
+
                                 // Step 2: Convert to Lua table structure
                                 Dictionary<int, Dictionary<string, object>> luaTable = new Dictionary<int, Dictionary<string, object>>();
 
@@ -452,9 +454,9 @@ namespace WebAPIService.OHS
                                 // Step 3: Format the Lua table as a string using regex
 
                                 if (returnvalue.Length != 0)
-                                    returnvalue += $", [\"{parts[1]}\"] = " + FormatScoreBoardLuaTable(luaTable);
+                                    returnvalue += $", [\"{boardName}\"] = " + FormatScoreBoardLuaTable(luaTable);
                                 else
-                                    returnvalue = $"{{ [\"{parts[1]}\"] = " + FormatScoreBoardLuaTable(luaTable);
+                                    returnvalue = $"{{ [\"{boardName}\"] = " + FormatScoreBoardLuaTable(luaTable);
                             }
                         }
                     }
@@ -703,6 +705,14 @@ namespace WebAPIService.OHS
             return Regex.Replace(input, @",(\s*})|(\s*]\s*})", "$1$2");
         }
 
+        private static string RemoveAfterDot(string input)
+        {
+            int dotIndex = input.IndexOf('.');
+            if (dotIndex != -1)
+                return input[..dotIndex];
+            return input; // Return the original string if there's no dot
+        }
+
         public class Scoreboard
         {
             public List<ScoreboardEntry>? Entries { get; set; }
@@ -800,6 +810,5 @@ namespace WebAPIService.OHS
                 throw new NotImplementedException();
             }
         }
-
     }
 }
