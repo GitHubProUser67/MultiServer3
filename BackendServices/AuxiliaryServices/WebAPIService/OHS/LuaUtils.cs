@@ -51,11 +51,13 @@ namespace WebAPIService.OHS
                     return resultBuilder.ToString();
                 }
                 else if (token.Type == JTokenType.Array)
-                    return ReplaceFirstAndLast(token.ToString(), '{', '}');
+                    return ReplaceFirstAndLast(new JArray(token.Children().Select(t => t.Type == JTokenType.Null ? "nil" : t)).ToString(), '{', '}');
                 else if (token.Type == JTokenType.String)
                     return $"\"{token.Value<string>()}\"";
                 else if (token.Type == JTokenType.Boolean)
                     return token.ToString().ToLower();
+                else if (token.Type == JTokenType.Null)
+                    return "nil";
                 else
                     return token.ToString(); // For other value types, use their raw string representation
             }
@@ -94,11 +96,13 @@ namespace WebAPIService.OHS
                     return resultBuilder.ToString();
                 }
                 else if (token.Type == JTokenType.Array)
-                    return ReplaceFirstAndLast(token.ToString(), '{', '}');
+                    return ReplaceFirstAndLast(new JArray(token.Children().Select(t => t.Type == JTokenType.Null ? "nil" : t)).ToString(), '{', '}');
                 else if (token.Type == JTokenType.String)
                     return $"\"{token.Value<string>()}\"";
                 else if (token.Type == JTokenType.Boolean)
                     return token.ToString().ToLower();
+                else if (token.Type == JTokenType.Null)
+                    return "nil";
                 else
                     return token.ToString(); // For other value types, use their raw string representation
             }

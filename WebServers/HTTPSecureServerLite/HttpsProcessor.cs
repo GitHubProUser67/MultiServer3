@@ -1609,6 +1609,7 @@ namespace HTTPSecureServerLite
             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
             ctx.Response.ContentType = contentType;
             ctx.Response.StatusCode = 200;
+
             if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
             {
                 if (encoding.Contains("zstd") && fileSize <= 8000000)
