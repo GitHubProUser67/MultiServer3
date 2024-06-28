@@ -116,7 +116,7 @@ namespace SVO
                     HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
                     UserAgent = ctx.Request.Useragent,
                     ClientAddress = ctx.Request.Source.IpAddress + ":" + ctx.Request.Source.Port,
-                }), $"[[OTG_HTTPS]] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                }, Formatting.Indented), $"[[OTG_HTTPS]] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 #else
                 LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 #endif

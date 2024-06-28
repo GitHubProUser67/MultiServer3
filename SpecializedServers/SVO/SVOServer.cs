@@ -189,7 +189,7 @@ namespace SVO
                                 HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
                                 UserAgent = ctx.Request.UserAgent,
                                 ClientAddress = ctx.Request.RemoteEndPoint.ToString(),
-                            }), $"[[SVO]] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+                            }, Formatting.Indented), $"[[SVO]] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
 #else
                             LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
 #endif
