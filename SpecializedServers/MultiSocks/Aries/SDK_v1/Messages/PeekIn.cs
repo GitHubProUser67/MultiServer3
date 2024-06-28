@@ -22,6 +22,8 @@ namespace MultiSocks.Aries.SDK_v1.Messages
             Model.User? user = client.User;
             if (user == null) return;
 
+            string? NAME = GetInputCacheValue("NAME");
+
             if (string.IsNullOrEmpty(NAME))
             {
                 client.SendMessage(new PeekOut()

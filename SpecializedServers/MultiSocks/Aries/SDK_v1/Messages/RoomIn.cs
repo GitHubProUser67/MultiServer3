@@ -29,6 +29,8 @@ namespace MultiSocks.Aries.SDK_v1.Messages
             var mc = context as MatchmakerServerV1;
             if (mc == null) return;
 
+            string? NAME = GetInputCacheValue("NAME");
+
             Model.User? user = client.User;
             if (user == null) return;
 

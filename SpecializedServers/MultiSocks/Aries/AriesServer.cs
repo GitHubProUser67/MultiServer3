@@ -10,19 +10,19 @@ namespace MultiSocks.Aries
         public static IDatabase? Database = null;
 
         //Redirector
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorSSX3_NTSC_A;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorSSX3_PAL;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorSSX3_NTSC_A;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorSSX3_PAL;
         private readonly SDK_v1.AbstractAriesServerV1? RedirectorTSBO_NTSC_A;
         private readonly SDK_v1.AbstractAriesServerV1? RedirectorTSBO_PAL;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorFightNight_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorFightNightR2_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorFifa06_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorNFLStreet_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorNFLStreet2_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorNFLStreet3_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? Redirector007EverythingOrNothing_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorNCAAMM06_NTSC;
-        private readonly SDK_v6.AbstractAriesServerV6? RedirectorMaddenNFL06_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorFightNight_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorFightNightR2_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorFifa06_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorNFLStreet_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorNFLStreet2_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorNFLStreet3_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? Redirector007EverythingOrNothing_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorNCAAMM06_NTSC;
+        private readonly SDK_v1.AbstractAriesServerV1? RedirectorMaddenNFL06_NTSC;
         private readonly SDK_v1.AbstractAriesServerV1? RedirectorBurnout3Takedown_NTSC;
         private readonly SDK_v1.AbstractAriesServerV1? RedirectorBurnoutRevenge_NTSC;
         private readonly SDK_v6.AbstractAriesServerV6? RedirectorBOP_PS3;
@@ -43,8 +43,8 @@ namespace MultiSocks.Aries
         private readonly SDK_v6.AbstractAriesServerV6? BurnoutParadisePS3Matchmaker;
         private readonly SDK_v6.AbstractAriesServerV6? BurnoutParadisePS3UltimateBoxMatchmaker;
         private readonly SDK_v6.AbstractAriesServerV6? BurnoutParadisePCUltimateBoxMatchmaker;
-        private readonly SDK_v6.AbstractAriesServerV6? EverythingOrNothing007_NTSC_Matchmaker;
-        private readonly SDK_v6.AbstractAriesServerV6? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
+        private readonly SDK_v1.AbstractAriesServerV1? EverythingOrNothing007_NTSC_Matchmaker;
+        private readonly SDK_v1.AbstractAriesServerV1? LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker;
         private readonly SDK_v1.AbstractAriesServerV1? NascarThunder04_NTSC_Matchmaker;
         private readonly SDK_v1.AbstractAriesServerV1? NCAAMM06_NTSC_Matchmaker;
         private readonly SDK_v6.AbstractAriesServerV6? HASBROFAMILYGAMENIGHTPS3Matchmaker;
@@ -52,13 +52,16 @@ namespace MultiSocks.Aries
         private readonly SDK_v6.AbstractAriesServerV6? NFLStreet2_NTSCMatchmaker;
         private readonly SDK_v6.AbstractAriesServerV6? NFLStreet3_NTSCMatchmaker;
         private readonly SDK_v1.AbstractAriesServerV1? FightNight_NTSCMatchmaker;
-        private readonly SDK_v6.AbstractAriesServerV6? FightNightR2_NTSCMatchmaker;
+        private readonly SDK_v1.AbstractAriesServerV1? FightNightR2_NTSCMatchmaker;
         private readonly SDK_v1.AbstractAriesServerV1? Fifa06_NTSC_Matchmaker;
         private readonly SDK_v6.AbstractAriesServerV6? MaddenNFL06_NTSC_Matchmaker;
         private readonly SDK_v6.AbstractAriesServerV6? NFSMWA124_PAL_Matchmaker;
-        private readonly SDK_v6.AbstractAriesServerV6? MarvelNemesis_NTSC_Matchmaker;
+        private readonly SDK_v1.AbstractAriesServerV1? MarvelNemesis_NTSC_Matchmaker;
         private readonly SDK_v1.AbstractAriesServerV1? SimsMatchmaker;
-        private readonly SDK_v6.AbstractAriesServerV6? SSX3Matchmaker;
+        private readonly SDK_v1.AbstractAriesServerV1? SSX3Matchmaker;
+
+        private readonly AbstractAriesServerV1? PS2EAMessenger;
+        private readonly AbstractAriesServerV1? PS3EAMessenger;
 
         private bool disposedValue;
 
@@ -73,7 +76,7 @@ namespace MultiSocks.Aries
             #region SSX3 PS2
             try
             {
-                RedirectorSSX3_NTSC_A = new RedirectorServerV6(11000, ListenIP, 11051, "SSX-ER-PS2-2004", "PS2");
+                RedirectorSSX3_NTSC_A = new RedirectorServerV1(11000, ListenIP, 11051, "SSX-ER-PS2-2004", "PS2");
                 LoggerAccessor.LogInfo($"[Redirector] SSX3_NTSC_A Started!");
             }
             catch (Exception ex)
@@ -83,7 +86,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorSSX3_PAL = new RedirectorServerV6(11050, ListenIP, 11051, "SSX-ER-PS2-2004", "PS2");
+                RedirectorSSX3_PAL = new RedirectorServerV1(11050, ListenIP, 11051, "SSX-ER-PS2-2004", "PS2");
                 LoggerAccessor.LogInfo($"[Redirector] SSX3_PAL Started!");
             }
             catch (Exception ex)
@@ -117,8 +120,8 @@ namespace MultiSocks.Aries
             #region Fight Night 
             try
             {
-                RedirectorFightNight_NTSC = new RedirectorServerV6(11500, ListenIP, 11501, "KKING-PS2-2004", "PS2", false, "ps2kok04.ea.com", "ps2kok04@ea.com");
-                RedirectorFightNightR2_NTSC = new RedirectorServerV6(21500, ListenIP, 21501, "KKING-PS2-2005", "PS2", false, "ps2kok05.ea.com", "ps2kok05@ea.com");
+                RedirectorFightNight_NTSC = new RedirectorServerV1(11500, ListenIP, 11501, "KKING-PS2-2004", "PS2", false, "ps2kok04.ea.com", "ps2kok04@ea.com");
+                RedirectorFightNightR2_NTSC = new RedirectorServerV1(21500, ListenIP, 21501, "KKING-PS2-2005", "PS2", false, "ps2kok05.ea.com", "ps2kok05@ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Fight Night NTSC Started!");
             }
@@ -131,7 +134,7 @@ namespace MultiSocks.Aries
             #region NFL Street PS2
             try
             {
-                RedirectorNFLStreet_NTSC = new RedirectorServerV6(11300, ListenIP, 11301, "NFLSTREET-PS2-2005", "PS2");
+                RedirectorNFLStreet_NTSC = new RedirectorServerV1(11300, ListenIP, 11301, "NFLSTREET-PS2-2005", "PS2");
                 LoggerAccessor.LogInfo($"[Redirector] NFL Street NTSC Started!");
             }
             catch (Exception ex)
@@ -141,7 +144,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorNFLStreet2_NTSC = new RedirectorServerV6(21301, ListenIP, 21302, "NFLSTREET-PS2-2005", "PS2");
+                RedirectorNFLStreet2_NTSC = new RedirectorServerV1(21301, ListenIP, 21302, "NFLSTREET-PS2-2005", "PS2");
                 LoggerAccessor.LogInfo($"[Redirector] NFL Street 2 NTSC Started!");
             }
             catch (Exception ex)
@@ -151,7 +154,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorNFLStreet3_NTSC = new RedirectorServerV6(11700, ListenIP, 11701, "NFLSTREET3-PS2-2007", "PS2");
+                RedirectorNFLStreet3_NTSC = new RedirectorServerV1(11700, ListenIP, 11701, "NFLSTREET3-PS2-2007", "PS2");
                 LoggerAccessor.LogInfo($"[Redirector] NFL Street 3 NTSC Started!");
             }
             catch (Exception ex)
@@ -256,7 +259,7 @@ namespace MultiSocks.Aries
             #region NCAA March Madness 06
             try
             {
-                RedirectorNCAAMM06_NTSC = new RedirectorServerV6(30700, ListenIP, 30701, "PS2-MM-2006", "PS2", false, "ps2mm06.ea.com", "ps2mm06@ea.com");
+                RedirectorNCAAMM06_NTSC = new RedirectorServerV1(30700, ListenIP, 30701, "PS2-MM-2006", "PS2", false, "ps2mm06.ea.com", "ps2mm06@ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] NCAA March Madness 06 NTSC Started!");
             }
@@ -269,7 +272,7 @@ namespace MultiSocks.Aries
             #region Madden NFL 06
             try
             {
-                RedirectorMaddenNFL06_NTSC = new RedirectorServerV6(30000, ListenIP, 30001, "PS2-MM-2006", "PS2", false, "ps2madden06.ea.com", "ps2madden06@ea.com");
+                RedirectorMaddenNFL06_NTSC = new RedirectorServerV1(30000, ListenIP, 30001, "PS2-MM-2006", "PS2", false, "ps2madden06.ea.com", "ps2madden06@ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Madden NFL 06 NTSC Started!");
             }
@@ -282,7 +285,7 @@ namespace MultiSocks.Aries
             #region Fifa 06
             try
             {
-                RedirectorFifa06_NTSC = new RedirectorServerV6(30400, ListenIP, 30401, "PS2-MM-2006", "PS2", false, "ps2fifa06.ea.com", "ps2fifa06@ea.com");
+                RedirectorFifa06_NTSC = new RedirectorServerV1(30400, ListenIP, 30401, "PS2-MM-2006", "PS2", false, "ps2fifa06.ea.com", "ps2fifa06@ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Fifa 06 NTSC Started!");
             }
@@ -334,7 +337,7 @@ namespace MultiSocks.Aries
             #region 007: Everything or Nothing
             try
             {
-                Redirector007EverythingOrNothing_NTSC = new RedirectorServerV6(11600, ListenIP, 11601, "PS2-BOND-2004", "PS2", false, "ps2bond04.ea.com", "ps2bond04@ea.com");
+                Redirector007EverythingOrNothing_NTSC = new RedirectorServerV1(11600, ListenIP, 11601, "PS2-BOND-2004", "PS2", false, "ps2bond04.ea.com", "ps2bond04@ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] 007 Everything Or Nothing NTSC Started!");
             }
@@ -414,7 +417,7 @@ namespace MultiSocks.Aries
             try
             {
                 FightNight_NTSCMatchmaker = new MatchmakerServerV1(11501, ListenIP, null, "KKING-PS2-2004", "PS2", false);
-                FightNightR2_NTSCMatchmaker = new MatchmakerServerV6(21501, ListenIP, "KKING-PS2-2005", "PS2", false);
+                FightNightR2_NTSCMatchmaker = new MatchmakerServerV1(21501, ListenIP, null, "KKING-PS2-2005", "PS2", false);
             }
             catch (Exception ex)
             {
@@ -434,7 +437,10 @@ namespace MultiSocks.Aries
 
             try
             {
-                MarvelNemesis_NTSC_Matchmaker = new MatchmakerServerV6(31701, ListenIP, "NASCAR-PS2-2004", "PS2");
+                MarvelNemesis_NTSC_Matchmaker = new MatchmakerServerV1(31701, ListenIP, new List<Tuple<string, bool>>()
+                {
+                    new("Earth", true)
+                    }, "NASCAR-PS2-2004", "PS2");
                 /*
                 MarvelNemesis_NTSC_Matchmaker = new MatchmakerServer(31701, ListenIP, new List<Tuple<string, bool>>()
                 {
@@ -476,7 +482,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker = new MatchmakerServerV6(11201, ListenIP, "PS2_ROTK_2004", "PS2", false);
+                LordOfTheRingsTheReturnOfTheKing_NTSC_Matchmaker = new MatchmakerServerV1(11201, ListenIP, null, "PS2_ROTK_2004", "PS2", false);
             }
             catch (Exception ex)
             {
@@ -503,7 +509,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                EverythingOrNothing007_NTSC_Matchmaker = new MatchmakerServerV6(11601, ListenIP, "PS2-BOND-2004", "PS2", false);
+                EverythingOrNothing007_NTSC_Matchmaker = new MatchmakerServerV1(11601, ListenIP, null, "PS2-BOND-2004", "PS2", false);
             }
             catch (Exception ex)
             {
@@ -556,13 +562,35 @@ namespace MultiSocks.Aries
 
             try
             {
-                SSX3Matchmaker = new MatchmakerServerV6(11051, ListenIP, "SSX-ER-PS2-2004", "PS2");
+                SSX3Matchmaker = new MatchmakerServerV1(11051, ListenIP, null, "SSX-ER-PS2-2004", "PS2");
             }
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[SimsMatchmaker] Failed to start! Exception: {ex}");
             }
 
+            #endregion
+
+            #region EA.com Messenger Buddy Server
+            try
+            {
+                PS2EAMessenger = new EAMessengerServer(10899, ListenIP, null, "PS2");
+                LoggerAccessor.LogInfo($"[EAMessenger] PS2 Buddy Service Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[EAMessenger] PS2 Buddy Service Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                PS3EAMessenger = new EAMessengerServer(13505, ListenIP, null, "PS3");
+                LoggerAccessor.LogInfo($"[EAMessenger] PS3 Buddy Service Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[EAMessenger] PS3 Buddy Service Failed to start! Exception: {ex}");
+            }
             #endregion
 
             LoggerAccessor.LogInfo("Aries Servers initiated...");
