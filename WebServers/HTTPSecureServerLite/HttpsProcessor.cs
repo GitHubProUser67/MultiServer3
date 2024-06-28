@@ -208,7 +208,7 @@ namespace HTTPSecureServerLite
                                 HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
                                 UserAgent = request.Useragent,
                                 ClientAddress = request.Source.IpAddress + ":" + request.Source.Port,
-                            }), $"[[HTTPS]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                            }, Formatting.Indented), $"[[HTTPS]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 #else
                         LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 #endif

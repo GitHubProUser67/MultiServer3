@@ -97,7 +97,7 @@ namespace SSFWServer
                         Url = request.Url,
                         Headers = Headers.Select(header => new { Index = header.HeaderIndex, Item = header.HeaderItem }),
                         UserAgent = UserAgent
-                    }), $"[[SSFW]] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
+                    }, Formatting.Indented), $"[[SSFW]] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 #else
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 #endif

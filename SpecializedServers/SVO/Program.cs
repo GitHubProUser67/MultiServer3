@@ -8,6 +8,7 @@ using System.Net;
 using System.Security.Principal;
 using System.Security.Cryptography;
 using System.Reflection;
+using Spectre.Console;
 
 public static class SVOServerConfiguration
 {
@@ -179,7 +180,7 @@ class Program
         {
             if (!IsAdministrator())
             {
-                Console.WriteLine("Trying to restart as admin...");
+                AnsiConsole.WriteLine("Trying to restart as admin...");
                 if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
                     Environment.Exit(0);
             }

@@ -168,7 +168,7 @@ namespace HTTPServer
                                     CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
 #if DEBUG
-                                LoggerAccessor.LogJson(JsonConvert.SerializeObject(request), $"[[HTTP]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+                                LoggerAccessor.LogJson(JsonConvert.SerializeObject(request, Formatting.Indented), $"[[HTTP]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
 #else
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
 #endif

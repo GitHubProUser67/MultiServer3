@@ -5,52 +5,63 @@ using Spectre.Console;
 using Spectre.Console.Json;
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CustomLogger
 {
     public class LoggerAccessor
     {
-        private static bool initiated = false;
+        public static bool initiated = false;
+
+        public static ILogger Logger { get; set; }
+        public static ILogger PersistantLogger { get; set; }
+
+        public static FileLoggerProvider _fileLogger = null;
 
         public static void SetupLogger(string project, string CurrentDir)
         {
+            string logfilePath = CurrentDir + $"/logs/{project}.log";
+
             try
             {
                 Console.Title = project;
                 Console.CursorVisible = false;
-
-                Thread.Sleep(100);
-
-                Console.Clear();
             }
             catch // If a background or windows service, will assert.
             {
 
             }
-			
-            Directory.CreateDirectory(CurrentDir + $"/logs");
-            Console.WriteLine(FiggleFonts.Ogre.Render(project));
+
+            AnsiConsole.Clear();
+
+            if (File.Exists(CurrentDir + "/MultiServer.gif"))
+            {
+                GifProcessor.PrintGifToConsole(CurrentDir + "/MultiServer.gif").Wait();
+                AnsiConsole.Clear();
+            }
+
+            AnsiConsole.WriteLine(FiggleFonts.Ogre.Render(project));
+
+            Logger = LoggerFactory.Create(builder =>
+            {
+                builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
+            }).CreateLogger(string.Empty);
 
             // Check if the log file is in use by another process, if not create/use one.
             try
             {
-                string logfilePath = CurrentDir + $"/logs/{project}.log";
-
                 if (File.Exists(logfilePath))
                 {
-                    using (FileStream stream = File.Open(logfilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                    {
-
-                    }
+                    using FileStream stream = File.Open(logfilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                 }
 
-                Logger = LoggerFactory.Create(builder =>
+                Directory.CreateDirectory(CurrentDir + $"/logs");
+
+                PersistantLogger = LoggerFactory.Create(builder =>
                 {
-                    builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
                     builder.AddProvider(_fileLogger = new FileLoggerProvider(CurrentDir + $"/logs/{project}.log", new FileLoggerOptions()
                     {
+                        UseUtcTimestamp = true,
                         Append = false,
                         FileSizeLimitBytes = 4294967295, // 4GB (FAT32 max size) - 1 byte
                         MaxRollingFiles = 100
@@ -58,13 +69,12 @@ namespace CustomLogger
                     _fileLogger.MinLevel = LogLevel.Information;
                 }).CreateLogger(string.Empty);
             }
-            catch (IOException)
+            catch
             {
-                Logger = LoggerFactory.Create(builder =>
-                {
-                    builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
-                }).CreateLogger(string.Empty);
+               
             }
+
+            initiated = true;
 
 #if DEBUG
             if (Environment.OSVersion.Platform == PlatformID.Win32NT
@@ -72,7 +82,6 @@ namespace CustomLogger
                 || Environment.OSVersion.Platform == PlatformID.Win32Windows)
                 _ = Task.Run(ResourceMonitor.StartPerfWatcher);
 #endif
-            initiated = true;
         }
 
         public static void DrawTextProgressBar(string text, int progress, int total, bool warn = false)
@@ -90,9 +99,9 @@ namespace CustomLogger
                         LogInfo($"\n{text}\n");
                     //draw empty progress bar
                     Console.CursorLeft = 0;
-                    Console.Write("["); //start
+                    AnsiConsole.Write("["); //start
                     Console.CursorLeft = 32;
-                    Console.Write("]"); //end
+                    AnsiConsole.Write("]"); //end
                     Console.CursorLeft = 1;
                     float onechunk = 30.0f / total;
 
@@ -104,7 +113,7 @@ namespace CustomLogger
                         {
                             Console.BackgroundColor = ConsoleColor.Green;
                             Console.CursorLeft = position++;
-                            Console.Write(" ");
+                            AnsiConsole.Write(" ");
                         }
                     }
                     else
@@ -114,7 +123,7 @@ namespace CustomLogger
                         {
                             Console.BackgroundColor = ConsoleColor.Green;
                             Console.CursorLeft = position++;
-                            Console.Write(" ");
+                            AnsiConsole.Write(" ");
                         }
 
                         //draw unfilled part
@@ -122,14 +131,14 @@ namespace CustomLogger
                         {
                             Console.BackgroundColor = ConsoleColor.Black;
                             Console.CursorLeft = position++;
-                            Console.Write(" ");
+                            AnsiConsole.Write(" ");
                         }
                     }
 
                     //draw totals
                     Console.CursorLeft = 35;
                     Console.BackgroundColor = ConsoleColor.Black;
-                    Console.Write(progress.ToString() + " of " + total.ToString() + "    \n"); //blanks and a newline at the end remove any excess
+                    AnsiConsole.Write(progress.ToString() + " of " + total.ToString() + "    \n"); //blanks and a newline at the end remove any excess
                 }
                 catch
                 {
@@ -139,25 +148,23 @@ namespace CustomLogger
         }
 
 #pragma warning disable
-        public static ILogger Logger { get; set; }
-        public static FileLoggerProvider _fileLogger = null;
-        public static void LogInfo(string message) { Logger.LogInformation(message, null); }
-        public static void LogInfo(string message, params object[] args) { Logger.LogInformation(message, args); }
-        public static void LogInfo(int? message, params object[] args) { Logger.LogInformation(message.ToString(), args); }
-        public static void LogInfo(float? message, params object[] args) { Logger.LogInformation(message.ToString(), args); }
-        public static void LogWarn(string message) { Logger.LogWarning(message, null); }
-        public static void LogWarn(string message, params object[] args) { Logger.LogWarning(message, args); }
-        public static void LogWarn(int? message, params object[] args) { Logger.LogWarning(message.ToString(), args); }
-        public static void LogWarn(float? message, params object[] args) { Logger.LogWarning(message.ToString(), args); }
-        public static void LogError(string message) { Logger.LogError(message); }
-        public static void LogError(string message, params object[] args) { Logger.LogError(message, args); }
-        public static void LogError(int? message, params object[] args) { Logger.LogError(message.ToString(), args); }
-        public static void LogError(float? message, params object[] args) { Logger.LogError(message.ToString(), args); }
-        public static void LogError(Exception exception) { Logger.LogCritical(exception.Message.ToString()); }
-        public static void LogDebug(string message) { Logger.LogDebug(message, null); }
-        public static void LogDebug(string message, params object[] args) { Logger.LogDebug(message, args); }
-        public static void LogDebug(int? message, params object[] args) { Logger.LogDebug(message.ToString(), args); }
-        public static void LogDebug(float? message, params object[] args) { Logger.LogDebug(message.ToString(), args); }
+        public static void LogInfo(string message) { if (initiated) { Logger.LogInformation(message); PersistantLogger?.LogInformation(message); } }
+        public static void LogInfo(string message, params object[] args) {  if (initiated) { Logger.LogInformation(message, args); PersistantLogger?.LogInformation(message, args); } }
+        public static void LogInfo(int? message, params object[] args) {  if (initiated) { Logger.LogInformation(message.ToString(), args); PersistantLogger?.LogInformation(message.ToString(), args); } }
+        public static void LogInfo(float? message, params object[] args) {  if (initiated) { Logger.LogInformation(message.ToString(), args); PersistantLogger?.LogInformation(message.ToString(), args); } }
+        public static void LogWarn(string message) { if (initiated) { Logger.LogWarning(message); PersistantLogger?.LogWarning(message); } }
+        public static void LogWarn(string message, params object[] args) { if (initiated) {  Logger.LogWarning(message, args); PersistantLogger?.LogWarning(message, args); } }
+        public static void LogWarn(int? message, params object[] args) {  if (initiated) { Logger.LogWarning(message.ToString(), args); PersistantLogger?.LogWarning(message.ToString(), args); } }
+        public static void LogWarn(float? message, params object[] args) {  if (initiated) { Logger.LogWarning(message.ToString(), args); PersistantLogger?.LogWarning(message.ToString(), args); } }
+        public static void LogError(string message) {  if (initiated) { Logger.LogError(message); PersistantLogger?.LogError(message); } }
+        public static void LogError(string message, params object[] args) {  if (initiated) { Logger.LogError(message, args); PersistantLogger?.LogError(message, args); } }
+        public static void LogError(int? message, params object[] args) {  if (initiated) { Logger.LogError(message.ToString(), args); PersistantLogger?.LogError(message.ToString(), args); } }
+        public static void LogError(float? message, params object[] args) {  if (initiated) { Logger.LogError(message.ToString(), args); PersistantLogger?.LogError(message.ToString(), args); } }
+        public static void LogError(Exception exception) {  if (initiated) { Logger.LogCritical(exception.ToString()); PersistantLogger?.LogCritical(exception.ToString()); } }
+        public static void LogDebug(string message, object? arg = null) {  if (initiated) { Logger.LogDebug(message, arg); PersistantLogger?.LogDebug(message, arg); } }
+        public static void LogDebug(string message, params object[] args) {  if (initiated) { Logger.LogDebug(message, args); PersistantLogger?.LogDebug(message, args); } }
+        public static void LogDebug(int? message, params object[] args) {  if (initiated) { Logger.LogDebug(message.ToString(), args); PersistantLogger?.LogDebug(message.ToString(), args); } }
+        public static void LogDebug(float? message, params object[] args) {  if (initiated) { Logger.LogDebug(message.ToString(), args); PersistantLogger?.LogDebug(message.ToString(), args); } }
         public static void LogJson(string message, string header = "JSON Data")
         {
             AnsiConsole.Write(
@@ -174,6 +181,9 @@ namespace CustomLogger
                     .Collapse()
                     .RoundedBorder()
                     .BorderColor(ConsoleColor.Gray));
+
+            if (initiated)
+                PersistantLogger?.LogInformation($"{header.Replace("[[", "[").Replace("]]", "]")} (" + message + ')');
         }
 #pragma warning restore
     }
