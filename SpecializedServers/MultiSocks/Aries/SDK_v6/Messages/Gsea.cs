@@ -32,7 +32,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                 string? LANG = GetInputCacheValue("LANG");
 
                 List<Game> MatchingList = mc.Games.GamesSessions.Values
-                    .Where(game => (string.IsNullOrEmpty(CUSTFLAGS) || CUSTFLAGS == "0" || game.CustFlags.Equals(CUSTFLAGS)) && (string.IsNullOrEmpty(SYSFLAGS) || SYSFLAGS == "0" || game.SysFlags.Equals(SYSFLAGS)))
+                    .Where(game => (string.IsNullOrEmpty(CUSTFLAGS) || CUSTFLAGS == "0" || game.CustFlags.Equals(CUSTFLAGS)) && (string.IsNullOrEmpty(SYSFLAGS) || SYSFLAGS == "0" || game.SysFlags.Equals(SYSFLAGS)) && !game.Started)
                     .Skip(start - 1) // Adjusting for 1-based indexing
                     .Take(count)
                     .ToList();

@@ -33,7 +33,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                 }
             }
 
-            Game? game = mc.Games.GamesSessions.Values.Where(game => !game.Priv).FirstOrDefault();
+            Game? game = mc.Games.GamesSessions.Values.Where(game => !game.Priv && !game.Started).FirstOrDefault();
 
             if (game != null)
             {

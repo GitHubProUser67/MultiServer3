@@ -116,7 +116,7 @@ namespace MultiSocks.Aries.SDK_v6
             user?.Connection?.SendMessage(msg);
         }
 
-        public void TryLogin(DbAccount user, AriesClient client, string? PASS, string LOC, string? MAC)
+        public void TryLogin(DbAccount user, AriesClient client, string? PASS, string LOC, string? MAC, string? TOKEN)
         {
             //is someone else already logged in as this user?
             User? oldUser = Users.GetUserByName(user.Username);
@@ -185,7 +185,7 @@ namespace MultiSocks.Aries.SDK_v6
                 { "SINCE", "2008.1.1-00:00:00" },
                 { "GFIDS", "1" },
                 { "ADDR", client.ADDR },
-                { "TOKEN", "pc6r0gHSgZXe1dgwo_CegjBCn24uzUC7KVq1LJDKJ0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }};
+                { "TOKEN", (!string.IsNullOrEmpty(TOKEN)) ? TOKEN : "pc6r0gHSgZXe1dgwo_CegjBCn24uzUC7KVq1LJDKJ0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }};
 
             client.SendMessage(new Auth() { OutputCache = OutputCache });
         }

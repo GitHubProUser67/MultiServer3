@@ -14,6 +14,13 @@ namespace MultiSocks.Aries.SDK_v6.Messages
 
             if (context.SKU == "PS3")
                 OutputCache.Add("DP", "PS3/Burnout-Dec2007/mod");
+            else if (context.SKU == "PC")
+            {
+                OutputCache.Add("DP", "PC/Burnout-2008/na1");
+                OutputCache.Add("GFID", "\"ODS:19038.110.Base Product;BURNOUT PARADISE ULTIMATE EDITION_PC_ONLINE_ACCESS\"");
+                OutputCache.Add("PLATFORM", "pc");
+                OutputCache.Add("PSID", "PS-REG-BURNOUT2008");
+            }
             else
                 OutputCache.Add("DP", "XBOX360/Burnout-Dec2007/mod");
 

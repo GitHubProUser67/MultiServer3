@@ -101,11 +101,15 @@ public class ProtoSSLUtils
         store.SetCertificateEntry(certDomain, certEntry);
         store.SetKeyEntry(certDomain, new AsymmetricKeyEntry(cKeyPair.Private), new[] { certEntry });
 
-        SSLUtils.WriteObjectToPEM(certEntry.Certificate, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{certDomain}.pem");
+        byte[] derCertificate = certEntry.Certificate.GetEncoded();
+
+        Certificate vulnerableCert = new(new TlsCertificate[] { new BcTlsCertificate(crypto, derCertificate) });
+
+        SSLUtils.WriteDerByteArrayToPEM("CERTIFICATE", derCertificate, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{certDomain}.pem");
         SSLUtils.WriteObjectToPEM(cKeyPair.Private, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{certDomain}_privkey.pem");
         SSLUtils.WriteObjectToPEM(cKeyPair.Public, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{certDomain}_pubkey.pem");
 
-        return (cKeyPair.Private, new Certificate(new TlsCertificate[] { new BcTlsCertificate(crypto, certEntry.Certificate.GetEncoded()) }));
+        return (cKeyPair.Private, vulnerableCert);
     }
 
     /// <summary>
@@ -114,11 +118,10 @@ public class ProtoSSLUtils
     private (AsymmetricKeyParameter, Certificate) GenerateVulnerableLegacyCert(string RootCN, string Rootemail, string ChainCN, string Chainemail, bool WeakChainSignedRSAKey)
     {
         BcTlsCrypto crypto = new(new SecureRandom());
-        SecureRandom random = crypto.SecureRandom;
         RsaKeyPairGenerator rsaKeyPairGen = new();
-        rsaKeyPairGen.Init(new KeyGenerationParameters(random, 1024));
+        rsaKeyPairGen.Init(new KeyGenerationParameters(crypto.SecureRandom, 1024));
         RsaKeyPairGenerator rsaKeyPairGen0 = new();
-        rsaKeyPairGen0.Init(new KeyGenerationParameters(random, WeakChainSignedRSAKey ? 512 : 1024));
+        rsaKeyPairGen0.Init(new KeyGenerationParameters(crypto.SecureRandom, WeakChainSignedRSAKey ? 512 : 1024));
 
         AsymmetricCipherKeyPair caKeyPair = rsaKeyPairGen.GenerateKeyPair();
         AsymmetricCipherKeyPair cKeyPair = rsaKeyPairGen0.GenerateKeyPair();
@@ -132,11 +135,15 @@ public class ProtoSSLUtils
         store.SetCertificateEntry(ChainCN, certEntry);
         store.SetKeyEntry(ChainCN, new AsymmetricKeyEntry(cKeyPair.Private), new[] { certEntry });
 
-        SSLUtils.WriteObjectToPEM(certEntry.Certificate, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{ChainCN}.pem");
+        byte[] derCertificate = certEntry.Certificate.GetEncoded();
+
+        Certificate vulnerableCert = new(new TlsCertificate[] { new BcTlsCertificate(crypto, derCertificate) });
+
+        SSLUtils.WriteDerByteArrayToPEM("CERTIFICATE", derCertificate, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{ChainCN}.pem");
         SSLUtils.WriteObjectToPEM(cKeyPair.Private, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{ChainCN}_privkey.pem");
         SSLUtils.WriteObjectToPEM(cKeyPair.Public, MultiSocksServerConfiguration.ProtoSSLCertificateCachePath + $"/{ChainCN}_pubkey.pem");
 
-        return (cKeyPair.Private, new Certificate(new TlsCertificate[] { new BcTlsCertificate(crypto, certEntry.Certificate.GetEncoded()) }));
+        return (cKeyPair.Private, vulnerableCert);
     }
 
     private static X509Certificate GenerateCertificate(string CipherAlgorithm, string subjectName, AsymmetricCipherKeyPair subjectKeyPair, AsymmetricKeyParameter issuerPrivKey, X509Certificate? issuerCert = null)
@@ -144,8 +151,8 @@ public class ProtoSSLUtils
         X509V3CertificateGenerator certGen = new();
         certGen.SetSerialNumber(BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(long.MaxValue), new SecureRandom()));
         certGen.SetIssuerDN(issuerCert == null ? new X509Name(subjectName) : issuerCert.SubjectDN);
-        certGen.SetNotBefore(DateTime.UtcNow.Date);
-        certGen.SetNotAfter(DateTime.UtcNow.Date.AddYears(10));
+        certGen.SetNotBefore(new DateTime(2008, 01, 01));
+        certGen.SetNotAfter(new DateTime(2011, 08, 11)); // No choice, ProtoSSL cannot handle years after 2050 (client bug).
         certGen.SetSubjectDN(new X509Name(subjectName));
         certGen.SetPublicKey(subjectKeyPair.Public);
         return certGen.Generate(new Asn1SignatureFactory(CipherAlgorithm, issuerPrivKey));

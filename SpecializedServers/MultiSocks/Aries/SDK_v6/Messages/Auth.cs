@@ -47,7 +47,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                 return;
             }
 
-            mc.TryLogin(user, client, PASS, LOC ?? "enUS", MAC);
+            mc.TryLogin(user, client, PASS, LOC ?? "enUS", MAC, GetInputCacheValue("TOKEN"));
         }
     }
 }

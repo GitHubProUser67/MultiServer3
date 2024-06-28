@@ -8,10 +8,12 @@ namespace MultiSocks.Aries
         public static IDatabase? Database = null;
         private readonly SDK_v6.AbstractAriesServer? RedirectorBOP_PS3;
         private readonly SDK_v6.AbstractAriesServer? RedirectorBOPULTIMATEBOX_PS3;
+        private readonly SDK_v6.AbstractAriesServer? RedirectorBOPULTIMATEBOX_PC;
         private readonly SDK_v6.AbstractAriesServer? RedirectorHASBROFAMILYGAMENIGHT_PS3;
 
         private readonly SDK_v6.AbstractAriesServer? BurnoutParadisePS3Matchmaker;
         private readonly SDK_v6.AbstractAriesServer? BurnoutParadisePS3UltimateBoxMatchmaker;
+        private readonly SDK_v6.AbstractAriesServer? BurnoutParadisePCUltimateBoxMatchmaker;
         private readonly SDK_v6.AbstractAriesServer? HASBROFAMILYGAMENIGHTPS3Matchmaker;
 
         private bool disposedValue;
@@ -47,6 +49,19 @@ namespace MultiSocks.Aries
 
             #endregion
 
+            #region Burnout Paradise PC
+            try
+            {
+                RedirectorBOPULTIMATEBOX_PC = new SDK_v6.RedirectorServer(21841, ListenIP, 21842, "BURNOUT5", "PC", true, "pcburnout08.ea.com", "pcburnout08@ea.com");
+                LoggerAccessor.LogInfo($"[Redirector] BOPULTIMATEBOX PC Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] BOPULTIMATEBOX PC Failed to start! Exception: {ex}");
+            }
+
+            #endregion
+
             #region Hasbro Family Game Night PS3
             try
             {
@@ -66,28 +81,41 @@ namespace MultiSocks.Aries
             try
             {
                 BurnoutParadisePS3Matchmaker = new SDK_v6.MatchmakerServer(21851, ListenIP, "BURNOUT5", "PS3");
+                LoggerAccessor.LogInfo($"[Matchmaker] BurnoutParadise PS3 Started!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[BurnoutParadise PS3 Matchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Matchmaker] BurnoutParadise PS3 Failed to start! Exception: {ex}");
             }
 
             try
             {
                 BurnoutParadisePS3UltimateBoxMatchmaker = new SDK_v6.MatchmakerServer(21871, ListenIP, "BURNOUT5", "PS3");
+                LoggerAccessor.LogInfo($"[Matchmaker] BurnoutParadise PS3 UltimateBox!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[BurnoutParadise PS3 UltimateBox Matchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Matchmaker] BurnoutParadise PS3 UltimateBox Failed to start! Exception: {ex}");
+            }
+
+            try
+            {
+                BurnoutParadisePCUltimateBoxMatchmaker = new SDK_v6.MatchmakerServer(21842, ListenIP, "BURNOUT5", "PC");
+                LoggerAccessor.LogInfo($"[Matchmaker] BurnoutParadise PC UltimateBox!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Matchmaker] BurnoutParadise PC UltimateBox Failed to start! Exception: {ex}");
             }
 
             try
             {
                 HASBROFAMILYGAMENIGHTPS3Matchmaker = new SDK_v6.MatchmakerServer(32951, ListenIP, "DPR-09", "PS3");
+                LoggerAccessor.LogInfo($"[Matchmaker] Hasbro Family Game Night PS3 NTSC!");
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[Hasbro Family Game Night NTSC Matchmaker] Failed to start! Exception: {ex}");
+                LoggerAccessor.LogError($"[Matchmaker] Hasbro Family Game Night PS3 NTSC Failed to start! Exception: {ex}");
             }
 
             #endregion
@@ -106,11 +134,13 @@ namespace MultiSocks.Aries
                     // Redirectors
                     RedirectorBOP_PS3?.Dispose();
                     RedirectorBOPULTIMATEBOX_PS3?.Dispose();
+                    RedirectorBOPULTIMATEBOX_PC?.Dispose();
                     RedirectorHASBROFAMILYGAMENIGHT_PS3?.Dispose();
 
                     //Matchmakers
                     BurnoutParadisePS3Matchmaker?.Dispose();
                     BurnoutParadisePS3UltimateBoxMatchmaker?.Dispose();
+                    BurnoutParadisePCUltimateBoxMatchmaker?.Dispose();
                     HASBROFAMILYGAMENIGHTPS3Matchmaker?.Dispose();
 
                     //Database

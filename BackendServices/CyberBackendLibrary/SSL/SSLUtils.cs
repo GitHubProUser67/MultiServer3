@@ -348,6 +348,12 @@ namespace CyberBackendLibrary.SSL
             }
         }
 
+        public static void WriteDerByteArrayToPEM(string label, byte[] der, string filePath)
+        {
+            if (!File.Exists(filePath))
+                File.WriteAllText(filePath, new string(PemEncoding.Write(label, der)));
+        }
+
         /// <summary>
         /// Get a random int64 number.
         /// <para>Obtiens un nombre int64 random.</para>

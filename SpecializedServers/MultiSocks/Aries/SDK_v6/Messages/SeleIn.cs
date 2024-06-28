@@ -24,6 +24,21 @@ namespace MultiSocks.Aries.SDK_v6.Messages
             else
             {
                 if ("1".Equals(INGAME))
+                {
+                    Dictionary<string, string?> OutCache = new();
+
+                    if (context.SKU == "PS3")
+                        OutCache.Add("DP", "PS3/Burnout-Dec2007/mod");
+                    else if (context.SKU == "PC")
+                    {
+                        OutCache.Add("DP", "PC/Burnout-2008/na1");
+                        OutCache.Add("GFID", "\"ODS:19038.110.Base Product;BURNOUT PARADISE ULTIMATE EDITION_PC_ONLINE_ACCESS\"");
+                        OutCache.Add("PLATFORM", "pc");
+                        OutCache.Add("PSID", "PS-REG-BURNOUT2008");
+                    }
+                    else
+                        OutCache.Add("DP", "XBOX360/Burnout-Dec2007/mod");
+
                     client.SendMessage(new SeleOut()
                     {
                         INGAME = INGAME,
@@ -38,8 +53,9 @@ namespace MultiSocks.Aries.SDK_v6.Messages
                         CTRL = "0",
                         SLOTS = "280",
                         STATS = STATS,
-                        DP = "PS3/Burnout-Dec2007/mod"
+                        OutputCache = OutCache
                     });
+                }
                 else
                     client.SendMessage(new SeleOut()
                     {

@@ -20,6 +20,7 @@ namespace MultiSocks.Aries.SDK_v6.Model
         public bool Started = false;
 
         public UserCollection Users = new();
+        List<User> UsersCache = new(); // This is necessary to prevent users leaving during a ranked event.
 
         public Game(int maxSize, int minSize, int id, string custFlags, string @params,
                 string name, bool priv, string seed, string sysFlags, string? Pass, int roomId)
@@ -95,7 +96,9 @@ namespace MultiSocks.Aries.SDK_v6.Model
 
         public bool RemovePlayerByUsername(string? username, int reason = 0, string? KickReason = "")
         {
-            User? userToRemove = Users.GetAll().FirstOrDefault(user => user.Username == username);
+            if (string.IsNullOrEmpty(username)) return false;
+
+            User? userToRemove = Users.GetAll().FirstOrDefault(user => user.Username.Equals(username));
 
             if (userToRemove != null)
                 return RemoveUserAndCheckGameValidity(userToRemove, reason, KickReason);
@@ -106,6 +109,11 @@ namespace MultiSocks.Aries.SDK_v6.Model
         public void SetGameStatus(bool status)
         {
             Started = status;
+
+            if (status)
+                UsersCache = Users.GetAll();
+            else
+                UsersCache.Clear();
         }
 
         public void UpdatePlayerParams(User updatedUser)
@@ -168,7 +176,7 @@ namespace MultiSocks.Aries.SDK_v6.Model
             int i = 0;
             Dictionary<string, string> PLAYERSLIST = new();
 
-            foreach (User? user in Users.GetAll())
+            foreach (User? user in (Started && UsersCache.Count > 0) ? UsersCache : Users.GetAll())
             {
                 if (user != null)
                 {
