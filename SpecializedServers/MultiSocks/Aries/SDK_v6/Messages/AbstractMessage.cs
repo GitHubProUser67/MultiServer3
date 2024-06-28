@@ -115,7 +115,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
             return key + "=" + value + '\n';
         }
 
-        public virtual void Process(AbstractAriesServer context, AriesClient client)
+        public virtual void Process(AbstractAriesServerV6 context, AriesClient client)
         {
 
         }

@@ -6,7 +6,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages.BurnoutParadisePlugin
     {
         public override string _Name { get => "rrlc"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             client.SendMessage(new RrlcTime());
         }

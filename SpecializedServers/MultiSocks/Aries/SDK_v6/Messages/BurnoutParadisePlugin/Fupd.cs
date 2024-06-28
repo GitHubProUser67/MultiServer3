@@ -1,10 +1,10 @@
-﻿namespace MultiSocks.Aries.SDK_v6.Messages
+﻿namespace MultiSocks.Aries.SDK_v6.Messages.BurnoutParadisePlugin
 {
     public class Fupd : AbstractMessage
     {
         public override string _Name { get => "fupd"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             string? TAG = GetInputCacheValue("TAG");
             string? ADD = GetInputCacheValue("ADD");

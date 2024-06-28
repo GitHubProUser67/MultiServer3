@@ -7,7 +7,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
     {
         public override string _Name { get => "auth"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             string? VERS = GetInputCacheValue("VERS") ?? string.Empty;
             string? SKU = GetInputCacheValue("SKU") ?? string.Empty;
@@ -17,7 +17,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
             string? MAC = GetInputCacheValue("MAC");
             string? LOC = GetInputCacheValue("LOC");
 
-            if (context is not MatchmakerServer mc) return;
+            if (context is not MatchmakerServerV6 mc) return;
 
             client.VERS = VERS;
             client.SKU = SKU;

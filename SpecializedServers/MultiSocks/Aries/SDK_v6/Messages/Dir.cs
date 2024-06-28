@@ -1,12 +1,14 @@
+using MultiSocks.Aries.SDK_v6;
+
 namespace MultiSocks.Aries.SDK_v6.Messages
 {
     public class Dir : AbstractMessage
     {
         public override string _Name { get => "@dir"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
-            if (context is not RedirectorServer rc) return;
+            if (context is not RedirectorServerV6 rc) return;
 
             Random? rand = new();
 

@@ -12,7 +12,7 @@ namespace MultiSocks.Aries.SDK_v6
 {
     public class AriesClient
     {
-        public AbstractAriesServer Context;
+        public AbstractAriesServerV6 Context;
         public User? User;
         public string ADDR = "127.0.0.1";
         public string LADDR = "127.0.0.1";
@@ -42,7 +42,7 @@ namespace MultiSocks.Aries.SDK_v6
 
         private static int MAX_SIZE = 1024 * 1024 * 2;
 
-        public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, string email, bool WeakChainSignedRSAKey)
+        public AriesClient(AbstractAriesServerV6 context, TcpClient client, bool secure, string CN, string email, bool WeakChainSignedRSAKey)
         {
             this.secure = secure;
             Context = context;

@@ -4,7 +4,7 @@
     {
         public override string _Name { get => "fbst"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             client.SendMessage(this);
         }

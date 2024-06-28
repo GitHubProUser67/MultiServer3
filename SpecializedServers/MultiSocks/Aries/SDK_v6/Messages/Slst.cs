@@ -35,9 +35,9 @@ namespace MultiSocks.Aries.SDK_v6.Messages
         public string VIEW25 { get; set; } = "Friends,\"Friends List\"";
         public string VIEW26 { get; set; } = "PNetworkSta,\"Paradise Network Stats\"";
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
-            if (context is not MatchmakerServer) return;
+            if (context is not MatchmakerServerV6) return;
 
             client.SendMessage(this);
         }

@@ -6,11 +6,11 @@ namespace MultiSocks.Aries.SDK_v6.Messages
     {
         public override string _Name { get => "sviw"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             string? VIEW = GetInputCacheValue("VIEW");
 
-            if (context is not MatchmakerServer) return;
+            if (context is not MatchmakerServerV6) return;
 
             User? user = client.User;
             if (user == null) return;

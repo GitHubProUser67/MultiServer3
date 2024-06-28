@@ -4,7 +4,7 @@
     {
         public override string _Name { get => "pent"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             OutputCache.Add("GFID", GetInputCacheValue("GFID"));
 

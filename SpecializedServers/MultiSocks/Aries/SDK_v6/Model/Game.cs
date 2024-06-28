@@ -67,7 +67,7 @@ namespace MultiSocks.Aries.SDK_v6.Model
                     else
                         user.SendPlusWho(user);
 
-                    if (user.Connection?.Context is MatchmakerServer mc)
+                    if (user.Connection?.Context is MatchmakerServerV6 mc)
                         BroadcastPopulation(mc);
                 }
             }
@@ -152,7 +152,7 @@ namespace MultiSocks.Aries.SDK_v6.Model
             };
         }
 
-        public void BroadcastPopulation(MatchmakerServer mc)
+        public void BroadcastPopulation(MatchmakerServerV6 mc)
         {
             Users.Broadcast(GetGameDetails("+mgm"));
             mc.BroadcastGamesListDetails();

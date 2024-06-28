@@ -8,7 +8,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages.BurnoutParadisePlugin
         public string? R { get; set; }
         public string? SET { get; set; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             client.SendMessage(new RrgtTime());
         }

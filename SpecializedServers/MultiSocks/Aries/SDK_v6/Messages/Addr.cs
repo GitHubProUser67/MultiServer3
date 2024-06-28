@@ -7,7 +7,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
         public string ADDR { get; set; } = "127.0.0.1";
         public string? PORT { get; set; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             string? PORT = GetInputCacheValue("PORT");
             string? ADDR = GetInputCacheValue("ADDR");

@@ -4,7 +4,7 @@
     {
         public override string _Name { get => "snap"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             OutputCache.Add("START", "0");
             OutputCache.Add("SEQN", "0");

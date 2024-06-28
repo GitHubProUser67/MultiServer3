@@ -8,7 +8,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
     {
         public override string _Name { get => "acct"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             string? VERS = GetInputCacheValue("VERS");
             string? SKU = GetInputCacheValue("SKU");
@@ -19,7 +19,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
             string? SHARE = GetInputCacheValue("SHARE");
             string? MAIL = GetInputCacheValue("MAIL");
 
-            if (context is not MatchmakerServer) return;
+            if (context is not MatchmakerServerV6) return;
 
             switch (VERS)
             {

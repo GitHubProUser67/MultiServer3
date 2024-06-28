@@ -6,9 +6,9 @@ namespace MultiSocks.Aries.SDK_v6.Messages
     {
         public override string _Name { get => "gpsc"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
-            if (context is not MatchmakerServer mc) return;
+            if (context is not MatchmakerServerV6 mc) return;
 
             User? user = client.User;
             if (user == null) return;

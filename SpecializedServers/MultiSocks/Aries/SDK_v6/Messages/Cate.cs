@@ -4,7 +4,7 @@
     {
         public override string _Name { get => "cate"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             OutputCache.Add("NSS", "18");
             OutputCache.Add("SYMS", "TEST1,TEST2,TEST3");

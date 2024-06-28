@@ -4,7 +4,7 @@ namespace MultiSocks.Aries.SDK_v6.Messages
     {
         public override string _Name { get => "skey"; }
 
-        public override void Process(AbstractAriesServer context, AriesClient client)
+        public override void Process(AbstractAriesServerV6 context, AriesClient client)
         {
             //TODO: get actual session key
 

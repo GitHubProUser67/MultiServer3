@@ -1,14 +1,14 @@
 using CustomLogger;
 using CyberBackendLibrary.DataTypes;
-using MultiSocks.Aries.SDK_v6.Messages;
+using MultiSocks.Aries.SDK_v1.Messages;
 using MultiSocks.Tls;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace MultiSocks.Aries.SDK_v6
+namespace MultiSocks.Aries.SDK_v1
 {
-    public abstract class AbstractAriesServer : IDisposable
+    public abstract class AbstractAriesServerV1 : IDisposable
     {
         public abstract Dictionary<string, Type?> NameToClass { get; }
         public string? Project = null;
@@ -25,7 +25,7 @@ namespace MultiSocks.Aries.SDK_v6
         private string email = string.Empty;
         private Thread ListenerThread;
 
-        public AbstractAriesServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false)
+        public AbstractAriesServerV1(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false)
         {
             this.listenIP = listenIP;
             this.secure = secure;
