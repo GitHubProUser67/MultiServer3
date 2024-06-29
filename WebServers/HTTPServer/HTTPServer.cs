@@ -1,6 +1,7 @@
 // Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
 
 using CustomLogger;
+using CyberBackendLibrary.HTTP;
 using HTTPServer.Models;
 using System;
 using System.Collections.Concurrent;
@@ -25,7 +26,7 @@ namespace HTTPServer
         #endregion
 
         #region Public Methods
-        public HttpServer(List<ushort>? ports, List<Route> routes, CancellationToken cancellationToken)
+        public HttpServer(List<ushort>? ports, List<Route> routes, bool keepaliveTest, CancellationToken cancellationToken)
         {
 			LoggerAccessor.LogWarn("[HTTP] - HTTP system is initialising, service will be available when initialized...");
 
@@ -43,12 +44,12 @@ namespace HTTPServer
                 Parallel.ForEach(ports, port =>
                 {
                     if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(port))
-                        new Thread(() => CreateHTTPPortListener(port)).Start();
+                        new Thread(() => CreateHTTPPortListener(port, keepaliveTest)).Start();
                 });
             }
         }
 
-        private void CreateHTTPPortListener(ushort listenerPort)
+        private void CreateHTTPPortListener(ushort listenerPort, bool keepaliveTest)
         {
             _ = Processor.TryGetServerIP(listenerPort);
 
@@ -60,6 +61,34 @@ namespace HTTPServer
                     listener.Start();
                     LoggerAccessor.LogInfo($"[HTTP] - Server initiated on port: {listenerPort}...");
                     _listeners.TryAdd(listenerPort, listener);
+
+                    if (keepaliveTest)
+                    {
+                        _ = Task.Run(() => {
+                            const int timeOut = 5;
+                            int tryout = 0;
+
+                            while (true)
+                            {
+                                if (listener.Server.IsBound && !HTTPPingTest.PingServer($"http://127.0.0.1:{listenerPort}/!morelife").Result)
+                                {
+                                    tryout++;
+
+                                    if (tryout >= timeOut)
+                                    {
+                                        listener.Stop();
+                                        listener.Start();
+                                        tryout = 0;
+                                    }
+                                }
+                                else
+                                    tryout = 0;
+
+                                Thread.Sleep(10000);
+                            }
+                        });
+
+                    }
 
                     while (!_cts.Token.IsCancellationRequested)
                     {

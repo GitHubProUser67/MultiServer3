@@ -221,13 +221,16 @@ namespace WatsonWebserver.Lite
                 //                           123456789012345 6 7 8
                 // minimum request 16 bytes: GET / HTTP/1.1\r\n\r\n
                 int preReadLen = 18;
-                ReadResult preReadResult = await _TcpServer.ReadWithTimeoutAsync(
-                    Settings.IO.ReadTimeoutMs,
-                    args.Client.Guid,
-                    preReadLen,
-                    _Token).ConfigureAwait(false);
+                ReadResult preReadResult = null;
 
-                if (preReadResult.Status != ReadResultStatus.Success
+                if (_TcpServer != null)
+                    preReadResult = await _TcpServer.ReadWithTimeoutAsync(
+                        Settings.IO.ReadTimeoutMs,
+                        args.Client.Guid,
+                        preReadLen,
+                        _Token).ConfigureAwait(false);
+
+                if (preReadResult == null || preReadResult.Status != ReadResultStatus.Success
                     || preReadResult.BytesRead != preReadLen
                     || preReadResult.Data == null
                     || preReadResult.Data.Length != preReadLen) return;
@@ -655,7 +658,7 @@ namespace WatsonWebserver.Lite
             }
             finally
             {
-                _TcpServer.DisconnectClient(args.Client.Guid);
+                _TcpServer?.DisconnectClient(args.Client.Guid);
                 Interlocked.Decrement(ref _RequestCount);
 
                 if (ctx != null)
