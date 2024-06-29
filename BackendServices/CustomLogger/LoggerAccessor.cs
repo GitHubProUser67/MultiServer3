@@ -315,8 +315,6 @@ namespace CustomLogger
         public static void LogDebug(float? message, params object[] args) {  if (initiated) { Logger.LogDebug(message.ToString(), args); PersistantLogger?.LogDebug(message.ToString(), args); } }
         public static void LogJson(string message, string header = "JSON Data")
         {
-            const string spectreColor = "[purple_1]json[/]: ";
-
             AnsiConsole.Write(
                 new Panel(new JsonText(message)
                     .BracesColor(Color.Red)
@@ -327,7 +325,7 @@ namespace CustomLogger
                     .NumberColor(Color.Blue)
                     .BooleanColor(Color.Red)
                     .NullColor(Color.Green))
-                    .Header($"[[{DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss")}]] " + spectreColor + header)
+                    .Header($"[[{DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss")}]] " + header)
                     .Collapse()
                     .RoundedBorder()
                     .BorderColor(ConsoleColor.Gray));
