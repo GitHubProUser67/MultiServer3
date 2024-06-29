@@ -30,6 +30,7 @@ using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
 using Newtonsoft.Json;
 using System.Security.Authentication;
+using System.Threading;
 
 namespace HTTPSecureServerLite
 {
@@ -41,22 +42,13 @@ namespace HTTPSecureServerLite
         private readonly ushort port;
         private readonly SslProtocols protocols;
 
-        public HttpsProcessor(string certpath, string certpass, string ip, ushort port, SslProtocols protocols)
+        public HttpsProcessor(string certpath, string certpass, string ip, ushort port, SslProtocols protocols, bool keepaliveTest)
         {
             this.ip = ip;
             this.port = port;
             this.protocols = protocols;
-            WebserverSettings settings = new()
-            {
-                Hostname = ip,
-                Port = port,
-            };
-            settings.Ssl.PfxCertificateFile = certpath;
-            settings.Ssl.PfxCertificatePassword = certpass;
-            settings.Ssl.Enable = true;
-            _Server = new WebserverLite(settings, DefaultRoute);
 
-            StartServer();
+            StartServer(keepaliveTest, ip, port, certpath, certpass);
         }
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
@@ -106,9 +98,19 @@ namespace HTTPSecureServerLite
             LoggerAccessor.LogWarn($"HTTPS Server on port: {port} stopped...");
         }
 
-        public void StartServer()
+        public void StartServer(bool keepaliveTest, string ip, ushort port, string certpath, string certpass)
         {
-			_ = TryGetServerIP(port);
+            WebserverSettings settings = new()
+            {
+                Hostname = ip,
+                Port = port,
+            };
+            settings.Ssl.PfxCertificateFile = certpath;
+            settings.Ssl.PfxCertificatePassword = certpass;
+            settings.Ssl.Enable = true;
+            _Server = new WebserverLite(settings, DefaultRoute);
+
+            _ = TryGetServerIP(port);
 
             if (_Server != null && !_Server.IsListening)
             {
@@ -137,6 +139,31 @@ namespace HTTPSecureServerLite
 
                 _Server.Start(protocols);
                 LoggerAccessor.LogInfo($"HTTPS Server initiated on port: {port}...");
+
+                if (keepaliveTest)
+                {
+                    const int timeOut = 5;
+                    int tryout = 0;
+
+                    while (true)
+                    {
+                        if (_Server.IsListening && !HTTPPingTest.PingServer($"https://127.0.0.1:{port}/!morelife").Result)
+                        {
+                            tryout++;
+
+                            if (tryout >= timeOut)
+                            {
+                                StopServer();
+                                _ = Task.Run(() => { StartServer(keepaliveTest, ip, port, certpath, certpass); });
+                                break;
+                            }
+                        }
+                        else
+                            tryout = 0;
+
+                        Thread.Sleep(10000);
+                    }
+                }
             }
         }
 
@@ -200,17 +227,26 @@ namespace HTTPSecureServerLite
                                 CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
 #if DEBUG
-                            LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                            try
                             {
-                                HttpMethod = request.Method,
-                                Url = request.Url.Full,
-                                Headers = request.Headers,
-                                HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
-                                UserAgent = request.Useragent,
-                                ClientAddress = request.Source.IpAddress + ":" + request.Source.Port,
-                            }, Formatting.Indented), $"[[HTTPS]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                                LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                                {
+                                    HttpMethod = request.Method,
+                                    Url = fullurl,
+                                    Headers = request.Headers,
+                                    HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
+                                    UserAgent = request.Useragent,
+                                    ClientAddress = request.Source.IpAddress + ":" + request.Source.Port,
+                                }, Formatting.Indented), $"[[HTTPS]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                            }
+                            catch (Exception ex)
+                            {
+                                LoggerAccessor.LogError($"[HTTPS] - Thrown an exception while trying to generate DEBUG json data: {ex}");
+
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                            }
 #else
-                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 #endif
 
                             absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
@@ -931,6 +967,12 @@ namespace HTTPSecureServerLite
                                                         }
                                                     }
                                                 }
+                                                break;
+                                            case "/!morelife":
+                                                statusCode = HttpStatusCode.OK;
+                                                response.StatusCode = (int)statusCode;
+                                                response.ContentType = "text/json";
+                                                sent = await response.Send("{}");
                                                 break;
                                             case "/!player":
                                             case "/!player/":

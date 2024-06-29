@@ -35,7 +35,6 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using WebAPIService.HELLFIRE;
 using CyberBackendLibrary.HTTP.PluginManager;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using WebAPIService.UBISOFT.gsconnect;
 using CyberBackendLibrary.Crypto;
@@ -168,7 +167,16 @@ namespace HTTPServer
                                     CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
 #if DEBUG
-                                LoggerAccessor.LogJson(JsonConvert.SerializeObject(request, Formatting.Indented), $"[[HTTP]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+                                try
+                                {
+                                    LoggerAccessor.LogJson(JsonConvert.SerializeObject(request, Formatting.Indented), $"[[HTTP]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+                                }
+                                catch (Exception ex)
+                                {
+                                    LoggerAccessor.LogError($"[HTTP] - Thrown an exception while trying to generate DEBUG json data: {ex}");
+
+                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+                                }
 #else
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
 #endif
@@ -755,6 +763,12 @@ namespace HTTPServer
                                                             #region PSN Network Test
                                                             case "/networktest/get_2m":
                                                                 response = HttpResponse.Send(false, new byte[2097152]);
+                                                                break;
+                                                            #endregion
+
+                                                            #region MoreLife
+                                                            case "/!morelife":
+                                                                response = HttpResponse.Send(false, "{}", "text/json");
                                                                 break;
                                                             #endregion
 

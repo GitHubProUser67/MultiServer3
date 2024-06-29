@@ -19,7 +19,7 @@ namespace HTTPSecureServerLite
         #endregion
 
         #region Public Methods
-        public HTTPSecureServer(List<ushort>? ports, SslProtocols protocols, CancellationToken cancellationToken)
+        public HTTPSecureServer(List<ushort>? ports, SslProtocols protocols, bool keepaliveTest, CancellationToken cancellationToken)
         {
             LoggerAccessor.LogWarn("[HTTPS] - HTTPS system is initialising, service will be available when initialized...");
 
@@ -30,16 +30,16 @@ namespace HTTPSecureServerLite
                 Parallel.ForEach(ports, port =>
                 {
                     if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(port))
-                        new Thread(() => CreateHTTPSPortServer(port, protocols)).Start();
+                        new Thread(() => CreateHTTPSPortServer(port, protocols, keepaliveTest)).Start();
                 });
             }
         }
 
-        private void CreateHTTPSPortServer(ushort listenerPort, SslProtocols protocols)
+        private void CreateHTTPSPortServer(ushort listenerPort, SslProtocols protocols, bool keepaliveTest)
         {
             Task serverHTTP = Task.Run(async () =>
             {
-                HttpsProcessor processor = new(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", listenerPort, protocols); // 0.0.0.0 as the certificate binds to this IP
+                HttpsProcessor processor = new(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", listenerPort, protocols, keepaliveTest); // 0.0.0.0 as the certificate binds to this IP
                 _listeners.TryAdd(listenerPort, processor);
 
                 // Wait until cancellation is requested or task completes

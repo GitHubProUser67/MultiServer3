@@ -7,6 +7,7 @@ using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using Newtonsoft.Json;
 using System.Security.Authentication;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace SVO
 {
@@ -108,15 +109,24 @@ namespace SVO
                 fullurl = HTTPProcessor.DecodeUrl(ctx.Request.Url.RawWithQuery);
 
 #if DEBUG
-                LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                try
                 {
-                    HttpMethod = ctx.Request.Method,
-                    Url = ctx.Request.Url.Full,
-                    Headers = ctx.Request.Headers,
-                    HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
-                    UserAgent = ctx.Request.Useragent,
-                    ClientAddress = ctx.Request.Source.IpAddress + ":" + ctx.Request.Source.Port,
-                }, Formatting.Indented), $"[[OTG_HTTPS]] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                    LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
+                    {
+                        HttpMethod = ctx.Request.Method,
+                        Url = ctx.Request.Url.Full,
+                        Headers = ctx.Request.Headers,
+                        HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
+                        UserAgent = ctx.Request.Useragent,
+                        ClientAddress = ctx.Request.Source.IpAddress + ":" + ctx.Request.Source.Port,
+                    }, Formatting.Indented), $"[[OTG_HTTPS]] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[OTG_HTTPS] - Thrown an exception while trying to generate DEBUG json data: {ex}");
+
+                    LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+                }
 #else
                 LoggerAccessor.LogInfo($"[OTG_HTTPS] - Client - {clientip}:{clientport} Requested the OTG_HTTPS Server with URL : {ctx.Request.Url.RawWithQuery}" + " (" + ctx.Timestamp.TotalMs + "ms)");
 #endif

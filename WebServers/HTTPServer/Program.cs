@@ -27,6 +27,7 @@ public static class HTTPServerConfiguration
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
+    public static bool PingAutoTest { get; set; } = true;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnableHTTPChunkedTransfers { get; set; } = false;
     public static bool EnableHTTPCompression { get; set; } = true;
@@ -74,6 +75,7 @@ public static class HTTPServerConfiguration
                 SerializeDateTimeOffset(),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
+                new JProperty("ping_autotest", PingAutoTest),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
                 new JProperty("enable_http_chunked_transfers", EnableHTTPChunkedTransfers),
                 new JProperty("enable_http_compression", EnableHTTPCompression),
@@ -108,6 +110,7 @@ public static class HTTPServerConfiguration
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
+            PingAutoTest = GetValueOrDefault(config, "ping_autotest", PingAutoTest);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             EnableHTTPChunkedTransfers = GetValueOrDefault(config, "enable_http_chunked_transfers", EnableHTTPChunkedTransfers);
             EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
@@ -233,7 +236,7 @@ class Program
             }
         }
 
-        Server = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token);
+        Server = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, HTTPServerConfiguration.PingAutoTest, new CancellationTokenSource().Token);
     }
 
     static void Main()
