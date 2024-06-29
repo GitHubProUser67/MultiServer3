@@ -226,28 +226,7 @@ namespace HTTPSecureServerLite
                             else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                                 CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
-#if DEBUG
-                            try
-                            {
-                                LoggerAccessor.LogJson(JsonConvert.SerializeObject(new
-                                {
-                                    HttpMethod = request.Method,
-                                    Url = fullurl,
-                                    Headers = request.Headers,
-                                    HeadersValues = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>()),
-                                    UserAgent = request.Useragent,
-                                    ClientAddress = request.Source.IpAddress + ":" + request.Source.Port,
-                                }, Formatting.Indented), $"[[HTTPS]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
-                            }
-                            catch (Exception ex)
-                            {
-                                LoggerAccessor.LogError($"[HTTPS] - Thrown an exception while trying to generate DEBUG json data: {ex}");
-
-                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
-                            }
-#else
                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
-#endif
 
                             absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                             fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;

@@ -166,20 +166,7 @@ namespace HTTPServer
                                 else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                                     CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
-#if DEBUG
-                                try
-                                {
-                                    LoggerAccessor.LogJson(JsonConvert.SerializeObject(request, Formatting.Indented), $"[[HTTP]] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
-                                }
-                                catch (Exception ex)
-                                {
-                                    LoggerAccessor.LogError($"[HTTP] - Thrown an exception while trying to generate DEBUG json data: {ex}");
-
-                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
-                                }
-#else
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
-#endif
 
                                 string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                                 string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
