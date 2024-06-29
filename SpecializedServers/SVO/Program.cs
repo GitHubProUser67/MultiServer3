@@ -39,7 +39,8 @@ public static class SVOServerConfiguration
             "warhawk-prod3.svo.online.scea.com",
             "singstar.svo.online.com",
             "hdc.cprod.homeps3.online.scee.com",
-            "secure.cprodts.homeps3.online.scee.com"
+            "secure.cprodts.homeps3.online.scee.com",
+			"wipeout2048.online.scee.com"
         };
 
     public static DbController? Database = new(DatabaseConfig);
