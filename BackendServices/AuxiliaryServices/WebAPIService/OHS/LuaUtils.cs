@@ -14,98 +14,104 @@ namespace WebAPIService.OHS
         {
             int arrayIndex = 1;
 
-            if (nested)
+            if (nested && token.Type == JTokenType.Object)
             {
-                if (token.Type == JTokenType.Object)
+                StringBuilder resultBuilder = new StringBuilder("{ ");
+
+                foreach (JProperty property in token.Children<JProperty>())
                 {
-                    StringBuilder resultBuilder = new StringBuilder("{ ");
-
-                    foreach (JProperty property in token.Children<JProperty>())
+                    if (property.Value.Type == JTokenType.Array)
                     {
-                        if (property.Value.Type == JTokenType.Array)
+                        resultBuilder.Append($"[\"{property.Name}\"] = {{ ");
+                        foreach (JToken arrayItem in property.Value)
                         {
-                            resultBuilder.Append($"[\"{property.Name}\"] = {{ ");
-                            foreach (JToken arrayItem in property.Value)
-                            {
-                                resultBuilder.Append(ConvertJTokenToLuaTable(arrayItem, true));
-                                if (arrayIndex < property.Value.Count())
-                                    resultBuilder.Append(", ");
-                                arrayIndex++;
-                            }
-                            resultBuilder.Append(" }, ");
-                            arrayIndex = 1;
+                            resultBuilder.Append(ConvertJTokenToLuaTable(arrayItem, true));
+                            if (arrayIndex < property.Value.Count())
+                                resultBuilder.Append(", ");
+                            arrayIndex++;
                         }
-                        else if (property.Value.Type == JTokenType.Object)
-                            resultBuilder.Append($"[\"{property.Name}\"] = {ConvertJTokenToLuaTable(property.Value, true)}, ");
-                        else if (property.Value.Type == JTokenType.String)
-                            resultBuilder.Append($"[\"{property.Name}\"] = \"{property.Value}\", ");
-                        else
-                            resultBuilder.Append($"[\"{property.Name}\"] = {property.Value}, ");
+                        resultBuilder.Append(" }, ");
+                        arrayIndex = 1;
                     }
-
-                    if (resultBuilder.Length > 2)
-                        resultBuilder.Length -= 2;
-
-                    resultBuilder.Append(" }");
-
-                    return resultBuilder.ToString();
+                    else if (property.Value.Type == JTokenType.Object)
+                        resultBuilder.Append($"[\"{property.Name}\"] = {ConvertJTokenToLuaTable(property.Value, true)}, ");
+                    else if (property.Value.Type == JTokenType.String)
+                        resultBuilder.Append($"[\"{property.Name}\"] = \"{property.Value}\", ");
+                    else if (token.Type == JTokenType.Boolean)
+                        resultBuilder.Append($"[\"{property.Name}\"] = {property.Value.ToString().ToLower()}, ");
+                    else if (token.Type == JTokenType.Null)
+                        resultBuilder.Append($"[\"{property.Name}\"] = nil, ");
+                    else
+                        resultBuilder.Append($"[\"{property.Name}\"] = {property.Value}, ");
                 }
-                else if (token.Type == JTokenType.Array)
-                    return ReplaceFirstAndLast(new JArray(token.Children().Select(t => t.Type == JTokenType.Null ? "nil" : t)).ToString(), '{', '}');
-                else if (token.Type == JTokenType.String)
-                    return $"\"{token.Value<string>()}\"";
-                else if (token.Type == JTokenType.Boolean)
-                    return token.ToString().ToLower();
-                else if (token.Type == JTokenType.Null)
-                    return "nil";
-                else
-                    return token.ToString(); // For other value types, use their raw string representation
+
+                if (resultBuilder.Length > 2)
+                    resultBuilder.Length -= 2;
+
+                resultBuilder.Append(" }");
+
+                return resultBuilder.ToString();
             }
+            else if (token.Type == JTokenType.Object)
+            {
+                StringBuilder resultBuilder = new StringBuilder();
+
+                foreach (JProperty property in token.Children<JProperty>())
+                {
+                    if (property.Value.Type == JTokenType.Array)
+                    {
+                        resultBuilder.Append("{ ");
+                        foreach (JToken arrayItem in property.Value)
+                        {
+                            resultBuilder.Append(ConvertJTokenToLuaTable(arrayItem, true));
+                            if (arrayIndex < property.Value.Count())
+                                resultBuilder.Append(", ");
+                            arrayIndex++;
+                        }
+                        resultBuilder.Append(" }, ");
+                        arrayIndex = 1;
+                    }
+                    else if (property.Value.Type == JTokenType.Object)
+                        resultBuilder.Append($"{ConvertJTokenToLuaTable(property.Value, true)}, ");
+                    else if (property.Value.Type == JTokenType.String)
+                        resultBuilder.Append($"\"{property.Value}\", ");
+                    else if (token.Type == JTokenType.Boolean)
+                        resultBuilder.Append($"{property.Value.ToString().ToLower()}, ");
+                    else if (token.Type == JTokenType.Null)
+                        resultBuilder.Append("nil, ");
+                    else
+                        resultBuilder.Append($"{property.Value}, ");
+                }
+
+                if (resultBuilder.Length > 2)
+                    resultBuilder.Length -= 2;
+
+                return resultBuilder.ToString();
+            }
+            else if (token.Type == JTokenType.Array)
+            {
+                StringBuilder resultBuilder = new StringBuilder("{ ");
+                foreach (JToken arrayItem in token)
+                {
+                    resultBuilder.Append(ConvertJTokenToLuaTable(arrayItem, true));
+                    resultBuilder.Append(", ");
+                }
+
+                if (resultBuilder.Length > 2)
+                    resultBuilder.Length -= 2;
+
+                resultBuilder.Append(" }");
+
+                return resultBuilder.ToString();
+            }
+            else if (token.Type == JTokenType.String)
+                return $"\"{token.Value<string>()}\"";
+            else if (token.Type == JTokenType.Boolean)
+                return token.ToString().ToLower();
+            else if (token.Type == JTokenType.Null)
+                return "nil";
             else
-            {
-                if (token.Type == JTokenType.Object)
-                {
-                    StringBuilder resultBuilder = new StringBuilder();
-
-                    foreach (JProperty property in token.Children<JProperty>())
-                    {
-                        if (property.Value.Type == JTokenType.Array)
-                        {
-                            resultBuilder.Append("{ ");
-                            foreach (JToken arrayItem in property.Value)
-                            {
-                                resultBuilder.Append(ConvertJTokenToLuaTable(arrayItem, true));
-                                if (arrayIndex < property.Value.Count())
-                                    resultBuilder.Append(", ");
-                                arrayIndex++;
-                            }
-                            resultBuilder.Append(" }, ");
-                            arrayIndex = 1;
-                        }
-                        else if (property.Value.Type == JTokenType.Object)
-                            resultBuilder.Append($"{ConvertJTokenToLuaTable(property.Value, true)}, ");
-                        else if (property.Value.Type == JTokenType.String)
-                            resultBuilder.Append($"\"{property.Value}\", ");
-                        else
-                            resultBuilder.Append($"{property.Value}, ");
-                    }
-
-                    if (resultBuilder.Length > 2)
-                        resultBuilder.Length -= 2;
-
-                    return resultBuilder.ToString();
-                }
-                else if (token.Type == JTokenType.Array)
-                    return ReplaceFirstAndLast(new JArray(token.Children().Select(t => t.Type == JTokenType.Null ? "nil" : t)).ToString(), '{', '}');
-                else if (token.Type == JTokenType.String)
-                    return $"\"{token.Value<string>()}\"";
-                else if (token.Type == JTokenType.Boolean)
-                    return token.ToString().ToLower();
-                else if (token.Type == JTokenType.Null)
-                    return "nil";
-                else
-                    return token.ToString(); // For other value types, use their raw string representation
-            }
+                return token.ToString(); // For other value types, use their raw string representation
         }
 
         public static object[] ExecuteLuaScript(string luaScript)
@@ -218,18 +224,6 @@ namespace WebAPIService.OHS
             }
 
             return result.ToString();
-        }
-
-        private static string ReplaceFirstAndLast(string input, char newFirstChar, char newLastChar)
-        {
-            if (string.IsNullOrEmpty(input) || input.Length <= 1)
-                return input;
-
-            char[] chars = input.ToCharArray();
-            chars[0] = newFirstChar;
-            chars[^1] = newLastChar;
-
-            return new string(chars);
         }
     }
 }
