@@ -368,13 +368,13 @@ namespace WebAPIService.OHS
                             }
                         }
                         else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
-                            output = "{[\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = {[\"accuracy\"] = 1}}";
+                            output = "{ [\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = { [\"accuracy\"] = 1 } }";
                         else if ((string?)jsonObject["key"] == "unlock_data" && directorypath.Contains("killzone_3"))
-                            output = "{ [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True } }, { [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True } }, { [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = True } } } }";
+                            output = "{ [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true } }, { [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true } }, { [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true } }";
                         else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Halloween2012"))
                             output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"hemlock\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"wolfsbane\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" } } }";
                         else if ((string?)jsonObject["key"] == "vickie_version")
-                            output = "{[\"vickie_version\"] = 7}";
+                            output = "{ [\"vickie_version\"] = 7 }";
                     }
                 }
             }
