@@ -38,10 +38,6 @@ public static class HTTPSServerConfiguration
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
-#pragma warning disable
-    public static SslProtocols HTTPSProtocols { get; set; } = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
-#pragma warning restore
-    public static bool PingAutoTest { get; set; } = true;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
@@ -152,10 +148,8 @@ public static class HTTPSServerConfiguration
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
-                new JProperty("protocols", HTTPSProtocols),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
-                new JProperty("ping_autotest", PingAutoTest),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
                 new JProperty("enable_http_compression", EnableHTTPCompression),
                 new JProperty("enable_put_method", EnablePUTMethod),
@@ -190,10 +184,8 @@ public static class HTTPSServerConfiguration
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
             HTTPSCertificateHashingAlgorithm = new HashAlgorithmName(GetValueOrDefault(config, "certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name));
-            HTTPSProtocols = GetValueOrDefault(config, "protocols", HTTPSProtocols);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
-            PingAutoTest = GetValueOrDefault(config, "ping_autotest", PingAutoTest);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
@@ -402,7 +394,7 @@ class Program
             }
         }
 
-        Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, HTTPSServerConfiguration.HTTPSProtocols, HTTPSServerConfiguration.PingAutoTest, new CancellationTokenSource().Token);
+        Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token);
     }
 
     private static Task RefreshDNS()

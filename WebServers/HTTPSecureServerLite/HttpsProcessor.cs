@@ -28,9 +28,6 @@ using System.Linq;
 using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
-using Newtonsoft.Json;
-using System.Security.Authentication;
-using System.Threading;
 
 namespace HTTPSecureServerLite
 {
@@ -40,15 +37,24 @@ namespace HTTPSecureServerLite
         private WebserverLite? _Server;
         private readonly string ip;
         private readonly ushort port;
-        private readonly SslProtocols protocols;
 
-        public HttpsProcessor(string certpath, string certpass, string ip, ushort port, SslProtocols protocols, bool keepaliveTest)
+        public HttpsProcessor(string certpath, string certpass, string ip, ushort port)
         {
             this.ip = ip;
             this.port = port;
-            this.protocols = protocols;
 
-            StartServer(keepaliveTest, ip, port, certpath, certpass);
+            WebserverSettings settings = new()
+            {
+                Hostname = ip,
+                Port = port,
+            };
+            settings.Ssl.PfxCertificateFile = certpath;
+            settings.Ssl.PfxCertificatePassword = certpass;
+            settings.Ssl.Enable = true;
+            _Server = new WebserverLite(settings, DefaultRoute);
+
+
+            StartServer();
         }
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
@@ -98,18 +104,8 @@ namespace HTTPSecureServerLite
             LoggerAccessor.LogWarn($"HTTPS Server on port: {port} stopped...");
         }
 
-        public void StartServer(bool keepaliveTest, string ip, ushort port, string certpath, string certpass)
+        public void StartServer()
         {
-            WebserverSettings settings = new()
-            {
-                Hostname = ip,
-                Port = port,
-            };
-            settings.Ssl.PfxCertificateFile = certpath;
-            settings.Ssl.PfxCertificatePassword = certpass;
-            settings.Ssl.Enable = true;
-            _Server = new WebserverLite(settings, DefaultRoute);
-
             _ = TryGetServerIP(port);
 
             if (_Server != null && !_Server.IsListening)
@@ -137,33 +133,8 @@ namespace HTTPSecureServerLite
                     }
                 });
 
-                _Server.Start(protocols);
+                _Server.Start();
                 LoggerAccessor.LogInfo($"HTTPS Server initiated on port: {port}...");
-
-                if (keepaliveTest)
-                {
-                    const int timeOut = 5;
-                    int tryout = 0;
-
-                    while (true)
-                    {
-                        if (_Server.IsListening && !HTTPPingTest.PingServer($"https://127.0.0.1:{port}/!morelife").Result)
-                        {
-                            tryout++;
-
-                            if (tryout >= timeOut)
-                            {
-                                StopServer();
-                                _ = Task.Run(() => { StartServer(keepaliveTest, ip, port, certpath, certpass); });
-                                break;
-                            }
-                        }
-                        else
-                            tryout = 0;
-
-                        Thread.Sleep(10000);
-                    }
-                }
             }
         }
 
@@ -188,8 +159,6 @@ namespace HTTPSecureServerLite
                 if (string.IsNullOrEmpty(ServerIP))
                     ServerIP = serverIP;
                 int ServerPort = request.Destination.Port;
-                if (ServerPort == 0)
-                    ServerPort = 443; // Happens for some reasons (API bug?)
                 bool sent = false;
 
                 try
