@@ -5,9 +5,6 @@ using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
-using Newtonsoft.Json;
-using System.Security.Authentication;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace SVO
 {
@@ -65,7 +62,7 @@ namespace SVO
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
-                _Server.Start(SslProtocols.Tls12);
+                _Server.Start();
                 IsStarted = true;
 
                 LoggerAccessor.LogInfo($"OTG_HTTPS Server initiated on Port:{port}...");

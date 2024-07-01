@@ -11,7 +11,6 @@ using System.Net;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
-using System.Security.Authentication;
 
 namespace DatabaseMiddleware.HTTPEngine
 {
@@ -269,7 +268,7 @@ namespace DatabaseMiddleware.HTTPEngine
 
                         response.ContentType = "text/plain";
                         await response.Send();
-                    }, true)
+                    }, null, true)
                     .MapParameteRoute(HttpMethod.GET, "/api/{table}/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
@@ -398,7 +397,7 @@ namespace DatabaseMiddleware.HTTPEngine
 
                         response.ContentType = "text/plain";
                         await response.Send();
-                    }, true)
+                    }, null, true)
                     .MapParameteRoute(HttpMethod.POST, "/FileServices/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
@@ -469,7 +468,7 @@ namespace DatabaseMiddleware.HTTPEngine
 
                         response.ContentType = "text/plain";
                         await response.Send();
-                    }, true)
+                    }, null, true)
                     .MapParameteRoute(HttpMethod.GET, "/FileServices/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
@@ -542,7 +541,7 @@ namespace DatabaseMiddleware.HTTPEngine
 
                         response.ContentType = "text/plain";
                         await response.Send();
-                    }, true)
+                    }, null, true)
                     .MapStaticRoute(HttpMethod.GET, "/favicon.ico", async (ctx) =>
                     {
                         if (!string.IsNullOrEmpty(ctx.Request.Useragent) && ctx.Request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
@@ -601,7 +600,7 @@ namespace DatabaseMiddleware.HTTPEngine
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
-                _Server.Start(SslProtocols.Tls12 | SslProtocols.Tls13);
+                _Server.Start();
                 LoggerAccessor.LogInfo($"Database Server initiated on port: {port}...");
             }
         }
