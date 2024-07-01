@@ -21,8 +21,7 @@ $propertiesToRemove = @(
     "CustomLogger/1.0.0",
     "CyberBackendLibrary/1.0.0",
     "EndianTools/1.0.0",
-    "HorizonService/1.0.0",
-	"CavemanTcp/2.0.2"
+    "HorizonService/1.0.0"
 )
 
 try {
