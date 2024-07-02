@@ -157,10 +157,11 @@ class Program
     private static void StartOrUpdateServer()
     {
         OTGServer?.StopServer();
-        OTGServer = null;
-
         _SVOServer?.Stop();
-        _SVOServer = null;
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
             SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);

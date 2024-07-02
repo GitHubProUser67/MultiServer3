@@ -90,7 +90,13 @@ class Program
     private static void StartOrUpdateServer()
     {
         Directory.CreateDirectory(MultiSocksServerConfiguration.ProtoSSLCertificateCachePath);
+
         DSServer?.Dispose();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
         DSServer = new DirtySocksServer(new CancellationTokenSource().Token);
     }
 

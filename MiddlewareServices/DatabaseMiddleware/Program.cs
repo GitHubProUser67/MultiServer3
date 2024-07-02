@@ -104,12 +104,15 @@ class Program
     private static void StartOrUpdateServer()
     {
         Server?.StopServer();
-
+        AuthTimer?.Dispose();
         SQLiteConnector.StopAllDatabases().Wait();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         AuthenticationChannel.LoadExistingAuths();
 
-        AuthTimer?.Dispose();
         AuthTimer = new Timer(AuthenticationChannel.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
 
         SQLiteConnector.AddDatabases(DatabaseMiddlewareServerConfiguration.DbFiles).Wait();

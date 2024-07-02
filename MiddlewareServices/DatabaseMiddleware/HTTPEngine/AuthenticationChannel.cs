@@ -133,9 +133,15 @@ namespace DatabaseMiddleware.HTTPEngine
 
             lock (CurrentAuths)
             {
+                string? directoryPath = Path.GetDirectoryName(DatabaseMiddlewareServerConfiguration.AuthenticationsList);
+
                 CurrentAuths.RemoveAll(auth => auth.Expiration != null && auth.Expiration < DateTime.Now);
-                Directory.CreateDirectory(Path.GetDirectoryName(DatabaseMiddlewareServerConfiguration.AuthenticationsList));
-                File.WriteAllText(DatabaseMiddlewareServerConfiguration.AuthenticationsList, JsonConvert.SerializeObject(CurrentAuths, Formatting.Indented));
+
+                if (!string.IsNullOrEmpty(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                    File.WriteAllText(DatabaseMiddlewareServerConfiguration.AuthenticationsList, JsonConvert.SerializeObject(CurrentAuths, Formatting.Indented));
+                }
             }
         }
     }

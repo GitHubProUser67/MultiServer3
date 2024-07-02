@@ -333,6 +333,10 @@ class Program
     {
         Server?.StopServer();
 
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
         if (HTTPSServerConfiguration.EnableLiveTranscoding && IsWindows)
             if (!IsAdministrator())
             {
