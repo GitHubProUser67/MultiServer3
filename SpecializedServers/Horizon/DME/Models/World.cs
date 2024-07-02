@@ -86,8 +86,6 @@ namespace Horizon.DME.Models
         public ConcurrentDictionary<int, ClientObject> Clients = new();
 
         public MPSClient? Manager { get; } = null;
-
-        private object _Lock = new();
         
         public World(MPSClient manager, int appId, int maxPlayers, uint WorldId)
         {
@@ -299,9 +297,7 @@ namespace Horizon.DME.Models
                 return Task.CompletedTask;
             }
 
-            lock (_Lock)
-            {
-                player.HasJoined = true;
+            player.HasJoined = true;
 
                 // Plugin
                 DmeClass.Plugins.OnEvent(PluginEvent.DME_PLAYER_ON_JOINED, new OnPlayerArgs()
@@ -353,7 +349,6 @@ namespace Horizon.DME.Models
                     PlayerSessionKey = player.SessionKey ?? string.Empty,
                     ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT
                 });
-            }
 
             return Task.CompletedTask;
         }
