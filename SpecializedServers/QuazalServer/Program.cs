@@ -182,12 +182,11 @@ class Program
     {
         BackendServer?.Stop();
         RendezVousServer?.Stop();
+        DatabaseUpdate?.Dispose();
 
-        if (DatabaseUpdate != null)
-        {
-            DatabaseUpdate.Dispose();
-            DatabaseUpdate = null;
-        }
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.InitiateDatabase();
 

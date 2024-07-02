@@ -128,6 +128,10 @@ class Program
     {
         Server.StopServer();
 
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
         dnswatcher.Path = Path.GetDirectoryName(MitmDNSServerConfiguration.DNSConfig) ?? configDir;
         dnswatcher.Filter = Path.GetFileName(MitmDNSServerConfiguration.DNSConfig);
 

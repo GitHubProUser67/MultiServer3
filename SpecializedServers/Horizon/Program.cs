@@ -202,7 +202,6 @@ class Program
             Horizon.MEDIUS.MediusClass.StopServer();
 
         MUMServer?.StopServer();
-        MUMServer = null;
 
         if (HTTPBag != null)
         {
@@ -210,9 +209,11 @@ class Program
             {
                 httpBag.StopServer();
             }
-
-            HTTPBag = null;
         }
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         if (HorizonServerConfiguration.EnableMedius)
             CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,

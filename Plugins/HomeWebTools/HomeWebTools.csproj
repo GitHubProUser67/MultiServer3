@@ -22,7 +22,6 @@
         <FilesToCopy1 Include="$(OutDir)WatsonWebserver.Lite.dll" />
 		<FilesToCopy1 Include="$(OutDir)CavemanTcp.dll" />
         <FilesToCopy1 Include="$(OutDir)HTTPServer.dll" />
-		<FilesToCopy1 Include="$(OutDir)System.Text.Json.dll" />
     </ItemGroup>
 
     <PropertyGroup>

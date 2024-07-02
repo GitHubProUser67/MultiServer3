@@ -37,12 +37,6 @@ namespace CustomLogger
 
             AnsiConsole.Clear();
 
-            if (File.Exists(CurrentDir + "/MultiServer.gif"))
-            {
-                GifProcessor.PrintGifToConsole(CurrentDir + "/MultiServer.gif").Wait();
-                AnsiConsole.Clear();
-            }
-
             AnsiConsole.WriteLine(FiggleFonts.Ogre.Render(project));
 
             ILoggerFactory factory = LoggerFactory.Create(builder =>

@@ -216,7 +216,10 @@ class Program
     private static void StartOrUpdateServer()
     {
         Server?.Stop();
-        Server = null;
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         if (HTTPServerConfiguration.NotFoundSuggestions && FilesystemTree == null)
             FilesystemTree = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPServerConfiguration.HTTPStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));

@@ -793,18 +793,22 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                CompressionStream outZStream = new CompressionStream(outMemoryStream, 0);
-                outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                using (CompressionStream outZStream = new CompressionStream(outMemoryStream, 0))
+                {
+                    outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
+                    CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                CompressionStream outZStream = new CompressionStream(outMemoryStream, 0);
-                outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                using (CompressionStream outZStream = new CompressionStream(outMemoryStream, 0))
+                {
+                    outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
+                    CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
@@ -815,16 +819,16 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
-                CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
+                using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest))
+                    CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
-                CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
+                using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest))
+                    CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
@@ -835,18 +839,22 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true);
-                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
-                outGStream.Close();
+                using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true))
+                {
+                    CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
+                    outGStream.Close();
+                }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true);
-                CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
-                outGStream.Close();
+                using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true))
+                {
+                    CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
+                    outGStream.Close();
+                }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
@@ -857,18 +865,22 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
-                outZStream.finish();
+                using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true))
+                {
+                    CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
+                    outZStream.finish();
+                }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
-                outZStream.finish();
+                using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true))
+                {
+                    CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
+                    outZStream.finish();
+                }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
@@ -897,7 +909,7 @@ namespace CyberBackendLibrary.HTTP
                 if (lockTaken) // Lock is free.
                 {
                     Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommanded value for stackalloc).
-                    buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data.
+                    //buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data. Update: Not needed as we always fill it.
                     while ((bytesRead = input.Read(buffer)) > 0)
                     {
                         output.Write(buffer[..bytesRead]);
