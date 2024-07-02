@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using WatsonWebserver.Core;
 using WebAPIService;
 
-namespace HomeWebTools
+namespace EdNetCRCCalculator
 {
     public class HTTPPluginReceiver : HTTPPlugin
     {

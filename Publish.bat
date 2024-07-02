@@ -11,6 +11,8 @@ dotnet restore MultiServer3.sln
 dotnet clean MultiServer3.sln
 dotnet build "Plugins/HomeWebTools/HomeWebTools.csproj" --configuration Debug --property WarningLevel=0
 dotnet build "Plugins/HomeWebTools/HomeWebTools.csproj" --configuration Release --property WarningLevel=0
+dotnet build "Plugins/EdNetCRCCalculator/EdNetCRCCalculator.csproj" --configuration Debug --property WarningLevel=0
+dotnet build "Plugins/EdNetCRCCalculator/EdNetCRCCalculator.csproj" --configuration Release --property WarningLevel=0
 
 @echo off
 
@@ -61,6 +63,12 @@ for %%r in (%RIDs%) do (
 	)
 	if exist "Plugins/HomeWebTools/bin/Release/net6.0/static" (
 		xcopy /E /Y /I "Plugins/HomeWebTools/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
+	)
+	if exist "Plugins/EdNetCRCCalculator/bin/Debug/net6.0/static" (
+		xcopy /E /Y /I "Plugins/EdNetCRCCalculator/bin/Debug/net6.0/static" "~PublishOutput/MultiServer/%%r/Debug/static"
+	)
+	if exist "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" (
+		xcopy /E /Y /I "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
 	)
 	if "%%r"=="win-x64" (
 		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Debug"

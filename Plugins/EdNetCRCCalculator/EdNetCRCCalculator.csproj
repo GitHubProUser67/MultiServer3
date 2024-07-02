@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -9,19 +9,21 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\EdNetService\EdNetService.csproj" />
     <ProjectReference Include="..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
     <ProjectReference Include="..\..\WebServers\HTTPServer\HTTPServer.csproj" />
   </ItemGroup>
 
   <Target Name="CopyFilesTargetName" AfterTargets="AfterBuild">
     <ItemGroup>
-        <FilesToCopy Include="$(OutDir)HomeWebTools.pdb" />
-        <FilesToCopy Include="$(OutDir)HomeWebTools.deps.json" />
-        <FilesToCopy Include="$(OutDir)HomeWebTools.dll" />
+        <FilesToCopy Include="$(OutDir)EdNetCRCCalculator.pdb" />
+        <FilesToCopy Include="$(OutDir)EdNetCRCCalculator.deps.json" />
+        <FilesToCopy Include="$(OutDir)EdNetCRCCalculator.dll" />
 		<FilesToCopy1 Include="$(OutDir)WatsonWebserver.Core.dll" />
         <FilesToCopy1 Include="$(OutDir)WatsonWebserver.Lite.dll" />
 		<FilesToCopy1 Include="$(OutDir)CavemanTcp.dll" />
         <FilesToCopy1 Include="$(OutDir)HTTPServer.dll" />
+		<FilesToCopy1 Include="$(OutDir)EdNetService.dll" />
 		<FilesToCopy1 Include="$(OutDir)System.Text.Json.dll" />
     </ItemGroup>
 
@@ -30,8 +32,8 @@
 		<FilesExist Condition="Exists(@(FilesToCopy1))">true</FilesExist>
     </PropertyGroup>
 
-    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutDir)\static\plugins\HomeWebTools\" Condition="$(FilesExist)" />
-	<Copy SourceFiles="@(FilesToCopy1)" DestinationFolder="$(OutDir)\static\plugins\HomeWebTools\" Condition="$(FilesExist)" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutDir)\static\plugins\EdNetCRCCalculator\" Condition="$(FilesExist)" />
+	<Copy SourceFiles="@(FilesToCopy1)" DestinationFolder="$(OutDir)\static\plugins\EdNetCRCCalculator\" Condition="$(FilesExist)" />
 	
     <Delete Files="@(FilesToCopy)" Condition="$(FilesExist)" />
   </Target>

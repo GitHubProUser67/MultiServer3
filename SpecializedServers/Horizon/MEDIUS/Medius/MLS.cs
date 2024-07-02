@@ -5499,7 +5499,7 @@ namespace Horizon.MEDIUS.Medius
                                data.ClientObject.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize)
-                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
+                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.5)))
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5538,7 +5538,7 @@ namespace Horizon.MEDIUS.Medius
                                gameListRequest.PageID,
                                gameListRequest.PageSize,
                                data.ClientObject.GameListFilters)
-                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
+                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.5)))
                             .Select(x => new MediusGameListResponse()
                             {
                                 MessageID = gameListRequest.MessageID,
@@ -5598,7 +5598,7 @@ namespace Horizon.MEDIUS.Medius
                                gameList_ExtraInfoRequest.PageID,
                                gameList_ExtraInfoRequest.PageSize,
                                data.ClientObject.GameListFilters)
-                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
+                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.5)))
                             .Select(x => new MediusGameList_ExtraInfoResponse()
                             {
                                 MessageID = gameList_ExtraInfoRequest.MessageID,
@@ -5654,7 +5654,7 @@ namespace Horizon.MEDIUS.Medius
                                 data.ClientObject.ApplicationId,
                                 gameList_ExtraInfoRequest.PageID,
                                 gameList_ExtraInfoRequest.PageSize)
-                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
+                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.5)))
                                 .Select(x => new MediusGameList_ExtraInfoResponse()
                                 {
                                     MessageID = gameList_ExtraInfoRequest.MessageID,
@@ -5727,7 +5727,7 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.ApplicationId,
                             gameList_ExtraInfoRequest0.PageID,
                             gameList_ExtraInfoRequest0.PageSize)
-                                .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
+                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.5)))
                             .Select(x => new MediusGameList_ExtraInfoResponse0()
                             {
                                 MessageID = gameList_ExtraInfoRequest0.MessageID,
@@ -5780,7 +5780,7 @@ namespace Horizon.MEDIUS.Medius
                                 gameList_ExtraInfoRequest0.PageID,
                                 gameList_ExtraInfoRequest0.PageSize,
                                 data.ClientObject.GameListFilters)
-                                    .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
+                                    .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.5)))
                                 .Select(x => new MediusGameList_ExtraInfoResponse0()
                                 {
                                     MessageID = gameList_ExtraInfoRequest0.MessageID,
@@ -5811,7 +5811,7 @@ namespace Horizon.MEDIUS.Medius
                                 gameList_ExtraInfoRequest0.PageID,
                                 gameList_ExtraInfoRequest0.PageSize,
                                 data.ClientObject.GameListFilters)
-                                    .Where(x => x.Host != null && x.PlayerCount > 0 && IsAtLeastLater(x.utcTimeCreated, 1) && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.4)))
+                                    .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 0.5)))
                                 .Select(x => new MediusGameList_ExtraInfoResponse0()
                                 {
                                     MessageID = gameList_ExtraInfoRequest0.MessageID,
