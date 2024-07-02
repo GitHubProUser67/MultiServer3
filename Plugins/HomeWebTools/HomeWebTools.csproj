@@ -4,13 +4,18 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	<IsPublishable>false</IsPublishable>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
     <ProjectReference Include="..\..\WebServers\HTTPServer\HTTPServer.csproj" />
+	<PackageReference Include="System.Text.Json" Version="8.0.3" />
+	<PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
+    </PackageReference>
   </ItemGroup>
 
   <Target Name="CopyFilesTargetName" AfterTargets="AfterBuild">
@@ -19,9 +24,6 @@
         <FilesToCopy Include="$(OutDir)HomeWebTools.deps.json" />
         <FilesToCopy Include="$(OutDir)HomeWebTools.dll" />
 		<FilesToCopy1 Include="$(OutDir)WatsonWebserver.Core.dll" />
-        <FilesToCopy1 Include="$(OutDir)WatsonWebserver.Lite.dll" />
-		<FilesToCopy1 Include="$(OutDir)CavemanTcp.dll" />
-        <FilesToCopy1 Include="$(OutDir)HTTPServer.dll" />
     </ItemGroup>
 
     <PropertyGroup>
