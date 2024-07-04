@@ -9,8 +9,6 @@ namespace CustomLogger
 {
     public class LoggerAccessor
     {
-        public static bool initiated = false;
-
         public static ILogger Logger { get; set; }
 
         public static FileLoggerProvider _fileLogger = null;
@@ -63,8 +61,6 @@ namespace CustomLogger
 
             Logger = factory.CreateLogger(string.Empty);
 
-            initiated = true;
-
 #if DEBUG
             if (Environment.OSVersion.Platform == PlatformID.Win32NT
                 || Environment.OSVersion.Platform == PlatformID.Win32S
@@ -75,10 +71,8 @@ namespace CustomLogger
 
         public static void DrawTextProgressBar(string text, int progress, int total, bool warn = false)
         {
-            if (initiated)
-            {
-                if (string.IsNullOrEmpty(text))
-                    text = string.Empty;
+            if (string.IsNullOrEmpty(text))
+                text = string.Empty;
 
                 try
                 {
@@ -133,27 +127,26 @@ namespace CustomLogger
                 {
                     // Not Important.
                 }
-            }
         }
 
 #pragma warning disable
-        public static void LogInfo(string message) { if (initiated) { Logger.LogInformation(message); } }
-        public static void LogInfo(string message, params object[] args) {  if (initiated) { Logger.LogInformation(message, args); } }
-        public static void LogInfo(int? message, params object[] args) {  if (initiated) { Logger.LogInformation(message.ToString(), args); } }
-        public static void LogInfo(float? message, params object[] args) {  if (initiated) { Logger.LogInformation(message.ToString(), args); } }
-        public static void LogWarn(string message) { if (initiated) { Logger.LogWarning(message); } }
-        public static void LogWarn(string message, params object[] args) { if (initiated) {  Logger.LogWarning(message, args); } }
-        public static void LogWarn(int? message, params object[] args) {  if (initiated) { Logger.LogWarning(message.ToString(), args); } }
-        public static void LogWarn(float? message, params object[] args) {  if (initiated) { Logger.LogWarning(message.ToString(), args); } }
-        public static void LogError(string message) {  if (initiated) { Logger.LogError(message); } }
-        public static void LogError(string message, params object[] args) {  if (initiated) { Logger.LogError(message, args); } }
-        public static void LogError(int? message, params object[] args) {  if (initiated) { Logger.LogError(message.ToString(), args); } }
-        public static void LogError(float? message, params object[] args) {  if (initiated) { Logger.LogError(message.ToString(), args); } }
-        public static void LogError(Exception exception) {  if (initiated) { Logger.LogCritical(exception.ToString()); } }
-        public static void LogDebug(string message, object? arg = null) {  if (initiated) { Logger.LogDebug(message, arg); } }
-        public static void LogDebug(string message, params object[] args) {  if (initiated) { Logger.LogDebug(message, args); } }
-        public static void LogDebug(int? message, params object[] args) {  if (initiated) { Logger.LogDebug(message.ToString(), args); } }
-        public static void LogDebug(float? message, params object[] args) {  if (initiated) { Logger.LogDebug(message.ToString(), args); } }
+        public static void LogInfo(string message) { Logger.LogInformation(message); }
+        public static void LogInfo(string message, params object[] args) {  Logger.LogInformation(message, args); }
+        public static void LogInfo(int? message, params object[] args) {  Logger.LogInformation(message.ToString(), args); }
+        public static void LogInfo(float? message, params object[] args) {  Logger.LogInformation(message.ToString(), args); }
+        public static void LogWarn(string message) { Logger.LogWarning(message); }
+        public static void LogWarn(string message, params object[] args) { Logger.LogWarning(message, args); }
+        public static void LogWarn(int? message, params object[] args) {  Logger.LogWarning(message.ToString(), args); }
+        public static void LogWarn(float? message, params object[] args) {  Logger.LogWarning(message.ToString(), args); }
+        public static void LogError(string message) {  Logger.LogError(message); }
+        public static void LogError(string message, params object[] args) {  Logger.LogError(message, args); }
+        public static void LogError(int? message, params object[] args) {  Logger.LogError(message.ToString(), args); }
+        public static void LogError(float? message, params object[] args) {  Logger.LogError(message.ToString(), args); }
+        public static void LogError(Exception exception) {  Logger.LogCritical(exception.ToString()); }
+        public static void LogDebug(string message, object? arg = null) {  Logger.LogDebug(message, arg); }
+        public static void LogDebug(string message, params object[] args) {  Logger.LogDebug(message, args); }
+        public static void LogDebug(int? message, params object[] args) {  Logger.LogDebug(message.ToString(), args); }
+        public static void LogDebug(float? message, params object[] args) {  Logger.LogDebug(message.ToString(), args); }
 #pragma warning restore
     }
 }
