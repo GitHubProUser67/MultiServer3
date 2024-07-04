@@ -31,8 +31,7 @@ namespace CyberBackendLibrary.GeoLocalization
             {
                 if (disposing)
                 {
-                    if (Reader != null)
-                        Reader.Dispose();
+                    Reader?.Dispose();
 
                     _instance = null;
 

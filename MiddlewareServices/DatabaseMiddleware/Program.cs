@@ -106,6 +106,7 @@ class Program
         Server?.StopServer();
         AuthTimer?.Dispose();
         SQLiteConnector.StopAllDatabases().Wait();
+        DatabaseMiddleware.Controllers.MultiSpyDatabase.LoginDatabase.CloseDatabase();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -153,6 +154,10 @@ class Program
                         if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
                         {
                             LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+
+                            SQLiteConnector.StopAllDatabases().Wait();
+                            DatabaseMiddleware.Controllers.MultiSpyDatabase.LoginDatabase.CloseDatabase();
+
                             Environment.Exit(0);
                         }
                         break;
