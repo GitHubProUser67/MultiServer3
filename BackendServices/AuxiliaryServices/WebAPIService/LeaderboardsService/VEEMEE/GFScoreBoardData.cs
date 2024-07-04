@@ -102,23 +102,45 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
         {
             if (Directory.Exists(directoryPath))
             {
-                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-
-                foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.xml"))
+                try
                 {
-                    // Extract date from the file name
-                    if (DateTime.TryParseExact(
-                            file.Name.Replace("leaderboard_", string.Empty).Replace(".xml", string.Empty),
-                            "yyyy_MM_dd",
-                            CultureInfo.InvariantCulture,
-                            DateTimeStyles.None,
-                            out DateTime leaderboardDate)
-                        && leaderboardDate < thresholdDate)
+                    DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
+
+                    foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.xml"))
                     {
-                        // If the leaderboard date is older than the threshold, delete the file
-                        file.Delete();
-                        CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - Removed outdated leaderboard: {file.Name}.");
+                        try
+                        {
+                            // Extract date from the file name
+                            if (DateTime.TryParseExact(
+                                    file.Name.Replace("leaderboard_", string.Empty).Replace(".xml", string.Empty),
+                                    "yyyy_MM_dd",
+                                    CultureInfo.InvariantCulture,
+                                    DateTimeStyles.None,
+                                    out DateTime leaderboardDate)
+                                && leaderboardDate < thresholdDate)
+                            {
+                                // If the leaderboard date is older than the threshold, delete the file
+                                try
+                                {
+                                    file.Delete();
+
+                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Removed outdated leaderboard: {file.Name}.");
+                                }
+                                catch (Exception e)
+                                {
+                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Error while removing leaderboard: {file.Name} (Exception: {e}).");
+                                }
+                            }
+                        }
+                        catch (ArgumentException e)
+                        {
+                            CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Error while parsing leaderboard name: {file.Name} (ArgumentException: {e}).");
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Error while creating directoryInfo of path: {directoryPath} (Exception: {e}).");
                 }
             }
         }

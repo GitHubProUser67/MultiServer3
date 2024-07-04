@@ -10,12 +10,19 @@ namespace WebAPIService.LeaderboardsService
 
         public static void ScheduledUpdate(object? state)
         {
-            DateTime dateTime = DateTime.Now;
-            GFScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/gofish", dateTime.AddDays(-1));
-            olmScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/olm", dateTime.AddDays(-7));
-            GSScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/goalie", dateTime.AddDays(-1));
-            GSScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/sfrgbt", dateTime.AddDays(-1));
-            OrbrunnerScoreBoardData.SanityCheckLeaderboards($"{APIPath}/NDREAMS/Aurora/Orbrunner", dateTime.AddDays(-1));
+            try
+            {
+                DateTime dateTime = DateTime.Now;
+                GFScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/gofish", dateTime.AddDays(-1));
+                olmScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/olm", dateTime.AddDays(-7));
+                GSScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/goalie", dateTime.AddDays(-1));
+                GSScoreBoardData.SanityCheckLeaderboards($"{APIPath}/VEEMEE/sfrgbt", dateTime.AddDays(-1));
+                OrbrunnerScoreBoardData.SanityCheckLeaderboards($"{APIPath}/NDREAMS/Aurora/Orbrunner", dateTime.AddDays(-1));
+            }
+            catch (Exception ex)
+            {
+                CustomLogger.LoggerAccessor.LogError($"[LeaderboardClass] - ScheduledUpdate Thrown an assertion: {ex}");
+            }
         }
     }
 }
