@@ -14,12 +14,12 @@ namespace QuazalServer.QNetZ
 
         public static PlayerInfo? GetPlayerInfoByPID(uint pid)
 		{
-            return Players.SingleOrDefault(pl => pl.PID == pid);
+            return Players.Where(pl => pl.PID == pid).FirstOrDefault();
         }
 
 		public static PlayerInfo? GetPlayerInfoByUsername(string userName)
 		{
-            return Players.SingleOrDefault(pl => pl.Name == userName);
+            return Players.Where(pl => pl.Name == userName).FirstOrDefault();
         }
 
 		public static PlayerInfo CreatePlayerInfo(QClient connection)

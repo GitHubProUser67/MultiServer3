@@ -1,27 +1,27 @@
 using CustomLogger;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Factory;
+using QuazalServer.RDVServices.RMC;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace QuazalServer.QNetZ.Interfaces
 {
-	public class RMCServiceBase
+    public class RMCServiceBase
 	{
 		RMCContext? _context;
 
 		public RMCContext? Context {
 			get { return _context; }
 			set {
-				// make it so user won't override it
-				if (_context == null)
-					_context = value;
+                // make it so user won't override it
+                _context ??= value;
 			} 
 		}
 
-		public MethodInfo? GetServiceMethodById(uint methodId)
+		public MethodInfo? GetServiceMethodById(RMCServiceFactory factory, uint methodId)
 		{
-			return RMCServiceFactory.GetServiceMethodById(GetType(), methodId);
+			return factory.GetServiceMethodById(GetType(), methodId);
 		}
 
 		protected void SendRMCCall<T>(QClient client, RMCProtocolId protoId, uint methodId, T requestData) where T : class
@@ -43,10 +43,10 @@ namespace QuazalServer.QNetZ.Interfaces
 		// This is for reverse-engineering
 		protected void UNIMPLEMENTED(string additionalMessage = "")
 		{
-			var stackTrace = new StackTrace();
-			var method = stackTrace?.GetFrame(1)?.GetMethod();
+            StackTrace stackTrace = new();
+			MethodBase? method = stackTrace?.GetFrame(1)?.GetMethod();
 
-			var methodName = method?.Name;
+			string? methodName = method?.Name;
 
             RMCMethodAttribute? rmcMethodAttr = (RMCMethodAttribute?)method?.GetCustomAttributes(typeof(RMCMethodAttribute), true).SingleOrDefault();
 			if (rmcMethodAttr != null && !string.IsNullOrWhiteSpace(rmcMethodAttr.Name))

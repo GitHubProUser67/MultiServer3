@@ -1,6 +1,8 @@
+using QuazalServer.RDVServices.RMC;
+
 namespace QuazalServer.QNetZ.Interfaces
 {
-	public class RMCContext
+    public class RMCContext
 	{
 		public RMCContext(RMCPacket rmc, QPacketHandlerPRUDP handler, QClient clientInfo, QPacket packet)
 		{

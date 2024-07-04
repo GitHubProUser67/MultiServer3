@@ -11,14 +11,14 @@ namespace QuazalServer.ServerProcessors
         private readonly ConcurrentBag<bool> _shutflags = new();
         private CancellationTokenSource _cts = null!;
 
-		public void Start(List<Tuple<int, string>>? PrudpInstances, uint serverPID, CancellationToken cancellationToken)
+		public void Start(List<Tuple<int, string, string>>? PrudpInstances, uint serverPID, CancellationToken cancellationToken)
 		{
             if (PrudpInstances == null)
                 return;
 
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            Parallel.ForEach(PrudpInstances, tuple => { new Thread(() => HandleClient(tuple.Item1, serverPID, tuple.Item2)).Start(); });
+            Parallel.ForEach(PrudpInstances, tuple => { new Thread(() => HandleClient(tuple.Item1, serverPID, tuple.Item2, tuple.Item3)).Start(); });
         }
 
         public void Stop()
@@ -28,15 +28,17 @@ namespace QuazalServer.ServerProcessors
             _listeners.ToList().ForEach(x => x.Dispose());
         }
 
-        public void HandleClient(int listenPort, uint serverPID, string AccessKey)
+        public void HandleClient(int listenPort, uint serverPID, string AccessKey, string FactoryIdent)
 		{
+            RDVServices.ServiceFactoryRDV.TryInsertFactory(FactoryIdent);
+
             Task serverPRUDP = Task.Run(() =>
             {
                 bool _exit = false;
                 object _sync = new();
                 Task<UdpReceiveResult>? CurrentRecvTask = null;
                 UdpClient listener = new(listenPort);
-                QPacketHandlerPRUDP? packetHandler = new(listener, serverPID, listenPort, listenPort, AccessKey, "BackendServices");
+                QPacketHandlerPRUDP? packetHandler = new(listener, serverPID, listenPort, listenPort, AccessKey, FactoryIdent, "BackendServices");
                 packetHandler.Updates.Add(() => NetworkPlayers.DropPlayers());
                 _listeners.Add(listener);
                 _shutflags.Add(_exit);

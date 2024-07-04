@@ -1,6 +1,8 @@
+using QuazalServer.RDVServices.RMC;
+
 namespace QuazalServer.QNetZ.Interfaces
 {
-	public class RMCResult
+    public class RMCResult
 	{
 		public RMCResult(RMCPResponse response, bool compression = true, uint error = 0)
 		{
