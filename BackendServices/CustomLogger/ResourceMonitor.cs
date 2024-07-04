@@ -11,7 +11,7 @@ namespace CustomLogger
         {
             long idleTime, kernelTime, userTime;
 
-            while (LoggerAccessor.initiated)
+            while (true)
             {
                 // Sleep for 1 minute (60,000 milliseconds)
                 Thread.Sleep(60000);
@@ -21,8 +21,6 @@ namespace CustomLogger
                 if (PerformanceInfo.GetSystemTimes(out idleTime, out kernelTime, out userTime))
                     LoggerAccessor.LogInfo($"[ResourceMonitor] - Current CPU Load: {(100.0 - ((idleTime / (double)(kernelTime + userTime)) * 100.0)):0.##}%");
             }
-
-            return Task.CompletedTask;
         }
     }
 
