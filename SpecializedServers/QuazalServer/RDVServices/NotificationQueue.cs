@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace QuazalServer.RDVServices
 {
-	public class NotificationQueueEntry
+    public class NotificationQueueEntry
 	{
 		public NotificationQueueEntry(uint _timeout, QClient _client, NotificationEvent eventData)
 		{
@@ -55,9 +55,10 @@ namespace QuazalServer.RDVServices
 				}
 			}
 		}
+
 		public static void SendNotification(QPacketHandlerPRUDP handler, QClient client, NotificationEvent eventData)
 		{
-			RMC.SendRMCCall(handler, client, RMCProtocolId.NotificationEventManager, 1, new RMCPRequestDDL<NotificationEvent>(eventData));
+            RMC.RMC.SendRMCCall(handler, client, RMC.RMCProtocolId.NotificationEventManager, 1, new RMC.RMCPRequestDDL<NotificationEvent>(eventData));
 		}
 	}
 }

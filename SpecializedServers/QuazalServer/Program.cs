@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 using QuazalServer.ServerProcessors;
 using System.Reflection;
 using System.Runtime;
-using System.Security.Cryptography;
 
 public static class QuazalServerConfiguration
 {
@@ -12,53 +11,53 @@ public static class QuazalServerConfiguration
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
     public static bool UsePublicIP { get; set; } = false;
-    public static List<Tuple<int, string>>? BackendServersList { get; set; } = new List<Tuple<int, string>>
+    public static List<Tuple<int, string, string>>? BackendServersList { get; set; } = new List<Tuple<int, string, string>>
                     {
-                        Tuple.Create(30201, "yh64s"), // TDUPS2
-                        Tuple.Create(30216, "hg7j1"), // TDUPS2BETA
-                        Tuple.Create(30551, "1WguH+y"), // RIDINGCLUBPC
-                        Tuple.Create(60106, "w6kAtr3T"), // DFSPC
-                        Tuple.Create(61111, "QusaPha9"), // DFSPS3
-                        Tuple.Create(62111, "QusaPha9"), // DFSPS3NTSCLOBBY
-                        Tuple.Create(60116, "OLjNg84Gh"), // HAWX2PS3
-                        Tuple.Create(61121, "q1UFc45UwoyI"), // GRFSPS3
-                        Tuple.Create(61126, "cYoqGd4f"), // AC3PS3
-                        Tuple.Create(62126, "cYoqGd4f"), // PRIVAC3PS3
-                        Tuple.Create(61128, "cYoqGd4f"), // AC3MULTPS3
-                        Tuple.Create(62128, "cYoqGd4f"), // AC3PRIVMULTPS3
-                        Tuple.Create(61130, "h0rszqTw"), // AC2PS3
-                        Tuple.Create(61132, "lON6yKGp"), // SCBLACKLISTPS3
-                        Tuple.Create(61134, "ex5LYTJ0"), // WATCHDOGSPS3
-                        Tuple.Create(61138, "4TeVtJ7V"), // BGEHDPS3
-                        Tuple.Create(61140, "HJb8Ix1M"), // RAYMANLEGENDSPS3
-                        Tuple.Create(60001, "ridfebb9"), // RB3
-                        Tuple.Create(21032, "8dtRv2oj"), // GRO
-                        Tuple.Create(30161, "uG9Kv3p"), // TUROKPS3
-                        Tuple.Create(30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
-                        Tuple.Create(61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
+                        Tuple.Create(30201, "yh64s", "v2Services"), // TDUPS2
+                        Tuple.Create(30216, "hg7j1", "v2Services"), // TDUPS2BETA
+                        Tuple.Create(30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
+                        //Tuple.Create(60106, "w6kAtr3T", "PCUbisoftServices"), // DFSPC
+                        Tuple.Create(61111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3
+                        Tuple.Create(62111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3NTSCLOBBY
+                        Tuple.Create(60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
+                        Tuple.Create(61121, "q1UFc45UwoyI", "PS3UbisoftServices"), // GRFSPS3
+                        Tuple.Create(61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
+                        Tuple.Create(62126, "cYoqGd4f", "PS3UbisoftServices"), // PRIVAC3PS3
+                        Tuple.Create(61128, "cYoqGd4f", "PS3UbisoftServices"), // AC3MULTPS3
+                        Tuple.Create(62128, "cYoqGd4f", "PS3UbisoftServices"), // AC3PRIVMULTPS3
+                        Tuple.Create(61130, "h0rszqTw", "PS3UbisoftServices"), // AC2PS3
+                        Tuple.Create(61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
+                        Tuple.Create(61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
+                        Tuple.Create(61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
+                        Tuple.Create(61140, "HJb8Ix1M", "PS3UbisoftServices"), // RAYMANLEGENDSPS3
+                        //Tuple.Create(60001, "ridfebb9", "RockBand3Services"), // RB3
+                        //Tuple.Create(21032, "8dtRv2oj", "PCUbisoftServices"), // GRO
+                        Tuple.Create(30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
+                        Tuple.Create(30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
+                        //Tuple.Create(61136, "pJ3Lsyc2", "WIIUUbisoftServices"), // WATCHDOGSWIIU
                     };
-    public static List<Tuple<int, int, string>>? RendezVousServersList { get; set; } = new List<Tuple<int, int, string>>
+    public static List<Tuple<int, int, string, string>>? RendezVousServersList { get; set; } = new List<Tuple<int, int, string, string>>
                     {
-                        Tuple.Create(30200, 30201, "yh64s"), // TDUPS2
-                        Tuple.Create(30215, 30216, "hg7j1"), // TDUPS2BETA
-                        Tuple.Create(30550, 30551, "1WguH+y"), // RIDINGCLUBPC
-                        Tuple.Create(60105, 60106, "w6kAtr3T"), // DFSPC
-                        Tuple.Create(61110, 61111, "QusaPha9"), // DFSPS3
-                        Tuple.Create(62110, 62111, "QusaPha9"), // DFSPS3NTSCLOBBY
-                        Tuple.Create(60115, 60116, "OLjNg84Gh"), // HAWX2PS3
-                        Tuple.Create(61120, 61121, "q1UFc45UwoyI"), // GRFSPS3
-                        Tuple.Create(61125, 61126, "cYoqGd4f"), // AC3PS3
-                        Tuple.Create(62125, 62126, "cYoqGd4f"), // PRIVAC3PS3
-                        Tuple.Create(61127, 61128, "cYoqGd4f"), // AC3MULTPS3
-                        Tuple.Create(62127, 62128, "cYoqGd4f"), // AC3PRIVMULTPS3
-                        Tuple.Create(61129, 61130, "h0rszqTw"), // AC2PS3
-                        Tuple.Create(61131, 61132, "lON6yKGp"), // SCBLACKLISTPS3
-                        Tuple.Create(61133, 61134, "ex5LYTJ0"), // WATCHDOGSPS3
-                        Tuple.Create(61137, 61138, "4TeVtJ7V"), // BGEHDPS3
-                        Tuple.Create(61139, 61140, "HJb8Ix1M"), // RAYMANLEGENDSPS3
-                        Tuple.Create(30160, 30161, "uG9Kv3p"), // TUROKPS3
-                        Tuple.Create(30560, 30561, "os4R9pEiy"), // GHOSTBUSTERSPS3
-                        Tuple.Create(61135, 61136, "pJ3Lsyc2"), // WATCHDOGSWIIU
+                        Tuple.Create(30200, 30201, "yh64s", "v2Services"), // TDUPS2
+                        Tuple.Create(30215, 30216, "hg7j1", "v2Services"), // TDUPS2BETA
+                        Tuple.Create(30550, 30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
+                        //Tuple.Create(60105, 60106, "w6kAtr3T", "PCUbisoftServices"), // DFSPC
+                        Tuple.Create(61110, 61111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3
+                        Tuple.Create(62110, 62111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3NTSCLOBBY
+                        Tuple.Create(60115, 60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
+                        Tuple.Create(61120, 61121, "q1UFc45UwoyI", "PS3UbisoftServices"), // GRFSPS3
+                        Tuple.Create(61125, 61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
+                        Tuple.Create(62125, 62126, "cYoqGd4f", "PS3UbisoftServices"), // PRIVAC3PS3
+                        Tuple.Create(61127, 61128, "cYoqGd4f", "PS3UbisoftServices"), // AC3MULTPS3
+                        Tuple.Create(62127, 62128, "cYoqGd4f", "PS3UbisoftServices"), // AC3PRIVMULTPS3
+                        Tuple.Create(61129, 61130, "h0rszqTw", "PS3UbisoftServices"), // AC2PS3
+                        Tuple.Create(61131, 61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
+                        Tuple.Create(61133, 61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
+                        Tuple.Create(61137, 61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
+                        Tuple.Create(61139, 61140, "HJb8Ix1M", "PS3UbisoftServices"), // RAYMANLEGENDSPS3
+                        Tuple.Create(30160, 30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
+                        Tuple.Create(30560, 30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
+                        //Tuple.Create(61135, 61136, "pJ3Lsyc2", "WIIUUbisoftServices"), // WATCHDOGSWIIU
                     };
 
     /// <summary>
@@ -78,6 +77,7 @@ public static class QuazalServerConfiguration
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
+                new JProperty("config_version", (ushort)2),
                 new JProperty("server_bind_address", ServerBindAddress),
                 new JProperty("server_public_bind_address", ServerPublicBindAddress),
                 new JProperty("ednet_bind_address_override", EdNetBindAddressOverride),
@@ -87,7 +87,8 @@ public static class QuazalServerConfiguration
                     from item in BackendServersList
                     select new JObject(
                         new JProperty("item1", item.Item1),
-                        new JProperty("item2", item.Item2)
+                        new JProperty("item2", item.Item2),
+                        new JProperty("item3", item.Item3)
                     )
                 )),
                 new JProperty("rendezvous_servers_list", new JArray(
@@ -95,7 +96,8 @@ public static class QuazalServerConfiguration
                     select new JObject(
                         new JProperty("item1", item.Item1),
                         new JProperty("item2", item.Item2),
-                        new JProperty("item3", item.Item3)
+                        new JProperty("item3", item.Item3),
+                        new JProperty("item4", item.Item4)
                     )
                 ))
             ).ToString());
@@ -108,33 +110,39 @@ public static class QuazalServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
-            ServerBindAddress = GetValueOrDefault(config, "server_bind_address", ServerBindAddress);
-            ServerPublicBindAddress = GetValueOrDefault(config, "server_public_bind_address", ServerPublicBindAddress);
-            EdNetBindAddressOverride = GetValueOrDefault(config, "ednet_bind_address_override", EdNetBindAddressOverride);
-            QuazalStaticFolder = GetValueOrDefault(config, "quazal_static_folder", QuazalStaticFolder);
-            UsePublicIP = GetValueOrDefault(config, "server_public_ip", UsePublicIP);
-            // Deserialize BackendServersList if it exists
-            try
+            ushort config_version = GetValueOrDefault(config, "config_version", (ushort)0);
+            if (config_version == 2)
             {
-                JArray BackendServersListArray = config.backend_servers_list;
-                if (BackendServersListArray != null)
-                    BackendServersList = BackendServersListArray.ToObject<List<Tuple<int, string>>>();
-            }
-            catch
-            {
+                ServerBindAddress = GetValueOrDefault(config, "server_bind_address", ServerBindAddress);
+                ServerPublicBindAddress = GetValueOrDefault(config, "server_public_bind_address", ServerPublicBindAddress);
+                EdNetBindAddressOverride = GetValueOrDefault(config, "ednet_bind_address_override", EdNetBindAddressOverride);
+                QuazalStaticFolder = GetValueOrDefault(config, "quazal_static_folder", QuazalStaticFolder);
+                UsePublicIP = GetValueOrDefault(config, "server_public_ip", UsePublicIP);
+                // Deserialize BackendServersList if it exists
+                try
+                {
+                    JArray BackendServersListArray = config.backend_servers_list;
+                    if (BackendServersListArray != null)
+                        BackendServersList = BackendServersListArray.ToObject<List<Tuple<int, string, string>>>();
+                }
+                catch
+                {
 
-            }
-            // Deserialize RendezVousServersList if it exists
-            try
-            {
-                JArray RendezVousServersListArray = config.rendezvous_servers_list;
-                if (RendezVousServersListArray != null)
-                    RendezVousServersList = RendezVousServersListArray.ToObject<List<Tuple<int, int, string>>>();
-            }
-            catch
-            {
+                }
+                // Deserialize RendezVousServersList if it exists
+                try
+                {
+                    JArray RendezVousServersListArray = config.rendezvous_servers_list;
+                    if (RendezVousServersListArray != null)
+                        RendezVousServersList = RendezVousServersListArray.ToObject<List<Tuple<int, int, string, string>>>();
+                }
+                catch
+                {
 
+                }
             }
+            else
+                LoggerAccessor.LogWarn($"quazal.json file is outdated, using server's default.");
         }
         catch (Exception ex)
         {
@@ -183,6 +191,7 @@ class Program
         BackendServer?.Stop();
         RendezVousServer?.Stop();
         DatabaseUpdate?.Dispose();
+        QuazalServer.RDVServices.ServiceFactoryRDV.ClearServices();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -208,8 +217,6 @@ class Program
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("QuazalServer", Directory.GetCurrentDirectory());
-
-        QuazalServer.RDVServices.ServiceFactoryRDV.RegisterRDVServices();
 
         QuazalServerConfiguration.RefreshVariables(configPath);
 

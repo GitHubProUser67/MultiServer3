@@ -3,16 +3,20 @@ using System.Net;
 using System.Text;
 using System.Net.Sockets;
 using CyberBackendLibrary.DataTypes;
+using QuazalServer.RDVServices.RMC;
+using QuazalServer.RDVServices;
+using QuazalServer.QNetZ.Factory;
 
 namespace QuazalServer.QNetZ
 {
     public partial class QPacketHandlerPRUDP
 	{
-		public QPacketHandlerPRUDP(UdpClient udp, uint pid, int port, int BackendPort, string AccessKey, string sourceName = "PRUDP Handler")
+		public QPacketHandlerPRUDP(UdpClient udp, uint pid, int port, int BackendPort, string AccessKey, string FactoryIdent, string sourceName = "PRUDP Handler")
 		{
             UDP = udp;
             SourceName = sourceName;
 			this.AccessKey = AccessKey;
+			Factory = (FactoryIdent, ServiceFactoryRDV.TryGetServiceFactory(FactoryIdent) ?? new RMCServiceFactory());
             PID = pid;
 			Port = port;
 			this.BackendPort = BackendPort;
@@ -22,7 +26,8 @@ namespace QuazalServer.QNetZ
 
         public string SourceName;
 		public string AccessKey;
-		public readonly uint PID;
+        public (string, RMCServiceFactory) Factory;
+        public readonly uint PID;
 		public readonly int Port;
         public readonly int BackendPort;
         private readonly List<QPacket> AccumulatedPackets = new();

@@ -2,10 +2,11 @@ using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.QNetZ.DDL
 {
-	public class DDLSerializer
+    public class DDLSerializer
 	{
         // Function to get property values
         public static object[] ReadPropertyValues(Type[] typeList, Stream str)

@@ -1,15 +1,9 @@
 using Figgle;
 using Microsoft.Extensions.Logging;
 using NReco.Logging.File;
-using Spectre.Console;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Vertical.SpectreLogger;
-using Vertical.SpectreLogger.Destructuring;
-using Vertical.SpectreLogger.Formatting;
-using Vertical.SpectreLogger.Options;
-using Vertical.SpectreLogger.Rendering;
 
 namespace CustomLogger
 {
@@ -35,156 +29,13 @@ namespace CustomLogger
 
             }
 
-            AnsiConsole.Clear();
+            Console.Clear();
 
-            AnsiConsole.WriteLine(FiggleFonts.Ogre.Render(project));
+            Console.WriteLine(FiggleFonts.Ogre.Render(project));
 
             ILoggerFactory factory = LoggerFactory.Create(builder =>
             {
-                builder.AddSpectreConsole(options => {
-
-                    options.WriteInBackground();
-
-                    options.ConfigureProfile(LogLevel.Trace, profile =>
-                    {
-                        profile.OutputTemplate = "[grey35][[{DateTime:MM-dd-yyyy HH:mm:ss}]] trce: [[{ProcessId}[grey39]|[/]{ThreadId}]] {Message}{NewLine}{Exception}[/]";
-                        profile
-                            .AddTypeStyle<ExceptionRenderer.MethodNameValue>(Color.Grey35)
-                            .AddTypeStyle<ExceptionRenderer.ParameterTypeValue>(Color.Grey35)
-                            .AddTypeStyle<ExceptionRenderer.SourceLocationValue>(Color.DarkViolet)
-                            .AddTypeStyle<ExceptionRenderer.SourceFileValue>(Color.DarkGoldenrod)
-                            .AddTypeStyle<ExceptionRenderer.TextValue>(Color.Grey35)
-                            .AddTypeStyle<CategoryNameRenderer.Value>(Color.Grey85)
-                            .AddTypeStyle<DateTimeRenderer.Value>(Color.Grey85)
-                            .DefaultLogValueStyle = $"[{Color.Grey35}]";
-                    });
-
-                    options.ConfigureProfile(LogLevel.Debug, profile =>
-                    {
-                        profile.OutputTemplate = "[grey46][[{DateTime:MM-dd-yyyy HH:mm:ss}]] dbug: [[{ProcessId}[grey39]|[/]{ThreadId}]] {Message}{NewLine}{Exception}[/]";
-                        profile
-                            .AddTypeStyle(Types.Numerics, Color.DarkViolet)
-                            .AddTypeStyle(Types.Characters, Color.DarkOrange3)
-                            .AddTypeStyle(Types.Temporal, Color.SlateBlue3)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionNameValue>(Color.Grey58)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionMessageValue>(Color.DarkOrange3)
-                            .AddTypeStyle<ExceptionRenderer.MethodNameValue>(Color.Grey35)
-                            .AddTypeStyle<ExceptionRenderer.ParameterTypeValue>(Color.Grey35)
-                            .AddTypeStyle<ExceptionRenderer.ParameterNameValue>(Color.MediumPurple4)
-                            .AddTypeStyle<ExceptionRenderer.SourceLocationValue>(Color.DarkViolet)
-                            .AddTypeStyle<ExceptionRenderer.SourceDirectoryValue>(Color.Grey66)
-                            .AddTypeStyle<ExceptionRenderer.SourceFileValue>(Color.DarkGoldenrod)
-                            .AddTypeStyle<ExceptionRenderer.TextValue>(Color.Grey35)
-                            .AddTypeStyle<DestructuredKeyValue>(Color.Grey70)
-                            .AddTypeStyle<CategoryNameRenderer.Value>(Color.Grey85)
-                            .AddTypeStyle<DateTimeRenderer.Value>(Color.Grey85)
-                            .AddValueStyle(true, Color.DarkSeaGreen4)
-                            .AddValueStyle(false, Color.DarkRed_1)
-                            .DefaultLogValueStyle = $"[{Color.Grey35}]";
-                    });
-
-                    options.ConfigureProfile(LogLevel.Information, profile =>
-                    {
-                        profile.OutputTemplate = "[grey85][[{DateTime:MM-dd-yyyy HH:mm:ss}]] [green3_1]info[/]: [[{ProcessId}[grey39]|[/]{ThreadId}]] {Message}{NewLine}{Exception}[/]";
-                        profile
-                            .AddTypeStyle(Types.Numerics, Color.Magenta3_2)
-                            .AddTypeStyle(Types.Characters, Color.Gold3_1)
-                            .AddTypeStyle(Types.Temporal, Color.SteelBlue3)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionNameValue>(Color.Grey85)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionMessageValue>(Color.DarkOrange3)
-                            .AddTypeStyle<ExceptionRenderer.MethodNameValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterTypeValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterNameValue>(Color.SlateBlue3)
-                            .AddTypeStyle<ExceptionRenderer.SourceLocationValue>(Color.Magenta3_2)
-                            .AddTypeStyle<ExceptionRenderer.SourceDirectoryValue>(Color.Grey66)
-                            .AddTypeStyle<ExceptionRenderer.SourceFileValue>(Color.Gold3_1)
-                            .AddTypeStyle<ExceptionRenderer.TextValue>(Color.Grey42)
-                            .AddTypeStyle<DestructuredKeyValue>(Color.Grey70)
-                            .AddTypeStyle<CategoryNameRenderer.Value>(Color.Grey85)
-                            .AddTypeStyle<DateTimeRenderer.Value>(Color.Grey85)
-                            .AddValueStyle(true, Color.Green3_1)
-                            .AddValueStyle(false, Color.DarkOrange3_1)
-                            .DefaultLogValueStyle = $"[{Color.Grey35}]";
-                    });
-
-                    options.ConfigureProfile(LogLevel.Warning, profile =>
-                    {
-                        profile.OutputTemplate = "[grey85][[{DateTime:MM-dd-yyyy HH:mm:ss}]] [gold1]warn[/]: [[{ProcessId}[grey39]|[/]{ThreadId}]] {Message}{NewLine}{Exception}[/]";
-                        profile
-                            .AddTypeStyle(Types.Numerics, Color.Magenta3_2)
-                            .AddTypeStyle(Types.Characters, Color.Gold3_1)
-                            .AddTypeStyle(Types.Temporal, Color.SteelBlue3)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionNameValue>(Color.Grey85)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionMessageValue>(Color.DarkOrange3)
-                            .AddTypeStyle<ExceptionRenderer.MethodNameValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterTypeValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterNameValue>(Color.SlateBlue3)
-                            .AddTypeStyle<ExceptionRenderer.SourceLocationValue>(Color.Magenta3_2)
-                            .AddTypeStyle<ExceptionRenderer.SourceDirectoryValue>(Color.Grey66)
-                            .AddTypeStyle<ExceptionRenderer.SourceFileValue>(Color.Gold3_1)
-                            .AddTypeStyle<ExceptionRenderer.TextValue>(Color.Grey42)
-                            .AddTypeStyle<DestructuredKeyValue>(Color.Grey70)
-                            .AddTypeStyle<CategoryNameRenderer.Value>(Color.Grey85)
-                            .AddTypeStyle<DateTimeRenderer.Value>(Color.Grey85)
-                            .AddValueStyle(true, Color.Green3_1)
-                            .AddValueStyle(false, Color.DarkOrange3_1)
-                            .DefaultLogValueStyle = $"[{Color.Grey35}]";
-                    });
-
-                    options.ConfigureProfile(LogLevel.Error, profile =>
-                    {
-                        profile.OutputTemplate = "[grey85][[{DateTime:MM-dd-yyyy HH:mm:ss}]] [red1]fail[/]: [[{ProcessId}[grey39]|[/]{ThreadId}]] {Message}{NewLine}{Exception}[/]";
-                        profile
-                            .AddTypeStyle(Types.Numerics, Color.Magenta3_2)
-                            .AddTypeStyle(Types.Characters, Color.Gold3_1)
-                            .AddTypeStyle(Types.Temporal, Color.SteelBlue3)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionNameValue>(Color.Grey85)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionMessageValue>(Color.DarkOrange3)
-                            .AddTypeStyle<ExceptionRenderer.MethodNameValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterTypeValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterNameValue>(Color.SlateBlue3)
-                            .AddTypeStyle<ExceptionRenderer.SourceLocationValue>(Color.Magenta3_2)
-                            .AddTypeStyle<ExceptionRenderer.SourceDirectoryValue>(Color.Grey66)
-                            .AddTypeStyle<ExceptionRenderer.SourceFileValue>(Color.Gold3_1)
-                            .AddTypeStyle<ExceptionRenderer.TextValue>(Color.Grey42)
-                            .AddTypeStyle<DestructuredKeyValue>(Color.Grey70)
-                            .AddTypeStyle<CategoryNameRenderer.Value>(Color.Grey85)
-                            .AddTypeStyle<DateTimeRenderer.Value>(Color.Grey85)
-                            .AddValueStyle(true, Color.Green3_1)
-                            .AddValueStyle(false, Color.DarkOrange3_1)
-                            .DefaultLogValueStyle = $"[{Color.Grey35}]";
-                    });
-
-                    options.ConfigureProfile(LogLevel.Critical, profile =>
-                    {
-                        profile.OutputTemplate = "[[[red1]{DateTime:MM-dd-yyyy HH:mm:ss}]][/] [white on red1]crit[/]: [[{ProcessId}[grey39]|[/]{ThreadId}]] [red3]{Message}{NewLine}{Exception}[/]";
-                        profile
-                            .AddTypeStyle(Types.Numerics, Color.Magenta3_2)
-                            .AddTypeStyle(Types.Characters, Color.Gold3_1)
-                            .AddTypeStyle(Types.Temporal, Color.SteelBlue3)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionNameValue>(Color.Grey85)
-                            .AddTypeStyle<ExceptionRenderer.ExceptionMessageValue>(Color.DarkOrange3)
-                            .AddTypeStyle<ExceptionRenderer.MethodNameValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterTypeValue>(Color.Grey42)
-                            .AddTypeStyle<ExceptionRenderer.ParameterNameValue>(Color.SlateBlue3)
-                            .AddTypeStyle<ExceptionRenderer.SourceLocationValue>(Color.Magenta3_2)
-                            .AddTypeStyle<ExceptionRenderer.SourceDirectoryValue>(Color.Grey66)
-                            .AddTypeStyle<ExceptionRenderer.SourceFileValue>(Color.Gold3_1)
-                            .AddTypeStyle<ExceptionRenderer.TextValue>(Color.Grey42)
-                            .AddTypeStyle<DestructuredKeyValue>(Color.Grey70)
-                            .AddTypeStyle<CategoryNameRenderer.Value>(Color.Grey85)
-                            .AddTypeStyle<DateTimeRenderer.Value>(Color.Grey85)
-                            .AddValueStyle(true, Color.Green3_1)
-                            .AddValueStyle(false, Color.DarkOrange3_1)
-                            .DefaultLogValueStyle = $"[{Color.Grey35}]";
-                    });
-
-                    options.ConfigureProfiles(profile =>
-                    {
-                        profile.AddTypeFormatters();
-                    });
-
-                });
+                builder.AddSimpleConsole(options => { options.SingleLine = true; options.TimestampFormat = "[MM-dd-yyyy HH:mm:ss] "; });
             });
 
             // Check if the log file is in use by another process, if not create/use one.
@@ -237,9 +88,9 @@ namespace CustomLogger
                         LogInfo($"\n{text}\n");
                     //draw empty progress bar
                     Console.CursorLeft = 0;
-                    AnsiConsole.Write("["); //start
+                    Console.Write("["); //start
                     Console.CursorLeft = 32;
-                    AnsiConsole.Write("]"); //end
+                    Console.Write("]"); //end
                     Console.CursorLeft = 1;
                     float onechunk = 30.0f / total;
 
@@ -251,7 +102,7 @@ namespace CustomLogger
                         {
                             Console.BackgroundColor = ConsoleColor.Green;
                             Console.CursorLeft = position++;
-                            AnsiConsole.Write(" ");
+                            Console.Write(" ");
                         }
                     }
                     else
@@ -261,7 +112,7 @@ namespace CustomLogger
                         {
                             Console.BackgroundColor = ConsoleColor.Green;
                             Console.CursorLeft = position++;
-                            AnsiConsole.Write(" ");
+                            Console.Write(" ");
                         }
 
                         //draw unfilled part
@@ -269,14 +120,14 @@ namespace CustomLogger
                         {
                             Console.BackgroundColor = ConsoleColor.Black;
                             Console.CursorLeft = position++;
-                            AnsiConsole.Write(" ");
+                            Console.Write(" ");
                         }
                     }
 
                     //draw totals
                     Console.CursorLeft = 35;
                     Console.BackgroundColor = ConsoleColor.Black;
-                    AnsiConsole.Write(progress.ToString() + " of " + total.ToString() + "    \n"); //blanks and a newline at the end remove any excess
+                    Console.Write(progress.ToString() + " of " + total.ToString() + "    \n"); //blanks and a newline at the end remove any excess
                 }
                 catch
                 {

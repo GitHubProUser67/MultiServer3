@@ -1,20 +1,21 @@
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
+using QuazalServer.RDVServices.RMC;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace QuazalServer.QNetZ.Factory
 {
-	public static class RMCServiceFactory
+    public class RMCServiceFactory
 	{
-		static Dictionary<RMCProtocolId, Func<RMCServiceBase>> s_FactoryFuncs = new();
+		private Dictionary<RMCProtocolId, Func<RMCServiceBase>> s_FactoryFuncs = new();
 
-		public static void RegisterService<T>() where T: RMCServiceBase
+		public void RegisterService<T>(string namespaceString) where T: RMCServiceBase
 		{
-			RegisterService(typeof(T));
+			RegisterService(typeof(T), namespaceString);
 		}
 
-		public static void RegisterService(Type serviceType)
+		public void RegisterService(Type serviceType, string namespaceString)
 		{
             RMCServiceAttribute? serviceAttribute = serviceType.GetCustomAttribute<RMCServiceAttribute>();
 
@@ -23,30 +24,24 @@ namespace QuazalServer.QNetZ.Factory
 
 			if (s_FactoryFuncs.ContainsKey(serviceAttribute.ProtocolId))
 			{
-                CustomLogger.LoggerAccessor.LogError($"[RMCServiceFactory] - Service '{serviceType.Name}' is already registered at protocol number {serviceAttribute.ProtocolId}!");
+                CustomLogger.LoggerAccessor.LogError($"[RMCServiceFactory] - {namespaceString} '{serviceType.Name}' is already registered at protocol number {serviceAttribute.ProtocolId}!");
 				return;
             }
 
-            var createFunc = Expression.Lambda<Func<RMCServiceBase>>(
-				Expression.New(serviceType.GetConstructor(Type.EmptyTypes))
-			).Compile();
-
-			s_FactoryFuncs.Add(serviceAttribute.ProtocolId, createFunc);
+			s_FactoryFuncs.Add(serviceAttribute.ProtocolId, Expression.Lambda<Func<RMCServiceBase>>(
+                Expression.New(serviceType.GetConstructor(Type.EmptyTypes))
+            ).Compile());
 		}
 
-		public static Func<RMCServiceBase>? GetServiceFactory(RMCProtocolId protocolId)
+		public Func<RMCServiceBase>? GetServiceFactory(RMCProtocolId protocolId, string namespaceString)
 		{
-			Func<RMCServiceBase>? existingFactory;
-			if (s_FactoryFuncs.TryGetValue(protocolId, out existingFactory))
+            if (s_FactoryFuncs.TryGetValue(protocolId, out Func<RMCServiceBase>? existingFactory))
                 return existingFactory;
 
-            Assembly asm = Assembly.GetExecutingAssembly();
-			Type[]? classList = asm.GetTypes()
-								  .Where(t => string.Equals(t.Namespace, "QuazalServer.QNetZ.Services", StringComparison.Ordinal))
-								  .ToArray();
-
 			// search for new controller
-			foreach (Type? protoClass in classList)
+			foreach (Type? protoClass in Assembly.GetExecutingAssembly().GetTypes()
+                                  .Where(t => string.Equals(t.Namespace, $"QuazalServer.RDVServices.{namespaceString}", StringComparison.Ordinal))
+                                  .ToArray())
 			{
 				RMCServiceAttribute? protocolAttribute = protoClass.GetCustomAttribute<RMCServiceAttribute>();
 
@@ -68,16 +63,16 @@ namespace QuazalServer.QNetZ.Factory
 			return null;
 		}
 
-		public static Type? GetServiceType(RMCProtocolId protocolId)
+		public Type? GetServiceType(RMCProtocolId protocolId, string namespaceString)
 		{
-			var factoryFunc = GetServiceFactory(protocolId);
+			var factoryFunc = GetServiceFactory(protocolId, namespaceString);
 			if (factoryFunc == null)
 				return null;
 
 			return factoryFunc.Method.ReturnType;
 		}
 
-		public static MethodInfo? GetServiceMethodById(Type rmcServiceType, uint methodId)
+		public MethodInfo? GetServiceMethodById(Type rmcServiceType, uint methodId)
 		{
 			MethodInfo? bestMethod = null;
 
