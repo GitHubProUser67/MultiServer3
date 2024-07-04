@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Alivate\Alivate.csproj" />
     <ProjectReference Include="..\CastleLibrary\CastleLibrary.csproj" />
     <ProjectReference Include="..\CompressionLibrary\CompressionLibrary.csproj" />
   </ItemGroup>

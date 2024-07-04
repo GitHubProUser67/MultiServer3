@@ -81,23 +81,45 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
         {
             if (Directory.Exists(directoryPath))
             {
-                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-
-                foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.txt"))
+                try
                 {
-                    // Extract date from the file name
-                    if (DateTime.TryParseExact(
-                            file.Name.Replace("leaderboard_", string.Empty).Replace(".txt", string.Empty),
-                            "yyyy_MM_dd",
-                            CultureInfo.InvariantCulture,
-                            DateTimeStyles.None,
-                            out DateTime leaderboardDate)
-                        && leaderboardDate < thresholdDate)
+                    DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
+
+                    foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.txt"))
                     {
-                        // If the leaderboard date is older than the threshold, delete the file
-                        file.Delete();
-                        CustomLogger.LoggerAccessor.LogDebug($"[ndreams] - Orbrunner - Removed outdated leaderboard: {file.Name}.");
+                        try
+                        {
+                            // Extract date from the file name
+                            if (DateTime.TryParseExact(
+                                    file.Name.Replace("leaderboard_", string.Empty).Replace(".txt", string.Empty),
+                                    "yyyy_MM_dd",
+                                    CultureInfo.InvariantCulture,
+                                    DateTimeStyles.None,
+                                    out DateTime leaderboardDate)
+                                && leaderboardDate < thresholdDate)
+                            {
+                                // If the leaderboard date is older than the threshold, delete the file
+                                try
+                                {
+                                    file.Delete();
+
+                                    CustomLogger.LoggerAccessor.LogInfo($"[ndreams] - Orbrunner - Removed outdated leaderboard: {file.Name}.");
+                                }
+                                catch (Exception e)
+                                {
+                                    CustomLogger.LoggerAccessor.LogInfo($"[ndreams] - Orbrunner - Error while removing leaderboard: {file.Name} (Exception: {e}).");
+                                }
+                            }
+                        }
+                        catch (ArgumentException e)
+                        {
+                            CustomLogger.LoggerAccessor.LogInfo($"[ndreams] - Orbrunner - Error while parsing leaderboard name: {file.Name} (ArgumentException: {e}).");
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    CustomLogger.LoggerAccessor.LogInfo($"[ndreams] - Orbrunner - Error while creating directoryInfo of path: {directoryPath} (Exception: {e}).");
                 }
             }
         }
