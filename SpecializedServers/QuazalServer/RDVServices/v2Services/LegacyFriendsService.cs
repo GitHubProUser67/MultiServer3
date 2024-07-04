@@ -76,16 +76,7 @@ namespace QuazalServer.RDVServices.v2Services
 
                     if (user != null)
 					{
-                        var result = new List<FriendData>
-                        {
-                            new() {
-                                m_pid = plInfo.PID,
-                                m_strName = plInfo.Name,
-                                m_byRelationship = 0,
-                                m_uiDetails = user.UiGroups,
-                                m_strStatus = string.Empty
-                            }
-                        };
+                        List<FriendData> result = new();
 
                         Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{Context.Handler.AccessKey}");
 
