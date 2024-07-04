@@ -233,6 +233,10 @@ nDreams.blueprint.s3.amazonaws.com,Redirect,IP
 cdn.bdlivenetwork.sonypictures.com,Redirect,IP
 bad.cold.pw,Redirect,IP
 ridingclubpclive.quazal.net,Redirect,IP
+orb.testdriveunlimited.com,Redirect,IP
+testdriveub.available.gamespy.com,Redirect,IP
+key.gamespy.com,Redirect,IP
+peerchat.gamespy.com,Redirect,IP
 gate1.eu.dnas.playstation.org,Redirect,45.7.228.197
 gate1.us.dnas.playstation.org,Redirect,45.7.228.197
 gate1.jp.dnas.playstation.org,Redirect,45.7.228.197
