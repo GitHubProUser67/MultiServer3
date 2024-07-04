@@ -11,6 +11,9 @@ using System.Net;
 using WatsonWebserver.Core;
 using WatsonWebserver.Lite;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
+using DatabaseMiddleware.Controllers.MultiSpyDatabase;
+using System.Buffers.Text;
+using System.Text;
 
 namespace DatabaseMiddleware.HTTPEngine
 {
@@ -69,7 +72,7 @@ namespace DatabaseMiddleware.HTTPEngine
                 _Server = new WatsonWebserver.Lite.Extensions.HostBuilderExtension.HostBuilder(ip, port, false, DefaultRoute)
                     .MapAuthenticationRoute(AuthorizeConnection)
                     .MapPreRoutingRoute(PreRoutingHandler)
-                    .MapParameteRoute(HttpMethod.POST, "/Account/{command}", async (ctx) =>
+                    .MapParameterRoute(HttpMethod.POST, "/Account/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
                         HttpResponseBase response = ctx.Response;
@@ -181,7 +184,98 @@ namespace DatabaseMiddleware.HTTPEngine
                         response.ContentType = "text/plain";
                         await response.Send();
                     })
-                    .MapParameteRoute(HttpMethod.POST, "/api/{table}/{command}", async (ctx) =>
+                    .MapParameterRoute(HttpMethod.GET, "/MultiSpy/{command}", async (ctx) =>
+                    {
+                        HttpRequestBase request = ctx.Request;
+                        HttpResponseBase response = ctx.Response;
+
+                        try
+                        {
+                            string? command = request.Url.Parameters["command"];
+                            List<string>? Roles = JsonConvert.DeserializeObject<List<string>>(request.Headers["MiddlewareRoles"] ?? "[]");
+
+                            if (string.IsNullOrEmpty(command) || Roles == null)
+                                response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            else
+                            {
+                                object? Extractedclass = null;
+
+                                LoggerAccessor.LogInfo($"[MULTISPY_GET] - Service was requested with Command:{command}");
+
+                                if (Roles.Contains("database"))
+                                {
+                                    switch (command)
+                                    {
+                                        case "UserExists":
+                                            if (request.QuerystringExists("username"))
+                                                Extractedclass = LoginDatabase.Instance.UserExists(request.RetrieveQueryValue("username"));
+                                            break;
+                                        case "CreateUser":
+                                            if (request.QuerystringExists("username") && request.QuerystringExists("passwordEncrypted") && request.QuerystringExists("email") && request.QuerystringExists("country") && request.QuerystringExists("address"))
+                                            {
+                                                LoginDatabase.Instance.CreateUser(request.RetrieveQueryValue("username"), request.RetrieveQueryValue("passwordEncrypted"),
+                                                    request.RetrieveQueryValue("email"), request.RetrieveQueryValue("country"), IPAddress.Parse(request.RetrieveQueryValue("address")));
+                                                Extractedclass = "OK";
+                                            }
+                                            break;
+                                        case "LogLogin":
+                                            if (request.QuerystringExists("name") && request.QuerystringExists("address"))
+                                            {
+                                                LoginDatabase.Instance.LogLogin(request.RetrieveQueryValue("name"), IPAddress.Parse(request.RetrieveQueryValue("address")));
+                                                Extractedclass = "OK";
+                                            }
+                                            break;
+                                        case "SetData":
+                                            if (request.QuerystringExists("name") && request.QuerystringExists("data"))
+                                            {
+                                                string data = request.RetrieveQueryValue("data");
+                                                if (DataTypesUtils.IsBase64String(data))
+                                                {
+                                                    LoginDatabase.Instance.SetData(request.RetrieveQueryValue("name"), JsonConvert.DeserializeObject<Dictionary<string, object>>(Encoding.UTF8.GetString(Convert.FromBase64String(data))));
+                                                    Extractedclass = "OK";
+                                                }
+                                            }
+                                            break;
+                                        case "GetData":
+                                            if (request.QuerystringExists("username"))
+                                                Extractedclass = LoginDatabase.Instance.GetData(request.RetrieveQueryValue("username"));
+                                            else if (request.QuerystringExists("email") && request.QuerystringExists("passwordEncrypted"))
+                                                Extractedclass = LoginDatabase.Instance.GetData(request.RetrieveQueryValue("email"), request.RetrieveQueryValue("passwordEncrypted"));
+                                            break;
+                                        default:
+                                            LoggerAccessor.LogWarn($"[MULTISPY_GET] - Service - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
+                                            break;
+                                    }
+                                }
+
+                                if (Extractedclass != null)
+                                {
+#if DEBUG
+                                    LoggerAccessor.LogInfo($"[MULTISPY_GET] - Extracted Data -> {JsonConvert.SerializeObject(Extractedclass)}");
+#endif
+
+                                    response.ChunkedTransfer = true;
+                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.ContentType = "application/json";
+                                    await response.SendFinalChunk(WebCrypto.EncryptNoPreserveToByteArray(Extractedclass
+                                    , DatabaseMiddlewareServerConfiguration.DatabaseAccessKey, WebCrypto.AuthIV));
+                                    return;
+                                }
+                                else
+                                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            LoggerAccessor.LogError($"[MULTISPY_GET] - Thrown an exception:{ex}");
+                        }
+
+                        response.ContentType = "text/plain";
+                        await response.Send();
+                    }, null, true)
+                    .MapParameterRoute(HttpMethod.POST, "/api/{table}/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
                         HttpResponseBase response = ctx.Response;
@@ -269,7 +363,7 @@ namespace DatabaseMiddleware.HTTPEngine
                         response.ContentType = "text/plain";
                         await response.Send();
                     }, null, true)
-                    .MapParameteRoute(HttpMethod.GET, "/api/{table}/{command}", async (ctx) =>
+                    .MapParameterRoute(HttpMethod.GET, "/api/{table}/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
                         HttpResponseBase response = ctx.Response;
@@ -398,7 +492,7 @@ namespace DatabaseMiddleware.HTTPEngine
                         response.ContentType = "text/plain";
                         await response.Send();
                     }, null, true)
-                    .MapParameteRoute(HttpMethod.POST, "/FileServices/{command}", async (ctx) =>
+                    .MapParameterRoute(HttpMethod.POST, "/FileServices/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
                         HttpResponseBase response = ctx.Response;
@@ -469,7 +563,7 @@ namespace DatabaseMiddleware.HTTPEngine
                         response.ContentType = "text/plain";
                         await response.Send();
                     }, null, true)
-                    .MapParameteRoute(HttpMethod.GET, "/FileServices/{command}", async (ctx) =>
+                    .MapParameterRoute(HttpMethod.GET, "/FileServices/{command}", async (ctx) =>
                     {
                         HttpRequestBase request = ctx.Request;
                         HttpResponseBase response = ctx.Response;
