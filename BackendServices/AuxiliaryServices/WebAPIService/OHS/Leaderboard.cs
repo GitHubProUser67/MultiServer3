@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System;
 using System.Linq;
+using NLua;
 
 namespace WebAPIService.OHS
 {
@@ -426,35 +427,18 @@ namespace WebAPIService.OHS
                         // Check if there are enough parts to get the second one
                         if (parts.Length > 1)
                         {
-                            List<ScoreboardEntry>? entries = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(scoreboardfile))?["Entries"]?.ToObject<List<ScoreboardEntry>>();
+                            string boardName = RemoveAfterDot(parts[1]);
 
-                            if (entries != null)
+                            // Find the entry with the highest score
+                            ScoreboardEntry? highestScoreEntry = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(scoreboardfile))?["Entries"]?
+                                .ToObject<List<ScoreboardEntry>>()?.OrderByDescending(e => e.Score).FirstOrDefault();
+
+                            if (highestScoreEntry != null)
                             {
-                                // Step 2: Convert to Lua table structure
-                                Dictionary<int, Dictionary<string, object>> luaTable = new Dictionary<int, Dictionary<string, object>>();
-
-                                int i = 1;
-
-                                foreach (ScoreboardEntry entry in entries)
-                                {
-                                    if (i >= 1 && !string.IsNullOrEmpty(entry.Name))
-                                    {
-                                        Dictionary<string, object> rankData = new Dictionary<string, object>
-                                                        {
-                                                            { "[\"user\"]", $"\"{entry.Name}\"" },
-                                                            { "[\"score\"]", $"{entry.Score}" }
-                                                        };
-
-                                        luaTable.Add(entry.Rank, rankData);
-                                    }
-                                }
-
-                                // Step 3: Format the Lua table as a string using regex
-
                                 if (returnvalue.Length != 0)
-                                    returnvalue += ", " + FormatScoreBoardLuaTable(luaTable);
+                                    returnvalue += $", [\"{boardName}\"] = {{ [\"score\"] = {highestScoreEntry.Score}, [\"user\"] = \"{highestScoreEntry.Name}\" }}";
                                 else
-                                    returnvalue = "{ " + FormatScoreBoardLuaTable(luaTable);
+                                    returnvalue = $"{{ [\"{boardName}\"] = {{ [\"score\"] = {highestScoreEntry.Score}, [\"user\"] = \"{highestScoreEntry.Name}\" }}";
                             }
                         }
                     }
