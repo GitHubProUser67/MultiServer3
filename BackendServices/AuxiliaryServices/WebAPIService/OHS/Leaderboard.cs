@@ -392,7 +392,7 @@ namespace WebAPIService.OHS
                             luaTable.Add(entry.Rank, new Dictionary<string, object>
                                     {
                                         { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
-                                        { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
+                                        { "[\"score\"]", $"{entry.Score}" } // For numbers, no need to enclose in quotes and put it inside the brackets
                                     });
                     }
 
@@ -430,8 +430,6 @@ namespace WebAPIService.OHS
 
                             if (entries != null)
                             {
-                                string boardName = RemoveAfterDot(parts[1]);
-
                                 // Step 2: Convert to Lua table structure
                                 Dictionary<int, Dictionary<string, object>> luaTable = new Dictionary<int, Dictionary<string, object>>();
 
@@ -444,7 +442,7 @@ namespace WebAPIService.OHS
                                         Dictionary<string, object> rankData = new Dictionary<string, object>
                                                         {
                                                             { "[\"user\"]", $"\"{entry.Name}\"" },
-                                                            { "[\"score\"]", $"\"{entry.Score}\"" }
+                                                            { "[\"score\"]", $"{entry.Score}" }
                                                         };
 
                                         luaTable.Add(entry.Rank, rankData);
@@ -454,9 +452,9 @@ namespace WebAPIService.OHS
                                 // Step 3: Format the Lua table as a string using regex
 
                                 if (returnvalue.Length != 0)
-                                    returnvalue += $", [\"{boardName}\"] = " + FormatScoreBoardLuaTable(luaTable);
+                                    returnvalue += ", " + FormatScoreBoardLuaTable(luaTable);
                                 else
-                                    returnvalue = $"{{ [\"{boardName}\"] = " + FormatScoreBoardLuaTable(luaTable);
+                                    returnvalue = "{ " + FormatScoreBoardLuaTable(luaTable);
                             }
                         }
                     }
@@ -540,7 +538,7 @@ namespace WebAPIService.OHS
                                             Dictionary<string, object> rankData = new Dictionary<string, object>
                                                         {
                                                             { "[\"user\"]", $"\"{entry.Name}\"" },
-                                                            { "[\"score\"]", $"\"{entry.Score}\"" }
+                                                            { "[\"score\"]", $"{entry.Score}" }
                                                         };
 
                                             luaTable.Add(entry.Rank, rankData);
@@ -633,7 +631,7 @@ namespace WebAPIService.OHS
                                 Dictionary<string, object> rankData = new Dictionary<string, object>
                                             {
                                                 { "[\"user\"]", $"\"{entry.Name}\"" }, // Enclose string in double quotes and put it inside the brackets
-                                                { "[\"score\"]", $"\"{entry.Score}\"" } // For numbers, no need to enclose in quotes and put it inside the brackets
+                                                { "[\"score\"]", $"{entry.Score}" } // For numbers, no need to enclose in quotes and put it inside the brackets
                                             };
 
                                 luaTable.Add(entry.Rank, rankData);

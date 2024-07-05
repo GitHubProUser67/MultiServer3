@@ -9,9 +9,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
-    <ProjectReference Include="..\..\WebServers\HTTPServer\HTTPServer.csproj" />
-	<PackageReference Include="System.Text.Json" Version="8.0.3" />
+    <ProjectReference Include="..\..\WebServers\MozaicHTTP\MozaicHTTP.csproj" />
 	<PackageReference Include="Costura.Fody" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
       <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
@@ -23,16 +21,13 @@
         <FilesToCopy Include="$(OutDir)HomeWebTools.pdb" />
         <FilesToCopy Include="$(OutDir)HomeWebTools.deps.json" />
         <FilesToCopy Include="$(OutDir)HomeWebTools.dll" />
-		<FilesToCopy1 Include="$(OutDir)WatsonWebserver.Core.dll" />
     </ItemGroup>
 
     <PropertyGroup>
         <FilesExist Condition="Exists(@(FilesToCopy))">true</FilesExist>
-		<FilesExist Condition="Exists(@(FilesToCopy1))">true</FilesExist>
     </PropertyGroup>
 
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutDir)\static\plugins\HomeWebTools\" Condition="$(FilesExist)" />
-	<Copy SourceFiles="@(FilesToCopy1)" DestinationFolder="$(OutDir)\static\plugins\HomeWebTools\" Condition="$(FilesExist)" />
 	
     <Delete Files="@(FilesToCopy)" Condition="$(FilesExist)" />
   </Target>
