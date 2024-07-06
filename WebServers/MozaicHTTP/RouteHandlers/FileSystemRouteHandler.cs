@@ -117,26 +117,26 @@ namespace MozaicHTTP.RouteHandlers
             }
             else
             {
-                if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/") && FileLength <= 10 * 1024 * 1024)
                 {
-                    bool Optimize = FileLength > 8000000;
+                    bool Optimize = FileLength > 5000000;
 
-                    if (encoding.Contains("zstd") && FileLength <= 10000000)
+                    if (encoding.Contains("zstd"))
                     {
                         response.Headers.Add("Content-Encoding", "zstd");
                         response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                     }
-                    else if (encoding.Contains("br") && FileLength <= 10000000)
+                    else if (encoding.Contains("br"))
                     {
                         response.Headers.Add("Content-Encoding", "br");
                         response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                     }
-                    else if (encoding.Contains("gzip") && FileLength <= 10000000)
+                    else if (encoding.Contains("gzip"))
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
                         response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                     }
-                    else if (encoding.Contains("deflate") && FileLength <= 10000000)
+                    else if (encoding.Contains("deflate"))
                     {
                         response.Headers.Add("Content-Encoding", "deflate");
                         response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
@@ -153,87 +153,25 @@ namespace MozaicHTTP.RouteHandlers
 
         public static HttpResponse Handle_LocalFile_Download(bool KeepAlive, HttpRequest request, string local_path)
         {
-            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
-
             HttpResponse response = new(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
-
-            long FileLength = new FileInfo(local_path).Length;
-
-            if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
-            {
-                bool Optimize = FileLength > 8000000;
-
-                if (encoding.Contains("zstd") && FileLength <= 10000000)
-                {
-                    response.Headers.Add("Content-Encoding", "zstd");
-                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
-                }
-                else if (encoding.Contains("br") && FileLength <= 10000000)
-                {
-                    response.Headers.Add("Content-Encoding", "br");
-                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
-                }
-                else if (encoding.Contains("gzip") && FileLength <= 10000000)
-                {
-                    response.Headers.Add("Content-Encoding", "gzip");
-                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
-                }
-                else if (encoding.Contains("deflate") && FileLength <= 10000000)
-                {
-                    response.Headers.Add("Content-Encoding", "deflate");
-                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
-                }
-                else
-                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            }
-            else
-                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             return response;
         }
 
         public static HttpResponse Handle_ByteSubmit_Download(HttpRequest request, byte[]? Data, string FileName)
         {
-            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
-
             HttpResponse response = new(request.RetrieveHeaderValue("Connection") == "keep-alive");
 
             if (Data != null)
             {
                 response.HttpStatusCode = HttpStatusCode.OK;
                 response.Headers["Content-disposition"] = $"attachment; filename={FileName}";
-
-                if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
-                {
-                    if (encoding.Contains("zstd") && Data.Length <= 10000000)
-                    {
-                        response.Headers.Add("Content-Encoding", "zstd");
-                        response.ContentStream = new MemoryStream(HTTPProcessor.CompressZstd(Data));
-                    }
-                    else if (encoding.Contains("br") && Data.Length <= 10000000)
-                    {
-                        response.Headers.Add("Content-Encoding", "br");
-                        response.ContentStream = new MemoryStream(HTTPProcessor.CompressBrotli(Data));
-                    }
-                    else if (encoding.Contains("gzip") && Data.Length <= 10000000)
-                    {
-                        response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = new MemoryStream(HTTPProcessor.CompressGzip(Data));
-                    }
-                    else if (encoding.Contains("deflate") && Data.Length <= 10000000)
-                    {
-                        response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = new MemoryStream(HTTPProcessor.Inflate(Data));
-                    }
-                    else
-                        response.ContentStream = new MemoryStream(Data);
-                }
-                else
-                    response.ContentStream = new MemoryStream(Data);
+                response.ContentStream = new MemoryStream(Data);
             }
             else
                 response.HttpStatusCode = HttpStatusCode.InternalServerError;
