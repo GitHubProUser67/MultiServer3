@@ -838,13 +838,13 @@ namespace CyberBackendLibrary.HTTP
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
                 if (LargeChunkModeAndMultiThreaded)
                 {
-                    using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true, 2))
-                        CopyStream(input, outGStream, 500000, false);
+                    using ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, 2);
+                    CopyStream(input, outGStream, 500000, false);
                 }
                 else
                 {
-                    using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
-                        CopyStream(input, outGStream, 4096, false);
+                    using GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true);
+                    CopyStream(input, outGStream, 4096, false);
                 }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
@@ -854,13 +854,13 @@ namespace CyberBackendLibrary.HTTP
                 MemoryStream outMemoryStream = new MemoryStream();
                 if (LargeChunkModeAndMultiThreaded)
                 {
-                    using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true, 2))
-                        CopyStream(input, outGStream, 500000, false);
+                    using ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, 2);
+                    CopyStream(input, outGStream, 500000, false);
                 }
                 else
                 {
-                    using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
-                        CopyStream(input, outGStream, 4096, false);
+                    using GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true);
+                    CopyStream(input, outGStream, 4096, false);
                 }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
