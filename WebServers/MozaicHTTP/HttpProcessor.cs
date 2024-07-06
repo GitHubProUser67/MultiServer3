@@ -305,12 +305,11 @@ namespace MozaicHTTP
                                             if ((Host == "stats.outso-srv1.com" 
                                                 || Host == "www.outso-srv1.com") &&
                                                 request.DataAsBytes != null &&
-                                                absolutepath.EndsWith("/") ||
-                                                absolutepath.Contains("/ohs_") ||
+                                                (absolutepath.Contains("/ohs_") ||
                                                 absolutepath.Contains("/ohs/") ||
                                                 absolutepath.Contains("/statistic/") ||
-                                                absolutepath.Contains("/tracker/" ) ||
-                                                absolutepath.Contains("/Konami/"))
+                                                absolutepath.Contains("/tracker/") || 
+                                                absolutepath.Contains("/Konami/")) && absolutepath.EndsWith('/'))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
 
