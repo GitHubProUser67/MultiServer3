@@ -11,12 +11,13 @@ namespace MozaicHTTP.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string filepath, string Accept, string ServerIP, ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport)
+        public static HttpResponse Handle(bool KeepAlive, HttpRequest request, string absolutepath, string Host, string filepath,
+            string Accept, string ServerIP, ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
-                return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
+                return Handle_LocalDir(KeepAlive, request, filepath, httpdirectoryrequest, clientip, clientport);
             else if (File.Exists(filepath))
-                return Handle_LocalFile(request, filepath);
+                return Handle_LocalFile(KeepAlive, request, filepath);
             else
                 return HttpBuilder.NotFound(request.RetrieveHeaderValue("Connection") == "keep-alive", request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
@@ -57,7 +58,7 @@ namespace MozaicHTTP.RouteHandlers
                 return HttpBuilder.NotFound(request.RetrieveHeaderValue("Connection") == "keep-alive", request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
-        private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
+        private static HttpResponse Handle_LocalFile(bool KeepAlive, HttpRequest request, string local_path)
         {
             HttpResponse? response = null;
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -77,21 +78,21 @@ namespace MozaicHTTP.RouteHandlers
             }
 
             if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                response = new(request.RetrieveHeaderValue("Connection") == "keep-alive", "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
+                response = new(KeepAlive, "1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
             else
-                response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
+                response = new(KeepAlive)
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
             response.Headers.Add("Accept-Ranges", "bytes");
             response.Headers.Add("Content-Type", ContentType);
 
-            long fileSize = new FileInfo(local_path).Length;
+            long FileLength = new FileInfo(local_path).Length;
 
-            if (ContentType.StartsWith("image/") && MozaicHTTPConfiguration.EnableImageUpscale && fileSize <= 2147483648) // 2gb limit.
+            if (ContentType.StartsWith("image/") && MozaicHTTPConfiguration.EnableImageUpscale && FileLength <= 2147483648) // 2gb limit.
             {
                 Ionic.Crc.CRC32? crc = new();
                 byte[] PathIdent = Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????");
@@ -108,7 +109,7 @@ namespace MozaicHTTP.RouteHandlers
                 {
                     response.Dispose();
 
-                    return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
+                    return new HttpResponse(KeepAlive)
                     {
                         HttpStatusCode = HttpStatusCode.InternalServerError
                     };
@@ -118,25 +119,27 @@ namespace MozaicHTTP.RouteHandlers
             {
                 if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
-                    if (encoding.Contains("zstd") && fileSize <= 8000000)
+                    bool Optimize = FileLength > 8000000;
+
+                    if (encoding.Contains("zstd") && FileLength <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "zstd");
-                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                     }
-                    else if (encoding.Contains("br") && fileSize <= 8000000)
+                    else if (encoding.Contains("br") && FileLength <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "br");
-                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                     }
-                    else if (encoding.Contains("gzip") && fileSize <= 8000000)
+                    else if (encoding.Contains("gzip") && FileLength <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                     }
-                    else if (encoding.Contains("deflate") && fileSize <= 8000000)
+                    else if (encoding.Contains("deflate") && FileLength <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                        response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                     }
                     else
                         response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -148,11 +151,11 @@ namespace MozaicHTTP.RouteHandlers
             return response;
         }
 
-        public static HttpResponse Handle_LocalFile_Download(HttpRequest request, string local_path)
+        public static HttpResponse Handle_LocalFile_Download(bool KeepAlive, HttpRequest request, string local_path)
         {
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
-            HttpResponse response = new(request.RetrieveHeaderValue("Connection") == "keep-alive")
+            HttpResponse response = new(KeepAlive)
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
@@ -162,25 +165,27 @@ namespace MozaicHTTP.RouteHandlers
 
             if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
             {
-                if (encoding.Contains("zstd") && FileLength <= 8000000)
+                bool Optimize = FileLength > 8000000;
+
+                if (encoding.Contains("zstd") && FileLength <= 10000000)
                 {
                     response.Headers.Add("Content-Encoding", "zstd");
-                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                 }
-                else if (encoding.Contains("br") && FileLength <= 8000000)
+                else if (encoding.Contains("br") && FileLength <= 10000000)
                 {
                     response.Headers.Add("Content-Encoding", "br");
-                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                 }
-                else if (encoding.Contains("gzip") && FileLength <= 8000000)
+                else if (encoding.Contains("gzip") && FileLength <= 10000000)
                 {
                     response.Headers.Add("Content-Encoding", "gzip");
-                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                 }
-                else if (encoding.Contains("deflate") && FileLength <= 8000000)
+                else if (encoding.Contains("deflate") && FileLength <= 10000000)
                 {
                     response.Headers.Add("Content-Encoding", "deflate");
-                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                 }
                 else
                     response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -204,22 +209,22 @@ namespace MozaicHTTP.RouteHandlers
 
                 if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
-                    if (encoding.Contains("zstd") && Data.Length <= 8000000)
+                    if (encoding.Contains("zstd") && Data.Length <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "zstd");
                         response.ContentStream = new MemoryStream(HTTPProcessor.CompressZstd(Data));
                     }
-                    else if (encoding.Contains("br") && Data.Length <= 8000000)
+                    else if (encoding.Contains("br") && Data.Length <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "br");
                         response.ContentStream = new MemoryStream(HTTPProcessor.CompressBrotli(Data));
                     }
-                    else if (encoding.Contains("gzip") && Data.Length <= 8000000)
+                    else if (encoding.Contains("gzip") && Data.Length <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
                         response.ContentStream = new MemoryStream(HTTPProcessor.CompressGzip(Data));
                     }
-                    else if (encoding.Contains("deflate") && Data.Length <= 8000000)
+                    else if (encoding.Contains("deflate") && Data.Length <= 10000000)
                     {
                         response.Headers.Add("Content-Encoding", "deflate");
                         response.ContentStream = new MemoryStream(HTTPProcessor.Inflate(Data));
@@ -236,7 +241,7 @@ namespace MozaicHTTP.RouteHandlers
             return response;
         }
 
-        private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string httpdirectoryrequest, string clientip, string? clientport)
+        private static HttpResponse Handle_LocalDir(bool KeepAlive, HttpRequest request, string local_path, string httpdirectoryrequest, string clientip, string? clientport)
         {
             string? queryparam = null;
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -246,22 +251,22 @@ namespace MozaicHTTP.RouteHandlers
                 if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
                     if (encoding.Contains("zstd"))
-                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(
+                        return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressZstd(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "zstd" } });
                     else if (encoding.Contains("br"))
-                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(
+                        return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressBrotli(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "br" } });
                     else if (encoding.Contains("gzip"))
-                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(
+                        return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressGzip(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                     else if (encoding.Contains("deflate"))
-                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(
+                        return HttpResponse.Send(KeepAlive, HTTPProcessor.Inflate(
                                 Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                     else
-                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
+                        return HttpResponse.Send(KeepAlive, FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
                 }
                 else
-                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
+                    return HttpResponse.Send(KeepAlive, FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, MozaicHTTPConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
             }
             else if (request.QueryParameters != null && request.QueryParameters.TryGetValue("m3u", out queryparam) && queryparam == "on")
             {
@@ -271,21 +276,21 @@ namespace MozaicHTTP.RouteHandlers
                     if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                     {
                         if (encoding.Contains("zstd"))
-                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "zstd" } });
                         else if (encoding.Contains("br"))
-                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "br" } });
+                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "br" } });
                         else if (encoding.Contains("gzip"))
-                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                         else if (encoding.Contains("deflate"))
-                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "deflate" } });
+                            return HttpResponse.Send(KeepAlive, HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                         else
-                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", m3ufile, "audio/x-mpegurl");
+                            return HttpResponse.Send(KeepAlive, m3ufile, "audio/x-mpegurl");
                     }
                     else
-                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", m3ufile, "audio/x-mpegurl");
+                        return HttpResponse.Send(KeepAlive, m3ufile, "audio/x-mpegurl");
                 }
                 else
-                    return HttpBuilder.NoContent(request.RetrieveHeaderValue("Connection") == "keep-alive");
+                    return HttpBuilder.NoContent(KeepAlive);
             }
             else
             {
@@ -299,41 +304,41 @@ namespace MozaicHTTP.RouteHandlers
                             if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                             {
                                 if (encoding.Contains("zstd"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
                                 else if (encoding.Contains("br"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
                                 else if (encoding.Contains("gzip"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
                                 else if (encoding.Contains("deflate"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
                                 else
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                    return HttpResponse.Send(KeepAlive, CollectPHP.Item1, "text/html", CollectPHP.Item2);
                             }
                             else
-                                return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                return HttpResponse.Send(KeepAlive, CollectPHP.Item1, "text/html", CollectPHP.Item2);
                         }
                         else
                         {
                             if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                             {
                                 if (encoding.Contains("zstd"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressZstd(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" } });
                                 else if (encoding.Contains("br"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "br" } });
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressBrotli(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "br" } });
                                 else if (encoding.Contains("gzip"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressGzip(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                                 else if (encoding.Contains("deflate"))
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" } });
+                                    return HttpResponse.Send(KeepAlive, HTTPProcessor.Inflate(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                                 else
-                                    return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                    return HttpResponse.Send(KeepAlive, File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                             }
                             else
-                                return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                return HttpResponse.Send(KeepAlive, File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
                         }
                     }
                 }
 
-                return new HttpResponse(request.RetrieveHeaderValue("Connection") == "keep-alive")
+                return new HttpResponse(KeepAlive)
                 {
                     HttpStatusCode = HttpStatusCode.Not_Found,
                     ContentAsUTF8 = string.Empty

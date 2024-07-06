@@ -730,7 +730,7 @@ namespace CyberBackendLibrary.HTTP
 
         public static byte[] CompressZstd(byte[] input)
         {
-            using Compressor compressor = new Compressor(0);
+            using Compressor compressor = new Compressor();
             return compressor.Wrap(input).ToArray();
         }
 
@@ -758,11 +758,8 @@ namespace CyberBackendLibrary.HTTP
 
             using (MemoryStream output = new MemoryStream())
             {
-                using (ParallelGZipOutputStream gzipStream = new ParallelGZipOutputStream(output, Ionic.Zlib.CompressionLevel.BestSpeed, true))
-                {
+                using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, true))
                     gzipStream.Write(input, 0, input.Length);
-                    gzipStream.Close();
-                }
 
                 byteoutput = output.ToArray();
             }
@@ -793,9 +790,9 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                using (CompressionStream outZStream = new CompressionStream(outMemoryStream, 0))
+                using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
                 {
-                    outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
+                    outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
                     CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 }
                 outMemoryStream.Position = 0;
@@ -804,9 +801,9 @@ namespace CyberBackendLibrary.HTTP
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                using (CompressionStream outZStream = new CompressionStream(outMemoryStream, 0))
+                using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
                 {
-                    outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 4);
+                    outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
                     CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
                 }
                 outMemoryStream.Position = 0;
@@ -834,15 +831,20 @@ namespace CyberBackendLibrary.HTTP
             }
         }
 
-        public static Stream GzipCompressStream(Stream input, bool LargeChunkMode)
+        public static Stream GzipCompressStream(Stream input, bool LargeChunkModeAndMultiThreaded)
         {
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true))
+                if (LargeChunkModeAndMultiThreaded)
                 {
-                    CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
-                    outGStream.Close();
+                    using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true, 2))
+                        CopyStream(input, outGStream, 500000, false);
+                }
+                else
+                {
+                    using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
+                        CopyStream(input, outGStream, 4096, false);
                 }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
@@ -850,10 +852,15 @@ namespace CyberBackendLibrary.HTTP
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true))
+                if (LargeChunkModeAndMultiThreaded)
                 {
-                    CopyStream(input, outGStream, LargeChunkMode ? 500000 : 4096, false);
-                    outGStream.Close();
+                    using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, true, 2))
+                        CopyStream(input, outGStream, 500000, false);
+                }
+                else
+                {
+                    using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
+                        CopyStream(input, outGStream, 4096, false);
                 }
                 outMemoryStream.Position = 0;
                 return outMemoryStream;

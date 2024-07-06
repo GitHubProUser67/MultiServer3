@@ -6,8 +6,6 @@ using CyberBackendLibrary.HTTP;
 using HttpStatusCode = MozaicHTTP.Models.HttpStatusCode;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System;
 
 namespace MozaicHTTP.RouteHandlers.staticRoutes
 {
@@ -24,6 +22,7 @@ namespace MozaicHTTP.RouteHandlers.staticRoutes
                         {
                             if (File.Exists(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}"))
                             {
+                                bool KeepAlive = request.RetrieveHeaderValue("Connection") == "keep-alive";
                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
                                 if (indexFile.Contains(".php") && Directory.Exists(MozaicHTTPConfiguration.PHPStaticFolder))
@@ -32,36 +31,36 @@ namespace MozaicHTTP.RouteHandlers.staticRoutes
                                     if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                     {
                                         if (encoding.Contains("zstd"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
                                         else if (encoding.Contains("br"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
                                         else if (encoding.Contains("gzip"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
                                         else if (encoding.Contains("deflate"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementsToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") }));
                                         else
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                            return HttpResponse.Send(KeepAlive, CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                     }
                                     else
-                                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                        return HttpResponse.Send(KeepAlive, CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                 }
                                 else
                                 {
                                     if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                                     {
                                         if (encoding.Contains("zstd"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressZstd(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressZstd(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                         else if (encoding.Contains("br"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressBrotli(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "br" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressBrotli(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "br" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                         else if (encoding.Contains("gzip"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.CompressGzip(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.CompressGzip(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "gzip" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                         else if (encoding.Contains("deflate"))
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", HTTPProcessor.Inflate(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                            return HttpResponse.Send(KeepAlive, HTTPProcessor.Inflate(File.ReadAllBytes(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" }, new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                         else
-                                            return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", File.Open(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                            return HttpResponse.Send(KeepAlive, File.Open(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                     }
                                     else
-                                        return HttpResponse.Send(request.RetrieveHeaderValue("Connection") == "keep-alive", File.Open(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                        return HttpResponse.Send(KeepAlive, File.Open(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(MozaicHTTPConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                 }
                             }
                         }
