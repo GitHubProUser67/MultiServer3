@@ -117,7 +117,7 @@ namespace WebAPIService.OHS
                     try
                     {
 #if DEBUG
-                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), false, 0);
+                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, 0);
                         LoggerAccessor.LogInfo($"[OHS] Points Tracker Data : {dataforohs}");
 #endif
                     }
