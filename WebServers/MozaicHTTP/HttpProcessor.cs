@@ -342,9 +342,9 @@ namespace MozaicHTTP
                                                     res = new OHSClass(Method, absolutepath, version).ProcessRequest(dataAsBytes, request.GetContentType(), apiPath);
 
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, $"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
+                                                    response = HttpResponse.Send(KeepAlive, $"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
                                             }
                                             #endregion
 
@@ -359,9 +359,9 @@ namespace MozaicHTTP
                                                 string? res = null;
                                                 res = new OuWFClass(Method, absolutepath, MozaicHTTPConfiguration.HTTPStaticFolder).ProcessRequest(request.DataAsBytes, request.GetContentType());
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "text/xml");
+                                                    response = HttpResponse.Send(KeepAlive, res, "text/xml");
                                             }
                                             #endregion
 
@@ -380,13 +380,13 @@ namespace MozaicHTTP
                                                     (string?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(dataAsBytes, request.GetContentType(), MozaicHTTPConfiguration.APIStaticFolder);
 
                                                     if (string.IsNullOrEmpty(res.Item1))
-                                                        response = HttpBuilder.InternalServerError(false);
+                                                        response = HttpBuilder.InternalServerError(KeepAlive);
                                                     else
                                                     {
                                                         if (!string.IsNullOrEmpty(res.Item2))
-                                                            response = HttpResponse.Send(false, res.Item1, res.Item2);
+                                                            response = HttpResponse.Send(KeepAlive, res.Item1, res.Item2);
                                                         else
-                                                            response = HttpResponse.Send(false, res.Item1, "text/plain");
+                                                            response = HttpResponse.Send(KeepAlive, res.Item1, "text/plain");
                                                     }
                                                 }
                                                 else
@@ -394,13 +394,13 @@ namespace MozaicHTTP
                                                     (string?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(null, request.GetContentType(), MozaicHTTPConfiguration.APIStaticFolder);
 
                                                     if (string.IsNullOrEmpty(res.Item1))
-                                                        response = HttpBuilder.InternalServerError(false);
+                                                        response = HttpBuilder.InternalServerError(KeepAlive);
                                                     else
                                                     {
                                                         if (!string.IsNullOrEmpty(res.Item2))
-                                                            response = HttpResponse.Send(false, res.Item1, res.Item2);
+                                                            response = HttpResponse.Send(KeepAlive, res.Item1, res.Item2);
                                                         else
-                                                            response = HttpResponse.Send(false, res.Item1, "text/plain");
+                                                            response = HttpResponse.Send(KeepAlive, res.Item1, "text/plain");
                                                     }
                                                 }
                                             }
@@ -427,9 +427,9 @@ namespace MozaicHTTP
 
                                                 ndreams.Dispose();
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "text/xml");
+                                                    response = HttpResponse.Send(KeepAlive, res, "text/xml");
                                             }
                                             #endregion
 
@@ -445,9 +445,9 @@ namespace MozaicHTTP
                                                     res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), MozaicHTTPConfiguration.APIStaticFolder).ProcessRequest(dataAsBytes, request.GetContentType(), sslCertificate != null);
 
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "application/xml;charset=UTF-8");
+                                                    response = HttpResponse.Send(KeepAlive, res, "application/xml;charset=UTF-8");
                                             }
                                             #endregion
 
@@ -467,11 +467,11 @@ namespace MozaicHTTP
                                                     res = juggernaut.ProcessRequest(request.QueryParameters, MozaicHTTPConfiguration.APIStaticFolder);
                                                 juggernaut.Dispose();
                                                 if (res == null)
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else if (res == string.Empty)
-                                                    response = HttpBuilder.OK(false);
+                                                    response = HttpBuilder.OK(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "text/xml");
+                                                    response = HttpResponse.Send(KeepAlive, res, "text/xml");
                                             }
                                             #endregion
 
@@ -491,9 +491,9 @@ namespace MozaicHTTP
                                                     res = loot.ProcessRequest(request.QueryParameters);
 
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "application/xml;charset=UTF-8");
+                                                    response = HttpResponse.Send(KeepAlive, res, "application/xml;charset=UTF-8");
                                             }
                                             #endregion
 
@@ -514,9 +514,9 @@ namespace MozaicHTTP
                                                 if (dataAsBytes != null)
                                                     res = new PREMIUMAGENCYClass(Method, absolutepath, MozaicHTTPConfiguration.APIStaticFolder, fulluripath).ProcessRequest(dataAsBytes, request.GetContentType());
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "text/xml");
+                                                    response = HttpResponse.Send(KeepAlive, res, "text/xml");
                                             }
                                             #endregion
 
@@ -530,9 +530,9 @@ namespace MozaicHTTP
                                                 if (dataAsBytes != null)
                                                     res = new FROMSOFTWAREClass(Method, absolutepath, MozaicHTTPConfiguration.APIStaticFolder).ProcessRequest(dataAsBytes, request.GetContentType());
                                                 if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res.Item1, res.Item2, res.Item3);
+                                                    response = HttpResponse.Send(KeepAlive, res.Item1, res.Item2, res.Item3);
                                             }
                                             #endregion
 
@@ -616,13 +616,13 @@ namespace MozaicHTTP
                                                             .ProcessRequest(request.DataAsBytes, request.GetContentType());
 
                                                     if (string.IsNullOrEmpty(res.Item1))
-                                                        response = HttpBuilder.InternalServerError(false);
+                                                        response = HttpBuilder.InternalServerError(KeepAlive);
                                                     else
                                                     {
                                                         if (!string.IsNullOrEmpty(res.Item2))
-                                                            response = HttpResponse.Send(false, res.Item1, res.Item2);
+                                                            response = HttpResponse.Send(KeepAlive, res.Item1, res.Item2);
                                                         else
-                                                            response = HttpResponse.Send(false, res.Item1, "text/plain");
+                                                            response = HttpResponse.Send(KeepAlive, res.Item1, "text/plain");
 
                                                         response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
                                                         response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
@@ -630,7 +630,7 @@ namespace MozaicHTTP
                                                     }
                                                 }
                                                 else
-                                                    response = HttpBuilder.NotAllowed(false);
+                                                    response = HttpBuilder.NotAllowed(KeepAlive);
                                             }
                                             #endregion
 
@@ -649,9 +649,9 @@ namespace MozaicHTTP
                                                     res = new CDMClass(request.Method, absolutepath, MozaicHTTPConfiguration.APIStaticFolder).ProcessRequest(Array.Empty<byte>(), request.GetContentType(), apiPath);
 
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "text/xml");
+                                                    response = HttpResponse.Send(KeepAlive, res, "text/xml");
                                             }
                                             #endregion
 
@@ -666,9 +666,9 @@ namespace MozaicHTTP
                                                 if (dataAsBytes != null)
                                                     res = new CAPONEClass(request.Method, absolutepath, MozaicHTTPConfiguration.APIStaticFolder).ProcessRequest(dataAsBytes, request.GetContentType(), apiPath);
                                                 if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError(false);
+                                                    response = HttpBuilder.InternalServerError(KeepAlive);
                                                 else
-                                                    response = HttpResponse.Send(false, res, "text/xml");
+                                                    response = HttpResponse.Send(KeepAlive, res, "text/xml");
                                             }
                                             #endregion
 
@@ -676,7 +676,7 @@ namespace MozaicHTTP
                                             else if (Host == "apps.pshomecentral.net" && absolutepath == "/PrivateRTE/checkAuth.php")
                                             {
                                                 LoggerAccessor.LogError($"[HTTPS] - {clientip}:{clientport} Requested a PS Home Central method : {absolutepath}");
-                                                response = HttpResponse.Send(false, "false");
+                                                response = HttpResponse.Send(KeepAlive, "false");
                                             }
                                             #endregion
 
@@ -791,7 +791,8 @@ namespace MozaicHTTP
                                                                     if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(ClientStream, request, filePath, KeepAlive);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                        response = FileSystemRouteHandler.Handle(KeepAlive, request, absolutepath, Host, filePath, Accept,
+                                                                            serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
                                                                 }
                                                                 break;
                                                         }
@@ -834,7 +835,8 @@ namespace MozaicHTTP
                                                                     if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(ClientStream, request, filePath, KeepAlive);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                        response = FileSystemRouteHandler.Handle(KeepAlive, request, absolutepath, Host,
+                                                                            filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
                                                                 }
                                                                 break;
                                                         }
@@ -1305,25 +1307,27 @@ namespace MozaicHTTP
 
                             if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                             {
-                                if (acceptencoding.Contains("zstd") && FileLength <= 8000000)
+                                bool Optimize = FileLength > 8000000;
+
+                                if (acceptencoding.Contains("zstd") && FileLength <= 10000000)
                                 {
                                     response.Headers.Add("Content-Encoding", "zstd");
-                                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                                 }
-                                else if (acceptencoding.Contains("br") && FileLength <= 8000000)
+                                else if (acceptencoding.Contains("br") && FileLength <= 10000000)
                                 {
                                     response.Headers.Add("Content-Encoding", "br");
-                                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                                 }
-                                else if (acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                                else if (acceptencoding.Contains("gzip") && FileLength <= 10000000)
                                 {
                                     response.Headers.Add("Content-Encoding", "gzip");
-                                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                                 }
-                                else if (acceptencoding.Contains("deflate") && FileLength <= 8000000)
+                                else if (acceptencoding.Contains("deflate") && FileLength <= 10000000)
                                 {
                                     response.Headers.Add("Content-Encoding", "deflate");
-                                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                                 }
                                 else
                                     response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -1390,7 +1394,7 @@ namespace MozaicHTTP
                     long totalBytes = ms.Length;
                     long bytesLeft = totalBytes;
 
-                    if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
+                    if (totalBytes > 10000000 && buffersize < 500000) // We optimize large file handling.
                         buffersize = 500000;
 
                     HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
@@ -1525,25 +1529,27 @@ namespace MozaicHTTP
 
                     if (MozaicHTTPConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
                     {
-                        if (acceptencoding.Contains("zstd") && FileLength <= 8000000)
+                        bool Optimize = FileLength > 8000000;
+
+                        if (acceptencoding.Contains("zstd") && FileLength <= 10000000)
                         {
                             response.Headers.Add("Content-Encoding", "zstd");
-                            response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                         }
-                        else if (acceptencoding.Contains("br") && FileLength <= 8000000)
+                        else if (acceptencoding.Contains("br") && FileLength <= 10000000)
                         {
                             response.Headers.Add("Content-Encoding", "br");
-                            response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                         }
-                        else if (acceptencoding.Contains("gzip") && FileLength <= 8000000)
+                        else if (acceptencoding.Contains("gzip") && FileLength <= 10000000)
                         {
                             response.Headers.Add("Content-Encoding", "gzip");
-                            response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                         }
-                        else if (acceptencoding.Contains("deflate") && FileLength <= 8000000)
+                        else if (acceptencoding.Contains("deflate") && FileLength <= 10000000)
                         {
                             response.Headers.Add("Content-Encoding", "deflate");
-                            response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Optimize);
                         }
                         else
                             response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -1846,7 +1852,6 @@ namespace MozaicHTTP
             return req;
 		}
 
-
         protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
 		{
 			// Read Request Line and check if valid.
@@ -1874,7 +1879,7 @@ namespace MozaicHTTP
 						pos++;
 					}
 
-					headers.Add(line[..separator], line[pos..]);
+					headers.TryAdd(line[..separator], line[pos..]);
 				}
 
 				HttpRequest req = new()
@@ -1933,6 +1938,11 @@ namespace MozaicHTTP
             return ms.ToArray();
         }
 
+        private bool AcceptCertificate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
+        }
+
         private static bool TryGetContentLength(Dictionary<string, string> headers, out string? value)
         {
             foreach (KeyValuePair<string, string> header in headers)
@@ -1946,11 +1956,6 @@ namespace MozaicHTTP
 
             value = null;
             return false;
-        }
-
-        private bool AcceptCertificate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
-        {
-            return true;
         }
 
         /// <summary>
@@ -1970,7 +1975,7 @@ namespace MozaicHTTP
             for (int i = 0; i < bytes.Length; i++)
                 builder.Append(bytes[i].ToString("x2"));
 
-            return builder.ToString() + $":{WebCrypto.ProcessSecureCheckum(bytes, input.Length)}";
+            return builder.ToString();
         }
 
         internal static SslProtocols GetSslProtocol

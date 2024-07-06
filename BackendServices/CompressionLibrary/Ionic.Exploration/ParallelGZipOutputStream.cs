@@ -214,7 +214,7 @@ namespace Ionic.Exploration
         /// </example>
         /// <param name="stream">The stream to which compressed data will be written.</param>
         public ParallelGZipOutputStream(Stream stream)
-            : this(stream, CompressionLevel.Default, CompressionStrategy.Default, false)
+            : this(stream, CompressionLevel.Default, CompressionStrategy.Default, false, 4)
         {
         }
 
@@ -228,7 +228,7 @@ namespace Ionic.Exploration
         /// <param name="stream">The stream to which compressed data will be written.</param>
         /// <param name="level">A tuning knob to trade speed for effectiveness.</param>
         public ParallelGZipOutputStream(Stream stream, CompressionLevel level)
-            : this(stream, level, CompressionStrategy.Default, false)
+            : this(stream, level, CompressionStrategy.Default, false, 4)
         {
         }
 
@@ -245,7 +245,7 @@ namespace Ionic.Exploration
         ///    true if the application would like the stream to remain open after inflation/deflation.
         /// </param>
         public ParallelGZipOutputStream(Stream stream, bool leaveOpen)
-            : this(stream, CompressionLevel.Default, CompressionStrategy.Default, leaveOpen)
+            : this(stream, CompressionLevel.Default, CompressionStrategy.Default, leaveOpen, 4)
         {
         }
 
@@ -263,7 +263,26 @@ namespace Ionic.Exploration
         ///    true if the application would like the stream to remain open after inflation/deflation.
         /// </param>
         public ParallelGZipOutputStream(Stream stream, CompressionLevel level, bool leaveOpen)
-            : this(stream, level, CompressionStrategy.Default, leaveOpen)
+            : this(stream, level, CompressionStrategy.Default, leaveOpen, 4)
+        {
+        }
+
+        /// <summary>
+        /// Create a ParallelDeflateOutputStream and specify whether to leave the captive stream open
+        /// when the ParallelDeflateOutputStream is closed.
+        /// </summary>
+        /// <remarks>
+        ///   See the <see cref="ParallelDeflateOutputStream(Stream)"/>
+        ///   constructor for example code.
+        /// </remarks>
+        /// <param name="stream">The stream to which compressed data will be written.</param>
+        /// <param name="level">A tuning knob to trade speed for effectiveness.</param>
+        /// <param name="leaveOpen">
+        /// <param name="numofbuckets">
+        ///    true if the application would like the stream to remain open after inflation/deflation.
+        /// </param>
+        public ParallelGZipOutputStream(Stream stream, CompressionLevel level, bool leaveOpen, int numofbuckets)
+            : this(stream, level, CompressionStrategy.Default, leaveOpen, numofbuckets)
         {
         }
 
@@ -289,7 +308,7 @@ namespace Ionic.Exploration
         public ParallelGZipOutputStream(Stream stream,
                                            CompressionLevel level,
                                            CompressionStrategy strategy,
-                                           bool leaveOpen)
+                                           bool leaveOpen, int numofbuckets)
         {
             TraceOutput(TraceBits.Lifecycle | TraceBits.Session, "-------------------------------------------------------");
             TraceOutput(TraceBits.Lifecycle | TraceBits.Session, "Create {0:X8}", GetHashCode());
@@ -298,7 +317,7 @@ namespace Ionic.Exploration
             Strategy = strategy;
             _leaveOpen = leaveOpen;
 
-            _nBuckets = 4; // default
+            _nBuckets = numofbuckets;
             _bufferSize = IO_BUFFER_SIZE_DEFAULT;
         }
 
