@@ -149,6 +149,8 @@ namespace HTTPSecureServerLite
                 string absolutepath = string.Empty;
                 string fulluripath = string.Empty;
                 string Host = request.RetrieveHeaderValue("Host");
+                if (string.IsNullOrEmpty(Host))
+                    Host = request.RetrieveHeaderValue("HOST");
                 string Accept = request.RetrieveHeaderValue("Accept");
                 string clientip = request.Source.IpAddress;
                 string clientport = request.Source.Port.ToString();
