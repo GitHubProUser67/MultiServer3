@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<DockerfileRunArguments>-p 443:443</DockerfileRunArguments>
+    <ApplicationIcon>HTTPS.ico</ApplicationIcon>
+	<ServerGarbageCollection>true</ServerGarbageCollection>
+	<PublishSingleFile>false</PublishSingleFile> <!-- Single mode cannot load plugins due to no assembly loading support. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="HTTPS.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Watson.Lite" Version="6.1.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
+    <ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <Content Include="static\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
+  </ItemGroup>
+
+  <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">
+    <Exec Command="powershell -ExecutionPolicy Bypass -File $(ProjectDir)DepsFixer.ps1 -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
+  </Target>
+
+</Project>
