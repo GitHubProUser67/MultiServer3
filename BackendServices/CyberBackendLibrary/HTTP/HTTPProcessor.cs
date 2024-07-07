@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Threading;
 using CyberBackendLibrary.Extension;
 using Ionic.Exploration;
 
@@ -19,8 +18,6 @@ namespace CyberBackendLibrary.HTTP
 {
     public class HTTPProcessor
     {
-        private static object _StackLock = new object();
-
         public static readonly Dictionary<string, string> _mimeTypes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
@@ -905,42 +902,15 @@ namespace CyberBackendLibrary.HTTP
             if (BufferSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
 
-            bool lockTaken = false;
             int bytesRead = 0;
 
-            try
+            Span<byte> buffer = new byte[BufferSize];
+            while ((bytesRead = input.Read(buffer)) > 0)
             {
-                if (BufferSize <= 4096) // Make sure to not use stack based optimization for large data (ends up being slower).
-                    Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock
-
-                if (lockTaken) // Lock is free.
-                {
-                    Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommanded value for stackalloc).
-                    //buffer.Clear(); // Explicit zero initialize, because stack can contains garbage data. Update: Not needed as we always fill it.
-                    while ((bytesRead = input.Read(buffer)) > 0)
-                    {
-                        output.Write(buffer[..bytesRead]);
-                    }
-                    if (flush)
-                        output.Flush();
-                }
-                else
-                {
-                    Span<byte> buffer = new byte[BufferSize];
-                    while ((bytesRead = input.Read(buffer)) > 0)
-                    {
-                        output.Write(buffer[..bytesRead]);
-                    }
-                    if (flush)
-                        output.Flush();
-                }
+                output.Write(buffer[..bytesRead]);
             }
-            finally
-            {
-                // Release the lock if it was acquired
-                if (lockTaken)
-                    Monitor.Exit(_StackLock);
-            }
+            if (flush)
+                output.Flush();
         }
 #if NET7_0_OR_GREATER
         [GeneratedRegex("^(.*?http://.*?http://)([^/]+)(.*)$")]
