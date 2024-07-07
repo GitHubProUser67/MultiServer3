@@ -6,6 +6,14 @@ using WebAPIService.PREMIUMAGENCY;
 using WebAPIService.VEEMEE;
 using WebAPIService.JUGGERNAUT;
 using WebAPIService.NDREAMS;
+using WebAPIService.LOOT;
+using WebAPIService.UBISOFT.HERMES_API;
+using WebAPIService.FROMSOFTWARE;
+using WebAPIService.CAPONE;
+using WebAPIService.CDM;
+using WebAPIService.MultiMedia;
+using WebAPIService.UBISOFT.gsconnect;
+using WebAPIService.HELLFIRE;
 using CyberBackendLibrary.GeoLocalization;
 using CyberBackendLibrary.HTTP;
 using CustomLogger;
@@ -13,12 +21,6 @@ using HttpMultipartParser;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using HTTPServer.RouteHandlers;
-using WebAPIService.LOOT;
-using WebAPIService.UBISOFT.HERMES_API;
-using WebAPIService.FROMSOFTWARE;
-using WebAPIService.CAPONE;
-using WebAPIService.CDM;
-using WebAPIService.MultiMedia;
 using CyberBackendLibrary.DataTypes;
 using System;
 using System.Security.Cryptography;
@@ -33,7 +35,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
-using WebAPIService.HELLFIRE;
 using CyberBackendLibrary.HTTP.PluginManager;
 using CyberBackendLibrary.Extension;
 
@@ -135,6 +136,8 @@ namespace HTTPServer
                                 HttpResponse? response = null;
                                 string Method = request.Method;
                                 string Host = request.RetrieveHeaderValue("Host");
+								if (string.IsNullOrEmpty(Host))
+                                    Host = request.RetrieveHeaderValue("HOST");
                                 string Accept = request.RetrieveHeaderValue("Accept");
                                 string SuplementalMessage = string.Empty;
                                 string fullurl = HTTPProcessor.DecodeUrl(request.Url);
@@ -639,6 +642,46 @@ namespace HTTPServer
                                                 }
                                                 else
                                                     response = HttpBuilder.NotAllowed();
+                                            }
+                                            #endregion
+											
+											#region gsconnect API
+                                            else if (Host == "gsconnect.ubisoft.com"
+											    && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
+
+                                                (string?, string?, Dictionary<string, string>?) res;
+                                                gsconnectClass gsconn = new(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder);
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = gsconn.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                else
+                                                    res = gsconn.ProcessRequest(request.QueryParameters);
+
+                                                if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                {
+                                                    response = new("1.0")
+                                                    {
+                                                        HttpStatusCode = Models.HttpStatusCode.OK
+                                                    };
+                                                    response.Headers["Content-Type"] = res.Item2;
+                                                    response.ContentAsUTF8 = res.Item1;
+
+                                                    if (res.Item3 != null)
+                                                    {
+                                                        foreach (KeyValuePair<string, string> headertoadd in  res.Item3)
+                                                        {
+                                                            response.Headers.TryAdd(headertoadd.Key, headertoadd.Value);
+                                                        }
+                                                    }
+                                                }
                                             }
                                             #endregion
 
