@@ -13,11 +13,15 @@ using System.Text.RegularExpressions;
 using System.Web;
 using CyberBackendLibrary.Extension;
 using Ionic.Exploration;
+using System.Threading;
+using System.Buffers;
 
 namespace CyberBackendLibrary.HTTP
 {
     public class HTTPProcessor
     {
+        private static object _StackLock = new object();
+
         public static readonly Dictionary<string, string> _mimeTypes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
@@ -902,15 +906,40 @@ namespace CyberBackendLibrary.HTTP
             if (BufferSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
 
+            bool lockTaken = false;
             int bytesRead = 0;
 
-            Span<byte> buffer = new byte[BufferSize];
-            while ((bytesRead = input.Read(buffer)) > 0)
+            try
             {
-                output.Write(buffer[..bytesRead]);
+                Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock.
+
+                if (lockTaken) // Lock is free.
+                {
+                    Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommanded value for stackalloc).
+                    while ((bytesRead = input.Read(buffer)) > 0)
+                    {
+                        output.Write(buffer[..bytesRead]);
+                    }
+                    if (flush)
+                        output.Flush();
+                }
+                else
+                {
+                    Span<byte> buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                    while ((bytesRead = input.Read(buffer)) > 0)
+                    {
+                        output.Write(buffer[..bytesRead]);
+                    }
+                    if (flush)
+                        output.Flush();
+                }
             }
-            if (flush)
-                output.Flush();
+            finally
+            {
+                // Release the lock if it was acquired
+                if (lockTaken)
+                    Monitor.Exit(_StackLock);
+            }
         }
 #if NET7_0_OR_GREATER
         [GeneratedRegex("^(.*?http://.*?http://)([^/]+)(.*)$")]
