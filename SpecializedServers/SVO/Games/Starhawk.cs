@@ -505,29 +505,20 @@ namespace SVO
 
                                         string? toUpload = HttpUtility.ParseQueryString(request.Url.Query).Get("fileNameBeginsWith");
 
-                                        using (MemoryStream ms = new())
+                                        // Find number of bytes in stream.
+                                        int strLen = Convert.ToInt32(request.ContentLength64);
+
+                                        // Create a byte array.
+                                        byte[] strArr = new byte[strLen];
+
+                                        request.InputStream.Read(strArr, 0, strLen);
+
+                                        Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/fileservices");
+
+                                        using (FileStream fs = new($"{SVOServerConfiguration.SVOStaticFolder}/fileservices/{toUpload}", FileMode.OpenOrCreate))
                                         {
-                                            // Find number of bytes in stream.
-                                            int strLen = Convert.ToInt32(request.ContentLength64);
-                                            // Create a byte array.
-                                            byte[] strArr = new byte[strLen];
-
-                                            request.InputStream.Read(strArr, 0, strLen);
-
-                                            ms.Position = 0;
-
-                                            //You have to rewind the MemoryStream before copying
-                                            ms.Read(strArr, 0, strLen);
-
-                                            Directory.CreateDirectory($"{SVOServerConfiguration.SVOStaticFolder}/fileservices");
-
-                                            using (FileStream fs = new($"{SVOServerConfiguration.SVOStaticFolder}/fileservices/{toUpload}", FileMode.OpenOrCreate))
-                                            {
-                                                fs.Write(strArr, 0, strLen);
-                                                fs.Flush();
-                                            }
-
-                                            ms.Flush();
+                                            fs.Write(strArr, 0, strLen);
+                                            fs.Flush();
                                         }
 
                                         response.StatusCode = (int)System.Net.HttpStatusCode.OK;
