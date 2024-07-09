@@ -1,6 +1,5 @@
-
 using CustomLogger;
-using System.Net;
+using SpaceWizards.HttpListener;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -15,11 +14,11 @@ namespace SVO.Games
             {
                 if (request.Url == null)
                 {
-                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                     return;
                 }
 
-                string method = request.HttpMethod;
+                string? method = request.HttpMethod;
 
                 using (response)
                 {
@@ -38,7 +37,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -93,7 +92,7 @@ namespace SVO.Games
                                             $"     \r\n    \r\n\t<REDIRECT href=\"unityNpLogin.jsp\" name=\"redirect\"/>\r\n" +
                                             "</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -123,7 +122,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -137,7 +136,7 @@ namespace SVO.Games
                                             $"        <SET name=\"nohistory\" neverBackOnto=\"true\"/>\r\n" +
                                             $"</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -169,7 +168,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -178,7 +177,7 @@ namespace SVO.Games
 
                                         if (!request.HasEntityBody)
                                         {
-                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                             return;
                                         }
 
@@ -254,7 +253,7 @@ namespace SVO.Games
                                             "    </SP_Login>\r\n" +
                                             "</XML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -286,7 +285,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -341,7 +340,7 @@ namespace SVO.Games
                                             " </SS:SCREEN>\r\n\r\n" +
                                             " <ACTIONLINK name=\"link\" button=\"SV_ACTION_BACK\" href=\"hide.svml\"/>\r\n</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -363,7 +362,7 @@ namespace SVO.Games
                             break;
 
                         default:
-                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                             break;
 
                             #endregion
@@ -373,7 +372,7 @@ namespace SVO.Games
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[SVO] - Singstar_SVO thrown an assertion - {ex}");
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
         }
     }

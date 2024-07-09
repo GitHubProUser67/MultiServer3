@@ -2,9 +2,9 @@ using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using SVO.Games;
-using System.Net;
 using System.Text;
-using Newtonsoft.Json;
+using SpaceWizards.HttpListener;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SVO
 {
@@ -12,15 +12,17 @@ namespace SVO
     {
         public static bool IsStarted = false;
 
+        private X509Certificate2? certificate;
         private Thread? thread;
         private volatile bool threadActive;
 
         private HttpListener? listener;
         private readonly string ip;
 
-        public SVOServer(string ip)
+        public SVOServer(string ip, X509Certificate2? certificate = null)
         {
             this.ip = ip;
+            this.certificate = certificate;
 
             Start();
         }
@@ -92,10 +94,10 @@ namespace SVO
             // start listener
             try
             {
-                listener = new HttpListener();
+                listener = new HttpListener(certificate);
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10061));
+                listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, 10061));
                 listener.Start();
             }
             catch (Exception e)
@@ -160,7 +162,7 @@ namespace SVO
 
             try
             {
-                clientip = ctx.Request.RemoteEndPoint.Address.ToString();
+                clientip = ctx.Request.RemoteEndPoint?.Address.ToString() ?? string.Empty;
 
                 if (IsIPBanned(clientip))
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
@@ -173,7 +175,7 @@ namespace SVO
 
                     if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                     {
-                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                         LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
                     }
                     else
@@ -231,7 +233,7 @@ namespace SVO
 
                                     File.WriteAllBytes($"{SVOServerConfiguration.SVOStaticFolder}/dataloaderweb/queue/{Guid.NewGuid()}.xml", datatooutput);
 
-                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                                     ctx.Response.SendChunked = true;
 
                                     if (ctx.Response.OutputStream.CanWrite)
@@ -248,10 +250,10 @@ namespace SVO
                                     }
                                 }
                                 else
-                                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                    ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                 break;
                             default:
-                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                 break;
                         }
                     }
@@ -279,7 +281,7 @@ namespace SVO
 
                         if (File.Exists(filePath))
                         {
-                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                             ctx.Response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPProcessor._mimeTypes);
 
                             ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -303,7 +305,7 @@ namespace SVO
                             }
                         }
                         else
-                            ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                            ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
                     }
                 }
                 catch (HttpListenerException e) when (e.ErrorCode == 64)
@@ -312,16 +314,16 @@ namespace SVO
                     // This will cause server to throw error 64 (network interface not openned anymore)
                     // In that case, we send internalservererror so client try again.
 
-                    ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                 }
                 catch (Exception e)
                 {
                     LoggerAccessor.LogError("[SVO] - REQUEST ERROR: " + e.Message);
-                    ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                 }
             }
             else
-                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
 
             try
             {
