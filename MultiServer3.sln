@@ -29,7 +29,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixedSsl", "BackendServices
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XI5", "BackendServices\XI5\XI5.csproj", "{A5A3C1A7-D222-421B-AB21-0603BB3D3629}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechnitiumLibrary.Net.Firewall", "BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj", "{01AF4373-8906-480C-AD9A-1A3001BEFAB1}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreServer", "BackendServices\NetCoreServer\NetCoreServer.csproj", "{469C294D-258C-4CAF-88BB-B33893DA23A5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpaceWizards.HttpListener", "BackendServices\SpaceWizards.HttpListener\SpaceWizards.HttpListener.csproj", "{0C2CB2E8-1099-4467-8C19-73D414B117F5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alivate", "BackendServices\Alivate\Alivate.csproj", "{B1699098-B489-4971-A372-0B81F961EC9A}"
 EndProject
@@ -64,8 +68,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SVO", "SpecializedServers\SVO\SVO.csproj", "{449484EE-BAE2-4FFB-BADF-4E2C2FBC388A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MitmDNS", "WebServers\MitmDNS\MitmDNS.csproj", "{E4F01FDE-2193-4FD0-91FA-C6FC5D86B297}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechnitiumLibrary.Net.Firewall", "BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj", "{01AF4373-8906-480C-AD9A-1A3001BEFAB1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NautilusXP2024", "Plugins\NautilusXP2024\NautilusXP2024.csproj", "{7ED1107E-7E6C-4132-9CC9-A81EB18C6FDF}"
 EndProject
@@ -733,6 +735,26 @@ Global
 		{7E0A58DA-018F-42C1-AA2F-82CB2A25B393}.Release|x64.Build.0 = Release|Any CPU
 		{7E0A58DA-018F-42C1-AA2F-82CB2A25B393}.Release|x86.ActiveCfg = Release|Any CPU
 		{7E0A58DA-018F-42C1-AA2F-82CB2A25B393}.Release|x86.Build.0 = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|ARM32.ActiveCfg = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|ARM32.Build.0 = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|x64.Build.0 = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Debug|x86.Build.0 = Debug|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|ARM32.ActiveCfg = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|ARM32.Build.0 = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|ARM64.Build.0 = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|x64.ActiveCfg = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|x64.Build.0 = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|x86.ActiveCfg = Release|Any CPU
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -770,6 +792,7 @@ Global
 		{1BA36F53-BAC0-4697-8C05-67541C429583} = {BD14841D-553A-4699-AF7A-5E520ADF2CBE}
 		{1C506C66-39AB-48E4-8C66-41C9CE4464BB} = {B4C627B6-E088-4DD4-8D6E-58DFDA383277}
 		{7E0A58DA-018F-42C1-AA2F-82CB2A25B393} = {B4C627B6-E088-4DD4-8D6E-58DFDA383277}
+		{0C2CB2E8-1099-4467-8C19-73D414B117F5} = {B9D1BB31-ED3A-4577-9879-0691BD16B171}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CF5FB456-FEE4-4300-9273-869AD97A9A0B}

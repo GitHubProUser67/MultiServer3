@@ -1,7 +1,6 @@
-
 using CustomLogger;
 using CyberBackendLibrary.DataTypes;
-using System.Net;
+using SpaceWizards.HttpListener;
 using System.Text;
 using System.Web;
 
@@ -15,11 +14,11 @@ namespace SVO.Games
             {
                 if (request.Url == null)
                 {
-                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                     return;
                 }
 
-                string method = request.HttpMethod;
+                string? method = request.HttpMethod;
 
                 using (response)
                 {
@@ -38,7 +37,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -181,7 +180,7 @@ namespace SVO.Games
                                                 "<DATA dataType=\"DATA\" name=\"SetUniversePasswordURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/SP_SetPassword_Submit.jsp\" />\r\n\r\n    " +
                                                 "<BROWSER_INIT name=\"init\" />\r\n</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -212,7 +211,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -225,7 +224,7 @@ namespace SVO.Games
 
                                         if (!request.HasEntityBody)
                                         {
-                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                             return;
                                         }
 
@@ -318,7 +317,7 @@ namespace SVO.Games
                                             "    </SP_Login>\r\n" +
                                             "</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -351,7 +350,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -367,7 +366,7 @@ namespace SVO.Games
                                             "<_s name=\"firstpage\" >\r\nfunction OnEnterPage()\r\n\r\ngPlayerProfile:SetHonorRank(3)\r\ngPlayerProfile:SetMPScore(3000)\r\n\r\n\r\ngPlayerProfile:" +
                                             "SavePlayerProfile()\r\ngBrowser:OpenPage(\"file:///kin/menu/online/menu.jsp\")\r\nend\r\n</_s> </SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -399,7 +398,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -414,7 +413,7 @@ namespace SVO.Games
                                         byte[] homesvml = Encoding.UTF8.GetBytes("<SVML> <_s name=\"firstpage\" >" +
                                             "\r\nfunction OnEnterPage()\r\n\r\ngModule:ExitAll(\"file:///kin/menu/startscreen.jsp\")\r\nend\r\n</_s> </SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -446,7 +445,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -544,7 +543,7 @@ namespace SVO.Games
                                             "then\r\nbutton_string = gButtonList[i].image .. \" \" .. description\r\nend\r\ngButtonLegend:SetButton(i-1, button_string)\r\nend\r\nend\r\n]]></_s> " +
                                             "</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -565,7 +564,7 @@ namespace SVO.Games
                             break;
 
                         default:
-                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                             break;
 
                             #endregion
@@ -575,7 +574,7 @@ namespace SVO.Games
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[SVO] - SocomConfrontation_SVO thrown an assertion - {ex}");
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
         }
     }

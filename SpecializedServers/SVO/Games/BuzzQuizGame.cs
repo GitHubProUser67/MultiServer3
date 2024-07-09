@@ -1,5 +1,5 @@
 using CustomLogger;
-using System.Net;
+using SpaceWizards.HttpListener;
 using System.Text;
 using System.Web;
 
@@ -13,11 +13,11 @@ namespace SVO
             {
                 if (request.Url == null)
                 {
-                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                     return Task.CompletedTask;
                 }
 
-                string method = request.HttpMethod;
+                string? method = request.HttpMethod;
 
                 using (response)
                 {
@@ -40,7 +40,7 @@ namespace SVO
                                                 "<URL name=\"logger\" value=\"http://buzzps3.svo.online.scee.com:10060/BUZZPS3_SVML/logbuzz.jsp?msg=%a\" />\r\n" +
                                                 "</SVML>");
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                     if (response.OutputStream.CanWrite)
                                     {
@@ -115,7 +115,7 @@ namespace SVO
                                                 "</round>" +
                                                 "</root></Content>\r\n\t    </UCQ>\t      \r\n    </SVML>");
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                     if (response.OutputStream.CanWrite)
                                     {
@@ -178,7 +178,7 @@ namespace SVO
                                         $"<XMLSVOFILETRANSFER direction=\"upload\" filename=\"{toUpload}\"/>\r\n" +
                                         $"</XML>");
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                     if (response.OutputStream.CanWrite)
                                     {
@@ -197,7 +197,7 @@ namespace SVO
                             break;
 
                         default:
-                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                             break;
 
                             #endregion
@@ -207,7 +207,7 @@ namespace SVO
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[SVO] - BuzzQuizGame_SVO thrown an assertion - {ex}");
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
 
             return Task.CompletedTask;

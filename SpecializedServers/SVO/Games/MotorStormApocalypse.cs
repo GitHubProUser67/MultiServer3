@@ -1,7 +1,6 @@
-
 using CustomLogger;
 using CyberBackendLibrary.DataTypes;
-using System.Net;
+using SpaceWizards.HttpListener;
 using System.Text;
 
 namespace SVO
@@ -14,11 +13,11 @@ namespace SVO
             {
                 if (request.Url == null)
                 {
-                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                     return;
                 }
 
-                string method = request.HttpMethod;
+                string? method = request.HttpMethod;
 
                 using (response)
                 {
@@ -160,7 +159,7 @@ namespace SVO
                                             $"  <userContext>{userContext}</userContext> \r\n" +
                                             "</SP_Login>");
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                                     response.SendChunked = true;
 
                                     if (response.OutputStream.CanWrite)
@@ -236,7 +235,7 @@ namespace SVO
                                             "<!-- Misc -->\r\n\t" +
                                             "<DATA dataType=\"URI\" name=\"downloadBinary\"value=\"http://motorstorm3ps3.ws.online.scee.com:10060/motorstorm3ps3_xml/binary/DownloadBinaryAction\" />");
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                                     response.SendChunked = true;
 
                                     if (response.OutputStream.CanWrite)
@@ -268,7 +267,7 @@ namespace SVO
                                     byte[] SyncFriendsActionData = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                                             "<Friends><status value=\"0\"/></Friends>");
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                                     response.SendChunked = true;
 
                                     if (response.OutputStream.CanWrite)
@@ -303,7 +302,7 @@ namespace SVO
                                             "<PlayListId>1</PlayListId>\r\n" +
                                             "</PlayLists>");
 
-                                    response.StatusCode = (int)HttpStatusCode.OK;
+                                    response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                                     response.SendChunked = true;
 
                                     if (response.OutputStream.CanWrite)
@@ -324,7 +323,7 @@ namespace SVO
                             break;
 
                         default:
-                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                             break;
                             #endregion
                     }
@@ -333,7 +332,7 @@ namespace SVO
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[SVO] - MSApocalypse_SVO thrown an assertion - {ex}");
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
         }
     }

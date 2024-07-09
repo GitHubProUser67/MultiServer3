@@ -168,28 +168,19 @@ class Program
         MediusDatabaseLoop ??= Task.Run(SVOManager.StartTickPooling);
 
         if (HttpListener.IsSupported)
-            _SVOServer = new SVOServer("*");
+            _SVOServer = new SVOServer("*", new System.Security.Cryptography.X509Certificates.X509Certificate2(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword));
         else
-            LoggerAccessor.LogWarn("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO HTTP Server not started.");
+            LoggerAccessor.LogError("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO Server not started!");
 
         OTGServer = new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", 10062);
     }
 
     static void Main()
     {
-        if (IsWindows)
-        {
-            if (!IsAdministrator())
-            {
-                Console.WriteLine("Trying to restart as admin...");
-                if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
-                    Environment.Exit(0);
-            }
-
-            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
-        }
-        else
+        if (!IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        else
+            TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("SVO", Directory.GetCurrentDirectory());
 

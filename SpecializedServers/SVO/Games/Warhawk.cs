@@ -1,5 +1,5 @@
 using CustomLogger;
-using System.Net;
+using SpaceWizards.HttpListener;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -14,11 +14,11 @@ namespace SVO.Games
             {
                 if (request.Url == null)
                 {
-                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                     return;
                 }
 
-                string method = request.HttpMethod;
+                string? method = request.HttpMethod;
 
                 using (response)
                 {
@@ -37,7 +37,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -60,7 +60,7 @@ namespace SVO.Games
                                         response.Headers.Set("Content-Length", "0");
                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
 
-                                        response.StatusCode = (int)HttpStatusCode.Redirect;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Redirect;
                                     }
                                     break;
                             }
@@ -78,7 +78,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -316,7 +316,7 @@ namespace SVO.Games
                                                 "    <BROWSER_INIT name=\"init\" />\r\n" +
                                                 "</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -346,7 +346,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -355,7 +355,7 @@ namespace SVO.Games
 
                                         if (!request.HasEntityBody)
                                         {
-                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                             return;
                                         }
 
@@ -431,7 +431,7 @@ namespace SVO.Games
                                             "    </SP_Login>\r\n" +
                                             "</XML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -462,7 +462,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -471,7 +471,7 @@ namespace SVO.Games
 
                                         if (!request.HasEntityBody)
                                         {
-                                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                             return;
                                         }
 
@@ -547,7 +547,7 @@ namespace SVO.Games
                                             $"</Login>\r\n" +
                                             $"</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -579,7 +579,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -623,7 +623,7 @@ namespace SVO.Games
                                             $"     \r\n" +
                                             $"    </SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -654,7 +654,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -698,7 +698,7 @@ namespace SVO.Games
                                             $"    \r\n" +
                                             $"</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -730,7 +730,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -749,7 +749,7 @@ namespace SVO.Games
                                             "</GamePlayer>\r\n" +
                                             "</XML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -781,7 +781,7 @@ namespace SVO.Games
 
                                     if (string.IsNullOrEmpty(serverMac))
                                     {
-                                        response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                                         return;
                                     }
                                     else
@@ -808,7 +808,7 @@ namespace SVO.Games
                                             "<TEXT name='p1header1N' class='locnamevalue' >1011</TEXT>\r\n" +
                                             "</SVML>");
 
-                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
                                         if (response.OutputStream.CanWrite)
                                         {
@@ -830,7 +830,7 @@ namespace SVO.Games
                             break;
 
                         default:
-                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                             break;
 
                             #endregion
@@ -840,7 +840,7 @@ namespace SVO.Games
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[SVO] - Warhawk_SVO thrown an assertion - {ex}");
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
         }
     }
