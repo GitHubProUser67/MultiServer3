@@ -37,6 +37,9 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using CyberBackendLibrary.HTTP.PluginManager;
 using CyberBackendLibrary.Extension;
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Security;
+using System.Security.Authentication;
 
 namespace HTTPServer
 {
@@ -46,14 +49,15 @@ namespace HTTPServer
 
         private readonly List<Route> Routes = new();
         private string serverIP = "127.0.0.1";
+        private X509Certificate2? certificate = null;
 
         #endregion
 
         #region Constructors
 
-        public HttpProcessor()
+        public HttpProcessor(X509Certificate2? certificate = null)
         {
-            
+            this.certificate = certificate;
         }
 
         #endregion
@@ -105,7 +109,6 @@ namespace HTTPServer
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
-
                 int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
 
                 if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
@@ -115,21 +118,21 @@ namespace HTTPServer
                     return;
                 }
 
+                string clientportString = clientport.ToString() ?? string.Empty;
                 HttpRequest? request = null;
 
-                using Stream? inputStream = GetInputStream(tcpClient);
-                using (Stream? outputStream = GetOutputStream(tcpClient))
+                using (Stream? clientStream = GetStream(tcpClient, clientportString.EndsWith("443")))
                 {
                     while (tcpClient.IsConnected())
                     {
-                        if (tcpClient.Available > 0 && outputStream.CanWrite)
+                        if (tcpClient.Available > 0 && clientStream.CanWrite)
                         {
                             DateTime CurrentDate = DateTime.UtcNow;
 
                             if (request == null)
-                                request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
+                                request = GetRequest(clientStream, clientip, clientportString, ListenerPort);
                             else
-                                request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
+                                request = AppendRequestOrInputStream(clientStream, request, clientip, clientportString, ListenerPort);
 
                             if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
@@ -180,7 +183,7 @@ namespace HTTPServer
                                             if (RouteRule.StartsWith("Match "))
                                             {
 #if NET6_0
-                                                Match match = new Regex(@"Match (\\d+) (.*) (.*)$").Match(RouteRule);
+                                                Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
 #elif NET7_0_OR_GREATER
                                                 Match match = ApacheMatchRegex().Match(RouteRule);
 #endif
@@ -258,7 +261,7 @@ namespace HTTPServer
                                     }
                                 }
 
-                                response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
+                                response ??= RouteRequest(clientStream, clientStream, request, absolutepath, Host);
 
                                 List<string> HPDDomains = new() {
                                     "prd.destinations.scea.com",
@@ -823,7 +826,7 @@ namespace HTTPServer
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
-                                                                    (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
+                                                                    (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientportString, request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
@@ -842,10 +845,10 @@ namespace HTTPServer
                                                                 }
                                                                 else
                                                                 {
-                                                                    if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath);
+                                                                    if (File.Exists(filePath) && request.Headers != null && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
+                                                                        Handle_LocalFile_Stream(clientStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString);
                                                                 }
                                                                 break;
                                                         }
@@ -866,7 +869,7 @@ namespace HTTPServer
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
-                                                                    var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport.ToString(), request);
+                                                                    var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientportString, request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
@@ -885,10 +888,10 @@ namespace HTTPServer
                                                                 }
                                                                 else
                                                                 {
-                                                                    if (File.Exists(filePath) && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath);
+                                                                    if (File.Exists(filePath) && request.Headers != null && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
+                                                                        Handle_LocalFile_Stream(clientStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientport.ToString());
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString);
                                                                 }
                                                                 break;
                                                         }
@@ -1036,13 +1039,12 @@ namespace HTTPServer
                                 }
 
                                 if (response != null)
-                                    WriteResponse(outputStream, request, response, filePath);
+                                    WriteResponse(clientStream, request, response, filePath);
                             }
                         }
                     }
-                    outputStream.Flush();
+                    clientStream.Flush();
                 }
-                inputStream.Flush();
 
                 request?.Dispose();
             }
@@ -1112,7 +1114,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
+                        if (request.Headers != null && request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
                         {
                             response.Headers.Clear();
 
@@ -1172,8 +1174,7 @@ namespace HTTPServer
                             if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                 buffersize = 500000;
 
-                            HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-
+                            using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
                             while (bytesLeft > 0)
                             {
                                 Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
@@ -1215,15 +1216,6 @@ namespace HTTPServer
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[HTTP] - WriteResponse thrown an assertion : {ex}");
-            }
-
-            try
-            {
-                response?.ContentStream?.Close();
-            }
-            catch (ObjectDisposedException)
-            {
-                // ContentStream has been disposed already.
             }
 
             response?.Dispose();
@@ -1448,35 +1440,28 @@ namespace HTTPServer
                     if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                         buffersize = 500000;
 
-                    HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-
-                    while (bytesLeft > 0)
+                    using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                     {
-                        Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
-                        int n = ms.Read(buffer);
+                        while (bytesLeft > 0)
+                        {
+                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                            int n = ms.Read(buffer);
 
-                        ctwire.Write(buffer);
+                            ctwire.Write(buffer);
 
-                        bytesLeft -= n;
+                            bytesLeft -= n;
+                        }
+
+                        ctwire.WriteTerminator();
+
+                        ctwire.Flush();
+
                     }
-
-                    ctwire.WriteTerminator();
-
-                    ctwire.Flush();
 
                     ms.Flush();
                     ms.Close();
 
                     LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-
-                    try
-                    {
-                        response?.ContentStream?.Close();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // ContentStream has been disposed already.
-                    }
 
                     response?.Dispose();
 
@@ -1663,32 +1648,24 @@ namespace HTTPServer
                     if (TotalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                         buffersize = 500000;
 
-                    HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-
-                    while (bytesLeft > 0)
+                    using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                     {
-                        Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
-                        int n = fs.Read(buffer);
+                        while (bytesLeft > 0)
+                        {
+                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                            int n = fs.Read(buffer);
 
-                        ctwire.Write(buffer);
+                            ctwire.Write(buffer);
 
-                        bytesLeft -= n;
+                            bytesLeft -= n;
+                        }
+
+                        ctwire.WriteTerminator();
+
+                        ctwire.Flush();
                     }
-
-                    ctwire.WriteTerminator();
-
-                    ctwire.Flush();
 
                     LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-
-                    try
-                    {
-                        response?.ContentStream?.Close();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // ContentStream has been disposed already.
-                    }
 
                     response?.Dispose();
 
@@ -1710,7 +1687,7 @@ namespace HTTPServer
                         bool KeepAlive = request.RetrieveHeaderValue("Connection") == "keep-alive";
                         string EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
-                        if (request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
+                        if (request.Headers != null && request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
                         {
                             response.Headers.Clear();
 
@@ -1762,8 +1739,7 @@ namespace HTTPServer
                             if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                 buffersize = 500000;
 
-                            HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-
+                            using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
                             while (bytesLeft > 0)
                             {
                                 Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
@@ -1777,7 +1753,6 @@ namespace HTTPServer
                             ctwire.WriteTerminator();
 
                             ctwire.Flush();
-
                         }
 
                         if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content
@@ -1808,15 +1783,6 @@ namespace HTTPServer
                 LoggerAccessor.LogError($"[HTTP] - Handle_LocalFile_Stream thrown an assertion : {ex}");
             }
 
-            try
-            {
-                response?.ContentStream?.Close();
-            }
-            catch (ObjectDisposedException)
-            {
-                // ContentStream has been disposed already.
-            }
-
             response?.Dispose();
 
             fs.Flush();
@@ -1828,13 +1794,30 @@ namespace HTTPServer
             stream.Write(Encoding.UTF8.GetBytes(text).AsSpan());
         }
 
-        protected virtual Stream GetOutputStream(TcpClient tcpClient)
+        protected virtual Stream GetStream(TcpClient tcpClient, bool secure)
         {
-            return tcpClient.GetStream();
-        }
+            if (secure)
+            {
+                if (certificate == null)
+                {
+                    LoggerAccessor.LogError("[HTTP] - Client tried to establish a SSL tunnel, but processor doesn't have a SSL Certificate attached to it, sending plain stream instead.");
+                    return tcpClient.GetStream();
+                }
 
-        protected virtual Stream GetInputStream(TcpClient tcpClient)
-        {
+                // Get client stream
+                NetworkStream stream = tcpClient.GetStream();
+
+                SslStream sslStream = new(stream, false, new RemoteCertificateValidationCallback(AcceptCertificate));
+
+                // Authenticate server with self-signed certificate, false (for not requiring client authentication), SSL protocol type, ...
+                sslStream.AuthenticateAsServer(certificate,
+                                                    false,
+                                                    (SslProtocols)ServicePointManager.SecurityProtocol,
+                                                    false);
+
+                return sslStream;
+            }
+
             return tcpClient.GetStream();
         }
 
@@ -1845,40 +1828,45 @@ namespace HTTPServer
             if (!routes.Any())
                 return null;
 
-            Route? route = routes.SingleOrDefault(x => x.Method == request.Method && (x.Host == Host || x.Host == string.Empty));
+            Route? route = routes.SingleOrDefault(x => x.Method == request.Method && (string.IsNullOrEmpty(x.Host) || x.Host == Host));
 
             if (route == null)
                 return null;
 
             request.Route = route;
 
-            try
+            if (route.Callable != null)
             {
-                if (route.Callable != null)
+                HttpResponse? result = null;
+
+                try
                 {
-                    HttpResponse? result = route.Callable(request);
+                    result = route.Callable(request);
                     if (result != null && result.IsValid())
                         return result;
                 }
-            }
-            catch
-            {
-                // Not Important
+                catch
+                {
+
+                }
+
+                result?.Dispose(); // Just in case.
             }
 
             return null;
         }
 
-        protected virtual HttpRequest AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string? clientport, ushort ListenerPort)
+        protected virtual HttpRequest? AppendRequestOrInputStream(Stream inputStream, HttpRequest? request, string clientip, string clientport, ushort ListenerPort)
 		{
-			HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport?.ToString(), ListenerPort);
+			HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport, ListenerPort);
 
 			if (newRequest != null)
 			{
-				request.Dispose();
-				return newRequest;
+				request?.Dispose();
+                request = null;
+                return newRequest;
 			}
-			else
+			else if (request != null)
 			{
 				if (request.Data != null && request.Data.CanSeek)
 				{
@@ -1907,7 +1895,7 @@ namespace HTTPServer
 		}
 
 
-        protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
+        protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string clientport, ushort ListenerPort)
 		{
 			// Read Request Line and check if valid.
 			string[] tokens = Readline(inputStream).Split(' ');
@@ -1974,6 +1962,11 @@ namespace HTTPServer
 			return null;
 		}
 
+        private bool AcceptCertificate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
+        }
+
         /// <summary>
         /// Compute the MD5 checksum of a stream.
         /// <para>Calcul la somme des contr�les en MD5 d'un stream.</para>
@@ -1999,7 +1992,7 @@ namespace HTTPServer
         }
 
 #if NET7_0_OR_GREATER
-        [GeneratedRegex("Match (\\d+) (.*) (.*)$")]
+        [GeneratedRegex(@"Match (\d{3}) (\S+) (\S+)$")]
         private static partial Regex ApacheMatchRegex();
         [GeneratedRegex("^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)")]
         private static partial Regex HttpMethodRegex();

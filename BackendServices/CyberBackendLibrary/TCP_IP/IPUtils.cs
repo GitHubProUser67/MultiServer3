@@ -1,14 +1,44 @@
+using CustomLogger;
+using EndianTools;
 using System;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.Intrinsics.X86;
 
 namespace CyberBackendLibrary.TCP_IP
 {
     public static class IPUtils
     {
+        public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength)
+        {
+            if (cidrPrefixLength == null || cidrPrefixLength.Value > 32 || cidrPrefixLength.Value < 8)
+            {
+                LoggerAccessor.LogError($"[IPUtils] - GetIPInfos - Invalid CIDR prefix! {(cidrPrefixLength.HasValue ? cidrPrefixLength.Value : "null")}");
+                return;
+            }
+
+            LoggerAccessor.LogInfo("Network Details:");
+            LoggerAccessor.LogInfo($"IP Address:{ipAddress}");
+
+            byte[] ipBytes = IPAddress.Parse(ipAddress).GetAddressBytes();
+
+            LoggerAccessor.LogInfo($"Is Private:{IsPrivateIpAddress(ipBytes)}");
+
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(ipBytes);
+
+            uint subnetMask = GetSubnetMask(cidrPrefixLength.Value);
+            uint networkAddress = BitConverter.ToUInt32(ipBytes, 0) & subnetMask;
+            uint broadcastAddress = networkAddress | ~subnetMask;
+
+            LoggerAccessor.LogInfo($"CIDR Prefix Length:{cidrPrefixLength.Value}");
+            LoggerAccessor.LogInfo($"Subnet Mask:{ConvertToIpAddress(subnetMask)}");
+            LoggerAccessor.LogInfo($"Network Address:{ConvertToIpAddress(networkAddress)}");
+            LoggerAccessor.LogInfo($"Broadcast Address:{ConvertToIpAddress(broadcastAddress)}");
+            LoggerAccessor.LogInfo($"Number of Hosts:{CalculateNumberOfHosts(subnetMask)}");
+        }
 
         /// <summary>
         /// Get the public IP of the server.
@@ -114,6 +144,83 @@ namespace CyberBackendLibrary.TCP_IP
             }
 
             return fallback;
+        }
+
+        public static byte? GetLocalSubnet()
+        {
+            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                // Skip loopback and tunnel interfaces
+                if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
+                    nic.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
+                    continue;
+
+                foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
+                {
+                    // Get only IPv4 addresses
+                    if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        return (byte)SubnetMaskToCIDR(ip.IPv4Mask);
+                }
+            }
+
+            return null;
+        }
+
+        private static string ConvertToIpAddress(uint ip)
+        {
+            return new IPAddress(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(ip) : ip)).ToString();
+        }
+
+        private static bool IsPrivateIpAddress(byte[] ipBytes)
+        {
+            // Check for private IP ranges
+            return // 10.0.0.0/8
+                (ipBytes[0] == 10) ||
+                // 172.16.0.0/12
+                (ipBytes[0] == 172 && ipBytes[1] >= 16 && ipBytes[1] <= 31) ||
+                // 192.168.0.0/16
+                (ipBytes[0] == 192 && ipBytes[1] == 168);
+        }
+
+        private static uint GetSubnetMask(byte cidrPrefixLength)
+        {
+            // Use bit shifting to generate subnet mask
+            return cidrPrefixLength == 0 ? 0 : 0xFFFFFFFF << (32 - cidrPrefixLength);
+        }
+
+        private static uint SubnetMaskToCIDR(IPAddress subnetMask)
+        {
+            uint cidr = 0;
+
+            foreach (byte b in subnetMask.GetAddressBytes())
+            {
+                cidr += CountSetBits(b);
+            }
+
+            return cidr;
+        }
+
+        private static uint CountSetBits(uint value)
+        {
+            // Use the Popcnt intrinsic if available
+            if (Popcnt.IsSupported)
+                return Popcnt.PopCount(value);
+
+            // Fallback method to count set bits if Popcnt is not supported
+            uint count = 0;
+
+            while (value != 0)
+            {
+                count++;
+                value &= value - 1;
+            }
+
+            return count;
+        }
+
+        private static double CalculateNumberOfHosts(uint subnetMask)
+        {
+            return Math.Pow(2, 32 - CountSetBits(subnetMask)) - 2;
         }
     }
 }

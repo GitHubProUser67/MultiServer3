@@ -691,6 +691,7 @@ namespace DatabaseMiddleware.HTTPEngine
                     .Build();
 
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
+                _Server.Events.ExceptionEncountered += ExceptionEncountered;
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
@@ -720,6 +721,11 @@ namespace DatabaseMiddleware.HTTPEngine
             LoggerAccessor.LogInfo($"[Database] - {clientip}:{clientport}{SuplementalMessage} Requested the Database Server with URL : {fullurl} ({ctx.Timestamp.TotalMs}ms)");
 
             return Task.CompletedTask;
+        }
+
+        private void ExceptionEncountered(object? sender, ExceptionEventArgs args)
+        {
+            LoggerAccessor.LogError(args.Exception);
         }
 
         private static async Task DefaultRoute(HttpContextBase ctx)

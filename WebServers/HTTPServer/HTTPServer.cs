@@ -27,7 +27,7 @@ namespace HTTPServer
         #region Public Methods
         public HttpServer(List<ushort>? ports, List<Route> routes, CancellationToken cancellationToken)
         {
-			LoggerAccessor.LogWarn("[HTTP] - HTTP system is initialising, service will be available when initialized...");
+            LoggerAccessor.LogWarn("[HTTP] - HTTP system is initialising, service will be available when initialized...");
 
             Processor = new HttpProcessor();
 
@@ -44,6 +44,8 @@ namespace HTTPServer
                 {
                     if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(port))
                         new Thread(() => CreateHTTPPortListener(port)).Start();
+                    else
+                        LoggerAccessor.LogError($"[HTTP] - port {port} is not avaialable, server failed to start!");
                 });
             }
         }

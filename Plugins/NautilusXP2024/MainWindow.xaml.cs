@@ -61,6 +61,21 @@ namespace NautilusXP2024
 
             LoggerAccessor.SetupLogger("NautilusXP2024", Directory.GetCurrentDirectory());
 
+#if DEBUG
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                LoggerAccessor.LogError("[Program] - A FATAL ERROR OCCURED!");
+                LoggerAccessor.LogError(args.ExceptionObject as Exception);
+            };
+
+            TaskScheduler.UnobservedTaskException += (sender, args) =>
+            {
+                LoggerAccessor.LogError("[Program] - A task has thrown a Unobserved Exception!");
+                LoggerAccessor.LogError(args.Exception);
+                args.SetObserved();
+            };
+#endif
+
             DataContext = this;
             // Load settings when the window initializes
             _settings = SettingsManager.LoadSettings();

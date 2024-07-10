@@ -1,4 +1,5 @@
 using CustomLogger;
+using CyberBackendLibrary.TCP_IP;
 using Newtonsoft.Json.Linq;
 using QuazalServer.ServerProcessors;
 using System.Reflection;
@@ -181,7 +182,6 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "quazal.json";
-    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
     private static Timer? DatabaseUpdate = null;
     private static BackendServicesServer? BackendServer;
     private static RDVServer? RendezVousServer;
@@ -211,12 +211,29 @@ class Program
 
     static void Main()
     {
-        if (!IsWindows)
+        if (!CyberBackendLibrary.DataTypes.DataTypesUtils.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("QuazalServer", Directory.GetCurrentDirectory());
+
+#if DEBUG
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A FATAL ERROR OCCURED!");
+            LoggerAccessor.LogError(args.ExceptionObject as Exception);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A task has thrown a Unobserved Exception!");
+            LoggerAccessor.LogError(args.Exception);
+            args.SetObserved();
+        };
+
+        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+#endif
 
         QuazalServerConfiguration.RefreshVariables(configPath);
 

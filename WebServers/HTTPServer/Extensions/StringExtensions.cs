@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 
 namespace HTTPServer.Extensions
 {
@@ -7,9 +8,11 @@ namespace HTTPServer.Extensions
         public static Stream ToStream(this string str)
         {
             MemoryStream stream = new();
-            StreamWriter writer = new(stream);
-            writer.Write(str);
-            writer.Flush();
+            using (StreamWriter writer = new(stream, Encoding.UTF8, 1024, true))
+            {
+                writer.Write(str);
+                writer.Flush();
+            }
             stream.Position = 0;
             return stream;
         }

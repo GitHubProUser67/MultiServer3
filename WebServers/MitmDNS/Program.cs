@@ -1,4 +1,5 @@
 using CustomLogger;
+using CyberBackendLibrary.TCP_IP;
 using MitmDNS;
 using Newtonsoft.Json.Linq;
 using System;
@@ -87,7 +88,6 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "dns.json";
     private static string DNSconfigMD5 = string.Empty;
-    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
     private static Task? DNSThread = null;
     private static Task? DNSRefreshThread = null;
     private static MitmDNSClass Server = new();
@@ -176,11 +176,9 @@ class Program
 
     private static string ComputeMD5FromFile(string filePath)
     {
-        using (FileStream stream = File.OpenRead(filePath))
-        {
-            // Convert the byte array to a hexadecimal string
-            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
-        }
+        using FileStream stream = File.OpenRead(filePath);
+        // Convert the byte array to a hexadecimal string
+        return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
     }
 
     static void Main()
@@ -188,12 +186,29 @@ class Program
         dnswatcher.NotifyFilter = NotifyFilters.LastWrite;
         dnswatcher.Changed += OnDNSChanged;
 
-        if (!IsWindows)
+        if (!CyberBackendLibrary.DataTypes.DataTypesUtils.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("MitmDNS", Directory.GetCurrentDirectory());
+
+#if DEBUG
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A FATAL ERROR OCCURED!");
+            LoggerAccessor.LogError(args.ExceptionObject as Exception);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A task has thrown a Unobserved Exception!");
+            LoggerAccessor.LogError(args.Exception);
+            args.SetObserved();
+        };
+
+        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+#endif
 
         MitmDNSServerConfiguration.RefreshVariables(configPath);
 

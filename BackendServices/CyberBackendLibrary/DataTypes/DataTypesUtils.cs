@@ -1,62 +1,74 @@
-using System.Text;
 using System.Linq;
 using System.IO;
 using System;
 using System.Threading;
-#if NETCOREAPP3_0_OR_GREATER
-using System.Runtime.Intrinsics.X86;
-using System.Runtime.Intrinsics;
-#endif
+using System.Runtime.InteropServices;
 
 namespace CyberBackendLibrary.DataTypes
 {
     public class DataTypesUtils
     {
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern int memcmp(byte[] b1, byte[] b2, long count);
+
+        public static readonly bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT
+            || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
+
+        private static readonly uint[] _lookup32Unsafe = CreateLookup32Unsafe();
+        private unsafe static readonly uint* _lookup32UnsafeP = (uint*)GCHandle.Alloc(_lookup32Unsafe, GCHandleType.Pinned).AddrOfPinnedObject();
+
+        private static uint[] CreateLookup32Unsafe()
+        {
+            uint[] result = new uint[256];
+            for (int i = 0; i < 256; i++)
+            {
+                string s = i.ToString("X2");
+                if (BitConverter.IsLittleEndian)
+                    result[i] = ((uint)s[0]) + ((uint)s[1] << 16);
+                else
+                    result[i] = ((uint)s[1]) + ((uint)s[0] << 16);
+            }
+            return result;
+        }
+
+
         /// <summary>
         /// Transform a byte array to it's hexadecimal representation.
         /// <para>Obtenir un tableau de bytes dans sa représentation hexadecimale.</para>
         /// <param name="byteArray">The byte array to transform.</param>
         /// </summary>
         /// <returns>A string.</returns>
-        public static string ByteArrayToHexString(byte[] byteArray)
+        public unsafe static string ByteArrayToHexString(byte[] bytes)
         {
-            StringBuilder hex = new StringBuilder(byteArray.Length * 2);
-
-            foreach (byte b in byteArray)
+            uint* lookupP = _lookup32UnsafeP;
+            char[] result = new char[bytes.Length * 2];
+            fixed (byte* bytesP = bytes)
+            fixed (char* resultP = result)
             {
-                hex.AppendFormat("{0:X2}", b);
+                uint* resultP2 = (uint*)resultP;
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    resultP2[i] = lookupP[bytesP[i]];
+                }
             }
-
-            return hex.ToString();
+            return new string(result);
         }
 
         /// <summary>
         /// Check if 2 byte arrays are strictly identical.
         /// <para>Savoir si 2 tableaux de bytes sont strictement identiques.</para>
-        /// <param name="arr1">The left array.</param>
-        /// <param name="arr2">The right array.</param>
+        /// <param name="b1">The left array.</param>
+        /// <param name="b2">The right array.</param>
         /// </summary>
         /// <returns>A boolean.</returns>
-        public static bool AreArraysIdentical(byte[] arr1, byte[] arr2)
+        public static bool AreArraysIdentical(byte[] b1, byte[] b2)
         {
-            // Check if the length of both arrays is the same
-            if (!AreIntegersIdentical(arr1.Length, arr2.Length))
-                return false;
+            if (IsWindows)
+                // Validate buffers are the same length.
+                // This also ensures that the count does not exceed the length of either buffer.  
+                return b1.Length == b2.Length && memcmp(b1, b2, b1.Length) == 0;
 
-            // Compare each element in the arrays
-            for (int i = 0; i < arr1.Length; i++)
-            {
-#if NETCOREAPP3_0_OR_GREATER
-                if (!AreBytesIdentical(arr1[i], arr2[i]))
-                    return false;
-#else
-                if (arr1[i] != arr2[i])
-                    return false;
-#endif
-            }
-
-            // If all elements are identical, return true
-            return true;
+            return b1.SequenceEqual(b2);
         }
 
         /// <summary>
@@ -189,37 +201,11 @@ namespace CyberBackendLibrary.DataTypes
         public static int FindBytePattern(byte[] buffer, byte[] searchPattern, int offset = 0)
         {
             int found = -1;
+
             if (buffer.Length > 0 && searchPattern.Length > 0 && offset <= buffer.Length - searchPattern.Length && buffer.Length >= searchPattern.Length)
             {
                 for (int i = offset; i <= buffer.Length - searchPattern.Length; i++)
                 {
-#if NETCOREAPP3_0_OR_GREATER
-                    if (AreBytesIdentical(buffer[i], searchPattern[0]))
-                    {
-                        if (buffer.Length > 1)
-                        {
-                            bool matched = true;
-                            for (int y = 1; y <= searchPattern.Length - 1; y++)
-                            {
-                                if (!AreBytesIdentical(buffer[i + y], searchPattern[y]))
-                                {
-                                    matched = false;
-                                    break;
-                                }
-                            }
-                            if (matched)
-                            {
-                                found = i;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            found = i;
-                            break;
-                        }
-                    }
-#else
                     if (buffer[i] == searchPattern[0])
                     {
                         if (buffer.Length > 1)
@@ -245,9 +231,9 @@ namespace CyberBackendLibrary.DataTypes
                             break;
                         }
                     }
-#endif
                 }
             }
+
             return found;
         }
 
@@ -266,40 +252,11 @@ namespace CyberBackendLibrary.DataTypes
 
             for (int i = offset; i < buffer.Length - searchPattern.Length + 1; i++)
             {
-#if NETCOREAPP3_0_OR_GREATER
-                if (AreBytesIdentical(buffer[i], searchPattern[0]) && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
-                    return i;
-#else
                 if (buffer[i] == searchPattern[0] && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
                     return i;
-#endif
             }
 
             return -1;
-        }
-
-        public static bool AreIntegersIdentical(int a, int b)
-        {
-#if NETCOREAPP3_0_OR_GREATER
-            // With SIMD, Check if the comparison results are all 1's (indicating equality)
-            if (Avx2.IsSupported)
-                return Avx2.CompareEqual(Vector256.Create(a), Vector256.Create(b)).Equals(Vector256<int>.AllBitsSet);
-            else if (Sse2.IsSupported)
-                return Sse2.CompareEqual(Vector128.Create(a), Vector128.Create(b)).Equals(Vector128<int>.AllBitsSet);
-#endif
-            return a == b;
-        }
-
-        public static bool AreBytesIdentical(byte a, byte b)
-        {
-#if NETCOREAPP3_0_OR_GREATER
-            // With SIMD, Check if the comparison results are all 1's (indicating equality)
-            if (Avx2.IsSupported)
-                return Avx2.CompareEqual(Vector256.Create(a), Vector256.Create(b)).Equals(Vector256<byte>.AllBitsSet);
-            else if (Sse2.IsSupported)
-                return Sse2.CompareEqual(Vector128.Create(a), Vector128.Create(b)).Equals(Vector128<byte>.AllBitsSet);
-#endif
-            return a == b;
         }
 
         public static bool IsObjectLocked(object obj)

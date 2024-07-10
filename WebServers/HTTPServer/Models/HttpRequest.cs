@@ -22,7 +22,7 @@ namespace HTTPServer.Models
         public Stream? Data { get; set; }
         [JsonIgnore]
         public Route? Route { get; set; }
-        public Dictionary<string, string> Headers { get; set; }
+        public Dictionary<string, string>? Headers { get; set; }
 
         #endregion
 
@@ -42,7 +42,7 @@ namespace HTTPServer.Models
 
         public string RetrieveHeaderValue(string headeruri)
         {
-            if (Headers.TryGetValue(headeruri, out string? value))
+            if (Headers != null && Headers.TryGetValue(headeruri, out string? value))
                 return value;
 
             return string.Empty; // Make things simpler instead of null.
@@ -50,6 +50,9 @@ namespace HTTPServer.Models
 
         public string GetContentType()
         {
+            if (Headers == null || Headers.Count == 0)
+                return string.Empty;
+
             if (Headers.TryGetValue("Content-Type", out string? value))
                 return value;
             else if (Headers.TryGetValue("Content-type", out string? value1))
@@ -113,6 +116,7 @@ namespace HTTPServer.Models
                 {
                     Url = null;
                     Route = null;
+                    Headers = null;
                     try
                     {
                         Data?.Close();

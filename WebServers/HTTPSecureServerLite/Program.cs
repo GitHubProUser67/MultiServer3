@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.Security.Principal;
 using System.Reflection;
 using CyberBackendLibrary.HTTP;
+using System.Collections.Concurrent;
+using CyberBackendLibrary.TCP_IP;
 
 public static class HTTPSServerConfiguration
 {
@@ -281,12 +283,11 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "https.json";
     private static string DNSconfigMD5 = string.Empty;
-    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
     private static Timer? Leaderboard = null;
     private static Timer? FilesystemTree = null;
     private static Task? DNSThread = null;
     private static Task? DNSRefreshThread = null;
-    private static HTTPSecureServer? Server;
+    private static ConcurrentBag<HttpsProcessor>? HTTPSBag = null;
     private static readonly FileSystemWatcher dnswatcher = new();
 
     // Event handler for DNS change event
@@ -322,17 +323,17 @@ class Program
 
     private static void StartOrUpdateServer()
     {
-        Server?.StopServer();
-
-        if (HTTPSServerConfiguration.EnableLiveTranscoding && IsWindows)
-            if (!IsAdministrator())
+        if (HTTPSBag != null)
+        {
+            foreach (HttpsProcessor httpsBag in HTTPSBag)
             {
-                LoggerAccessor.LogWarn("Live transcoding functionality needs administrator rights, trying to restart as admin...");
-                if (StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
-                    Environment.Exit(0);
-                else
-                    LoggerAccessor.LogError("Live transcoding functionality will not work due to missing administrator rights!");
+                httpsBag.StopServer();
             }
+        }
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         CyberBackendLibrary.SSL.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
             HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);
@@ -385,7 +386,21 @@ class Program
             }
         }
 
-        Server = new HTTPSecureServer(HTTPSServerConfiguration.Ports, new CancellationTokenSource().Token);
+        if (HTTPSServerConfiguration.Ports != null)
+        {
+            HTTPSBag = new();
+
+            Parallel.ForEach(HTTPSServerConfiguration.Ports, port =>
+            {
+                if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsTCPPortAvailable(port))
+                    HTTPSBag.Add(new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword, "*", port));
+            });
+        }
+        else
+        {
+            HTTPSBag = null;
+            LoggerAccessor.LogError("[HTTPS] - No ports were found in the server configuration, ignoring server startup...");
+        }
     }
 
     private static Task RefreshDNS()
@@ -406,11 +421,9 @@ class Program
 
     private static string ComputeMD5FromFile(string filePath)
     {
-        using (FileStream stream = File.OpenRead(filePath))
-        {
-            // Convert the byte array to a hexadecimal string
-            return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
-        }
+        using FileStream stream = File.OpenRead(filePath);
+        // Convert the byte array to a hexadecimal string
+        return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
     }
 
     static void Main()
@@ -418,12 +431,29 @@ class Program
         dnswatcher.NotifyFilter = NotifyFilters.LastWrite;
         dnswatcher.Changed += OnDNSChanged;
 
-        if (!IsWindows)
+        if (!CyberBackendLibrary.DataTypes.DataTypesUtils.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("HTTPSecureServer", Directory.GetCurrentDirectory());
+
+#if DEBUG
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A FATAL ERROR OCCURED!");
+            LoggerAccessor.LogError(args.ExceptionObject as Exception);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A task has thrown a Unobserved Exception!");
+            LoggerAccessor.LogError(args.Exception);
+            args.SetObserved();
+        };
+
+        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+#endif
 
         GeoIP.Initialize();
 
@@ -472,43 +502,6 @@ class Program
             LoggerAccessor.LogWarn("\nConsole Inputs are locked while server is running. . .");
 
             Thread.Sleep(Timeout.Infinite);
-        }
-    }
-
-    /// <summary>
-    /// Know if we are the true administrator of the Windows system.
-    /// <para>Savoir si est réellement l'administrateur Windows.</para>
-    /// </summary>
-    /// <returns>A boolean.</returns>
-#pragma warning disable
-    private static bool IsAdministrator()
-    {
-        return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
-    }
-#pragma warning restore
-
-    private static bool StartAsAdmin(string? filePath)
-    {
-        if (string.IsNullOrEmpty(filePath))
-            return false;
-
-        try
-        {
-            new Process()
-            {
-                StartInfo =
-                    {
-                        FileName = filePath,
-                        UseShellExecute = true,
-                        Verb = "runas"
-                    }
-            }.Start();
-
-            return true;
-        }
-        catch
-        {
-            return false;
         }
     }
 }
