@@ -10,7 +10,7 @@ namespace HTTPSecureServerLite
 {
     public class LocalFileStreamHelper
     {
-        public bool Handle_LocalFile_Stream(HttpContextBase ctx, string local_path, string ContentType)
+        public static bool Handle_LocalFile_Stream(HttpContextBase ctx, string local_path, string ContentType)
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...

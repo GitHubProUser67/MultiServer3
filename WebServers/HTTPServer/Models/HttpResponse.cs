@@ -45,15 +45,15 @@ namespace HTTPServer.Models
 
         public HttpStatusCode HttpStatusCode { get; set; }
         public Stream? ContentStream { get; set; }
-        public Dictionary<string, string> Headers { get; set; }
-
+        public Dictionary<string, string>? Headers { get; set; }
+        private string HttpVersion { get; set; }
         #endregion
 
         #region Constructors
 
         public HttpResponse(string? HttpVersionOverride = null)
         {
-            string HttpVersion = (!string.IsNullOrEmpty(HttpVersionOverride)) ? HttpVersionOverride : HTTPServerConfiguration.HttpVersion;
+            HttpVersion = (!string.IsNullOrEmpty(HttpVersionOverride)) ? HttpVersionOverride : HTTPServerConfiguration.HttpVersion;
 
             Headers = new Dictionary<string, string>();
 
@@ -170,8 +170,8 @@ namespace HTTPServer.Models
         {
             StringBuilder strBuilder = new();
 
-            strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HTTPServerConfiguration.HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString().Replace("_", " ")));
-            strBuilder.Append(Headers.ToHttpHeaders());
+            strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString().Replace("_", " ")));
+            strBuilder.Append(Headers?.ToHttpHeaders());
             strBuilder.Append("\r\n\r\n");
 
             return strBuilder.ToString();
@@ -191,6 +191,7 @@ namespace HTTPServer.Models
             {
                 if (disposing)
                 {
+                    Headers = null;
                     try
                     {
                         ContentStream?.Close();

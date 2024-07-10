@@ -817,16 +817,16 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest))
-                    CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
+                BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
+                CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest))
-                    CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
+                BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
+                CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
@@ -873,22 +873,18 @@ namespace CyberBackendLibrary.HTTP
             if (input.Length > 2147483648)
             {
                 HugeMemoryStream outMemoryStream = new HugeMemoryStream();
-                using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true))
-                {
-                    CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
-                    outZStream.finish();
-                }
+                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
+                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
+                outZStream.finish();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }
             else
             {
                 MemoryStream outMemoryStream = new MemoryStream();
-                using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true))
-                {
-                    CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
-                    outZStream.finish();
-                }
+                ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
+                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
+                outZStream.finish();
                 outMemoryStream.Position = 0;
                 return outMemoryStream;
             }

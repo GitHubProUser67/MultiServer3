@@ -49,6 +49,7 @@ namespace Horizon.HTTPSERVICE
             if (_Server != null && !_Server.IsListening)
             {
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
+                _Server.Events.ExceptionEncountered += ExceptionEncountered;
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
@@ -203,6 +204,11 @@ namespace Horizon.HTTPSERVICE
 
                 LoggerAccessor.LogInfo($"CrudHandler Server initiated on port:{port}...");
             }
+        }
+
+        private void ExceptionEncountered(object? sender, ExceptionEventArgs args)
+        {
+            LoggerAccessor.LogError(args.Exception);
         }
 
         private static async Task DefaultRoute(HttpContextBase ctx)

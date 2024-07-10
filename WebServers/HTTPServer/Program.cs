@@ -11,6 +11,8 @@ using CyberBackendLibrary.AIModels;
 using CyberBackendLibrary.HTTP.PluginManager;
 using System.Reflection;
 using CyberBackendLibrary.HTTP;
+using System.Threading.Tasks;
+using CyberBackendLibrary.TCP_IP;
 
 public static class HTTPServerConfiguration
 {
@@ -201,14 +203,16 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "http.json";
-    private static bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
     private static Timer? FilesystemTree = null;
-    private static HttpServer? Server;
+    private static HttpServer? Server = null;
 
     private static void StartOrUpdateServer()
     {
         Server?.Stop();
-        Server = null;
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         if (HTTPServerConfiguration.NotFoundSuggestions && FilesystemTree == null)
             FilesystemTree = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPServerConfiguration.HTTPStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
@@ -230,12 +234,29 @@ class Program
 
     static void Main()
     {
-        if (!IsWindows)
+        if (!CyberBackendLibrary.DataTypes.DataTypesUtils.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
 
         LoggerAccessor.SetupLogger("HTTPServer", Directory.GetCurrentDirectory());
+
+#if DEBUG
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A FATAL ERROR OCCURED!");
+            LoggerAccessor.LogError(args.ExceptionObject as Exception);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            LoggerAccessor.LogError("[Program] - A task has thrown a Unobserved Exception!");
+            LoggerAccessor.LogError(args.Exception);
+            args.SetObserved();
+        };
+
+        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+#endif
 
         GeoIP.Initialize();
 

@@ -1,8 +1,8 @@
 ﻿using CustomLogger;
+using SpaceWizards.HttpListener;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
@@ -45,7 +45,7 @@ namespace HTTPSecureServerLite.Extensions
                 return true;
             }
 
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             context.Response.ContentType = "text/plain";
             return await context.Response.Send("Transcoding system failed to start the stream, please contact server administrator!");
         }
@@ -77,7 +77,7 @@ namespace HTTPSecureServerLite.Extensions
                         if (string.IsNullOrEmpty(offset))
                             offset = "00:00:00";
                         else
-                            offset = GetFormatedOffset(Convert.ToDouble(offset));
+                            offset = GetFormatedOffset(Convert.ToDouble(offset, System.Globalization.CultureInfo.InvariantCulture));
 
                         _ = bool.TryParse(httpContext.Request.RetrieveQueryValue("vtranscode"), out bool needToTranscode);
 
@@ -86,7 +86,7 @@ namespace HTTPSecureServerLite.Extensions
                         HandlersCache = (context, proc);
 
                         proc.StartInfo = new ProcessStartInfo($"{convertersPath}/ffmpeg",
-                            string.Format(@"-ss {1} -i {0} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(needToTranscode), _httpPort))
+                            string.Format(@"-ss {1} -i ""{0}"" {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(needToTranscode), _httpPort))
                         {
                             //pr.UseShellExecute = true;
                             //pr.RedirectStandardOutput = false;
@@ -97,7 +97,7 @@ namespace HTTPSecureServerLite.Extensions
                         proc.Start();
                         proc.PriorityClass = ProcessPriorityClass.High;
 
-                        LoggerAccessor.LogWarn($"[Mp4TranscodeHandler] - Started FFMpeg stream for client: {context.Request.Source.IpAddress}:{context.Request.Source.Port}");
+                        LoggerAccessor.LogWarn($"[Mp4TranscodeHandler] - Started FFMpeg stream for client: {context.Request.Source.IpAddress}:{context.Request.Source.Port} at offset:{offset}");
                     }
                 }
                 catch (Exception e)
@@ -183,7 +183,7 @@ namespace HTTPSecureServerLite.Extensions
                     byte[] buffer = new byte[8192];
 
                     HandlersCache.Value.Item1.Response.ChunkedTransfer = true;
-                    HandlersCache.Value.Item1.Response.StatusCode = (int)HttpStatusCode.OK;
+                    HandlersCache.Value.Item1.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                     HandlersCache.Value.Item1.Response.ContentType = "video/mp4";
 
                     while (!endOfInput)

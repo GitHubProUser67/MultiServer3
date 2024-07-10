@@ -58,6 +58,7 @@ namespace SVO
             if (_Server != null && !_Server.IsListening)
             {
                 _Server.Routes.AuthenticateRequest = AuthorizeConnection;
+                _Server.Events.ExceptionEncountered += ExceptionEncountered;
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
@@ -211,6 +212,11 @@ namespace SVO
             if (!sent)
                 LoggerAccessor.LogWarn($"[OTG_HTTPS] - {clientip}:{clientport} Failed to receive the response! Client might have closed the wire.");
 #endif
+        }
+
+        private void ExceptionEncountered(object? sender, ExceptionEventArgs args)
+        {
+            LoggerAccessor.LogError(args.Exception);
         }
     }
 }

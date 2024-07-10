@@ -28,7 +28,6 @@ using System.Linq;
 using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
-using Newtonsoft.Json;
 
 namespace HTTPSecureServerLite
 {
@@ -110,6 +109,7 @@ namespace HTTPSecureServerLite
             if (_Server != null && !_Server.IsListening)
             {
                 _Server.Routes.AuthenticateRequest = AuthorizeConnection;
+                _Server.Events.ExceptionEncountered += ExceptionEncountered;
                 _Server.Events.Logger = LoggerAccessor.LogInfo;
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
@@ -256,7 +256,7 @@ namespace HTTPSecureServerLite
                                 if (RouteRule.StartsWith("Match "))
                                 {
 #if NET6_0
-                                Match match = new Regex(@"Match (\\d+) (.*) (.*)$").Match(RouteRule);
+                                Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
 #elif NET7_0_OR_GREATER
                                     Match match = ApacheMatchRegex().Match(RouteRule);
 #endif
@@ -1070,12 +1070,7 @@ namespace HTTPSecureServerLite
                                                         {
                                                             // Ensure the inner array has at least two elements
                                                             if (innerArray.Length >= 2)
-                                                            {
-                                                                // Extract two values from the inner array
-                                                                string value1 = innerArray[0];
-                                                                string value2 = innerArray[1];
-                                                                response.Headers.Add(value1, value2);
-                                                            }
+                                                                response.Headers.Add(innerArray[0], innerArray[1]);
                                                         }
                                                     }
                                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -1114,7 +1109,7 @@ namespace HTTPSecureServerLite
                                                             || UserAgent.Contains("chrome") || UserAgent.Contains("trident")))
                                                             sent = await new Extensions.Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
                                                         else if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
-                                                            sent = new LocalFileStreamHelper().Handle_LocalFile_Stream(ctx, filePath, ContentType);
+                                                            sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType);
                                                         else
                                                         {
                                                             // send file
@@ -1335,7 +1330,7 @@ namespace HTTPSecureServerLite
                                                         string UserAgent = request.Useragent.ToLower();
 
                                                         if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
-                                                            sent = new LocalFileStreamHelper().Handle_LocalFile_Stream(ctx, filePath, ContentType);
+                                                            sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType);
                                                         else
                                                         {
                                                             // send file
@@ -1629,8 +1624,13 @@ namespace HTTPSecureServerLite
 
             return sent;
         }
+
+        private void ExceptionEncountered(object? sender, ExceptionEventArgs args)
+        {
+            LoggerAccessor.LogError(args.Exception);
+        }
 #if NET7_0_OR_GREATER
-        [GeneratedRegex("Match (\\d+) (.*) (.*)$")]
+        [GeneratedRegex(@"Match (\d{3}) (\S+) (\S+)$")]
         private static partial Regex ApacheMatchRegex();
         [GeneratedRegex("^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)")]
         private static partial Regex HttpMethodRegex();
