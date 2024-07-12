@@ -296,7 +296,7 @@ namespace Horizon.MUM
             List<Channel> channels = new();
             List<Game> Games = new();
 
-            Parallel.ForEach(_appIdGroups.Values, appIds =>
+            foreach (int[] appIds in _appIdGroups.Values)
             {
                 foreach (int appId in appIds)
                 {
@@ -311,18 +311,15 @@ namespace Horizon.MUM
                         }
                     }
                 }
-            });
+            }
 
             foreach (Channel channel in channels)
             {
-                Parallel.ForEach(channel._games, game =>
+                foreach (Game game in channel._games)
                 {
-                    lock (Games)
-                    {
-                        if (game.MediusWorldId == gameId)
-                            Games.Add(game);
-                    }
-                });
+                    if (game.MediusWorldId == gameId)
+                        Games.Add(game);
+                }
             }
 
             return Games;
@@ -333,7 +330,7 @@ namespace Horizon.MUM
             List<Channel> channels = new();
             List<Game> Games = new();
 
-            Parallel.ForEach(_appIdGroups.Values, appIds =>
+            foreach (int[] appIds in _appIdGroups.Values)
             {
                 foreach (int appId in appIds)
                 {
@@ -348,18 +345,15 @@ namespace Horizon.MUM
                         }
                     }
                 }
-            });
+            }
 
             foreach (Channel channel in channels)
             {
-                Parallel.ForEach(channel._games, game =>
+                foreach (Game game in channel._games)
                 {
-                    lock (Games)
-                    {
-                        if (game.GameName == gameName)
-                            Games.Add(game);
-                    }
-                });
+                    if (game.GameName == gameName)
+                        Games.Add(game);
+                }
             }
 
             return Games;
@@ -437,9 +431,7 @@ namespace Horizon.MUM
 
         public IEnumerable<Game> GetGameList(int appId, int pageIndex, int pageSize, IEnumerable<GameListFilter> filters)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key))
+            return _lookupsByAppId.Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
                             .SelectMany(x => x.Value.GameIdToGame.Select(x => x.Value))
                             .Where(x => (x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging) &&
                                         (filters.Count() == 0 || filters.All(y => y.IsMatch(x))))
@@ -449,9 +441,7 @@ namespace Horizon.MUM
 
         public IEnumerable<Game> GetGameListOnAnyMatchingFilter(int appId, int pageIndex, int pageSize, IEnumerable<GameListFilter> filters)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key))
+            return _lookupsByAppId.Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
                             .SelectMany(x => x.Value.GameIdToGame.Select(x => x.Value))
                             .Where(x => (x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging) &&
                                         (filters.Count() == 0 || filters.Any(y => y.IsMatch(x))))
@@ -461,9 +451,7 @@ namespace Horizon.MUM
 
         public IEnumerable<Game> GetGameListAppId(int appId, int pageIndex, int pageSize)
         {
-            var appIdsInGroup = GetAppIdsInGroup(appId);
-
-            return _lookupsByAppId.Where(x => appIdsInGroup.Contains(x.Key))
+            return _lookupsByAppId.Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
                             .SelectMany(x => x.Value.GameIdToGame.Select(x => x.Value))
                             .Where(x => x.WorldStatus == MediusWorldStatus.WorldActive || x.WorldStatus == MediusWorldStatus.WorldStaging)
                             .Skip((pageIndex - 1) * pageSize)
@@ -476,7 +464,6 @@ namespace Horizon.MUM
             if (!_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
                 _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
 
-            var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
             Game? game = null;
             Channel? gameChannel = client.CurrentChannel;
@@ -503,7 +490,7 @@ namespace Horizon.MUM
             else if (request is MediusCreateGameRequest0 r0)
                 gameName = r0.GameName;
 
-            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
+            IEnumerable<Game> existingGames = _lookupsByAppId.Where(x => GetAppIdsInGroup(client.ApplicationId).Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
             // Ensure the name is unique
             // If the host leaves then we unreserve the name
@@ -597,12 +584,11 @@ namespace Horizon.MUM
             if (!_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
                 _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
 
-            var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
             if (request is MediusCreateGameRequest1 r)
                 gameName = r.GameName;
 
-            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
+            IEnumerable<Game> existingGames = _lookupsByAppId.Where(x => GetAppIdsInGroup(client.ApplicationId).Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
             // Ensure the name is unique
             // If the host leaves then we unreserve the name
@@ -676,12 +662,11 @@ namespace Horizon.MUM
             if (!_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
                 _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
 
-            var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
             if (matchCreateGameRequest is MediusMatchCreateGameRequest r)
                 gameName = r.GameName;
 
-            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
+            IEnumerable<Game> existingGames = _lookupsByAppId.Where(x => GetAppIdsInGroup(client.ApplicationId).Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
             // Ensure the name is unique
             // If the host leaves then we unreserve the name
@@ -832,7 +817,6 @@ namespace Horizon.MUM
             if (client != null && !_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
                 _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
 
-            var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? gameName = null;
             NetAddressList gameNetAddressList = new();
             int worldId = -1;
@@ -878,7 +862,7 @@ namespace Horizon.MUM
                 worldId = r2.WorldID;
             }
 
-            var existingGames = _lookupsByAppId.Where(x => appIdsInGroup.Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
+            IEnumerable<Game> existingGames = _lookupsByAppId.Where(x => GetAppIdsInGroup(client.ApplicationId).Contains(client.ApplicationId)).SelectMany(x => x.Value.GameIdToGame.Select(g => g.Value));
 
             // Ensure the name is unique
             // If the host leaves then we unreserve the name
@@ -1306,7 +1290,7 @@ namespace Horizon.MUM
         {
             List<Channel> channels = new();
 
-            Parallel.ForEach(_appIdGroups.Values, appIds =>
+            foreach (int[] appIds in _appIdGroups.Values)
             {
                 foreach (int appId in appIds)
                 {
@@ -1321,7 +1305,7 @@ namespace Horizon.MUM
                         }
                     }
                 }
-            });
+            }
 
             return channels;
         }

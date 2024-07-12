@@ -166,7 +166,7 @@ namespace HTTPSecureServerLite
                 {
                     if (!string.IsNullOrEmpty(request.Url.RawWithQuery))
                     {
-                        if (!string.IsNullOrEmpty(request.Useragent) && request.Useragent.ToLower().Contains("bytespider")) // Get Away TikTok.
+                        if (!string.IsNullOrEmpty(request.Useragent) && request.Useragent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with a ByteDance crawler!");
                         else
                         {
@@ -1594,28 +1594,28 @@ namespace HTTPSecureServerLite
                 if (encoding.Contains("zstd"))
                 {
                     ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                    st = HTTPProcessor.ZstdCompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                    st = HTTPProcessor.ZstdCompressStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
                 else if (encoding.Contains("br"))
                 {
                     ctx.Response.Headers.Add("Content-Encoding", "br");
-                    st = HTTPProcessor.BrotliCompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                    st = HTTPProcessor.BrotliCompressStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
                 else if (encoding.Contains("gzip"))
                 {
                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    st = HTTPProcessor.GzipCompressStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                    st = HTTPProcessor.GzipCompressStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
                 else if (encoding.Contains("deflate"))
                 {
                     ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                    st = HTTPProcessor.InflateStream(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), fileSize > 8000000);
+                    st = HTTPProcessor.InflateStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
                 else
-                    st = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    st = File.OpenRead(filePath);
             }
             else
-                st = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                st = File.OpenRead(filePath);
 
             sent = await ctx.Response.Send(st.Length, st);
 

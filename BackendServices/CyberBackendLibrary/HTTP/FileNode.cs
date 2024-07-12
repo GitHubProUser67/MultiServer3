@@ -36,9 +36,9 @@ namespace CyberBackendLibrary.HTTP
                          NullValueHandling = NullValueHandling.Ignore
                      });
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                CustomLogger.LoggerAccessor.LogError($"[FileNode] - GetFileStructureAsJson - Thrown an exception: {ex}");
             }
 
             return "[]";
@@ -137,10 +137,12 @@ namespace CyberBackendLibrary.HTTP
 
                 return fileNode;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                CustomLogger.LoggerAccessor.LogError($"[FileNode] - CreateFileNode - Thrown an exception: {ex}");
             }
+
+            return null;
         }
     }
 }

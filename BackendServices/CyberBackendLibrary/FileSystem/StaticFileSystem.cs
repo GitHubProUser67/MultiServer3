@@ -26,7 +26,8 @@ namespace CyberBackendLibrary.FileSystem
 
         public static IEnumerable<FileSystemInfo> AllFilesAndFoldersLinq(this DirectoryInfo dir)
         {
-            return dir.EnumerateFileSystemInfos("*", SearchOption.AllDirectories).AsParallel().AsUnordered().Where(info => (info.Attributes & FileAttributes.Hidden) == 0).ToArray();
+            return dir.EnumerateFileSystemInfos("*", SearchOption.AllDirectories).AsParallel()
+                .AsUnordered().Where(info => (info.Attributes & FileAttributes.Hidden) == 0).ToArray();
         }
 
         public static IEnumerable<string>? GetMediaFilesList(string directoryPath)
@@ -35,7 +36,8 @@ namespace CyberBackendLibrary.FileSystem
             HashSet<string> validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".mp3", ".aac", ".ts" };
 
             return Directory.EnumerateFiles(directoryPath, "*.*")
-                            .Where(s => validExtensions.Contains(Path.GetExtension(s)) && !File.GetAttributes(s).HasFlag(FileAttributes.Hidden));
+                            .Where(s => validExtensions.Contains(Path.GetExtension(s)) && !File.GetAttributes(s)
+                            .HasFlag(FileAttributes.Hidden));
         }
 
         public static string? GetM3UStreamFromDirectory(string directoryPath, string httpdirectoryrequest)

@@ -3,11 +3,11 @@ using WebAPIService.THQ;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using CyberBackendLibrary.HTTP;
-using HttpStatusCode = HTTPServer.Models.HttpStatusCode;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System;
+using System.Net;
 
 namespace HTTPServer.RouteHandlers.staticRoutes
 {
@@ -58,10 +58,10 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                                         else if (encoding.Contains("deflate"))
                                             return HttpResponse.Send(HTTPProcessor.Inflate(File.ReadAllBytes(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" }, new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                         else
-                                            return HttpResponse.Send(File.Open(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                            return HttpResponse.Send(File.OpenRead(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}"), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                     }
                                     else
-                                        return HttpResponse.Send(File.Open(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
+                                        return HttpResponse.Send(File.OpenRead(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}"), "text/html", new string[][] { new string[] { "Last-Modified", File.GetLastWriteTime(HTTPServerConfiguration.HTTPStaticFolder + $"/{indexFile}").ToString("r") } });
                                 }
                             }
                         }
@@ -77,7 +77,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                     Callable = (HttpRequest request) => {
                         return new HttpResponse()
                                 {
-                                    HttpStatusCode = HttpStatusCode.Not_Found,
+                                    HttpStatusCode = HttpStatusCode.NotFound,
                                     ContentAsUTF8 = string.Empty
                                 };
                      }
@@ -130,7 +130,7 @@ namespace HTTPServer.RouteHandlers.staticRoutes
 
                         return new HttpResponse()
                                 {
-                                    HttpStatusCode = HttpStatusCode.Not_Found,
+                                    HttpStatusCode = HttpStatusCode.NotFound,
                                     ContentAsUTF8 = string.Empty
                                 };
                      }
