@@ -5,39 +5,11 @@ using HTTPServer.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 
 namespace HTTPServer.Models
 {
-    public enum HttpStatusCode
-    {
-        // for a full list of status codes, see..
-        // https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-
-        Continue = 100,
-        OK = 200,
-        Created = 201,
-        Accepted = 202,
-        No_Content = 204,
-        Partial_Content = 206,
-        MultiStatus = 207,
-        MovedPermanently = 301,
-        Found = 302,
-        Not_Modified = 304,
-        Permanent_Redirect = 308,
-        Temporary_Redirect = 307,
-        BadRequest = 400,
-        Forbidden = 403,
-        Not_Found = 404,
-        MethodNotAllowed = 405,
-        RangeNotSatisfiable = 416,
-        Missing_parameters = 422,
-        InternalServerError = 500,
-        NotImplemented = 501,
-        BadGateway = 502,
-        ServiceUnavailable = 503
-    }
-
     public class HttpResponse : IDisposable
     {
         private bool disposedValue;

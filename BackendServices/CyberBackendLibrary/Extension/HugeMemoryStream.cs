@@ -36,7 +36,6 @@ namespace CyberBackendLibrary.Extension
             {
                 Write(buffer[..bytesRead]);
             }
-            Flush();
         }
 
         public HugeMemoryStream(Span<byte> SpanToMem)
@@ -148,7 +147,11 @@ namespace CyberBackendLibrary.Extension
                     currentLength = count;
 
                 if (_streamBuffers != null)
-                    Array.Copy(_streamBuffers[currentPage++], currentOffset, buffer, offset, currentLength);
+                {
+                    Array? array = _streamBuffers[currentPage++];
+                    if (array != null)
+                        Array.Copy(array, currentOffset, buffer, offset, currentLength);
+                }
 
                 offset += currentLength;
                 _position += currentLength;
@@ -177,7 +180,7 @@ namespace CyberBackendLibrary.Extension
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException("origin");
+                    throw new ArgumentOutOfRangeException(nameof(origin));
             }
 
             return Position = offset;
@@ -218,8 +221,6 @@ namespace CyberBackendLibrary.Extension
             int currentOffset = (int)(_position % PAGE_SIZE);
             int currentLength = PAGE_SIZE - currentOffset;
 
-            long startPosition = _position;
-
             AllocSpaceIfNeeded(_position + count);
 
             while (count != 0)
@@ -228,7 +229,11 @@ namespace CyberBackendLibrary.Extension
                     currentLength = count;
 
                 if (_streamBuffers != null)
-                    Array.Copy(buffer, offset, _streamBuffers[currentPage++], currentOffset, currentLength);
+                {
+                    Array? array = _streamBuffers[currentPage++];
+                    if (array != null)
+                        Array.Copy(buffer, offset, array, currentOffset, currentLength);
+                }
 
                 offset += currentLength;
                 _position += currentLength;

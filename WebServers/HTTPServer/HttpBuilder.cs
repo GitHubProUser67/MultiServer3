@@ -2,6 +2,7 @@ using CyberBackendLibrary.HTTP;
 using HTTPServer.Models;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Collections.Generic;
+using System.Net;
 
 namespace HTTPServer
 {
@@ -54,7 +55,7 @@ namespace HTTPServer
         {
             return new HttpResponse()
             {
-                HttpStatusCode = HttpStatusCode.Permanent_Redirect,
+                HttpStatusCode = HttpStatusCode.PermanentRedirect,
                 Headers = new Dictionary<string, string>()
                 {
                     { HttpHeader.Location.ToString(), url }
@@ -90,7 +91,7 @@ namespace HTTPServer
         {
             return new HttpResponse()
             {
-                HttpStatusCode = HttpStatusCode.No_Content,
+                HttpStatusCode = HttpStatusCode.NoContent,
             };
         }
 
@@ -99,11 +100,11 @@ namespace HTTPServer
             if (!HTMLResponse)
                 return new HttpResponse()
                 {
-                    HttpStatusCode = HttpStatusCode.Not_Found,
+                    HttpStatusCode = HttpStatusCode.NotFound,
                 };
             else
                 return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                    HTTPServerConfiguration.HTTPStaticFolder, "Apache 2.2.22 (Unix) DAV/2", serverPort, HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.Not_Found);
+                    HTTPServerConfiguration.HTTPStaticFolder, "Apache 2.2.22 (Unix) DAV/2", serverPort, HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.NotFound);
         }
 
         public static HttpResponse NotAllowed()
@@ -122,11 +123,11 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse MissingParameters()
+        public static HttpResponse BadRequest()
         {
             return new HttpResponse()
             {
-                HttpStatusCode = HttpStatusCode.Missing_parameters,
+                HttpStatusCode = HttpStatusCode.BadRequest,
             };
         }
         #endregion

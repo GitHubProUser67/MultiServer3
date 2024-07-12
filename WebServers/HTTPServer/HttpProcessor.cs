@@ -134,7 +134,7 @@ namespace HTTPServer
                             else
                                 request = AppendRequestOrInputStream(clientStream, request, clientip, clientportString, ListenerPort);
 
-                            if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
+                            if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
                             {
                                 HttpResponse? response = null;
                                 string Method = request.Method;
@@ -672,7 +672,7 @@ namespace HTTPServer
                                                 {
                                                     response = new("1.0")
                                                     {
-                                                        HttpStatusCode = Models.HttpStatusCode.OK
+                                                        HttpStatusCode = HttpStatusCode.OK
                                                     };
                                                     response.Headers["Content-Type"] = res.Item2;
                                                     response.ContentAsUTF8 = res.Item1;
@@ -787,11 +787,11 @@ namespace HTTPServer
                                                                         WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
                                                                         if (vid != null && vid.Available)
                                                                             response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
-                                                                                Models.HttpStatusCode.OK);
+                                                                                HttpStatusCode.OK);
                                                                         else
                                                                             response = new HttpResponse()
                                                                             {
-                                                                                HttpStatusCode = Models.HttpStatusCode.OK,
+                                                                                HttpStatusCode = HttpStatusCode.OK,
                                                                                 ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
                                                                                         "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
                                                                                 Headers = { { "Content-Type", "text/html" } }
@@ -800,7 +800,7 @@ namespace HTTPServer
                                                                     else
                                                                         response = new HttpResponse()
                                                                         {
-                                                                            HttpStatusCode = Models.HttpStatusCode.OK,
+                                                                            HttpStatusCode = HttpStatusCode.OK,
                                                                             ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
                                                                                     "<p>Manual use parameters:" +
                                                                                     "<ul>" +
@@ -965,7 +965,7 @@ namespace HTTPServer
                                                                             using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
                                                                             response = new()
                                                                             {
-                                                                                HttpStatusCode = Models.HttpStatusCode.OK
+                                                                                HttpStatusCode = HttpStatusCode.OK
                                                                             };
                                                                             response.Headers.Add("Content-Type", vid.ContentType);
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
@@ -975,7 +975,7 @@ namespace HTTPServer
                                                                             response = HttpBuilder.InternalServerError();
                                                                     }
                                                                     else
-                                                                        response = HttpBuilder.MissingParameters();
+                                                                        response = HttpBuilder.BadRequest();
                                                                 }
                                                                 break;
                                                             #endregion
@@ -1024,7 +1024,7 @@ namespace HTTPServer
                                                                 "       </a:prop>\r\n" +
                                                                 "   </a:propstat>\r\n" +
                                                                 " </a:response>\r\n" +
-                                                                "</a:multistatus>", "text/xml", null, Models.HttpStatusCode.MultiStatus);
+                                                                "</a:multistatus>", "text/xml", null, HttpStatusCode.MultiStatus);
                                                         }
                                                         else
                                                             response = HttpBuilder.NotFound(request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
@@ -1125,7 +1125,7 @@ namespace HTTPServer
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             response.Headers.Add("age", "1800");
 
-                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+                            response.HttpStatusCode = HttpStatusCode.NotModified;
 
                             WriteLineToStream(stream, response.ToHeader());
 
@@ -1144,7 +1144,7 @@ namespace HTTPServer
                             if (!response.Headers.ContainsKey("Content-Type"))
                                 response.Headers.Add("Content-Type", "text/plain");
 
-                            if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content)
+                            if (response.HttpStatusCode == HttpStatusCode.OK || response.HttpStatusCode == HttpStatusCode.PartialContent)
                             {
                                 response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                 response.Headers.Add("ETag", EtagMD5);
@@ -1194,9 +1194,9 @@ namespace HTTPServer
                             LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                         else
                         {
-                            if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
+                            if (response.HttpStatusCode == HttpStatusCode.NotFound)
                                 LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, local_path, response.HttpStatusCode));
-                            else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                            else if (response.HttpStatusCode == HttpStatusCode.NotImplemented || response.HttpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
                                 LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                             else
                                 LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
@@ -1298,7 +1298,7 @@ namespace HTTPServer
                             ms.Close();
                             response = new()
                             {
-                                HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
+                                HttpStatusCode = HttpStatusCode.RequestedRangeNotSatisfiable
                             };
                             response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                             response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
@@ -1338,12 +1338,12 @@ namespace HTTPServer
                             if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                                 response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                                 {
-                                    HttpStatusCode = Models.HttpStatusCode.OK
+                                    HttpStatusCode = HttpStatusCode.OK
                                 };
                             else
                                 response = new()
                                 {
-                                    HttpStatusCode = Models.HttpStatusCode.OK
+                                    HttpStatusCode = HttpStatusCode.OK
                                 };
                             response.Headers.Add("Accept-Ranges", "bytes");
                             response.Headers.Add("Content-Type", ContentType);
@@ -1355,28 +1355,28 @@ namespace HTTPServer
                                 if (acceptencoding.Contains("zstd"))
                                 {
                                     response.Headers.Add("Content-Encoding", "zstd");
-                                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.OpenRead(local_path), FileLength > 8000000);
                                 }
                                 else if (acceptencoding.Contains("br"))
                                 {
                                     response.Headers.Add("Content-Encoding", "br");
-                                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.OpenRead(local_path), FileLength > 8000000);
                                 }
                                 else if (acceptencoding.Contains("gzip"))
                                 {
                                     response.Headers.Add("Content-Encoding", "gzip");
-                                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.OpenRead(local_path), FileLength > 8000000);
                                 }
                                 else if (acceptencoding.Contains("deflate"))
                                 {
                                     response.Headers.Add("Content-Encoding", "deflate");
-                                    response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                                    response.ContentStream = HTTPProcessor.InflateStream(File.OpenRead(local_path), FileLength > 8000000);
                                 }
                                 else
-                                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                    response.ContentStream = File.OpenRead(local_path);
                             }
                             else
-                                response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                response.ContentStream = File.OpenRead(local_path);
 
                             goto shortcut; // Do we really have the choice?
                         }
@@ -1405,12 +1405,12 @@ namespace HTTPServer
                     if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                         response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                         {
-                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            HttpStatusCode = HttpStatusCode.PartialContent
                         };
                     else
                         response = new()
                         {
-                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            HttpStatusCode = HttpStatusCode.PartialContent
                         };
                     response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                     response.Headers.Add("Accept-Ranges", "bytes");
@@ -1501,7 +1501,7 @@ namespace HTTPServer
 
                     response = new()
                     {
-                        HttpStatusCode = Models.HttpStatusCode.RangeNotSatisfiable
+                        HttpStatusCode = HttpStatusCode.RequestedRangeNotSatisfiable
                     };
                     response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                     response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
@@ -1551,12 +1551,12 @@ namespace HTTPServer
                     if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                         response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                         {
-                            HttpStatusCode = Models.HttpStatusCode.OK
+                            HttpStatusCode = HttpStatusCode.OK
                         };
                     else
                         response = new()
                         {
-                            HttpStatusCode = Models.HttpStatusCode.OK
+                            HttpStatusCode = HttpStatusCode.OK
                         };
                     response.Headers.Add("Accept-Ranges", "bytes");
                     response.Headers.Add("Content-Type", ContentType);
@@ -1568,28 +1568,28 @@ namespace HTTPServer
                         if (acceptencoding.Contains("zstd"))
                         {
                             response.Headers.Add("Content-Encoding", "zstd");
-                            response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.ZstdCompressStream(File.OpenRead(local_path), FileLength <= 8000000);
                         }
                         else if (acceptencoding.Contains("br"))
                         {
                             response.Headers.Add("Content-Encoding", "br");
-                            response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.BrotliCompressStream(File.OpenRead(local_path), FileLength <= 8000000);
                         }
                         else if (acceptencoding.Contains("gzip"))
                         {
                             response.Headers.Add("Content-Encoding", "gzip");
-                            response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.GzipCompressStream(File.OpenRead(local_path), FileLength <= 8000000);
                         }
                         else if (acceptencoding.Contains("deflate"))
                         {
                             response.Headers.Add("Content-Encoding", "deflate");
-                            response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength <= 8000000);
+                            response.ContentStream = HTTPProcessor.InflateStream(File.OpenRead(local_path), FileLength <= 8000000);
                         }
                         else
-                            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            response.ContentStream = File.OpenRead(local_path);
                     }
                     else
-                        response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        response.ContentStream = File.OpenRead(local_path);
                 }
                 else
                 {
@@ -1611,12 +1611,12 @@ namespace HTTPServer
                     if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                         response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
                         {
-                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            HttpStatusCode = HttpStatusCode.PartialContent
                         };
                     else
                         response = new()
                         {
-                            HttpStatusCode = Models.HttpStatusCode.Partial_Content
+                            HttpStatusCode = HttpStatusCode.PartialContent
                         };
                     response.Headers.Add("Content-Type", ContentType);
                     response.Headers.Add("Accept-Ranges", "bytes");
@@ -1698,7 +1698,7 @@ namespace HTTPServer
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             response.Headers.Add("age", "1800");
 
-                            response.HttpStatusCode = Models.HttpStatusCode.Not_Modified;
+                            response.HttpStatusCode = HttpStatusCode.NotModified;
 
                             WriteLineToStream(stream, response.ToHeader());
 
@@ -1755,14 +1755,13 @@ namespace HTTPServer
                             ctwire.Flush();
                         }
 
-                        if (response.HttpStatusCode == Models.HttpStatusCode.OK || response.HttpStatusCode == Models.HttpStatusCode.Partial_Content
-                                    || response.HttpStatusCode == Models.HttpStatusCode.MovedPermanently || response.HttpStatusCode == Models.HttpStatusCode.Not_Modified)
+                        if ((int)response.HttpStatusCode < 400)
                             LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                         else
                         {
-                            if (response.HttpStatusCode == Models.HttpStatusCode.Not_Found)
+                            if (response.HttpStatusCode == HttpStatusCode.NotFound)
                                 LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, local_path, response.HttpStatusCode));
-                            else if (response.HttpStatusCode == Models.HttpStatusCode.NotImplemented || response.HttpStatusCode == Models.HttpStatusCode.RangeNotSatisfiable)
+                            else if (response.HttpStatusCode == HttpStatusCode.NotImplemented || response.HttpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
                                 LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
                             else
                                 LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));

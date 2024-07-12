@@ -5,6 +5,7 @@ using CyberBackendLibrary.HTTP;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using System.IO;
+using System.Net;
 using System.Text;
 
 namespace HTTPServer.RouteHandlers
@@ -93,14 +94,12 @@ namespace HTTPServer.RouteHandlers
 
             if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale && FileLength <= 2147483648) // 2gb limit.
             {
-                Ionic.Crc.CRC32? crc = new();
+                Ionic.Crc.CRC32 crc = new();
                 byte[] PathIdent = Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????");
 
                 crc.SlurpBlock(PathIdent, 0, PathIdent.Length);
 
                 byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{crc.Crc32Result:X4}")?.Result;
-
-                crc = null;
 
                 if (UpscalledOrOriginalData != null)
                     response.ContentStream = new MemoryStream(UpscalledOrOriginalData);
@@ -121,28 +120,28 @@ namespace HTTPServer.RouteHandlers
                     if (encoding.Contains("zstd"))
                     {
                         response.Headers.Add("Content-Encoding", "zstd");
-                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.OpenRead(local_path), FileLength > 8000000);
                     }
                     else if (encoding.Contains("br"))
                     {
                         response.Headers.Add("Content-Encoding", "br");
-                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.OpenRead(local_path), FileLength > 8000000);
                     }
                     else if (encoding.Contains("gzip"))
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.OpenRead(local_path), FileLength > 8000000);
                     }
                     else if (encoding.Contains("deflate"))
                     {
                         response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = HTTPProcessor.InflateStream(File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.InflateStream(File.OpenRead(local_path), FileLength > 8000000);
                     }
                     else
-                        response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        response.ContentStream = File.OpenRead(local_path);
                 }
                 else
-                    response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    response.ContentStream = File.OpenRead(local_path);
             }
 
             return response;
@@ -155,7 +154,7 @@ namespace HTTPServer.RouteHandlers
                 HttpStatusCode = HttpStatusCode.OK,
             };
             response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
-            response.ContentStream = File.Open(local_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            response.ContentStream = File.OpenRead(local_path);
 
             return response;
         }
@@ -265,17 +264,17 @@ namespace HTTPServer.RouteHandlers
                                 else if (encoding.Contains("deflate"))
                                     return HttpResponse.Send(HTTPProcessor.Inflate(File.ReadAllBytes(local_path + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                                 else
-                                    return HttpResponse.Send(File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                    return HttpResponse.Send(File.OpenRead(local_path + $"/{indexFile}"), "text/html");
                             }
                             else
-                                return HttpResponse.Send(File.Open(local_path + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite), "text/html");
+                                return HttpResponse.Send(File.OpenRead(local_path + $"/{indexFile}"), "text/html");
                         }
                     }
                 }
 
                 return new HttpResponse()
                 {
-                    HttpStatusCode = HttpStatusCode.Not_Found,
+                    HttpStatusCode = HttpStatusCode.NotFound,
                     ContentAsUTF8 = string.Empty
                 };
 

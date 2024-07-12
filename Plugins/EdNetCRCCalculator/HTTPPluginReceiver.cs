@@ -5,6 +5,7 @@ using CyberBackendLibrary.HTTP.PluginManager;
 using System;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
+using System.Net;
 
 namespace EdNetCRCCalculator
 {

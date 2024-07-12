@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
 using WebAPIService;
+using System.Net;
 
 namespace EdNetCRCCalculator
 {
