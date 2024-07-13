@@ -1585,7 +1585,7 @@ namespace HTTPSecureServerLite
                 LoggerAccessor.LogError($"[HTTPS] - DefaultRoute - thrown an exception: {ex}");
             }
 
-            ctx.Response.StatusCode = 403;
+            ctx.Response.StatusCode = 500;
             ctx.Response.ContentType = "text/plain";
             await ctx.Response.Send();
         }
