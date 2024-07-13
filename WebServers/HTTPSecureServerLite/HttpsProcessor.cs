@@ -15,7 +15,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
-using WatsonWebserver.Lite;
 using WebAPIService.UBISOFT.HERMES_API;
 using WebAPIService.CAPONE;
 using WebAPIService.CDM;
@@ -28,13 +27,14 @@ using System.Linq;
 using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
+using WatsonWebserver;
 
 namespace HTTPSecureServerLite
 {
     public partial class HttpsProcessor
     {
         private static string serverIP = "127.0.0.1";
-        private WebserverLite? _Server;
+        private Webserver? _Server;
         private readonly string ip;
         private readonly ushort port;
 
@@ -50,7 +50,7 @@ namespace HTTPSecureServerLite
             settings.Ssl.PfxCertificateFile = certpath;
             settings.Ssl.PfxCertificatePassword = certpass;
             settings.Ssl.Enable = true;
-            _Server = new WebserverLite(settings, DefaultRoute);
+            _Server = new Webserver(settings, DefaultRoute);
 
             StartServer();
         }
@@ -96,10 +96,16 @@ namespace HTTPSecureServerLite
 
         public void StopServer()
         {
-            _Server?.Stop();
-            _Server?.Dispose();
-
-            LoggerAccessor.LogWarn($"HTTPS Server on port: {port} stopped...");
+            try
+            {
+                _Server?.Dispose();
+				
+                LoggerAccessor.LogWarn($"HTTPS Server on port: {port} stopped...");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"HTTPS Server on port: {port} stopped unexpectedly! (Exception: {ex})");
+            }
         }
 
         public void StartServer()
@@ -1560,6 +1566,7 @@ namespace HTTPSecureServerLite
                 if (!sent)
                     LoggerAccessor.LogWarn($"[HTTPS] - {clientip}:{clientport} Failed to receive the response! Client might have closed the wire.");
 #endif
+                return;
             }
             catch (IOException ex)
             {
@@ -1577,12 +1584,17 @@ namespace HTTPSecureServerLite
             {
                 LoggerAccessor.LogError($"[HTTPS] - DefaultRoute - thrown an exception: {ex}");
             }
+
+            ctx.Response.StatusCode = 403;
+            ctx.Response.ContentType = "text/plain";
+            await ctx.Response.Send();
         }
 
         private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string contentType)
         {
             Stream? st = null;
             bool sent = false;
+            bool flush = false;
             long fileSize = new FileInfo(filePath).Length;
 
             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -1593,21 +1605,25 @@ namespace HTTPSecureServerLite
             {
                 if (encoding.Contains("zstd"))
                 {
+                    flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "zstd");
                     st = HTTPProcessor.ZstdCompressStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
                 else if (encoding.Contains("br"))
                 {
+                    flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "br");
                     st = HTTPProcessor.BrotliCompressStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
                 else if (encoding.Contains("gzip"))
                 {
+                    flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
                     st = HTTPProcessor.GzipCompressStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
                 else if (encoding.Contains("deflate"))
                 {
+                    flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "deflate");
                     st = HTTPProcessor.InflateStream(File.OpenRead(filePath), fileSize > 8000000);
                 }
@@ -1619,7 +1635,11 @@ namespace HTTPSecureServerLite
 
             sent = await ctx.Response.Send(st.Length, st);
 
-            st.Flush();
+            if (flush)
+                st.Flush();
+            else
+                st.Close();
+
             st.Dispose();
 
             return sent;
