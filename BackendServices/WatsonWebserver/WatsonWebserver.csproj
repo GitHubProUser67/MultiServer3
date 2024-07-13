@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<IsTrimmable>true</IsTrimmable>
+		<IsPublishable>false</IsPublishable>
+		<Version>6.2.0</Version>
+		<Description>Simple, fast, async C# web server for handling REST requests with SSL support, targeted to .NET Core, .NET Standard, and .NET Framework.</Description>
+		<Authors>Joel Christner</Authors>
+		<Company>Joel Christner</Company>
+		<Copyright>(c)2024 Joel Christner</Copyright>
+		<Title>Watson Webserver</Title>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Remove="C:\Users\jeana\.nuget\packages\watson.core\6.2.0\contentFiles\any\net6.0\Assets\watson.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Watson.Core" Version="6.2.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\SpaceWizards.HttpListener\SpaceWizards.HttpListener.csproj" />
+	</ItemGroup>
+
+</Project>
