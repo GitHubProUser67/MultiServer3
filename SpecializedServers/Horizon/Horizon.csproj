@@ -23,12 +23,12 @@
       <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="Watson.Lite" Version="6.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonService\HorizonService.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
+	<ProjectReference Include="..\..\BackendServices\WatsonWebserver\WatsonWebserver.csproj" />
   </ItemGroup>
   
   <ItemGroup>

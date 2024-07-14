@@ -2,14 +2,14 @@ using CustomLogger;
 using CyberBackendLibrary.HTTP;
 using System.Net;
 using System.Text;
+using WatsonWebserver;
 using WatsonWebserver.Core;
-using WatsonWebserver.Lite;
 
 namespace Horizon.HTTPSERVICE
 {
     public class CrudServerHandler
     {
-        private WebserverLite? _Server;
+        private Webserver? _Server;
         private string ip;
         private int port;
 
@@ -31,7 +31,7 @@ namespace Horizon.HTTPSERVICE
                 settings.Ssl.Enable = true;
             }
 
-            _Server = new WebserverLite(settings, DefaultRoute);
+            _Server = new Webserver(settings, DefaultRoute);
 
             StartServer();
         }

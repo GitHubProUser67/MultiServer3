@@ -3,15 +3,15 @@ using CustomLogger;
 using HttpMultipartParser;
 using System.Net;
 using System.Text;
+using WatsonWebserver;
 using WatsonWebserver.Core;
-using WatsonWebserver.Lite;
 
 namespace SVO
 {
     public class OTGSecureServerLite
     {
         public static bool IsStarted = false;
-        private static WebserverLite? _Server;
+        private static Webserver? _Server;
         private readonly string ip;
         private readonly int port;
 
@@ -30,7 +30,7 @@ namespace SVO
             settings.Ssl.PfxCertificatePassword = certpass;
             settings.Ssl.Enable = true;
 
-            _Server = new WebserverLite(settings, DefaultRoute);
+            _Server = new Webserver(settings, DefaultRoute);
 
             StartServer();
         }

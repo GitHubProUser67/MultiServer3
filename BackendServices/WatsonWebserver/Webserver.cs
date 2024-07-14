@@ -97,10 +97,11 @@ namespace WatsonWebserver
             _TokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             _Token = token;
 
+            _HttpListener = new HttpListener();
+
             if (Settings.Ssl.Enable)
-                _HttpListener = new HttpListener(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
-            else
-                _HttpListener = new HttpListener();
+                _HttpListener.SetCertificate(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
+
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
 
@@ -123,10 +124,11 @@ namespace WatsonWebserver
             _TokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             _Token = token;
 
+            _HttpListener = new HttpListener();
+
             if (Settings.Ssl.Enable)
-                _HttpListener = new HttpListener(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
-            else
-                _HttpListener = new HttpListener();
+                _HttpListener.SetCertificate(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
+
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
 

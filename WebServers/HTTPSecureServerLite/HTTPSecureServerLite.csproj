@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
-    <ProjectReference Include="..\..\BackendServices\SpaceWizards.HttpListener\SpaceWizards.HttpListener.csproj" />
     <ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
     <ProjectReference Include="..\..\BackendServices\WatsonWebserver\WatsonWebserver.csproj" />
   </ItemGroup>

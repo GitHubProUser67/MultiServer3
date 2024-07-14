@@ -172,7 +172,7 @@ class Program
         else
             LoggerAccessor.LogError("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO Server not started!");
 
-        OTGServer = new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "0.0.0.0", 10062);
+        OTGServer = new OTGSecureServerLite(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword, "*", 10062);
     }
 
     static void Main()

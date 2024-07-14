@@ -25,11 +25,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="SQLite.CodeFirst" Version="1.7.0.36" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
-    <PackageReference Include="Watson.Lite" Version="6.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonService\HorizonService.csproj" />
+    <ProjectReference Include="..\..\BackendServices\WatsonWebserver\WatsonWebserver.csproj" />
   </ItemGroup>
 
   <ItemGroup>
