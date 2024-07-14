@@ -9,17 +9,16 @@ using Horizon.LIBRARY.Database.Models;
 using Newtonsoft.Json;
 using System.Net;
 using WatsonWebserver.Core;
-using WatsonWebserver.Lite;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
 using DatabaseMiddleware.Controllers.MultiSpyDatabase;
-using System.Buffers.Text;
 using System.Text;
+using WatsonWebserver;
 
 namespace DatabaseMiddleware.HTTPEngine
 {
     public partial class HostBuilderServer
     {
-        private static WebserverLite? _Server;
+        private static Webserver? _Server;
         private readonly string ip;
         private readonly int port;
 
@@ -69,7 +68,7 @@ namespace DatabaseMiddleware.HTTPEngine
                 LoggerAccessor.LogWarn($"Database Server already initiated on port: {port}");
             else
             {
-                _Server = new WatsonWebserver.Lite.Extensions.HostBuilderExtension.HostBuilder(ip, port, false, DefaultRoute)
+                _Server = new WatsonWebserver.Extensions.HostBuilderExtension.HostBuilder(ip, port, false, DefaultRoute)
                     .MapAuthenticationRoute(AuthorizeConnection)
                     .MapPreRoutingRoute(PreRoutingHandler)
                     .MapParameterRoute(HttpMethod.POST, "/Account/{command}", async (ctx) =>

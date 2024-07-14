@@ -162,7 +162,7 @@ class Program
             HTTPBag = new ConcurrentBag<CrudServerHandler>
             {
                 new("*", 61920),
-                new("0.0.0.0", 8443, HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword)
+                new("*", 8443, HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword)
             };
         }
 

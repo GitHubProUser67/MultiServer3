@@ -3,13 +3,13 @@ using CustomLogger;
 using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
-using WatsonWebserver.Lite;
+using WatsonWebserver;
 
 namespace Horizon.MUM
 {
     public class MumServerHandler
     {
-        private WebserverLite? _Server;
+        private Webserver? _Server;
         private string ip;
         private int port;
 
@@ -31,7 +31,7 @@ namespace Horizon.MUM
                 settings.Ssl.Enable = true;
             }
 
-            _Server = new WebserverLite(settings, DefaultRoute);
+            _Server = new Webserver(settings, DefaultRoute);
 
             StartServer();
         }

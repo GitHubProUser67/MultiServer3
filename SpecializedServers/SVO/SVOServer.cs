@@ -94,7 +94,9 @@ namespace SVO
             // start listener
             try
             {
-                listener = new HttpListener(certificate);
+                listener = new HttpListener();
+                if (certificate != null)
+                    listener.SetCertificate(certificate);
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
                 listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, 10061));
