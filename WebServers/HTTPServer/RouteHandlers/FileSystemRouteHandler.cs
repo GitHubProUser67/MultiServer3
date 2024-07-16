@@ -92,30 +92,18 @@ namespace HTTPServer.RouteHandlers
 
             long FileLength = new FileInfo(local_path).Length;
 
-            if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale && FileLength <= 2147483648) // 2gb limit.
+            if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale)
             {
                 Ionic.Crc.CRC32 crc = new();
-                byte[] PathIdent = Encoding.UTF8.GetBytes(local_path + "As1L8ttt?????");
+                byte[] PathIdent = Encoding.UTF8.GetBytes(local_path);
 
                 crc.SlurpBlock(PathIdent, 0, PathIdent.Length);
 
-                byte[]? UpscalledOrOriginalData = ImageUpscaler.UpscaleImage(local_path, $"{crc.Crc32Result:X4}")?.Result;
-
-                if (UpscalledOrOriginalData != null)
-                    response.ContentStream = new MemoryStream(UpscalledOrOriginalData);
-                else
-                {
-                    response.Dispose();
-
-                    return new HttpResponse()
-                    {
-                        HttpStatusCode = HttpStatusCode.InternalServerError
-                    };
-                }
+                response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(local_path, crc.Crc32Result));
             }
             else
             {
-                if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/") && FileLength <= 10 * 1024 * 1024)
+                if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/"))
                 {
                     if (encoding.Contains("zstd"))
                     {

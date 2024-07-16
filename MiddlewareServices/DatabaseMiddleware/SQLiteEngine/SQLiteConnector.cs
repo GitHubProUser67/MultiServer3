@@ -69,9 +69,6 @@ namespace DatabaseMiddleware.SQLiteEngine
 
         public static Task StartAllDatabases()
         {
-            if (!DatabaseMiddleware.Controllers.MultiSpyDatabase.LoginDatabase.IsInitialized())
-                DatabaseMiddleware.Controllers.MultiSpyDatabase.LoginDatabase.Initialize($"{Directory.GetCurrentDirectory()}/static/DatabaseMiddleware/multispy_database.sqlite");
-
             lock (Connections)
             {
                 foreach (KeyValuePair<Tuple<string, string>, MiddlewareSQLiteContext> kvp in Connections)

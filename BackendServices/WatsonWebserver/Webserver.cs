@@ -42,7 +42,7 @@ namespace WatsonWebserver
         #region Private-Members
 
         private readonly string _Header = "[Webserver] ";
-        private HttpListener _HttpListener = null;
+        private HttpListener _HttpListener = new HttpListener();
         private int _RequestCount = 0;
 
         private CancellationTokenSource _TokenSource = new CancellationTokenSource();
@@ -97,8 +97,6 @@ namespace WatsonWebserver
             _TokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             _Token = token;
 
-            _HttpListener = new HttpListener();
-
             if (Settings.Ssl.Enable)
                 _HttpListener.SetCertificate(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
 
@@ -123,8 +121,6 @@ namespace WatsonWebserver
 
             _TokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             _Token = token;
-
-            _HttpListener = new HttpListener();
 
             if (Settings.Ssl.Enable)
                 _HttpListener.SetCertificate(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
@@ -694,6 +690,10 @@ namespace WatsonWebserver
                 }
 
                 #endregion
+            }
+            catch (ObjectDisposedException)
+            {
+
             }
             catch (Exception e)
             {

@@ -10,8 +10,6 @@ using Newtonsoft.Json;
 using System.Net;
 using WatsonWebserver.Core;
 using HttpMethod = WatsonWebserver.Core.HttpMethod;
-using DatabaseMiddleware.Controllers.MultiSpyDatabase;
-using System.Text;
 using WatsonWebserver;
 
 namespace DatabaseMiddleware.HTTPEngine
@@ -205,7 +203,7 @@ namespace DatabaseMiddleware.HTTPEngine
                                 {
                                     switch (command)
                                     {
-                                        case "UserExists":
+                                        /*case "UserExists":
                                             if (request.QuerystringExists("username"))
                                                 Extractedclass = LoginDatabase.Instance.UserExists(request.RetrieveQueryValue("username"));
                                             break;
@@ -240,7 +238,7 @@ namespace DatabaseMiddleware.HTTPEngine
                                                 Extractedclass = LoginDatabase.Instance.GetData(request.RetrieveQueryValue("username"));
                                             else if (request.QuerystringExists("email") && request.QuerystringExists("passwordEncrypted"))
                                                 Extractedclass = LoginDatabase.Instance.GetData(request.RetrieveQueryValue("email"), request.RetrieveQueryValue("passwordEncrypted"));
-                                            break;
+                                            break;*/
                                         default:
                                             LoggerAccessor.LogWarn($"[MULTISPY_GET] - Service - does not handle requested Command:{command} - Please report this on GITHUB if it's unexpected.");
                                             break;
