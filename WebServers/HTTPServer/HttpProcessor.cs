@@ -1350,7 +1350,7 @@ namespace HTTPServer
 
                             long FileLength = new FileInfo(local_path).Length;
 
-                            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/") && FileLength <= 10 * 1024 * 1024)
+                            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
                             {
                                 if (acceptencoding.Contains("zstd"))
                                 {
@@ -1563,7 +1563,7 @@ namespace HTTPServer
 
                     long FileLength = new FileInfo(local_path).Length;
 
-                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/") && FileLength <= 10 * 1024 * 1024)
+                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
                     {
                         if (acceptencoding.Contains("zstd"))
                         {

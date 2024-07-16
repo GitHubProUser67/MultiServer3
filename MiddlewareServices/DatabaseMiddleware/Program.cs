@@ -106,7 +106,6 @@ class Program
         Server?.StopServer();
         AuthTimer?.Dispose();
         SQLiteConnector.StopAllDatabases().Wait();
-        DatabaseMiddleware.Controllers.MultiSpyDatabase.LoginDatabase.CloseDatabase();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -173,7 +172,6 @@ class Program
                             LoggerAccessor.LogInfo("Shutting down. Goodbye!");
 
                             SQLiteConnector.StopAllDatabases().Wait();
-                            DatabaseMiddleware.Controllers.MultiSpyDatabase.LoginDatabase.CloseDatabase();
 
                             Environment.Exit(0);
                         }

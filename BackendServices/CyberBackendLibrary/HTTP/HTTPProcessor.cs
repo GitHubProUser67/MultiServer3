@@ -739,53 +739,35 @@ namespace CyberBackendLibrary.HTTP
 
         public static byte[] CompressBrotli(byte[] input)
         {
-            byte[] byteoutput = Array.Empty<byte>();
-
-            using (MemoryStream output = new MemoryStream())
+            using MemoryStream output = new MemoryStream();
+            using (BrotliStream brStream = new BrotliStream(output, CompressionLevel.Fastest))
             {
-                using (BrotliStream brStream = new BrotliStream(output, CompressionLevel.Fastest))
-                {
-                    brStream.Write(input, 0, input.Length);
-                    brStream.Flush();
-                }
-
-                byteoutput = output.ToArray();
+                brStream.Write(input, 0, input.Length);
+                brStream.Flush();
             }
 
-            return byteoutput;
+            return output.ToArray();
         }
 
         public static byte[] CompressGzip(byte[] input)
         {
-            byte[] byteoutput = Array.Empty<byte>();
+            using MemoryStream output = new MemoryStream();
+            using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, true))
+                gzipStream.Write(input, 0, input.Length);
 
-            using (MemoryStream output = new MemoryStream())
-            {
-                using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, true))
-                    gzipStream.Write(input, 0, input.Length);
-
-                byteoutput = output.ToArray();
-            }
-
-            return byteoutput;
+            return output.ToArray();
         }
 
         public static byte[] Inflate(byte[] input)
         {
-            byte[] byteoutput = Array.Empty<byte>();
-
-            using (MemoryStream output = new MemoryStream())
+            using MemoryStream output = new MemoryStream();
+            using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
             {
-                using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
-                {
-                    zlibStream.Write(input, 0, input.Length);
-                    zlibStream.finish();
-                }
-
-                byteoutput = output.ToArray();
+                zlibStream.Write(input, 0, input.Length);
+                zlibStream.finish();
             }
 
-            return byteoutput;
+            return output.ToArray();
         }
 
         public static Stream ZstdCompressStream(Stream input, bool LargeChunkMode)
