@@ -122,7 +122,14 @@ namespace HTTPServer.Models
                 if (streamtosend.CanSeek)
                     response.ContentStream = streamtosend;
                 else
-                    response.ContentStream = new HugeMemoryStream(streamtosend, HTTPServerConfiguration.BufferSize);
+                {
+                    response.ContentStream = new HugeMemoryStream(streamtosend, HTTPServerConfiguration.BufferSize)
+                    {
+                        Position = 0
+                    };
+                    streamtosend.Close();
+                    streamtosend.Dispose();
+                }
             }
             else
                 response.ContentStream = null;
