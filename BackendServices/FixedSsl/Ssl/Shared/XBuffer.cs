@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace Org.Mentalis.Security.Ssl.Shared
 {
     /// <summary>

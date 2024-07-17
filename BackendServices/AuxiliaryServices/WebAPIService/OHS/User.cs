@@ -554,7 +554,7 @@ namespace WebAPIService.OHS
                                 {
                                     JObject keyObject = (JObject)keyValueToken;
 
-                                    StringBuilder st = new("{ ");
+                                    StringBuilder st = new StringBuilder("{ ");
 
                                     foreach (string key in keys)
                                     {
@@ -587,7 +587,7 @@ namespace WebAPIService.OHS
                                 {
                                     JObject keyObject = (JObject)keyValueToken;
 
-                                    StringBuilder st = new("{ ");
+                                    StringBuilder st = new StringBuilder("{ ");
 
                                     foreach (string key in keys)
                                     {

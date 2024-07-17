@@ -45,7 +45,7 @@ namespace CyberBackendLibrary.SSL
             "bYQLCIt+jerXmCHG8+c8eS9enNFMFY3h7CI3zJpDC5fcgJCNs2ebb0gIFVbPv/Er\r\n" +
             "fF6adulZkMV8gzURZVE=\r\n" +
             "-----END CERTIFICATE-----\n";
-        private static readonly RSAParameters ROOT_CA_PARAMETERS = new()
+        private static readonly RSAParameters ROOT_CA_PARAMETERS = new RSAParameters()
         {
             Modulus = Convert.FromBase64String("2ZTXqhDKcw0ncDFYMh4MVTwV/2f8e" +
                 "GMjFom88ZB/a25TT95iziXfz6O+AB57wGvpUGnnRpkYtJ1GnSvUNWzUtGK3G" +

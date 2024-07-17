@@ -41,7 +41,10 @@ namespace CustomLogger
             {
                 if (File.Exists(logfilePath))
                 {
-                    using FileStream stream = File.Open(logfilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    using (FileStream stream = File.Open(logfilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        
+                    }
                 }
 
                 Directory.CreateDirectory(CurrentDir + $"/logs");
@@ -143,7 +146,7 @@ namespace CustomLogger
         public static void LogError(int? message, params object[] args) {  Logger.LogError(message.ToString(), args); }
         public static void LogError(float? message, params object[] args) {  Logger.LogError(message.ToString(), args); }
         public static void LogError(Exception exception) {  Logger.LogCritical(exception.ToString()); }
-        public static void LogDebug(string message, object? arg = null) {  Logger.LogDebug(message, arg); }
+        public static void LogDebug(string message, object arg = null) {  Logger.LogDebug(message, arg); }
         public static void LogDebug(string message, params object[] args) {  Logger.LogDebug(message, args); }
         public static void LogDebug(int? message, params object[] args) {  Logger.LogDebug(message.ToString(), args); }
         public static void LogDebug(float? message, params object[] args) {  Logger.LogDebug(message.ToString(), args); }

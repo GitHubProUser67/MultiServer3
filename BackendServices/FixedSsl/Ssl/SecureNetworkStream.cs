@@ -31,6 +31,8 @@
  *   OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using System;
+using System.IO;
 using System.Net.Sockets;
 using Org.Mentalis.Security.Ssl.Shared;
 

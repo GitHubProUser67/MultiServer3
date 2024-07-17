@@ -33,6 +33,7 @@
 
 using Org.Mentalis.Security.Ssl.Ssl3;
 using Org.Mentalis.Security.Ssl.Tls1;
+using System;
 
 namespace Org.Mentalis.Security.Ssl.Shared
 {

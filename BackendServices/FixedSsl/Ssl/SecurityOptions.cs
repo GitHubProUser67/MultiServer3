@@ -32,6 +32,7 @@
 */
 
 using Org.Mentalis.Security.Certificates;
+using System;
 
 namespace Org.Mentalis.Security.Ssl
 {

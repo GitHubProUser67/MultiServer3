@@ -5,7 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+#if NETCORE3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
+#endif
 
 namespace CyberBackendLibrary.TCP_IP
 {
@@ -15,7 +17,7 @@ namespace CyberBackendLibrary.TCP_IP
         {
             if (cidrPrefixLength == null || cidrPrefixLength.Value > 32 || cidrPrefixLength.Value < 8)
             {
-                LoggerAccessor.LogError($"[IPUtils] - GetIPInfos - Invalid CIDR prefix! {(cidrPrefixLength.HasValue ? cidrPrefixLength.Value : "null")}");
+                LoggerAccessor.LogError($"[IPUtils] - GetIPInfos - Invalid CIDR prefix! {(cidrPrefixLength.HasValue ? cidrPrefixLength.Value.ToString() : "null")}");
                 return;
             }
 
@@ -203,8 +205,10 @@ namespace CyberBackendLibrary.TCP_IP
         private static uint CountSetBits(uint value)
         {
             // Use the Popcnt intrinsic if available
+#if NETCORE3_0_OR_GREATER
             if (Popcnt.IsSupported)
                 return Popcnt.PopCount(value);
+#endif
 
             // Fallback method to count set bits if Popcnt is not supported
             uint count = 0;

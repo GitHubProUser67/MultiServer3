@@ -76,7 +76,7 @@ namespace CyberBackendLibrary.Extension
             }
         }
 
-        public T? FirstOrDefault(Func<T, bool> predicate)
+        public T FirstOrDefault(Func<T, bool> predicate)
         {
             lock (_lock)
             {

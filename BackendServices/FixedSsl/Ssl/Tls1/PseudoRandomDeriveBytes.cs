@@ -33,6 +33,7 @@
 
 using System.Text;
 using System.Security.Cryptography;
+using System;
 
 namespace Org.Mentalis.Security.Ssl.Tls1
 {

@@ -31,6 +31,7 @@
  *   OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
@@ -111,7 +112,11 @@ namespace Org.Mentalis.Security.Certificates
             get
             {
                 var provider = new RSACryptoServiceProvider();
+#if NET6_0_OR_GREATER
                 provider.ImportParameters(UnderlyingCert.PublicKey.GetRSAPublicKey()!.ExportParameters(false));
+#else
+                provider.ImportParameters(GetRSAPublicKeyLegacyNet(UnderlyingCert)!.ExportParameters(false));
+#endif
                 return provider;
             }
         }
@@ -122,5 +127,14 @@ namespace Org.Mentalis.Security.Certificates
         /// </summary>
         private CertificateStore? m_Store;
 
+        public static RSA? GetRSAPublicKeyLegacyNet(X509Certificate2 certificate)
+        {
+            if (!(certificate.PublicKey.Key is RSA rsaPublicKey))
+            {
+                throw new InvalidOperationException("Certificate does not contain an RSA public key.");
+            }
+
+            return rsaPublicKey;
+        }
     }
 }

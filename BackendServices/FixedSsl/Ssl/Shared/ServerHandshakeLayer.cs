@@ -32,6 +32,8 @@
 */
 
 using Org.Mentalis.Security.Certificates;
+using System;
+using System.IO;
 using System.Security.Cryptography;
 
 namespace Org.Mentalis.Security.Ssl.Shared

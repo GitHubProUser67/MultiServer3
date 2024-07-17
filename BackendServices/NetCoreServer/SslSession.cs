@@ -107,11 +107,13 @@ namespace NetCoreServer
             if (Server.OptionKeepAlive)
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             if (Server.OptionTcpKeepAliveTime >= 0)
+#if NET6_0_OR_GREATER
                 Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, Server.OptionTcpKeepAliveTime);
             if (Server.OptionTcpKeepAliveInterval >= 0)
                 Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, Server.OptionTcpKeepAliveInterval);
             if (Server.OptionTcpKeepAliveRetryCount >= 0)
                 Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, Server.OptionTcpKeepAliveRetryCount);
+#endif
             // Apply the option: no delay
             if (Server.OptionNoDelay)
                 Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
@@ -244,7 +246,7 @@ namespace NetCoreServer
             return true;
         }
 
-        #endregion
+#endregion
 
         #region Send/Receive data
 

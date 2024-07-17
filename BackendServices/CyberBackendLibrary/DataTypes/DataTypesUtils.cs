@@ -82,13 +82,19 @@ namespace CyberBackendLibrary.DataTypes
         /// <returns>A byte array.</returns>
         public static byte[] HexStringToByteArray(string hex)
         {
-            //copypasted from:
-            //https://social.msdn.microsoft.com/Forums/en-US/851492fa-9ddb-42d7-8d9a-13d5e12fdc70/convert-from-a-hex-string-to-a-byte-array-in-c?forum=aspgettingstarted
             string cleanedRequest = hex.Replace(" ", string.Empty).Replace("\n", string.Empty);
-            return Enumerable.Range(0, cleanedRequest.Length)
-                                 .Where(x => x % 2 == 0)
-                                 .Select(x => Convert.ToByte(cleanedRequest.Substring(x, 2), 16))
-                                 .ToArray();
+
+            if (cleanedRequest.Length % 2 == 1)
+                throw new Exception("The binary key cannot have an odd number of digits");
+
+            byte[] arr = new byte[cleanedRequest.Length >> 1];
+
+            for (int i = 0; i < cleanedRequest.Length >> 1; ++i)
+            {
+                arr[i] = (byte)((GetHexVal(cleanedRequest[i << 1]) << 4) + (GetHexVal(cleanedRequest[(i << 1) + 1])));
+            }
+
+            return arr;
         }
 
         /// <summary>
@@ -180,6 +186,17 @@ namespace CyberBackendLibrary.DataTypes
             }
             newArray[newSize - 1] = newElement;
             return newArray;
+        }
+
+        public static int GetHexVal(char hex)
+        {
+            int val = (int)hex;
+            //For uppercase A-F letters:
+            //return val - (val < 58 ? 48 : 55);
+            //For lowercase a-f letters:
+            //return val - (val < 58 ? 48 : 87);
+            //Or the two combined, but a bit slower:
+            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
 
         /// <summary>

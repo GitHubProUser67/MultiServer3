@@ -4,7 +4,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.OpenSsl;
 using System;
+#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using System.IO;
 using System.Text;
 
@@ -25,7 +27,7 @@ namespace XI5
         static XI5Ticket()
         {
             _sha224hasher = HashFactory.Crypto.CreateSHA224();
-            PemReader pr = new(new StringReader("-----BEGIN PUBLIC KEY-----\r\nME4wEAYHKoZIzj0CAQYFK4EEACADOgAEsHvA8K3bl2V+nziQOejSucl9wqMdMELn\r\n0Eebk9gcQrCr32xCGRox4x+TNC+PAzvVKcLFf9taCn0=\r\n-----END PUBLIC KEY-----"));
+            PemReader pr = new PemReader(new StringReader("-----BEGIN PUBLIC KEY-----\r\nME4wEAYHKoZIzj0CAQYFK4EEACADOgAEsHvA8K3bl2V+nziQOejSucl9wqMdMELn\r\n0Eebk9gcQrCr32xCGRox4x+TNC+PAzvVKcLFf9taCn0=\r\n-----END PUBLIC KEY-----"));
             ECDsaRPCN = new ECDsaSigner();
             ECDsaRPCN.Init(false, (ECPublicKeyParameters)pr.ReadObject());
         }
@@ -48,7 +50,7 @@ namespace XI5
 
         public XI5Ticket(byte[] data)
         {
-            MemoryStream ms = new(data);
+            MemoryStream ms = new MemoryStream(data);
 
             uint version = ms.ReadUInt();
 
@@ -69,14 +71,16 @@ namespace XI5
 
             ParseTicketV2_1(ms);
         }
-        
+
+#if NET5_0_OR_GREATER
         [MemberNotNull(nameof(Serial), nameof(OnlineId), nameof(Region), nameof(Domain), nameof(ServiceId), nameof(IssuerName), nameof(_signature), nameof(_fullBodyData))]
+#endif
         private void ParseTicketV2_1(MemoryStream ms)
         {
             _fullBodyData = ReadFullBody(ms);
             byte[] footer = ReadFooter(ms);
 
-            MemoryStream bodyStream = new(_fullBodyData);
+            MemoryStream bodyStream = new MemoryStream(_fullBodyData);
             bodyStream.Seek(4, SeekOrigin.Begin); //skip existing dt and size
             
             Serial = ReadBinaryAsString(bodyStream);
@@ -90,7 +94,7 @@ namespace XI5
             ServiceId = ReadBinaryAsString(bodyStream);
             Status = ReadUInt(bodyStream);
 
-            MemoryStream footerStream = new(footer);
+            MemoryStream footerStream = new MemoryStream(footer);
             IssuerName = ReadBinaryAsString(footerStream);
             _signature = ReadBinary(footerStream);
 
@@ -105,12 +109,11 @@ namespace XI5
                 if (IssuerId != 0x33333333) //they are using IssuerId = 0x33333333 as a constant
                     return false;
 
-                Asn1InputStream decoder = new(_signature);
-                if (decoder.ReadObject() is not DerSequence seq)
-                    return false;
+                Asn1InputStream decoder = new Asn1InputStream(_signature);
+                if (decoder.ReadObject() is DerSequence seq)
+                    return ECDsaRPCN.VerifySignature(_sha224hasher.ComputeBytes(_fullBodyData).GetBytes(), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
 
-                HashResult hres = _sha224hasher.ComputeBytes(_fullBodyData);
-                return ECDsaRPCN.VerifySignature(hres.GetBytes(), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
+                return false;
             }
         }
 
@@ -192,7 +195,7 @@ namespace XI5
 
         public override string ToString()
         {
-            StringBuilder builder = new();
+            StringBuilder builder = new StringBuilder();
             builder.AppendLine("{");
             builder.AppendLine("    TicketVersion = " + TicketVersion);
             builder.AppendLine("    Serial = " + Serial);

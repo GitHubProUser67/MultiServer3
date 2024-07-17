@@ -32,6 +32,7 @@
 */
 
 using Org.Mentalis.Security.Ssl.Shared;
+using System;
 
 namespace Org.Mentalis.Security.Ssl.Ssl3
 {
