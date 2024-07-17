@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>net6.0</TargetFramework>
+	<TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-	<IsTrimmable>true</IsTrimmable>
 	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
   

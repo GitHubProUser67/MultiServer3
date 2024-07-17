@@ -33,6 +33,7 @@
 
 using Org.Mentalis.Security.Certificates;
 using Org.Mentalis.Security.Ssl.Ssl3;
+using System;
 using System.Security.Cryptography;
 
 namespace Org.Mentalis.Security.Ssl.Shared

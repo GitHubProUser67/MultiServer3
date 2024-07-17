@@ -31,7 +31,9 @@
  *   OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using System;
 using System.Collections;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace Org.Mentalis.Security.Certificates

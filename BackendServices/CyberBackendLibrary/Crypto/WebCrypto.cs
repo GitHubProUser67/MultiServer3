@@ -220,7 +220,7 @@ namespace CyberBackendLibrary.Crypto
             double tempDouble = BitConverter.Int64BitsToDouble(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(initialValue) : initialValue);
             byte[] CheckSumBytes = new byte[inputData.Length];
 
-            Ionic.Crc.CRC32 crc = new();
+            Ionic.Crc.CRC32 crc = new Ionic.Crc.CRC32();
 
             do
             {

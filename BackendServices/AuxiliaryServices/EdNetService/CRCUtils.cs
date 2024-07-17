@@ -1,4 +1,7 @@
-﻿namespace EdNetService
+﻿using System;
+using System.Linq;
+
+namespace EdNetService
 {
     public class CRCUtils
     {

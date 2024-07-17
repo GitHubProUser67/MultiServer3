@@ -772,7 +772,11 @@ namespace CyberBackendLibrary.HTTP
 
         public static Stream ZstdCompressStream(Stream input, bool LargeChunkMode)
         {
-            Stream outMemoryStream = (input.Length > 2147483648) ? new HugeMemoryStream() : new MemoryStream();
+            Stream outMemoryStream;
+            if (input.Length > 2147483648)
+                outMemoryStream = new HugeMemoryStream();
+            else
+                outMemoryStream = new MemoryStream();
             using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
             {
                 outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
@@ -786,7 +790,11 @@ namespace CyberBackendLibrary.HTTP
 
         public static Stream BrotliCompressStream(Stream input, bool LargeChunkMode)
         {
-            Stream outMemoryStream = (input.Length > 2147483648) ? new HugeMemoryStream() : new MemoryStream();
+            Stream outMemoryStream;
+            if (input.Length > 2147483648)
+                outMemoryStream = new HugeMemoryStream();
+            else
+                outMemoryStream = new MemoryStream();
             BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
             CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
             input.Close();
@@ -797,7 +805,11 @@ namespace CyberBackendLibrary.HTTP
 
         public static Stream GzipCompressStream(Stream input, bool LargeChunkModeAndMultiThreaded)
         {
-            Stream outMemoryStream = (input.Length > 2147483648) ? new HugeMemoryStream() : new MemoryStream();
+            Stream outMemoryStream;
+            if (input.Length > 2147483648)
+                outMemoryStream = new HugeMemoryStream();
+            else
+                outMemoryStream = new MemoryStream();
             if (LargeChunkModeAndMultiThreaded)
             {
                 using ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, 2);
@@ -816,7 +828,11 @@ namespace CyberBackendLibrary.HTTP
 
         public static Stream InflateStream(Stream input, bool LargeChunkMode)
         {
-            Stream outMemoryStream = (input.Length > 2147483648) ? new HugeMemoryStream() : new MemoryStream();
+            Stream outMemoryStream;
+            if (input.Length > 2147483648)
+                outMemoryStream = new HugeMemoryStream();
+            else
+                outMemoryStream = new MemoryStream();
             ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
             CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
             outZStream.finish();

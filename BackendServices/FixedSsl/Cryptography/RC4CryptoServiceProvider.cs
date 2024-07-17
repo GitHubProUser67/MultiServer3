@@ -33,6 +33,7 @@
 
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
+using System;
 
 namespace Org.Mentalis.Security.Cryptography
 {

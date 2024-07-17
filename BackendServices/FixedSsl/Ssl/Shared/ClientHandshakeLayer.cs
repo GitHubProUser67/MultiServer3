@@ -35,6 +35,8 @@ using System.Collections;
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 using Org.Mentalis.Security.Certificates;
+using System;
+using System.IO;
 
 namespace Org.Mentalis.Security.Ssl.Shared
 {

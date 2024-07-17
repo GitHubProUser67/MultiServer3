@@ -31,6 +31,9 @@
  *   OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using System;
+using System.Threading;
+
 namespace Org.Mentalis.Security.Ssl
 {
     internal class AsyncResult : IAsyncResult {

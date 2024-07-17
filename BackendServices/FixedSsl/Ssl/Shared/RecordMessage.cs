@@ -31,6 +31,8 @@
  *   OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using System;
+
 namespace Org.Mentalis.Security.Ssl.Shared
 {
     internal class RecordMessage {

@@ -952,6 +952,7 @@ namespace Ionic.Exploration
         ///
         /// </remarks>
         /// <param name="buffer">The buffer holding data to write to the stream.</param>
+#if NET6_0_OR_GREATER
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             byte[] BufferArray = buffer.ToArray();
@@ -1060,7 +1061,7 @@ namespace Ionic.Exploration
             TraceOutput(TraceBits.WriteEnter, "Write    exit");
             return;
         }
-
+#endif
 
 
         private void _FlushFinish()

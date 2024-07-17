@@ -34,6 +34,8 @@
 using System.Net.Sockets;
 using System.Collections;
 using Org.Mentalis.Security.Certificates;
+using System;
+using System.IO;
 
 namespace Org.Mentalis.Security.Ssl.Shared
 {

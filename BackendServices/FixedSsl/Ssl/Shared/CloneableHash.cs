@@ -34,6 +34,7 @@
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 using Org.Mentalis.Security.Cryptography;
+using System;
 
 namespace Org.Mentalis.Security.Ssl.Shared
 {

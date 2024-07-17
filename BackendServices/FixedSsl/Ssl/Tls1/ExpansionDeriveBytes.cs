@@ -34,6 +34,7 @@
 using System.Text;
 using System.Security.Cryptography;
 using HMAC = Org.Mentalis.Security.Cryptography.HMAC;
+using System;
 
 namespace Org.Mentalis.Security.Ssl.Tls1
 {

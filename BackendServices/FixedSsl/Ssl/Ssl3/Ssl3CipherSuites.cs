@@ -31,6 +31,7 @@
  *   OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using System;
 using System.Security.Cryptography;
 using Org.Mentalis.Security.Ssl.Shared;
 
