@@ -1105,7 +1105,7 @@ namespace HTTPServer
                     if (response.ContentStream != null) // Safety.
                     {
                         bool KeepAlive = request.RetrieveHeaderValue("Connection") == "keep-alive";
-                        string EtagMD5 = ComputeStreamMD5(response.ContentStream);
+                        string? EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
                         if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
                         {
@@ -1121,7 +1121,8 @@ namespace HTTPServer
                             if (KeepAlive)
                                 response.Headers.Add("Connection", "Keep-Alive");
 
-                            response.Headers.Add("ETag", EtagMD5);
+                            if (!string.IsNullOrEmpty(EtagMD5))
+                                response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             response.Headers.Add("age", "1800");
 
@@ -1134,6 +1135,8 @@ namespace HTTPServer
                         else
                         {
                             int buffersize = HTTPServerConfiguration.BufferSize;
+                            long totalBytes = response.ContentStream.Length;
+                            long bytesLeft = totalBytes;
                             string? encoding = null;
 
                             if (KeepAlive)
@@ -1147,7 +1150,8 @@ namespace HTTPServer
                             if (response.HttpStatusCode == HttpStatusCode.OK || response.HttpStatusCode == HttpStatusCode.PartialContent)
                             {
                                 response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.Headers.Add("ETag", EtagMD5);
+                                if (!string.IsNullOrEmpty(EtagMD5))
+                                    response.Headers.Add("ETag", EtagMD5);
                                 response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
                                 response.Headers.Add("age", "1800");
                                 if (File.Exists(local_path))
@@ -1161,15 +1165,12 @@ namespace HTTPServer
 
                                 }
                                 else
-                                    response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+                                    response.Headers.Add("Content-Length", totalBytes.ToString());
                             }
 
                             WriteLineToStream(stream, response.ToHeader());
 
                             stream.Flush();
-
-                            long totalBytes = response.ContentStream.Length;
-                            long bytesLeft = totalBytes;
 
                             if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                 buffersize = 500000;
@@ -1685,7 +1686,7 @@ namespace HTTPServer
                     if (response.ContentStream != null) // Safety.
                     {
                         bool KeepAlive = request.RetrieveHeaderValue("Connection") == "keep-alive";
-                        string EtagMD5 = ComputeStreamMD5(response.ContentStream);
+                        string? EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
                         if (request.Headers != null && request.Headers.TryGetValue("If-None-Match", out string? value1) && value1.Equals(EtagMD5))
                         {
@@ -1694,7 +1695,8 @@ namespace HTTPServer
                             if (KeepAlive)
                                 response.Headers.Add("Connection", "Keep-Alive");
 
-                            response.Headers.Add("ETag", EtagMD5);
+                            if (!string.IsNullOrEmpty(EtagMD5))
+                                response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             response.Headers.Add("age", "1800");
 
@@ -1707,6 +1709,8 @@ namespace HTTPServer
                         else
                         {
                             int buffersize = HTTPServerConfiguration.BufferSize;
+                            long totalBytes = response.ContentStream.Length;
+                            long bytesLeft = totalBytes;
                             string? encoding = null;
 
                             if (KeepAlive)
@@ -1714,7 +1718,8 @@ namespace HTTPServer
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                            response.Headers.Add("ETag", EtagMD5);
+                            if (!string.IsNullOrEmpty(EtagMD5))
+                                response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             response.Headers.Add("age", "1800");
                             response.Headers.Add("Last-Modified", File.GetLastWriteTime(local_path).ToString("r"));
@@ -1726,15 +1731,12 @@ namespace HTTPServer
 
                                 }
                                 else
-                                    response.Headers.Add("Content-Length", response.ContentStream.Length.ToString());
+                                    response.Headers.Add("Content-Length", totalBytes.ToString());
                             }
 
                             WriteLineToStream(stream, response.ToHeader());
 
                             stream.Flush();
-
-                            long totalBytes = response.ContentStream.Length;
-                            long bytesLeft = totalBytes;
 
                             if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
                                 buffersize = 500000;
@@ -1972,7 +1974,7 @@ namespace HTTPServer
         /// </summary>
         /// <param name="input">The input stream (must be seekable).</param>
         /// <returns>A string.</returns>
-        private static string ComputeStreamMD5(Stream input)
+        private static string? ComputeStreamMD5(Stream input)
         {
             if (!input.CanSeek)
                 return string.Empty;
