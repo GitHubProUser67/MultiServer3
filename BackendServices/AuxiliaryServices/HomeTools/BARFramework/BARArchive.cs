@@ -11,7 +11,7 @@ using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System.Collections.Generic;
 using System;
-using CyberBackendLibrary.Crypto;
+using CompressionLibrary.Edge;
 
 namespace HomeTools.BARFramework
 {
@@ -660,7 +660,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[]? array2 = null;
                 if (isvalid)
-                    array2 = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibCompress(array);
+                    array2 = Zlib.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length;
@@ -702,7 +702,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[]? array2 = null;
                 if (isvalid)
-                    array2 = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibCompress(array);
+                    array2 = Zlib.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length + 28;

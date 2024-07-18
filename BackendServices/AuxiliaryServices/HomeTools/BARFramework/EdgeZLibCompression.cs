@@ -1,3 +1,5 @@
+using CompressionLibrary.Edge;
+
 namespace HomeTools.BARFramework
 {
     public class EdgeZLibCompression : CompressionBase
@@ -14,12 +16,12 @@ namespace HomeTools.BARFramework
 
         public override byte[] Compress(byte[] inData)
         {
-            return CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibCompress(inData);
+            return Zlib.ComponentAceEdgeZlibCompress(inData);
         }
 
         public override byte[] Decompress(byte[] inData)
         {
-            return CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibDecompress(inData);
+            return Zlib.ComponentAceEdgeZlibDecompress(inData);
         }
 
         public override CompressionMethod Method

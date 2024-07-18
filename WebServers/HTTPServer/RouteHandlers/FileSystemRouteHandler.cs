@@ -108,22 +108,22 @@ namespace HTTPServer.RouteHandlers
                     if (encoding.Contains("zstd"))
                     {
                         response.Headers.Add("Content-Encoding", "zstd");
-                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.OpenRead(local_path), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.OpenRead(local_path));
                     }
                     else if (encoding.Contains("br"))
                     {
                         response.Headers.Add("Content-Encoding", "br");
-                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.OpenRead(local_path), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.OpenRead(local_path));
                     }
                     else if (encoding.Contains("gzip"))
                     {
                         response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.OpenRead(local_path), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.OpenRead(local_path));
                     }
                     else if (encoding.Contains("deflate"))
                     {
                         response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = HTTPProcessor.InflateStream(File.OpenRead(local_path), FileLength > 8000000);
+                        response.ContentStream = HTTPProcessor.InflateStream(File.OpenRead(local_path));
                     }
                     else
                         response.ContentStream = File.OpenRead(local_path);

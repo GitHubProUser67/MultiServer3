@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace CompressionLibrary.Utils
+namespace CompressionLibrary.Edge
 {
-    public class EdgeLZMA
+    public class LZMA
     {
         private static int dictionary = 1 << 23;
 
@@ -333,7 +333,7 @@ namespace CompressionLibrary.Utils
                 encoder.WriteCoderProperties(strmOutStream);
                 long fileSize = inStream.Length;
                 for (int i = 0; i < 8; i++)
-                strmOutStream.WriteByte((byte)(fileSize >> (8 * i)));
+                    strmOutStream.WriteByte((byte)(fileSize >> (8 * i)));
                 encoder.Code(inStream, strmOutStream, -1, -1, null);
                 strmOutStream.Position = 0;
                 strmOutStream.CopyTo(outStream);

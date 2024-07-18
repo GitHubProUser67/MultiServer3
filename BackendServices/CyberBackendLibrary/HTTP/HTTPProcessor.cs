@@ -770,7 +770,7 @@ namespace CyberBackendLibrary.HTTP
             return output.ToArray();
         }
 
-        public static Stream ZstdCompressStream(Stream input, bool LargeChunkMode)
+        public static Stream ZstdCompressStream(Stream input)
         {
             Stream outMemoryStream;
             if (input.Length > 2147483648)
@@ -780,7 +780,7 @@ namespace CyberBackendLibrary.HTTP
             using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
             {
                 outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
-                CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096);
+                CopyStream(input, outZStream, 4096);
             }
             input.Close();
             input.Dispose();
@@ -788,7 +788,7 @@ namespace CyberBackendLibrary.HTTP
             return outMemoryStream;
         }
 
-        public static Stream BrotliCompressStream(Stream input, bool LargeChunkMode)
+        public static Stream BrotliCompressStream(Stream input)
         {
             Stream outMemoryStream;
             if (input.Length > 2147483648)
@@ -796,37 +796,29 @@ namespace CyberBackendLibrary.HTTP
             else
                 outMemoryStream = new MemoryStream();
             BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
-            CopyStream(input, outBStream, LargeChunkMode ? 500000 : 4096);
+            CopyStream(input, outBStream, 4096);
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);
             return outMemoryStream;
         }
 
-        public static Stream GzipCompressStream(Stream input, bool LargeChunkModeAndMultiThreaded)
+        public static Stream GzipCompressStream(Stream input)
         {
             Stream outMemoryStream;
             if (input.Length > 2147483648)
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            if (LargeChunkModeAndMultiThreaded)
-            {
-                using ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, 2);
-                CopyStream(input, outGStream, 500000, false);
-            }
-            else
-            {
-                using GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true);
+            using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, 2))
                 CopyStream(input, outGStream, 4096, false);
-            }
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);
             return outMemoryStream;
         }
 
-        public static Stream InflateStream(Stream input, bool LargeChunkMode)
+        public static Stream InflateStream(Stream input)
         {
             Stream outMemoryStream;
             if (input.Length > 2147483648)
@@ -834,7 +826,7 @@ namespace CyberBackendLibrary.HTTP
             else
                 outMemoryStream = new MemoryStream();
             ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
-            CopyStream(input, outZStream, LargeChunkMode ? 500000 : 4096, false);
+            CopyStream(input, outZStream, 4096, false);
             outZStream.finish();
             input.Close();
             input.Dispose();
