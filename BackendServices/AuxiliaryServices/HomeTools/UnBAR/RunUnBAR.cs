@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Collections.Generic;
-using CyberBackendLibrary.Crypto;
+using CompressionLibrary.Edge;
 
 namespace HomeTools.UnBAR
 {
@@ -393,7 +393,7 @@ namespace HomeTools.UnBAR
                                         {
                                             try
                                             {
-                                                FileBytes = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibDecompress(FileBytes);
+                                                FileBytes = Zlib.ComponentAceEdgeZlibDecompress(FileBytes);
                                             }
                                             catch
                                             {
@@ -403,7 +403,7 @@ namespace HomeTools.UnBAR
 
                                                 try
                                                 {
-                                                    FileBytes = CompressionLibrary.Utils.EdgeZlib.ICSharpEdgeZlibDecompress(FileBytes);
+                                                    FileBytes = Zlib.ICSharpEdgeZlibDecompress(FileBytes);
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -475,7 +475,7 @@ namespace HomeTools.UnBAR
 
                 try
                 {
-                    FileBytes = CompressionLibrary.Utils.EdgeZlib.ComponentAceEdgeZlibDecompress(FileBytes);
+                    FileBytes = Zlib.ComponentAceEdgeZlibDecompress(FileBytes);
                 }
                 catch
                 {
@@ -485,7 +485,7 @@ namespace HomeTools.UnBAR
 
                     try
                     {
-                        FileBytes = CompressionLibrary.Utils.EdgeZlib.ICSharpEdgeZlibDecompress(FileBytes);
+                        FileBytes = Zlib.ICSharpEdgeZlibDecompress(FileBytes);
                     }
                     catch (Exception ex)
                     {

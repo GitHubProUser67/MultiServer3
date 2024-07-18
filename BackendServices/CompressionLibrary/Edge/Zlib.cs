@@ -5,9 +5,9 @@ using ComponentAce.Compression.Libs.zlib;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace CompressionLibrary.Utils
+namespace CompressionLibrary.Edge
 {
-    public class EdgeZlib
+    public class Zlib
     {
         public static byte[] ICSharpEdgeZlibDecompress(byte[] inData)
         {
@@ -130,8 +130,8 @@ namespace CompressionLibrary.Utils
             internal byte[] GetBytes()
             {
                 byte[] array = new byte[4];
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.EndianSwap(SourceSize) : SourceSize), 0, array, 2, 2);
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.EndianSwap(CompressedSize) : CompressedSize), 0, array, 0, 2);
+                Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(SourceSize) : SourceSize), 0, array, 2, 2);
+                Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(CompressedSize) : CompressedSize), 0, array, 0, 2);
                 return array;
             }
 

@@ -1,8 +1,7 @@
-
 using System;
 using System.Security.Cryptography;
 
-namespace WebAPIService.CDS
+namespace HomeTools.CDS
 {
     public class BruteforceProcess
     {

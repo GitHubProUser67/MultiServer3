@@ -1607,25 +1607,25 @@ namespace HTTPSecureServerLite
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                    st = HTTPProcessor.ZstdCompressStream(File.OpenRead(filePath), fileSize > 8000000);
+                    st = HTTPProcessor.ZstdCompressStream(File.OpenRead(filePath));
                 }
                 else if (encoding.Contains("br"))
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "br");
-                    st = HTTPProcessor.BrotliCompressStream(File.OpenRead(filePath), fileSize > 8000000);
+                    st = HTTPProcessor.BrotliCompressStream(File.OpenRead(filePath));
                 }
                 else if (encoding.Contains("gzip"))
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    st = HTTPProcessor.GzipCompressStream(File.OpenRead(filePath), fileSize > 8000000);
+                    st = HTTPProcessor.GzipCompressStream(File.OpenRead(filePath));
                 }
                 else if (encoding.Contains("deflate"))
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                    st = HTTPProcessor.InflateStream(File.OpenRead(filePath), fileSize > 8000000);
+                    st = HTTPProcessor.InflateStream(File.OpenRead(filePath));
                 }
                 else
                     st = File.OpenRead(filePath);
