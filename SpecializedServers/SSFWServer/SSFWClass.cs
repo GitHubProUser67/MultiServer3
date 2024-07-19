@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using System.Net.Security;
 using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
-using Newtonsoft.Json;
 
 namespace SSFWServer
 {
@@ -87,6 +86,7 @@ namespace SSFWServer
                 (string HeaderIndex, string HeaderItem)[] Headers = CollectHeaders(request);
 
                 string UserAgent = GetHeaderValue(Headers, "User-Agent");
+                string Host = GetHeaderValue(Headers, "Host");
 
                 if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS")) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
@@ -105,12 +105,23 @@ namespace SSFWServer
                     // Process the request based on the HTTP method
                     string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath[1..]);
 
+                    string? envFound = "cprod";
+                    string? envToCheck = string.Empty;
+                    if(string.IsNullOrEmpty(envToCheck) && envToCheck != envFound)
+                    {
+                        // Split the host into segments
+                        var segmentsHost = Host.Split('.');
+                        // Check if any segment matches an environment using LINQ
+                        envFound = SSFWMisc.homeEnvs.FirstOrDefault(env => segmentsHost.Contains(env));
+                        envToCheck = envFound;
+                    }
+
                     switch (request.Method)
                     {
                         case "GET":
 
                             #region LayoutService
-                            if (absolutepath.Contains("/LayoutService/cprod/person/") && !string.IsNullOrEmpty(sessionid))
+                            if (absolutepath.Contains($"/LayoutService/{envFound}/person/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWLayoutService layout = new(legacykey);
                                 string? res = layout.HandleLayoutServiceGET(directoryPath, filePath);
@@ -147,7 +158,7 @@ namespace SSFWServer
                             #endregion
 
                             #region SaveDataService
-                            else if (absolutepath.Contains($"/SaveDataService/cprod/{segments.LastOrDefault()}") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/SaveDataService/{envFound}/{segments.LastOrDefault()}") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWGetFileList filelist = new();
                                 string? res = filelist.SSFWSaveDataDebugGetFileList(directoryPath, segments.LastOrDefault());
@@ -221,7 +232,7 @@ namespace SSFWServer
                                 if (!string.IsNullOrEmpty(XHomeClientVersion) && !string.IsNullOrEmpty(generalsecret))
                                 {
                                     SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
-                                    string? result = login.HandleLogin(request.BodyBytes, "cprod"); // Todo, make env maybe more dynamic?
+                                    string? result = login.HandleLogin(request.BodyBytes, envFound);
                                     if (!string.IsNullOrEmpty(result))
                                     {
                                         Response.Clear();
@@ -248,7 +259,7 @@ namespace SSFWServer
                             #endregion
 
                             #region AvatarLayoutService
-                            else if (absolutepath.Contains("/AvatarLayoutService/cprod/") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/AvatarLayoutService/{envFound}/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWAvatarLayoutService layout = new(sessionid, legacykey);
                                 Response.Clear();
@@ -262,7 +273,7 @@ namespace SSFWServer
                             #endregion
 
                             #region LayoutService
-                            else if (absolutepath.Contains("/LayoutService/cprod/person/") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/LayoutService/{envFound}/person/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWLayoutService layout = new(legacykey);
                                 Response.Clear();
@@ -276,20 +287,20 @@ namespace SSFWServer
                             #endregion
 
                             #region RewardsService
-                            else if (absolutepath.Contains("/RewardsService/cprod/rewards/") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/RewardsService/{envFound}/rewards/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWRewardsService reward = new(legacykey);
                                 Response.MakeGetResponse(reward.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
                                 reward.Dispose();
                             }
-                            else if (absolutepath.Contains("/RewardsService/trunks-cprod/trunks/") && absolutepath.Contains("/setpartial") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/RewardsService/trunks-{envFound}/trunks/") && absolutepath.Contains("/setpartial") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWRewardsService reward = new(legacykey);
                                 reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
                                 Response.MakeOkResponse();
                                 reward.Dispose();
                             }
-                            else if (absolutepath.Contains("/RewardsService/trunks-cprod/trunks/") && absolutepath.Contains("/set") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/RewardsService/trunks-{envFound}/trunks/") && absolutepath.Contains("/set") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWRewardsService reward = new(legacykey);
                                 reward.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
@@ -365,7 +376,7 @@ namespace SSFWServer
                         case "DELETE":
 
                             #region AvatarLayoutService
-                            if (absolutepath.Contains("/AvatarLayoutService/cprod/") && !string.IsNullOrEmpty(sessionid))
+                            if (absolutepath.Contains($"/AvatarLayoutService/{envFound}/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWAvatarLayoutService layout = new(sessionid, legacykey);
                                 Response.Clear();
