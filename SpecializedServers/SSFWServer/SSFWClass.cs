@@ -8,15 +8,14 @@ using System.Text.RegularExpressions;
 using System.Net.Security;
 using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
-using Newtonsoft.Json;
 
 namespace SSFWServer
 {
     public class SSFWClass
     {
-        public static string? legacykey;
-        public static SSFWServer? _Server;
-        public static HttpSSFWServer? _HttpServer;
+        private static string? legacykey;
+        private static SSFWServer? _Server;
+        private static HttpSSFWServer? _HttpServer;
         private string certpath;
         private string certpass;
 
@@ -44,19 +43,35 @@ namespace SSFWServer
 
         public static string GetHeaderValue((string HeaderIndex, string HeaderItem)[] headers, string requestedHeaderIndex)
         {
-            string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
-
-            foreach ((string HeaderIndex, string HeaderItem) in headers)
+            if (headers.Length != 0)
             {
-                Match match = Regex.Match(HeaderItem, pattern);
+                string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
 
-                if (HeaderIndex == requestedHeaderIndex)
-                    return HeaderItem;
-                else if (HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
-                    return match.Groups[2].Value;
+                foreach ((string HeaderIndex, string HeaderItem) in headers)
+                {
+                    Match match = Regex.Match(HeaderItem, pattern);
+
+                    if (HeaderIndex == requestedHeaderIndex)
+                        return HeaderItem;
+                    else if (HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+                        return match.Groups[2].Value;
+                }
             }
+
             return string.Empty; // Return empty string if the header index is not found, why not null, because in this case it prevents us
                                  // from doing extensive checks everytime we want to display the User-Agent in particular.
+        }
+
+        public static string? ExtractBeforeFirstDot(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            int dotIndex = input.IndexOf('.');
+            if (dotIndex == -1)
+                return null;
+
+            return input[..dotIndex];
         }
 
         public void StartSSFW()
@@ -66,10 +81,10 @@ namespace SSFWServer
             // Create and start the server
             _HttpServer = new HttpSSFWServer(IPAddress.Any, 8080);
 
-            _ = Task.Run(() => Parallel.Invoke(
+            Parallel.Invoke(
                     () => _Server.Start(),
                     () => _HttpServer.Start()
-                ));
+                );
 
             LoggerAccessor.LogInfo("[SSFW] - Server started on ports 8080 and 10443...");
         }
@@ -90,6 +105,8 @@ namespace SSFWServer
 
                 if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS")) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
+                    string? env = ExtractBeforeFirstDot(GetHeaderValue(Headers, "Host"));
+
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 
                     string sessionid = GetHeaderValue(Headers, "X-Home-Session-Id");
@@ -105,12 +122,15 @@ namespace SSFWServer
                     // Process the request based on the HTTP method
                     string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath[1..]);
 
+                    if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
+                        env = "cprod";
+
                     switch (request.Method)
                     {
                         case "GET":
 
                             #region LayoutService
-                            if (absolutepath.Contains("/LayoutService/cprod/person/") && !string.IsNullOrEmpty(sessionid))
+                            if (absolutepath.Contains($"/LayoutService/{env}/person/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWLayoutService layout = new(legacykey);
                                 string? res = layout.HandleLayoutServiceGET(directoryPath, filePath);
@@ -147,7 +167,7 @@ namespace SSFWServer
                             #endregion
 
                             #region SaveDataService
-                            else if (absolutepath.Contains($"/SaveDataService/cprod/{segments.LastOrDefault()}") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/SaveDataService/{env}/{segments.LastOrDefault()}") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWGetFileList filelist = new();
                                 string? res = filelist.SSFWSaveDataDebugGetFileList(directoryPath, segments.LastOrDefault());
@@ -221,7 +241,7 @@ namespace SSFWServer
                                 if (!string.IsNullOrEmpty(XHomeClientVersion) && !string.IsNullOrEmpty(generalsecret))
                                 {
                                     SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
-                                    string? result = login.HandleLogin(request.BodyBytes, "cprod"); // Todo, make env maybe more dynamic?
+                                    string? result = login.HandleLogin(request.BodyBytes, env);
                                     if (!string.IsNullOrEmpty(result))
                                     {
                                         Response.Clear();
@@ -248,7 +268,7 @@ namespace SSFWServer
                             #endregion
 
                             #region AvatarLayoutService
-                            else if (absolutepath.Contains("/AvatarLayoutService/cprod/") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWAvatarLayoutService layout = new(sessionid, legacykey);
                                 Response.Clear();
@@ -262,7 +282,7 @@ namespace SSFWServer
                             #endregion
 
                             #region LayoutService
-                            else if (absolutepath.Contains("/LayoutService/cprod/person/") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/LayoutService/{env}/person/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWLayoutService layout = new(legacykey);
                                 Response.Clear();
@@ -276,20 +296,20 @@ namespace SSFWServer
                             #endregion
 
                             #region RewardsService
-                            else if (absolutepath.Contains("/RewardsService/cprod/rewards/") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/RewardsService/{env}/rewards/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWRewardsService reward = new(legacykey);
                                 Response.MakeGetResponse(reward.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
                                 reward.Dispose();
                             }
-                            else if (absolutepath.Contains("/RewardsService/trunks-cprod/trunks/") && absolutepath.Contains("/setpartial") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWRewardsService reward = new(legacykey);
                                 reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
                                 Response.MakeOkResponse();
                                 reward.Dispose();
                             }
-                            else if (absolutepath.Contains("/RewardsService/trunks-cprod/trunks/") && absolutepath.Contains("/set") && !string.IsNullOrEmpty(sessionid))
+                            else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/set") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWRewardsService reward = new(legacykey);
                                 reward.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
@@ -365,7 +385,7 @@ namespace SSFWServer
                         case "DELETE":
 
                             #region AvatarLayoutService
-                            if (absolutepath.Contains("/AvatarLayoutService/cprod/") && !string.IsNullOrEmpty(sessionid))
+                            if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && !string.IsNullOrEmpty(sessionid))
                             {
                                 SSFWAvatarLayoutService layout = new(sessionid, legacykey);
                                 Response.Clear();
