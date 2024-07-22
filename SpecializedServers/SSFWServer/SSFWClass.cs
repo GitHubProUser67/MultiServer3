@@ -45,16 +45,19 @@ namespace SSFWServer
         {
             if (headers.Length != 0)
             {
-                string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+                const string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
 
                 foreach ((string HeaderIndex, string HeaderItem) in headers)
                 {
-                    Match match = Regex.Match(HeaderItem, pattern);
-
-                    if (HeaderIndex == requestedHeaderIndex)
+                    if (HeaderIndex.Equals(requestedHeaderIndex))
                         return HeaderItem;
-                    else if (HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
-                        return match.Groups[2].Value;
+                    else
+                    {
+                        Match match = Regex.Match(HeaderItem, pattern);
+
+                        if (HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+                            return match.Groups[2].Value;
+                    }
                 }
             }
 
