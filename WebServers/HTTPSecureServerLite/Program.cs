@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 using CyberBackendLibrary.AIModels;
 using System.Security.Cryptography;
 using CyberBackendLibrary.HTTP.PluginManager;
-using System.Diagnostics;
-using System.Security.Principal;
 using System.Reflection;
 using CyberBackendLibrary.HTTP;
 using System.Collections.Concurrent;
@@ -423,7 +421,7 @@ class Program
     {
         using FileStream stream = File.OpenRead(filePath);
         // Convert the byte array to a hexadecimal string
-        return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
+        return CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(stream);
     }
 
     static void Main()

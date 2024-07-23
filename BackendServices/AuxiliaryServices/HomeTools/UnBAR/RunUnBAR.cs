@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using CompressionLibrary.Edge;
+using CastleLibrary.Utils.Hash;
 
 namespace HomeTools.UnBAR
 {
@@ -363,13 +364,7 @@ namespace HomeTools.UnBAR
 
                                 StringBuilder sb = new StringBuilder();
 
-                                byte[] SHA1Data = new byte[0];
-                                using (SHA1 sha1 = SHA1.Create())
-                                {
-                                    SHA1Data = sha1.ComputeHash(FileBytes);
-                                }
-
-                                foreach (byte b in SHA1Data)
+                                foreach (byte b in NetHasher.ComputeSHA1(FileBytes))
                                 {
                                     sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
                                 }

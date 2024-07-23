@@ -1,5 +1,4 @@
-﻿using HashLib; //The only reason why HashLib is used is because rpcn uses sha224 to sign their tickets, which is not natively supported in .NET
-using Org.BouncyCastle.Asn1;
+﻿using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.OpenSsl;
@@ -21,12 +20,10 @@ namespace XI5
         const uint XI5_VER_3_0 = 822083584;
         const uint XI5_VER_4_0 = 1090519040;
 
-        private static IHash _sha224hasher;
         private static ECDsaSigner ECDsaRPCN;
 
         static XI5Ticket()
         {
-            _sha224hasher = HashFactory.Crypto.CreateSHA224();
             PemReader pr = new PemReader(new StringReader("-----BEGIN PUBLIC KEY-----\r\nME4wEAYHKoZIzj0CAQYFK4EEACADOgAEsHvA8K3bl2V+nziQOejSucl9wqMdMELn\r\n0Eebk9gcQrCr32xCGRox4x+TNC+PAzvVKcLFf9taCn0=\r\n-----END PUBLIC KEY-----"));
             ECDsaRPCN = new ECDsaSigner();
             ECDsaRPCN.Init(false, (ECPublicKeyParameters)pr.ReadObject());
@@ -111,7 +108,7 @@ namespace XI5
 
                 Asn1InputStream decoder = new Asn1InputStream(_signature);
                 if (decoder.ReadObject() is DerSequence seq)
-                    return ECDsaRPCN.VerifySignature(_sha224hasher.ComputeBytes(_fullBodyData).GetBytes(), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
+                    return ECDsaRPCN.VerifySignature(CastleLibrary.Utils.Hash.NetHasher.ComputeSHA224(_fullBodyData), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
 
                 return false;
             }

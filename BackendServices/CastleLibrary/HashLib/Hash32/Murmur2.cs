@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EndianTools;
+using System;
 using System.Diagnostics;
 using System.Text;
 
@@ -475,7 +476,7 @@ namespace HashLib.Hash32
 
         public int ComputeDoubleFast(double a_data)
         {
-            return ComputeLongFast(BitConverter.DoubleToInt64Bits(a_data));
+            return ComputeLongFast(BitConverter.DoubleToInt64Bits(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
         }
 
         public int ComputeDoublesFast(double[] a_data)
@@ -492,7 +493,7 @@ namespace HashLib.Hash32
 
             while (length >= 8)
             {
-                long k = BitConverter.DoubleToInt64Bits(a_data[current_index++]);
+                long k = BitConverter.DoubleToInt64Bits(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data[current_index++]) : a_data[current_index++]);
 
                 TransformULongFast(unchecked((ulong)k));
 

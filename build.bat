@@ -14,7 +14,6 @@ dotnet build MultiServer3.sln --configuration Debug --property WarningLevel=0
 dotnet build MultiServer3.sln --configuration Release --property WarningLevel=0
 
 @echo Copying build output to ~BuildOutput...
-xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/Horizon/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/MultiSocks/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/QuazalServer/bin" "~BuildOutput/MultiServer"

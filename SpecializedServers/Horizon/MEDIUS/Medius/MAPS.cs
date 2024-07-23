@@ -244,30 +244,8 @@ namespace Horizon.MEDIUS.Medius
 
         public static string ShiftString(string t)
         {
-            return t.Substring(1, t.Length - 1) + t.Substring(0, 1);
+            return t[1..] + t[..1];
         }
-        public static uint ReverseBytesUInt(uint value)
-        {
-            return (uint)((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
-                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
-        }
-        public static int ReverseBytesInt(int value)
-        {
-            return (int)((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
-                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
-        }
-
-        #region ReverseBytes16
-        /// <summary>
-        /// Reverses UInt16 
-        /// </summary>
-        /// <param name="nValue"></param>
-        /// <returns></returns>
-        public static ushort ReverseBytes16(ushort nValue)
-        {
-            return (ushort)((ushort)((nValue >> 8)) | (nValue << 8));
-        }
-        #endregion
 
         public byte[] BitShift(byte[] sequence, int length)
         {

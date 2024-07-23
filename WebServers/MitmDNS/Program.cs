@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -178,7 +177,7 @@ class Program
     {
         using FileStream stream = File.OpenRead(filePath);
         // Convert the byte array to a hexadecimal string
-        return BitConverter.ToString(MD5.Create().ComputeHash(stream)).Replace("-", string.Empty);
+        return CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(stream);
     }
 
     static void Main()

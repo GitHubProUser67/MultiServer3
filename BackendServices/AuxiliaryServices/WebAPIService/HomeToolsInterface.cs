@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using CyberBackendLibrary.Crypto;
 using System.Linq;
 using CompressionLibrary.Edge;
+using CastleLibrary.Utils.Hash;
 
 namespace WebAPIService
 {
@@ -672,13 +673,7 @@ namespace WebAPIService
                         }
                         else
                         {
-                            byte[] SHA1Data = new byte[0];
-                            using (SHA1 sha1hash = SHA1.Create())
-                            {
-                                SHA1Data = sha1hash.ComputeHash(buffer);
-                            }
-
-                            byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToUpper()[..16]);
+                            byte[]? ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.ComputeSHA1StringWithCleanup(buffer).ToUpper()[..16]);
 
                             if (ProcessedFileBytes != null)
                                 TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_encrypted{Path.GetExtension(filename)}"));
@@ -1161,12 +1156,7 @@ namespace WebAPIService
 
         public static string GenerateDynamicCacheGuid(string input)
         {
-            byte[] MD5Data = new byte[0];
-            using (MD5 md5 = MD5.Create())
-            {
-                MD5Data = md5.ComputeHash(Encoding.UTF8.GetBytes(GetCurrentDateTime() + input));
-            }
-            return BitConverter.ToString(MD5Data).Replace("-", string.Empty);
+            return NetHasher.ComputeMD5StringWithCleanup(GetCurrentDateTime() + input);
         }
 
         private static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)

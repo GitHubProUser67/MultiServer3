@@ -1,12 +1,11 @@
-
 using CustomLogger;
 using HttpMultipartParser;
-using System.Security.Cryptography;
 using WebAPIService.SSFW;
 using System.Text;
 using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System;
+using CastleLibrary.Utils.Hash;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
@@ -70,21 +69,15 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    using (MD5 md5 = MD5.Create())
-                    {
-                        byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
-                        string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "H0mETyc00n!");
 
-                        // Trim the hash to a specific length
-                        hash = hash[..10];
+                    // Trim the hash to a specific length
+                    hash = hash[..10];
 
-                        // Append the trimmed hash to the result
-                        resultString += hash;
+                    // Append the trimmed hash to the result
+                    resultString += hash;
 
-                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
-
-                        md5.Clear();
-                    }
+                    sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
                 }
                 else
                 {
@@ -96,21 +89,15 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    using (MD5 md5 = MD5.Create())
-                    {
-                        byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
-                        string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "H0mETyc00n!");
 
-                        // Trim the hash to a specific length
-                        hash = hash[..14];
+                    // Trim the hash to a specific length
+                    hash = hash[..14];
 
-                        // Append the trimmed hash to the result
-                        resultString += hash;
+                    // Append the trimmed hash to the result
+                    resultString += hash;
 
-                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
-
-                        md5.Clear();
-                    }
+                    sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
                 }
 
                 return $"<response><Thing>{userid};{sessionid}</Thing></response>";

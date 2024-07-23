@@ -6,7 +6,7 @@
 * as well as various changes in order to support the filter strings GameSpy sends
 */
 
-using Alivate;
+using CyberBackendLibrary.Extension;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,7 +20,7 @@ using System.Threading;
 
 namespace CyberBackendLibrary.Extension
 {
-	public static class DynamicQueryable
+    public static class DynamicQueryable
 	{
 		public static IQueryable<T> Where<T>(this IQueryable<T> source, string predicate, params object[] values)
 		{

@@ -2,11 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using CyberBackendLibrary.DataTypes;
 using CyberBackendLibrary.HTTP;
-
 using EndianTools;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using WebAPIService.LeaderboardsService.NDREAMS;
 using System;
@@ -46,12 +44,8 @@ namespace WebAPIService.NDREAMS.Aurora
                     Directory.CreateDirectory(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}");
 
                     string PlayerVisitProfilePath = apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/visit_counter.json";
-                    byte[] MD5Data = new byte[0];
-                    using (MD5 md5hash = MD5.Create())
-                    {
-                        MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                    }
-                    string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data); // Seems to not make a difference.
+                    string Hash = DataTypesUtils.ByteArrayToHexString(
+                        CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>())); // Seems to not make a difference.
 
                     if (File.Exists(PlayerVisitProfilePath))
                     {
@@ -264,12 +258,8 @@ namespace WebAPIService.NDREAMS.Aurora
                         if (key == ExpectedHash)
                         {
                             int best = 0;
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataTypesUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (int.TryParse(score, out int resscore))
                             {
@@ -366,12 +356,8 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataTypesUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
                             if (!string.IsNullOrEmpty(everything))
                             {
                                 string[] parts = everything.Split(',');
@@ -395,12 +381,8 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataTypesUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (!string.IsNullOrEmpty(consumable))
                                 File.WriteAllText(directoryPath + $"/{consumable}", count);
@@ -418,12 +400,8 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataTypesUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
                             int rescount = 0;
 
                             if (!string.IsNullOrEmpty(consumable) && File.Exists(directoryPath + $"/{consumable}"))

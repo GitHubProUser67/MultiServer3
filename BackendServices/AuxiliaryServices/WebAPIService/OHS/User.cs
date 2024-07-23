@@ -719,7 +719,7 @@ namespace WebAPIService.OHS
                     // Parsing the JSON string
                     JObject jsonObject = JObject.Parse(dataforohs);
 
-                    dataforohs = GetFirstEightCharacters(CalculateMD5HashToExadecimal((string?)jsonObject["user"]));
+                    dataforohs = GetFirstEightCharacters(CalculateMD5HashToHexadecimal((string?)jsonObject["user"]));
                 }
             }
             catch (Exception ex)
@@ -745,25 +745,21 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? CalculateMD5HashToExadecimal(string? input)
+        public static string? CalculateMD5HashToHexadecimal(string? input)
         {
             if (string.IsNullOrEmpty(input))
                 return null;
 
-            using (MD5 md5 = MD5.Create())
+            byte[] hashBytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(input);
+
+            // Convert the byte array to a hexadecimal string
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hashBytes.Length; i++)
             {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-                byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-                // Convert the byte array to a hexadecimal string
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < hashBytes.Length; i++)
-                {
-                    sb.Append(hashBytes[i].ToString("x2"));
-                }
-
-                return sb.ToString();
+                sb.Append(hashBytes[i].ToString("x2"));
             }
+
+            return sb.ToString();
         }
 
         public static string? GetFirstEightCharacters(string? input)
@@ -790,11 +786,7 @@ namespace WebAPIService.OHS
             // Function to generate a unique number based on a string using MD5
             public static int GenerateUniqueNumber(string inputString)
             {
-                byte[] MD5Data = new byte[0];
-                using (MD5 md5hash = MD5.Create())
-                {
-                    MD5Data = md5hash.ComputeHash(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
-                }
+                byte[] MD5Data = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5("0HS0000000000000A" + inputString);
 
                 if (!BitConverter.IsLittleEndian)
                     Array.Reverse(MD5Data);

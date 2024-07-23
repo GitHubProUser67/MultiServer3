@@ -30,12 +30,6 @@ for %%r in (%RIDs%) do (
     dotnet publish MultiServer3.sln -r %%r -c Release %params%
 	
 	@echo Copying %%r build output to ~PublishOutput...
-	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	)
-	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	)
 	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
 	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
 	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
@@ -44,12 +38,6 @@ for %%r in (%RIDs%) do (
 	xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
 	xcopy /E /Y /I "WebServers/HTTPServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
 	xcopy /E /Y /I "WebServers/MitmDNS/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	)
-	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	)
 	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
 	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
 	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"

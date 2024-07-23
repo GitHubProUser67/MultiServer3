@@ -1980,7 +1980,7 @@ namespace HTTPServer
                 return string.Empty;
 
             // ComputeHash - returns byte array  
-            byte[] bytes = MD5.Create().ComputeHash(input);
+            byte[] bytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(input);
 
             input.Position = 0;
 
