@@ -1,9 +1,7 @@
 using System.IO;
 using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
-using System.Security.Cryptography;
-using System.Text;
-using System;
+using CastleLibrary.Utils.Hash;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
@@ -30,14 +28,9 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                byte[] SHA1Data = new byte[0];
-                using (SHA1 sha1hash = SHA1.Create())
-                {
-                    SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl"));
-                }
-                string ExpectedHash = BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+                string ExpectedHash = NetHasher.ComputeSHA1StringWithCleanup(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl").ToLower();
 
-                if (hash == ExpectedHash)
+                if (hash.Equals(ExpectedHash))
                 {
                     Directory.CreateDirectory(apipath + "/NDREAMS/Aurora/VRSignUp");
 

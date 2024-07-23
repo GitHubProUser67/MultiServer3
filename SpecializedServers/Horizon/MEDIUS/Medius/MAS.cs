@@ -19,6 +19,7 @@ using System.Security.Cryptography;
 using CyberBackendLibrary.DataTypes;
 using Horizon.HTTPSERVICE;
 using System.Buffers;
+using CastleLibrary.Utils.Hash;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -3077,7 +3078,7 @@ namespace Horizon.MEDIUS.Medius
         private static string ComputeSHA256(string input)
         {
             // ComputeHash - returns byte array  
-            byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+            byte[] bytes = NetHasher.ComputeSHA256(Encoding.UTF8.GetBytes(input));
 
             // Convert byte array to a string   
             StringBuilder builder = new();

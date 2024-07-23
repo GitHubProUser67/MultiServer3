@@ -314,7 +314,6 @@ namespace QuazalServer.QNetZ
 		{
 			uint count = 0;
 			byte[] buff = Array.Empty<byte>();
-            MD5 md5 = MD5.Create();
             if (input.Length == 32 && Regex.IsMatch(input, @"\b[a-fA-F0-9]{32}\b")) // Might maybe conflict if user type in a md5 like pass, which is a very bad idea ^^.
 			{
                 count = pid % 1024;
@@ -327,7 +326,7 @@ namespace QuazalServer.QNetZ
             }
 
             for (uint i = 0; i < count; i++)
-                buff = md5.ComputeHash(buff);
+                buff = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(buff);
 
             return buff;
 		}

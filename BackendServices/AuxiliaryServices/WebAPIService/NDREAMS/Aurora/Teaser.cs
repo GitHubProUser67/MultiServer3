@@ -1,9 +1,8 @@
 using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
-using System.Text;
-using System.Security.Cryptography;
 using System.IO;
 using System;
+using CastleLibrary.Utils.Hash;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
@@ -61,22 +60,12 @@ namespace WebAPIService.NDREAMS.Aurora
 
         public static string Xoff_VerifyKey(string playerregion, string day)
         {
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes("xoff" + playerregion + day + "done!"));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup("xoff" + playerregion + day + "done!").ToLower();
         }
 
         public static string Xoff_GetSignature(int day, int ResultDay)
         {
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes(string.Format("Yum!Salted{0}", (day + 3) * 1239 - day * 6 + day) + ResultDay));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup(string.Format("Yum!Salted{0}", (day + 3) * 1239 - day * 6 + day) + ResultDay).ToLower();
         }
     }
 }

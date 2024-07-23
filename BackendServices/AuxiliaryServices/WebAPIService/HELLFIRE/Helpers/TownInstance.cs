@@ -1,7 +1,6 @@
-using System;
+using CastleLibrary.Utils.Hash;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace WebAPIService.HELLFIRE.Helpers
@@ -10,13 +9,7 @@ namespace WebAPIService.HELLFIRE.Helpers
     {
         public static string? RequestTownInstance(string UserID, string DisplayName, string? PHPSessionId)
         {
-            string hash = string.Empty;
-
-            using (MD5 md5 = MD5.Create())
-            {
-                hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(UserID + "G0TOH00000!!!!m3TycoonN0?w*" + DisplayName))).Replace("-", string.Empty);
-                md5.Clear();
-            }
+            string hash = NetHasher.ComputeMD5StringWithCleanup(UserID + "G0TOH00000!!!!m3TycoonN0?w*" + DisplayName);
 
             if (string.IsNullOrEmpty(PHPSessionId))
                 return $"<Response><InstanceID>{GenerateTycoonguid(hash, UserID + hash)}</InstanceID></Response>";
@@ -50,29 +43,8 @@ namespace WebAPIService.HELLFIRE.Helpers
 
         private static string GenerateTycoonguid(string input1, string input2)
         {
-            string md5hash = string.Empty;
-            string sha512hash = string.Empty;
-
-            using (MD5 md5 = MD5.Create())
-            {
-                string salt = "**H0mEIsG3reATW1tHH0meTYC000N!!!!!!!!!!!!!!";
-
-                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input1 + salt));
-                md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                md5.Clear();
-            }
-
-            using (SHA512 sha512 = SHA512.Create())
-            {
-                string salt = "C0MeW1tHH0meTYC111NBaCKHOm3*!*!*!*!*!*!*!*!";
-
-                byte[] hashBytes = sha512.ComputeHash(Encoding.UTF8.GetBytes(salt + input2));
-                sha512hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                sha512.Clear();
-            }
-
+            string md5hash = NetHasher.ComputeMD5StringWithCleanup(input1 + "**H0mEIsG3reATW1tHH0meTYC000N!!!!!!!!!!!!!!");
+            string sha512hash = NetHasher.ComputeSHA512StringWithCleanup("C0MeW1tHH0meTYC111NBaCKHOm3*!*!*!*!*!*!*!*!" + input2);
             string result = (md5hash.Substring(1, 8) + sha512hash.Substring(2, 4) + md5hash.Substring(10, 4) + sha512hash.Substring(16, 4) + sha512hash.Substring(19, 16)).ToLower();
 
             // Use a dictionary to map characters 'a' to 'f' to specific numbers
@@ -106,29 +78,8 @@ namespace WebAPIService.HELLFIRE.Helpers
 
         public static string GenerateCityguid(string input1, string input2)
         {
-            string md5hash = "";
-            string sha512hash = "";
-
-            using (MD5 md5 = MD5.Create())
-            {
-                string salt = "**MyC1TY1sTH3be5T!!!!!!!!!!!!!!";
-
-                byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input1 + salt));
-                md5hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                md5.Clear();
-            }
-
-            using (SHA512 sha512 = SHA512.Create())
-            {
-                string salt = "1L0veH0mmmmeT1c000000nnnnn!!!!!";
-
-                byte[] hashBytes = sha512.ComputeHash(Encoding.UTF8.GetBytes(salt + input2));
-                sha512hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-
-                sha512.Clear();
-            }
-
+            string md5hash = NetHasher.ComputeMD5StringWithCleanup(input1 + "**MyC1TY1sTH3be5T!!!!!!!!!!!!!!");
+            string sha512hash = NetHasher.ComputeSHA512StringWithCleanup("1L0veH0mmmmeT1c000000nnnnn!!!!!" + input2);
             string result = (md5hash.Substring(1, 8) + sha512hash.Substring(2, 4) + md5hash.Substring(10, 4) + sha512hash.Substring(16, 4) + sha512hash.Substring(19, 16)).ToLower();
 
             // Use a dictionary to map characters 'a' to 'f' to specific numbers

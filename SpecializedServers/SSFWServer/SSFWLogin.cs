@@ -96,13 +96,12 @@ namespace SSFWServer
                 UserNames.Item2 = ResultStrings.Item2 = Encoding.ASCII.GetString(extractedData) + homeClientVersion;
 
                 // Calculate the MD5 hash of the result
-                using MD5 md5 = MD5.Create();
                 if (!string.IsNullOrEmpty(xsignature))
                     salt = generalsecret + xsignature + XHomeClientVersion;
                 else
                     salt = generalsecret + XHomeClientVersion;
 
-                string hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt))).Replace("-", string.Empty);
+                string hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
 
                 // Trim the hash to a specific length
                 hash = hash[..14];
@@ -123,7 +122,7 @@ namespace SSFWServer
                     else
                         salt = generalsecret + XHomeClientVersion;
 
-                    hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt))).Replace("-", string.Empty);
+                    hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
 
                     // Trim the hash to a specific length
                     hash = hash[..10];
@@ -133,8 +132,6 @@ namespace SSFWServer
 
                     SessionIDs.Item1 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1);
                 }
-
-                md5.Clear();
 
                 if (!string.IsNullOrEmpty(UserNames.Item1) && !string.IsNullOrEmpty(SessionIDs.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
                 {

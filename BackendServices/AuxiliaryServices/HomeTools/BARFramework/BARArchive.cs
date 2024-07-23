@@ -12,6 +12,7 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
+using CastleLibrary.Utils.Hash;
 
 namespace HomeTools.BARFramework
 {
@@ -991,11 +992,7 @@ namespace HomeTools.BARFramework
                     if (FileBytes != null)
                     {
                         byte[]? SignatureHeader = new byte[24];
-                        byte[] SHA1Data = new byte[0];
-                        using (SHA1 sha1 = SHA1.Create())
-                        {
-                            SHA1Data = sha1.ComputeHash(FileBytes);
-                        }
+                        byte[] SHA1Data = NetHasher.ComputeSHA1(FileBytes);
                         Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);

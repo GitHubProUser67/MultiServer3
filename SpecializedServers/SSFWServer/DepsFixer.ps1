@@ -24,7 +24,6 @@ $propertiesToRemove = @(
 	"HomeTools/1.0.0",
 	"TechnitiumLibrary.Net/5.0.0",
 	"WebAPIService/1.0.0",
-	"Alivate/1.0.0",
 	"TechnitiumLibrary.Net.Firewall/5.0.0.0"
 )
 

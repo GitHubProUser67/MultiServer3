@@ -19,27 +19,20 @@ namespace SSFWServer
         public static string GetEncryptionKey(string secretKey)
         {
             // MD5 is the hash algorithm expected by rave to generate encryption key
-            using (MD5 md5 = MD5.Create())
-            {
-                // MD5 works with bytes so a conversion of plain secretKey to it bytes equivalent is required.
-                byte[] secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
+            // MD5 works with bytes so a conversion of plain secretKey to it bytes equivalent is required.
+            byte[] hashedSecret = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Encoding.UTF8.GetBytes(secretKey));
+            byte[] hashedSecretLast12Bytes = new byte[12];
 
-                byte[] hashedSecret = md5.ComputeHash(secretKeyBytes, 0, secretKeyBytes.Length);
-                byte[] hashedSecretLast12Bytes = new byte[12];
+            Array.Copy(hashedSecret, hashedSecret.Length - 12, hashedSecretLast12Bytes, 0, 12);
 
-                Array.Copy(hashedSecret, hashedSecret.Length - 12, hashedSecretLast12Bytes, 0, 12);
+            byte[] hashedSecretLast12HexBytes = Encoding.UTF8.GetBytes(BitConverter.ToString(hashedSecretLast12Bytes).ToLower().Replace("-", string.Empty));
+            byte[] secretFirst12Bytes = Encoding.UTF8.GetBytes(secretKey.Replace("FLWSECK-", string.Empty)[..12]);
+            byte[] combineKey = new byte[24];
 
-                byte[] hashedSecretLast12HexBytes = Encoding.UTF8.GetBytes(BitConverter.ToString(hashedSecretLast12Bytes).ToLower().Replace("-", string.Empty));
-                byte[] secretFirst12Bytes = Encoding.UTF8.GetBytes(secretKey.Replace("FLWSECK-", string.Empty)[..12]);
-                byte[] combineKey = new byte[24];
+            Array.Copy(secretFirst12Bytes, 0, combineKey, 0, secretFirst12Bytes.Length);
+            Array.Copy(hashedSecretLast12HexBytes, hashedSecretLast12HexBytes.Length - 12, combineKey, 12, 12);
 
-                Array.Copy(secretFirst12Bytes, 0, combineKey, 0, secretFirst12Bytes.Length);
-                Array.Copy(hashedSecretLast12HexBytes, hashedSecretLast12HexBytes.Length - 12, combineKey, 12, 12);
-
-                md5.Clear();
-
-                return Encoding.UTF8.GetString(combineKey);
-            }
+            return Encoding.UTF8.GetString(combineKey);
         }
 
         public static byte[] DecryptData(byte[] InData, string encryptionKey)

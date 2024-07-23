@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using CustomLogger;
 using NLua;
-using System.Security.Cryptography;
 using System.Text;
 using System;
+using CastleLibrary.Utils.Hash;
 
 namespace WebAPIService.NDREAMS
 {
@@ -11,22 +11,12 @@ namespace WebAPIService.NDREAMS
     {
         public static string DBManager_GenerateSignature(string signature, string username, string data, DateTime timeObj)
         {
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes(signature + username + string.Empty + $"{timeObj.Year}{timeObj.Month}{timeObj.Day}" + data + "Signature"));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup(signature + username + string.Empty + $"{timeObj.Year}{timeObj.Month}{timeObj.Day}" + data + "Signature").ToLower();
         }
 
         public static string Server_GetSignature(string url, string playername, string data, DateTime dObj)
         {
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes("nDreams" + url + playername + dObj.Year + dObj.Month + dObj.Day + data + "Signature"));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup("nDreams" + url + playername + dObj.Year + dObj.Month + dObj.Day + data + "Signature").ToLower();
         }
 
         public static string Server_KeyToHash(string key, DateTime dObj, string level)
@@ -68,12 +58,7 @@ namespace WebAPIService.NDREAMS
                 str.Append(mappedChar);
             }
 
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes("keyString" + level + dObj.Year + dObj.Month + dObj.Day + str.ToString() + level));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup("keyString" + level + dObj.Year + dObj.Month + dObj.Day + str.ToString() + level).ToLower();
         }
 
         public static string? CreateBase64StringFromGuids(List<string> GUIDS)

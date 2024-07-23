@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EndianTools;
+using System;
 using System.Diagnostics;
 using System.Text;
 
@@ -11,23 +12,23 @@ namespace HashLib
             if (a_in is byte)
                 return new byte[] { (byte)a_in };
             else if (a_in is short)
-                return BitConverter.GetBytes((short)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((short)a_in) : (short)a_in);
             else if (a_in is ushort)
-                return BitConverter.GetBytes((ushort)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((ushort)a_in) : (ushort)a_in);
             else if (a_in is char)
-                return BitConverter.GetBytes((char)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((char)a_in) : (char)a_in);
             else if (a_in is int)
-                return BitConverter.GetBytes((int)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((int)a_in) : (int)a_in);
             else if (a_in is uint)
-                return BitConverter.GetBytes((uint)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((uint)a_in) : (uint)a_in);
             else if (a_in is long)
-                return BitConverter.GetBytes((long)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((long)a_in) : (long)a_in);
             else if (a_in is ulong)
-                return BitConverter.GetBytes((ulong)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((ulong)a_in) : (ulong)a_in);
             else if (a_in is float)
-                return BitConverter.GetBytes((float)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((float)a_in) : (float)a_in);
             else if (a_in is double)
-                return BitConverter.GetBytes((double)a_in);
+                return BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap((double)a_in) : (double)a_in);
             else if (a_in is string)
                 return ConvertStringToBytes((string)a_in);
             else if (a_in is byte[])
@@ -135,7 +136,7 @@ namespace HashLib
             Debug.Assert(a_index >= 0);
             Debug.Assert(a_index + 8 <= a_in.Length);
 
-            return BitConverter.ToUInt64(a_in, a_index);
+            return BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_in) : a_in, a_index);
         }
 
         public static uint ConvertBytesToUIntSwapOrder(byte[] a_in, int a_index)
@@ -267,7 +268,7 @@ namespace HashLib
         {
             Debug.Assert(a_index + 4 <= a_out.Length);
 
-            Array.Copy(BitConverter.GetBytes(a_in), 0, a_out, a_index, 4);
+            Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_in) : a_in), 0, a_out, a_index, 4);
         }
 
         public static byte[] ConvertULongToBytes(ulong a_in)
@@ -281,7 +282,7 @@ namespace HashLib
         {
             Debug.Assert(a_index + 8 <= a_out.Length);
 
-            Array.Copy(BitConverter.GetBytes(a_in), 0, a_out, a_index, 8);
+            Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_in) : a_in), 0, a_out, a_index, 8);
         }
 
         public static void ConvertULongToBytesSwapOrder(ulong a_in, byte[] a_out, int a_index)
@@ -301,7 +302,7 @@ namespace HashLib
         public static byte[] ConvertStringToBytes(string a_in)
         {
             byte[] bytes = new byte[a_in.Length * sizeof(char)];
-            System.Buffer.BlockCopy(a_in.ToCharArray(), 0, bytes, 0, bytes.Length);
+            Buffer.BlockCopy(a_in.ToCharArray(), 0, bytes, 0, bytes.Length);
             return bytes;
         }
 
@@ -410,7 +411,7 @@ namespace HashLib
             byte[] result = new byte[a_in.Length / 2];
 
             for (int i = 0; i < result.Length; i++)
-                result[i] = Byte.Parse(a_in.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
+                result[i] = byte.Parse(a_in.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
 
             return result;
         }

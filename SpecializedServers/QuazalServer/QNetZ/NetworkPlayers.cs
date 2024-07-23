@@ -72,12 +72,8 @@ namespace QuazalServer.QNetZ
 
         public static uint GenerateUniqueUint(string input)
         {
-            // Convert input string to bytes
-            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-
             // Compute hash using MD5 algorithm
-            using MD5 md5 = MD5.Create();
-            byte[] hashBytes = md5.ComputeHash(inputBytes);
+            byte[] hashBytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(input);
 
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(hashBytes);
