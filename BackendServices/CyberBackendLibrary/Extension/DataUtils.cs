@@ -1,12 +1,11 @@
 using System.Linq;
 using System.IO;
 using System;
-using System.Threading;
 using System.Runtime.InteropServices;
 
-namespace CyberBackendLibrary.DataTypes
+namespace CyberBackendLibrary.Extension
 {
-    public class DataTypesUtils
+    public class DataUtils
     {
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern int memcmp(byte[] b1, byte[] b2, long count);
@@ -273,23 +272,6 @@ namespace CyberBackendLibrary.DataTypes
             }
 
             return -1;
-        }
-
-        public static bool IsObjectLocked(object obj)
-        {
-            // Try to acquire the lock
-            bool lockTaken = false;
-            try
-            {
-                Monitor.TryEnter(obj, ref lockTaken);
-                return !lockTaken;
-            }
-            finally
-            {
-                // Release the lock if it was taken
-                if (lockTaken)
-                    Monitor.Exit(obj);
-            }
         }
     }
 }

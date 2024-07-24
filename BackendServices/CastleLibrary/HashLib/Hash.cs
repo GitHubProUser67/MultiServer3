@@ -104,47 +104,47 @@ namespace HashLib
 
         public virtual HashResult ComputeChar(char a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(a_data) : a_data));
         }
 
         public virtual HashResult ComputeShort(short a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseShort(a_data) : a_data));
         }
 
         public virtual HashResult ComputeUShort(ushort a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(a_data) : a_data));
         }
 
         public virtual HashResult ComputeInt(int a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(a_data) : a_data));
         }
 
         public virtual HashResult ComputeUInt(uint a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(a_data) : a_data));
         }
 
         public virtual HashResult ComputeLong(long a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseLong(a_data) : a_data));
         }
 
         public virtual HashResult ComputeULong(ulong a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(a_data) : a_data));
         }
 
         public virtual HashResult ComputeFloat(float a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseFloat(a_data) : a_data));
         }
 
         public virtual HashResult ComputeDouble(double a_data)
         {
-            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseDouble(a_data) : a_data));
         }
 
         public virtual HashResult ComputeString(string a_data)
@@ -266,47 +266,47 @@ namespace HashLib
 
         public void TransformChar(char a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(a_data) : a_data));
         }
 
         public void TransformShort(short a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseShort(a_data) : a_data));
         }
 
         public void TransformUShort(ushort a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(a_data) : a_data));
         }
 
         public void TransformInt(int a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(a_data) : a_data));
         }
 
         public void TransformUInt(uint a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(a_data) : a_data));
         }
 
         public void TransformLong(long a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseLong(a_data) : a_data));
         }
 
         public void TransformULong(ulong a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(a_data) : a_data));
         }
 
         public void TransformFloat(float a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseFloat(a_data) : a_data));
         }
 
         public void TransformDouble(double a_data)
         {
-            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            TransformBytes(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseDouble(a_data) : a_data));
         }
 
         public void TransformChars(char[] a_data)

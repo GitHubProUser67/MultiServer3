@@ -100,7 +100,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
             // parse out each message into their own buffers
             for (int i = 0; i < messageContents.Length;)
             {
-                int subLen = BitConverter.ToInt16(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(messageContents) : messageContents, i + 1) + 3;
+                int subLen = BitConverter.ToInt16(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseArray(messageContents) : messageContents, i + 1) + 3;
                 if (messageContents[i] >= 0x80)
                     subLen += 4;
 

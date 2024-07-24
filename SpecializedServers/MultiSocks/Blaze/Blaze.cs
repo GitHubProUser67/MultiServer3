@@ -295,12 +295,12 @@ namespace MultiSocks.Blaze.Blaze
             s.Read(buff, 0, 4);
             for (int i = 0; i < 4; i++)
                 buffr[i] = buff[3 - i];
-            return BitConverter.ToSingle(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(buffr) : buffr, 0);
+            return BitConverter.ToSingle(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(buffr) : buffr, 0);
         }
 
         public static void WriteFloat(Stream s, float f)
         {
-            byte[] buff = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(f) : f);
+            byte[] buff = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseFloat(f) : f);
             byte[] buffr = new byte[4];
             s.Read(buff, 0, 4);
             for (int i = 0; i < 4; i++)
@@ -311,7 +311,7 @@ namespace MultiSocks.Blaze.Blaze
         public static string TagToLabel(uint Tag)
         {
             string s = string.Empty;
-            List<byte> buff = new(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(Tag) : Tag));
+            List<byte> buff = new(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(Tag) : Tag));
             buff.Reverse();
             byte[] res = new byte[4];
             res[0] |= (byte)((buff[0] & 0x80) >> 1);
@@ -697,7 +697,7 @@ namespace MultiSocks.Blaze.Blaze
             };
             byte[] buff = new byte[4];
             s.Read(buff, 0, 4);
-            res.Value = BitConverter.ToSingle(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(buff) : buff, 0);
+            res.Value = BitConverter.ToSingle(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(buff) : buff, 0);
             return res;
         }
 

@@ -2,9 +2,9 @@ using CustomLogger;
 using System.Numerics;
 using System.Security.Cryptography;
 using EndianTools;
-using CyberBackendLibrary.DataTypes;
 using System;
 using CyberBackendLibrary.Crypto;
+using CyberBackendLibrary.Extension;
 
 namespace HomeTools.Crypto
 {
@@ -146,12 +146,12 @@ namespace HomeTools.Crypto
 
         public static byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return DataTypesUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
+            return DataUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
         }
 
         public static byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return DataTypesUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
+            return DataUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
         }
 
         public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
@@ -174,8 +174,8 @@ namespace HomeTools.Crypto
             internal byte[] GetBytes()
             {
                 byte[] array = new byte[4];
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.EndianSwap(SourceSize) : SourceSize), 0, array, 2, 2);
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.EndianSwap(CompressedSize): CompressedSize), 0, array, 0, 2);
+                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.ReverseUshort(SourceSize) : SourceSize), 0, array, 2, 2);
+                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.ReverseUshort(CompressedSize): CompressedSize), 0, array, 0, 2);
                 return array;
             }
 

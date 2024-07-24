@@ -10,7 +10,6 @@ using HttpMultipartParser;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
-using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System.Collections.Generic;
 using System;
@@ -19,6 +18,7 @@ using CyberBackendLibrary.Crypto;
 using System.Linq;
 using CompressionLibrary.Edge;
 using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace WebAPIService
 {
@@ -907,7 +907,7 @@ namespace WebAPIService
                                 TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                         }
                         else if (version1 == "on")
-                            TasksResult.Add((DataTypesUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV1Key, ToolsImpl.TicketListV1IV, "CTR"))
+                            TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV1Key, ToolsImpl.TicketListV1IV, "CTR"))
                                     , $"{filename}_Encrypted.lst"));
                         else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                             && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
@@ -919,7 +919,7 @@ namespace WebAPIService
                                 TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                         }
                         else
-                            TasksResult.Add((DataTypesUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV0Key, ToolsImpl.TicketListV0IV, "CTR"))
+                            TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV0Key, ToolsImpl.TicketListV0IV, "CTR"))
                                     , $"{filename}_Encrypted.lst"));
 
                         i++;

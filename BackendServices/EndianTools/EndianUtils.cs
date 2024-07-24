@@ -8,26 +8,40 @@ namespace EndianTools
     public class EndianUtils
     {
         /// <summary>
-        /// Reverse the endianess of a given byte array.
-        /// <para>change l'endianess d'un tableau de bytes.</para>
+        /// Reverse the endianess of a given byte array by 4 bytes chunck.
+        /// <para>change l'endianess d'un tableau de bytes par blocs de 4.</para>
         /// </summary>
         /// <param name="dataIn">The byte array to endian-swap.</param>
         /// <returns>A byte array.</returns>
         public static byte[] EndianSwap(byte[] dataIn)
         {
-            int num = dataIn.Length;
-            byte[] array = new byte[num];
-            Array.Copy(dataIn, array, dataIn.Length);
-            int num2;
-            for (int i = 0; i < dataIn.Length; i += num2)
+            int inputLength = dataIn.Length;
+            byte[] array = new byte[inputLength];
+            Array.Copy(dataIn, array, inputLength);
+            int numofBytes = 0;
+            for (int i = 0; i < inputLength; i += numofBytes)
             {
-                num2 = 4;
-                int num3 = dataIn.Length - i;
-                if (num3 < 4)
-                    num2 = num3;
-                Array.Reverse(array, i, num2);
+                numofBytes = 4;
+                int remainingBytes = inputLength - i;
+                if (remainingBytes < 4)
+                    numofBytes = remainingBytes;
+                Array.Reverse(array, i, numofBytes);
             }
             return array;
+        }
+
+        /// <summary>
+        /// Reverse the endianess of a given byte array.
+        /// <para>change l'endianess d'un tableau de bytes.</para>
+        /// </summary>
+        /// <param name="dataIn">The byte array to endian-swap.</param>
+        /// <returns>A byte array.</returns>
+        public static byte[] ReverseArray(byte[] dataIn)
+        {
+            // Clone the input array to avoid modifying the original array
+            byte[] reversedArray = (byte[])dataIn.Clone();
+            Array.Reverse(reversedArray);
+            return reversedArray;
         }
 
         /// <summary>
@@ -36,7 +50,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The int to endian-swap.</param>
         /// <returns>A int.</returns>
-        public static int EndianSwap(int dataIn)
+        public static int ReverseInt(int dataIn)
         {
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
@@ -53,7 +67,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The uint to endian-swap.</param>
         /// <returns>A uint.</returns>
-        public static uint EndianSwap(uint dataIn)
+        public static uint ReverseUint(uint dataIn)
         {
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
@@ -71,7 +85,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The long to endian-swap.</param>
         /// <returns>A long.</returns>
-        public static long EndianSwap(long dataIn)
+        public static long ReverseLong(long dataIn)
         {
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
@@ -88,7 +102,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The ulong to endian-swap.</param>
         /// <returns>A ulong.</returns>
-        public static ulong EndianSwap(ulong dataIn)
+        public static ulong ReverseUlong(ulong dataIn)
         {
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
@@ -110,7 +124,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The double to endian-swap.</param>
         /// <returns>A double.</returns>
-        public static double EndianSwap(double dataIn)
+        public static double ReverseDouble(double dataIn)
         {
             byte[] bytes = BitConverter.GetBytes(dataIn);
             Array.Reverse(bytes);
@@ -123,7 +137,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The float to endian-swap.</param>
         /// <returns>A float.</returns>
-        public static float EndianSwap(float dataIn)
+        public static float ReverseFloat(float dataIn)
         {
             byte[] bytes = BitConverter.GetBytes(dataIn);
             Array.Reverse(bytes);
@@ -136,7 +150,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The short to endian-swap.</param>
         /// <returns>A short.</returns>
-        public static short EndianSwap(short dataIn)
+        public static short ReverseShort(short dataIn)
         {
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
@@ -153,7 +167,7 @@ namespace EndianTools
         /// </summary>
         /// <param name="dataIn">The ushort to endian-swap.</param>
         /// <returns>A ushort.</returns>
-        public static ushort EndianSwap(ushort dataIn)
+        public static ushort ReverseUshort(ushort dataIn)
         {
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);

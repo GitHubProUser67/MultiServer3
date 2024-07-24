@@ -9,8 +9,8 @@ using System.Collections.Concurrent;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
 using System.Reflection;
-using CyberBackendLibrary.DataTypes;
 using CyberBackendLibrary.TCP_IP;
+using CyberBackendLibrary.Extension;
 
 public static class HorizonServerConfiguration
 {
@@ -108,7 +108,7 @@ public static class HorizonServerConfiguration
             NATConfig = GetValueOrDefault(config.nat, "config", NATConfig);
             BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
             string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
-            if (DataTypesUtils.IsBase64String(APIKey))
+            if (DataUtils.IsBase64String(APIKey))
                 MediusAPIKey = APIKey;
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
@@ -224,7 +224,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.DataTypes.DataTypesUtils.IsWindows)
+        if (!DataUtils.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

@@ -19,7 +19,6 @@ using WebAPIService.UBISOFT.HERMES_API;
 using WebAPIService.CAPONE;
 using WebAPIService.CDM;
 using WebAPIService.MultiMedia;
-using CyberBackendLibrary.DataTypes;
 using System.Threading.Tasks;
 using System;
 using System.IO;
@@ -28,6 +27,7 @@ using System.Collections.Generic;
 using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
 using WatsonWebserver;
+using CyberBackendLibrary.Extension;
 
 namespace HTTPSecureServerLite
 {
@@ -637,7 +637,7 @@ namespace HTTPSecureServerLite
                                 {
                                     // TODO, verify ticket data for every platforms.
 
-                                    if (Authorization.StartsWith("psn t=") && DataTypesUtils.IsBase64String(Authorization))
+                                    if (Authorization.StartsWith("psn t=") && DataUtils.IsBase64String(Authorization))
                                     {
                                         byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
 
@@ -654,7 +654,7 @@ namespace HTTPSecureServerLite
                                                 extractedData[i] = 0x48;
                                         }
 
-                                        if (DataTypesUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                         else
                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -1092,10 +1092,10 @@ namespace HTTPSecureServerLite
                                                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                         if (ContentType == "application/octet-stream")
                                                         {
-                                                            byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1322,10 +1322,10 @@ namespace HTTPSecureServerLite
                                                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                         if (ContentType == "application/octet-stream")
                                                         {
-                                                            byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1435,10 +1435,10 @@ namespace HTTPSecureServerLite
                                             if (ContentType == "application/octet-stream")
                                             {
                                                 bool matched = false;
-                                                byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         matched = true;
                                                         response.ContentType = entry.Key;
@@ -1493,10 +1493,10 @@ namespace HTTPSecureServerLite
                                             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                             if (ContentType == "application/octet-stream")
                                             {
-                                                byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(filePath, 10);
+                                                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         ContentType = entry.Key;
                                                         break;

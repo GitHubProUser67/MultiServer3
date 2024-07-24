@@ -2,12 +2,12 @@ using CustomLogger;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using CyberBackendLibrary.DataTypes;
 using System;
 using System.IO;
 using Org.BouncyCastle.OpenSsl;
 using System.Text;
 using System.Threading.Tasks;
+using CyberBackendLibrary.Extension;
 
 namespace CyberBackendLibrary.SSL
 {
@@ -455,15 +455,15 @@ namespace CyberBackendLibrary.SSL
             const string SHA512id = "300D06092A864886F70D01010D0500";
 
             if (hashAlgorithm == HashAlgorithmName.MD5)
-                return DataTypesUtils.HexStringToByteArray(MD5id);
+                return DataUtils.HexStringToByteArray(MD5id);
             if (hashAlgorithm == HashAlgorithmName.SHA1)
-                return DataTypesUtils.HexStringToByteArray(SHA1id);
+                return DataUtils.HexStringToByteArray(SHA1id);
             if (hashAlgorithm == HashAlgorithmName.SHA256)
-                return DataTypesUtils.HexStringToByteArray(SHA256id);
+                return DataUtils.HexStringToByteArray(SHA256id);
             if (hashAlgorithm == HashAlgorithmName.SHA384)
-                return DataTypesUtils.HexStringToByteArray(SHA384id);
+                return DataUtils.HexStringToByteArray(SHA384id);
             if (hashAlgorithm == HashAlgorithmName.SHA512)
-                return DataTypesUtils.HexStringToByteArray(SHA512id);
+                return DataUtils.HexStringToByteArray(SHA512id);
 
             LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 

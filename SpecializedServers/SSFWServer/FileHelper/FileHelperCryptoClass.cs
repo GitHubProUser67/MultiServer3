@@ -4,7 +4,7 @@ using Org.BouncyCastle.Security;
 using System.Security.Cryptography;
 using System.Text;
 using CustomLogger;
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 
 
 namespace SSFWServer
@@ -53,7 +53,7 @@ namespace SSFWServer
 
                 Array.Copy(InData, 0, firstSixBytes, 0, firstSixBytes.Length);
 
-                if (DataTypesUtils.FindBytePattern(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }) != -1)
+                if (DataUtils.FindBytePattern(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }) != -1)
                 {
                     byte[] xteakey = new byte[16];
 

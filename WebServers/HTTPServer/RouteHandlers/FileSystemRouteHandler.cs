@@ -1,5 +1,5 @@
 // Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP;
 using HTTPServer.Extensions;
@@ -34,10 +34,10 @@ namespace HTTPServer.RouteHandlers
                 if (ContentType == "application/octet-stream")
                 {
                     bool matched = false;
-                    byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                    byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(local_path, 10);
                     foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
-                        if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                        if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                         {
                             matched = true;
                             response.Headers["Content-Type"] = entry.Key;
@@ -66,10 +66,10 @@ namespace HTTPServer.RouteHandlers
             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
             if (ContentType == "application/octet-stream")
             {
-                byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(local_path, 10);
                 foreach (var entry in HTTPProcessor._PathernDictionary)
                 {
-                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                     {
                         ContentType = entry.Key;
                         break;
