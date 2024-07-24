@@ -173,10 +173,10 @@ namespace HomeTools.BARFramework
             {
                 if (endian == EndianType.BigEndian)
                 {
-                    binaryWriter.Write(EndianUtils.EndianSwap((int)tocentry.FileName));
-                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.DataOffset |= (uint)tocentry.Compression));
-                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.Size));
-                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.CompressedSize));
+                    binaryWriter.Write(EndianUtils.ReverseInt((int)tocentry.FileName));
+                    binaryWriter.Write(EndianUtils.ReverseUint(tocentry.DataOffset |= (uint)tocentry.Compression));
+                    binaryWriter.Write(EndianUtils.ReverseUint(tocentry.Size));
+                    binaryWriter.Write(EndianUtils.ReverseUint(tocentry.CompressedSize));
                 }
                 else
                 {

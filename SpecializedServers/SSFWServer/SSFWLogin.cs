@@ -1,5 +1,5 @@
 using CustomLogger;
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -80,7 +80,7 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                if (DataTypesUtils.FindBytePattern(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                if (DataUtils.FindBytePattern(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                 {
                     IsRPCN = true;
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");

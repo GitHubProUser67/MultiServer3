@@ -34,15 +34,15 @@ namespace SSFWServer
                     using BinaryWriter writer = new(stream);
                     for (int i = 0; i < buffer.Length; i += 8)
                     {
-                        blockBuffer[0] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i);
-                        blockBuffer[1] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, i + 4);
+                        blockBuffer[0] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.ReverseArray(buffer) : buffer, i);
+                        blockBuffer[1] = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.ReverseArray(buffer) : buffer, i + 4);
                         Decrypt(Rounds, blockBuffer, CreateKey(key, LittleEndian));
                         writer.Write(blockBuffer[0]);
                         writer.Write(blockBuffer[1]);
                     }
                 }
                 // verify valid length
-                uint length = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, 0);
+                uint length = BitConverter.ToUInt32(!LittleEndian ? EndianUtils.ReverseArray(buffer) : buffer, 0);
                 if (length > buffer.Length - 4)
                     return Array.Empty<byte>();
                 byte[] result = new byte[length];
@@ -77,8 +77,8 @@ namespace SSFWServer
                 hash[i] = (byte)(17 * i ^ key[i % key.Length]);
             }
             return new[] {
-                BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 0), BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 4),
-                BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 8), BitConverter.ToUInt32(!Endianess ? EndianUtils.EndianSwap(hash) : hash, 12)
+                BitConverter.ToUInt32(!Endianess ? EndianUtils.ReverseArray(hash) : hash, 0), BitConverter.ToUInt32(!Endianess ? EndianUtils.ReverseArray(hash) : hash, 4),
+                BitConverter.ToUInt32(!Endianess ? EndianUtils.ReverseArray(hash) : hash, 8), BitConverter.ToUInt32(!Endianess ? EndianUtils.ReverseArray(hash) : hash, 12)
             };
         }
 

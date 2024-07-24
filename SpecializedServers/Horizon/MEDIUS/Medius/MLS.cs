@@ -19,10 +19,10 @@ using Horizon.MUM;
 using Horizon.RT.Cryptography.RSA;
 using System.Text;
 using EndianTools;
-using CyberBackendLibrary.DataTypes;
 using System.Collections.Concurrent;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -271,7 +271,7 @@ namespace Horizon.MEDIUS.Medius
 
                         if (QueryData != null)
                         {
-                            LoggerAccessor.LogDebug($"[MLS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+                            LoggerAccessor.LogDebug($"[MLS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
 
                             if (MediusClass.Settings.PlaystationHomeAntiCheat && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
                             {
@@ -283,7 +283,7 @@ namespace Horizon.MEDIUS.Medius
                                             switch (clientCheatQuery.StartAddress)
                                             {
                                                 case 0x101590b0:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
                                                         string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -304,7 +304,7 @@ namespace Horizon.MEDIUS.Medius
                                             switch (clientCheatQuery.StartAddress)
                                             {
                                                 case 0x10050500:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
                                                     {
                                                         string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -317,7 +317,7 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     break;
                                                 case 0x10074820:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
                                                     {
                                                         string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -330,7 +330,7 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     break;
                                                 case 0x50A7DEEC:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 1 && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x01 }))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 1 && DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x01 }))
                                                     {
                                                         string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: CONSOLE USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -346,8 +346,8 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     break;
                                                 case 268759069U:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataTypesUtils.AreArraysIdentical(QueryData, Ref1) 
-                                                        || DataTypesUtils.AreArraysIdentical(QueryData, Ref2) || DataTypesUtils.AreArraysIdentical(QueryData, Ref4)))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataUtils.AreArraysIdentical(QueryData, Ref1) 
+                                                        || DataUtils.AreArraysIdentical(QueryData, Ref2) || DataUtils.AreArraysIdentical(QueryData, Ref4)))
                                                     {
                                                         string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -363,7 +363,7 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     break;
                                                 case 0x100BA820:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataTypesUtils.AreArraysIdentical(QueryData, Ref3)))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataUtils.AreArraysIdentical(QueryData, Ref3)))
                                                     {
                                                         string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -386,7 +386,7 @@ namespace Horizon.MEDIUS.Medius
 
                                                         byte[] WireFrame = new byte[4] { 16, 0x00, 0x00, 0x00 };
 
-                                                        if (!DataTypesUtils.AreArraysIdentical(QueryData, WireFrame))
+                                                        if (!DataUtils.AreArraysIdentical(QueryData, WireFrame))
                                                             PokeAddress(270088564U, WireFrame, clientChannel);
                                                     }
                                                     break;
@@ -399,7 +399,7 @@ namespace Horizon.MEDIUS.Medius
                                                         {
                                                             if (data.ClientObject.HomePointer == 0)
                                                             {
-                                                                data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(QueryData) : QueryData));
+                                                                data.ClientObject.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
 
                                                                 data.ClientObject.Tasks.TryAdd("1.86 ANTI FREEZE", Task.Run(() => {
 
@@ -433,7 +433,7 @@ namespace Horizon.MEDIUS.Medius
                                                 default:
                                                     if (data.ClientObject != null)
                                                     {
-                                                        if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 6928U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataTypesUtils.AreArraysIdentical(QueryData, Ref5))
+                                                        if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 6928U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataUtils.AreArraysIdentical(QueryData, Ref5))
                                                         {
                                                             string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}";
 
@@ -447,7 +447,7 @@ namespace Horizon.MEDIUS.Medius
                                                             data.State = ClientState.DISCONNECTED;
                                                             await clientChannel.CloseAsync();
                                                         }
-                                                        else if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 5300U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && DataTypesUtils.AreArraysIdentical(QueryData, Ref6))
+                                                        else if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 5300U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && DataUtils.AreArraysIdentical(QueryData, Ref6))
                                                         {
                                                             string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{data.ClientObject.AccountName} CID:{data.MachineId}";
 
@@ -6630,7 +6630,7 @@ namespace Horizon.MEDIUS.Medius
                             Queue(new RT_MSG_SERVER_MEMORY_POKE()
                             {
                                 start_Address = 0x009E6708,
-                                Payload = BitConverter.IsLittleEndian ? BitConverter.GetBytes(0x0000000A) : BitConverter.GetBytes(EndianUtils.EndianSwap(0x0000000A)),
+                                Payload = BitConverter.IsLittleEndian ? BitConverter.GetBytes(0x0000000A) : BitConverter.GetBytes(EndianUtils.ReverseInt(0x0000000A)),
                                 SkipEncryption = true
                             }, clientChannel);
                         }

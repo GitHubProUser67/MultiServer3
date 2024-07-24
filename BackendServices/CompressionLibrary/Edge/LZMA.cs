@@ -164,7 +164,7 @@ namespace CompressionLibrary.Edge
         private static byte[] Decompress(byte[] buffer)
         {
             MemoryStream result = new MemoryStream();
-            int outSize = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(buffer) : buffer, 12);
+            int outSize = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(buffer) : buffer, 12);
             int streamCount = outSize + 0xffff >> 16;
             int offset = 0x18 + streamCount * 2 + 5;
 
@@ -221,18 +221,18 @@ namespace CompressionLibrary.Edge
                             Array.Reverse(SegmentCompressedSizeByte);
                             Array.Reverse(SegmentOriginalSizeByte);
                             Array.Reverse(SegmentOffsetByte);
-                            int SegmentCompressedSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.EndianSwap(SegmentCompressedSizeByte) : SegmentCompressedSizeByte, 0);
-                            int SegmentOriginalSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.EndianSwap(SegmentOriginalSizeByte) : SegmentOriginalSizeByte, 0);
+                            int SegmentCompressedSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.ReverseArray(SegmentCompressedSizeByte) : SegmentCompressedSizeByte, 0);
+                            int SegmentOriginalSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.ReverseArray(SegmentOriginalSizeByte) : SegmentOriginalSizeByte, 0);
                             int SegmentOffset = 0;
                             byte[] CompressedData = Array.Empty<byte>();
                             if (SegmentCompressedSize <= 0) // Safer than just comparing with 0.
                             {
-                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.EndianSwap(SegmentOffsetByte) : SegmentOffsetByte, 0);
+                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.ReverseArray(SegmentOffsetByte) : SegmentOffsetByte, 0);
                                 CompressedData = new byte[65536];
                             }
                             else
                             {
-                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.EndianSwap(SegmentOffsetByte) : SegmentOffsetByte, 0) - 1; // -1 cause there is an offset for compressed content... sdk bug?
+                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.ReverseArray(SegmentOffsetByte) : SegmentOffsetByte, 0) - 1; // -1 cause there is an offset for compressed content... sdk bug?
                                 CompressedData = new byte[SegmentCompressedSize];
                             }
                             Buffer.BlockCopy(inbuffer, SegmentOffset, CompressedData, 0, CompressedData.Length);

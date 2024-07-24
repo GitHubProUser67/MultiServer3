@@ -1,4 +1,4 @@
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 using CyberBackendLibrary.HTTP;
 using HTTPServer.Models;
 using System;
@@ -130,7 +130,7 @@ namespace HTTPServer.Extensions
                             // into our response headers.
                             index = line.IndexOf(':');
 
-                            HeadersLocal = DataTypesUtils.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
+                            HeadersLocal = DataUtils.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
                         }
                         else
                             // Write non-header lines into the output as is.

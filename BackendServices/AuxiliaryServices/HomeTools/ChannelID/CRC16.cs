@@ -53,7 +53,7 @@ namespace HomeTools.ChannelID
                 crc16 = (ushort)(crc16 << 8 ^ HomeccittCrc16Table[crc16 >> 8 ^ bytes[byteIndex++]]);
             }
 
-            return EndianUtils.EndianSwap(crc16); // Home expect big endian data.
+            return EndianUtils.ReverseUshort(crc16); // Home expect big endian data.
         }
     }
 }

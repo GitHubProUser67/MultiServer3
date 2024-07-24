@@ -12,7 +12,7 @@ namespace HomeTools.CDS
             byte[]? digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
                 return LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.DefaultKey,
-                    BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(ToolsImpl.Sha1toNonce(digest)) : ToolsImpl.Sha1toNonce(digest)), "CTR"); // Always big endian.
+                    BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(ToolsImpl.Sha1toNonce(digest)) : ToolsImpl.Sha1toNonce(digest)), "CTR"); // Always big endian.
 
             return null;
         }

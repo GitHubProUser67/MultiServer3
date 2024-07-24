@@ -170,7 +170,7 @@ namespace HomeTools.ChannelID
         public SceneKey Generate(ushort SceneID)
         {
             byte[] bytes1 = new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes();
-            byte[] bytes2 = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(SceneID) : SceneID);
+            byte[] bytes2 = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(SceneID) : SceneID);
             byte[] bytes3 = SceneKey.New().GetBytes();
             int index1 = bytes3[0] & 15;
             bytes3[m_ScatterTable[index1, 0]] = bytes2[0];
@@ -184,7 +184,7 @@ namespace HomeTools.ChannelID
         public SceneKey GenerateNewerType(ushort SceneID)
         {
             byte[] bytes1 = new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes();
-            byte[] bytes2 = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(SceneID) : SceneID);
+            byte[] bytes2 = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(SceneID) : SceneID);
             byte[] bytes3 = SceneKey.New().GetBytes();
             int index1 = bytes3[0] & 15;
             bytes3[m_NewerScatterTable[index1, 0]] = bytes2[0];

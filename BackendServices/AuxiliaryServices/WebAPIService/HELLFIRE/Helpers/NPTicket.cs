@@ -2,10 +2,10 @@ using CustomLogger;
 using HttpMultipartParser;
 using WebAPIService.SSFW;
 using System.Text;
-using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System;
 using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
@@ -59,7 +59,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                         extractedData[i] = 0x20;
                 }
 
-                if (DataTypesUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                if (DataUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HFGames] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 

@@ -6,4 +6,8 @@
 	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\CyberBackendLibrary\CyberBackendLibrary.csproj" />
+  </ItemGroup>
+
 </Project>

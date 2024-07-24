@@ -214,7 +214,7 @@ namespace HashLib.Hash32
 
         public int ComputeDoubleFast(double a_data)
         {
-            return ComputeLongFast(BitConverter.DoubleToInt64Bits(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data) : a_data));
+            return ComputeLongFast(BitConverter.DoubleToInt64Bits(!BitConverter.IsLittleEndian ? EndianUtils.ReverseDouble(a_data) : a_data));
         }
 
         public int ComputeBytesFast(byte[] a_data)
@@ -372,7 +372,7 @@ namespace HashLib.Hash32
 
             for (int i = 0; i < a_data.Length; i++)
             {
-                long k = BitConverter.DoubleToInt64Bits(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(a_data[i]) : a_data[i]);
+                long k = BitConverter.DoubleToInt64Bits(!BitConverter.IsLittleEndian ? EndianUtils.ReverseDouble(a_data[i]) : a_data[i]);
                 TransformULongFast(unchecked((ulong)k));
             }
 

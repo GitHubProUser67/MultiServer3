@@ -11,10 +11,10 @@ using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
-using CyberBackendLibrary.DataTypes;
 using CustomLogger;
 using Org.BouncyCastle.Asn1;
 using CyberBackendLibrary.SSL;
+using CyberBackendLibrary.Extension;
 
 namespace MultiSocks.Tls;
 
@@ -168,8 +168,8 @@ public class ProtoSSLUtils
         byte[] certDer = DotNetUtilities.ToX509Certificate(cCertificate).GetRawCertData();
 
         // There must be two signatures in the DER encoded certificate
-        int signature1Offset = DataTypesUtils.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span);
-        int signature2Offset = DataTypesUtils.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span, signature1Offset + (MD5Mode ? MD5CipherSignature.Length : SHA1CipherSignature.Length));
+        int signature1Offset = DataUtils.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span);
+        int signature2Offset = DataUtils.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span, signature1Offset + (MD5Mode ? MD5CipherSignature.Length : SHA1CipherSignature.Length));
 
         if (signature1Offset == -1 || signature2Offset == -1)
             throw new Exception("[ProtoSSL] - Failed to find valid signature for patching!");

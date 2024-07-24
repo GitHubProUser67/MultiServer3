@@ -170,7 +170,7 @@ namespace CyberBackendLibrary.TCP_IP
 
         private static string ConvertToIpAddress(uint ip)
         {
-            return new IPAddress(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(ip) : ip)).ToString();
+            return new IPAddress(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ip) : ip)).ToString();
         }
 
         private static bool IsPrivateIpAddress(byte[] ipBytes)

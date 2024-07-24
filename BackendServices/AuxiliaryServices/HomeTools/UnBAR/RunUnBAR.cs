@@ -5,13 +5,13 @@ using System.Diagnostics;
 using System.Text;
 using System.Security.Cryptography;
 using EndianTools;
-using CyberBackendLibrary.DataTypes;
 using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using CompressionLibrary.Edge;
 using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace HomeTools.UnBAR
 {
@@ -133,7 +133,7 @@ namespace HomeTools.UnBAR
 
                                 if (SharcHeader == null)
                                     return; // Sharc Header failed to decrypt.
-                                else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                 {
                                     options = ToolsImpl.base64CDNKey1;
 
@@ -144,7 +144,7 @@ namespace HomeTools.UnBAR
 
                                     if (SharcHeader == null)
                                         return; // Sharc Header failed to decrypt.
-                                    else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                    else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
                                         options = ToolsImpl.base64DefaultSharcKey;
 
@@ -155,7 +155,7 @@ namespace HomeTools.UnBAR
 
                                         if (SharcHeader == null)
                                             return; // Sharc Header failed to decrypt.
-                                        else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                        else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                             return; // All keys failed to decrypt.
                                     }
                                 }
@@ -194,7 +194,7 @@ namespace HomeTools.UnBAR
 
                                         if (isLittleEndian)
                                         {
-                                            FileBytes = DataTypesUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
+                                            FileBytes = DataUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -204,7 +204,7 @@ namespace HomeTools.UnBAR
                                         }
                                         else
                                         {
-                                            FileBytes = DataTypesUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
+                                            FileBytes = DataUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -352,7 +352,7 @@ namespace HomeTools.UnBAR
 
                             if (DecryptedSignatureHeader != null)
                             {
-                                string SignatureHeaderHexString = DataTypesUtils.ByteArrayToHexString(DecryptedSignatureHeader);
+                                string SignatureHeaderHexString = DataUtils.ByteArrayToHexString(DecryptedSignatureHeader);
 #if DEBUG
                                 LoggerAccessor.LogInfo($"SignatureHeader - {SignatureHeaderHexString}");
 #endif
@@ -462,8 +462,8 @@ namespace HomeTools.UnBAR
             {
 #if DEBUG
                 LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
-                LoggerAccessor.LogInfo($"Key - {DataTypesUtils.ByteArrayToHexString(Key)}");
-                LoggerAccessor.LogInfo($"IV - {DataTypesUtils.ByteArrayToHexString(tableOfContent.IV)}");
+                LoggerAccessor.LogInfo($"Key - {DataUtils.ByteArrayToHexString(Key)}");
+                LoggerAccessor.LogInfo($"IV - {DataUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
                 byte[]? FileBytes = ToolsImpl.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);

@@ -16,10 +16,10 @@ using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Text;
 using System.Security.Cryptography;
-using CyberBackendLibrary.DataTypes;
 using Horizon.HTTPSERVICE;
 using System.Buffers;
 using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -157,10 +157,10 @@ namespace Horizon.MEDIUS.Medius
 
                         if (QueryData != null)
                         {
-                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataTypesUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
 
                             if (MediusClass.Settings.HttpsSVOCheckPatcher && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 6
-                                && DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }))
+                                && DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }))
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
 
                             if (MediusClass.Settings.PlaystationHomeAntiCheat && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
@@ -176,7 +176,7 @@ namespace Horizon.MEDIUS.Medius
                                             switch (clientCheatQuery.StartAddress)
                                             {
                                                 case 0x10050500:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x49, 0x41, 0x30, 0x30, 0x30, 0x30, 0x35 })))
                                                     {
                                                         string anticheatMsg = $"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -189,7 +189,7 @@ namespace Horizon.MEDIUS.Medius
                                                     }
                                                     break;
                                                 case 0x10074820:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataTypesUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 9 || !DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x4E, 0x50, 0x45, 0x41, 0x30, 0x30, 0x30, 0x31, 0x33 })))
                                                     {
                                                         string anticheatMsg = $"[MAS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: EBOOT MISMATCH) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
 
@@ -1759,7 +1759,7 @@ namespace Horizon.MEDIUS.Medius
 
                         string UserOnlineId = Encoding.UTF8.GetString(extractedData);
 
-                        if (DataTypesUtils.FindBytePattern(ticketLoginRequest.TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                        if (DataUtils.FindBytePattern(ticketLoginRequest.TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                         {
                             accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN";
                             data.ClientObject.IsOnRPCN = true;
