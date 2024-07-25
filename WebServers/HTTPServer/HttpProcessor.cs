@@ -847,7 +847,7 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(clientStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString);
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString, fullurl, true);
                                                                 }
                                                                 break;
                                                         }
@@ -890,7 +890,7 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Keys.Count(x => x == "Range") == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(clientStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString);
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString, fullurl, false);
                                                                 }
                                                                 break;
                                                         }

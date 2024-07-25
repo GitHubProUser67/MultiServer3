@@ -28,6 +28,7 @@ using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
 using WatsonWebserver;
 using CyberBackendLibrary.Extension;
+using WebArchiveService;
 
 namespace HTTPSecureServerLite
 {
@@ -274,7 +275,6 @@ namespace HTTPSecureServerLite
                                             statusCode = (HttpStatusCode)int.Parse(match.Groups[1].Value);
                                             response.Headers.Add("Location", match.Groups[3].Value);
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = "text/plain";
                                             sent = await response.Send();
                                         }
                                     }
@@ -288,7 +288,6 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.PermanentRedirect;
                                         response.Headers.Add("Location", parts[2]);
                                         response.StatusCode = (int)statusCode;
-                                        response.ContentType = "text/plain";
                                         sent = await response.Send();
                                     }
                                 }
@@ -308,7 +307,6 @@ namespace HTTPSecureServerLite
                                             statusCode = HttpStatusCode.Found;
                                             response.Headers.Add("Location", parts[2]);
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = "text/plain";
                                             sent = await response.Send();
                                         }
                                         // Check if the input string contains a status code
@@ -321,7 +319,6 @@ namespace HTTPSecureServerLite
                                             statusCode = (HttpStatusCode)statuscode;
                                             response.Headers.Add("Location", parts[2]);
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = "text/plain";
                                             sent = await response.Send();
                                         }
                                         else if (parts[1] == "permanent")
@@ -329,7 +326,6 @@ namespace HTTPSecureServerLite
                                             statusCode = HttpStatusCode.PermanentRedirect;
                                             response.Headers.Add("Location", parts[2]);
                                             response.StatusCode = (int)statusCode;
-                                            response.ContentType = "text/plain";
                                             sent = await response.Send();
                                         }
                                     }
@@ -338,7 +334,6 @@ namespace HTTPSecureServerLite
                                         statusCode = HttpStatusCode.Found;
                                         response.Headers.Add("Location", parts[1]);
                                         response.StatusCode = (int)statusCode;
-                                        response.ContentType = "text/plain";
                                         sent = await response.Send();
                                     }
                                 }
@@ -1055,7 +1050,6 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.ASPNETRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
-                                                    response.ContentType = "text/html";
                                                     sent = await response.Send();
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
@@ -1063,7 +1057,6 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
-                                                    response.ContentType = "text/html";
                                                     sent = await response.Send();
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
@@ -1126,21 +1119,39 @@ namespace HTTPSecureServerLite
                                                     }
                                                     else
                                                     {
+                                                        bool ArchiveOrgProcessed = false;
+
                                                         LoggerAccessor.LogWarn($"[HTTPS] - {clientip} Requested a non-existant file : {filePath}");
 
-                                                        statusCode = HttpStatusCode.NotFound;
-                                                        response.StatusCode = (int)statusCode;
-
-                                                        if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                                        if (HTTPSServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
                                                         {
-                                                            response.ContentType = "text/html";
-                                                            sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
+                                                            WebArchiveRequest archiveReq = new($"https://{Host}" + fullurl);
+                                                            if (archiveReq.Archived)
+                                                            {
+                                                                ArchiveOrgProcessed = true;
+                                                                statusCode = HttpStatusCode.PermanentRedirect;
+                                                                response.Headers.Add("Location", archiveReq.ArchivedURL);
+                                                                response.StatusCode = (int)statusCode;
+                                                                sent = await response.Send();
+                                                            }
                                                         }
-                                                        else
+
+                                                        if (!ArchiveOrgProcessed)
                                                         {
-                                                            response.ContentType = "text/plain";
-                                                            sent = await response.Send();
+                                                            statusCode = HttpStatusCode.NotFound;
+                                                            response.StatusCode = (int)statusCode;
+
+                                                            if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                                            {
+                                                                response.ContentType = "text/html";
+                                                                sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
+                                                            }
+                                                            else
+                                                            {
+                                                                response.ContentType = "text/plain";
+                                                                sent = await response.Send();
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1284,7 +1295,6 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.ASPNETRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
-                                                    response.ContentType = "text/html";
                                                     sent = await response.Send();
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
@@ -1292,7 +1302,6 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
-                                                    response.ContentType = "text/html";
                                                     sent = await response.Send();
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))

@@ -31,6 +31,8 @@ public static class HTTPServerConfiguration
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static bool ChunkedTransfers { get; set; } = false;
     public static bool NotFoundSuggestions { get; set; } = false;
+    public static bool NotFoundWebArchive { get; set; } = false;
+    public static int NotFoundWebArchiveDateLimit { get; set; } = 0;
     public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
     public static bool EnableImageUpscale { get; set; } = false;
@@ -77,6 +79,8 @@ public static class HTTPServerConfiguration
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
+                new JProperty("404_not_found_web_archive", NotFoundWebArchive),
+                new JProperty("404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit),
                 new JProperty("enable_chunked_transfers", ChunkedTransfers),
                 new JProperty("enable_http_compression", EnableHTTPCompression),
                 new JProperty("enable_put_method", EnablePUTMethod),
@@ -111,6 +115,8 @@ public static class HTTPServerConfiguration
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
+            NotFoundWebArchive = GetValueOrDefault(config, "404_not_found_web_archive", NotFoundWebArchive);
+            NotFoundWebArchiveDateLimit = GetValueOrDefault(config, "404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit);
             ChunkedTransfers = GetValueOrDefault(config, "enable_chunked_transfers", ChunkedTransfers);
             EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
@@ -213,6 +219,8 @@ class Program
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+
+        WebArchiveService.WebArchiveRequest.ArchiveDateLimit = HTTPServerConfiguration.NotFoundWebArchiveDateLimit;
 
         if (HTTPServerConfiguration.NotFoundSuggestions && FilesystemTree == null)
             FilesystemTree = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPServerConfiguration.HTTPStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
