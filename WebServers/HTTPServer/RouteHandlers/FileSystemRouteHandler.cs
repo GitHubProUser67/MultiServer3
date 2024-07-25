@@ -7,19 +7,28 @@ using HTTPServer.Models;
 using System.IO;
 using System.Net;
 using System.Text;
+using WebArchiveService;
 
 namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string filepath, string Accept, string ServerIP, ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport)
+        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string filepath, string Accept, string ServerIP,
+            ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport, string fullurl, bool GET)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
                 return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
             else if (File.Exists(filepath))
                 return Handle_LocalFile(request, filepath);
-            else
-                return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+
+            if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
+            {
+                WebArchiveRequest archiveReq = new($"http://{Host}" + fullurl);
+                if (archiveReq.Archived)
+                    return HttpBuilder.PermanantRedirect(archiveReq.ArchivedURL);
+            }
+
+            return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
         public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string Host, string local_path, string Accept, string ServerIP, ushort ListenerPort)

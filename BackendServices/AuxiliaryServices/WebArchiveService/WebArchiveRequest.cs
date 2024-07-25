@@ -1,18 +1,23 @@
-using System;
-using System.IO;
-using System.Linq;
+﻿using System;
 using System.Net.Http;
-namespace WebAPIService.MultiMedia
+using System.IO;
+
+namespace WebArchiveService
 {
 	/// <summary>
 	/// Request to a Internet Archive Wayback Machine CDX server for archived copy of website
 	/// </summary>
 	public class WebArchiveRequest
 	{
-        //Documentation:
-        //https://github.com/internetarchive/wayback/blob/master/wayback-cdx-server/README.md
-        //https://github.com/atauenis/webone/wiki/Wayback-Machine
-        //https://archive.org/help/wayback_api.php
+        /* Documentation:
+		https://github.com/internetarchive/wayback/blob/master/wayback-cdx-server/README.md
+		https://github.com/atauenis/webone/wiki/Wayback-Machine
+		https://archive.org/help/wayback_api.php */
+
+        /// <summary>
+        /// Upper limit of Web Archive page date
+        /// </summary>
+        public static int ArchiveDateLimit = 0;
 
         /// <summary>
         /// Is the requested URL archived by Wayback Machine
@@ -32,44 +37,43 @@ namespace WebAPIService.MultiMedia
 		{
 			const int CdxFieldsCount = 3;
 
-			//send request to CDX server
-			HttpResponseMessage? CdxResponse = new HttpClient().SendAsync(new HttpRequestMessage(HttpMethod.Get,new Uri(string.Format(
+            // send request to CDX server
+            using HttpResponseMessage CdxResponse = new HttpClient().Send(new HttpRequestMessage(HttpMethod.Get,new Uri(string.Format(
             "https://web.archive.org/cdx/search/cdx?fl={0}&url={1}",
-            "timestamp,original,statuscode", //fields: ["urlkey","timestamp","original","mimetype","statuscode","digest","length"]
-            Uri.EscapeDataString(URL))))).Result;
+            "timestamp,original,statuscode", // fields: ["urlkey","timestamp","original","mimetype","statuscode","digest","length"]
+            Uri.EscapeDataString(URL)))));
 			if (!CdxResponse.IsSuccessStatusCode) throw new Exception("Unsuccessful Web Archive request: " + CdxResponse.ReasonPhrase ?? " without reason");
-			string[] CdxBody = new StreamReader(CdxResponse.Content.ReadAsStreamAsync().Result).ReadToEnd().TrimEnd().Split('\n');
+			using StreamReader st = new StreamReader(CdxResponse.Content.ReadAsStream());
+			string[] CdxBody = st.ReadToEnd().TrimEnd().Split('\n');
+            st.Close();
 
-			if (CdxBody.Length == 0)
+            if (CdxBody.Length == 0 || CdxBody[0] == string.Empty)
 			{
-				//not archived
+				// not archived
 				Archived = false;
 				ArchivedURL = string.Empty;
 				return;
 			}
 
-			if (CdxBody[0] == string.Empty)
-			{
-				//not archived too
-				Archived = false;
-				ArchivedURL = string.Empty;
-				return;
-			}
-
-			//find last (or last at ArchiveDateLimit date) archived version, preferable without redirects
+			// find last (or last at ArchiveDateLimit date) archived version, preferable without redirects
 			string LastCdxEntry = string.Empty;
 			foreach (string CdxEntry in CdxBody)
 			{
 				string[] Fields = CdxEntry.Split(" ");
-				if (Fields.Count() != CdxFieldsCount) continue;
+				if (Fields.Length != CdxFieldsCount) continue;
+				if (ArchiveDateLimit > 0)
+				{
+					long.TryParse(Fields[0], out long Timestamp);
+					if (Timestamp > ArchiveDateLimit * Math.Pow(10, 6)) continue;
+				}
 				if (Fields[2] == "200") LastCdxEntry = CdxEntry;
 			}
 			if (LastCdxEntry == string.Empty) LastCdxEntry = CdxBody[^1];
 
 			string[] ResultFields = LastCdxEntry.Split(" ");
-			if (ResultFields.Count() != CdxFieldsCount)
+			if (ResultFields.Length != CdxFieldsCount)
 			{
-				//bad CDX syntax
+				// bad CDX syntax
 				Archived = false;
 				ArchivedURL = string.Empty;
 				throw new Exception("Incorrect Web Archive request: " + LastCdxEntry);
