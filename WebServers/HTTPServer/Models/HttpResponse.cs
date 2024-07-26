@@ -17,7 +17,7 @@ namespace HTTPServer.Models
 
         public HttpStatusCode HttpStatusCode { get; set; }
         public Stream? ContentStream { get; set; }
-        public Dictionary<string, string>? Headers { get; set; }
+        public Dictionary<string, string> Headers { get; set; }
         private string HttpVersion { get; set; }
         #endregion
 
@@ -149,8 +149,8 @@ namespace HTTPServer.Models
         {
             StringBuilder strBuilder = new();
 
-            strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString().Replace("_", " ")));
-            strBuilder.Append(Headers?.ToHttpHeaders());
+            strBuilder.Append(string.Format("HTTP/{0} {1} {2}\r\n", HttpVersion, (int)HttpStatusCode, HttpStatusCode.ToString()));
+            strBuilder.Append(Headers.ToHttpHeaders());
             strBuilder.Append("\r\n\r\n");
 
             return strBuilder.ToString();
@@ -170,7 +170,6 @@ namespace HTTPServer.Models
             {
                 if (disposing)
                 {
-                    Headers = null;
                     try
                     {
                         ContentStream?.Close();
