@@ -654,6 +654,33 @@ namespace CyberBackendLibrary.HTTP
             return true;
         }
 
+
+        /// <summary>
+        /// Check if it's need to return 304 instead.
+        /// </summary>
+        /// <param name="Since">Value of Since based request HTTP header.</param>
+        /// <param name="filePath">Path of the file to check on.</param>
+        /// <param name="reverseConditional">(Optional) use reversed result.</param>
+        /// <returns><c>true</c> if need to return 304 or <c>false</c> if need to return 200 or 404</returns>
+        public static bool CheckLastWriteTime(string filePath, string Since, bool reverseConditional = false)
+        {
+            if (string.IsNullOrWhiteSpace(Since) || string.IsNullOrEmpty(filePath)) return false;
+
+            try
+            {
+                DateTimeOffset? time = ToDateTimeOffset(Since);
+
+                if (time.HasValue && File.Exists(filePath))
+                    return reverseConditional ? time.Value >= new FileInfo(filePath).LastWriteTime : time.Value < new FileInfo(filePath).LastWriteTime;
+            }
+            catch
+            {
+
+            }
+
+            return false;
+        }
+
         public static string ExtractBoundary(string? contentType)
         {
             if (!string.IsNullOrEmpty(contentType))
@@ -729,6 +756,22 @@ namespace CyberBackendLibrary.HTTP
             return stringBuilder
                 .ToString()
                 .Normalize(NormalizationForm.FormC);
+        }
+
+
+        /// <summary>
+        /// Convert string to DateTimeOffset
+        /// </summary>
+        /// <param name="input">Input string</param>
+        /// <returns>DateTimeOffset</returns>
+        /// <exception cref="InvalidCastException">Throws if the <paramref name="input"/> is not understood by .NET Runtime.</exception>
+        public static DateTimeOffset? ToDateTimeOffset(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            // see for docs: https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.parse?view=net-6.0
+            return input.ToLower() == "now" ? DateTimeOffset.Now : DateTimeOffset.Parse(input);
         }
 
         public static byte[] CompressZstd(byte[] input)

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
@@ -22,14 +23,14 @@ namespace HTTPServer.Models
         public Stream? Data { get; set; }
         [JsonIgnore]
         public Route? Route { get; set; }
-        public Dictionary<string, string>? Headers { get; set; }
+        public List<KeyValuePair<string, string>>? Headers { get; set; }
 
         #endregion
 
         #region Constructors
         public HttpRequest()
         {
-            Headers = new Dictionary<string, string>();
+            
         }
 
         #endregion
@@ -42,8 +43,14 @@ namespace HTTPServer.Models
 
         public string RetrieveHeaderValue(string headeruri)
         {
-            if (Headers != null && Headers.TryGetValue(headeruri, out string? value))
-                return value;
+            if (Headers == null || Headers.Count == 0)
+                return string.Empty;
+
+            KeyValuePair<string, string>? Header = Headers
+                .FirstOrDefault(header => header.Key.Equals(headeruri));
+
+            if (Header.HasValue)
+                return Header.Value.Value;
 
             return string.Empty; // Make things simpler instead of null.
         }
@@ -53,10 +60,11 @@ namespace HTTPServer.Models
             if (Headers == null || Headers.Count == 0)
                 return string.Empty;
 
-            if (Headers.TryGetValue("Content-Type", out string? value))
-                return value;
-            else if (Headers.TryGetValue("Content-type", out string? value1))
-                return value1;
+            KeyValuePair<string, string>? contentType = Headers
+                .FirstOrDefault(header => header.Key.Equals("content-type", StringComparison.InvariantCultureIgnoreCase));
+
+            if (contentType.HasValue)
+                return contentType.Value.Value;
 
             return string.Empty;
         }

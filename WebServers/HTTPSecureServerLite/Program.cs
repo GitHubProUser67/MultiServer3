@@ -339,7 +339,7 @@ class Program
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        WebArchiveService.WebArchiveRequest.ArchiveDateLimit = HTTPSServerConfiguration.NotFoundWebArchiveDateLimit;
+        WebAPIService.WebArchive.WebArchiveRequest.ArchiveDateLimit = HTTPSServerConfiguration.NotFoundWebArchiveDateLimit;
 
         CyberBackendLibrary.SSL.SSLUtils.InitCerts(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
             HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);

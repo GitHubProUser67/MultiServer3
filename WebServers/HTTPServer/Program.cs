@@ -220,7 +220,7 @@ class Program
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        WebArchiveService.WebArchiveRequest.ArchiveDateLimit = HTTPServerConfiguration.NotFoundWebArchiveDateLimit;
+        WebAPIService.WebArchive.WebArchiveRequest.ArchiveDateLimit = HTTPServerConfiguration.NotFoundWebArchiveDateLimit;
 
         if (HTTPServerConfiguration.NotFoundSuggestions && FilesystemTree == null)
             FilesystemTree = new Timer(WebMachineLearning.ScheduledfileSystemUpdate, HTTPServerConfiguration.HTTPStaticFolder, TimeSpan.Zero, TimeSpan.FromMinutes(1440));

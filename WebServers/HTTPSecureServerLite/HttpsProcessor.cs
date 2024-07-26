@@ -28,7 +28,7 @@ using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP.PluginManager;
 using WatsonWebserver;
 using CyberBackendLibrary.Extension;
-using WebArchiveService;
+using WebAPIService.WebArchive;
 
 namespace HTTPSecureServerLite
 {
@@ -411,6 +411,9 @@ namespace HTTPSecureServerLite
                                             response.ContentType = "text/html";
                                             sent = await response.Send(CollectPHP.Item1);
                                         }
+                                        if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
+                                            sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}",
+                                                HTTPProcessor.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}"), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                         else
                                         {
                                             using FileStream stream = new(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);

@@ -18,16 +18,6 @@ namespace HTTPServer.Extensions
             return Encoding.ASCII.GetString(((MemoryStream)stream).ToArray());
         }
 
-        public static string RemoveQueryString(string input)
-        {
-            int indexOfQuestionMark = input.IndexOf('?');
-
-            if (indexOfQuestionMark >= 0)
-                return input[..indexOfQuestionMark];
-            else
-                return input;
-        }
-
         public static bool IsConnected(this TcpClient tcpClient)
         {
             if (tcpClient.Client.Connected)
