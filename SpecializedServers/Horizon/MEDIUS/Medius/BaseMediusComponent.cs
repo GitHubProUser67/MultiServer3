@@ -208,8 +208,14 @@ namespace Horizon.MEDIUS.Medius
                 return;
 
             // Tick clients
+#if NET8_0_OR_GREATER
+            await Parallel.ForEachAsync(_scertHandler.Group.ToArray() /* ToArray() is necessary, else, weird issues happens in NET8.0+ ... */, async (c, token) => {
+                await Tick(c);
+            });
+#else
+            // Disabled in NET8.0+ due to compatibility issues (https://github.com/dotnet/runtime/issues/105576)
             await Task.WhenAll(_scertHandler.Group.Select(c => Tick(c)));
-
+#endif
             // Disconnect and remove timedout unauthenticated channels
             while (_forceDisconnectQueue.TryDequeue(out var channel))
             {
