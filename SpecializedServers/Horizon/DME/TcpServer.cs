@@ -167,7 +167,14 @@ namespace Horizon.DME
             if (_scertHandler == null || _scertHandler.Group == null)
                 return;
 
+#if NET8_0_OR_GREATER
+            await Parallel.ForEachAsync(_scertHandler.Group.ToArray() /* ToArray() is necessary, else, weird issues happens in NET8.0+ ... */, async (c, token) => {
+                await HandleIncomingMessages(c);
+            });
+#else
+            // Disabled in NET8.0+ due to compatibility issues (https://github.com/dotnet/runtime/issues/105576)
             await Task.WhenAll(_scertHandler.Group.Select(c => HandleIncomingMessages(c)));
+#endif
         }
 
         /// <summary>
@@ -178,7 +185,14 @@ namespace Horizon.DME
             if (_scertHandler == null || _scertHandler.Group == null)
                 return;
 
+#if NET8_0_OR_GREATER
+            await Parallel.ForEachAsync(_scertHandler.Group.ToArray() /* ToArray() is necessary, else, weird issues happens in NET8.0+ ... */, async (c, token) => {
+                await HandleOutgoingMessages(c);
+            });
+#else
+            // Disabled in NET8.0+ due to compatibility issues (https://github.com/dotnet/runtime/issues/105576)
             await Task.WhenAll(_scertHandler.Group.Select(c => HandleOutgoingMessages(c)));
+#endif
 
             // Disconnect and remove timedout unauthenticated channels
             while (_forceDisconnectQueue.TryDequeue(out var channel))

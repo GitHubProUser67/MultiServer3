@@ -38,7 +38,7 @@ namespace Horizon.MUM
         }
 
         private Dictionary<string, int[]> _appIdGroups = new();
-        private readonly Dictionary<int, QuickLookup> _lookupsByAppId = new();
+        private readonly ConcurrentDictionary<int, QuickLookup> _lookupsByAppId = new();
 
         private readonly List<MediusFile> _mediusFiles = new();
         private readonly List<MediusFileMetaData> _mediusFilesToUpdateMetaData = new();
@@ -149,7 +149,7 @@ namespace Horizon.MUM
             }
 
             if (!_lookupsByAppId.TryGetValue(dmeClient.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(dmeClient.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(dmeClient.ApplicationId, quickLookup = new QuickLookup());
 
             try
             {
@@ -413,7 +413,7 @@ namespace Horizon.MUM
         public async Task AddGame(Game game)
         {
             if (!_lookupsByAppId.TryGetValue(game.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(game.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(game.ApplicationId, quickLookup = new QuickLookup());
 
             quickLookup.GameIdToGame.Add(game.MediusWorldId, game);
             await HorizonServerConfiguration.Database.CreateGame(game.ToGameDTO());
@@ -422,7 +422,7 @@ namespace Horizon.MUM
         public int GetGameCountAppId(int appId)
         {
             if (!_lookupsByAppId.TryGetValue(appId, out var quickLookup))
-                _lookupsByAppId.Add(appId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(appId, quickLookup = new QuickLookup());
 
             int gameCount = quickLookup.GameIdToGame.Count;
 
@@ -462,7 +462,7 @@ namespace Horizon.MUM
         public async Task CreateGame(ClientObject client, IMediusRequest request)
         {
             if (!_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(client.ApplicationId, quickLookup = new QuickLookup());
 
             string? gameName = null;
             Game? game = null;
@@ -582,7 +582,7 @@ namespace Horizon.MUM
         public async Task CreateGame1(ClientObject client, IMediusRequest request)
         {
             if (!_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(client.ApplicationId, quickLookup = new QuickLookup());
 
             string? gameName = null;
             if (request is MediusCreateGameRequest1 r)
@@ -660,7 +660,7 @@ namespace Horizon.MUM
         public async Task MatchCreateGame(ClientObject client, MediusMatchCreateGameRequest matchCreateGameRequest, IChannel channel)
         {
             if (!_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(client.ApplicationId, quickLookup = new QuickLookup());
 
             string? gameName = null;
             if (matchCreateGameRequest is MediusMatchCreateGameRequest r)
@@ -815,7 +815,7 @@ namespace Horizon.MUM
         public async Task CreateGameP2P(ClientObject? client, IMediusRequest request, IChannel channel, DMEObject dme)
         {
             if (client != null && !_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(client.ApplicationId, quickLookup = new QuickLookup());
 
             string? gameName = null;
             NetAddressList gameNetAddressList = new();
@@ -1413,7 +1413,7 @@ namespace Horizon.MUM
         public async Task AddChannel(Channel channel)
         {
             if (!_lookupsByAppId.TryGetValue(channel.ApplicationId, out QuickLookup? quickLookup))
-                _lookupsByAppId.Add(channel.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(channel.ApplicationId, quickLookup = new QuickLookup());
 
             lock (quickLookup.AppIdToChannel)
             {
@@ -1686,7 +1686,7 @@ namespace Horizon.MUM
         public async Task AddParty(Party party)
         {
             if (!_lookupsByAppId.TryGetValue(party.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(party.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(party.ApplicationId, quickLookup = new QuickLookup());
 
             quickLookup.PartyIdToGame.Add(party.MediusWorldId, party);
             await HorizonServerConfiguration.Database.CreateParty(party.ToPartyDTO());
@@ -1695,7 +1695,7 @@ namespace Horizon.MUM
         public async Task CreateParty(ClientObject client, IMediusRequest request)
         {
             if (!_lookupsByAppId.TryGetValue(client.ApplicationId, out var quickLookup))
-                _lookupsByAppId.Add(client.ApplicationId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(client.ApplicationId, quickLookup = new QuickLookup());
 
             var appIdsInGroup = GetAppIdsInGroup(client.ApplicationId);
             string? partyName = null;
@@ -2044,7 +2044,7 @@ namespace Horizon.MUM
             var appIdsInGroup = GetAppIdsInGroup(appId);
 
             if (!_lookupsByAppId.TryGetValue(appId, out var quickLookup))
-                _lookupsByAppId.Add(appId, quickLookup = new QuickLookup());
+                _lookupsByAppId.TryAdd(appId, quickLookup = new QuickLookup());
 
             lock (quickLookup.BuddyInvitationsToClient)
             {
@@ -2090,7 +2090,7 @@ namespace Horizon.MUM
         //public void AddClan(Clan clan)
         //{
         //    if (!_lookupsByAppId.TryGetValue(clan.ApplicationId, out var quickLookup))
-        //        _lookupsByAppId.Add(dmeClient.ApplicationId, quickLookup = new QuickLookup());
+        //        _lookupsByAppId.TryAdd(dmeClient.ApplicationId, quickLookup = new QuickLookup());
 
         //    _clanNameToClan.Add(clan.Name.ToLower(), clan);
         //    _clanIdToClan.Add(clan.Id, clan);
@@ -2207,7 +2207,7 @@ namespace Horizon.MUM
                         continue;
 
                     if (!_lookupsByAppId.TryGetValue(newClient.ApplicationId, out QuickLookup? quickLookup))
-                        _lookupsByAppId.Add(newClient.ApplicationId, quickLookup = new QuickLookup());
+                        _lookupsByAppId.TryAdd(newClient.ApplicationId, quickLookup = new QuickLookup());
 
                     if (!string.IsNullOrEmpty(newClient.AccountName) && !string.IsNullOrEmpty(newClient.Token) && !string.IsNullOrEmpty(newClient.SessionKey))
                     {
