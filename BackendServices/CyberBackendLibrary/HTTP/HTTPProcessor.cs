@@ -671,7 +671,7 @@ namespace CyberBackendLibrary.HTTP
                 DateTimeOffset? time = ToDateTimeOffset(Since);
 
                 if (time.HasValue && File.Exists(filePath))
-                    return reverseConditional ? time.Value >= new FileInfo(filePath).LastWriteTime : time.Value < new FileInfo(filePath).LastWriteTime;
+                    return reverseConditional ? time.Value < new FileInfo(filePath).LastWriteTime : time.Value >= new FileInfo(filePath).LastWriteTime;
             }
             catch
             {

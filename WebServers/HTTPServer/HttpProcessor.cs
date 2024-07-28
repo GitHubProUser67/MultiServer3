@@ -1114,7 +1114,12 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if ((!string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5)) || HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since")))
+                        bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
+                        bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
+
+                        if ((isNoneMatchValid && isModifiedSinceValid) ||
+                            (isNoneMatchValid && string.IsNullOrEmpty(request.RetrieveHeaderValue("If-Modified-Since"))) ||
+                            (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
                         {
                             response.Headers.Clear();
 
@@ -1124,7 +1129,6 @@ namespace HTTPServer
                             if (!string.IsNullOrEmpty(EtagMD5))
                                 response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                            response.Headers.Add("age", "1800");
 
                             response.HttpStatusCode = HttpStatusCode.NotModified;
 
@@ -1153,7 +1157,6 @@ namespace HTTPServer
                                 if (!string.IsNullOrEmpty(EtagMD5))
                                     response.Headers.Add("ETag", EtagMD5);
                                 response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                                response.Headers.Add("age", "1800");
                                 if (File.Exists(filePath))
                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                             }
@@ -1701,7 +1704,12 @@ namespace HTTPServer
                         string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
                         string? EtagMD5 = ComputeStreamMD5(response.ContentStream);
 
-                        if ((!string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5)) || HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since")))
+                        bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
+                        bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
+
+                        if ((isNoneMatchValid && isModifiedSinceValid) ||
+                            (isNoneMatchValid && string.IsNullOrEmpty(request.RetrieveHeaderValue("If-Modified-Since"))) ||
+                            (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
                         {
                             response.Headers.Clear();
 
@@ -1711,7 +1719,6 @@ namespace HTTPServer
                             if (!string.IsNullOrEmpty(EtagMD5))
                                 response.Headers.Add("ETag", EtagMD5);
                             response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                            response.Headers.Add("age", "1800");
 
                             response.HttpStatusCode = HttpStatusCode.NotModified;
 
@@ -1740,7 +1747,6 @@ namespace HTTPServer
                                 if (!string.IsNullOrEmpty(EtagMD5))
                                     response.Headers.Add("ETag", EtagMD5);
                                 response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                                response.Headers.Add("age", "1800");
                                 if (File.Exists(filePath))
                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                             }
@@ -1950,13 +1956,12 @@ namespace HTTPServer
 					Method = tokens[0].ToUpper(),
 					Url = HTTPProcessor.DecodeUrl(tokens[1]),
 					Headers = headers,
-					Data = null,
 					IP = clientip,
 					Port = clientport,
 					ServerPort = ListenerPort
 				};
 
-                string ContentLength = req.RetrieveHeaderValue("Content-Length");
+                string ContentLength = req.GetContentLength();
 
                 if (!string.IsNullOrEmpty(ContentLength))
 				{

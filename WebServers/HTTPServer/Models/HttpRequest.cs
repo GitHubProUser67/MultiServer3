@@ -43,10 +43,7 @@ namespace HTTPServer.Models
 
         public string RetrieveHeaderValue(string headeruri)
         {
-            if (Headers == null || Headers.Count == 0)
-                return string.Empty;
-
-            KeyValuePair<string, string>? Header = Headers
+            KeyValuePair<string, string>? Header = Headers?
                 .FirstOrDefault(header => header.Key.Equals(headeruri));
 
             if (Header.HasValue)
@@ -57,14 +54,22 @@ namespace HTTPServer.Models
 
         public string GetContentType()
         {
-            if (Headers == null || Headers.Count == 0)
-                return string.Empty;
-
-            KeyValuePair<string, string>? contentType = Headers
+            KeyValuePair<string, string>? contentType = Headers?
                 .FirstOrDefault(header => header.Key.Equals("content-type", StringComparison.InvariantCultureIgnoreCase));
 
             if (contentType.HasValue)
                 return contentType.Value.Value;
+
+            return string.Empty;
+        }
+
+        public string GetContentLength()
+        {
+            KeyValuePair<string, string>? contentLength = Headers?
+                .FirstOrDefault(header => header.Key.Equals("content-length", StringComparison.InvariantCultureIgnoreCase));
+
+            if (contentLength.HasValue)
+                return contentLength.Value.Value;
 
             return string.Empty;
         }
