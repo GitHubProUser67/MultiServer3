@@ -168,11 +168,9 @@ namespace Horizon.DME
                 return;
 
 #if NET8_0_OR_GREATER
-            await Parallel.ForEachAsync(_scertHandler.Group.ToArray() /* ToArray() is necessary, else, weird issues happens in NET8.0+ ... */, async (c, token) => {
-                await HandleIncomingMessages(c);
-            });
+            /* ToArray() is necessary, else, weird issues happens in NET8.0+ (https://github.com/dotnet/runtime/issues/105576) */
+            await Task.WhenAll(_scertHandler.Group.ToArray().Select(c => HandleIncomingMessages(c)));
 #else
-            // Disabled in NET8.0+ due to compatibility issues (https://github.com/dotnet/runtime/issues/105576)
             await Task.WhenAll(_scertHandler.Group.Select(c => HandleIncomingMessages(c)));
 #endif
         }
@@ -186,11 +184,9 @@ namespace Horizon.DME
                 return;
 
 #if NET8_0_OR_GREATER
-            await Parallel.ForEachAsync(_scertHandler.Group.ToArray() /* ToArray() is necessary, else, weird issues happens in NET8.0+ ... */, async (c, token) => {
-                await HandleOutgoingMessages(c);
-            });
+            /* ToArray() is necessary, else, weird issues happens in NET8.0+ (https://github.com/dotnet/runtime/issues/105576) */
+            await Task.WhenAll(_scertHandler.Group.ToArray().Select(c => HandleOutgoingMessages(c)));
 #else
-            // Disabled in NET8.0+ due to compatibility issues (https://github.com/dotnet/runtime/issues/105576)
             await Task.WhenAll(_scertHandler.Group.Select(c => HandleOutgoingMessages(c)));
 #endif
 
