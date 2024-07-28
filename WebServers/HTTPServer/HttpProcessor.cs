@@ -118,9 +118,18 @@ namespace HTTPServer
                 }
 
                 string clientportString = clientport.ToString() ?? string.Empty;
+                bool secure = false;
+                try
+                {
+                    secure = clientportString.EndsWith("443");
+                }
+                catch (ArgumentNullException)
+                {
+
+                }
                 HttpRequest? request = null;
 
-                using (Stream? clientStream = GetStream(tcpClient, clientportString.EndsWith("443")))
+                using (Stream? clientStream = GetStream(tcpClient, secure))
                 {
                     while (tcpClient.IsConnected())
                     {
