@@ -137,11 +137,9 @@ namespace Horizon.MUIS
                 return;
 
 #if NET8_0_OR_GREATER
-            await Parallel.ForEachAsync(_scertHandler.Group.ToArray() /* ToArray() is necessary, else, weird issues happens in NET8.0+ ... */, async (c, token) => {
-                await Tick(c);
-            });
+            /* ToArray() is necessary, else, weird issues happens in NET8.0+ (https://github.com/dotnet/runtime/issues/105576) */
+            await Task.WhenAll(_scertHandler.Group.ToArray().Select(c => Tick(c)));
 #else
-            // Disabled in NET8.0+ due to compatibility issues (https://github.com/dotnet/runtime/issues/105576)
             await Task.WhenAll(_scertHandler.Group.Select(c => Tick(c)));
 #endif
         }
