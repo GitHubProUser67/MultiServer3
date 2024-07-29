@@ -40,6 +40,8 @@ using CyberBackendLibrary.Extension;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 using System.Security.Authentication;
+using WebAPIService.HTS;
+using WebAPIService.ILoveSony;
 
 namespace HTTPServer
 {
@@ -288,6 +290,14 @@ namespace HTTPServer
                                     "www.ndreamshs.com",
                                     "www.ndreamsportal.com",
                                     "nDreams-multiserver-cdn"
+                                };
+
+                                List<string> HTSDomains = new() {
+                                    "samples.hdk.scee.net",
+                                };
+
+                                List<string> ILoveSonyDomains = new() {
+                                    "www.myresistance.net",
                                 };
 
                                 if (response == null)
@@ -740,6 +750,48 @@ namespace HTTPServer
                                                     response = HttpBuilder.InternalServerError();
                                                 else
                                                     response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region HTS Samples API
+                                            else if (HTSDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a HTS Samples method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new HTSClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region ILoveSony API
+                                            else if (ILoveSonyDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a IloveSony EULA method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new ILoveSonyClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/plain");
                                             }
                                             #endregion
 
