@@ -13,40 +13,40 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Account name.
         /// </summary>
-        public string? AccountName { get; set; }
+        public string AccountName { get; set; }
 
         /// <summary>
         /// SHA-256 hash of password.
         /// </summary>
-        public string? AccountPassword { get; set; }
+        public string AccountPassword { get; set; }
 
-        public List<string>? FriendsListPS3 { get; set; }
+        public List<string> FriendsListPS3 { get; set; }
 
         /// <summary>
         /// Collection of account ids representing friends.
         /// </summary>
-        public AccountRelationDTO[]? Friends { get; set; }
+        public AccountRelationDTO[] Friends { get; set; }
 
         /// <summary>
         /// Collection of account ids representing ignored.
         /// </summary>
-        public AccountRelationDTO[]? Ignored { get; set; }
+        public AccountRelationDTO[] Ignored { get; set; }
 
 
         /// <summary>
         /// Collection of ladder stats.
         /// </summary>
-        public int[]? AccountStats { get; set; }
+        public int[] AccountStats { get; set; }
 
         /// <summary>
         /// Collection of ladder Wide stats.
         /// </summary>
-        public int[]? AccountWideStats { get; set; }
+        public int[] AccountWideStats { get; set; }
 
         /// <summary>
         /// Collection of custom ladder stats.
         /// </summary>
-        public int[]? AccountCustomWideStats { get; set; }
+        public int[] AccountCustomWideStats { get; set; }
 
         /// <summary>
         /// 
@@ -57,17 +57,17 @@ namespace Horizon.LIBRARY.Database.Models
         /// Application specific user data as a Base64 encoded string.
         /// Convert back to byte array for use with Medius application.
         /// </summary>
-        public string? MediusStats { get; set; }
+        public string MediusStats { get; set; }
 
         /// <summary>
         /// Machine id tied to account.
         /// </summary>
-        public string? MachineId { get; set; }
+        public string MachineId { get; set; }
 
         /// <summary>
         /// IP of the client when it first connected.
         /// </summary>
-        public string? FirstClientIp { get; set; }
+        public string FirstClientIp { get; set; }
 
         /// <summary>
         /// Whether or not the player has been banned.
@@ -82,13 +82,13 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// 
         /// </summary>
-        public string? Metadata { get; set; }
+        public string Metadata { get; set; }
 
         //SVO SH
         public int clanPlayerId { get; set; }
         public int playerId { get; set; }
         public DateTime playerLevelUpdateDate { get; set; }
-        public string? playerName { get; set; }
+        public string playerName { get; set; }
         public DateTime playerStatusUpdateDate { get; set; }
         public int status { get; set; }
         public int clanPlayerLevelId { get; set; }
@@ -100,22 +100,22 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Name of account.
         /// </summary>
-        public string? AccountName { get; set; }
+        public string AccountName { get; set; }
 
         /// <summary>
         /// SHA-256 hash of password.
         /// </summary>
-        public string? AccountPassword { get; set; }
+        public string AccountPassword { get; set; }
 
         /// <summary>
         /// DnasPostSignature result as Base64 encoded string.
         /// </summary>
-        public string? MachineId { get; set; }
+        public string MachineId { get; set; }
 
         /// <summary>
         /// Application specific data encoded as a Base64 string.
         /// </summary>
-        public string? MediusStats { get; set; }
+        public string MediusStats { get; set; }
 
         /// <summary>
         /// Application id of the client.
@@ -133,7 +133,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Unique name of account.
         /// </summary>
-        public string? AccountName { get; set; }
+        public string AccountName { get; set; }
 
         /// <summary>
         /// Unique id of buddy account.
@@ -161,7 +161,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Account name.
         /// </summary>
-        public string? AccountName { get; set; }
+        public string AccountName { get; set; }
 
         /// <summary>
         /// Player Status.
@@ -194,7 +194,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Name of game
         /// </summary>
-        public string? GameName { get; set; }
+        public string GameName { get; set; }
 
         /// <summary>
         /// If set, which game the user is in.
@@ -204,7 +204,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Name of game
         /// </summary>
-        public string? PartyName { get; set; }
+        public string PartyName { get; set; }
 
         /// <summary>
         /// If set, which channel the user is in.

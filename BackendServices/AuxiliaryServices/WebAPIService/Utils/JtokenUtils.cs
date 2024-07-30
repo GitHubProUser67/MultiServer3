@@ -12,11 +12,11 @@ namespace WebAPIService.Utils
         /// <param name="jToken">A newtonsoft json jtoken.</param>
         /// <param name="propertyName">the property to parse in the jtoken.</param>
         /// <returns>A complex object.</returns>
-        public static object? GetValueFromJToken(JToken jToken, string propertyName)
+        public static object GetValueFromJToken(JToken jToken, string propertyName)
         {
             try
             {
-                JToken? valueToken = jToken[propertyName];
+                JToken valueToken = jToken[propertyName];
 
                 if (valueToken != null)
                 {

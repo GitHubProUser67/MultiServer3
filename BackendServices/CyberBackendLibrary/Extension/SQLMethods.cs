@@ -222,8 +222,8 @@ namespace CyberBackendLibrary.Extension
         //Shared data across recursion
         class LikeParams
         {
-            public string? MatchValue;
-            public string? Pattern;
+            public string MatchValue;
+            public string Pattern;
             public char Wildcard;
             public char PlaceHolder;
             public char Escape;

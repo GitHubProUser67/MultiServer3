@@ -73,11 +73,31 @@ namespace CyberBackendLibrary.Extension
         /// Verify is the string is in base64 format.
         /// <para>Vérifie si un string est en format base64.</para>
         /// </summary>
-        /// <param name="base64">The base64 string.</param>
+        /// <param name="base64String">The base64 string.</param>
         /// <returns>A boolean.</returns>
-        public static bool IsBase64String(string base64)
+        public static bool IsBase64String(string base64String)
         {
-            return Convert.TryFromBase64String(base64, new Span<byte>(new byte[base64.Length]), out _);
+            // Credit: oybek https://stackoverflow.com/users/794764/oybek
+            if (string.IsNullOrEmpty(base64String) || base64String.Length % 4 != 0
+               || base64String.Contains(" ") || base64String.Contains("\t") 
+               || base64String.Contains("\r") || base64String.Contains("\n"))
+                return false;
+
+#if NETCOREAPP2_1_OR_GREATER
+            return Convert.TryFromBase64String(base64String, new Span<byte>(new byte[base64String.Length]), out _);
+#else
+            try
+            {
+                Convert.FromBase64String(base64String);
+                return true;
+            }
+            catch
+            {
+
+            }
+
+            return false;
+#endif
         }
 
         /// <summary>
@@ -110,7 +130,7 @@ namespace CyberBackendLibrary.Extension
         /// <param name="first">The first byte array, which represents the left.</param>
         /// <param name="second">The second byte array, which represents the right.</param>
         /// <returns>A byte array.</returns>
-        public static byte[] CombineByteArray(byte[] first, byte[]? second)
+        public static byte[] CombineByteArray(byte[] first, byte[] second)
         {
             if (second == null)
                 return first;
@@ -128,7 +148,7 @@ namespace CyberBackendLibrary.Extension
         /// <param name="first">The first byte array, which represents the left.</param>
         /// <param name="second">The array of byte array, which represents the right.</param>
         /// <returns>A byte array.</returns>
-        public static byte[] CombineByteArrays(byte[] first, byte[][]? second)
+        public static byte[] CombineByteArrays(byte[] first, byte[][] second)
         {
             if (second == null || second.Length == 0)
                 return first;
@@ -160,16 +180,32 @@ namespace CyberBackendLibrary.Extension
                 throw new ArgumentOutOfRangeException(nameof(bytesToRead), "[DataTypesUtils] - ReadSmallFileChunck() - Number of bytes to read must be greater than zero.");
 
             int bytesRead = 0;
+#if NET5_0_OR_GREATER
             Span<byte> result = new byte[bytesToRead];
+#else
+            byte[] result = new byte[bytesToRead];
+#endif
 
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                using BinaryReader reader = new BinaryReader(fileStream);
-                bytesRead = reader.Read(result);
+                using (BinaryReader reader = new BinaryReader(fileStream))
+                {
+#if NET5_0_OR_GREATER
+                    bytesRead = reader.Read(result);
+#else
+                    bytesRead = reader.Read(result, 0, bytesToRead);
+#endif
+                }
 
                 // If the file is less than 'bytesToRead', pad with null bytes
                 if (bytesRead < bytesToRead)
+                {
+#if NET5_0_OR_GREATER
                     result[bytesRead..].Fill(0);
+#else
+                    Array.Clear(result, bytesRead, bytesToRead - bytesRead);
+#endif
+                }
             }
 
             return result.ToArray();

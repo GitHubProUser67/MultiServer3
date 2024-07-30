@@ -5765,7 +5765,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             MediusGameList_ExtraInfoResponse0[]? gameList = null;
 
-                            if (data.ApplicationId == 10683 || data.ApplicationId == 10684) // UYA needs at least one matching filter.
+                            if (data.ApplicationId == 10680 || data.ApplicationId == 10683 || data.ApplicationId == 10684) // UYA needs at least one matching filter.
                             {
                                 gameList = MediusClass.Manager.GetGameListOnAnyMatchingFilter(
                                 data.ClientObject.ApplicationId,

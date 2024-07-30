@@ -8,13 +8,13 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class Teaser
     {
-        public static string? ProcessBeans(byte[]? PostData, string? ContentType)
+        public static string ProcessBeans(byte[] PostData, string ContentType)
         {
             string func = string.Empty;
             string key = string.Empty;
             string territory = string.Empty;
             string day = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -34,16 +34,27 @@ namespace WebAPIService.NDREAMS.Aurora
 
                 if (key == ExpectedHash)
                 {
+                    int MockedDay = 0;
+
                     // Get the current day of the week
-                    int MockedDay = DateTime.Today.DayOfWeek switch
+                    switch (DateTime.Today.DayOfWeek)
                     {
-                        DayOfWeek.Monday => 5,
-                        DayOfWeek.Tuesday => 4,
-                        DayOfWeek.Wednesday => 3,
-                        DayOfWeek.Thursday => 2,
-                        DayOfWeek.Friday => 1,
-                        _ => 0,// Default to 5 for all other cases
-                    };
+                        case DayOfWeek.Monday:
+                            MockedDay = 5;
+                            break;
+                        case DayOfWeek.Tuesday:
+                            MockedDay = 4;
+                            break;
+                        case DayOfWeek.Wednesday:
+                            MockedDay = 3;
+                            break;
+                        case DayOfWeek.Thursday:
+                            MockedDay = 2;
+                            break;
+                        case DayOfWeek.Friday:
+                            MockedDay = 1;
+                            break;
+                    }
 
                     return $"<xml><success>true</success><result><day>{MockedDay}</day><hash>{Xoff_GetSignature(int.Parse(day), MockedDay)}</hash></result></xml>";
                 }

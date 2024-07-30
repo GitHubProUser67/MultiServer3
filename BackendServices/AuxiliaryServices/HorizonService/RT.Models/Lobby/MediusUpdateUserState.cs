@@ -12,12 +12,12 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.UpdateUserState;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         /// <summary>
         /// Session Key
         /// </summary>
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public string SessionKey; // SESSIONKEY_MAXLEN
         /// <summary>
         /// Change to in chat channel, left game, or left party
         /// </summary>

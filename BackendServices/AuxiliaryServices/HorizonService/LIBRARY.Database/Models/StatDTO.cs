@@ -15,7 +15,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Account name.
         /// </summary>
-        public string? AccountName { get; set; }
+        public string AccountName { get; set; }
 
         /// <summary>
         /// Value of stat.
@@ -25,7 +25,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Application specific stats encoded as Base64 string.
         /// </summary>
-        public string? MediusStats { get; set; }
+        public string MediusStats { get; set; }
 
         /// <summary>
         /// Total number of players ranked for the given column.
@@ -48,7 +48,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Clan name.
         /// </summary>
-        public string? ClanName { get; set; }
+        public string ClanName { get; set; }
 
         /// <summary>
         /// Value of stat.
@@ -58,7 +58,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Application specific stats encoded as Base64 string.
         /// </summary>
-        public string? MediusStats { get; set; }
+        public string MediusStats { get; set; }
 
         /// <summary>
         /// Total number of clans ranked for the given column.
@@ -76,7 +76,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Collection of ladder stats to be saved to the database.
         /// </summary>
-        public int[]? Stats { get; set; }
+        public int[] Stats { get; set; }
     }
     public class ClanStatPostDTO
     {
@@ -88,6 +88,6 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// Collection of ladder stats to be saved to the database.
         /// </summary>
-        public int[]? Stats { get; set; }
+        public int[] Stats { get; set; }
     }
 }

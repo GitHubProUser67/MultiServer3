@@ -12,7 +12,7 @@ namespace WebAPIService.CDM
 {
     internal class User
     {
-        public static string? handleGame(byte[] PostData, string ContentType, string workpath, string absolutePath)
+        public static string handleGame(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
             string pubListPath = $"{workpath}/CDM/User";
 
@@ -40,7 +40,7 @@ namespace WebAPIService.CDM
                 "</xml>";
         }
 
-        public static string? handleSpace(byte[] PostData, string ContentType, string workpath, string absolutePath)
+        public static string handleSpace(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
             string pubListPath = $"{workpath}/CDM/{absolutePath}";
 
@@ -68,7 +68,7 @@ namespace WebAPIService.CDM
                 "</xml>";
         }
 
-        public static string? handleUserSync(byte[] PostData, string ContentType, string workpath, string absolutePath)
+        public static string handleUserSync(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
             string status;
             string userSync = string.Empty;

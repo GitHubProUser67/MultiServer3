@@ -29,21 +29,21 @@ namespace XI5
             ECDsaRPCN.Init(false, (ECPublicKeyParameters)pr.ReadObject());
         }
 
-        public string? TicketVersion { get; private set; }
-        public string? Serial { get; private set; }
+        public string TicketVersion { get; private set; }
+        public string Serial { get; private set; }
         public uint IssuerId { get; private set; }
         public DateTime? Issued { get; private set; }
         public DateTime? Expires { get; private set; }
         public ulong UserId { get; private set; }
-        public string? OnlineId { get; private set; }
-        public string? Region { get; private set; }
-        public string? Domain { get; private set; }
-        public string? ServiceId { get; private set; }
+        public string OnlineId { get; private set; }
+        public string Region { get; private set; }
+        public string Domain { get; private set; }
+        public string ServiceId { get; private set; }
         public uint Status { get; private set; }
-        public string? IssuerName { get; private set; }
+        public string IssuerName { get; private set; }
 
-        private byte[]? _fullBodyData;
-        private byte[]? _signature;
+        private byte[] _fullBodyData;
+        private byte[] _signature;
 
         public XI5Ticket(byte[] data)
         {

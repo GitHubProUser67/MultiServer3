@@ -26,7 +26,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// The Account Name of the Buddy.
         /// </summary>
-        public string? AccountName; // ACCOUNTNAME_MAXLEN
+        public string AccountName; // ACCOUNTNAME_MAXLEN
         /// <summary>
         /// The player's status
         /// </summary>
@@ -38,13 +38,10 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
             AccountID = reader.ReadInt32();
@@ -56,13 +53,10 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(new byte[3]);
             writer.Write(StatusCode);
             writer.Write(AccountID);

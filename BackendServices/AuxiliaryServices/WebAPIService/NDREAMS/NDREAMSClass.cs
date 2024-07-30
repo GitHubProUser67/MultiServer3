@@ -34,7 +34,7 @@ namespace WebAPIService.NDREAMS
             this.host = host;
         }
 
-        public string? ProcessRequest(Dictionary<string, string>? QueryParameters, byte[]? PostData = null, string? ContentType = null)
+        public string ProcessRequest(Dictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -98,7 +98,7 @@ namespace WebAPIService.NDREAMS
                                         string[] segments = filepath.Trim('/').Split('/');
 
                                         if (segments.Length == 5) // Url is effectively a Blueprint Home Furn/Layout fetch, so we update current used slot for each.
-                                            File.WriteAllText(apipath + $"/NDREAMS/BlueprintHome/{segments[2]}/{segments[3]}/CurrentSlot.txt", segments[4][9..1]);
+                                            File.WriteAllText(apipath + $"/NDREAMS/BlueprintHome/{segments[2]}/{segments[3]}/CurrentSlot.txt", segments[4].Substring(1, 9 - 1));
                                     }
                                     catch (Exception ex)
                                     {

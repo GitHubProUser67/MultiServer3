@@ -5,7 +5,7 @@ namespace Horizon.RT.Cryptography
 {
     public class CipherService
     {
-        private ICipherFactory? _factory = null;
+        private ICipherFactory _factory = null;
         private Dictionary<CipherContext, ICipher> _ciphers = new Dictionary<CipherContext, ICipher>();
 
         public bool EnableEncryption { get; set; } = true;
@@ -33,16 +33,16 @@ namespace Horizon.RT.Cryptography
 
         public void GenerateCipher(RSA.RsaKeyPair rsaKeyPair)
         {
-            var context = CipherContext.RSA_AUTH;
+            CipherContext context = CipherContext.RSA_AUTH;
             if (!_ciphers.ContainsKey(context))
                 _ciphers.Add(context, _factory.CreateNew(rsaKeyPair));
             else
                 _ciphers[context] = _factory.CreateNew(rsaKeyPair);
         }
 
-        public ICipher? GetCipher(CipherContext context)
+        public ICipher GetCipher(CipherContext context)
         {
-            var cipher = _ciphers[context];
+            ICipher cipher = _ciphers[context];
             if (cipher == null)
             {
                 LoggerAccessor.LogError($"The CipherContext {context} does not have a cipher associated with it.");
@@ -62,12 +62,12 @@ namespace Horizon.RT.Cryptography
 
         public bool HasKey(CipherContext context)
         {
-            return _ciphers.TryGetValue(context, out var value) && value != null;
+            return _ciphers.TryGetValue(context, out ICipher value) && value != null;
         }
 
-        public byte[]? GetPublicKey(CipherContext context)
+        public byte[] GetPublicKey(CipherContext context)
         {
-            var cipher = _ciphers[context];
+            ICipher cipher = _ciphers[context];
             if (cipher == null)
             {
                 LoggerAccessor.LogError($"The CipherContext {context} does not have a cipher associated with it.");
@@ -77,23 +77,23 @@ namespace Horizon.RT.Cryptography
             return cipher.GetPublicKey();
         }
 
-        public bool Encrypt(CipherContext context, byte[] input, out byte[]? cipher, out byte[]? hash)
+        public bool Encrypt(CipherContext context, byte[] input, out byte[] cipher, out byte[] hash)
         {
             cipher = null;
             hash = null;
-            if (!EnableEncryption || !_ciphers.TryGetValue(context, out var c) || c == null)
+            if (!EnableEncryption || !_ciphers.TryGetValue(context, out ICipher c) || c == null)
                 return false;
 
             return c.Encrypt(input, out cipher, out hash);
         }
 
-        public bool Decrypt(byte[] input, byte[] hash, out byte[]? plain)
+        public bool Decrypt(byte[] input, byte[] hash, out byte[] plain)
         {
-            var cipherContext = (CipherContext)(hash[3] >> 5);
+            CipherContext cipherContext = (CipherContext)(hash[3] >> 5);
             return Decrypt(cipherContext, input, hash, out plain);
         }
 
-        public bool Decrypt(CipherContext context, byte[] input, byte[] hash, out byte[]? plain)
+        public bool Decrypt(CipherContext context, byte[] input, byte[] hash, out byte[] plain)
         {
             if (!_ciphers.TryGetValue(context, out var cipher) || cipher == null)
             {

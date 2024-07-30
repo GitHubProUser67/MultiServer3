@@ -131,7 +131,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
 
         protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
         {
-            object? decoded = Decode(context, input);
+            object decoded = Decode(context, input);
             if (decoded != null)
                 output.Add(decoded);
         }
@@ -151,7 +151,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         /// </param>
         /// <param name="input">The <see cref="IByteBuffer" /> from which to read data.</param>
         /// <returns>The <see cref="IByteBuffer" /> which represents the frame or <c>null</c> if no frame could be created.</returns>
-        protected virtual object? Decode(IChannelHandlerContext context, IByteBuffer input)
+        protected virtual object Decode(IChannelHandlerContext context, IByteBuffer input)
         {
             if (discardingTooLongFrame)
             {

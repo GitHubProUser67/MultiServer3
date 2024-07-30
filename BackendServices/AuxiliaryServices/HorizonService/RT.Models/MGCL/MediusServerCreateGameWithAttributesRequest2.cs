@@ -9,12 +9,12 @@ namespace Horizon.RT.Models.MGCL
     {
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerCreateGameWithAttributesRequest2;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         public int ApplicationID;
         public int MaxClients;
         public MediusWorldAttributesType Attributes;
         public uint MediusWorldUID;
-        public NetConnectionInfo? ConnectInfo;
+        public NetConnectionInfo ConnectInfo;
 
         public override void Deserialize(MessageReader reader)
         {

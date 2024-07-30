@@ -8,11 +8,11 @@ namespace WebAPIService.NDREAMS.Fubar
 {
     public class fisi
     {
-        public static string? fisiProcess(byte[]? PostData, string? contentType) {
+        public static string fisiProcess(byte[] PostData, string contentType) {
 
             LoggerAccessor.LogInfo($"FUBAR POSTDATA: {Encoding.UTF8.GetString(PostData)}");
 
-            string? boundary = HTTPProcessor.ExtractBoundary(contentType);
+            string boundary = HTTPProcessor.ExtractBoundary(contentType);
             using (MemoryStream ms = new MemoryStream(PostData))
             {
                 var data = MultipartFormDataParser.Parse(ms, boundary);

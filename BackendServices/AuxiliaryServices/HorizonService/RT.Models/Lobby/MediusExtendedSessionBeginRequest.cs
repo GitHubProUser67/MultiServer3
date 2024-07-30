@@ -15,7 +15,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         /// <summary>
         /// Connection Class: Ethernet, modem, or wireless 

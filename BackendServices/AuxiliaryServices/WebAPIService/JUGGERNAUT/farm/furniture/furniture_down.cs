@@ -4,12 +4,12 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_down
     {
-        public static string? ProcessDown(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessDown(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? layout = QueryParameters["layout"];
+                string user = QueryParameters["user"];
+                string layout = QueryParameters["layout"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(layout))
                 {

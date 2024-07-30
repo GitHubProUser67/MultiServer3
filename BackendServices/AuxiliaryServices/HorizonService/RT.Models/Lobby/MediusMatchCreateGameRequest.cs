@@ -9,16 +9,16 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.MatchCreateGameRequest;
 
-        public MessageId? MessageID { get; set; }
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public MessageId MessageID { get; set; }
+        public string SessionKey; // SESSIONKEY_MAXLEN
         public int SupersetID;
         public int ApplicationID;
         public int MinPlayers;
         public int MaxPlayers;
         public int GameLevel;
-        public string? GameName;
-        public string? GamePassword;
-        public string? SpectatorPassword;
+        public string GameName;
+        public string GamePassword;
+        public string SpectatorPassword;
         public int PlayerSkillLevel;
         public int RulesSet;
         public int GenericField1;
@@ -32,12 +32,12 @@ namespace Horizon.RT.Models
         public MediusGameHostType GameHostType;
         public MediusWorldAttributesType WorldAttributesType;
         public MediusMatchOptions MatchOptions;
-        public string? ServerSessionKey; // SESSIONKEY_MAXLEN
+        public string ServerSessionKey; // SESSIONKEY_MAXLEN
         public byte[] RequestData = new byte[Constants.REQUESTDATA_MAXLEN]; // REQUESTDATA_MAXLEN
         public uint GroupMemberListSize;
         public uint ApplicationDataSize;
-        public byte[]? GroupMemberAccountIDList;
-        public string? ApplicationData;
+        public byte[] GroupMemberAccountIDList;
+        public string ApplicationData;
 
         public override void Deserialize(MessageReader reader)
         {

@@ -9,18 +9,16 @@ namespace Horizon.LIBRARY.libAntiCheat
 {
     public class AntiCheat
     {
-#nullable enable
         private static ulong _sessionKeyCounter = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
-        public AntiCheatEventInfo? sEventFcn;
-#nullable disable
+        public AntiCheatEventInfo sEventFcn;
         AntiCheatEventInfo aInfo = null;
 
         public Task AntiCheatInit(LM_SEVERITY_LEVEL severity_Level, bool on)
         {
             aInfo = new AntiCheatEventInfo();
 
-            if (on == true)
+            if (on)
             {
                 LoggerAccessor.LogInfo("Initializing anticheat\n");
 

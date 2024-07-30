@@ -13,10 +13,10 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 {
     public class ClientObject
     {
-        protected static Random RNG = new();
+        protected static Random RNG = new Random();
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
-        public List<GameClient> Clients = new();
+        public List<GameClient> Clients = new List<GameClient>();
 
         public bool PassedAntiCheat = false;
 
@@ -43,32 +43,32 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public string? AccountName { get; protected set; } = null;
+        public string AccountName { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string? AccountStats { get; protected set; } = null;
+        public string AccountStats { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string? AccountDisplayName { get; set; } = null;
+        public string AccountDisplayName { get; set; } = null;
 
         /// <summary>
         /// Current access token required to access the account.
         /// </summary>
-        public string? Token { get; protected set; } = null;
+        public string Token { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public string? SessionKey { get; protected set; } = null;
+        public string SessionKey { get; protected set; } = null;
 
         /// <summary>
         /// MGCL Session Key
         /// </summary>
-        public string? MGCLSessionKey { get; protected set; } = null;
+        public string MGCLSessionKey { get; protected set; } = null;
 
         /// <summary>
         /// Unique MGCL hardcoded game identifer per Medius title
@@ -103,12 +103,12 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public Channel? CurrentChannel { get; protected set; } = null;
+        public Channel CurrentChannel { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public Game? CurrentGame { get; protected set; } = null;
+        public Game CurrentGame { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -133,7 +133,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public string? Metadata { get; set; } = null;
+        public string Metadata { get; set; } = null;
 
         /// <summary>
         /// RTT (ms)
@@ -143,12 +143,12 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public List<string>? FriendsListPS3 { get; set; }
+        public List<string> FriendsListPS3 { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public Dictionary<int, string>? FriendsList { get; set; }
+        public Dictionary<int, string> FriendsList { get; set; }
 
         /// <summary>
         /// 
@@ -210,12 +210,15 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
+#if NETCOREAPP2_1_OR_GREATER
         private DateTime _lastServerEchoValue = DateTime.UnixEpoch;
-
+#else
+        private DateTime _lastServerEchoValue = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+#endif
         /// <summary>
         /// File being Uploaded
         /// </summary>
-        public MediusFile? mediusFileToUpload;
+        public MediusFile mediusFileToUpload;
 
         public ClientObject()
         {

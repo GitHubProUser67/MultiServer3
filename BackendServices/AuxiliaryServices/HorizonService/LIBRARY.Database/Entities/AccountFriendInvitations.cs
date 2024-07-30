@@ -6,7 +6,7 @@ namespace Horizon.LIBRARY.Database.Entities
     {
         public int Id { get; set; }
         public int AccountId { get; set; }
-        public string? AccountName { get; set; }
+        public string AccountName { get; set; }
         public int FriendAccountId { get; set; }
         public int AppId { get; set; }
         public int MediusBuddyAddType { get; set; }

@@ -9,7 +9,7 @@ namespace WebAPIService.VEEMEE
 {
     public class Slot
     {
-        public static string? GetObjectSpace(byte[]? PostData, string? ContentType)
+        public static string GetObjectSpace(byte[] PostData, string ContentType)
         {
             string scene_id = string.Empty;
             string region = string.Empty;
@@ -20,7 +20,7 @@ namespace WebAPIService.VEEMEE
             string space_name = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -57,7 +57,7 @@ namespace WebAPIService.VEEMEE
             return null;
         }
 
-        public static string? GetObjectSlot(byte[]? PostData, string? ContentType)
+        public static string GetObjectSlot(byte[] PostData, string ContentType)
         {
             int max_slot = 0;
             string slot_name = string.Empty;
@@ -69,7 +69,7 @@ namespace WebAPIService.VEEMEE
             string instance_id = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -113,7 +113,7 @@ namespace WebAPIService.VEEMEE
             return null;
         }
 
-        public static string? RemoveSlot(byte[]? PostData, string? ContentType)
+        public static string RemoveSlot(byte[] PostData, string ContentType)
         {
             int slot_num = 0;
             string slot_name = string.Empty;
@@ -125,7 +125,7 @@ namespace WebAPIService.VEEMEE
             string instance_id = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -161,7 +161,7 @@ namespace WebAPIService.VEEMEE
             return null;
         }
 
-        public static string? HeartBeat(byte[]? PostData, string? ContentType)
+        public static string HeartBeat(byte[] PostData, string ContentType)
         {
             string session_key = string.Empty;
             string scene_id = string.Empty;
@@ -172,7 +172,7 @@ namespace WebAPIService.VEEMEE
             string instance_id = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {

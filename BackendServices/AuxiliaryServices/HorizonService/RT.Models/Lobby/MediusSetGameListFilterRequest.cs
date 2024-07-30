@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.SetGameListFilter;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public MediusGameListFilterField FilterField;
         public int Mask;

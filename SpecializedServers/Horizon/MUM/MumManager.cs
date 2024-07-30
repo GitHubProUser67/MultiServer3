@@ -1152,7 +1152,7 @@ namespace Horizon.MUM
                 // Else send normal Connection type to DME
                 else
                 {
-                    if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
+                    if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10680 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
                         dme?.Queue(new MediusServerJoinGameRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),

@@ -12,9 +12,9 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
-        public MediusFile? MediusFileInfo = new();
+        public MediusFile MediusFileInfo = new MediusFile();
         public MediusCallbackStatus StatusCode;
 
         public override void Deserialize(MessageReader reader)

@@ -14,11 +14,11 @@ namespace WebAPIService.VEEMEE.nml
 {
     public class Profile
     {
-        public static string? Verify(byte[]? PostData, string? ContentType)
+        public static string Verify(byte[] PostData, string ContentType)
         {
             string config = string.Empty;
             string product = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -38,11 +38,11 @@ namespace WebAPIService.VEEMEE.nml
             return null;
         }
 
-        public static string? Reward(byte[]? PostData, string? ContentType)
+        public static string Reward(byte[] PostData, string ContentType)
         {
             string config = string.Empty;
             string product = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -61,47 +61,50 @@ namespace WebAPIService.VEEMEE.nml
             return null;
         }
 
-        public static string? Get(byte[]? PostData, string? ContentType, string apiPath)
+        public static string Get(byte[] PostData, string ContentType, string apiPath)
         {
 
             if (PostData != null && ContentType == "application/x-www-form-urlencoded")
             {
-                using MemoryStream ms = new MemoryStream(PostData);
-                var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                string game = data["game"];
-                string psnid = data["psnid"];
-
-                Directory.CreateDirectory($"{apiPath}/VEEMEE/nml/User_Data");
-
-                string xmlProfile = string.Empty;
-
-                if (File.Exists($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml"))
+                using (MemoryStream ms = new MemoryStream(PostData))
                 {
+                    var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                    string game = data["game"];
+                    string psnid = data["psnid"];
 
-                    // Load the XML string into an XmlDocument
-                    XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.LoadXml($"{File.ReadAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml")}");
+                    Directory.CreateDirectory($"{apiPath}/VEEMEE/nml/User_Data");
 
-                    ms.Flush();
-                    xmlProfile = xmlDoc.OuterXml;
+                    string xmlProfile = string.Empty;
+
+                    if (File.Exists($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml"))
+                    {
+
+                        // Load the XML string into an XmlDocument
+                        XmlDocument xmlDoc = new XmlDocument();
+                        xmlDoc.LoadXml($"{File.ReadAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml")}");
+
+                        ms.Flush();
+                        xmlProfile = xmlDoc.OuterXml;
+                    }
+                    else
+                    {
+                        string XmlData = $"<profiles>\r\n\t<player psnid_id=\"{RandomNumberGenerator.Create(psnid)}\" />\r\n\t<game game_id=\"{game}\" /><variable name=\"init\" type=\"bool\">false</variable>\r\n</profiles>";
+                        File.WriteAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml", XmlData);
+
+
+
+                        ms.Flush();
+                        xmlProfile = XmlData;
+                    }
+
+                    return xmlProfile;
                 }
-                else
-                {
-                    string XmlData = $"<profiles>\r\n\t<player psnid_id=\"{RandomNumberGenerator.Create(psnid)}\" />\r\n\t<game game_id=\"{game}\" /><variable name=\"init\" type=\"bool\">false</variable>\r\n</profiles>";
-                    File.WriteAllText($"{apiPath}/VEEMEE/nml/User_Data/{psnid}.xml", XmlData);
-
-
-
-                    ms.Flush();
-                    xmlProfile = XmlData;
-                }
-                return xmlProfile;
             }
 
             return null;
         }
 
-        public static string? Set(byte[]? PostData, string? ContentType, string apiPath)
+        public static string Set(byte[] PostData, string ContentType, string apiPath)
         {
 
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
@@ -130,15 +133,15 @@ namespace WebAPIService.VEEMEE.nml
                     XmlDocument doc = new XmlDocument();
                     doc.Load(apiPath);
 
-                    XmlNode? profilesNode = doc.SelectSingleNode("//profiles");
+                    XmlNode profilesNode = doc.SelectSingleNode("//profiles");
 
                     // Check for existing variable entries and overwrite or add new ones
                     XmlNodeList variableNodes = profilesNode.SelectNodes("//variable");
                     foreach (XmlNode variableNode in variableNodes)
                     {
-                        string? name = variableNode.Attributes["name"].Value;
+                        string name = variableNode.Attributes["name"].Value;
                         string guidValue = string.Empty;
-                        XmlNodeList? XmlNodeList = variableNode.SelectNodes("///value");
+                        XmlNodeList XmlNodeList = variableNode.SelectNodes("///value");
                         foreach (XmlNode valueNode in variableNode)
                         {
                             guidValue = valueNode.Value;
@@ -159,12 +162,12 @@ namespace WebAPIService.VEEMEE.nml
                     }
 
                     // Check for existing variable entries and overwrite or add new ones
-                    XmlNodeList? listNodes = profilesNode.SelectNodes("//list");
+                    XmlNodeList listNodes = profilesNode.SelectNodes("//list");
                     foreach (XmlNode listNode in listNodes)
                     {
-                        string? name = listNode.Attributes["name"].Value;
+                        string name = listNode.Attributes["name"].Value;
                         string guidValue = string.Empty;
-                        XmlNodeList? XmlNodeList = listNode.SelectNodes("///value");
+                        XmlNodeList XmlNodeList = listNode.SelectNodes("///value");
                         foreach(XmlNode valueNode in listNode)
                         {
                             guidValue = valueNode.Value;

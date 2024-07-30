@@ -116,7 +116,7 @@ namespace WebAPIService.OHS
 
         public static object[] ExecuteLuaScript(string luaScript)
         {
-            object[]? returnValues = null;
+            object[] returnValues = null;
 
             using (Lua lua = new Lua())
             {

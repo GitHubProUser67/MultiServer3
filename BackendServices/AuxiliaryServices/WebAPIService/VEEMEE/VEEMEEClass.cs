@@ -18,7 +18,7 @@ namespace WebAPIService.VEEMEE
             this.method = method;
         }
 
-        public (string?, string?) ProcessRequest(byte[]? PostData, string? ContentType, string apiPath)
+        public (string, string) ProcessRequest(byte[] PostData, string ContentType, string apiPath)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return (null, null);

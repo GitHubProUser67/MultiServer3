@@ -7,12 +7,12 @@ namespace WebAPIService.JUGGERNAUT.farm
 {
     public class wood_earned
     {
-        public static string? ProcessWoodEarned(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessWoodEarned(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? amount = QueryParameters["amount"];
+                string user = QueryParameters["user"];
+                string amount = QueryParameters["amount"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(amount))
                 {
@@ -25,7 +25,7 @@ namespace WebAPIService.JUGGERNAUT.farm
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <wood> element
-                        XmlElement? woodElement = xmlDoc.SelectSingleNode("/xml/resources/wood") as XmlElement;
+                        XmlElement woodElement = xmlDoc.SelectSingleNode("/xml/resources/wood") as XmlElement;
 
                         if (woodElement != null)
                         {

@@ -9,7 +9,7 @@ namespace CyberBackendLibrary.Extension
             // Usefull function for chopping up strings
             int End = s.ToUpper().IndexOf(Before.ToUpper());
             if (End > -1)
-                return s[(End + Before.Length)..];
+                return s.Substring(End + Before.Length);
 
             return s;
         }
@@ -19,7 +19,7 @@ namespace CyberBackendLibrary.Extension
             // Usefull function for chopping up strings
             int End = s.ToUpper().IndexOf(After.ToUpper());
             if (End > -1)
-                return s[..End];
+                return s.Substring(0, End);
             return s;
         }
 

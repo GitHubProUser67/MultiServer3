@@ -22,8 +22,8 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 
         protected override void Encode(IChannelHandlerContext ctx, IEnumerable<ScertDatagramPacket> messages, List<object> output)
         {
-            List<byte[]>? temp = new();
-            Dictionary<EndPoint, List<byte[]>> msgsByEndpoint = new();
+            List<byte[]> temp = new List<byte[]>();
+            Dictionary<EndPoint, List<byte[]>> msgsByEndpoint = new Dictionary<EndPoint, List<byte[]>>();
             if (messages is null)
                 return;
 

@@ -9,23 +9,19 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class Event
     {
-        public static string? checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
+        public static string checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
             if (method == "GET")
-            {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
-            }
             else
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    nid = data.GetParameterValue("nid");
+                    nid = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("nid");
 
                     ms.Flush();
                 }
@@ -473,24 +469,22 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? entryEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath, string fulluripath, string method)
+        public static string entryEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
             if (method == "GET")
-            {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
-            }
             else
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using MemoryStream ms = new MemoryStream(PostData);
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                using (MemoryStream ms = new MemoryStream(PostData))
+                {
+                    nid = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("nid");
 
-                nid = data.GetParameterValue("nid");
-
-                ms.Flush();
+                    ms.Flush();
+                }
             }
 
             if (nid == null || eventId == null)
@@ -832,7 +826,7 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? clearEventRequestPOST(byte[]? PostData, string? ContentType, string eventId, string workPath, string fulluripath, string method)
+        public static string clearEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
@@ -844,12 +838,12 @@ namespace WebAPIService.PREMIUMAGENCY
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using MemoryStream ms = new MemoryStream(PostData);
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                using (MemoryStream ms = new MemoryStream(PostData))
+                {
+                    nid = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("nid");
 
-                nid = data.GetParameterValue("nid");
-
-                ms.Flush();
+                    ms.Flush();
+                }
             }
 
             if (nid == null || eventId == null)

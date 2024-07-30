@@ -11,13 +11,13 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public string? UniverseName; // UNIVERSENAME_MAXLEN
-        public string? DNS; // UNIVERSEDNS_MAXLEN
+        public string UniverseName; // UNIVERSENAME_MAXLEN
+        public string DNS; // UNIVERSEDNS_MAXLEN
         public int Port;
-        public string? UniverseDescription;
+        public string UniverseDescription;
         public int Status;
         public int UserCount;
         public int MaxUsers;

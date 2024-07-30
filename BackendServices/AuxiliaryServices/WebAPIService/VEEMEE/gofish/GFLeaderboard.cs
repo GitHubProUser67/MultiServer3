@@ -6,7 +6,7 @@ namespace WebAPIService.VEEMEE.gofish
 {
     public class GFLeaderboard
     {
-        public static string? GetLeaderboardPOST(byte[]? PostData, string? ContentType, int mode, string apiPath)
+        public static string GetLeaderboardPOST(byte[] PostData, string ContentType, int mode, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;

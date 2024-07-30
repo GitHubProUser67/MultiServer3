@@ -8,13 +8,13 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class Trigger
     {
-        public static string? getEventTriggerRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
+        public static string getEventTriggerRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
             #region MultipartFormDataParser
             string nid = string.Empty;
             string readcnt = string.Empty;
 
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             using (MemoryStream ms = new MemoryStream(PostData))
             {
@@ -1261,18 +1261,18 @@ namespace WebAPIService.PREMIUMAGENCY
         }
 
         #region getEventTriggerEx POST
-        public static string? getEventTriggerExRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
+        public static string getEventTriggerExRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
             #region MultiPartFormDataParser
             string tday = string.Empty;
 
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-                    tday = data.GetParameterValue("tday");
+                    tday = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("tday");
+
                     ms.Flush();
                 }
             }
@@ -1334,9 +1334,8 @@ namespace WebAPIService.PREMIUMAGENCY
         #endregion
 
         #region confirmEventTrigger POST
-        public static string? confirmEventTriggerRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
+        public static string confirmEventTriggerRequestPOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
-
             #region ConfirmTriggerPaths
 
             string basaraHomeSquareTriggerPath = $"{workpath}/eventController/collabo_iln/Triggers/";

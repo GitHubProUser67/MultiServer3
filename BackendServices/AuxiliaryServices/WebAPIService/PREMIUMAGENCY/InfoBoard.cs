@@ -7,12 +7,12 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class InfoBoard
     {
-        public static string? getInformationBoardSchedulePOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        public static string getInformationBoardSchedulePOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
-            string? lounge = string.Empty;
-            string? lang = string.Empty;
-            string? regcd = string.Empty;
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string lounge = string.Empty;
+            string lang = string.Empty;
+            string regcd = string.Empty;
 
             using (MemoryStream ms = new MemoryStream(PostData))
             {

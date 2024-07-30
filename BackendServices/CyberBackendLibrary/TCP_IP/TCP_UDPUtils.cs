@@ -121,8 +121,8 @@ namespace CyberBackendLibrary.TCP_IP
         {
             try
             {
-                using TcpClient tcpClient = new TcpClient(ip, port);
-                tcpClient.Close();
+                using (TcpClient tcpClient = new TcpClient(ip, port))
+                    tcpClient.Close();
             }
             catch
             {

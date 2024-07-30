@@ -8,14 +8,14 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_watered
     {
-        public static string? ProcessWatered(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessWatered(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? type = QueryParameters["type"];
-                string? id = QueryParameters["id"];
-                string? posix = QueryParameters["posix"];
+                string user = QueryParameters["user"];
+                string type = QueryParameters["type"];
+                string id = QueryParameters["id"];
+                string posix = QueryParameters["posix"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(posix))
                 {
@@ -38,7 +38,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
             {
                 XDocument xdoc = XDocument.Parse(xmlData);
 
-                XElement? plantToWatered = xdoc.Descendants("plant")
+                XElement plantToWatered = xdoc.Descendants("plant")
                     .FirstOrDefault(a => a.Element("id")?.Value == id && a.Element("t")?.Value == type);
 
                 if (plantToWatered != null)

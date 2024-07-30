@@ -18,7 +18,7 @@ namespace WebAPIService.OUWF
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[]? PostData, string? ContentType)
+        public string ProcessRequest(byte[] PostData, string ContentType)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;

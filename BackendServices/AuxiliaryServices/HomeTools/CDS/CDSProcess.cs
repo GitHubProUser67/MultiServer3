@@ -7,9 +7,9 @@ namespace HomeTools.CDS
 {
     public class CDSProcess
     {
-        public static byte[]? CDSEncrypt_Decrypt(byte[] buffer, string sha1)
+        public static byte[] CDSEncrypt_Decrypt(byte[] buffer, string sha1)
         {
-            byte[]? digest = ConvertSha1StringToByteArray(sha1.ToUpper());
+            byte[] digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
                 return LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.DefaultKey,
                     BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(ToolsImpl.Sha1toNonce(digest)) : ToolsImpl.Sha1toNonce(digest)), "CTR"); // Always big endian.
@@ -17,7 +17,7 @@ namespace HomeTools.CDS
             return null;
         }
 
-        private static byte[]? ConvertSha1StringToByteArray(string sha1String)
+        private static byte[] ConvertSha1StringToByteArray(string sha1String)
         {
             if (sha1String.Length % 2 != 0)
             {

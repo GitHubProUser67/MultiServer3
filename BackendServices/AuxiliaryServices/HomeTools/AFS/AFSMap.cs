@@ -8,7 +8,7 @@ namespace HomeTools.AFS
 {
     public class AFSMap
     {
-        public static async Task SubHashMapBatch(string CurrentFolder, string prefix, string? FileContent)
+        public static async Task SubHashMapBatch(string CurrentFolder, string prefix, string FileContent)
         {
             if (!string.IsNullOrEmpty(FileContent))
             {
@@ -28,7 +28,7 @@ namespace HomeTools.AFS
                               .ToArray())
                             {
                                 string NewfilePath = CurrentFolder + $"/{cdatapath}";
-                                string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
+                                string destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                                 if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
                                     Directory.CreateDirectory(destinationDirectory.ToUpper());
@@ -44,7 +44,7 @@ namespace HomeTools.AFS
                           .ToArray())
                         {
                             string NewfilePath = CurrentFolder + $"/{text}";
-                            string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
+                            string destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                             if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
                                 Directory.CreateDirectory(destinationDirectory.ToUpper());

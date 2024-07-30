@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 using System;
@@ -10,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_SERVER_PLUGIN_TO_APP;
 
-        public BaseMediusPluginMessage? Message { get; set; } = null;
+        public BaseMediusPluginMessage Message { get; set; } = null;
 
         public override bool SkipEncryption
         {

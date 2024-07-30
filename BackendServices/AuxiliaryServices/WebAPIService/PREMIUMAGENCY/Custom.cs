@@ -11,7 +11,7 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class Custom
     {
-        public static string? setUserEventCustomPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath, string method)
+        public static string setUserEventCustomPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath, string method)
         {
             string nid = string.Empty;
 
@@ -550,23 +550,23 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? getUserEventCustomRequestListPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath, string method)
+        public static string getUserEventCustomRequestListPOST(byte[] PostData, string ContentType, string workpath, string eventId, string fulluripath, string method)
         {
 
-            string? nid = string.Empty;
+            string nid = string.Empty;
 
-            if(method == "GET")
+            if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
             } else {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using MemoryStream ms = new MemoryStream(PostData);
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                using (MemoryStream ms = new MemoryStream(PostData))
+                {
+                    nid = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("nid");
 
-                nid = data.GetParameterValue("nid");
-
-                ms.Flush();
+                    ms.Flush();
+                }
             }
 
             switch (eventId)

@@ -16,11 +16,11 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
         public MediusGameHostType GameHostType;
-        public NetConnectionInfo? ConnectInfo;
+        public NetConnectionInfo ConnectInfo;
         /// <summary>
         /// MaxPlayers
         /// </summary>

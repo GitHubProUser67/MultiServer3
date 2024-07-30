@@ -13,7 +13,7 @@ namespace Horizon.RT.Models
         public int SequenceId;
         public uint StartAddress;
         public int Length;
-        public byte[]? Data;
+        public byte[] Data;
 
         public override void Deserialize(MessageReader reader)
         {

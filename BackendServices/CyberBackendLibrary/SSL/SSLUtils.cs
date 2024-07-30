@@ -4,14 +4,19 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System;
 using System.IO;
-using Org.BouncyCastle.OpenSsl;
 using System.Text;
 using System.Threading.Tasks;
 using CyberBackendLibrary.Extension;
+using Org.BouncyCastle.OpenSsl;
+#if !NET5_0_OR_GREATER
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
+#endif
 
 namespace CyberBackendLibrary.SSL
 {
-    public class SSLUtils
+    public static class SSLUtils
     {
         // PEM file headers.
         public const string CRT_HEADER = "-----BEGIN CERTIFICATE-----\n";
@@ -135,49 +140,51 @@ namespace CyberBackendLibrary.SSL
             byte[] certSerialNumber = new byte[16];
 
             // Generate a new RSA key pair
-            using RSA rsa = RSA.Create();
+            using (RSA rsa = RSA.Create())
+            {
 
-            rsa.ImportParameters(ROOT_CA_PARAMETERS);
+                rsa.ImportParameters(ROOT_CA_PARAMETERS);
 
-            // Create a certificate request with the RSA key pair
-            CertificateRequest request = new CertificateRequest($"CN={CN}, OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
+                // Create a certificate request with the RSA key pair
+                CertificateRequest request = new CertificateRequest($"CN={CN}, OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
 
-            // Configure the certificate as CA.
-            request.CertificateExtensions.Add(
-               new X509BasicConstraintsExtension(true, true, 12, true));
+                // Configure the certificate as CA.
+                request.CertificateExtensions.Add(
+                   new X509BasicConstraintsExtension(true, true, 12, true));
 
-            // Configure the certificate for Digital Signature and Key Encipherment.
-            request.CertificateExtensions.Add(
-                new X509KeyUsageExtension(
-                    X509KeyUsageFlags.KeyCertSign,
-                    true));
+                // Configure the certificate for Digital Signature and Key Encipherment.
+                request.CertificateExtensions.Add(
+                    new X509KeyUsageExtension(
+                        X509KeyUsageFlags.KeyCertSign,
+                        true));
 
-            X509Certificate2 RootCACertificate = request.Create(
-                request.SubjectName,
-                new RsaPkcs1SignatureGenerator(rsa),
-                new DateTimeOffset(new DateTime(2011, 1, 1)),
-                new DateTimeOffset(new DateTime(2130, 1, 1)),
-                certSerialNumber).CopyWithPrivateKey(rsa);
+                X509Certificate2 RootCACertificate = request.Create(
+                    request.SubjectName,
+                    new RsaPkcs1SignatureGenerator(rsa),
+                    new DateTimeOffset(new DateTime(2011, 1, 1)),
+                    new DateTimeOffset(new DateTime(2130, 1, 1)),
+                    certSerialNumber).CopyWithPrivateKey(rsa);
 
-            string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
+                string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
 
-            // Export the private key.
-            File.WriteAllText(directoryPath + "/MultiServer_rootca_privkey.pem",
-                PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
+                // Export the private key.
+                File.WriteAllText(directoryPath + "/MultiServer_rootca_privkey.pem",
+                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
-            rsa.Clear();
+                rsa.Clear();
 
-            // Export the certificate.
-            File.WriteAllText(directoryPath + "/MultiServer_rootca.pem", PemRootCACertificate);
+                // Export the certificate.
+                File.WriteAllText(directoryPath + "/MultiServer_rootca.pem", PemRootCACertificate);
 
-            // Export the certificate in PFX format.
-            File.WriteAllBytes(directoryPath + "/MultiServer_rootca.pfx", RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
+                // Export the certificate in PFX format.
+                File.WriteAllBytes(directoryPath + "/MultiServer_rootca.pfx", RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
 
-            CreateCertificatesTextFile(PemRootCACertificate, directoryPath + "/CERTIFICATES.TXT");
+                CreateCertificatesTextFile(PemRootCACertificate, directoryPath + "/CERTIFICATES.TXT");
 
-            File.Delete(directoryPath + "/lock.txt");
+                File.Delete(directoryPath + "/lock.txt");
 
-            return RootCACertificate;
+                return RootCACertificate;
+            }
         }
 
         /// <summary>
@@ -187,12 +194,12 @@ namespace CyberBackendLibrary.SSL
         /// <param name="RootCACertificate">The initial RootCA.</param>
         /// <param name="PFXCertificatePath">The output ChainCA file path.</param>
         /// <returns>A string.</returns>
-        public static void CreateChainSignedCert(X509Certificate2? RootCACertificate, HashAlgorithmName Hashing, string PFXCertificatePath, string certPassword, string[]? DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool wildcard = true)
+        public static void CreateChainSignedCert(X509Certificate2 RootCACertificate, HashAlgorithmName Hashing, string PFXCertificatePath, string certPassword, string[] DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool wildcard = true)
         {
             if (RootCACertificate == null)
                 return;
 
-            RSA? RootCAPrivateKey = RootCACertificate.GetRSAPrivateKey();
+            RSA RootCAPrivateKey = RootCACertificate.GetRSAPrivateKey();
 
             if (RootCAPrivateKey == null)
             {
@@ -206,81 +213,82 @@ namespace CyberBackendLibrary.SSL
             new Random().NextBytes(certSerialNumber);
 
             // Generate a new RSA key pair
-            using RSA rsa = RSA.Create();
+            using (RSA rsa = RSA.Create())
+            {
+                // Create a certificate request with the RSA key pair
+                CertificateRequest request = new CertificateRequest($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
 
-            // Create a certificate request with the RSA key pair
-            CertificateRequest request = new CertificateRequest($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
+                // Set additional properties of the certificate
+                request.CertificateExtensions.Add(
+                    new X509BasicConstraintsExtension(false, false, 0, true));
 
-            // Set additional properties of the certificate
-            request.CertificateExtensions.Add(
-                new X509BasicConstraintsExtension(false, false, 0, true));
-
-            // Enhanced key usages
-            request.CertificateExtensions.Add(
-                new X509EnhancedKeyUsageExtension(
-                    new OidCollection {
+                // Enhanced key usages
+                request.CertificateExtensions.Add(
+                    new X509EnhancedKeyUsageExtension(
+                        new OidCollection {
                             new Oid("1.3.6.1.5.5.7.3.2"), // TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.1"), // TLS Server auth
                             new Oid("1.3.6.1.5.5.7.3.4"), // Non-TLS Client auth
                             new Oid("1.3.6.1.5.5.7.3.5")  // Non-TLS Server auth
-                    },
-                    true));
+                        },
+                        true));
 
-            // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
-            SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
-            if (DnsList != null) // Some clients do not allow wildcard domains, so we use SAN attributes as a fallback.
-            {
-                foreach (string str in DnsList)
+                // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
+                SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
+                if (DnsList != null) // Some clients do not allow wildcard domains, so we use SAN attributes as a fallback.
                 {
-                    sanBuilder.AddDnsName(str);
+                    foreach (string str in DnsList)
+                    {
+                        sanBuilder.AddDnsName(str);
+                    }
                 }
-            }
-            if (wildcard)
-            {
-                foreach (string tld in tlds)
+                if (wildcard)
                 {
-                    sanBuilder.AddDnsName("*" + tld);
+                    foreach (string tld in tlds)
+                    {
+                        sanBuilder.AddDnsName("*" + tld);
+                    }
                 }
+                IPAddress Loopback = IPAddress.Loopback;
+                IPAddress PublicServerIP = IPAddress.Parse(TCP_IP.IPUtils.GetPublicIPAddress());
+                IPAddress LocalServerIP = TCP_IP.IPUtils.GetLocalIPAddress();
+                sanBuilder.AddDnsName("localhost");
+                sanBuilder.AddDnsName(Loopback.ToString());
+                sanBuilder.AddIpAddress(Loopback);
+                sanBuilder.AddDnsName(PublicServerIP.ToString());
+                sanBuilder.AddIpAddress(PublicServerIP);
+                if (PublicServerIP != LocalServerIP)
+                {
+                    sanBuilder.AddDnsName(LocalServerIP.ToString());
+                    sanBuilder.AddIpAddress(LocalServerIP);
+                }
+                sanBuilder.AddEmailAddress("MultiServer@gmail.com");
+                request.CertificateExtensions.Add(sanBuilder.Build());
+
+                X509Certificate2 ChainSignedCert = request.Create(
+                    RootCACertificate.IssuerName,
+                    new RsaPkcs1SignatureGenerator(RootCAPrivateKey),
+                    new DateTimeOffset(CurrentDate.AddDays(-1)),
+                    new DateTimeOffset(CurrentDate.AddYears(100)),
+                    certSerialNumber).CopyWithPrivateKey(rsa);
+
+                // Export the private key.
+                File.WriteAllText(Path.GetDirectoryName(PFXCertificatePath) + $"/{Path.GetFileNameWithoutExtension(PFXCertificatePath)}_privkey.pem",
+                    PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
+
+                // Export the public key.
+                File.WriteAllText(Path.GetDirectoryName(PFXCertificatePath) + $"/{Path.GetFileNameWithoutExtension(PFXCertificatePath)}_pubkey.pem",
+                    PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
+
+                // Export the certificate.
+                File.WriteAllText(Path.GetDirectoryName(PFXCertificatePath) + $"/{Path.GetFileNameWithoutExtension(PFXCertificatePath)}.pem",
+                    CRT_HEADER + Convert.ToBase64String(ChainSignedCert.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER);
+
+                // Export the certificate in PFX format.
+                File.WriteAllBytes(PFXCertificatePath, ChainSignedCert.Export(X509ContentType.Pfx, certPassword));
+
+                rsa.Clear();
             }
-            IPAddress Loopback = IPAddress.Loopback;
-            IPAddress PublicServerIP = IPAddress.Parse(TCP_IP.IPUtils.GetPublicIPAddress());
-            IPAddress LocalServerIP = TCP_IP.IPUtils.GetLocalIPAddress();
-            sanBuilder.AddDnsName("localhost");
-            sanBuilder.AddDnsName(Loopback.ToString());
-            sanBuilder.AddIpAddress(Loopback);
-            sanBuilder.AddDnsName(PublicServerIP.ToString());
-            sanBuilder.AddIpAddress(PublicServerIP);
-            if (PublicServerIP != LocalServerIP)
-            {
-                sanBuilder.AddDnsName(LocalServerIP.ToString());
-                sanBuilder.AddIpAddress(LocalServerIP);
-            }
-            sanBuilder.AddEmailAddress("MultiServer@gmail.com");
-            request.CertificateExtensions.Add(sanBuilder.Build());
-
-            X509Certificate2 ChainSignedCert = request.Create(
-                RootCACertificate.IssuerName,
-                new RsaPkcs1SignatureGenerator(RootCAPrivateKey),
-                new DateTimeOffset(CurrentDate.AddDays(-1)),
-                new DateTimeOffset(CurrentDate.AddYears(100)),
-                certSerialNumber).CopyWithPrivateKey(rsa);
-
-            // Export the private key.
-            File.WriteAllText(Path.GetDirectoryName(PFXCertificatePath) + $"/{Path.GetFileNameWithoutExtension(PFXCertificatePath)}_privkey.pem",
-                PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
-
-            // Export the public key.
-            File.WriteAllText(Path.GetDirectoryName(PFXCertificatePath) + $"/{Path.GetFileNameWithoutExtension(PFXCertificatePath)}_pubkey.pem",
-                PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
-
-            // Export the certificate.
-            File.WriteAllText(Path.GetDirectoryName(PFXCertificatePath) + $"/{Path.GetFileNameWithoutExtension(PFXCertificatePath)}.pem",
-                CRT_HEADER + Convert.ToBase64String(ChainSignedCert.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER);
-
-            // Export the certificate in PFX format.
-            File.WriteAllBytes(PFXCertificatePath, ChainSignedCert.Export(X509ContentType.Pfx, certPassword));
-
-            rsa.Clear();
         }
 
         /// <summary>
@@ -291,13 +299,13 @@ namespace CyberBackendLibrary.SSL
         /// <param name="certPassword">Password of the certificate file.</param>
         /// <param name="DnsList">DNS domains to include in the certificate.</param>
         /// <returns>Nothing.</returns>
-        public static void InitCerts(string certpath, string certPassword, string[]? DnsList, HashAlgorithmName Hashing)
+        public static void InitCerts(string certpath, string certPassword, string[] DnsList, HashAlgorithmName Hashing)
         {
             string directoryPath = Path.GetDirectoryName(certpath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
 
             Directory.CreateDirectory(directoryPath);
 
-            X509Certificate2? RootCACertificate = null;
+            X509Certificate2 RootCACertificate = null;
 
             if (File.Exists(directoryPath + "/lock.txt"))
                 WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
@@ -322,18 +330,46 @@ namespace CyberBackendLibrary.SSL
         /// <returns>A X509Certificate2.</returns>
         public static X509Certificate2 LoadPemCertificate(string certificatePath, string privateKeyPath)
         {
-            using X509Certificate2 publicKey = new X509Certificate2(certificatePath);
+            using (X509Certificate2 cert = new X509Certificate2(certificatePath))
+            {
+#if NET5_0_OR_GREATER
+                string[] privateKeyBlocks = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
 
-            string[] privateKeyBlocks = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
-            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
-            using RSA rsa = RSA.Create();
+                byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
+                using (RSA rsa = RSA.Create())
+                {
+                    if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
+                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
+                    else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
+                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
 
-            if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
-                rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
-            else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
-                rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+                }
+#else
+                // Convert PEM-encoded private key to RSA parameters
+                AsymmetricCipherKeyPair keyPair;
+                using (StringReader reader = new StringReader(File.ReadAllText(privateKeyPath)))
+                    keyPair = new PemReader(reader).ReadObject() as AsymmetricCipherKeyPair;
 
-            return new X509Certificate2(publicKey.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+                if (keyPair == null)
+                    throw new CryptographicException("[LoadPemCertificate] - Invalid private key.");
+
+                RSAParameters rsaParameters;
+                if (keyPair.Private is RsaPrivateCrtKeyParameters rsaPrivateKey)
+                    rsaParameters = DotNetUtilities.ToRSAParameters(rsaPrivateKey);
+                else
+                    throw new CryptographicException("[LoadPemCertificate] - Unsupported private key format.");
+
+                // Create RSA object and import parameters
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportParameters(rsaParameters);
+
+                    // Export the certificate to PFX format
+                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+                }
+#endif
+            }
         }
 
         public static void WriteObjectToPEM(object obj, string filePath)
@@ -380,30 +416,95 @@ namespace CyberBackendLibrary.SSL
 
         private static async Task WaitForFileDeletionAsync(string filePath)
         {
-            string? directoryPath = Path.GetDirectoryName(filePath);
+            string directoryPath = Path.GetDirectoryName(filePath);
 
             if (!string.IsNullOrEmpty(directoryPath))
             {
-                using FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(directoryPath);
-                TaskCompletionSource<bool> deletionCompletionSource = new TaskCompletionSource<bool>();
-
-                // Watch for file deletion
-                fileSystemWatcher.Deleted += (sender, e) =>
+                using (FileSystemWatcher fileSystemWatcher = new FileSystemWatcher(directoryPath))
                 {
-                    if (e.Name == Path.GetFileName(filePath))
+                    TaskCompletionSource<bool> deletionCompletionSource = new TaskCompletionSource<bool>();
+
+                    // Watch for file deletion
+                    fileSystemWatcher.Deleted += (sender, e) =>
                     {
-                        // Signal that the file has been deleted
-                        deletionCompletionSource.SetResult(true);
-                    }
-                };
+                        if (e.Name == Path.GetFileName(filePath))
+                        {
+                            // Signal that the file has been deleted
+                            deletionCompletionSource.SetResult(true);
+                        }
+                    };
 
-                // Enable watching
-                fileSystemWatcher.EnableRaisingEvents = true;
+                    // Enable watching
+                    fileSystemWatcher.EnableRaisingEvents = true;
 
-                // Wait for the file to be deleted or for cancellation
-                await deletionCompletionSource.Task;
+                    // Wait for the file to be deleted or for cancellation
+                    await deletionCompletionSource.Task;
+                }
             }
         }
+#if !NET5_0_OR_GREATER
+        private static byte[] ExportRSAPrivateKey(this RSA rsa)
+        {
+            RSAParameters parameters = rsa.ExportParameters(true);
+
+            using (MemoryStream stream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(stream))
+            {
+                // Write the modulus
+                writer.Write(parameters.Modulus.Length);
+                writer.Write(parameters.Modulus);
+
+                // Write the exponent
+                writer.Write(parameters.Exponent.Length);
+                writer.Write(parameters.Exponent);
+
+                // Write the D
+                writer.Write(parameters.D.Length);
+                writer.Write(parameters.D);
+
+                // Write the P
+                writer.Write(parameters.P.Length);
+                writer.Write(parameters.P);
+
+                // Write the Q
+                writer.Write(parameters.Q.Length);
+                writer.Write(parameters.Q);
+
+                // Write the DP
+                writer.Write(parameters.DP.Length);
+                writer.Write(parameters.DP);
+
+                // Write the DQ
+                writer.Write(parameters.DQ.Length);
+                writer.Write(parameters.DQ);
+
+                // Write the InverseQ
+                writer.Write(parameters.InverseQ.Length);
+                writer.Write(parameters.InverseQ);
+
+                return stream.ToArray();
+            }
+        }
+
+        private static byte[] ExportRSAPublicKey(this RSA rsa)
+        {
+            RSAParameters parameters = rsa.ExportParameters(false);
+
+            using (MemoryStream stream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(stream))
+            {
+                // Write the modulus
+                writer.Write(parameters.Modulus.Length);
+                writer.Write(parameters.Modulus);
+
+                // Write the exponent
+                writer.Write(parameters.Exponent.Length);
+                writer.Write(parameters.Exponent);
+
+                return stream.ToArray();
+            }
+        }
+#endif
     }
 
     /// <summary>

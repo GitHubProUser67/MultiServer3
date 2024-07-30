@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ namespace Horizon.RT.Models
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_SERVER_MEMORY_POKE;
 
         public uint start_Address = 0;
-        public byte[]? Payload;
+        public byte[] Payload;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -41,7 +40,7 @@ namespace Horizon.RT.Models
         public static List<RT_MSG_SERVER_MEMORY_POKE> FromPayload(uint address, byte[] payload)
         {
             int i = 0;
-            List<RT_MSG_SERVER_MEMORY_POKE> msgs = new();
+            List<RT_MSG_SERVER_MEMORY_POKE> msgs = new List<RT_MSG_SERVER_MEMORY_POKE>();
 
             while (i < payload.Length)
             {
@@ -49,7 +48,7 @@ namespace Horizon.RT.Models
                 if (len > Constants.MEDIUS_MESSAGE_MAXLEN)
                     len = Constants.MEDIUS_MESSAGE_MAXLEN;
 
-                RT_MSG_SERVER_MEMORY_POKE msg = new()
+                RT_MSG_SERVER_MEMORY_POKE msg = new RT_MSG_SERVER_MEMORY_POKE()
                 {
                     start_Address = (uint)(address + i),
                     Payload = new byte[len],

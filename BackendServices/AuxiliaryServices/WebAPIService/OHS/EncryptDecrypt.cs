@@ -13,7 +13,7 @@ namespace WebAPIService.OHS
                 return index;
         }
 
-        public static string Encrypt(string? str, int offset, int game)
+        public static string Encrypt(string str, int offset, int game)
         {
             if (string.IsNullOrEmpty(str))
                 return string.Empty;

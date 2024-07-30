@@ -7,8 +7,8 @@ namespace Horizon.LIBRARY.Database.Entities
         public int Id { get; set; }
         public int AppId { get; set; }
         public int PolicyType { get; set; }
-        public string? EulaTitle { get; set; }
-        public string? EulaBody { get; set; }
+        public string EulaTitle { get; set; }
+        public string EulaBody { get; set; }
         public DateTime CreateDt { get; set; } = DateTime.UtcNow; // Set default value in constructor
         public DateTime? ModifiedDt { get; set; }
         public DateTime FromDt { get; set; } = DateTime.UtcNow; // Set default value in constructor

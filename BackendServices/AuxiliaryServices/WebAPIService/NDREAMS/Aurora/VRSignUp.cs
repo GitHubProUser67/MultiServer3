@@ -7,13 +7,13 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class VRSignUp
     {
-        public static string? ProcessVRSignUp(byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessVRSignUp(byte[] PostData, string ContentType, string apipath)
         {
             string email = string.Empty;
             string username = string.Empty;
             string hash = string.Empty;
             string day = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -38,7 +38,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                     if (File.Exists(SignedUpProfilePath))
                     {
-                        string? Extractedemail = File.ReadAllText(SignedUpProfilePath).Replace("email=", string.Empty);
+                        string Extractedemail = File.ReadAllText(SignedUpProfilePath).Replace("email=", string.Empty);
 
                         if (string.IsNullOrEmpty(Extractedemail))
                         {

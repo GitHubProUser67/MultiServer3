@@ -11,17 +11,17 @@ namespace Horizon.LIBRARY.Database.Config
         /// <summary>
         /// Database url.
         /// </summary>
-        public string? DatabaseUrl { get; set; }
+        public string DatabaseUrl { get; set; }
 
         /// <summary>
         /// Database username.
         /// </summary>
-        public string? DatabaseUsername { get; set; }
+        public string DatabaseUsername { get; set; }
 
         /// <summary>
         /// Database password.
         /// </summary>
-        public string? DatabasePassword { get; set; }
+        public string DatabasePassword { get; set; }
 
         /// <summary>
         /// Database AccessKey.

@@ -10,9 +10,9 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         public override bool IsSharable => true;
 
 
-        public Action<IChannel>? OnChannelActive;
-        public Action<IChannel>? OnChannelInactive;
-        public Action<IChannel, DatagramPacket>? OnChannelMessage;
+        public Action<IChannel> OnChannelActive;
+        public Action<IChannel> OnChannelInactive;
+        public Action<IChannel, DatagramPacket> OnChannelMessage;
 
         public override void ChannelActive(IChannelHandlerContext ctx)
         {

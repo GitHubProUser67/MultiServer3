@@ -7,20 +7,20 @@ namespace CyberBackendLibrary.HTTP
 {
     public class FileNode
     {
-        public string? Name { get; set; }
-        public string? Link { get; set; }
-        public string? Image { get; set; }
-        public string? Descriptor { get; set; }
-        public string? Content { get; set; }
-        public string? Type { get; set; }
+        public string Name { get; set; }
+        public string Link { get; set; }
+        public string Image { get; set; }
+        public string Descriptor { get; set; }
+        public string Content { get; set; }
+        public string Type { get; set; }
         public long? Size { get; set; }
         public DateTime CreationDate { get; set; }
-        public List<FileNode>? Childrens { get; set; }
+        public List<FileNode> Childrens { get; set; }
     }
 
     public class FileStructure
     {
-        public FileNode? Root { get; set; }
+        public FileNode Root { get; set; }
     }
 
     public class FileStructureToJson
@@ -49,7 +49,7 @@ namespace CyberBackendLibrary.HTTP
             return (fileSystemInfo.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
         }
 
-        private static FileNode? CreateFileNode(string directoryPath, string httpdirectoryrequest, Dictionary<string, string> mimeTypesDic)
+        private static FileNode CreateFileNode(string directoryPath, string httpdirectoryrequest, Dictionary<string, string> mimeTypesDic)
         {
             try
             {
@@ -71,8 +71,8 @@ namespace CyberBackendLibrary.HTTP
                         switch (mimetype)
                         {
                             case "video/mp4":
-                                string? ImgLink = null;
-                                string? DescriptorText = null;
+                                string ImgLink = null;
+                                string DescriptorText = null;
 
                                 if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg"))
                                     ImgLink = httpdirectoryrequest + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg";

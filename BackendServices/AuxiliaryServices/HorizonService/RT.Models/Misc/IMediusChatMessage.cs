@@ -6,6 +6,6 @@ namespace Horizon.RT.Models.Misc
     {
         MediusChatMessageType MessageType { get; }
         int TargetID { get; }
-        string? Message { get; }
+        string Message { get; }
     }
 }

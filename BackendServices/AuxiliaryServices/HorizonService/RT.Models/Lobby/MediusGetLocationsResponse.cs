@@ -11,9 +11,9 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         public int LocationId { get; set; }
-        public string? LocationName { get; set; } // LOCATIONNAME_MAXLEN
+        public string LocationName { get; set; } // LOCATIONNAME_MAXLEN
         public MediusCallbackStatus StatusCode;
         public bool EndOfList;
 

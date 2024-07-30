@@ -23,8 +23,8 @@ namespace Horizon.LIBRARY.Database
 {
     public class DbController
     {
-        private string? directoryPath = null;
-        public DbSettings _settings = new();
+        private string directoryPath = null;
+        public DbSettings _settings = new DbSettings();
 
         private int _simulatedAccountIdCounter = 1;
         private int _simulatedClanIdCounter = 1;
@@ -32,6 +32,7 @@ namespace Horizon.LIBRARY.Database
         private int _simulatedClanInvitationIdCounter = 1;
         private readonly int[] SimulatedAppIdList = new int[] {
             120,
+			10680,
             10683,
             10684,
             11354,
@@ -106,17 +107,17 @@ namespace Horizon.LIBRARY.Database
             20044,
             21354
         };
-        private string? _dbAccessToken = null;
-        private string? _dbAccountName = null;
+        private string _dbAccessToken = null;
+        private string _dbAccountName = null;
 
-        private readonly List<AccountDTO> _simulatedAccounts = new();
-        private readonly List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new();
-        private readonly List<NpIdDTO> _simulatedNpIdAccounts = new();
-        private readonly List<ClanDTO> _simulatedClans = new();
-        private readonly List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new();
-        private readonly List<FileDTO> _simulatedMediusFiles = new();
-        private readonly List<FileMetaDataDTO> _simulatedFileMetaData = new();
-        private readonly List<FileAttributesDTO> _simulatedFileAttributes = new();
+        private readonly List<AccountDTO> _simulatedAccounts = new List<AccountDTO>();
+        private readonly List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new List<AccountRelationInviteDTO>();
+        private readonly List<NpIdDTO> _simulatedNpIdAccounts = new List<NpIdDTO>();
+        private readonly List<ClanDTO> _simulatedClans = new List<ClanDTO>();
+        private readonly List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new List<MatchmakingSupersetDTO>();
+        private readonly List<FileDTO> _simulatedMediusFiles = new List<FileDTO>();
+        private readonly List<FileMetaDataDTO> _simulatedFileMetaData = new List<FileMetaDataDTO>();
+        private readonly List<FileAttributesDTO> _simulatedFileAttributes = new List<FileAttributesDTO>();
 
         public DbController(string configFile)
         {
@@ -148,12 +149,12 @@ namespace Horizon.LIBRARY.Database
         #region Sub Classes
         public class IpBan
         {
-            public string? IpAddress { get; set; }
+            public string IpAddress { get; set; }
         }
 
         public class MacBan
         {
-            public string? MacAddress { get; set; }
+            public string MacAddress { get; set; }
         }
         #endregion
 
@@ -186,7 +187,7 @@ namespace Horizon.LIBRARY.Database
             return !string.IsNullOrEmpty(_dbAccessToken);
         }
 
-        public string? GetUsername()
+        public string GetUsername()
         {
             if (_settings.SimulatedMode)
                 return _settings.DatabaseUsername;
@@ -196,9 +197,9 @@ namespace Horizon.LIBRARY.Database
 
         #region Account
 
-        public async Task<string?> GetPlayerList()
+        public async Task<string> GetPlayerList()
         {
-            string? results = null;
+            string results = null;
 
             try
             {
@@ -206,7 +207,7 @@ namespace Horizon.LIBRARY.Database
                     return "[]";
                 else
                 {
-                    HttpResponseMessage? Resp = await GetDbAsync($"Account/getOnlineAccounts");
+                    HttpResponseMessage Resp = await GetDbAsync($"Account/getOnlineAccounts");
                     if (Resp != null)
                         results = await Resp.Content.ReadAsStringAsync();
                 }
@@ -224,9 +225,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="name">Case insensitive name of player.</param>
         /// <returns>Returns account.</returns>
-        public async Task<AccountDTO?> GetAccountByName(string? name, int appId)
+        public async Task<AccountDTO> GetAccountByName(string name, int appId)
         {
-            AccountDTO? result = null;
+            AccountDTO result = null;
 
             try
             {
@@ -291,9 +292,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="id">Id of player.</param>
         /// <returns>Returns account.</returns>
-        public async Task<AccountDTO?> GetAccountById(int id)
+        public async Task<AccountDTO> GetAccountById(int id)
         {
-            AccountDTO? result = null;
+            AccountDTO result = null;
 
             try
             {
@@ -315,9 +316,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="RequestedIp">Requested Ip to search for.</param>
         /// <returns>Returns account.</returns>
-        public async Task<AccountDTO?> GetAccountByFirstIp(string RequestedIp)
+        public async Task<AccountDTO> GetAccountByFirstIp(string RequestedIp)
         {
-            AccountDTO? result = null;
+            AccountDTO result = null;
 
             try
             {
@@ -339,9 +340,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="createAccount">Account creation parameters.</param>
         /// <returns>Returns created account.</returns>
-        public async Task<AccountDTO?> CreateAccount(CreateAccountDTO createAccount, IChannel clientChannel)
+        public async Task<AccountDTO> CreateAccount(CreateAccountDTO createAccount, IChannel clientChannel)
         {
-            AccountDTO? result = null;
+            AccountDTO result = null;
 
             try
             {
@@ -458,9 +459,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="accountId">Unique id of account.</param>
         /// <returns>Account status.</returns>
-        public async Task<AccountStatusDTO?> GetAccountStatus(int accountId)
+        public async Task<AccountStatusDTO> GetAccountStatus(int accountId)
         {
-            AccountStatusDTO? result = null;
+            AccountStatusDTO result = null;
 
             try
             {
@@ -521,9 +522,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="accountId">Unique id of account.</param>
         /// <returns>Account metadata.</returns>
-        public async Task<string?> GetAccountMetadata(int accountId)
+        public async Task<string> GetAccountMetadata(int accountId)
         {
-            string? result = null;
+            string result = null;
 
             try
             {
@@ -672,15 +673,17 @@ namespace Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    if (IPAddress.TryParse(ip, out IPAddress? Parsedip) && Parsedip != null && Parsedip != IPAddress.None)
+                    if (IPAddress.TryParse(ip, out IPAddress Parsedip) && Parsedip != null && Parsedip != IPAddress.None)
                     {
                         (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "IPAddress", Parsedip.ToString());
 
-                        return ResultItem.Item1 switch
+                        switch (ResultItem.Item1)
                         {
-                            "OK" => ResultItem.Item2,
-                            _ => false,
-                        };
+                            case "OK":
+                                return ResultItem.Item2;
+                            default:
+                                return false;
+                        }
                     }
                     else
                         return false;
@@ -722,19 +725,20 @@ namespace Horizon.LIBRARY.Database
 
                     (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "MacDatabase", mac);
 
-                    return ResultItem.Item1 switch
+                    switch (ResultItem.Item1)
                     {
-                        "OK" => ResultItem.Item2,
-                        _ => false,
-                    };
+                        case "OK":
+                            return ResultItem.Item2;
+                        default:
+                            return false;
+                    }
                 }
                 else
                 {
-                    MacBan MacBanArray = new()
+                    System.Text.Json.JsonSerializer.Serialize(new MacBan()
                     {
                         MacAddress = mac
-                    };
-                    System.Text.Json.JsonSerializer.Serialize(MacBanArray);
+                    });
                     result = (await GetDbAsync($"Account/getMacIsBanned?macAddress={mac}")).IsSuccessStatusCode;
                 }
             }
@@ -872,9 +876,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="addBuddy">Add buddy parameters.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<List<AccountRelationInviteDTO>?> retrieveBuddyInvitations(int appId, int accountId)
+        public async Task<List<AccountRelationInviteDTO>> retrieveBuddyInvitations(int appId, int accountId)
         {
-            List<AccountRelationInviteDTO>? result = null;
+            List<AccountRelationInviteDTO> result = null;
 
             try
             {
@@ -1064,9 +1068,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="accountId">Account id of player.</param>
         /// <returns></returns>
-        public async Task<StatPostDTO?> GetPlayerWideStats(int accountId)
+        public async Task<StatPostDTO> GetPlayerWideStats(int accountId)
         {
-            StatPostDTO? result = null;
+            StatPostDTO result = null;
 
             try
             {
@@ -1098,9 +1102,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="accountId">Clan id of clan.</param>
         /// <returns></returns>
-        public async Task<ClanStatPostDTO?> GetClanWideStats(int clanId)
+        public async Task<ClanStatPostDTO> GetClanWideStats(int clanId)
         {
-            ClanStatPostDTO? result = null;
+            ClanStatPostDTO result = null;
 
             try
             {
@@ -1133,9 +1137,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="accountId">Account id of player.</param>
         /// <param name="statId">Index of stat. Starts at 1.</param>
         /// <returns>Leaderboard result for player.</returns>
-        public async Task<LeaderboardDTO?> GetPlayerLeaderboard(int accountId)
+        public async Task<LeaderboardDTO> GetPlayerLeaderboard(int accountId)
         {
-            LeaderboardDTO? result = null;
+            LeaderboardDTO result = null;
 
             try
             {
@@ -1171,9 +1175,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="accountId">Account id of player.</param>
         /// <param name="statId">Index of stat. Starts at 1.</param>
         /// <returns>Leaderboard result for player.</returns>
-        public async Task<LeaderboardDTO?> GetPlayerLeaderboardIndex(int accountId, int statId, int appId)
+        public async Task<LeaderboardDTO> GetPlayerLeaderboardIndex(int accountId, int statId, int appId)
         {
-            LeaderboardDTO? result = null;
+            LeaderboardDTO result = null;
 
             try
             {
@@ -1210,9 +1214,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="clanId">Clan id of clan.</param>
         /// <param name="statId">Index of stat. Starts at 1.</param>
         /// <returns>Leaderboard result for clan.</returns>
-        public async Task<ClanLeaderboardDTO?> GetClanLeaderboardIndex(int clanId, int statId, int appId)
+        public async Task<ClanLeaderboardDTO> GetClanLeaderboardIndex(int clanId, int statId, int appId)
         {
-            ClanLeaderboardDTO? result = null;
+            ClanLeaderboardDTO result = null;
 
             try
             {
@@ -1251,9 +1255,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="startIndex">Position to start gathering results from. Starts at 0.</param>
         /// <param name="size">Max number of items to retrieve.</param>
         /// <returns>Collection of leaderboard results for each player in page.</returns>
-        public async Task<ClanLeaderboardDTO[]?> GetClanLeaderboard(int statId, int startIndex, int size, int appId)
+        public async Task<ClanLeaderboardDTO[]> GetClanLeaderboard(int statId, int startIndex, int size, int appId)
         {
-            ClanLeaderboardDTO[]? result = null;
+            ClanLeaderboardDTO[] result = null;
 
             try
             {
@@ -1288,9 +1292,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="startIndex">Position to start gathering results from. Starts at 0.</param>
         /// <param name="size">Max number of items to retrieve.</param>
         /// <returns>Collection of leaderboard results for each player in page.</returns>
-        public async Task<LeaderboardDTO[]?> GetLeaderboard(int statId, int startIndex, int size, int appId)
+        public async Task<LeaderboardDTO[]> GetLeaderboard(int statId, int startIndex, int size, int appId)
         {
-            LeaderboardDTO[]? result = null;
+            LeaderboardDTO[] result = null;
 
             try
             {
@@ -1324,9 +1328,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="startIndex">Position to start gathering results from. Starts at 0.</param>
         /// <param name="size">Max number of items to retrieve.</param>
         /// <returns>Collection of leaderboard results for each player in page.</returns>
-        public async Task<LeaderboardDTO[]?> GetLeaderboardList(int startIndex, int size, int appId)
+        public async Task<LeaderboardDTO[]> GetLeaderboardList(int startIndex, int size, int appId)
         {
-            LeaderboardDTO[]? result = null;
+            LeaderboardDTO[] result = null;
 
             try
             {
@@ -1573,9 +1577,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="name">Case insensitive name of clan.</param>
         /// <returns>Returns clan.</returns>
-        public async Task<ClanDTO?> GetClanByName(string name, int appId)
+        public async Task<ClanDTO> GetClanByName(string name, int appId)
         {
-            ClanDTO? result = null;
+            ClanDTO result = null;
 
             try
             {
@@ -1597,9 +1601,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="id">Id of clan.</param>
         /// <returns>Returns clan.</returns>
-        public async Task<ClanDTO?> GetClanById(int id, int appId)
+        public async Task<ClanDTO> GetClanById(int id, int appId)
         {
-            ClanDTO? result = null;
+            ClanDTO result = null;
 
             try
             {
@@ -1640,9 +1644,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="id">Id of clan.</param>
         /// <returns>Returns clan.</returns>
-        public async Task<List<ClanDTO>?> GetClans(int appId)
+        public async Task<List<ClanDTO>> GetClans(int appId)
         {
-            List<ClanDTO>? result = null;
+            List<ClanDTO> result = null;
 
             try
             {
@@ -1683,9 +1687,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="createClan">Clan creation parameters.</param>
         /// <returns>Returns created clan.</returns>
-        public async Task<ClanDTO?> CreateClan(int creatorAccountId, string clanName, int appId, string mediusStats)
+        public async Task<ClanDTO> CreateClan(int creatorAccountId, string clanName, int appId, string mediusStats)
         {
-            ClanDTO? result = null;
+            ClanDTO result = null;
 
             try
             {
@@ -2091,9 +2095,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="ClanUpdateMetaDataSVO">Clan creation parameters.</param>
         /// <returns>Returns created clan.</returns>
-        public async Task<List<ClanNewsDTO>?> ClanReadNews(int clanId, int appId)
+        public async Task<List<ClanNewsDTO>> ClanReadNews(int clanId, int appId)
         {
-            List<ClanNewsDTO>? result = null;
+            List<ClanNewsDTO> result = null;
 
             try
             {
@@ -2150,9 +2154,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="ClanUpdateMetaDataSVO">Clan creation parameters.</param>
         /// <returns>Returns created clan.</returns>
-        public async Task<List<SVOEventDTO>?> SVOGetCalendarEvents(int appId, int acctId, int clanId, string startDate, string endDate, bool bTween)
+        public async Task<List<SVOEventDTO>> SVOGetCalendarEvents(int appId, int acctId, int clanId, string startDate, string endDate, bool bTween)
         {
-            List<SVOEventDTO>? result = null;
+            List<SVOEventDTO> result = null;
 
             try
             {
@@ -2442,9 +2446,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="accountId">Id of target player.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<List<AccountClanInvitationDTO>?> GetClanInvitationsByAccount(int accountId)
+        public async Task<List<AccountClanInvitationDTO>> GetClanInvitationsByAccount(int accountId)
         {
-            List<AccountClanInvitationDTO>? result = null;
+            List<AccountClanInvitationDTO> result = null;
 
             try
             {
@@ -2599,9 +2603,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="accountId">Id of target player.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<List<ClanMessageDTO>?> GetClanMessages(int accountId, int clanId, int startIndex, int pageSize, int appId)
+        public async Task<List<ClanMessageDTO>> GetClanMessages(int accountId, int clanId, int startIndex, int pageSize, int appId)
         {
-            List<ClanMessageDTO>? result = null;
+            List<ClanMessageDTO> result = null;
 
             try
             {
@@ -2784,9 +2788,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="appId">AppId of the game to filter by</param>
         /// <param name="message">Message by the game to send for requesting the clan team challenge</param>
         /// <returns>Returns clan.</returns>
-        public async Task<ClanTeamChallengeDTO?> RequestClanTeamChallenge(int challengerClanId, int againstClanId, int accountId, string message, int appId)
+        public async Task<ClanTeamChallengeDTO> RequestClanTeamChallenge(int challengerClanId, int againstClanId, int accountId, string message, int appId)
         {
-            ClanTeamChallengeDTO? result = null;
+            ClanTeamChallengeDTO result = null;
 
             try
             {
@@ -2819,9 +2823,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        public async Task<List<ClanTeamChallengeDTO>?> GetClanTeamChallenges(int clanId, int accountId, MediusClanChallengeStatus clanChallengeStatus, int startIdx, int pageSize, int appId)
+        public async Task<List<ClanTeamChallengeDTO>> GetClanTeamChallenges(int clanId, int accountId, MediusClanChallengeStatus clanChallengeStatus, int startIdx, int pageSize, int appId)
         {
-            List<ClanTeamChallengeDTO>? result = null;
+            List<ClanTeamChallengeDTO> result = null;
 
             try
             {
@@ -2904,9 +2908,9 @@ namespace Horizon.LIBRARY.Database
         /// <summary>
         /// Gets the latest announcement.
         /// </summary>
-        public async Task<DimAnnouncements?> GetLatestAnnouncement(int appId)
+        public async Task<DimAnnouncements> GetLatestAnnouncement(int appId)
         {
-            DimAnnouncements? result = null;
+            DimAnnouncements result = null;
 
             try
             {
@@ -2936,9 +2940,9 @@ namespace Horizon.LIBRARY.Database
         /// <summary>
         /// Gets the latest announcements.
         /// </summary>
-        public async Task<DimAnnouncements[]?> GetLatestAnnouncementsList(int appId, int size = 10)
+        public async Task<DimAnnouncements[]> GetLatestAnnouncementsList(int appId, int size = 10)
         {
-            DimAnnouncements[]? result = null;
+            DimAnnouncements[] result = null;
 
             try
             {
@@ -2957,7 +2961,7 @@ namespace Horizon.LIBRARY.Database
                             }
                         };
                     }
-                    else if (appId == 10683 || appId == 10684)
+                    else if (appId == 10680 || appId == 10683 || appId == 10684)
                     {
                         return new DimAnnouncements[]
                         {
@@ -3024,9 +3028,9 @@ namespace Horizon.LIBRARY.Database
         /// <summary>
         /// Gets the Usage/Privacy policy.
         /// </summary>
-        public async Task<DimEula?> GetPolicy(int policyType, int appId)
+        public async Task<DimEula> GetPolicy(int policyType, int appId)
         {
-            DimEula? result = null;
+            DimEula result = null;
 
             try
             {
@@ -3059,9 +3063,9 @@ namespace Horizon.LIBRARY.Database
         /// <summary>
         /// Get Locations
         /// </summary>
-        public async Task<DimLocations?> GetDimLocations(int LocationId, int appId)
+        public async Task<DimLocations> GetDimLocations(int LocationId, int appId)
         {
-            DimLocations? result = null;
+            DimLocations result = null;
 
             try
             {
@@ -3177,9 +3181,9 @@ namespace Horizon.LIBRARY.Database
         #endregion
 
         #region getFileList
-        public async Task<List<FileDTO>?> getFileList(int appId, string FileNameBeginsWith, uint OwnerByID)
+        public async Task<List<FileDTO>> getFileList(int appId, string FileNameBeginsWith, uint OwnerByID)
         {
-            List<FileDTO>? result = null;
+            List<FileDTO> result = null;
 
             try
             {
@@ -3219,9 +3223,9 @@ namespace Horizon.LIBRARY.Database
         #endregion
 
         #region getFileListExt
-        public async Task<List<FileDTO>?> getFileListExt(int appId, string FileNameBeginsWith, int OwnerByID, MediusFileMetaData fileMetaData)
+        public async Task<List<FileDTO>> getFileListExt(int appId, string FileNameBeginsWith, int OwnerByID, MediusFileMetaData fileMetaData)
         {
-            List<FileDTO>? result = null;
+            List<FileDTO> result = null;
 
             try
             {
@@ -3236,7 +3240,7 @@ namespace Horizon.LIBRARY.Database
                             Key = fileMetaData.Key,
                             Value = fileMetaData.Value,
                         };
-                        _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID && x.fileMetaDataDTO == _simulatedFileMetaData.Find(x => x == fileMetaDataDTO));
+                        _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID && x.fileMetaDataDTO == _simulatedFileMetaData.Find(y => y == fileMetaDataDTO));
 
                         result = _simulatedMediusFiles;
                     }
@@ -3248,7 +3252,7 @@ namespace Horizon.LIBRARY.Database
                             Key = fileMetaData.Key,
                             Value = fileMetaData.Value,
                         };
-                        _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID && x.FileName != null && x.FileName.StartsWith(FileNameBeginsWith) && x.fileMetaDataDTO == _simulatedFileMetaData.Find(x => x == fileMetaDataDTO));
+                        _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID && x.FileName != null && x.FileName.StartsWith(FileNameBeginsWith) && x.fileMetaDataDTO == _simulatedFileMetaData.Find(y => y == fileMetaDataDTO));
 
                         result = _simulatedMediusFiles;
                     }
@@ -3275,9 +3279,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="appId">appId for MFS</param>
         /// <param name="mediusFile">MediusFile specified by UpdateFileMetaRequest</param>
         /// <param name="mediusFileAttributes">mediusFileAttributes specified by Game Developer.</param>
-        public async Task<List<FileAttributesDTO>?> UpdateFileAttributes(FileDTO file)
+        public async Task<List<FileAttributesDTO>> UpdateFileAttributes(FileDTO file)
         {
-            List<FileAttributesDTO>? result = null;
+            List<FileAttributesDTO> result = null;
 
             try
             {
@@ -3320,9 +3324,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="appId">appId for MFS</param>
         /// <param name="mediusFile">MediusFile specified by UpdateFileMetaRequest</param>
-        public async Task<List<FileAttributesDTO>?> GetFileAttributes(FileDTO mediusFile)
+        public async Task<List<FileAttributesDTO>> GetFileAttributes(FileDTO mediusFile)
         {
-            List<FileAttributesDTO>? result = null;
+            List<FileAttributesDTO> result = null;
 
             try
             {
@@ -3402,9 +3406,9 @@ namespace Horizon.LIBRARY.Database
         /// <param name="appId">appId for MFS</param>
         /// <param name="mediusFile">MediusFile specified by UpdateFileMetaRequest</param>
         /// <param name="mediusFileMetaData">MediusFileMetaData specified by Game Developer.</param>
-        public async Task<List<FileMetaDataDTO>?> GetFileMetaData(int appId, string fileName, string Key)
+        public async Task<List<FileMetaDataDTO>> GetFileMetaData(int appId, string fileName, string Key)
         {
-            List<FileMetaDataDTO>? result = null;
+            List<FileMetaDataDTO> result = null;
 
             try
             {
@@ -3484,9 +3488,9 @@ namespace Horizon.LIBRARY.Database
         /// <summary>
         /// Post the NpId to the database
         /// </summary>
-        public async Task<List<NpIdDTO>?> NpIdSearchByAccountNames(NpIdDTO NpId, int appId)
+        public async Task<List<NpIdDTO>> NpIdSearchByAccountNames(NpIdDTO NpId, int appId)
         {
-            List<NpIdDTO>? result = null;
+            List<NpIdDTO> result = null;
 
             try
             {
@@ -3512,11 +3516,11 @@ namespace Horizon.LIBRARY.Database
 
         #region Game
 
-        public async Task<string?> GetGameList()
+        public async Task<string> GetGameList()
         {
-            string? results = null;
+            string results = null;
 
-            HttpResponseMessage? Resp = null;
+            HttpResponseMessage Resp = null;
             try
             {
                 if (_settings.SimulatedMode) // Deprecated
@@ -3657,9 +3661,9 @@ namespace Horizon.LIBRARY.Database
 
         #region World
 
-        public async Task<ChannelDTO[]?> GetChannels()
+        public async Task<ChannelDTO[]> GetChannels()
         {
-            ChannelDTO[]? results = null;
+            ChannelDTO[] results = null;
 
             try
             {
@@ -3668,7 +3672,7 @@ namespace Horizon.LIBRARY.Database
                     return new ChannelDTO[]
                     {
                         // Ratchet UYA PS2
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10550,
                             Id = 1,
@@ -3677,7 +3681,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 1000,
                             GenericFieldFilter = 16
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10683,
                             Id = 1,
@@ -3689,7 +3693,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField4 = 0,
                             GenericFieldFilter = 32
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10684,
                             Id = 1,
@@ -3701,7 +3705,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField4 = 0,
                             GenericFieldFilter = 32
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10694,
                             Id = 1,
@@ -3711,7 +3715,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField2 = 1,
                             GenericFieldFilter = 64
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 20624,
                             Id = 1,
@@ -3721,7 +3725,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField2 = 1,
                             GenericFieldFilter = 64
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 20244,
                             Id = 1,
@@ -3730,7 +3734,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 1,
                             GenericFieldFilter = 64
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10540,
                             Id = 2,
@@ -3740,14 +3744,14 @@ namespace Horizon.LIBRARY.Database
                             GenericFieldFilter = 1
                         },
                         // Arc the Lad: End of Darkness
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10984,
                             Id = 1,
                             Name = "Yewbell",
                             MaxPlayers = 256,
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10984,
                             Id = 2,
@@ -3755,7 +3759,7 @@ namespace Horizon.LIBRARY.Database
                             MaxPlayers = 256,
                         },
                         // WRC 04
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10394,
                             Id = 1,
@@ -3764,7 +3768,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 4096,
                             GenericFieldFilter = 1
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10394,
                             Id = 2,
@@ -3774,7 +3778,7 @@ namespace Horizon.LIBRARY.Database
                             GenericFieldFilter = 1
                         },
                         //WRC05 Beta
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10933,
                             Id = 1,
@@ -3783,7 +3787,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 4096,
                             GenericFieldFilter = 1
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10933,
                             Id = 2,
@@ -3792,7 +3796,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 8192,
                             GenericFieldFilter = 1
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10933,
                             Id = 3,
@@ -3802,7 +3806,7 @@ namespace Horizon.LIBRARY.Database
                             GenericFieldFilter = 1
                         },
                         //WRC Rally Evolved
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10934,
                             Id = 1,
@@ -3811,7 +3815,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 4096,
                             GenericFieldFilter = 1
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10934,
                             Id = 2,
@@ -3820,7 +3824,7 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 8192,
                             GenericFieldFilter = 1
                         },
-                        new()
+                        new ChannelDTO()
                         {
                             AppId = 10934,
                             Id = 3,
@@ -3829,7 +3833,6 @@ namespace Horizon.LIBRARY.Database
                             GenericField1 = 16384,
                             GenericFieldFilter = 1
                         }
-
                     };
                 }
                 else
@@ -3843,9 +3846,9 @@ namespace Horizon.LIBRARY.Database
             return results;
         }
 
-        public async Task<LocationDTO[]?> GetLocations()
+        public async Task<LocationDTO[]> GetLocations()
         {
-            LocationDTO[]? results = null;
+            LocationDTO[] results = null;
 
             try
             {
@@ -3853,43 +3856,43 @@ namespace Horizon.LIBRARY.Database
                 {
                     return new LocationDTO[]
                     {
-                        new()
+                        new LocationDTO()
                         {
                             AppId = 0,
                             Id = 0,
                             Name = "Location 1"
                         },
-                        new()
+                        new LocationDTO()
                         {
                             AppId = 23044,
                             Id = 0,
                             Name = "US"
                         },
-                        new()
+                        new LocationDTO()
                         {
                             AppId = 24000,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new()
+                        new LocationDTO()
                         {
                             AppId = 24180,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new()
+                        new LocationDTO()
                         {
                             AppId = 10680,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new()
+                        new LocationDTO()
                         {
                             AppId = 10683,
                             Id = 40,
                             Name = "Aquatos"
                         },
-                        new()
+                        new LocationDTO()
                         {
                             AppId = 10684,
                             Id = 40,
@@ -3908,9 +3911,9 @@ namespace Horizon.LIBRARY.Database
             return results;
         }
 
-        public async Task<LocationDTO[]?> GetLocations(int appId)
+        public async Task<LocationDTO[]> GetLocations(int appId)
         {
-            LocationDTO[]? results = null;
+            LocationDTO[] results = null;
 
             try
             {
@@ -3925,7 +3928,7 @@ namespace Horizon.LIBRARY.Database
                         case 10684:
                             return new LocationDTO[]
                             {
-                                new()
+                                new LocationDTO()
                                 {
                                     AppId = appId,
                                     Id = 40,
@@ -3935,25 +3938,25 @@ namespace Horizon.LIBRARY.Database
                         case 23360:
                             return new LocationDTO[]
                             {
-                                new()
+                                new LocationDTO()
                                 {
                                     AppId = appId,
                                     Id = 1,
                                     Name = "Europe"
                                 },
-                                new()
+                                new LocationDTO()
                                 {
                                     AppId = appId,
                                     Id = 2,
                                     Name = "United States"
                                 },
-                                new()
+                                new LocationDTO()
                                 {
                                     AppId = appId,
                                     Id = 3,
                                     Name = "Mars City"
                                 },
-                                new()
+                                new LocationDTO()
                                 {
                                     AppId = appId,
                                     Id = 4,
@@ -3963,7 +3966,7 @@ namespace Horizon.LIBRARY.Database
                         case 23044:
                             return new LocationDTO[]
                             {
-                                new()
+                                new LocationDTO()
                                 {
                                     AppId = appId,
                                     Id = 40,
@@ -3973,7 +3976,7 @@ namespace Horizon.LIBRARY.Database
                         default:
                             return new LocationDTO[]
                             {
-                                new()
+                                new LocationDTO()
                                 {
                                     AppId = 0,
                                     Id = 0,
@@ -4002,9 +4005,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="accountId">Id of target player.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<List<MatchmakingSupersetDTO>?> GetMatchmakingSupersets(int appId)
+        public async Task<List<MatchmakingSupersetDTO>> GetMatchmakingSupersets(int appId)
         {
-            List<MatchmakingSupersetDTO>? result = null;
+            List<MatchmakingSupersetDTO> result = null;
 
             try
             {
@@ -4163,9 +4166,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="appId">appid of that universe to find</param>
         /// <returns></returns>
-        public async Task<List<UniverseDTO>?> GetUniverses(int appId)
+        public async Task<List<UniverseDTO>> GetUniverses(int appId)
         {
-            List<UniverseDTO>? result = null;
+            List<UniverseDTO> result = null;
             try
             {
                 if (_settings.SimulatedMode)
@@ -4186,9 +4189,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="appId">appid of that universe to find</param>
         /// <returns></returns>
-        public async Task<List<UniverseNewsDTO>?> GetUniverseNews(int appId)
+        public async Task<List<UniverseNewsDTO>> GetUniverseNews(int appId)
         {
-            List<UniverseNewsDTO>? result = null;
+            List<UniverseNewsDTO> result = null;
             try
             {
                 if (_settings.SimulatedMode)
@@ -4288,9 +4291,9 @@ namespace Horizon.LIBRARY.Database
 
         #region Key
 
-        public async Task<AppIdDTO[]?> GetAppIds()
+        public async Task<AppIdDTO[]> GetAppIds()
         {
-            AppIdDTO[]? results = null;
+            AppIdDTO[] results = null;
 
             try
             {
@@ -4316,9 +4319,9 @@ namespace Horizon.LIBRARY.Database
             return results;
         }
 
-        public async Task<Dictionary<string, string>?> GetServerSettings(int appId)
+        public async Task<Dictionary<string, string>> GetServerSettings(int appId)
         {
-            Dictionary<string, string>? result = null;
+            Dictionary<string, string> result = null;
 
             try
             {
@@ -4352,9 +4355,9 @@ namespace Horizon.LIBRARY.Database
             }
         }
 
-        public async Task<ServerFlagsDTO?> GetServerFlags()
+        public async Task<ServerFlagsDTO> GetServerFlags()
         {
-            ServerFlagsDTO? result = null;
+            ServerFlagsDTO result = null;
 
             try
             {
@@ -4390,9 +4393,9 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        private async Task<AuthenticationResponse?> Authenticate(string? username, string? password)
+        private async Task<AuthenticationResponse> Authenticate(string username, string password)
         {
-            AuthenticationResponse? result = null;
+            AuthenticationResponse result = null;
 
             try
             {
@@ -4414,9 +4417,9 @@ namespace Horizon.LIBRARY.Database
 
         #region Http
 
-        private async Task<HttpResponseMessage?> DeleteDbAsync(string route)
+        private async Task<HttpResponseMessage> DeleteDbAsync(string route)
         {
-            HttpResponseMessage? result = null;
+            HttpResponseMessage result = null;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4448,9 +4451,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<HttpResponseMessage?> GetDbAsync(string route)
+        private async Task<HttpResponseMessage> GetDbAsync(string route)
         {
-            HttpResponseMessage? result = null;
+            HttpResponseMessage result = null;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4482,9 +4485,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<T?> GetDbAsync<T>(string route)
+        private async Task<T> GetDbAsync<T>(string route)
         {
-            T? result = default;
+            T result = default;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4520,9 +4523,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<HttpResponseMessage?> PostDbAsync(string route, string body)
+        private async Task<HttpResponseMessage> PostDbAsync(string route, string body)
         {
-            HttpResponseMessage? result = null;
+            HttpResponseMessage result = null;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4554,9 +4557,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<HttpResponseMessage?> PostDbAsync(string route, object body)
+        private async Task<HttpResponseMessage> PostDbAsync(string route, object body)
         {
-            HttpResponseMessage? result = null;
+            HttpResponseMessage result = null;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4588,9 +4591,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<T?> PostDbAsync<T>(string route, object body)
+        private async Task<T> PostDbAsync<T>(string route, object body)
         {
-            T? result = default;
+            T result = default;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4626,9 +4629,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<HttpResponseMessage?> PutDbAsync(string route, string body)
+        private async Task<HttpResponseMessage> PutDbAsync(string route, string body)
         {
-            HttpResponseMessage? result = null;
+            HttpResponseMessage result = null;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4660,9 +4663,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<HttpResponseMessage?> PutDbAsync(string route, object body)
+        private async Task<HttpResponseMessage> PutDbAsync(string route, object body)
         {
-            HttpResponseMessage? result = null;
+            HttpResponseMessage result = null;
 
             using (var handler = new HttpClientHandler())
             {
@@ -4694,9 +4697,9 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-        private async Task<T?> PutDbAsync<T>(string route, object body)
+        private async Task<T> PutDbAsync<T>(string route, object body)
         {
-            T? result = default;
+            T result = default;
 
             using (var handler = new HttpClientHandler())
             {

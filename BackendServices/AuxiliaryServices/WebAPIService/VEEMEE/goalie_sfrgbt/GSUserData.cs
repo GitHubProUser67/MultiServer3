@@ -8,7 +8,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
 {
     public class UserData
     {
-        public static string? SetUserDataPOST(byte[]? PostData, string? ContentType, bool global, string apiPath)
+        public static string SetUserDataPOST(byte[] PostData, string ContentType, bool global, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;
@@ -64,7 +64,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText(filePath)}</xml>");
 
                     // Find the <goals> element
-                    XmlElement? goalsElement = xmlDoc.SelectSingleNode("/xml/goals") as XmlElement;
+                    XmlElement goalsElement = xmlDoc.SelectSingleNode("/xml/goals") as XmlElement;
 
                     if (goalsElement != null)
                     {
@@ -72,7 +72,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                         goalsElement.InnerText = goals;
 
                         // Find the <duration> element
-                        XmlElement? durationElement = xmlDoc.SelectSingleNode("/xml/duration") as XmlElement;
+                        XmlElement durationElement = xmlDoc.SelectSingleNode("/xml/duration") as XmlElement;
 
                         if (durationElement != null)
                         {
@@ -96,7 +96,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
             return null;
         }
 
-        public static string? GetUserDataPOST(byte[]? PostData, string? ContentType, bool global, string apiPath)
+        public static string GetUserDataPOST(byte[] PostData, string ContentType, bool global, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;

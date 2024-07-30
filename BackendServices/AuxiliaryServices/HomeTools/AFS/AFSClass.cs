@@ -18,7 +18,7 @@ namespace HomeTools.AFS
             Match objectmatch = new Regex(UUIDRegexModel).Match(CurrentFolder);
 
             // Create a list to hold the tasks
-            List<Task>? HashMapTasks = new List<Task>();
+            List<Task> HashMapTasks = new List<Task>();
 
             if (objectmatch.Success) // We first map the corresponding object.
             {
@@ -35,7 +35,7 @@ namespace HomeTools.AFS
                       .ToArray())
                     {
                         string NewfilePath = CurrentFolder + $"/{text}";
-                        string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
+                        string destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                         if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
                             Directory.CreateDirectory(destinationDirectory.ToUpper());
@@ -52,41 +52,43 @@ namespace HomeTools.AFS
             if (BruteforceUUIDs == "on" && Directory.Exists(MapperHelperFolder) && File.Exists(MapperHelperFolder + "/uuid_helper.txt"))
             {
                 // Open the file for reading
-                using StreamReader reader = new StreamReader(MapperHelperFolder + "/uuid_helper.txt");
-                string? line = null;
-
-                // Read and display lines from the file until the end of the file is reached
-                while ((line = reader.ReadLine()) != null)
+                using (StreamReader reader = new StreamReader(MapperHelperFolder + "/uuid_helper.txt"))
                 {
-                    if (!string.IsNullOrEmpty(line))
+                    string line = null;
+
+                    // Read and display lines from the file until the end of the file is reached
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        objectmatch = new Regex(UUIDRegexModel).Match(line);
-
-                        if (objectmatch.Success) // We first map the corresponding object.
+                        if (!string.IsNullOrEmpty(line))
                         {
-                            string Objectprefix = $"objects/{objectmatch.Groups[0].Value}/";
+                            objectmatch = new Regex(UUIDRegexModel).Match(line);
 
-                            foreach (string ObjectMetaDataRelativePath in new List<string>() { $"{Objectprefix}object.xml", $"{Objectprefix}resources.xml", $"{Objectprefix}localisation.xml" })
+                            if (objectmatch.Success) // We first map the corresponding object.
                             {
-                                string text = AFSHash.EscapeString(ObjectMetaDataRelativePath);
-                                string CrcHash = AFSHash.ComputeAFSHash(text);
+                                string Objectprefix = $"objects/{objectmatch.Groups[0].Value}/";
 
-                                // Search for files with names matching the CRC hash, regardless of the extension
-                                foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                                  .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
-                                  .ToArray())
+                                foreach (string ObjectMetaDataRelativePath in new List<string>() { $"{Objectprefix}object.xml", $"{Objectprefix}resources.xml", $"{Objectprefix}localisation.xml" })
                                 {
-                                    string NewfilePath = CurrentFolder + $"/{text}";
-                                    string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
+                                    string text = AFSHash.EscapeString(ObjectMetaDataRelativePath);
+                                    string CrcHash = AFSHash.ComputeAFSHash(text);
 
-                                    if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
-                                        Directory.CreateDirectory(destinationDirectory.ToUpper());
+                                    // Search for files with names matching the CRC hash, regardless of the extension
+                                    foreach (string filePath in Directory.GetFiles(CurrentFolder)
+                                      .Where(path => new Regex($"(?:0X)?{CrcHash}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
+                                      .ToArray())
+                                    {
+                                        string NewfilePath = CurrentFolder + $"/{text}";
+                                        string destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
-                                    if (!File.Exists(NewfilePath))
-                                        File.Move(filePath, NewfilePath.ToUpper());
+                                        if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
+                                            Directory.CreateDirectory(destinationDirectory.ToUpper());
 
-                                    if (File.Exists(NewfilePath))
-                                        await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath));
+                                        if (!File.Exists(NewfilePath))
+                                            File.Move(filePath, NewfilePath.ToUpper());
+
+                                        if (File.Exists(NewfilePath))
+                                            await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath));
+                                    }
                                 }
                             }
                         }
@@ -107,7 +109,7 @@ namespace HomeTools.AFS
                           .ToArray())
                         {
                             string NewfilePath = CurrentFolder + $"/{MappedAFSHashesCache[CrcHash]}";
-                            string? destinationDirectory = Path.GetDirectoryName(NewfilePath);
+                            string destinationDirectory = Path.GetDirectoryName(NewfilePath);
 
                             if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
                                 Directory.CreateDirectory(destinationDirectory.ToUpper());
@@ -245,7 +247,7 @@ namespace HomeTools.AFS
             }
         }
 
-        public static void ScheduledUpdate(object? state)
+        public static void ScheduledUpdate(object state)
         {
             InitAFSMappedList();
         }
