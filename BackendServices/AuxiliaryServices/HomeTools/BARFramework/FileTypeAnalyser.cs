@@ -48,7 +48,7 @@ namespace HomeTools.BARFramework
             try
             {
                 TextReader textReader = new StreamReader(inStream);
-                string? text = textReader.ReadLine();
+                string text = textReader.ReadLine();
                 if (text == null)
                 {
                     result = HomeFileType.Unknown;

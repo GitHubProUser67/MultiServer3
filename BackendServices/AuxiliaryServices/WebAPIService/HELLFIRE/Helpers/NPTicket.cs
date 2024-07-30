@@ -11,37 +11,41 @@ namespace WebAPIService.HELLFIRE.Helpers
 {
     public class NPTicket
     {
-        public static string? RequestNPTicket(byte[]? PostData, string boundary)
+        public static string RequestNPTicket(byte[] PostData, string boundary)
         {
             string userid = string.Empty;
             string sessionid = string.Empty;
             string resultString = string.Empty;
-            byte[]? ticketData = null;
+            byte[] ticketData = null;
 
             if (PostData != null)
             {
-                using MemoryStream copyStream = new MemoryStream(PostData);
-                foreach (var file in MultipartFormDataParser.Parse(copyStream, boundary).Files)
+                using (MemoryStream copyStream = new MemoryStream(PostData))
                 {
-                    using Stream filedata = file.Data;
-                    filedata.Position = 0;
+                    foreach (var file in MultipartFormDataParser.Parse(copyStream, boundary).Files)
+                    {
+                        using (Stream filedata = file.Data)
+                        {
+                            filedata.Position = 0;
 
-                    // Find the number of bytes in the stream
-                    int contentLength = (int)filedata.Length;
+                            // Find the number of bytes in the stream
+                            int contentLength = (int)filedata.Length;
 
-                    // Create a byte array
-                    byte[] buffer = new byte[contentLength];
+                            // Create a byte array
+                            byte[] buffer = new byte[contentLength];
 
-                    // Read the contents of the memory stream into the byte array
-                    filedata.Read(buffer, 0, contentLength);
+                            // Read the contents of the memory stream into the byte array
+                            filedata.Read(buffer, 0, contentLength);
 
-                    if (file.FileName == "ticket.bin")
-                        ticketData = buffer;
+                            if (file.FileName == "ticket.bin")
+                                ticketData = buffer;
 
-                    filedata.Flush();
+                            filedata.Flush();
+                        }
+                    }
+
+                    copyStream.Flush();
                 }
-
-                copyStream.Flush();
             }
 
             if (ticketData != null)
@@ -72,7 +76,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                     string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "H0mETyc00n!");
 
                     // Trim the hash to a specific length
-                    hash = hash[..10];
+                    hash = hash.Substring(0, 10);
 
                     // Append the trimmed hash to the result
                     resultString += hash;
@@ -92,7 +96,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                     string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "H0mETyc00n!");
 
                     // Trim the hash to a specific length
-                    hash = hash[..14];
+                    hash = hash.Substring(0, 14);
 
                     // Append the trimmed hash to the result
                     resultString += hash;

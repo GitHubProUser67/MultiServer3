@@ -11,11 +11,11 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         public MediusCallbackStatus StatusCode;
         public int ClanID;
         public int ClanMessageID;
-        public string? Message; // CLANMSG_MAXLEN
+        public string Message; // CLANMSG_MAXLEN
         public bool EndOfList;
 
         public override void Deserialize(MessageReader reader)

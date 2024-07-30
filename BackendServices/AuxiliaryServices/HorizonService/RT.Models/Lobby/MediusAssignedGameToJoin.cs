@@ -11,7 +11,7 @@ namespace Horizon.RT.Models
         public uint GameWorldID;
         public uint TeamID;
         public int PlayerCount;
-        public string? GameName; // GAMENAME_MAXLEN
+        public string GameName; // GAMENAME_MAXLEN
         public byte[] GameStats = new byte[Constants.GAMESTATS_MAXLEN];
         public int MinPlayers;
         public int MaxPlayers;
@@ -28,11 +28,11 @@ namespace Horizon.RT.Models
         public int GenericField8;
         public MediusWorldStatus WorldStatus;
         public MediusJoinType JoinType;
-        public string? GamePassword; // GAMEPASSWORD_MAXLEN
+        public string GamePassword; // GAMEPASSWORD_MAXLEN
         public MediusGameHostType GameHostType;
-        public NetAddressList? AddressList;
+        public NetAddressList AddressList;
         public uint AppDataSize;
-        public byte[]? AppData;
+        public byte[] AppData;
 
         public override void Deserialize(MessageReader reader)
         {

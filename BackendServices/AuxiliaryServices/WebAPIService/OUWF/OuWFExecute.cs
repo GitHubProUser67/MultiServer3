@@ -8,9 +8,9 @@ namespace WebAPIService.OUWF
 {
     public class OuWFExecute
     {
-        public static string? Execute(byte[]? PostData, string? ContentType)
+        public static string Execute(byte[] PostData, string ContentType)
         {
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             using (MemoryStream ms = new MemoryStream(PostData))
             {
@@ -25,15 +25,14 @@ namespace WebAPIService.OUWF
 
                 try
                 {
-                    string toTrim = "lua|";
-                    var filePath = data.Substring(4);
-                    string fileContent = ReadFile(filePath);
-                    Console.WriteLine($"File content: {fileContent}");
+                    //string toTrim = "lua|";
+                    string fileContent = ReadFile(data.Substring(4));
+                    LoggerAccessor.LogInfo($"[OuWF] - File content: {fileContent}");
                     return fileContent;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error reading the file: {ex.Message}");
+                    LoggerAccessor.LogError($"[OuWF] - Error reading the file: {ex.Message}");
                 }
 
                 ms.Flush();
@@ -46,18 +45,11 @@ namespace WebAPIService.OUWF
         {
             // Check if the file exists
             if (!File.Exists(filePath))
-            {
                 throw new FileNotFoundException($"File not found: {filePath}");
-            }
 
             // Read the content of the file
-            string fileContent;
             using (StreamReader reader = new StreamReader(filePath))
-            {
-                fileContent = reader.ReadToEnd();
-            }
-
-            return fileContent;
+                return reader.ReadToEnd();
         }
     }
 }

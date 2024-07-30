@@ -12,12 +12,12 @@ namespace WebAPIService.UBISOFT.HERMES_API
         private string UbiRequestedPlatformType;
         private string ubiappbuildid;
         private string clientip;
-        private string? regioncode;
+        private string regioncode;
         private string ticket;
         private string apipath;
         private bool disposedValue;
 
-        public HERMESClass(string method, string absolutepath, string UbiAppId, string UbiRequestedPlatformType, string ubiappbuildid, string clientip, string? regioncode, string ticket, string apipath)
+        public HERMESClass(string method, string absolutepath, string UbiAppId, string UbiRequestedPlatformType, string ubiappbuildid, string clientip, string regioncode, string ticket, string apipath)
         {
             this.absolutepath = absolutepath;
             this.method = method;
@@ -30,7 +30,7 @@ namespace WebAPIService.UBISOFT.HERMES_API
             this.apipath = apipath;
         }
 
-        public (string?, string?) ProcessRequest(byte[]? PostData, string? ContentType)
+        public (string, string) ProcessRequest(byte[] PostData, string ContentType)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return (null, null);

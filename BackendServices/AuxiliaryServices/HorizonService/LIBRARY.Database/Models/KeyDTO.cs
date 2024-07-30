@@ -4,7 +4,7 @@ namespace Horizon.LIBRARY.Database.Models
 {
     public class ServerFlagsDTO
     {
-        public MaintenanceDTO? MaintenanceMode { get; set; }
+        public MaintenanceDTO MaintenanceMode { get; set; }
     }
 
     public class MaintenanceDTO

@@ -7,21 +7,20 @@ namespace WebAPIService.VEEMEE
 {
     public class Stats
     {
-        public static string? GetConfig(bool get, byte[]? PostData, string? ContentType, string apiPath)
+        public static string GetConfig(bool get, byte[] PostData, string ContentType, string apiPath)
         {
             if (!get)
             {
                 string id = string.Empty;
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary) && PostData != null)
                 {
-                    using MemoryStream ms = new MemoryStream(PostData);
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    id = data.GetParameterValue("id");
-
-                    ms.Flush();
+                    using (MemoryStream ms = new MemoryStream(PostData))
+                    {
+                        id = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("id");
+                        ms.Flush();
+                    }
                 }
 
                 LoggerAccessor.LogInfo($"[VEEMEE] - Getconfig values : id|{id}");
@@ -35,7 +34,7 @@ namespace WebAPIService.VEEMEE
                 return null;
         }
 
-        public static string? Crash(byte[]? PostData, string? ContentType, string apiPath)
+        public static string Crash(byte[] PostData, string ContentType, string apiPath)
         {
             string corehook = string.Empty;
             string territory = string.Empty;
@@ -52,7 +51,7 @@ namespace WebAPIService.VEEMEE
             string numpeople = string.Empty;
             string objectid = string.Empty;
             string objectname = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -104,10 +103,10 @@ namespace WebAPIService.VEEMEE
                 return null;
         }
 
-        public static string? Usage(byte[]? PostData, string? ContentType)
+        public static string Usage(byte[] PostData, string ContentType)
         {
             string usage = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {

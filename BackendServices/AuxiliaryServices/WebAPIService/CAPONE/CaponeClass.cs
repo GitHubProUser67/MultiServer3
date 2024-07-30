@@ -18,7 +18,7 @@ namespace WebAPIService.CAPONE
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string ContentType, string directoryPath)
+        public string ProcessRequest(byte[] PostData, string ContentType, string directoryPath)
         {
             if (string.IsNullOrEmpty(absolutePath) || string.IsNullOrEmpty(directoryPath))
                 return null;

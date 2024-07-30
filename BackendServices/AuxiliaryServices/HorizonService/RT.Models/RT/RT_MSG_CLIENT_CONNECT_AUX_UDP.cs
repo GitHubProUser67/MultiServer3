@@ -12,7 +12,7 @@ namespace Horizon.RT.Models
 
         public uint WorldId;
         public int ApplicationId;
-        public IPEndPoint? EndPoint;
+        public IPEndPoint EndPoint;
         public ushort PlayerId;
         public ushort ScertId;
         public ushort OrdinalID;

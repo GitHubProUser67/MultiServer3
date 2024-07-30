@@ -11,11 +11,11 @@ namespace Horizon.RT.Models.Lobby
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
         public int MediusWorldID;
-        public NetConnectionInfo? ConnectInfo;
+        public NetConnectionInfo ConnectInfo;
 
         public override void Deserialize(MessageReader reader)
         {

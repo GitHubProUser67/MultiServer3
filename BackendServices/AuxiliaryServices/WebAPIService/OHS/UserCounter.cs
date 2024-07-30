@@ -13,14 +13,14 @@ namespace WebAPIService.OHS
 {
     public class UserCounter
     {
-        public static string? Set(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string Set(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -36,15 +36,15 @@ namespace WebAPIService.OHS
             else
                 dataforohs = batchparams;
 
-            object? key = null;
+            object key = null;
 
             if (!string.IsNullOrEmpty(dataforohs))
             {
                 JToken Token = JToken.Parse(dataforohs);
 
-                object? user = Utils.JtokenUtils.GetValueFromJToken(Token, "user");
+                object user = Utils.JtokenUtils.GetValueFromJToken(Token, "user");
 
-                object? value = Utils.JtokenUtils.GetValueFromJToken(Token, "value");
+                object value = Utils.JtokenUtils.GetValueFromJToken(Token, "value");
 
                 key = Utils.JtokenUtils.GetValueFromJToken(Token, "key");
 
@@ -65,19 +65,19 @@ namespace WebAPIService.OHS
 
                     if (File.Exists(profiledatastring))
                     {
-                        JObject? jObject = JObject.Parse(File.ReadAllText(profiledatastring));
+                        JObject jObject = JObject.Parse(File.ReadAllText(profiledatastring));
 
                         if (jObject != null)
                         {
                             // Check if the key name already exists in the JSON
-                            JToken? existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == key);
+                            JToken existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == (string)key);
 
                             if (existingKey != null && value != null)
                                 // Update the value of the existing key
                                 existingKey.Replace(JToken.FromObject(value));
                             else
                             {
-                                JToken? KeyEntry = jObject["key"];
+                                JToken KeyEntry = jObject["key"];
 
                                 if (KeyEntry != null && value != null && key != null)
                                     // Step 2: Add a new entry to the "Key" object
@@ -89,7 +89,7 @@ namespace WebAPIService.OHS
                     }
                     else if (key != null)
                     {
-                        string? keystring = key.ToString();
+                        string keystring = key.ToString();
 
                         if (!string.IsNullOrEmpty(keystring) && user != null && value != null)
                         {
@@ -131,14 +131,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Increment(byte[] PostData, string ContentType, string directorypath, string batchparams, int game, bool v2)
+        public static string Increment(byte[] PostData, string ContentType, string directorypath, string batchparams, int game, bool v2)
         {
-            string? dataforohs = null;
-            (string?, string?)? output = null;
+            string dataforohs = null;
+            (string, string)? output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -154,18 +154,18 @@ namespace WebAPIService.OHS
             else
                 dataforohs = batchparams;
 
-            object? key = null;
+            object key = null;
 
             if (!string.IsNullOrEmpty(dataforohs))
             {
                 // Deserialize the JSON data into a JObject
-                JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+                JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
 
                 if (jObject != null)
                 {
                     key = jObject.Value<string>("key");
 
-                    string? user = jObject.Value<string>("user");
+                    string user = jObject.Value<string>("user");
 
                     int value = jObject.Value<int>("value");
 
@@ -175,18 +175,18 @@ namespace WebAPIService.OHS
 
                         if (File.Exists(profileCurDataString))
                         {
-                            JObject? jObjectFromFile = JObject.Parse(File.ReadAllText(profileCurDataString));
+                            JObject jObjectFromFile = JObject.Parse(File.ReadAllText(profileCurDataString));
 
                             if (jObjectFromFile != null)
                             {
-                                JToken? existingKey = jObjectFromFile.SelectToken($"$..{key}");
+                                JToken existingKey = jObjectFromFile.SelectToken($"$..{key}");
 
                                 if (existingKey != null && existingKey.Type == JTokenType.Integer)
                                     // Increment the value of the existing key (assuming it's an integer)
                                     existingKey.Replace(existingKey.Value<int>() + value);
                                 else if (key != null)
                                 {
-                                    JToken? KeyEntry = jObjectFromFile["key"];
+                                    JToken KeyEntry = jObjectFromFile["key"];
 
                                     existingKey = value;
 
@@ -201,7 +201,7 @@ namespace WebAPIService.OHS
                         }
                         else if (key != null)
                         {
-                            string? keystring = key.ToString();
+                            string keystring = key.ToString();
 
                             if (!string.IsNullOrEmpty(keystring) && user != null)
                             {
@@ -246,14 +246,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? IncrementSetEntry(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string IncrementSetEntry(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -272,16 +272,16 @@ namespace WebAPIService.OHS
             if (!string.IsNullOrEmpty(dataforohs))
             {
                 // Deserialize the JSON data into a JObject
-                JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+                JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
 
                 if (jObject != null)
                 {
-                    string? counter_key = jObject.Value<string>("counter_key");
-                    string? entry_project = jObject.Value<string>("entry_project");
-                    string? entry_key = jObject.Value<string>("entry_key");
-                    object? entry_value = jObject.Value<object>("entry_value");
-                    string? counter_project = jObject.Value<string>("counter_project");
-                    string? user = jObject.Value<string>("user");
+                    string counter_key = jObject.Value<string>("counter_key");
+                    string entry_project = jObject.Value<string>("entry_project");
+                    string entry_key = jObject.Value<string>("entry_key");
+                    object entry_value = jObject.Value<object>("entry_value");
+                    string counter_project = jObject.Value<string>("counter_project");
+                    string user = jObject.Value<string>("user");
                     int counter_value = jObject.Value<int>("counter_value");
 
                     try
@@ -293,18 +293,18 @@ namespace WebAPIService.OHS
 
                         if (File.Exists(CounterDataStringPath))
                         {
-                            JObject? jObjectFromFile = JObject.Parse(File.ReadAllText(CounterDataStringPath));
+                            JObject jObjectFromFile = JObject.Parse(File.ReadAllText(CounterDataStringPath));
 
                             if (jObjectFromFile != null)
                             {
-                                JToken? existingKey = jObjectFromFile.SelectToken($"$..{counter_key}");
+                                JToken existingKey = jObjectFromFile.SelectToken($"$..{counter_key}");
 
                                 if (existingKey != null && existingKey.Type == JTokenType.Integer)
                                     // Increment the value of the existing key (assuming it's an integer)
                                     existingKey.Replace(existingKey.Value<int>() + counter_value);
                                 else if (counter_key != null)
                                 {
-                                    JToken? KeyEntry = jObjectFromFile["key"];
+                                    JToken KeyEntry = jObjectFromFile["key"];
 
                                     existingKey = counter_value;
 
@@ -319,7 +319,7 @@ namespace WebAPIService.OHS
                         }
                         else if (counter_key != null)
                         {
-                            string? keystring = counter_key;
+                            string keystring = counter_key;
 
                             if (!string.IsNullOrEmpty(keystring) && user != null)
                             {
@@ -347,23 +347,23 @@ namespace WebAPIService.OHS
 
                             if (!string.IsNullOrEmpty(profiledata))
                             {
-                                JObject? profilejObject = JObject.Parse(profiledata);
+                                JObject profilejObject = JObject.Parse(profiledata);
 
                                 if (profilejObject != null)
                                 {
                                     // Check if the key name already exists in the JSON
-                                    JToken? existingKey = profilejObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == entry_key);
+                                    JToken existingKey = profilejObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == entry_key);
 
                                     if (existingKey != null && entry_value != null)
                                         // Update the value of the existing key
-                                        existingKey.Replace(entry_value is JToken ? (JToken)entry_value : JToken.FromObject(entry_value));
+                                        existingKey.Replace(entry_value is JToken token ? token : JToken.FromObject(entry_value));
                                     else if (entry_key != null && entry_value != null)
                                     {
-                                        JToken? KeyEntry = profilejObject["key"];
+                                        JToken KeyEntry = profilejObject["key"];
 
                                         if (KeyEntry != null)
                                             // Add a new entry to the "Key" object
-                                            KeyEntry[entry_key] = entry_value is JToken ? (JToken)entry_value : JToken.FromObject(entry_value);
+                                            KeyEntry[entry_key] = entry_value is JToken token ? token : JToken.FromObject(entry_value);
                                     }
 
                                     File.WriteAllText(EntryDataStringPath, profilejObject.ToString(Formatting.Indented));
@@ -372,7 +372,7 @@ namespace WebAPIService.OHS
                         }
                         else if (entry_key != null)
                         {
-                            string? keystring = entry_key;
+                            string keystring = entry_key;
 
                             if (keystring != null && user != null && entry_value != null)
                             {
@@ -414,14 +414,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Get_All(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string Get_All(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -442,10 +442,10 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? jsonObject = JObject.Parse(dataforohs);
+                    JObject jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string?)jsonObject["user"];
+                    dataforohs = (string)jsonObject["user"];
 
                     if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
@@ -457,7 +457,7 @@ namespace WebAPIService.OHS
                             jsonObject = JObject.Parse(tempreader);
 
                             // Check if the "key" property exists and if it is an object
-                            if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                            if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 // Convert the JToken to a Lua table-like string
                                 output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                         }
@@ -487,14 +487,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Get_Many(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string Get_Many(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -515,11 +515,11 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? jsonObject = JObject.Parse(dataforohs);
+                    JObject jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string?)jsonObject["user"];
-                    string[]? keys = jsonObject["keys"]?.ToObject<string[]>();
+                    dataforohs = (string)jsonObject["user"];
+                    string[] keys = jsonObject["keys"]?.ToObject<string[]>();
 
                     if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
@@ -535,7 +535,7 @@ namespace WebAPIService.OHS
                                 foreach (string key in keys)
                                 {
                                     // Check if the "key" property exists
-                                    if (jsonObject.TryGetValue(key, out JToken? keyValueToken))
+                                    if (jsonObject.TryGetValue(key, out JToken keyValueToken))
                                         // Convert the JToken to a Lua table-like string
                                         output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                                 }
@@ -567,14 +567,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Get(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string Get(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -598,7 +598,7 @@ namespace WebAPIService.OHS
                     JObject jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string?)jsonObject["user"];
+                    dataforohs = (string)jsonObject["user"];
 
                     if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
@@ -610,7 +610,7 @@ namespace WebAPIService.OHS
                             jsonObject = JObject.Parse(currencydata);
 
                             // Check if the "Key" property exists and if it is an object
-                            if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                            if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 // Convert the JToken to a Lua table-like string
                                 output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                         }
@@ -640,13 +640,13 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Increment_Many(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string Increment_Many(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
+            string dataforohs = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -667,17 +667,17 @@ namespace WebAPIService.OHS
             if (!string.IsNullOrEmpty(dataforohs))
             {
                 // Deserialize the JSON data into a JObject
-                JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+                JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
 
                 if (jObject != null)
                 {
                     try
                     {
                         // Getting the value of the "user" field
-                        dataforohs = (string?)jObject["user"];
-                        string[]? keys = jObject["keys"]?.ToObject<string[]>();
-                        string[]? projects = jObject["projects"]?.ToObject<string[]>();
-                        int[]? values = jObject["values"]?.ToObject<int[]>();
+                        dataforohs = (string)jObject["user"];
+                        string[] keys = jObject["keys"]?.ToObject<string[]>();
+                        string[] projects = jObject["projects"]?.ToObject<string[]>();
+                        int[] values = jObject["values"]?.ToObject<int[]>();
 
                         if (!string.IsNullOrEmpty(dataforohs) && keys != null && projects != null && values != null && keys.Length == projects.Length && projects.Length == values.Length)
                         {
@@ -691,18 +691,18 @@ namespace WebAPIService.OHS
 
                                 if (File.Exists(profileCurDataString))
                                 {
-                                    JObject? jObjectFromFile = JObject.Parse(File.ReadAllText(profileCurDataString));
+                                    JObject jObjectFromFile = JObject.Parse(File.ReadAllText(profileCurDataString));
 
                                     if (jObjectFromFile != null)
                                     {
-                                        JToken? existingKey = jObjectFromFile.SelectToken($"$..{keys[i]}");
+                                        JToken existingKey = jObjectFromFile.SelectToken($"$..{keys[i]}");
 
                                         if (existingKey != null && existingKey.Type == JTokenType.Integer)
                                             // Increment the value of the existing key (assuming it's an integer)
                                             existingKey.Replace(existingKey.Value<int>() + values[i]);
                                         else
                                         {
-                                            JToken? KeyEntry = jObjectFromFile["key"];
+                                            JToken KeyEntry = jObjectFromFile["key"];
 
                                             existingKey = values[i];
 
@@ -718,7 +718,7 @@ namespace WebAPIService.OHS
                                 }
                                 else if (keys[i] != null)
                                 {
-                                    string? keystring = keys[i];
+                                    string keystring = keys[i];
 
                                     if (!string.IsNullOrEmpty(keystring) && !string.IsNullOrEmpty(dataforohs))
                                     {
@@ -831,8 +831,8 @@ namespace WebAPIService.OHS
 
         public class OHSUserProfile
         {
-            public string? user { get; set; }
-            public object? key { get; set; }
+            public string user { get; set; }
+            public object key { get; set; }
         }
     }
 }

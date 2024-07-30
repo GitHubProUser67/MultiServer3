@@ -14,8 +14,8 @@ namespace Horizon.LIBRARY.Pipeline.Udp
 {
     public class ScertDatagramDecoder : MessageToMessageDecoder<DatagramPacket>
     {
-        readonly ICipher[]? _ciphers = null;
-        readonly Func<RT_MSG_TYPE, CipherContext, ICipher?>? _getCipher = null;
+        readonly ICipher[] _ciphers = null;
+        readonly Func<RT_MSG_TYPE, CipherContext, ICipher> _getCipher = null;
 
         public ScertDatagramDecoder(params ICipher[] ciphers)
         {
@@ -35,7 +35,7 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         {
             while (message.Content.IsReadable())
             {
-                object? decoded = Decode(context, message);
+                object decoded = Decode(context, message);
                 if (decoded == null)
                     break;
 
@@ -52,10 +52,10 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         /// </param>
         /// <param name="input">The <see cref="IByteBuffer" /> from which to read data.</param>
         /// <returns>The <see cref="IByteBuffer" /> which represents the frame or <c>null</c> if no frame could be created.</returns>
-        protected virtual object? Decode(IChannelHandlerContext context, DatagramPacket input)
+        protected virtual object Decode(IChannelHandlerContext context, DatagramPacket input)
         {
             byte id = input.Content.GetByte(input.Content.ReaderIndex);
-            byte[]? hash = null;
+            byte[] hash = null;
             long frameLength = input.Content.GetShortLE(input.Content.ReaderIndex + 1);
             int headerLength = 3;
 

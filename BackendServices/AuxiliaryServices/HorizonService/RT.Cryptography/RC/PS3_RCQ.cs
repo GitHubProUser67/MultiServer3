@@ -1,5 +1,4 @@
 using EndianTools;
-using SevenZip.Buffer;
 using System;
 using System.Linq;
 
@@ -7,7 +6,7 @@ namespace Horizon.RT.Cryptography.RC
 {
     public class PS3_RCQ : ICipher
     {
-        private byte[]? _key = null;
+        private byte[] _key = null;
         public CipherContext Context { get; protected set; } = CipherContext.ID_00;
 
         public PS3_RCQ(byte[] key, CipherContext context)

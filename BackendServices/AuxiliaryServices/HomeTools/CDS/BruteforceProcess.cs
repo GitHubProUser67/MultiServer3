@@ -1,19 +1,18 @@
 using System;
-using System.Security.Cryptography;
 
 namespace HomeTools.CDS
 {
     public class BruteforceProcess
     {
-        private byte[]? DecryptedFileBytes = null;
-        private byte[]? EncryptedFileBytes = null;
+        private byte[] DecryptedFileBytes = null;
+        private byte[] EncryptedFileBytes = null;
 
         public BruteforceProcess(byte[] EncryptedFileBytes)
         {
             this.EncryptedFileBytes = EncryptedFileBytes;
         }
 
-        public byte[]? StartBruteForce(int mode = 0)
+        public byte[] StartBruteForce(int mode = 0)
         {
             if (EncryptedFileBytes != null)
             {

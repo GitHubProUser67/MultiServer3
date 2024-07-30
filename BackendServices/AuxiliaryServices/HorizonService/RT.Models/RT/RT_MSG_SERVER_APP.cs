@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_SERVER_APP;
 
-        public BaseMediusMessage? Message { get; set; } = null;
+        public BaseMediusMessage Message { get; set; } = null;
         //public BaseMediusGHSMessage GHSMessage { get; set; } = null;
         public override bool SkipEncryption
         {

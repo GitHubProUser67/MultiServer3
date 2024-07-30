@@ -19,7 +19,7 @@ namespace WebAPIService.HELLFIRE
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string ContentType, bool https)
+        public string ProcessRequest(byte[] PostData, string ContentType, bool https)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;

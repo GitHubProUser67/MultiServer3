@@ -52,7 +52,7 @@ namespace EdNetService
             else
                 CRCValue = GetCRCFromBuffer32(b, v2);
 
-            return (ushort)(((CRCValue ^ uint.MaxValue) & 65535U) ^ (((CRCValue ^ uint.MaxValue) & 4294901760U) >> 16));
+            return (ushort)(((CRCValue ^ uint.MaxValue) & 65535U) ^ (((CRCValue ^ uint.MaxValue) & 65535U) >> 16));
         }
 
         private static uint GetCRCFromBuffer32(char[] b, bool v2)

@@ -10,7 +10,7 @@ namespace Horizon.LIBRARY.Database.Entities
         public int StatValue { get; set; }
         public DateTime? ModifiedDt { get; set; }
 
-        public virtual Clan? Clan { get; set; }
-        public virtual DimClanCustomStats? Stat { get; set; }
+        public virtual Clan Clan { get; set; }
+        public virtual DimClanCustomStats Stat { get; set; }
     }
 }

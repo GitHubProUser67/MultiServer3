@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_ECHO;
 
-        public byte[]? Value;
+        public byte[] Value;
 
         public override void Deserialize(MessageReader reader)
         {

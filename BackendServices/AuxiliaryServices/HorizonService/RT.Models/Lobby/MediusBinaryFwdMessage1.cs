@@ -10,12 +10,12 @@ namespace Horizon.RT.Models
 
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.BinaryFwdMessage1;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public int OriginatorAccountID;
         public MediusBinaryMessageType MessageType;
         public int MessageSize;
-        public byte[]? Message;
+        public byte[] Message;
 
         public override void Deserialize(MessageReader reader)
         {

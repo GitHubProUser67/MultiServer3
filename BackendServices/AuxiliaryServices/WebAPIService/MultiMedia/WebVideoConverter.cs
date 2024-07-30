@@ -20,7 +20,7 @@ namespace WebAPIService.MultiMedia
         /// <summary>
 		/// Download and convert an online video (from hostings like YouTube, VK, etc)
 		/// </summary>
-		public static WebVideo? ConvertVideo(Dictionary<string, string> Arguments, string ConverterDir)
+		public static WebVideo ConvertVideo(Dictionary<string, string> Arguments, string ConverterDir)
         {
             WebVideo video = new WebVideo();
             try
@@ -31,12 +31,12 @@ namespace WebAPIService.MultiMedia
                 string FFmpegArgs = string.Empty;
 
                 // Check options
-                if (!Arguments.TryGetValue("url", out string? url))
+                if (!Arguments.TryGetValue("url", out string url))
                     throw new InvalidOperationException("Internet video address is missing.");
 
                 // Configure output file type
                 string PreferredMIME = "application/octet-stream", PreferredName = "video.avi";
-                if (Arguments.TryGetValue("f", out string? argument)) // (ffmpeg output format)
+                if (Arguments.TryGetValue("f", out string argument)) // (ffmpeg output format)
                 {
                     switch (argument)
                     {
@@ -104,9 +104,15 @@ namespace WebAPIService.MultiMedia
                 }
 
                 // Set output file type over auto-detected (if need)
+#if NET5_0_OR_GREATER
                 Arguments.TryAdd("content-type", PreferredMIME);
                 Arguments.TryAdd("filename", PreferredName);
-
+#else
+                if (!Arguments.ContainsKey("content-type"))
+                    Arguments.Add("content-type", PreferredMIME);
+                if (!Arguments.ContainsKey("filename"))
+                    Arguments.Add("filename", PreferredName);
+#endif
                 // Load all parameters
                 foreach (KeyValuePair<string, string> Arg in Arguments)
                 {
@@ -308,8 +314,8 @@ namespace WebAPIService.MultiMedia
                 video.FileName = Arguments["filename"];
 
                 // Start both processes
-                Process? YoutubeDl = null;
-                Process? FFmpeg = null;
+                Process YoutubeDl = null;
+                Process FFmpeg = null;
                 if (UseFFmpeg)
                 {
                     LoggerAccessor.LogWarn("[WebVideoConverter] - Video convert: {0} {1} | {2} {3}", YoutubeDlStart.FileName, YoutubeDlStart.Arguments, FFmpegStart.FileName, FFmpegStart.Arguments);
@@ -337,7 +343,7 @@ namespace WebAPIService.MultiMedia
                             if (e.Data.StartsWith("ERROR:"))
                             {
                                 video.Available = false;
-                                video.ErrorMessage = "Online video failed to download: " + e.Data[7..];
+                                video.ErrorMessage = "Online video failed to download: " + e.Data.Substring(7);
                                 LoggerAccessor.LogError("[WebVideoConverter] - yt-dlp: {0}", e.Data);
                             }
                             if (e.Data.StartsWith("WARNING:"))

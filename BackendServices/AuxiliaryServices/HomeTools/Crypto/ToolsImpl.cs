@@ -108,7 +108,7 @@ namespace HomeTools.Crypto
             int inputIndex = 0;
             int inputLength = inputArray.Length;
             byte[] block = new byte[8];
-            byte[]? output = new byte[inputLength];
+            byte[] output = new byte[inputLength];
 
             while (inputIndex < inputLength)
             {
@@ -119,7 +119,7 @@ namespace HomeTools.Crypto
                     Buffer.BlockCopy(new byte[difference], 0, block, block.Length - difference, difference);
                 }
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[]? taskResult = LIBSECURE.InitiateXTEABuffer(block, Key, IV, "CTR");
+                byte[] taskResult = LIBSECURE.InitiateXTEABuffer(block, Key, IV, "CTR");
                 if (taskResult == null) // We failed so we send original file back.
                     return inputArray;
                 if (taskResult.Length < blockSize)

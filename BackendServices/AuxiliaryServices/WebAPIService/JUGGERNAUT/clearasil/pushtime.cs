@@ -4,12 +4,12 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class pushtime
     {
-        public static string? ProcessPushTime(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessPushTime(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? time = QueryParameters["time"];
+                string user = QueryParameters["user"];
+                string time = QueryParameters["time"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(time))
                 {

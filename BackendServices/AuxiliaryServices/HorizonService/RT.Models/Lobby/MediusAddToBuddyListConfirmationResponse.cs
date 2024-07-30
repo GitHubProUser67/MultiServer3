@@ -11,11 +11,11 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
         public int TargetAccountID;
-        public string? TargetAccountName;
+        public string TargetAccountName;
 
         public override void Deserialize(MessageReader reader)
         {

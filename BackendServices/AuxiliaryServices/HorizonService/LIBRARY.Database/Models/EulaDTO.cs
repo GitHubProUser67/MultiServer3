@@ -5,8 +5,8 @@ namespace Horizon.LIBRARY.Database.Models
     public class AddEulaDTO
     {
         public MediusPolicyTypeDTO EulaType { get; set; }
-        public string? EulaTitle { get; set; }
-        public string? EulaBody { get; set; }
+        public string EulaTitle { get; set; }
+        public string EulaBody { get; set; }
         public DateTime? FromDt { get; set; }
         public DateTime? ToDt { get; set; }
         public int AppId { get; set; }
@@ -16,8 +16,8 @@ namespace Horizon.LIBRARY.Database.Models
     {
         public int Id { get; set; }
         public MediusPolicyTypeDTO EulaType { get; set; }
-        public string? EulaTitle { get; set; }
-        public string? EulaBody { get; set; }
+        public string EulaTitle { get; set; }
+        public string EulaBody { get; set; }
         public DateTime? FromDt { get; set; }
         public DateTime? ToDt { get; set; }
         public int AppId { get; set; }

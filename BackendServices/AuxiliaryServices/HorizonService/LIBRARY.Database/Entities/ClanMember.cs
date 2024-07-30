@@ -12,7 +12,7 @@ namespace Horizon.LIBRARY.Database.Entities
         public int? ModifiedBy { get; set; }
         public bool? IsActive { get; set; } = true;
 
-        public virtual Account? Account { get; set; }
-        public virtual Clan? Clan { get; set; }
+        public virtual Account Account { get; set; }
+        public virtual Clan Clan { get; set; }
     }
 }

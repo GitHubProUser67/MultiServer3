@@ -11,7 +11,7 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
     {
         public class ScoreboardEntry
         {
-            public string? psnid { get; set; }
+            public string psnid { get; set; }
             public int score { get; set; }
         }
 
@@ -43,7 +43,7 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
                 scoreboard.RemoveRange(10, scoreboard.Count - 10);
         }
 
-        public static (string?, int)? GetHighestScore()
+        public static (string, int)? GetHighestScore()
         {
             if (scoreboard.Count == 0)
                 return null;

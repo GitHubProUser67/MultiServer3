@@ -13,14 +13,14 @@ namespace WebAPIService.OHS
             return false;
         }
 
-        public static (string, string?) JaminDeFormatWithWriteKey(string? dataforohs, bool hashed, int game, bool unescape = true)
+        public static (string, string) JaminDeFormatWithWriteKey(string dataforohs, bool hashed, int game, bool unescape = true)
         {
             try
             {
                 string writekey = string.Empty;
 
                 // Execute the Lua script and get the result
-                object[]? returnValues = null;
+                object[] returnValues = null;
 
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
@@ -37,24 +37,24 @@ namespace WebAPIService.OHS
 #endif
                         if (hashed)
                         {
-                            string InData = dataforohs[8..]; // We remove the hash.
-                            if (VerifyHash(InData, dataforohs[..8]))
+                            string InData = dataforohs.Substring(8); // We remove the hash.
+                            if (VerifyHash(InData, dataforohs.Substring(0, 8)))
                             {
-                                writekey = InData[..8];
-                                InData = InData[8..]; // We remove the writekey.
+                                writekey = InData.Substring(0, 8);
+                                InData = InData.Substring(8); // We remove the writekey.
                                 returnValues = LuaUtils.ExecuteLuaScript(LUAJaminCode.LUAJaminDecryptor.Replace("PUT_FORMATEDJAMINVALUE_HERE", LuaUtils.ToLiteral(InData)));
                             }
                         }
                         else
                         {
-                            writekey = dataforohs[..8];
-                            dataforohs = dataforohs[8..]; // We remove the writekey.
+                            writekey = dataforohs.Substring(0, 8);
+                            dataforohs = dataforohs.Substring(8); // We remove the writekey.
                             returnValues = LuaUtils.ExecuteLuaScript(LUAJaminCode.LUAJaminDecryptor.Replace("PUT_FORMATEDJAMINVALUE_HERE", LuaUtils.ToLiteral(dataforohs)));
                         }
 
                         if (!string.IsNullOrEmpty(returnValues?[0].ToString()))
                         {
-                            string? endvalue = returnValues[0].ToString();
+                            string endvalue = returnValues[0].ToString();
 #if DEBUG
                             LoggerAccessor.LogInfo($"[OHS] - JaminDeFormatWithWriteKey De-Assembled Data : {endvalue}");
 #endif
@@ -71,12 +71,12 @@ namespace WebAPIService.OHS
             return ("11111111", null);
         }
 
-        public static string? JaminDeFormat(string? dataforohs, bool hashed, int game, bool unescape = true)
+        public static string JaminDeFormat(string dataforohs, bool hashed, int game, bool unescape = true)
         {
             try
             {
                 // Execute the Lua script and get the result
-                object[]? returnValues = null;
+                object[] returnValues = null;
 
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
@@ -93,8 +93,8 @@ namespace WebAPIService.OHS
 #endif
                         if (hashed)
                         {
-                            string InData = dataforohs[8..]; // We remove the hash.
-                            if (VerifyHash(InData, dataforohs[..8]))
+                            string InData = dataforohs.Substring(8); // We remove the hash.
+                            if (VerifyHash(InData, dataforohs.Substring(0, 8)))
                                 returnValues = LuaUtils.ExecuteLuaScript(LUAJaminCode.LUAJaminDecryptor.Replace("PUT_FORMATEDJAMINVALUE_HERE", LuaUtils.ToLiteral(InData)));
                         }
                         else
@@ -102,7 +102,7 @@ namespace WebAPIService.OHS
 
                         if (!string.IsNullOrEmpty(returnValues?[0].ToString()))
                         {
-                            string? endvalue = returnValues[0].ToString();
+                            string endvalue = returnValues[0].ToString();
 #if DEBUG
                             LoggerAccessor.LogInfo($"[OHS] - JaminDeFormat De-Assembled Data : {endvalue}");
 #endif
@@ -119,7 +119,7 @@ namespace WebAPIService.OHS
             return null;
         }
 
-        public static string? JaminFormat(string dataforohs, int game)
+        public static string JaminFormat(string dataforohs, int game)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace WebAPIService.OHS
                 // Execute the Lua script and get the result
                 object[] returnValues = LuaUtils.ExecuteLuaScript(LUAJaminCode.LUAJaminEncryptor.Replace("PUT_TABLEINPUT_HERE", dataforohs));
 
-                string? LuaReturn = returnValues[0].ToString();
+                string LuaReturn = returnValues[0].ToString();
 
                 if (!string.IsNullOrEmpty(LuaReturn))
                 {

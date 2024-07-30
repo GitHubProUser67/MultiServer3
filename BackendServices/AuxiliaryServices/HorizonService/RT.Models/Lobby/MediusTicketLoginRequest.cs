@@ -12,14 +12,14 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         /// <summary>
         /// Session Key
         /// </summary>
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public string SessionKey; // SESSIONKEY_MAXLEN
 
         public uint UNK0; 
-        public byte[]? TicketData;
+        public byte[] TicketData;
 
         public override void Deserialize(MessageReader reader)
         {

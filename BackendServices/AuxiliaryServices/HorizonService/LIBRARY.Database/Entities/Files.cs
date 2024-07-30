@@ -6,8 +6,8 @@ namespace Horizon.LIBRARY.Database.Entities
     {
         public int Id { get; set; }
         public int AppId { get; set; }
-        public string? FileName { get; set; }
-        public string? ServerChecksum { get; set; }
+        public string FileName { get; set; }
+        public string ServerChecksum { get; set; }
         public int FileID { get; set; }
         public int FileSize { get; set; }
         public int CreationTimeStamp { get; set; }
@@ -26,8 +26,8 @@ namespace Horizon.LIBRARY.Database.Entities
         public int AppId { get; set; }
         public int ID { get; set; }
         public int FileID { get; set; }
-        public string? FileName { get; set; }
-        public string? Description { get; set; }
+        public string FileName { get; set; }
+        public string Description { get; set; }
         public int LastChangedTimeStamp { get; set; }
         public int LastChangedByUserID { get; set; }
         public int NumberAccesses { get; set; }
@@ -42,9 +42,9 @@ namespace Horizon.LIBRARY.Database.Entities
         public int AppId { get; set; }
         public int Id { get; set; }
         public int FileID { get; set; }
-        public string? FileName { get; set; }
-        public string? Key { get; set; }
-        public string? Value { get; set; }
+        public string FileName { get; set; }
+        public string Key { get; set; }
+        public string Value { get; set; }
         public DateTime CreateDt { get; set; } = DateTime.UtcNow; // Set default value in constructor
         public DateTime ModifiedDt { get; set; }
     }

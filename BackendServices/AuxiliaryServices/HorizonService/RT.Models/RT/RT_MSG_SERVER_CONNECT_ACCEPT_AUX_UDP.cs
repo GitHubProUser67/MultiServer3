@@ -15,7 +15,7 @@ namespace Horizon.RT.Models
         public uint ScertId = 0xD4;
         public ushort PlayerCount = 0x0001;
 
-        public IPEndPoint? EndPoint;
+        public IPEndPoint EndPoint;
 
         public override void Deserialize(MessageReader reader)
         {

@@ -7,7 +7,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 {
     public class TownInstance
     {
-        public static string? RequestTownInstance(string UserID, string DisplayName, string? PHPSessionId)
+        public static string RequestTownInstance(string UserID, string DisplayName, string PHPSessionId)
         {
             string hash = NetHasher.ComputeMD5StringWithCleanup(UserID + "G0TOH00000!!!!m3TycoonN0?w*" + DisplayName);
 
@@ -17,13 +17,13 @@ namespace WebAPIService.HELLFIRE.Helpers
                 return $"<Response><InstanceID>{GenerateTycoonguid(hash, UserID + hash + PHPSessionId)}</InstanceID></Response>";
         }
 
-        public static string? RequestTown(string UserID, string InstanceID, string DisplayName, string WorkPath)
+        public static string RequestTown(string UserID, string InstanceID, string DisplayName, string WorkPath)
         {
             if (File.Exists($"{WorkPath}/TYCOON/User_Data/{UserID}_{GenerateCityguid(InstanceID, UserID)}.xml"))
                 return $"<Response>{File.ReadAllText($"{WorkPath}/TYCOON/User_Data/{UserID}_{GenerateCityguid(InstanceID, UserID)}.xml")}</Response>";
             else
             {
-                StringBuilder? gridBuilder = new StringBuilder();
+                StringBuilder gridBuilder = new StringBuilder();
 
                 for (int i = 1; i <= 256; i++)
                 {
@@ -59,7 +59,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             };
 
             // Replace characters in the result based on the mapping
-            StringBuilder? stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
 
             foreach (char c in result)
             {
@@ -94,7 +94,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             };
 
             // Replace characters in the result based on the mapping
-            StringBuilder? stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
 
             foreach (char c in result)
             {

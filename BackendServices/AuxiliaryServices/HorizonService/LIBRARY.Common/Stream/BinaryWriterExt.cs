@@ -16,7 +16,7 @@ namespace Horizon.LIBRARY.Common.Stream
                 writer.Write(Encoding.UTF8.GetBytes(ip.MapToIPv4().ToString().PadRight(16, '\0')));
         }
 
-        public static void Write(this BinaryWriter writer, string? str, int length)
+        public static void Write(this BinaryWriter writer, string str, int length)
         {
             if (str == null)
                 writer.Write(new byte[length]);
@@ -26,7 +26,7 @@ namespace Horizon.LIBRARY.Common.Stream
                 writer.Write(Encoding.UTF8.GetBytes(str.PadRight(length, '\0')));
         }
 
-        public static void WriteStr(this BinaryWriter writer, string? str, int length)
+        public static void WriteStr(this BinaryWriter writer, string str, int length)
         {
             if (str == null)
                 writer.Write(new byte[length]);
@@ -36,7 +36,7 @@ namespace Horizon.LIBRARY.Common.Stream
                 writer.Write(Encoding.UTF8.GetBytes(str.PadRight(length, '\0')));
         }
 
-        public static void Write(this BinaryWriter writer, byte[]? value, int fixedLength)
+        public static void Write(this BinaryWriter writer, byte[] value, int fixedLength)
         {
             if (value == null)
                 // Empty, write full length
@@ -55,12 +55,12 @@ namespace Horizon.LIBRARY.Common.Stream
                 writer.Write(value);
         }
 
-        public static void Write<T>(this BinaryWriter writer, T? value)
+        public static void Write<T>(this BinaryWriter writer, T value)
         {
             writer.WriteObject(value, typeof(T));
         }
 
-        public static void WriteObject(this BinaryWriter writer, object? value, Type type)
+        public static void WriteObject(this BinaryWriter writer, object value, Type type)
         {
             if (value == null || type == null)
                 return;

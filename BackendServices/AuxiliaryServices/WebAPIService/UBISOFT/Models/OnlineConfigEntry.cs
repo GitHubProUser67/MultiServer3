@@ -10,7 +10,7 @@ namespace WebAPIService.UBISOFT.Models
             Values = new List<string>();
         }
 
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public IEnumerable<string> Values { get; set; }
     }
 }

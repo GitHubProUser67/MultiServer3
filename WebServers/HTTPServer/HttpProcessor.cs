@@ -22,7 +22,6 @@ using HTTPServer.Extensions;
 using HTTPServer.Models;
 using HTTPServer.RouteHandlers;
 using System;
-using System.Security.Cryptography;
 using System.Buffers;
 using System.IO;
 using System.Collections.Generic;

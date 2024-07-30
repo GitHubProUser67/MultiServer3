@@ -13,8 +13,8 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertEncoder : MessageToMessageEncoder<BaseScertMessage>
     {
-        readonly ICipher[]? _ciphers = null;
-        readonly Func<RT_MSG_TYPE, CipherContext, ICipher?>? _getCipher = null;
+        readonly ICipher[] _ciphers = null;
+        readonly Func<RT_MSG_TYPE, CipherContext, ICipher> _getCipher = null;
 
         public ScertEncoder(params ICipher[] ciphers)
         {

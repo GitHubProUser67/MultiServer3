@@ -169,11 +169,11 @@ namespace HomeTools.BARFramework
 
         public byte[] GetData(ArchiveFlags flags)
         {
-            byte[]? array2 = null;
+            byte[] array2 = null;
 
             try
             {
-                byte[]? array = CompressionFactory.Decompress(this, Compression, flags);
+                byte[] array = CompressionFactory.Decompress(this, Compression, flags);
 
                 if (Compression == CompressionMethod.Encrypted && array != null && array.Length > (long)(ulong)m_compressedSize)
                 {

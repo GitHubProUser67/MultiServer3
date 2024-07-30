@@ -18,7 +18,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Session Key
         /// </summary>
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public string SessionKey; // SESSIONKEY_MAXLEN
         /// <summary>
         /// MediusWorldID
         /// </summary>

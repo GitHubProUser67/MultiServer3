@@ -7,7 +7,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 {
     public class BuildingsProcessor
     {
-        public static string? CreateBuilding(byte[]? PostData, string boundary, string UserID, string WorkPath)
+        public static string CreateBuilding(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
             string Orientation = string.Empty;
             string Type = string.Empty;
@@ -40,7 +40,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             return "<Response></Response>";
         }
 
-        public static string? RemoveBuilding(byte[]? PostData, string boundary, string UserID, string WorkPath)
+        public static string RemoveBuilding(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
             string xmlprofile = string.Empty;
             string TownID = string.Empty;

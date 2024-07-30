@@ -14,15 +14,13 @@ namespace Horizon.RT.Models
         public uint TimeStamp;
         public int OriginatorAccountID;
         public MediusChatMessageType MessageType;
-        public string? OriginatorAccountName; // ACCOUNTNAME_MAXLEN
-        public string? Message; // CHATMESSAGE_MAXLEN
+        public string OriginatorAccountName; // ACCOUNTNAME_MAXLEN
+        public string Message; // CHATMESSAGE_MAXLEN
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             TimeStamp = reader.ReadUInt32();
             OriginatorAccountID = reader.ReadInt32();
             MessageType = reader.Read<MediusChatMessageType>();
@@ -32,18 +30,14 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(TimeStamp);
             writer.Write(OriginatorAccountID);
             writer.Write(MessageType);
             writer.Write(OriginatorAccountName, Constants.ACCOUNTNAME_MAXLEN);
             if (Message == null || Message.Length == 0)
-            {
                 writer.Write(0);
-            }
             else
             {
                 int len = Message.Length;

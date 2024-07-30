@@ -22,7 +22,7 @@ namespace Horizon.RT.Cryptography.RC
             * variables to hold the state of the RC4 engine
             * during encryption and decryption
             */
-            public byte[]? engineState;
+            public byte[] engineState;
             public int x;
             public int y;
         }
@@ -42,7 +42,7 @@ namespace Horizon.RT.Cryptography.RC
         #region Initialization
 
 
-        private void SetKey(RC4State state, byte[] key, byte[]? hash = null)
+        private void SetKey(RC4State state, byte[] key, byte[] hash = null)
         {
 
             state.x = 0;

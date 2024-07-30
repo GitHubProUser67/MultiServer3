@@ -4,7 +4,7 @@ namespace Horizon.LIBRARY.Database.Models
     {
         public int Id { get; set; }
         public int AppId { get; set; }
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public int MaxPlayers { get; set; }
         public ulong GenericField1 { get; set; }
         public ulong GenericField2 { get; set; }

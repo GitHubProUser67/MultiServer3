@@ -10,7 +10,7 @@ namespace WebAPIService.CDM
 {
     public class Publisher
     {
-        public static string? handlePublisherList(byte[] PostData, string ContentType, string workpath, string absolutePath)
+        public static string handlePublisherList(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
             string pubListPath = $"{workpath}/CDM/Publishers/";
 

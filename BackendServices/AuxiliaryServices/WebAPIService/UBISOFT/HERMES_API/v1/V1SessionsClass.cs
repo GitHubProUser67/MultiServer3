@@ -11,12 +11,12 @@ namespace WebAPIService.UBISOFT.HERMES_API.v1
     {
         public const string FakeJWTToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"; // From CHATGPT if you ask.
 
-        public static (string?, string?) HandleSessionPOST(byte[]? PostData, string UbiAppId, string clientip, string? regioncode)
+        public static (string, string) HandleSessionPOST(byte[] PostData, string UbiAppId, string clientip, string regioncode)
         {
             if (PostData == null)
                 return (null, null);
 
-            V1SessionsRequest? request = JsonConvert.DeserializeObject<V1SessionsRequest>(Encoding.UTF8.GetString(PostData));
+            V1SessionsRequest request = JsonConvert.DeserializeObject<V1SessionsRequest>(Encoding.UTF8.GetString(PostData));
 
             if (request != null && !string.IsNullOrEmpty(request.idOnPlatform))
             {

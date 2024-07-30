@@ -4,9 +4,9 @@ namespace Horizon.LIBRARY.Database.Models
     {
         public int Id { get; set; }
         public int categoryID { get; set; }
-        public string? Title { get; set; }
-        public string? Description { get; set; }
-        public string? Message { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Message { get; set; }
         public int startYear { get; set; }
         public int startMonth { get; set; }
         public int startDay { get; set; }
@@ -21,12 +21,12 @@ namespace Horizon.LIBRARY.Database.Models
         public int generic_A { get; set; }
         public int generic_B { get; set; }
         public int generic_C { get; set; }
-        public string? icon { get; set; }
-        public string? color { get; set; }
+        public string icon { get; set; }
+        public string color { get; set; }
         public int accountId { get; set; }
-        public string? buffer_1 { get; set; }
-        public string? url_1 { get; set; }
-        public string? url_2 { get; set; }
+        public string buffer_1 { get; set; }
+        public string url_1 { get; set; }
+        public string url_2 { get; set; }
         public int appID { get; set; }
 
         //Clan Specific Event

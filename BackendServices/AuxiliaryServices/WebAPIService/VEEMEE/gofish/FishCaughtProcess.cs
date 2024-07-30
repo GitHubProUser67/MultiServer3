@@ -6,7 +6,7 @@ namespace WebAPIService.VEEMEE.gofish
 {
     public class FishCaughtProcess
     {
-        public static string? SetPOST(byte[]? PostData, string? ContentType, string apiPath)
+        public static string SetPOST(byte[] PostData, string ContentType, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;
@@ -35,7 +35,7 @@ namespace WebAPIService.VEEMEE.gofish
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{apiPath}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <fish_mask_upper> element
-                    XmlElement? fish_mask_upperElement = xmlDoc.SelectSingleNode("/xml/fish_mask_upper") as XmlElement;
+                    XmlElement fish_mask_upperElement = xmlDoc.SelectSingleNode("/xml/fish_mask_upper") as XmlElement;
 
                     if (fish_mask_upperElement != null)
                     {
@@ -43,7 +43,7 @@ namespace WebAPIService.VEEMEE.gofish
                         fish_mask_upperElement.InnerText = fish_mask_upper;
 
                         // Find the <fish_mask_lower> element
-                        XmlElement? fish_mask_lowerElement = xmlDoc.SelectSingleNode("/xml/fish_mask_lower") as XmlElement;
+                        XmlElement fish_mask_lowerElement = xmlDoc.SelectSingleNode("/xml/fish_mask_lower") as XmlElement;
 
                         if (fish_mask_lowerElement != null)
                         {
@@ -67,7 +67,7 @@ namespace WebAPIService.VEEMEE.gofish
             return null;
         }
 
-        public static string? GetPOST(byte[]? PostData, string? ContentType, string apiPath)
+        public static string GetPOST(byte[] PostData, string ContentType, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;

@@ -9,9 +9,9 @@ namespace WebAPIService.OUWF
 {
     public class OuWFList
     {
-        public static string? List(byte[]? PostData, string? ContentType)
+        public static string List(byte[] PostData, string ContentType)
         {
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
             
             using (MemoryStream ms = new MemoryStream(PostData))
             {
@@ -32,7 +32,7 @@ namespace WebAPIService.OUWF
 
         static string GenerateXml(string directoryPath)
         {
-            string xml = "";
+            //string xml = "";
 
             var dirs = Directory.GetDirectories(directoryPath);
             var files = Directory.GetFiles(directoryPath);
@@ -49,7 +49,7 @@ namespace WebAPIService.OUWF
 
                 //string editDir = GetRelativePath(HDKBuildRoot, dir);
 
-                string backSlashEdit;
+                //string backSlashEdit;
 
                 /*
                 if(editDir.Contains("\\"))

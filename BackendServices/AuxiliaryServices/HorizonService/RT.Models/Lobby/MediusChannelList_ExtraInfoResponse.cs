@@ -25,10 +25,10 @@ namespace Horizon.RT.Models
         public uint GenericField3;
         public uint GenericField4;
         public MediusWorldGenericFieldLevelType GenericFieldLevel;
-        public string? LobbyName; // LOBBYNAME_MAXLEN
+        public string LobbyName; // LOBBYNAME_MAXLEN
         public bool EndOfList;
 
-        public List<int> channelList1pre108Response = new() { 10202, 10304, 10550, 10724, 10683, 10684 };
+        public List<int> channelList1pre108Response = new List<int>() { 10202, 10304, 10550, 10724, 10683, 10684 };
 
         public override void Deserialize(MessageReader reader)
         {

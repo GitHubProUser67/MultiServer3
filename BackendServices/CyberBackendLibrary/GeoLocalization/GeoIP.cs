@@ -8,13 +8,13 @@ namespace CyberBackendLibrary.GeoLocalization
 {
     public class GeoIP : IDisposable
     {
-        public readonly DatabaseReader? Reader;
+        public readonly DatabaseReader Reader;
 
-        private static GeoIP? _instance;
+        private static GeoIP _instance;
 
         private static readonly string currentdir = Directory.GetCurrentDirectory();
 
-        public GeoIP(DatabaseReader? reader)
+        public GeoIP(DatabaseReader reader)
         {
             Reader = reader;
         }
@@ -54,7 +54,7 @@ namespace CyberBackendLibrary.GeoLocalization
 
         public static void Initialize()
         {
-            DatabaseReader? reader;
+            DatabaseReader reader;
 
             try
             {
@@ -83,14 +83,14 @@ namespace CyberBackendLibrary.GeoLocalization
             }
         }
 
-        public static string? GetGeoCodeFromIP(IPAddress IPAddr)
+        public static string GetGeoCodeFromIP(IPAddress IPAddr)
         {
             // Format as follows -> Country-IsInEuropeanUnion.
             if (Instance != null && Instance.Reader != null)
             {
                 try
                 {
-                    if (Instance.Reader.TryCountry(IPAddr, out CountryResponse? countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
+                    if (Instance.Reader.TryCountry(IPAddr, out CountryResponse countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
                         return countryresponse.Country.Name + $"-{countryresponse.Country.IsInEuropeanUnion}";
                 }
                 catch (Exception)
@@ -102,17 +102,17 @@ namespace CyberBackendLibrary.GeoLocalization
             return null;
         }
 
-        public static string? GetISOCodeFromIP(IPAddress IPAddr)
+        public static string GetISOCodeFromIP(IPAddress IPAddr)
         {
             // Format as follows -> Country-IsInEuropeanUnion.
             if (Instance != null && Instance.Reader != null)
             {
                 try
                 {
-                    if (Instance.Reader.TryCountry(IPAddr, out CountryResponse? countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
+                    if (Instance.Reader.TryCountry(IPAddr, out CountryResponse countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
                         return countryresponse.Country.IsoCode;
                 }
-                catch (Exception)
+                catch
                 {
                     // Not Important.
                 }

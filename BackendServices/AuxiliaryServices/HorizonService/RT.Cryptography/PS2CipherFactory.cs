@@ -8,7 +8,7 @@ namespace Horizon.RT.Cryptography
 {
     public class PS2CipherFactory : ICipherFactory
     {
-        private static Random RNG = new();
+        private static Random RNG = new Random();
 
         public ICipher CreateNew(CipherContext context)
         {

@@ -8,7 +8,7 @@ namespace WebAPIService.VEEMEE.gofish
 {
     public class GFUserData
     {
-        public static string? SetUserDataPOST(byte[]? PostData, string? ContentType, string apiPath)
+        public static string SetUserDataPOST(byte[] PostData, string ContentType, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;
@@ -52,7 +52,7 @@ namespace WebAPIService.VEEMEE.gofish
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{apiPath}/VEEMEE/gofish/User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <score> element
-                    XmlElement? scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
+                    XmlElement scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
 
                     if (scoreElement != null)
                     {
@@ -60,7 +60,7 @@ namespace WebAPIService.VEEMEE.gofish
                         scoreElement.InnerText = score;
 
                         // Find the <fishcount> element
-                        XmlElement? fishcountElement = xmlDoc.SelectSingleNode("/xml/fishcount") as XmlElement;
+                        XmlElement fishcountElement = xmlDoc.SelectSingleNode("/xml/fishcount") as XmlElement;
 
                         if (fishcountElement != null)
                         {
@@ -68,7 +68,7 @@ namespace WebAPIService.VEEMEE.gofish
                             fishcountElement.InnerText = fishcount;
 
                             // Find the <biggestfishweight> element
-                            XmlElement? biggestfishweightElement = xmlDoc.SelectSingleNode("/xml/biggestfishweight") as XmlElement;
+                            XmlElement biggestfishweightElement = xmlDoc.SelectSingleNode("/xml/biggestfishweight") as XmlElement;
 
                             if (biggestfishweightElement != null)
                             {
@@ -76,7 +76,7 @@ namespace WebAPIService.VEEMEE.gofish
                                 biggestfishweightElement.InnerText = biggestfishweight;
 
                                 // Find the <totalfishweight> element
-                                XmlElement? totalfishweightElement = xmlDoc.SelectSingleNode("/xml/totalfishweight") as XmlElement;
+                                XmlElement totalfishweightElement = xmlDoc.SelectSingleNode("/xml/totalfishweight") as XmlElement;
 
                                 if (totalfishweightElement != null)
                                 {
@@ -102,7 +102,7 @@ namespace WebAPIService.VEEMEE.gofish
             return null;
         }
 
-        public static string? GetUserDataPOST(byte[]? PostData, string? ContentType, string apiPath)
+        public static string GetUserDataPOST(byte[] PostData, string ContentType, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;

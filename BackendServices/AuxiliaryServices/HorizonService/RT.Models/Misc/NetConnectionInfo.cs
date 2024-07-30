@@ -13,7 +13,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// NetAddressList
         /// </summary>
-        public NetAddressList AddressList = new();
+        public NetAddressList AddressList = new NetAddressList();
         /// <summary>
         /// WorldID of the Connected client
         /// </summary>
@@ -21,15 +21,15 @@ namespace Horizon.RT.Models
         /// <summary>
         /// ServerKey
         /// </summary>
-        public RSA_KEY? ServerKey = new();
+        public RSA_KEY ServerKey = new RSA_KEY();
         /// <summary>
         /// Session Key
         /// </summary>
-        public string? SessionKey;
+        public string SessionKey;
         /// <summary>
         /// Access Token
         /// </summary>
-        public string? AccessKey;
+        public string AccessKey;
 
         public void Deserialize(BinaryReader reader)
         {

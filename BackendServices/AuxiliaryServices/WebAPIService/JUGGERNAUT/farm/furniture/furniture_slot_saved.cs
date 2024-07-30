@@ -6,12 +6,12 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_slot_saved
     {
-        public static string? ProcessSlotSaved(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessSlotSaved(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? slot = QueryParameters["slot"];
+                string user = QueryParameters["user"];
+                string slot = QueryParameters["slot"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(slot))
                 {
@@ -24,7 +24,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <lastLayout> element
-                        XmlElement? lastLayoutElement = xmlDoc.SelectSingleNode("/xml/resources/lastLayout") as XmlElement;
+                        XmlElement lastLayoutElement = xmlDoc.SelectSingleNode("/xml/resources/lastLayout") as XmlElement;
 
                         if (lastLayoutElement != null)
                         {

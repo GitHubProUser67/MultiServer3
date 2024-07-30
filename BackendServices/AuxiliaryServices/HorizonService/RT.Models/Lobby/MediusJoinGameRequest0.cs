@@ -12,13 +12,13 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.JoinGameRequest0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public string SessionKey; // SESSIONKEY_MAXLEN
         public int MediusWorldID;
-        public string? GamePassword; // GAMEPASSWORD_MAXLEN
+        public string GamePassword; // GAMEPASSWORD_MAXLEN
         public MediusGameHostType GameHostType;
-        public NetAddressList? AddressList;
+        public NetAddressList AddressList;
 
         public override void Deserialize(MessageReader reader)
         {

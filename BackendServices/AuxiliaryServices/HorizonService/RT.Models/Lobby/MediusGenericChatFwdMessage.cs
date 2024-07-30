@@ -14,8 +14,8 @@ namespace Horizon.RT.Models
         public uint TimeStamp;
         public int OriginatorAccountID;
         public MediusChatMessageType MessageType;
-        public string? OriginatorAccountName; // ACCOUNTNAME_MAXLEN
-        public string? Message; // CHATMESSAGE_MAXLEN
+        public string OriginatorAccountName; // ACCOUNTNAME_MAXLEN
+        public string Message; // CHATMESSAGE_MAXLEN
 
         public override void Deserialize(MessageReader reader)
         {

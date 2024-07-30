@@ -15,11 +15,11 @@ namespace WebAPIService.MultiMedia
 
         public WebVideoPlayer(NameValueCollection Parameters, string VideoUrl)
         {
-            foreach (string? Par in Parameters.AllKeys)
+            foreach (string Par in Parameters.AllKeys)
             { if (!string.IsNullOrEmpty(Par) && Par != "type") VideoUrl += Par + "=" + HttpUtility.UrlEncode(Parameters[Par]) + "&"; }
 
             if (VideoUrl.EndsWith("&"))
-                VideoUrl = VideoUrl[..^1];
+                VideoUrl = VideoUrl.Substring(0, VideoUrl.Length - 1);
 
             // Initial page & iframe status
             string SampleUrl = Parameters["url"] ?? "https://www.youtube.com/watch?v=XXXXXXX";

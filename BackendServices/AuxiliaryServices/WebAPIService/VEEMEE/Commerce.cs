@@ -3,15 +3,15 @@ namespace WebAPIService.VEEMEE
 {
     public class Commerce
     {
-        public static string? Get_Count()
+        public static string Get_Count()
         {
-            VEEMEELoginCounter? counter = new VEEMEELoginCounter();
-            string? returnstring = Processor.Sign($"{{\"count\":{counter.GetLoginCount("Voodooperson05")}}}");
+            VEEMEELoginCounter counter = new VEEMEELoginCounter();
+            string returnstring = Processor.Sign($"{{\"count\":{counter.GetLoginCount("Voodooperson05")}}}");
             counter = null;
             return returnstring;
         }
 
-        public static string? Get_Ownership()
+        public static string Get_Ownership()
         {
             return Processor.Sign("{\"owner\":\"Voodooperson05\"}");
         }

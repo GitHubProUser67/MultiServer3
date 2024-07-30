@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.SetGameListSortResponse;
         public bool IsSuccess => StatusCode >= 0;
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         public MediusCallbackStatus StatusCode;
         public int SortID;
         public override void Deserialize(MessageReader reader)

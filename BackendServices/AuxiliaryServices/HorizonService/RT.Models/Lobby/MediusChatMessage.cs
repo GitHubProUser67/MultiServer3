@@ -10,12 +10,12 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.ChatMessage;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public string SessionKey; // SESSIONKEY_MAXLEN
         public MediusChatMessageType MessageType { get; set; }
         public int TargetID { get; set; }
-        public string? Message { get; set; }
+        public string Message { get; set; }
 
         public override void Deserialize(MessageReader reader)
         {

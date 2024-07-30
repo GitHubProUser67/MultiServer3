@@ -6,7 +6,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_up
     {
-        public static string? ProcessUp(byte[]? PostData, string? ContentType, string apiPath)
+        public static string ProcessUp(byte[] PostData, string ContentType, string apiPath)
         {
             string file = string.Empty;
 

@@ -18,7 +18,7 @@ namespace WebAPIService.UBISOFT.gsconnect
             apistaticpath = apiStaticpath;
         }
 
-        public (string?, string?, Dictionary<string, string>?) ProcessRequest(Dictionary<string, string>? QueryParameters, byte[]? PostData = null, string? ContentType = null)
+        public (string, string, Dictionary<string, string>) ProcessRequest(Dictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return (null, null, null);
@@ -33,7 +33,7 @@ namespace WebAPIService.UBISOFT.gsconnect
                         case "/gsinit.php":
                             if (QueryParameters != null && QueryParameters.ContainsKey("dp") && QueryParameters.ContainsKey("user"))
                             {
-                                string? ini_file = null;
+                                string ini_file = null;
                                 string dp = QueryParameters["dp"];
                                 string user = QueryParameters["user"];
 

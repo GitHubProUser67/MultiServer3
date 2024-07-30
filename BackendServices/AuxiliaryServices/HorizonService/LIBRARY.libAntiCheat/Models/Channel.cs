@@ -25,7 +25,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public int ApplicationId = 0;
         public ChannelType Type = ChannelType.Lobby;
         public string Name = "Default";
-        public string? Password = null;
+        public string Password = null;
         public int MinPlayers = 1;
         public int MaxPlayers = 10;
         public int GameLevel = 0;
@@ -135,7 +135,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         #region Messages
         public Task BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage msg)
         {
-            foreach (ClientObject? client in Clients.Where(x => x != source))
+            foreach (ClientObject client in Clients.Where(x => x != source))
             {
                 client?.Queue(new MediusBinaryFwdMessage()
                 {
@@ -150,7 +150,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
         public Task BroadcastBinaryMessage(ClientObject source, MediusBinaryMessage1 msg)
         {
-            foreach (ClientObject? client in Clients.Where(x => x != source))
+            foreach (ClientObject client in Clients.Where(x => x != source))
             {
                 client?.Queue(new MediusBinaryFwdMessage1()
                 {

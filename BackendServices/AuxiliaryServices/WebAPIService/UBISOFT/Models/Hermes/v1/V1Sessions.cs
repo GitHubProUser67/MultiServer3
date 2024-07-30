@@ -5,23 +5,23 @@ namespace WebAPIService.UBISOFT.Models.Hermes.v1
 {
     public class V1Sessions
     {
-        public object? children { get; set; }
+        public object children { get; set; }
 
-        public List<string>? tags { get; set; }
+        public List<string> tags { get; set; }
 
-        public string? spaceId { get; set; }
+        public string spaceId { get; set; }
 
-        public string? spaceType { get; set; }
+        public string spaceType { get; set; }
 
-        public string? spaceName { get; set; }
+        public string spaceName { get; set; }
 
-        public string? parentSpaceId { get; set; }
+        public string parentSpaceId { get; set; }
 
-        public string? parentSpaceName { get; set; }
+        public string parentSpaceName { get; set; }
 
-        public string? releaseType { get; set; }
+        public string releaseType { get; set; }
 
-        public string? platformType { get; set; }
+        public string platformType { get; set; }
 
         public DateTime dateCreated { get; set; } = DateTime.Parse("2012-08-01T03:30:12.0000000Z");
 

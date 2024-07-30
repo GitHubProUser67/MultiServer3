@@ -11,7 +11,7 @@ namespace WebAPIService.LuaUtils
     public class LuaProcessor
     {
         // Function to convert a JToken to a Lua table-like string
-        public static string ConvertToLuaTable(JToken token, bool nested, string? propertyName = null)
+        public static string ConvertToLuaTable(JToken token, bool nested, string propertyName = null)
         {
             int arrayIndex = 1;
 
@@ -112,7 +112,7 @@ namespace WebAPIService.LuaUtils
         // Function to execute a lua script contained within a string.
         public static object[] ExecuteLuaScriptString(string luaScript)
         {
-            object[]? returnValues = null;
+            object[] returnValues = null;
 
             using (Lua lua = new Lua())
             {
@@ -144,7 +144,7 @@ namespace WebAPIService.LuaUtils
             if (!File.Exists(luaPath))
                 return Array.Empty<object>();
 
-            object[]? returnValues = null;
+            object[] returnValues = null;
 
             using (Lua lua = new Lua())
             {

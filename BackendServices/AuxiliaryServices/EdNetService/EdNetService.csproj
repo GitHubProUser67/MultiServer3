@@ -2,8 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <IsTrimmable>true</IsTrimmable>
 	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\EndianTools\EndianTools.csproj" />
+  </ItemGroup>
 
 </Project>

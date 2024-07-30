@@ -17,7 +17,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         /// <summary>
         /// Response code for the request to join a party
         /// </summary>
@@ -29,7 +29,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// ConnectionInfo of the player to return for this session
         /// </summary>
-        public NetConnectionInfo? ConnectionInfo;
+        public NetConnectionInfo ConnectionInfo;
 
         public int partyIndex;
 

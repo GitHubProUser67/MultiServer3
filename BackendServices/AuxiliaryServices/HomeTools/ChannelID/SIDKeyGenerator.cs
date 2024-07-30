@@ -7,7 +7,7 @@ namespace HomeTools.ChannelID
 {
     public class SIDKeyGenerator
     {
-        private static SIDKeyGenerator? m_Instance;
+        private static SIDKeyGenerator m_Instance;
         private short m_SIDMin = 0;
         private int m_SIDMax = 65535;
         private int[,] m_ScatterTable = new int[16, 2]
@@ -150,7 +150,9 @@ namespace HomeTools.ChannelID
         {
             get
             {
-                m_Instance ??= new SIDKeyGenerator();
+                if (m_Instance == null)
+                    m_Instance = new SIDKeyGenerator();
+
                 return m_Instance;
             }
         }

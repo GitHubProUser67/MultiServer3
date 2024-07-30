@@ -569,7 +569,7 @@ namespace Horizon.MEDIUS.Medius
                                     }
 
                                     #endregion
-                                    else if (rClient != null && rClient.MediusVersion == 108 && rClient.ApplicationId != 10683 && rClient.ApplicationId != 10684)
+                                    else if (rClient != null && rClient.MediusVersion == 108 && rClient.ApplicationId != 10680 && rClient.ApplicationId != 10683 && rClient.ApplicationId != 10684)
                                     {
                                         // Join game DME
                                         await rClient.JoinGame(game, joinGameResponse.DmeClientIndex);

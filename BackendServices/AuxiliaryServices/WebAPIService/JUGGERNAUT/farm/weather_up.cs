@@ -6,12 +6,12 @@ namespace WebAPIService.JUGGERNAUT.farm
 {
     public class weather_up
     {
-        public static string? ProcessWeatherUp(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessWeatherUp(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? weather = QueryParameters["weather"];
+                string user = QueryParameters["user"];
+                string weather = QueryParameters["weather"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(weather))
                 {
@@ -24,7 +24,7 @@ namespace WebAPIService.JUGGERNAUT.farm
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <weather> element
-                        XmlElement? weatherElement = xmlDoc.SelectSingleNode("/xml/resources/weather") as XmlElement;
+                        XmlElement weatherElement = xmlDoc.SelectSingleNode("/xml/resources/weather") as XmlElement;
 
                         if (weatherElement != null)
                         {

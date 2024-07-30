@@ -7,7 +7,7 @@ namespace TechnitiumLibrary.Net.Firewall
         public static void CheckFirewallEntries(string appPath)
         {
             if (appPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                appPath = appPath[..^4] + ".exe";
+                appPath = appPath.Substring(0, appPath.Length - 4) + ".exe";
 
             if (!WindowsFirewallEntryExists(appPath))
                 AddWindowsFirewallEntry(appPath);

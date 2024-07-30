@@ -19,7 +19,7 @@ namespace WebAPIService.JUGGERNAUT
             this.method = method;
         }
 
-        public string? ProcessRequest(Dictionary<string, string>? QueryParameters, string apiStaticPath, byte[]? PostData = null, string? ContentType = null)
+        public string ProcessRequest(Dictionary<string, string> QueryParameters, string apiStaticPath, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -32,8 +32,8 @@ namespace WebAPIService.JUGGERNAUT
                         case "/clearasil/pushtelemetry.php":
                             if (QueryParameters != null && QueryParameters.ContainsKey("user") && QueryParameters.ContainsKey("timeingame"))
                             {
-                                string? user = QueryParameters["user"];
-                                string? timeingame = QueryParameters["timeingame"];
+                                string user = QueryParameters["user"];
+                                string timeingame = QueryParameters["timeingame"];
                                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(timeingame))
                                 {
                                     try

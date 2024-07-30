@@ -12,7 +12,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
         public const int MaxSlots = 5;
         public const int MaxFurnSlots = 5;
 
-        public static string? ProcessFurniture(DateTime CurrentDate, byte[]? PostData, string? ContentType, string baseurl, string apipath)
+        public static string ProcessFurniture(DateTime CurrentDate, byte[] PostData, string ContentType, string baseurl, string apipath)
         {
             string blueprint_name = string.Empty;
             string blueprint_furn = string.Empty;
@@ -23,7 +23,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
             string owner = string.Empty;
             string func = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -76,33 +76,35 @@ namespace WebAPIService.NDREAMS.BlueprintHome
 
                             if (key == ExpectedHash)
                             {
-                                byte[]? BlueprintDataBytes = null;
+                                byte[] BlueprintDataBytes = null;
 
                                 foreach (FilePart file in data.Files)
                                 {
-                                    using Stream filedata = file.Data;
-                                    filedata.Position = 0;
+                                    using (Stream filedata = file.Data)
+                                    {
+                                        filedata.Position = 0;
 
-                                    // Find the number of bytes in the stream
-                                    int contentLength = (int)filedata.Length;
+                                        // Find the number of bytes in the stream
+                                        int contentLength = (int)filedata.Length;
 
-                                    // Create a byte array
-                                    byte[] buffer = new byte[contentLength];
+                                        // Create a byte array
+                                        byte[] buffer = new byte[contentLength];
 
-                                    // Read the contents of the memory stream into the byte array
-                                    filedata.Read(buffer, 0, contentLength);
+                                        // Read the contents of the memory stream into the byte array
+                                        filedata.Read(buffer, 0, contentLength);
 
-                                    if (file.FileName == "blueprint_furn.dat")
-                                        BlueprintDataBytes = buffer;
+                                        if (file.FileName == "blueprint_furn.dat")
+                                            BlueprintDataBytes = buffer;
 
-                                    filedata.Flush();
+                                        filedata.Flush();
+                                    }
                                 }
 
                                 if (BlueprintDataBytes != null && int.TryParse(slot, out int value))
                                 {
                                     if (File.Exists(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/SlotData.json"))
                                     {
-                                        List<BluePrintSlots>? bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/SlotData.json"));
+                                        List<BluePrintSlots> bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/SlotData.json"));
 
                                         if (bpslots != null)
                                         {
@@ -158,33 +160,35 @@ namespace WebAPIService.NDREAMS.BlueprintHome
 
                             if (key == ExpectedHash)
                             {
-                                byte[]? BlueprintDataBytes = null;
+                                byte[] BlueprintDataBytes = null;
 
                                 foreach (FilePart file in data.Files)
                                 {
-                                    using Stream filedata = file.Data;
-                                    filedata.Position = 0;
+                                    using (Stream filedata = file.Data)
+                                    {
+                                        filedata.Position = 0;
 
-                                    // Find the number of bytes in the stream
-                                    int contentLength = (int)filedata.Length;
+                                        // Find the number of bytes in the stream
+                                        int contentLength = (int)filedata.Length;
 
-                                    // Create a byte array
-                                    byte[] buffer = new byte[contentLength];
+                                        // Create a byte array
+                                        byte[] buffer = new byte[contentLength];
 
-                                    // Read the contents of the memory stream into the byte array
-                                    filedata.Read(buffer, 0, contentLength);
+                                        // Read the contents of the memory stream into the byte array
+                                        filedata.Read(buffer, 0, contentLength);
 
-                                    if (file.FileName == "blueprint.dat")
-                                        BlueprintDataBytes = buffer;
+                                        if (file.FileName == "blueprint.dat")
+                                            BlueprintDataBytes = buffer;
 
-                                    filedata.Flush();
+                                        filedata.Flush();
+                                    }
                                 }
 
                                 if (BlueprintDataBytes != null && int.TryParse(slot, out int value))
                                 {
                                     if (File.Exists(apipath + $"/NDREAMS/BlueprintHome/Layout/{name}/SlotData.json"))
                                     {
-                                        List<BluePrintSlots>? bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Layout/{name}/SlotData.json"));
+                                        List<BluePrintSlots> bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Layout/{name}/SlotData.json"));
 
                                         if (bpslots != null)
                                         {
@@ -251,7 +255,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
 
                                 if (File.Exists(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/SlotData.json"))
                                 {
-                                    List<BluePrintSlots>? bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/SlotData.json"));
+                                    List<BluePrintSlots> bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Furniture/{name}/SlotData.json"));
 
                                     if (bpslots != null)
                                     {
@@ -279,7 +283,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
 
                                 if (File.Exists(apipath + $"/NDREAMS/BlueprintHome/Layout/{name}/SlotData.json"))
                                 {
-                                    List<BluePrintSlots>? bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Layout/{name}/SlotData.json"));
+                                    List<BluePrintSlots> bpslots = JsonConvert.DeserializeObject<List<BluePrintSlots>>(File.ReadAllText(apipath + $"/NDREAMS/BlueprintHome/Layout/{name}/SlotData.json"));
 
                                     if (bpslots != null)
                                     {
@@ -336,7 +340,7 @@ namespace WebAPIService.NDREAMS.BlueprintHome
     {
         public int position { get; set; } = 0;
         public string name { get; set; } = "NONE";
-        public string? url { get; set; }
+        public string url { get; set; }
         public string used { get; set; } = "false";
     }
 }

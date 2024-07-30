@@ -9,9 +9,7 @@ namespace Horizon.RT.Models
 
         private readonly RT_MSG_TYPE _id;
         public override RT_MSG_TYPE Id => _id;
-
-        public byte[]? Contents { get; set; } = null;
-
+        public byte[] Contents { get; set; } = null;
 
         public RawScertMessage(RT_MSG_TYPE id)
         {

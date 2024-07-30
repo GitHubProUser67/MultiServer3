@@ -7,13 +7,13 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_crafting_crafted
     {
-        public static string? ProcessCraftingCrafted(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessCraftingCrafted(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? gold = QueryParameters["gold"];
-                string? wood = QueryParameters["wood"];
+                string user = QueryParameters["user"];
+                string gold = QueryParameters["gold"];
+                string wood = QueryParameters["wood"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(gold) && !string.IsNullOrEmpty(wood))
                 {
@@ -26,7 +26,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <gold> element
-                        XmlElement? goldElement = xmlDoc.SelectSingleNode("/xml/resources/gold") as XmlElement;
+                        XmlElement goldElement = xmlDoc.SelectSingleNode("/xml/resources/gold") as XmlElement;
 
                         if (goldElement != null)
                         {
@@ -34,7 +34,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
                             goldElement.InnerText = gold;
 
                             // Find the <wood> element
-                            XmlElement? woodElement = xmlDoc.SelectSingleNode("/xml/resources/wood") as XmlElement;
+                            XmlElement woodElement = xmlDoc.SelectSingleNode("/xml/resources/wood") as XmlElement;
 
                             if (woodElement != null)
                             {

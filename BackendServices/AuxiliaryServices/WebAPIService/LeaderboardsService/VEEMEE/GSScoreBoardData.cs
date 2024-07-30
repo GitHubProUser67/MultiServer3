@@ -10,9 +10,9 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
     {
         public class ScoreboardEntry
         {
-            public string? psnid { get; set; }
+            public string psnid { get; set; }
             public int score { get; set; }
-            public string? duration { get; set; }
+            public string duration { get; set; }
         }
 
         private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();

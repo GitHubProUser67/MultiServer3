@@ -7,7 +7,7 @@ namespace WebAPIService.VEEMEE
 {
     public class Processor
     {
-        public static string? Sign(string jsonData)
+        public static string Sign(string jsonData)
         {
             try
             {

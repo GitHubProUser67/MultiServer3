@@ -11,10 +11,10 @@ namespace WebAPIService.OHS
 {
     public class Batch
     {
-        public static string? Batch_Process(byte[] PostData, string ContentType, string directorypath, int game)
+        public static string Batch_Process(byte[] PostData, string ContentType, string directorypath, int game)
         {
-            string? dataforohs = null;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string dataforohs = null;
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary))
             {
@@ -38,7 +38,7 @@ namespace WebAPIService.OHS
                     {
                         int i = 0;
 
-                        StringBuilder? resultBuilder = new StringBuilder();
+                        StringBuilder resultBuilder = new StringBuilder();
 
                         foreach (var command in commands)
                         {
@@ -46,10 +46,10 @@ namespace WebAPIService.OHS
 
                             if (command != null && command.Data != null)
                             {
-                                string? resultfromcommand = null;
-                                string? method = command.Method;
-                                string? project = command.Project;
-                                string? data = command.Data.ToString(Formatting.None);
+                                string resultfromcommand = null;
+                                string method = command.Method;
+                                string project = command.Project;
+                                string data = command.Data.ToString(Formatting.None);
 
                                 if (project == "<dummy>")
                                     project = "dummy";
@@ -191,9 +191,9 @@ namespace WebAPIService.OHS
 
         public class BatchCommand
         {
-            public string? Method { get; set; }
-            public JToken? Data { get; set; }
-            public string? Project { get; set; }
+            public string Method { get; set; }
+            public JToken Data { get; set; }
+            public string Project { get; set; }
         }
     }
 }
