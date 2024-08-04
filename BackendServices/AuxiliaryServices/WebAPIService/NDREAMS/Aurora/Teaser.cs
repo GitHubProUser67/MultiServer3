@@ -3,6 +3,7 @@ using HttpMultipartParser;
 using System.IO;
 using System;
 using CastleLibrary.Utils.Hash;
+using System.Text;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
@@ -71,12 +72,12 @@ namespace WebAPIService.NDREAMS.Aurora
 
         public static string Xoff_VerifyKey(string playerregion, string day)
         {
-            return NetHasher.ComputeSHA1StringWithCleanup("xoff" + playerregion + day + "done!").ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes("xoff" + playerregion + day + "done!")).ToLower();
         }
 
         public static string Xoff_GetSignature(int day, int ResultDay)
         {
-            return NetHasher.ComputeSHA1StringWithCleanup(string.Format("Yum!Salted{0}", (day + 3) * 1239 - day * 6 + day) + ResultDay).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes(string.Format("Yum!Salted{0}", (day + 3) * 1239 - day * 6 + day) + ResultDay)).ToLower();
         }
     }
 }
