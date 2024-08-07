@@ -58,6 +58,18 @@ for %%r in (%RIDs%) do (
 	if exist "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" (
 		xcopy /E /Y /I "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
 	)
+	if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/static" (
+		xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/static" "~PublishOutput/MultiServer/%%r/Debug/static"
+	)
+	if exist "Plugins/PdfToJpeg/bin/Release/net6.0/static" (
+		xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
+	)
+	if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" (
+		xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" "~PublishOutput/MultiServer/%%r/Debug/runtimes"
+	)
+	if exist "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" (
+		xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" "~PublishOutput/MultiServer/%%r/Release/runtimes"
+	)
 	if "%%r"=="win-x64" (
 		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Debug"
 		xcopy /E /Y /I "Plugins/NautilusXP2024/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Release"

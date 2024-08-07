@@ -46,6 +46,10 @@ namespace CyberBackendLibrary.HTTP.PluginManager
                     }
                 }
             }
+            catch (BadImageFormatException)
+            {
+
+            }
             catch (Exception ex)
             {
                 CustomLogger.LoggerAccessor.LogError($"[PluginLoader] - Error loading plugin/dependency '{pluginPath}': {ex}");
