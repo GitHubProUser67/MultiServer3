@@ -16,6 +16,7 @@ using System.Linq;
 using CompressionLibrary.Edge;
 using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
+using WebAPIService.Utils;
 
 namespace WebAPIService
 {
@@ -28,7 +29,7 @@ namespace WebAPIService
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = APIStaticFolder + $"/cache/MakeBarSdat/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
+                string maindir = APIStaticFolder + $"/cache/MakeBarSdat/{WebAPIsUtils.GenerateDynamicCacheGuid(WebAPIsUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -116,7 +117,7 @@ namespace WebAPIService
 
                                 filename = multipartfile.FileName;
 
-                                string guid = GenerateDynamicCacheGuid(filename);
+                                string guid = WebAPIsUtils.GenerateDynamicCacheGuid(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -133,7 +134,7 @@ namespace WebAPIService
 
                                 File.WriteAllBytes(zipfile, buffer);
 
-                                UncompressFile(zipfile, unzipdir);
+                                WebAPIsUtils.UncompressFile(zipfile, unzipdir);
 
                                 filename = filename.Substring(0, filename.Length - 4).ToUpper();
 
@@ -350,7 +351,7 @@ namespace WebAPIService
                             {
                                 // Add files or content to the zip archive
                                 if (item.Value.Item1 != null)
-                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
                             }
                         }
                     }
@@ -371,7 +372,7 @@ namespace WebAPIService
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = APIStaticFolder + $"/cache/UnBar/{GenerateDynamicCacheGuid(GetCurrentDateTime())}";
+                string maindir = APIStaticFolder + $"/cache/UnBar/{WebAPIsUtils.GenerateDynamicCacheGuid(WebAPIsUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -432,7 +433,7 @@ namespace WebAPIService
 
                                 string mapfilepath = filename + ".map";
 
-                                string tempdir = $"{maindir}/{GenerateDynamicCacheGuid(filename)}";
+                                string tempdir = $"{maindir}/{WebAPIsUtils.GenerateDynamicCacheGuid(filename)}";
 
                                 string unbardir = tempdir + $"/unbar";
 
@@ -485,7 +486,7 @@ namespace WebAPIService
                                 }
                                 else if (filename.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    UncompressFile(barfile, unbardir);
+                                    WebAPIsUtils.UncompressFile(barfile, unbardir);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 4).ToUpper();
                                 }
@@ -633,7 +634,7 @@ namespace WebAPIService
                             {
                                 // Add files or content to the zip archive
                                 if (item.Value.Item1 != null)
-                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
                             }
                         }
                     }
@@ -729,7 +730,7 @@ namespace WebAPIService
                             {
                                 // Add files or content to the zip archive
                                 if (item.Value.Item1 != null)
-                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
                             }
                         }
                     }
@@ -810,7 +811,7 @@ namespace WebAPIService
                             {
                                 // Add files or content to the zip archive
                                 if (item.Value.Item1 != null)
-                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
                             }
                         }
                     }
@@ -885,7 +886,7 @@ namespace WebAPIService
                             {
                                 // Add files or content to the zip archive
                                 if (item.Value.Item1 != null)
-                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
                             }
                         }
                     }
@@ -990,7 +991,7 @@ namespace WebAPIService
                             {
                                 // Add files or content to the zip archive
                                 if (item.Value.Item1 != null)
-                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
                             }
                         }
                     }
@@ -1077,7 +1078,7 @@ namespace WebAPIService
                             {
                                 // Add files or content to the zip archive
                                 if (item.Value.Item1 != null)
-                                    AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
                             }
                         }
                     }
@@ -1211,57 +1212,6 @@ namespace WebAPIService
             }
 
             return res;
-        }
-
-        public static string GenerateDynamicCacheGuid(string input)
-        {
-            return NetHasher.ComputeMD5StringWithCleanup(GetCurrentDateTime() + input);
-        }
-
-        private static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)
-        {
-            contentStream.Position = 0;
-
-            // Create a new entry in the zip archive
-            ZipArchiveEntry entry = archive.CreateEntry(entryName);
-
-            // Write content to the entry
-            using (Stream entryStream = entry.Open())
-                contentStream.CopyTo(entryStream);
-        }
-
-        private static void UncompressFile(string compressedFilePath, string extractionFolderPath)
-        {
-            try
-            {
-                ZipFile.ExtractToDirectory(compressedFilePath, extractionFolderPath);
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[File Uncompress] - An error occurred: {ex}");
-            }
-        }
-
-
-        /// <summary>
-        /// Get the current date-time.
-        /// <para>Obtenir la date actuelle.</para>
-        /// </summary>
-        /// <returns>A string.</returns>
-        private static string GetCurrentDateTime()
-        {
-            return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}{GetNanoseconds()}";
-        }
-
-        /// <summary>
-        /// Get Nanoseconds of the current date-time.
-        /// <para>Obtenir la date actuelle avec une �valuation en nano-secondes.</para>
-        /// </summary>
-        /// <returns>A string.</returns>
-        private static string GetNanoseconds()
-        {
-            // C# DateTime only provides up to ticks (100 nanoseconds) resolution
-            return (DateTime.Now.Ticks % TimeSpan.TicksPerMillisecond * 100).ToString("00000000"); // Pad with zeros to 8 digits
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
@@ -127,6 +128,48 @@ namespace HTTPServer.Models
                 }
 
                 return null;
+            }
+        }
+
+        [JsonIgnore]
+        public string DataAsString
+        {
+            get
+            {
+                if (Data != null)
+                {
+                    int read = 0;
+                    byte[] buffer = new byte[16 * 1024];
+                    using MemoryStream ms = new();
+                    while ((read = Data.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                    return Encoding.UTF8.GetString(ms.ToArray());
+                }
+
+                return string.Empty;
+            }
+        }
+
+        [JsonIgnore]
+        public byte[] DataAsBytes
+        {
+            get
+            {
+                if (Data != null)
+                {
+                    int read = 0;
+                    byte[] buffer = new byte[16 * 1024];
+                    using MemoryStream ms = new();
+                    while ((read = Data.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                    return ms.ToArray();
+                }
+
+                return Array.Empty<byte>();
             }
         }
 

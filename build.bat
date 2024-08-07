@@ -34,6 +34,18 @@ if exist "Plugins/EdNetCRCCalculator/bin/Debug/net6.0/static" (
 if exist "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" (
     xcopy /E /Y /I "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
 )
+if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/static" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+)
+if exist "Plugins/PdfToJpeg/bin/Release/net6.0/static" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+)
+if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" "~BuildOutput/MultiServer/Debug/net6.0/runtimes"
+)
+if exist "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" "~BuildOutput/MultiServer/Release/net6.0/runtimes"
+)
 xcopy /E /Y /I "Plugins/NautilusXP2024/bin" "~BuildOutput/Nautilus"
 
 @echo Crafting final output:

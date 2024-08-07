@@ -12,7 +12,7 @@ namespace CastleLibrary.Utils.Hash
     {
 #if NET5_0_OR_GREATER
         private static readonly Context context = Context.CreateDefault();
-        private static readonly Device device = context.Devices.FirstOrDefault();
+        private static readonly Device device = context?.GetPreferredDevice(false);
 #endif
         private static readonly IHash md5hasher = HashFactory.Crypto.BuildIn.CreateMD5CryptoServiceProvider();
         private static readonly IHash sha1hasher = HashFactory.Crypto.BuildIn.CreateSHA1Managed();
