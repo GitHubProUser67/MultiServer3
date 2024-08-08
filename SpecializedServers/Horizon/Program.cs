@@ -216,7 +216,7 @@ class Program
         GC.Collect();
 
         if (HorizonServerConfiguration.EnableMedius)
-            CyberBackendLibrary.SSL.SSLUtils.InitCerts(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
+            CyberBackendLibrary.SSL.SSLUtils.InitializeSSLCertificates(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
                     HorizonServerConfiguration.HTTPSDNSList, HorizonServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         HorizonStarter().Wait();
