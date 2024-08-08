@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HorizonService\HorizonService.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
 	<ProjectReference Include="..\..\BackendServices\WatsonWebserver\WatsonWebserver.csproj" />
+	<ProjectReference Include="..\..\BackendServices\XI5\XI5.csproj" />
   </ItemGroup>
   
   <ItemGroup>

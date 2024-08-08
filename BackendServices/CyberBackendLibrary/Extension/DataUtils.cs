@@ -309,5 +309,42 @@ namespace CyberBackendLibrary.Extension
 
             return -1;
         }
+
+
+        /// <summary>
+        /// Prints a sequence of bytes within a byte array when found.
+        /// <para>Affiche une séquence de bytes dans un tableau de bytes quand un match est trouvé.</para>
+        /// </summary>
+        /// <param name="buffer">The array in which we search for the sequence.</param>
+        /// <param name="searchPattern">The byte array sequence to find.</param>
+        /// <param name="offset">The offset from where we start our research.</param>
+        public static void PrintBytePatternMatch(byte[] buffer, byte[] searchPattern, int offset = 0)
+        {
+            if (buffer.Length > 0 && searchPattern.Length > 0 && offset <= buffer.Length - searchPattern.Length && buffer.Length >= searchPattern.Length)
+            {
+                for (int i = offset; i <= buffer.Length - searchPattern.Length; i++)
+                {
+                    if (buffer[i] == searchPattern[0])
+                    {
+                        if (buffer.Length > 1)
+                        {
+                            bool matched = true;
+                            for (int y = 1; y <= searchPattern.Length - 1; y++)
+                            {
+                                if (buffer[i + y] != searchPattern[y])
+                                {
+                                    matched = false;
+                                    break;
+                                }
+                            }
+                            if (matched)
+                                CustomLogger.LoggerAccessor.LogInfo($"[DataUtils] - PrintBytePattern - Sequence: {BitConverter.ToString(searchPattern).Replace("-", string.Empty)} was found at Position: {i}");
+                        }
+                        else
+                            CustomLogger.LoggerAccessor.LogInfo($"[DataUtils] - PrintBytePattern - Sequence: {BitConverter.ToString(searchPattern).Replace("-", string.Empty)} was found at Position: {i}");
+                    }
+                }
+            }
+        }
     }
 }

@@ -162,11 +162,7 @@ namespace HTTPSecureServerLite
                 string clientip = request.Source.IpAddress;
                 string clientport = request.Source.Port.ToString();
                 string ServerIP = request.Destination.IpAddress;
-                if (string.IsNullOrEmpty(ServerIP))
-                    ServerIP = serverIP;
                 int ServerPort = request.Destination.Port;
-                if (ServerPort == 0)
-                    ServerPort = 443; // Happens for some reasons (API bug?)
                 bool sent = false;
 
                 try
@@ -652,7 +648,7 @@ namespace HTTPSecureServerLite
                                                 extractedData[i] = 0x48;
                                         }
 
-                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                         else
                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");

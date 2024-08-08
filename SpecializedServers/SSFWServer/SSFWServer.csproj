@@ -34,6 +34,7 @@
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
     <ProjectReference Include="..\..\BackendServices\NetCoreServer\NetCoreServer.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
+	<ProjectReference Include="..\..\BackendServices\XI5\XI5.csproj" />
   </ItemGroup>
   
   <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">

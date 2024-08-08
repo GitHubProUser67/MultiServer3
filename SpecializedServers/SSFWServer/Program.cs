@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 
 public static class SSFWServerConfiguration
 {
+    public static bool ForceOfficialRPCNSignature { get; set; } = false;
     public static bool SSFWCrossSave { get; set; } = true;
     public static string SSFWMinibase { get; set; } = "[]";
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
@@ -58,6 +59,7 @@ public static class SSFWServerConfiguration
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
+                new JProperty("force_official_rpcn_signature", ForceOfficialRPCNSignature),
                 new JProperty("minibase", SSFWMinibase),
                 new JProperty("legacyKey", SSFWLegacyKey),
                 new JProperty("cross_save", SSFWCrossSave),
@@ -78,6 +80,7 @@ public static class SSFWServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
+            ForceOfficialRPCNSignature = GetValueOrDefault(config, "force_official_rpcn_signature", ForceOfficialRPCNSignature);
             SSFWMinibase = GetValueOrDefault(config, "minibase", SSFWMinibase);
             SSFWLegacyKey = GetValueOrDefault(config, "legacyKey", SSFWLegacyKey);
             SSFWCrossSave = GetValueOrDefault(config, "cross_save", SSFWCrossSave);

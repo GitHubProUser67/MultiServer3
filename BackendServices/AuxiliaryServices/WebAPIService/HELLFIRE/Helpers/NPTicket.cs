@@ -63,7 +63,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                         extractedData[i] = 0x20;
                 }
 
-                if (DataUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                if (DataUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HFGames] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
@@ -73,7 +73,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "H0mETyc00n!");
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 10);
@@ -93,7 +93,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "H0mETyc00n!");
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 14);

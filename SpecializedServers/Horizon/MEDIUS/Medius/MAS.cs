@@ -20,6 +20,7 @@ using Horizon.HTTPSERVICE;
 using System.Buffers;
 using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
+using XI5;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -1759,8 +1760,23 @@ namespace Horizon.MEDIUS.Medius
 
                         string UserOnlineId = Encoding.UTF8.GetString(extractedData);
 
-                        if (DataUtils.FindBytePattern(ticketLoginRequest.TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                        if (DataUtils.FindBytePattern(ticketLoginRequest.TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                         {
+                            if (MediusClass.Settings.ForceOfficialRPCNSignature && !new XI5Ticket(ticketLoginRequest.TicketData).SignedByOfficialRPCN)
+                            {
+                                LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} was caught using an invalid RPCN signature!");
+
+                                // Account is banned
+                                // Temporary solution is to tell the client the login failed
+                                data.ClientObject.Queue(new MediusTicketLoginResponse()
+                                {
+                                    MessageID = ticketLoginRequest.MessageID,
+                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusMachineBanned
+                                });
+
+                                break;
+                            }
+
                             accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN";
                             data.ClientObject.IsOnRPCN = true;
                             UserOnlineId += "RPCN";

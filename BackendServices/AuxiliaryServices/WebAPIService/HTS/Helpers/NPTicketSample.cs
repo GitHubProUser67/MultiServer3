@@ -82,7 +82,7 @@ namespace WebAPIService.HTS.Helpers
                         userOnlineId[i] = 0x20;
                 }
 
-                if (DataUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                if (DataUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HTS] : User {Encoding.ASCII.GetString(userOnlineId).Replace("H", string.Empty)} logged in and is on RPCN");
 
@@ -90,7 +90,7 @@ namespace WebAPIService.HTS.Helpers
                     resultString = Encoding.ASCII.GetString(userOnlineId) + "RPCN";
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "H0mETyc00n!");
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
 
                     // Trim the hash to a specific length
                     hash = hash[..10];
@@ -106,7 +106,7 @@ namespace WebAPIService.HTS.Helpers
                     resultString = Encoding.ASCII.GetString(userOnlineId);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(resultString + "HtTeStSamPLe@$!");
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
 
                     // Trim the hash to a specific length
                     hash = hash[..14];

@@ -215,26 +215,16 @@ namespace CyberBackendLibrary.SSL
             // Generate a new RSA key pair
             using (RSA rsa = RSA.Create())
             {
-                // Create a certificate request with the RSA key pair
-                CertificateRequest request = new CertificateRequest($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
-
-                // Set additional properties of the certificate
-                request.CertificateExtensions.Add(
-                    new X509BasicConstraintsExtension(false, false, 0, true));
-
-                // Enhanced key usages
-                request.CertificateExtensions.Add(
-                    new X509EnhancedKeyUsageExtension(
-                        new OidCollection {
-                            new Oid("1.3.6.1.5.5.7.3.2"), // TLS Client auth
-                            new Oid("1.3.6.1.5.5.7.3.1"), // TLS Server auth
-                            new Oid("1.3.6.1.5.5.7.3.4"), // Non-TLS Client auth
-                            new Oid("1.3.6.1.5.5.7.3.5")  // Non-TLS Server auth
-                        },
-                        true));
+                IPAddress Loopback = IPAddress.Loopback;
+                IPAddress PublicServerIP = IPAddress.Parse(TCP_IP.IPUtils.GetPublicIPAddress());
+                IPAddress LocalServerIP = TCP_IP.IPUtils.GetLocalIPAddress();
 
                 // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
                 SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
+
+                // Create a certificate request with the RSA key pair
+                CertificateRequest request = new CertificateRequest($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
+
                 if (DnsList != null) // Some clients do not allow wildcard domains, so we use SAN attributes as a fallback.
                 {
                     foreach (string str in DnsList)
@@ -249,9 +239,7 @@ namespace CyberBackendLibrary.SSL
                         sanBuilder.AddDnsName("*" + tld);
                     }
                 }
-                IPAddress Loopback = IPAddress.Loopback;
-                IPAddress PublicServerIP = IPAddress.Parse(TCP_IP.IPUtils.GetPublicIPAddress());
-                IPAddress LocalServerIP = TCP_IP.IPUtils.GetLocalIPAddress();
+                
                 sanBuilder.AddDnsName("localhost");
                 sanBuilder.AddDnsName(Loopback.ToString());
                 sanBuilder.AddIpAddress(Loopback);

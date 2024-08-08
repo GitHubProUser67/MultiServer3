@@ -749,7 +749,7 @@ namespace WebAPIService.OHS
             if (string.IsNullOrEmpty(input))
                 return null;
 
-            byte[] hashBytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(input);
+            byte[] hashBytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Encoding.UTF8.GetBytes(input));
 
             // Convert the byte array to a hexadecimal string
             StringBuilder sb = new StringBuilder();
@@ -785,7 +785,7 @@ namespace WebAPIService.OHS
             // Function to generate a unique number based on a string using MD5
             public static int GenerateUniqueNumber(string inputString)
             {
-                byte[] MD5Data = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5("0HS0000000000000A" + inputString);
+                byte[] MD5Data = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
 
                 if (!BitConverter.IsLittleEndian)
                     Array.Reverse(MD5Data);
