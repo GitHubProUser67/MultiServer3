@@ -64,7 +64,7 @@ namespace HTTPServer
 
         #region Public Methods
 
-        public static bool IsIPBanned(string ipAddress, int? clientport)
+        public static bool IsIPBanned(string ipAddress, int clientport)
         {
             if (HTTPServerConfiguration.BannedIPs != null && HTTPServerConfiguration.BannedIPs.Contains(ipAddress))
             {
@@ -104,14 +104,11 @@ namespace HTTPServer
             return Task.CompletedTask;
         }
 
-        public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
+        public void HandleClient(TcpClient tcpClient, string clientip, int clientport, ushort ListenerPort)
         {
             try
             {
-                string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
-                int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
-
-                if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
+                if (IsIPBanned(clientip, clientport))
                 {
                     tcpClient.Close();
                     tcpClient.Dispose();
@@ -606,7 +603,7 @@ namespace HTTPServer
                                                                 extractedData[i] = 0x48;
                                                         }
 
-                                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                                         else
                                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");

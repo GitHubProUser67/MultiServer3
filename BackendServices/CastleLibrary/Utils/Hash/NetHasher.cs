@@ -14,16 +14,10 @@ namespace CastleLibrary.Utils.Hash
         private static readonly Context context = Context.CreateDefault();
         private static readonly Device device = context?.GetPreferredDevice(false);
 #endif
-        private static readonly IHash md5hasher = HashFactory.Crypto.BuildIn.CreateMD5CryptoServiceProvider();
-        private static readonly IHash sha1hasher = HashFactory.Crypto.BuildIn.CreateSHA1Managed();
-        private static readonly IHash sha224hasher = HashFactory.Crypto.CreateSHA224();
-        private static readonly IHash sha256hasher = HashFactory.Crypto.BuildIn.CreateSHA256Managed();
-        private static readonly IHash sha384hasher = HashFactory.Crypto.BuildIn.CreateSHA384Managed();
-        private static readonly IHash sha512hasher = HashFactory.Crypto.BuildIn.CreateSHA512Managed();
 
         public static byte[] ComputeMD5(object input)
         {
-            byte[] result = md5hasher.ComputeObject(input).GetBytes();
+            byte[] result = HashFactory.Crypto.BuildIn.CreateMD5CryptoServiceProvider().ComputeObject(input).GetBytes();
 
             if (result.Length != 16)
                 throw new InvalidOperationException("The computed MD5 hash is not 16 bytes long.");
@@ -38,7 +32,7 @@ namespace CastleLibrary.Utils.Hash
 
         public static byte[] ComputeSHA1(object input)
         {
-            byte[] result = sha1hasher.ComputeObject(input).GetBytes();
+            byte[] result = HashFactory.Crypto.BuildIn.CreateSHA1Managed().ComputeObject(input).GetBytes();
 
             if (result.Length != 20)
                 throw new InvalidOperationException("The computed SHA1 hash is not 20 bytes long.");
@@ -53,7 +47,7 @@ namespace CastleLibrary.Utils.Hash
 
         public static byte[] ComputeSHA224(object input)
         {
-            byte[] result = sha224hasher.ComputeObject(input).GetBytes();
+            byte[] result = HashFactory.Crypto.CreateSHA224().ComputeObject(input).GetBytes();
 
             if (result.Length != 28)
                 throw new InvalidOperationException("The computed SHA224 hash is not 28 bytes long.");
@@ -80,7 +74,7 @@ namespace CastleLibrary.Utils.Hash
             }
             else
 #endif
-                result = sha256hasher.ComputeObject(input).GetBytes();
+                result = HashFactory.Crypto.BuildIn.CreateSHA256Managed().ComputeObject(input).GetBytes();
 
             if (result.Length != 32)
                 throw new InvalidOperationException("The computed SHA256 hash is not 32 bytes long.");
@@ -95,7 +89,7 @@ namespace CastleLibrary.Utils.Hash
 
         public static byte[] ComputeSHA384(object input)
         {
-            byte[] result = sha384hasher.ComputeObject(input).GetBytes();
+            byte[] result = HashFactory.Crypto.BuildIn.CreateSHA384Managed().ComputeObject(input).GetBytes();
 
             if (result.Length != 48)
                 throw new InvalidOperationException("The computed SHA384 hash is not 48 bytes long.");
@@ -110,7 +104,7 @@ namespace CastleLibrary.Utils.Hash
 
         public static byte[] ComputeSHA512(object input)
         {
-            byte[] result = sha512hasher.ComputeObject(input).GetBytes();
+            byte[] result = HashFactory.Crypto.BuildIn.CreateSHA512Managed().ComputeObject(input).GetBytes();
 
             if (result.Length != 64)
                 throw new InvalidOperationException("The computed SHA512 hash is not 64 bytes long.");

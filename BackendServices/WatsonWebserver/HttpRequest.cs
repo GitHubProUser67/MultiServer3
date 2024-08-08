@@ -23,7 +23,7 @@ namespace WatsonWebserver
         /// The stream from which to read the request body sent by the requestor (client).
         /// </summary>
         [JsonIgnore]
-        public override Stream Data { get; set; } = new MemoryStream();
+        public override Stream Data { get; set; } = null;
          
         /// <summary>
         /// Retrieve the request body as a byte array.  This will fully read the stream. 
