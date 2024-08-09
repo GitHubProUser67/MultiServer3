@@ -121,7 +121,7 @@ namespace WatsonWebserver
             {
                 Method = (HttpMethod)Enum.Parse(typeof(HttpMethod), ctx.Request.HttpMethod, true);
             }
-            catch (Exception)
+            catch
             {
                 Method = HttpMethod.UNKNOWN;
             }
@@ -133,7 +133,7 @@ namespace WatsonWebserver
                 string key = Headers.GetKey(i);
                 string[] vals = Headers.GetValues(i);
 
-                if (String.IsNullOrEmpty(key)) continue;
+                if (string.IsNullOrEmpty(key)) continue;
                 if (vals == null || vals.Length < 1) continue;
 
                 if (key.ToLower().Equals("transfer-encoding"))
@@ -148,9 +148,7 @@ namespace WatsonWebserver
                 else if (key.ToLower().Equals("x-amz-content-sha256"))
                 {
                     if (vals.Contains("streaming", StringComparer.InvariantCultureIgnoreCase))
-                    {
                         ChunkedTransfer = true;
-                    }
                 }
             }
               
@@ -196,10 +194,8 @@ namespace WatsonWebserver
                             if (lenParts.Length >= 2) chunk.Metadata = lenParts[1];
                         }
                         else
-                        {
                             chunk.Length = int.Parse(lenStr, NumberStyles.HexNumber);
-                        }
-                         
+
                         break;
                     }
                 }
@@ -237,9 +233,7 @@ namespace WatsonWebserver
                 }
             }
             else
-            {
                 chunk.IsFinal = true;
-            }
 
             #endregion
 
@@ -268,12 +262,10 @@ namespace WatsonWebserver
         /// <returns>True if exists.</returns>
         public override bool HeaderExists(string key)
         {
-            if (String.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
 
             if (Headers != null)
-            {
                 return Headers.AllKeys.Any(k => k.ToLower().Equals(key.ToLower()));
-            }
 
             return false;
         }
@@ -285,13 +277,10 @@ namespace WatsonWebserver
         /// <returns>True if exists.</returns>
         public override bool QuerystringExists(string key)
         {
-            if (String.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
 
-            if (Query != null
-                && Query.Elements != null)
-            {
+            if (Query != null && Query.Elements != null)
                 return Query.Elements.AllKeys.Any(k => k.ToLower().Equals(key.ToLower()));
-            }
 
             return false;
         }
@@ -303,12 +292,10 @@ namespace WatsonWebserver
         /// <returns>Value.</returns>
         public override string RetrieveHeaderValue(string key)
         {
-            if (String.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
 
             if (Headers != null)
-            { 
                 return Headers.Get(key);
-            }
 
             return null;
         }
@@ -320,16 +307,13 @@ namespace WatsonWebserver
         /// <returns>Value.</returns>
         public override string RetrieveQueryValue(string key)
         {
-            if (String.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
 
-            if (Query != null
-                && Query.Elements != null)
+            if (Query != null && Query.Elements != null)
             {
                 string val = Query.Elements.Get(key);
-                if (!String.IsNullOrEmpty(val))
-                {
+                if (!string.IsNullOrEmpty(val))
                     val = System.Net.WebUtility.UrlDecode(val);
-                }
 
                 return val;
             }
@@ -375,7 +359,7 @@ namespace WatsonWebserver
             byte[] buffer = new byte[16 * 1024];
             using (MemoryStream ms = new MemoryStream())
             {
-                int read;
+                int read = 0;
 
                 while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
                 {
@@ -394,9 +378,7 @@ namespace WatsonWebserver
             if (_DataAsBytes == null)
             {
                 if (!ChunkedTransfer)
-                {
                     _DataAsBytes = StreamToBytes(Data);
-                }
                 else
                 {
                     while (true)

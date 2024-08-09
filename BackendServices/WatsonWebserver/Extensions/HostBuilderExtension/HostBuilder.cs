@@ -66,7 +66,7 @@ namespace WatsonWebserver.Extensions.HostBuilderExtension
         /// <param name="defaultRoute">Default route.</param>
         public HostBuilder(string hostname, int port, bool ssl, Func<HttpContextBase, Task> defaultRoute)
         {
-            if (String.IsNullOrEmpty(hostname)) hostname = "localhost";
+            if (string.IsNullOrEmpty(hostname)) hostname = "localhost";
             if (port < 0) port = 8000;
             if (defaultRoute == null) throw new ArgumentNullException(nameof(defaultRoute));
 

@@ -2,17 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Authors>Shreyas Zare</Authors>
-    <Company>Technitium</Company>
-    <Product>Technitium Library</Product>
-    <PackageProjectUrl></PackageProjectUrl>
-    <RepositoryUrl>https://github.com/TechnitiumSoftware/TechnitiumLibrary</RepositoryUrl>
-    <RepositoryType></RepositoryType>
-    <Description></Description>
-    <PackageId>TechnitiumLibrary.Net</PackageId>
-    <Version>5.0</Version>
 	<IsTrimmable>true</IsTrimmable>
 	<IsPublishable>false</IsPublishable>
+	<Version>5.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
