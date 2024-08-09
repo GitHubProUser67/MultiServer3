@@ -5,20 +5,14 @@
 		<IsTrimmable>true</IsTrimmable>
 		<IsPublishable>false</IsPublishable>
 		<Version>6.2.0</Version>
-		<Description>Simple, fast, async C# web server for handling REST requests with SSL support, targeted to .NET Core, .NET Standard, and .NET Framework.</Description>
-		<Authors>Joel Christner</Authors>
-		<Company>Joel Christner</Company>
-		<Copyright>(c)2024 Joel Christner</Copyright>
-		<Title>Watson Webserver</Title>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Remove="C:\Users\jeana\.nuget\packages\watson.core\6.2.0\contentFiles\any\net6.0\Assets\watson.ico" />
+		<PackageReference Include="Watson.Core" Version="6.2.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SpaceWizards.HttpListener" Version="0.2.0" />
-		<PackageReference Include="Watson.Core" Version="6.2.1" />
+	  <ProjectReference Include="..\SpaceWizards.HttpListener\SpaceWizards.HttpListener.csproj" />
 	</ItemGroup>
 
 </Project>
