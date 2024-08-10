@@ -798,9 +798,10 @@ namespace CyberBackendLibrary.HTTP
         public static byte[] CompressGzip(byte[] input)
         {
             using (MemoryStream output = new MemoryStream())
-            using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, true))
+            using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest))
             {
                 gzipStream.Write(input, 0, input.Length);
+                gzipStream.Close();
                 return output.ToArray();
             }
         }
