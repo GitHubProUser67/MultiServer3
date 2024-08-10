@@ -12,7 +12,6 @@ using Horizon.MEDIUS.Config;
 using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using System.Net;
-using System.Security.Cryptography;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
@@ -43,6 +42,12 @@ namespace Horizon.MEDIUS.Medius
         private byte[] Ref5 = Convert.FromBase64String("gjhutOUMfyuOPC5gjtt9/Q==");
 
         private byte[] Ref6 = Convert.FromBase64String("AAAAAAAAAAE=");
+
+        private byte[] Ref7 = Convert.FromBase64String("KVWkLoeNOItB3ruHIFhP3A==");
+
+        private byte[] Ref8 = Convert.FromBase64String("L4AAAA==");
+
+        private byte[] Ref9 = Convert.FromBase64String("L4MAAA==");
 
         private ConcurrentDictionary<(IPAddress, string?), DateTime> BannedClients = new();
         #endregion
@@ -429,6 +434,205 @@ namespace Horizon.MEDIUS.Medius
                                                             }
                                                         }
                                                     }
+                                                    break;
+                                                case 0x00335a9c:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335b30:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335ba0:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335c28:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335ca8:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref9)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335dbc:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335e34:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335f0c:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335fcc:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x0033604c:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref9)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x003360c0:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00336138:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00336274:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref9)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00336350:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00336490:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && (QueryData.Length != 4 || !DataUtils.AreArraysIdentical(QueryData, Ref8)))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: MALICIOUS EBOOT EDIT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    break;
+                                                case 0x00335558:
+                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && !DataUtils.AreArraysIdentical(QueryData, Ref7))
+                                                        PokeAddress(0x00335558, new byte[] { 0x38, 0x00, 0x00, 0x00 }, clientChannel);
                                                     break;
                                                 default:
                                                     if (data.ClientObject != null)
@@ -11027,6 +11231,21 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 CheatQuery(0x10050500, 9, clientChannel);
                                 CheatQuery(0x10074820, 9, clientChannel);
+                                CheatQuery(0x00335a9c, 4, clientChannel);
+                                CheatQuery(0x00335b30, 4, clientChannel);
+                                CheatQuery(0x00335ba0, 4, clientChannel);
+                                CheatQuery(0x00335c28, 4, clientChannel);
+                                CheatQuery(0x00335ca8, 4, clientChannel);
+                                CheatQuery(0x00335dbc, 4, clientChannel);
+                                CheatQuery(0x00335e34, 4, clientChannel);
+                                CheatQuery(0x00335f0c, 4, clientChannel);
+                                CheatQuery(0x00335fcc, 4, clientChannel);
+                                CheatQuery(0x0033604c, 4, clientChannel);
+                                CheatQuery(0x003360c0, 4, clientChannel);
+                                CheatQuery(0x00336138, 4, clientChannel);
+                                CheatQuery(0x00336274, 4, clientChannel);
+                                CheatQuery(0x00336350, 4, clientChannel);
+                                CheatQuery(0x00336490, 4, clientChannel);
                             }
                             break;
                     }
@@ -11040,7 +11259,38 @@ namespace Horizon.MEDIUS.Medius
                     return false;
                 }
                 else
+                {
+                    if (isHomeCheat && MediusClass.Settings.PlaystationHomeAntiCheatIGASecurityPatch)
+                    {
+                        switch (data.ApplicationId)
+                        {
+                            case 20371:
+                                // TODO!
+                                break;
+                            case 20374:
+                                if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                {
+                                    if (!string.IsNullOrEmpty(accountDto.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(accountDto.AccountName, out string? value) && !string.IsNullOrEmpty(value))
+                                    {
+                                        switch (value)
+                                        {
+                                            case "RTM":
+                                            case "IGA":
+                                                break;
+                                            default:
+                                                CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                break;
+                                        }
+                                    }
+                                    else
+                                        CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                }
+                                break;
+                        }
+                    }
+
                     await data.ClientObject.Login(accountDto);
+                }
             }
 
             #region Update DB IP and CID
