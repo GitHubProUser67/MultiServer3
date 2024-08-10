@@ -419,6 +419,8 @@ namespace Horizon.MEDIUS.Config
 
         public bool PlaystationHomeAntiCheat { get; set; } = false;
 
+        public bool PlaystationHomeAntiCheatIGASecurityPatch { get; set; } = false;
+
         public bool PlaystationHomeUserNameWhitelist { get; set; } = false;
 
         public Dictionary<string, string> PlaystationHomeUsersServersAccessList { get; set; } = new();
