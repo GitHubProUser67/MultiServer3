@@ -90,10 +90,10 @@ namespace WebAPIService.HTS.Helpers
                     resultString = Encoding.ASCII.GetString(userOnlineId) + "RPCN";
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
 
                     // Trim the hash to a specific length
-                    hash = hash[..10];
+                    hash = hash.Substring(0, 10);
 
                     // Append the trimmed hash to the result
                     resultString += hash;
@@ -109,7 +109,7 @@ namespace WebAPIService.HTS.Helpers
                     string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
 
                     // Trim the hash to a specific length
-                    hash = hash[..14];
+                    hash = hash.Substring(0, 14);
 
                     // Append the trimmed hash to the result
                     resultString += hash;
