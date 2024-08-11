@@ -4,11 +4,11 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_getall
     {
-        public static string? ProcessGetAll(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessGetAll(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
+                string user = QueryParameters["user"];
 
                 if (!string.IsNullOrEmpty(user))
                 {

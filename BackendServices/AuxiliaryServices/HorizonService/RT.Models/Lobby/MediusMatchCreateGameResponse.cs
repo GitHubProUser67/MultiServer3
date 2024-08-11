@@ -11,14 +11,14 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
         public int MediusWorldID;
         public int SystemSpecificStatusCode;
-        public string? RequestData; // REQUESTDATA_MAXLEN
+        public string RequestData; // REQUESTDATA_MAXLEN
         public int ApplicationDataSize;
-        public string? ApplicationData;
+        public string ApplicationData;
 
         public override void Deserialize(MessageReader reader)
         {

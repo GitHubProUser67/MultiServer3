@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EndianTools;
+using System;
 using System.Diagnostics;
 using System.Linq;
 
@@ -11,17 +12,17 @@ namespace HashLib
 
         public HashResult(uint a_hash)
         {
-            m_hash = BitConverter.GetBytes(a_hash);
+            m_hash = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(a_hash) : a_hash);
         }
 
         internal HashResult(int a_hash)
         {
-            m_hash = BitConverter.GetBytes(a_hash);
+            m_hash = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(a_hash) : a_hash);
         }
 
         public HashResult(ulong a_hash)
         {
-            m_hash = BitConverter.GetBytes(a_hash);
+            m_hash = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(a_hash) : a_hash);
         }
         public HashResult(byte[] a_hash)
         {
@@ -38,7 +39,7 @@ namespace HashLib
             if (m_hash.Length != 4)
                 throw new InvalidOperationException();
 
-            return BitConverter.ToUInt32(m_hash, 0);
+            return BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(m_hash) : m_hash, 0);
         }
 
         public int GetInt()
@@ -46,7 +47,7 @@ namespace HashLib
             if (m_hash.Length != 4)
                 throw new InvalidOperationException();
 
-            return BitConverter.ToInt32(m_hash, 0);
+            return BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(m_hash) : m_hash, 0);
         }
 
         public ulong GetULong()
@@ -54,7 +55,7 @@ namespace HashLib
             if (m_hash.Length != 8)
                 throw new InvalidOperationException();
 
-            return BitConverter.ToUInt64(m_hash, 0);
+            return BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(m_hash) : m_hash, 0);
         }
 
         public override string ToString()
@@ -83,7 +84,7 @@ namespace HashLib
 
         private static bool SameArrays(byte[] a_ar1, byte[] a_ar2)
         {
-            if (Object.ReferenceEquals(a_ar1, a_ar2))
+            if (object.ReferenceEquals(a_ar1, a_ar2))
                 return true;
 
             if (a_ar1.Length != a_ar2.Length)

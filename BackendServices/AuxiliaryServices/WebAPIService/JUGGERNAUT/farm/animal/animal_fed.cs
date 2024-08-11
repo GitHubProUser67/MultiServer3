@@ -8,15 +8,15 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
 {
     public class animal_fed
     {
-        public static string? ProcessFed(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessFed(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? type = QueryParameters["type"];
-                string? id = QueryParameters["id"];
-                string? posix = QueryParameters["posix"];
-                string? permBoost = QueryParameters["permBoost"];
+                string user = QueryParameters["user"];
+                string type = QueryParameters["type"];
+                string id = QueryParameters["id"];
+                string posix = QueryParameters["posix"];
+                string permBoost = QueryParameters["permBoost"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(posix) && !string.IsNullOrEmpty(permBoost))
                 {
@@ -39,7 +39,7 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
             {
                 XDocument xdoc = XDocument.Parse(xmlData);
 
-                XElement? animalToUpdate = xdoc.Descendants("animal")
+                XElement animalToUpdate = xdoc.Descendants("animal")
                     .FirstOrDefault(a => a.Element("id")?.Value == id && a.Element("t")?.Value == type);
 
                 if (animalToUpdate != null)

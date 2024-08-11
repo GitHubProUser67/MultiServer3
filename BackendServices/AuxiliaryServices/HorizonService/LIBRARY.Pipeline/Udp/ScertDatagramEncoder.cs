@@ -29,10 +29,10 @@ namespace Horizon.LIBRARY.Pipeline.Udp
             Attribute.ScertClientAttribute scertClient = ctx.GetAttribute(Constants.SCERT_CLIENT).Get();
 
             // Serialize
-            List<byte[]>? msgs = message.Message?.Serialize(scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService);
+            List<byte[]> msgs = message.Message?.Serialize(scertClient.MediusVersion, scertClient.ApplicationID, scertClient.CipherService);
 
             // Condense as much as possible
-            IEnumerable<IEnumerable<byte[]>>? condensedMsgs = msgs?.GroupWhileAggregating(0, (sum, item) => sum + item.Length, (sum, item) => sum < maxPacketLength);
+            IEnumerable<IEnumerable<byte[]>> condensedMsgs = msgs?.GroupWhileAggregating(0, (sum, item) => sum + item.Length, (sum, item) => sum < maxPacketLength);
 
             if (condensedMsgs != null)
             {

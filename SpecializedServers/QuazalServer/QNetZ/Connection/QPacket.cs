@@ -1,10 +1,10 @@
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 using EndianTools;
 using System.Text;
 
 namespace QuazalServer.QNetZ
 {
-	public class QPacket
+    public class QPacket
 	{
 		public enum STREAMTYPE
 		{
@@ -318,7 +318,7 @@ namespace QuazalServer.QNetZ
 
 			uint tmp = 0;
 			for (int i = 0; i < data.Length / 4; i++)
-				tmp += BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(data) : data, i * 4);
+				tmp += BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(data) : data, i * 4);
 
 			uint leftOver = (uint)data.Length & 3;
 			uint processed = 0;
@@ -390,7 +390,7 @@ namespace QuazalServer.QNetZ
 
 			uint Checksum = dataSum + Key4(AccessKey) + BitConverter.ToUInt32(trailerBytes, 0);
 
-            return BitConverter.GetBytes(!LittleEndian ? EndianUtils.EndianSwap(Checksum) : Checksum);
+            return BitConverter.GetBytes(!LittleEndian ? EndianUtils.ReverseUint(Checksum) : Checksum);
         }
 
         private void ExtractFlags()
@@ -437,7 +437,7 @@ namespace QuazalServer.QNetZ
 					sb.Append(b.ToString("X2") + " ");
 			}
 			sb.AppendLine();
-			sb.AppendLine(" Checksum:0x" + DataTypesUtils.ByteArrayToHexString(checkSum ?? Array.Empty<byte>()));
+			sb.AppendLine(" Checksum:0x" + DataUtils.ByteArrayToHexString(checkSum ?? Array.Empty<byte>()));
 			sb.AppendLine("}");
 			return sb.ToString();
 		}

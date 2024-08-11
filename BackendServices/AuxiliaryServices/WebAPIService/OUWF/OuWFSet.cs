@@ -9,9 +9,9 @@ namespace WebAPIService.OUWF
 {
     public class OuWFSet
     {
-        public static string? Set(byte[]? PostData, string? ContentType)
+        public static string Set(byte[] PostData, string ContentType)
         {
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             using (MemoryStream ms = new MemoryStream(PostData))
             {
@@ -36,7 +36,12 @@ namespace WebAPIService.OUWF
                 using (FileStream fs = File.Create(path))
                 {
                     LoggerAccessor.LogInfo("File created successfully!");
+#if NET5_0_OR_GREATER
                     fs.Write(Encoding.UTF8.GetBytes(data));
+#else
+                    byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+                    fs.Write(dataBytes, 0, dataBytes.Length);
+#endif
                     fs.Close();
 
 

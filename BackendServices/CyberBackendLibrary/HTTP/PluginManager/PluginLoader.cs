@@ -15,7 +15,7 @@ namespace CyberBackendLibrary.HTTP.PluginManager
             {
                 foreach (string dllFile in Directory.GetFiles(folderPath, "*.dll", SearchOption.AllDirectories))
                 {
-                    HTTPPlugin? plugin = LoadPlugin(dllFile);
+                    HTTPPlugin plugin = LoadPlugin(dllFile);
                     if (plugin != null)
                     {
                         CustomLogger.LoggerAccessor.LogInfo($"[PluginLoader] - Plugin: {dllFile} Loaded.");
@@ -29,7 +29,7 @@ namespace CyberBackendLibrary.HTTP.PluginManager
             return plugins;
         }
 
-        public static HTTPPlugin? LoadPlugin(string pluginPath)
+        public static HTTPPlugin LoadPlugin(string pluginPath)
         {
             try
             {
@@ -45,6 +45,10 @@ namespace CyberBackendLibrary.HTTP.PluginManager
                         CustomLogger.LoggerAccessor.LogWarn($"[PluginLoader] - Plugin: {pluginPath} is not compatible with this project, ignoring...");
                     }
                 }
+            }
+            catch (BadImageFormatException)
+            {
+
             }
             catch (Exception ex)
             {

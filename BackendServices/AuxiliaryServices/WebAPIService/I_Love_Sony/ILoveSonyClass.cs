@@ -1,6 +1,5 @@
 using CyberBackendLibrary.HTTP;
 using System;
-using WebAPIService.HTS.Helpers;
 
 namespace WebAPIService.ILoveSony
 {
@@ -18,7 +17,7 @@ namespace WebAPIService.ILoveSony
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string ContentType, bool https)
+        public string ProcessRequest(byte[] PostData, string ContentType, bool https)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -28,10 +27,9 @@ namespace WebAPIService.ILoveSony
                 case "GET":
                     switch (absolutepath)
                     {
-
                         #region Resistance Fall of Man EULA
                         case "/i_love_sony/legal/UP9000-BCUS98107_00/1":
-                            return MyResistanceEula.ILoveSonyEula(PostData, HTTPProcessor.ExtractBoundary(ContentType));
+                            return MyResistanceEula.ILoveSonyEula();
                         #endregion
 
                         default:    

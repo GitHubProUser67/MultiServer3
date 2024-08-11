@@ -23,7 +23,7 @@ namespace Horizon.RT.Cryptography.Hash
             byte[] result = new byte[20];
 
             // Compute sha1 hash
-            Sha1Digest digest = new();
+            Sha1Digest digest = new Sha1Digest();
             digest.BlockUpdate(input, inOff, length);
             digest.DoFinal(result, 0);
 

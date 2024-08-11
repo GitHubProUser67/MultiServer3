@@ -2,10 +2,10 @@ using CustomLogger;
 using System.Net;
 using System.Text;
 using System.Net.Sockets;
-using CyberBackendLibrary.DataTypes;
 using QuazalServer.RDVServices.RMC;
 using QuazalServer.RDVServices;
 using QuazalServer.QNetZ.Factory;
+using CyberBackendLibrary.Extension;
 
 namespace QuazalServer.QNetZ
 {
@@ -156,7 +156,7 @@ namespace QuazalServer.QNetZ
                     _ = UDP.SendAsync(data, data.Length, ep);
             }
 
-            LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {DataTypesUtils.ByteArrayToHexString(data)}");
+            LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {DataUtils.ByteArrayToHexString(data)}");
 		}
 
         public QPacket MakeACK(QPacket p, QClient client)
@@ -245,7 +245,7 @@ namespace QuazalServer.QNetZ
                     foreach (byte b in data)
                         sb.Append(b.ToString("X2") + " ");
 
-                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{DataTypesUtils.ByteArrayToHexString(buff)}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{DataUtils.ByteArrayToHexString(buff)}");
 
                     LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
                     LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
@@ -309,7 +309,7 @@ namespace QuazalServer.QNetZ
 								{
 									case "ex5LYTJ0":
 										if (packetIn.payload != null)
-											LoggerAccessor.LogInfo($"[QPakcetHandler] - Client requested a HERMES packet: {DataTypesUtils.ByteArrayToHexString(packetIn.payload)} - UTF8:{Encoding.UTF8.GetString(packetIn.payload)}");
+											LoggerAccessor.LogInfo($"[QPakcetHandler] - Client requested a HERMES packet: {DataUtils.ByteArrayToHexString(packetIn.payload)} - UTF8:{Encoding.UTF8.GetString(packetIn.payload)}");
 										else
                                             LoggerAccessor.LogWarn($"[QPakcetHandler] - Client requested a HERMES packet with no data!");
                                         break;
@@ -335,7 +335,7 @@ namespace QuazalServer.QNetZ
 
 						if (packetIn.payload != null)
 						{
-                            ulong time = BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(packetIn.payload) : packetIn.payload, 5);
+                            ulong time = BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseArray(packetIn.payload) : packetIn.payload, 5);
 
                             if (NATPingTimeToIgnore.Contains(time))
                                 NATPingTimeToIgnore.Remove(time);

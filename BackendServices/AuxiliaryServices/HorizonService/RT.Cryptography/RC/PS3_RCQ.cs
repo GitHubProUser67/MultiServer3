@@ -1,5 +1,4 @@
 using EndianTools;
-using SevenZip.Buffer;
 using System;
 using System.Linq;
 
@@ -7,7 +6,7 @@ namespace Horizon.RT.Cryptography.RC
 {
     public class PS3_RCQ : ICipher
     {
-        private byte[]? _key = null;
+        private byte[] _key = null;
         public CipherContext Context { get; protected set; } = CipherContext.ID_00;
 
         public PS3_RCQ(byte[] key, CipherContext context)
@@ -42,7 +41,7 @@ namespace Horizon.RT.Cryptography.RC
 
             // Reload
             for (int i = 0; i < 4; ++i)
-                iv[i] = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(iv_buffer) : iv_buffer, i * 4);
+                iv[i] = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(iv_buffer) : iv_buffer, i * 4);
             RC_Pass(hash, ref iv);
 
             for (int i = 0; i < 4; ++i)
@@ -86,7 +85,7 @@ namespace Horizon.RT.Cryptography.RC
             Array.Copy(_key, 0, iv, 0, 0x10);
 
             for (int i = 0; i < 4; ++i)
-                seed[i] = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(iv) : iv, i * 4);
+                seed[i] = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(iv) : iv, i * 4);
             RC_Pass(hash, ref seed);
 
             for (int i = 0; i < 4; ++i)

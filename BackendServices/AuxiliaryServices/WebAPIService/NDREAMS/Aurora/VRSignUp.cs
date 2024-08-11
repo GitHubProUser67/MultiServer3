@@ -1,21 +1,20 @@
 using System.IO;
 using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
-using System.Security.Cryptography;
+using CastleLibrary.Utils.Hash;
 using System.Text;
-using System;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
     public static class VRSignUp
     {
-        public static string? ProcessVRSignUp(byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessVRSignUp(byte[] PostData, string ContentType, string apipath)
         {
             string email = string.Empty;
             string username = string.Empty;
             string hash = string.Empty;
             string day = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -30,14 +29,9 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                byte[] SHA1Data = new byte[0];
-                using (SHA1 sha1hash = SHA1.Create())
-                {
-                    SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl"));
-                }
-                string ExpectedHash = BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+                string ExpectedHash = NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl")).ToLower();
 
-                if (hash == ExpectedHash)
+                if (hash.Equals(ExpectedHash))
                 {
                     Directory.CreateDirectory(apipath + "/NDREAMS/Aurora/VRSignUp");
 
@@ -45,7 +39,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                     if (File.Exists(SignedUpProfilePath))
                     {
-                        string? Extractedemail = File.ReadAllText(SignedUpProfilePath).Replace("email=", string.Empty);
+                        string Extractedemail = File.ReadAllText(SignedUpProfilePath).Replace("email=", string.Empty);
 
                         if (string.IsNullOrEmpty(Extractedemail))
                         {

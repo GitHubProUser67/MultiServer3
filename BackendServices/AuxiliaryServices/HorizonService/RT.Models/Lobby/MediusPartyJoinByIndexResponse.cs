@@ -26,7 +26,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// ConnectionInfo of the player to return for this session
         /// </summary>
-        public NetConnectionInfo? ConnectionInfo;
+        public NetConnectionInfo ConnectionInfo;
 
         public override void Deserialize(MessageReader reader)
         {

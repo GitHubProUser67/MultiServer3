@@ -8,8 +8,8 @@ namespace Horizon.RT.Models
     public class MediusSetGameListSortRequest : BaseLobbyExtMessage, IMediusRequest
     {
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.SetGameListSortRequest;
-        public MessageId? MessageID { get; set; }
-        public string? SessionKey { get; set; } // Constants.SESSIONKEY_MAXLEN
+        public MessageId MessageID { get; set; }
+        public string SessionKey { get; set; } // Constants.SESSIONKEY_MAXLEN
         public int SortPriority;
         public MediusGameListFilterField SortField;
         public int Mask;

@@ -9,6 +9,6 @@ namespace Horizon.LIBRARY.Database.Entities
         public int IgnoredAccountId { get; set; }
         public DateTime CreateDt { get; set; } = DateTime.UtcNow; // Set default value in constructor
 
-        public virtual Account? Account { get; set; }
+        public virtual Account Account { get; set; }
     }
 }

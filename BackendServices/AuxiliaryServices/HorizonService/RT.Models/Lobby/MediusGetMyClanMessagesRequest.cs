@@ -9,8 +9,8 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.GetMyClanMessages;
 
-        public MessageId? MessageID { get; set; }
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public MessageId MessageID { get; set; }
+        public string SessionKey; // SESSIONKEY_MAXLEN
         public int ClanID;
         public int Start;
         public int PageSize;

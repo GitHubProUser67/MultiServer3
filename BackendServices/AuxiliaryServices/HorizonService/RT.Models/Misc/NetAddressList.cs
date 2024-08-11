@@ -6,7 +6,7 @@ namespace Horizon.RT.Models
 {
     public class NetAddressList : IStreamSerializer
     {
-        public NetAddress[]? AddressList = null;
+        public NetAddress[] AddressList = null;
 
         public NetAddressList()
         {

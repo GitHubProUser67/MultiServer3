@@ -10,7 +10,7 @@ namespace WebAPIService.MultiMedia
         /// <summary>
         /// The video file stream
         /// </summary>
-        public Stream? VideoStream { get; internal set; }
+        public Stream VideoStream { get; internal set; }
         /// <summary>
         /// The video container MIME content type
         /// </summary>

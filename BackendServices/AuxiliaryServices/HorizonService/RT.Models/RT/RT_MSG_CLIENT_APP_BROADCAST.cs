@@ -27,7 +27,7 @@ namespace Horizon.RT.Models
             return Payload == broadcast.Payload || (Payload?.SequenceEqual(broadcast.Payload) ?? false);
         }
 
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             if (obj is RT_MSG_CLIENT_APP_BROADCAST broadcast)
                 return Equals(broadcast);

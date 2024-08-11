@@ -9,23 +9,19 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class Ranking
     {
-        public static string? getItemRankingTableHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
+        public static string getItemRankingTableHandler(byte[] PostData, string ContentType, string workPath, string eventId, string fulluripath, string method)
         {
             string nid = string.Empty;
 
             if (method == "GET")
-            {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
-            }
             else
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    nid = data.GetParameterValue("nid");
+                    nid = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("nid");
 
                     ms.Flush();
                 }
@@ -142,23 +138,19 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? entryItemRankingPointsHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
+        public static string entryItemRankingPointsHandler(byte[] PostData, string ContentType, string workPath, string eventId, string fulluripath, string method)
         {
             string nid = string.Empty;
 
             if (method == "GET")
-            {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
-            }
             else
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    nid = data.GetParameterValue("nid");
+                    nid = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("nid");
 
                     ms.Flush();
                 }
@@ -284,24 +276,22 @@ namespace WebAPIService.PREMIUMAGENCY
         }
 
 
-        public static string? getItemRankingTargetListHandler(byte[]? PostData, string? ContentType, string workPath, string eventId, string fulluripath, string method)
+        public static string getItemRankingTargetListHandler(byte[] PostData, string ContentType, string workPath, string eventId, string fulluripath, string method)
         {
-            string? nid = string.Empty;
+            string nid = string.Empty;
 
             if (method == "GET")
-            {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
-            }
             else
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
-                using MemoryStream ms = new MemoryStream(PostData);
-                var data = MultipartFormDataParser.Parse(ms, boundary);
+                using (MemoryStream ms = new MemoryStream(PostData))
+                {
+                    nid = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("nid");
 
-                nid = data.GetParameterValue("nid");
-
-                ms.Flush();
+                    ms.Flush();
+                }
             }
 
             if (nid == null || eventId == null)

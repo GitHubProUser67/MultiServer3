@@ -12,20 +12,18 @@ namespace CyberBackendLibrary.AIModels
     public class WebMachineLearning
     {
         private static object _Lock = new object();
-        public static IEnumerable<FileSystemInfo>? fileSystemCache = null;
+        public static IEnumerable<FileSystemInfo> fileSystemCache = null;
 
         /// <summary>
         /// Generates a assending list of potential matching Urls from a given text.
         /// <para>Génère une liste d'Urls potentiel depuis un text donné.</para>
         /// <param name="inputUrl">The text to compare against.</param>
-        /// <param name="urlBase">The httpBase url.</param>
         /// <param name="HttpRootFolder">The root folder of the http server.</param>
-        /// <param name="directoryPath">The directoryPath to check in.</param>
         /// <param name="minSimilarity">The minimum cosine similarity threshold for including a URL in the suggestions.</param>
         /// <param name="MaxResults">The maximum amount of Urls in the result.</param>
         /// </summary>
         /// <returns>A list of nullable strings.</returns>
-        public static List<string?>? GenerateUrlsSuggestions(string inputUrl, string HttpRootFolder,
+        public static List<string> GenerateUrlsSuggestions(string inputUrl, string HttpRootFolder,
             double minSimilarity, int MaxResults = 20)
         {
             if (fileSystemCache == null || string.IsNullOrEmpty(inputUrl) || string.IsNullOrEmpty(HttpRootFolder) || !fileSystemCache.Any())
@@ -38,7 +36,11 @@ namespace CyberBackendLibrary.AIModels
                 .AsParallel()
                 .AsUnordered()
                 .WithDegreeOfParallelism(2)
+#if NET5_0_OR_GREATER
                 .Where(entry => inputUrl.Replace("\\", "/").Split('/').Any(segment => entry.FullName.Replace("\\", "/").Contains(segment, StringComparison.InvariantCultureIgnoreCase)))
+#else
+                .Where(entry => inputUrl.Replace("\\", "/").Split('/').Any(segment => entry.FullName.ToUpper().Replace("\\", "/").Contains(segment.ToUpper())))
+#endif
                 .Select(entry =>
                 {
                     if (File.Exists(entry.FullName))
@@ -64,7 +66,7 @@ namespace CyberBackendLibrary.AIModels
         /// <param name="text2">The second text.</param>
         /// </summary>
         /// <returns>A double.</returns>
-        public static double CosineSimilarity(string text1, string? text2)
+        public static double CosineSimilarity(string text1, string text2)
         {
             if (string.IsNullOrEmpty(text2)) return 0;
 
@@ -72,9 +74,9 @@ namespace CyberBackendLibrary.AIModels
             Regex regex = new Regex(@"\W+");
 
             // Calculate word frequency
-            Dictionary<string, int>? freq1 = regex.Split(text1.ToLower()).Where(token => token.Length > 0)
+            Dictionary<string, int> freq1 = regex.Split(text1.ToLower()).Where(token => token.Length > 0)
                 .GroupBy(word => word).ToDictionary(g => g.Key, g => g.Count());
-            Dictionary<string, int>? freq2 = regex.Split(text2.ToLower()).Where(token => token.Length > 0)
+            Dictionary<string, int> freq2 = regex.Split(text2.ToLower()).Where(token => token.Length > 0)
                 .GroupBy(word => word).ToDictionary(g => g.Key, g => g.Count());
 
             // Calculate magnitude
@@ -94,7 +96,7 @@ namespace CyberBackendLibrary.AIModels
             return !Monitor.IsEntered(_Lock);
         }
 
-        public static void ScheduledfileSystemUpdate(object? state)
+        public static void ScheduledfileSystemUpdate(object state)
         {
             if (state != null)
             {

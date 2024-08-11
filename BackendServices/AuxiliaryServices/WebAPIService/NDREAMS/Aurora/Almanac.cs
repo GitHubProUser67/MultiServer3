@@ -9,7 +9,7 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class Almanac
     {
-        public static string? ProcessAlmanac(DateTime CurrentDate, byte[]? PostData, string? ContentType, string fullurl, string apipath)
+        public static string ProcessAlmanac(DateTime CurrentDate, byte[] PostData, string ContentType, string fullurl, string apipath)
         {
             bool Weight = !string.IsNullOrEmpty(fullurl) && fullurl.Contains("Weights");
             string func = string.Empty;
@@ -17,7 +17,7 @@ namespace WebAPIService.NDREAMS.Aurora
             string key = string.Empty;
             string element = string.Empty;
             string resdata = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -61,7 +61,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     case "set":
                         if (File.Exists(SkyFishingProfilePath))
                         {
-                            List<FishingProps>? props = JsonConvert.DeserializeObject<List<FishingProps>>(File.ReadAllText(SkyFishingProfilePath));
+                            List<FishingProps> props = JsonConvert.DeserializeObject<List<FishingProps>>(File.ReadAllText(SkyFishingProfilePath));
 
                             if (props == null)
                             {
@@ -98,9 +98,9 @@ namespace WebAPIService.NDREAMS.Aurora
 
         public class FishingProps
         {
-            public string? a_id { get; set; }
-            public string? str { get; set; }
-            public string? weight { get; set; }
+            public string a_id { get; set; }
+            public string str { get; set; }
+            public string weight { get; set; }
         }
     }
 }

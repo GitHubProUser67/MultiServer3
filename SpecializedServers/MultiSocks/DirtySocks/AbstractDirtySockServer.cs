@@ -1,6 +1,6 @@
 
 using CustomLogger;
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 using MultiSocks.DirtySocks.Messages;
 using MultiSocks.Tls;
 using System.Net;
@@ -118,7 +118,7 @@ namespace MultiSocks.DirtySocks
 
                 if (lowlevel) // Can be used a SSL workaround for testing.
                 {
-                    string hexdata = DataTypesUtils.ByteArrayToHexString(data);
+                    string hexdata = DataUtils.ByteArrayToHexString(data);
 
                     LoggerAccessor.LogInfo($"{client.ADDR} Requested Packet {name}:{hexdata}:{{{body.Replace("\n", string.Empty)}}}");
 

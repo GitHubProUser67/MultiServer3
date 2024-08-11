@@ -157,7 +157,7 @@ namespace WatsonWebserver
         public override async Task<bool> Send(string data, CancellationToken token = default)
         {
             if (ChunkedTransfer) throw new IOException("Response is configured to use chunked transfer-encoding.  Use SendChunk() and SendFinalChunk().");
-            if (String.IsNullOrEmpty(data))
+            if (string.IsNullOrEmpty(data))
                 return await SendInternalAsync(0, null, token).ConfigureAwait(false);
 
             byte[] bytes = Encoding.UTF8.GetBytes(data);
@@ -218,7 +218,7 @@ namespace WatsonWebserver
                 await _OutputStream.WriteAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false);
                 await _OutputStream.FlushAsync(token).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
@@ -256,7 +256,7 @@ namespace WatsonWebserver
                 ResponseSent = true;
                 return true;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
@@ -430,9 +430,7 @@ namespace WatsonWebserver
                     string[] vals = Headers.GetValues(i);
 
                     if (vals == null || vals.Length < 1)
-                    {
                         _Response.AddHeader(key, null);
-                    }
                     else
                     {
                         for (int j = 0; j < vals.Length; j++)
@@ -469,7 +467,7 @@ namespace WatsonWebserver
             byte[] buffer = new byte[16 * 1024];
             using (MemoryStream ms = new MemoryStream())
             {
-                int read;
+                int read = 0;
 
                 while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
                 {
@@ -527,7 +525,7 @@ namespace WatsonWebserver
                 ResponseSent = true;
                 return true;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }

@@ -6,13 +6,13 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_crafting_up
     {
-        public static string? ProcessCraftingUp(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessCraftingUp(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? level = QueryParameters["level"];
-                string? xp = QueryParameters["xp"];
+                string user = QueryParameters["user"];
+                string level = QueryParameters["level"];
+                string xp = QueryParameters["xp"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(level) && !string.IsNullOrEmpty(xp))
                 {
@@ -25,7 +25,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <level> element
-                        XmlElement? levelElement = xmlDoc.SelectSingleNode("/xml/resources/level") as XmlElement;
+                        XmlElement levelElement = xmlDoc.SelectSingleNode("/xml/resources/level") as XmlElement;
 
                         if (levelElement != null)
                         {
@@ -33,7 +33,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
                             levelElement.InnerText = level;
 
                             // Find the <xp> element
-                            XmlElement? xpElement = xmlDoc.SelectSingleNode("/xml/resources/xp") as XmlElement;
+                            XmlElement xpElement = xmlDoc.SelectSingleNode("/xml/resources/xp") as XmlElement;
 
                             if (xpElement != null)
                             {

@@ -9,14 +9,14 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_sold
     {
-        public static string? ProcessSold(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessSold(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? type = QueryParameters["type"];
-                string? id = QueryParameters["id"];
-                string? amount = QueryParameters["amount"];
+                string user = QueryParameters["user"];
+                string type = QueryParameters["type"];
+                string id = QueryParameters["id"];
+                string amount = QueryParameters["amount"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(amount))
                 {
@@ -29,7 +29,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
                         xmlDoc.LoadXml(RemovePlantEntry(File.ReadAllText($"{apiPath}/juggernaut/farm/User_Data/{user}.xml"), type, id));
 
                         // Find the <gold> element
-                        XmlElement? goldElement = xmlDoc.SelectSingleNode("/xml/resources/gold") as XmlElement;
+                        XmlElement goldElement = xmlDoc.SelectSingleNode("/xml/resources/gold") as XmlElement;
 
                         if (goldElement != null)
                         {
@@ -58,7 +58,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
         {
             XDocument xdoc = XDocument.Parse(xmlData);
 
-            XElement? plantToRemove = xdoc.Descendants("plant")
+            XElement plantToRemove = xdoc.Descendants("plant")
                 .FirstOrDefault(a =>
                     a.Element("t")?.Value == type &&
                     a.Element("id")?.Value == id

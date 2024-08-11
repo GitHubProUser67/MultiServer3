@@ -162,7 +162,7 @@ class Program
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        CyberBackendLibrary.SSL.SSLUtils.InitCerts(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
+        CyberBackendLibrary.SSL.SSLUtils.InitializeSSLCertificates(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
             SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         MediusDatabaseLoop ??= Task.Run(SVOManager.StartTickPooling);
@@ -177,7 +177,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.DataTypes.DataTypesUtils.IsWindows)
+        if (!CyberBackendLibrary.Extension.DataUtils.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

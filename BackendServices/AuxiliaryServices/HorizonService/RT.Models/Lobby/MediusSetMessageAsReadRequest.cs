@@ -14,11 +14,11 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         /// <summary>
         /// Session Key
         /// </summary>
-        public string? SessionKey; // SESSIONKEY_MAXLEN
+        public string SessionKey; // SESSIONKEY_MAXLEN
         /// <summary>
         /// MessageType to mark as read
         /// </summary>

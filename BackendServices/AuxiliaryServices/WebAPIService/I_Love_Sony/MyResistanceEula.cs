@@ -1,30 +1,16 @@
-
-using CustomLogger;
-using HttpMultipartParser;
-using System.Security.Cryptography;
-using WebAPIService.SSFW;
-using System.Text;
-using CyberBackendLibrary.DataTypes;
-using System.IO;
-using System;
-using System.Collections;
-
 namespace WebAPIService.ILoveSony
 {
     public class MyResistanceEula
     {
-        public static string? ILoveSonyEula(byte[]? PostData, string boundary)
+        public static string ILoveSonyEula()
         {
-            
-
                 return $@"TERMS OF SERVICE
-                    Download is subject to the PLAYSTATION®Network Terms of Service/User Agreement and any specific additional conditions applying to this item. If you do not wish to accept these terms, do not  download this item. One time fee for use of downloads on up to 5 activated PS3™ systems. Resistance: Fall of Man © 2008 Sony Computer Entertainment America Inc.  Published by Sony Computer Entertainment America.  Developed by Insomniac Entertainment.  Resistance: Fall of Man is a trademark of Sony Computer Entertainment America Inc.  All rights reserved.
+                    Download is subject to the PLAYSTATIONÂ®Network Terms of Service/User Agreement and any specific additional conditions applying to this item. If you do not wish to accept these terms, do not  download this item. One time fee for use of downloads on up to 5 activated PS3â„¢ systems. Resistance: Fall of Man Â© 2008 Sony Computer Entertainment America Inc.  Published by Sony Computer Entertainment America.  Developed by Insomniac Entertainment.  Resistance: Fall of Man is a trademark of Sony Computer Entertainment America Inc.  All rights reserved.
                     2-4 Players
                     Network Players 2-40
                     486KB minimum save size
                     HDTV screen resolution: 720p, 1080i";
             
         }
-
     }
 }

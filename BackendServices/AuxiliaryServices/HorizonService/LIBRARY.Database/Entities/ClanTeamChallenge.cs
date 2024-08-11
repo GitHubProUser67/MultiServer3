@@ -10,8 +10,8 @@ namespace Horizon.LIBRARY.Database.Entities
         public int AgainstClanID { get; set; }
         public int Status { get; set; }
         public int ResponseTime { get; set; }
-        public string? ChallengeMsg { get; set; }
-        public string? ResponseMessage { get; set; }
+        public string ChallengeMsg { get; set; }
+        public string ResponseMessage { get; set; }
         public DateTime CreateDt { get; set; } = DateTime.UtcNow; // Set default value in constructor
     }
 }

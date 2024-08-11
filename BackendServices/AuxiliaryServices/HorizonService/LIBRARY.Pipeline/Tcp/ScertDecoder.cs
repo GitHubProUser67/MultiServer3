@@ -24,7 +24,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         {
             try
             {
-                object? decoded = Decode(context, input);
+                object decoded = Decode(context, input);
                 if (decoded != null)
                     output.Add(decoded);
             }
@@ -43,11 +43,11 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         /// </param>
         /// <param name="input">The <see cref="IByteBuffer" /> from which to read data.</param>
         /// <returns>The <see cref="IByteBuffer" /> which represents the frame or <c>null</c> if no frame could be created.</returns>
-        protected virtual object? Decode(IChannelHandlerContext context, IByteBuffer input)
+        protected virtual object Decode(IChannelHandlerContext context, IByteBuffer input)
         {
             //input.MarkReaderIndex();
             byte id = input.GetByte(input.ReaderIndex);
-            byte[]? hash = null;
+            byte[] hash = null;
             long frameLength = input.GetShortLE(input.ReaderIndex + 1);
             int totalLength = 3;
 

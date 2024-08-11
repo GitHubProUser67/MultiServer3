@@ -63,7 +63,7 @@ namespace HTTPServer
             };
         }
 
-        public static HttpResponse Found(string url, bool KeepAlive = false)
+        public static HttpResponse Found(string url)
         {
             return new HttpResponse()
             {

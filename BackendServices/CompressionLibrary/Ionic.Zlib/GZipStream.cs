@@ -891,7 +891,7 @@ namespace Ionic.Zlib
             if (!LastModified.HasValue) LastModified = DateTime.Now;
             System.TimeSpan delta = LastModified.Value - _unixEpoch;
             Int32 timet = (Int32)delta.TotalSeconds;
-            Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(timet) : timet), 0, header, i, 4);
+            Array.Copy(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(timet) : timet), 0, header, i, 4);
             i += 4;
 
             // xflg

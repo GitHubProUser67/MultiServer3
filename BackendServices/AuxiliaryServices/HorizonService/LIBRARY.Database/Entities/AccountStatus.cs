@@ -9,7 +9,7 @@ namespace Horizon.LIBRARY.Database.Entities
         public int? GameId { get; set; }
         public int? ChannelId { get; set; }
         public int? WorldId { get; set; }
-        public string? GameName { get; set; }
-        public string? DatabaseUser { get; set; }
+        public string GameName { get; set; }
+        public string DatabaseUser { get; set; }
     }
 }

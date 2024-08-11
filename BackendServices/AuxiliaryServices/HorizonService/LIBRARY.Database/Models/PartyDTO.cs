@@ -8,8 +8,8 @@ namespace Horizon.LIBRARY.Database.Models
         public int AppId { get; set; }
         public int MinPlayers { get; set; }
         public int MaxPlayers { get; set; }
-        public string? PartyName { get; set; }
-        public string? PartyPassword { get; set; }
+        public string PartyName { get; set; }
+        public string PartyPassword { get; set; }
         public int GenericField1 { get; set; }
         public int GenericField2 { get; set; }
         public int GenericField3 { get; set; }
@@ -18,8 +18,8 @@ namespace Horizon.LIBRARY.Database.Models
         public int GenericField6 { get; set; }
         public int GenericField7 { get; set; }
         public int GenericField8 { get; set; }
-        public string? GameHostType { get; set; }
-        public string? Metadata { get; set; }
+        public string GameHostType { get; set; }
+        public string Metadata { get; set; }
         public DateTime? PartyCreateDt { get; set; }
         public DateTime? PartyStartDt { get; set; }
         public DateTime? PartyEndDt { get; set; }

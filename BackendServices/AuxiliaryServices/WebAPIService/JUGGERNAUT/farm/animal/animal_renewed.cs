@@ -8,13 +8,13 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
 {
     public class animal_renewed
     {
-        public static string? ProcessRenewed(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessRenewed(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? type = QueryParameters["type"];
-                string? id = QueryParameters["id"];
+                string user = QueryParameters["user"];
+                string type = QueryParameters["type"];
+                string id = QueryParameters["id"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(id))
                 {
@@ -37,7 +37,7 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
             {
                 XDocument xdoc = XDocument.Parse(xmlData);
 
-                XElement? animalToUpdate = xdoc.Descendants("animal")
+                XElement animalToUpdate = xdoc.Descendants("animal")
                     .FirstOrDefault(a => a.Element("id")?.Value == id && a.Element("t")?.Value == type);
 
                 if (animalToUpdate != null)

@@ -76,6 +76,14 @@ namespace CyberBackendLibrary.Extension
             }
         }
 
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                _list.Clear();
+            }
+        }
+
         public T FirstOrDefault(Func<T, bool> predicate)
         {
             lock (_lock)

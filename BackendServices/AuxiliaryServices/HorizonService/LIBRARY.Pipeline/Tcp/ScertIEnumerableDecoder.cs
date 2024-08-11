@@ -12,8 +12,8 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
 {
     public class ScertIEnumerableDecoder : MessageToMessageDecoder<IByteBuffer>
     {
-        readonly ICipher[]? _ciphers = null;
-        readonly Func<RT_MSG_TYPE, CipherContext, ICipher?>? _getCipher = null;
+        readonly ICipher[] _ciphers = null;
+        readonly Func<RT_MSG_TYPE, CipherContext, ICipher> _getCipher = null;
 
         /// <summary>
         ///     Create a new instance.
@@ -31,7 +31,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         {
             try
             {
-                List<object>? decoded = Decode(context, input);
+                List<object> decoded = Decode(context, input);
                 if (decoded != null)
                     output.AddRange(decoded);
             }
@@ -50,13 +50,13 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
         /// </param>
         /// <param name="input">The <see cref="IByteBuffer" /> from which to read data.</param>
         /// <returns>The <see cref="IByteBuffer" /> which represents the frame or <c>null</c> if no frame could be created.</returns>
-        protected virtual List<object>? Decode(IChannelHandlerContext context, IByteBuffer input)
+        protected virtual List<object> Decode(IChannelHandlerContext context, IByteBuffer input)
         {
-            List<object> messages = new();
+            List<object> messages = new List<object>();
 
             //input.MarkReaderIndex();
             byte id = input.GetByte(input.ReaderIndex);
-            byte[]? hash = null;
+            byte[] hash = null;
             long frameLength = input.GetShortLE(input.ReaderIndex + 1);
             int totalLength = 3;
 
@@ -100,7 +100,7 @@ namespace Horizon.LIBRARY.Pipeline.Tcp
             // parse out each message into their own buffers
             for (int i = 0; i < messageContents.Length;)
             {
-                int subLen = BitConverter.ToInt16(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(messageContents) : messageContents, i + 1) + 3;
+                int subLen = BitConverter.ToInt16(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseArray(messageContents) : messageContents, i + 1) + 3;
                 if (messageContents[i] >= 0x80)
                     subLen += 4;
 

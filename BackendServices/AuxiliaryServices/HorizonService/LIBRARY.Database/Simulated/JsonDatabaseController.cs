@@ -7,7 +7,7 @@ namespace HorizonService.LIBRARY.Database.Simulated
 {
     public class JsonDatabaseController
     {
-        public static void WriteToJsonFile(string? directoryPath, string Type, string Value)
+        public static void WriteToJsonFile(string directoryPath, string Type, string Value)
         {
             if (string.IsNullOrEmpty(directoryPath))
                 return;
@@ -24,7 +24,7 @@ namespace HorizonService.LIBRARY.Database.Simulated
             }
         }
 
-        public static (string, bool) ReadFromJsonFile(string? directoryPath, string Type, string Value)
+        public static (string, bool) ReadFromJsonFile(string directoryPath, string Type, string Value)
         {
             if (string.IsNullOrEmpty(directoryPath))
                 return ("INVALIDFOLDER", false);
@@ -35,7 +35,7 @@ namespace HorizonService.LIBRARY.Database.Simulated
                 {
                     string json = File.ReadAllText(directoryPath + $"/MediusSimulatedDatabase/{Type}/{Value}.json");
 
-                    Dictionary<string, bool>? JsonOutput = JsonConvert.DeserializeObject<Dictionary<string, bool>>(json);
+                    Dictionary<string, bool> JsonOutput = JsonConvert.DeserializeObject<Dictionary<string, bool>>(json);
 
                     if (JsonOutput != null && JsonOutput.ContainsKey("IsBanned"))
                         return ("OK", JsonOutput["IsBanned"]);

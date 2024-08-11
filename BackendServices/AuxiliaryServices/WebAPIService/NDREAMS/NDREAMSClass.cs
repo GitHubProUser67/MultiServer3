@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using CustomLogger;
 using CyberBackendLibrary.HTTP;
 using WebAPIService.NDREAMS.Aurora;
@@ -34,7 +35,7 @@ namespace WebAPIService.NDREAMS
             this.host = host;
         }
 
-        public string? ProcessRequest(Dictionary<string, string>? QueryParameters, byte[]? PostData = null, string? ContentType = null)
+        public string ProcessRequest(Dictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -98,7 +99,13 @@ namespace WebAPIService.NDREAMS
                                         string[] segments = filepath.Trim('/').Split('/');
 
                                         if (segments.Length == 5) // Url is effectively a Blueprint Home Furn/Layout fetch, so we update current used slot for each.
-                                            File.WriteAllText(apipath + $"/NDREAMS/BlueprintHome/{segments[2]}/{segments[3]}/CurrentSlot.txt", segments[4][9..1]);
+                                        {
+                                            Match match = Regex.Match(segments[4], @"blueprint_(\d+)\.xml");
+                                            if (match.Success)
+                                                File.WriteAllText(apipath + $"/NDREAMS/BlueprintHome/{segments[2]}/{segments[3]}/CurrentSlot.txt", match.Groups[1].Value);
+                                            else
+                                                LoggerAccessor.LogError($"[NDREAMS] - Server received an invalid BlueprintHome layout slot number!");
+                                        }
                                     }
                                     catch (Exception ex)
                                     {

@@ -677,7 +677,7 @@ namespace Ionic.Exploration
             if (!LastModified.HasValue) LastModified = DateTime.Now;
             TimeSpan delta = LastModified.Value - _unixEpoch;
             Int32 timet = (Int32)delta.TotalSeconds;
-            Array.Copy(!BitConverter.IsLittleEndian ? BitConverter.GetBytes(EndianTools.EndianUtils.EndianSwap(timet)) : BitConverter.GetBytes(timet), 0, header, i, 4);
+            Array.Copy(!BitConverter.IsLittleEndian ? BitConverter.GetBytes(EndianTools.EndianUtils.ReverseInt(timet)) : BitConverter.GetBytes(timet), 0, header, i, 4);
             i += 4;
 
             // xflg
@@ -1104,10 +1104,10 @@ namespace Ionic.Exploration
         private void _EmitTrailer()
         {
             // Emit the GZIP trailer: CRC32 and  size mod 2^32
-            _outStream.Write(!BitConverter.IsLittleEndian ? BitConverter.GetBytes(EndianTools.EndianUtils.EndianSwap(_runningCrc.Crc32Result)) : BitConverter.GetBytes(_runningCrc.Crc32Result), 0, 4);
+            _outStream.Write(!BitConverter.IsLittleEndian ? BitConverter.GetBytes(EndianTools.EndianUtils.ReverseInt(_runningCrc.Crc32Result)) : BitConverter.GetBytes(_runningCrc.Crc32Result), 0, 4);
 
             int c2 = (Int32)(_totalBytesProcessed & 0x00000000FFFFFFFF);
-            _outStream.Write(!BitConverter.IsLittleEndian ? BitConverter.GetBytes(EndianTools.EndianUtils.EndianSwap(c2)) : BitConverter.GetBytes(c2), 0, 4);
+            _outStream.Write(!BitConverter.IsLittleEndian ? BitConverter.GetBytes(EndianTools.EndianUtils.ReverseInt(c2)) : BitConverter.GetBytes(c2), 0, 4);
         }
 
 

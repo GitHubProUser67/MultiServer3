@@ -1,28 +1,25 @@
 using System.Collections.Generic;
 using System.IO;
-using CyberBackendLibrary.DataTypes;
 using CyberBackendLibrary.HTTP;
-
-using EndianTools;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using WebAPIService.LeaderboardsService.NDREAMS;
 using System;
+using CyberBackendLibrary.Extension;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
     public static class AuroraDBManager
     {
-        public static string? ProcessVisitCounter2(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessVisitCounter2(DateTime CurrentDate, byte[] PostData, string ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string game = string.Empty;
             string territory = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -46,12 +43,8 @@ namespace WebAPIService.NDREAMS.Aurora
                     Directory.CreateDirectory(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}");
 
                     string PlayerVisitProfilePath = apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/visit_counter.json";
-                    byte[] MD5Data = new byte[0];
-                    using (MD5 md5hash = MD5.Create())
-                    {
-                        MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                    }
-                    string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data); // Seems to not make a difference.
+                    string Hash = DataUtils.ByteArrayToHexString(
+                        CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>())); // Seems to not make a difference.
 
                     if (File.Exists(PlayerVisitProfilePath))
                     {
@@ -92,13 +85,13 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessTheEnd(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessTheEnd(DateTime CurrentDate, byte[] PostData, string ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string doom = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -130,19 +123,31 @@ namespace WebAPIService.NDREAMS.Aurora
 
                     string DayProfilePath = apipath + $"/NDREAMS/Aurora/TheEnd/{name}.txt";
                     string qa = "false";
+                    ushort state = 6;
                     int message = 10; // Seems unused.
 
                     // Get the current day of the week
-                    ushort state = DateTime.Today.DayOfWeek switch
+                    switch (DateTime.Today.DayOfWeek)
                     {
-                        DayOfWeek.Monday => 0,
-                        DayOfWeek.Tuesday => 1,
-                        DayOfWeek.Wednesday => 2,
-                        DayOfWeek.Thursday => 3,
-                        DayOfWeek.Friday => 4,
-                        DayOfWeek.Saturday => 5,
-                        _ => 6,// Default to 6 for all other cases
-                    }; ; // From 0 to 6.
+                        case DayOfWeek.Monday:
+                            state = 0;
+                            break;
+                        case DayOfWeek.Tuesday:
+                            state = 1;
+                            break;
+                        case DayOfWeek.Wednesday:
+                            state = 2;
+                            break;
+                        case DayOfWeek.Thursday:
+                            state = 3;
+                            break;
+                        case DayOfWeek.Friday:
+                            state = 4;
+                            break;
+                        case DayOfWeek.Saturday:
+                            state = 5;
+                            break;
+                    }
 
                     if (File.Exists(DayProfilePath))
                     {
@@ -185,12 +190,12 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessComplexABTest(DateTime CurrentDate, byte[]? PostData, string? ContentType)
+        public static string ProcessComplexABTest(DateTime CurrentDate, byte[] PostData, string ContentType)
         {
             string func = string.Empty;
             string name = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -220,7 +225,7 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessOrbrunnerScores(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessOrbrunnerScores(DateTime CurrentDate, byte[] PostData, string ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
@@ -228,7 +233,7 @@ namespace WebAPIService.NDREAMS.Aurora
             string xp = string.Empty;
             string orbs = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -254,7 +259,7 @@ namespace WebAPIService.NDREAMS.Aurora
                 }
 
                 string high = string.Empty;
-                (string?, int)? HighestScore = null;
+                (string, int)? HighestScore = null;
 
                 switch (func)
                 {
@@ -264,12 +269,8 @@ namespace WebAPIService.NDREAMS.Aurora
                         if (key == ExpectedHash)
                         {
                             int best = 0;
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (int.TryParse(score, out int resscore))
                             {
@@ -305,7 +306,7 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessConsumables(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessConsumables(DateTime CurrentDate, byte[] PostData, string ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
@@ -314,7 +315,7 @@ namespace WebAPIService.NDREAMS.Aurora
             string consumable = string.Empty;
             string count = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -366,12 +367,8 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
                             if (!string.IsNullOrEmpty(everything))
                             {
                                 string[] parts = everything.Split(',');
@@ -395,12 +392,8 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (!string.IsNullOrEmpty(consumable))
                                 File.WriteAllText(directoryPath + $"/{consumable}", count);
@@ -418,12 +411,8 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            byte[] MD5Data = new byte[0];
-                            using (MD5 md5hash = MD5.Create())
-                            {
-                                MD5Data = md5hash.ComputeHash(Array.Empty<byte>());
-                            }
-                            string Hash = DataTypesUtils.ByteArrayToHexString(MD5Data);
+                            string Hash = DataUtils.ByteArrayToHexString(
+                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
                             int rescount = 0;
 
                             if (!string.IsNullOrEmpty(consumable) && File.Exists(directoryPath + $"/{consumable}"))
@@ -452,14 +441,14 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessPStats(byte[]? PostData, string? ContentType)
+        public static string ProcessPStats(byte[] PostData, string ContentType)
         {
             string func = string.Empty;
             string scene = string.Empty;
             string resdata = string.Empty;
             string counts = string.Empty;
             string rgn = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -482,13 +471,13 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessReleaseInfo(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessReleaseInfo(DateTime CurrentDate, byte[] PostData, string ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string version = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -543,14 +532,14 @@ namespace WebAPIService.NDREAMS.Aurora
             return null;
         }
 
-        public static string? ProcessAuroraXP(DateTime CurrentDate, byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessAuroraXP(DateTime CurrentDate, byte[] PostData, string ContentType, string apipath)
         {
             string func = string.Empty;
             string name = string.Empty;
             string locale = string.Empty;
             string ticket = string.Empty;
             string key = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -593,7 +582,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     switch (func)
                     {
                         case "GetInitData":
-                            string? GUIDS = NDREAMSServerUtils.CreateBase64StringFromGuids(new List<string>
+                            string GUIDS = NDREAMSServerUtils.CreateBase64StringFromGuids(new List<string>
                             {
                                 "1A645C1F-91FA47C0-833EA523-4E491A8B",
                                 "711733DB-785A4753-B997EF54-5E8A7D36",
@@ -656,7 +645,11 @@ namespace WebAPIService.NDREAMS.Aurora
                             if (NextRewardXP != 0)
                             {
                                 NextRewardProgress = (float)XP / NextRewardXP;
+#if NET5_0_OR_GREATER
                                 NextRewardProgress = Math.Clamp(NextRewardProgress, 0.0F, 1.0F);
+#else
+                                NextRewardProgress = Clamp(NextRewardProgress, 0.0F, 1.0F);
+#endif
                             }
 
                             return $"<xml><success>true</success><result><Level>{Level}</Level><XP>{XP}</XP><NextXP>{NextXP}</NextXP><GUIDS>{GUIDS}</GUIDS><LastRewardXP>{LastRewardXP}</LastRewardXP>" +
@@ -664,12 +657,12 @@ namespace WebAPIService.NDREAMS.Aurora
                         case "AddTicket":
                             int XPAwarded = 0;
 
-                            if (DataTypesUtils.IsBase64String(ticket))
+                            if (DataUtils.IsBase64String(ticket))
                             {
                                 byte[] DecodedTicket = Convert.FromBase64String(ticket);
 
                                 if (DecodedTicket[0] == 0x00 && DecodedTicket[1] == 0x01)
-                                    XPAwarded = BitConverter.ToInt16(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(new byte[] { DecodedTicket[21], DecodedTicket[22] }) : new byte[] { DecodedTicket[21], DecodedTicket[22] }, 0);
+                                    XPAwarded = BitConverter.ToInt16(BitConverter.IsLittleEndian ? new byte[] { DecodedTicket[22], DecodedTicket[21] } : new byte[] { DecodedTicket[21], DecodedTicket[22] }, 0);
                             }
                             else
                                 CustomLogger.LoggerAccessor.LogWarn($"[nDreams] - AuroraXP: Unknown Ticket format detected, generated by:{name}. Ignoring...");
@@ -701,7 +694,11 @@ namespace WebAPIService.NDREAMS.Aurora
                             if (NextRewardXP != 0)
                             {
                                 NextRewardProgress = (float)XP / NextRewardXP;
+#if NET5_0_OR_GREATER
                                 NextRewardProgress = Math.Clamp(NextRewardProgress, 0.0F, 1.0F);
+#else
+                                NextRewardProgress = Clamp(NextRewardProgress, 0.0F, 1.0F);
+#endif
                             }
 
                             return $"<xml><success>true</success><result><Level>{Level}</Level><Awarded>{XPAwarded}</Awarded><LvlChange>{AwaredLevels}</LvlChange><LvlChang>{((AwaredLevels != 0) ? "true" : "false")}</LvlChang><XP>{XP}</XP><NextXP>{NextXP}</NextXP><LastRewardXP>{LastRewardXP}</LastRewardXP>" +
@@ -718,5 +715,14 @@ namespace WebAPIService.NDREAMS.Aurora
 
             return null;
         }
+#if !NET5_0_OR_GREATER
+        // Custom Clamp method
+        private static float Clamp(float value, float min, float max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+#endif
     }
 }

@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.GetClanMemberList_ExtraInfo;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public int ClanID;
         public int LadderStatIndex;

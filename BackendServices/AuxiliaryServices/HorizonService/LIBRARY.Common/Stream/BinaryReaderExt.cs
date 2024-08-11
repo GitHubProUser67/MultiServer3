@@ -7,7 +7,7 @@ namespace Horizon.LIBRARY.Common.Stream
 {
     public static class BinaryReaderExt
     {
-        public static T? Read<T>(this BinaryReader reader)
+        public static T Read<T>(this BinaryReader reader)
         {
             //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
             if (reader.BaseStream.Length == 0)
@@ -45,7 +45,7 @@ namespace Horizon.LIBRARY.Common.Stream
                 return string.Empty;
         }
 
-        public static object? ReadObject(this BinaryReader reader, Type type)
+        public static object ReadObject(this BinaryReader reader, Type type)
         {
             //.NET8 reader.BaseStream will have length 0 sometimes.like:https://github.com/dotnet/wcf/issues/5205
             if (reader.BaseStream.Length == 0)
@@ -53,7 +53,7 @@ namespace Horizon.LIBRARY.Common.Stream
 
             if (type.GetInterface("IStreamSerializer") != null)
             {
-                IStreamSerializer? result = (IStreamSerializer?)Activator.CreateInstance(type);
+                IStreamSerializer result = (IStreamSerializer)Activator.CreateInstance(type);
                 result?.Deserialize(reader);
                 return result;
             }

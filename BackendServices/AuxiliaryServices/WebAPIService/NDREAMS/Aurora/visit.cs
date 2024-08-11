@@ -8,13 +8,13 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class visit
     {
-        public static string? ProcessVisit(byte[]? PostData, string? ContentType, string apipath)
+        public static string ProcessVisit(byte[] PostData, string ContentType, string apipath)
         {
             string friends = string.Empty;
             string name = string.Empty;
             string age = string.Empty;
             string bonus = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -47,8 +47,8 @@ namespace WebAPIService.NDREAMS.Aurora
                         xmlDoc.Load(ProfilePath);
 
                         // Get the <days> and <sessions> nodes
-                        XmlNode? daysNode = xmlDoc.SelectSingleNode("//days");
-                        XmlNode? sessionsNode = xmlDoc.SelectSingleNode("//sessions");
+                        XmlNode daysNode = xmlDoc.SelectSingleNode("//days");
+                        XmlNode sessionsNode = xmlDoc.SelectSingleNode("//sessions");
 
                         if (daysNode != null && sessionsNode != null && int.TryParse(daysNode.InnerText, out int days) && int.TryParse(sessionsNode.InnerText, out int sessions))
                         {

@@ -12,7 +12,7 @@ namespace Horizon.RT.Models
 
         public byte ServReq;
         public ushort Password_Len;
-        public char[]? Password;
+        public char[] Password;
 
         public override void Deserialize(MessageReader reader)
         {

@@ -15,7 +15,7 @@ namespace Horizon.PluginManager
 
                 foreach (string dllFile in dllFiles)
                 {
-                    IPlugin plugin = LoadPlugin(dllFile);
+                    IPlugin? plugin = LoadPlugin(dllFile);
                     if (plugin != null)
                         plugins.Add(plugin);
                 }
@@ -40,6 +40,10 @@ namespace Horizon.PluginManager
                         return plugin;
                     }
                 }
+            }
+            catch (BadImageFormatException)
+            {
+
             }
             catch (Exception ex)
             {

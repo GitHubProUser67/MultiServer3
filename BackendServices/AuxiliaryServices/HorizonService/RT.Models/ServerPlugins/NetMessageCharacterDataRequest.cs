@@ -9,7 +9,7 @@ namespace Horizon.RT.Models.ServerPlugins
 
         public byte s_nonUIRequestID;
         public QueryType m_queryType;
-        public string? m_characterName;
+        public string m_characterName;
         public int m_accountID;
         public int m_requestID;
 

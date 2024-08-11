@@ -11,7 +11,7 @@ namespace CyberBackendLibrary.Extension
         private const int PAGE_SIZE = 1024000;
         private const int ALLOC_STEP = 1024;
 
-        private byte[]?[]? _streamBuffers;
+        private byte[][] _streamBuffers;
 
         private int _pageCount = 0;
         private long _allocatedBytes = 0;
@@ -31,18 +31,31 @@ namespace CyberBackendLibrary.Extension
         public HugeMemoryStream(Stream st, long BufferSize)
         {
             int bytesRead = 0;
+#if NET5_0_OR_GREATER
             Span<byte> buffer = new byte[BufferSize];
             while ((bytesRead = st.Read(buffer)) > 0)
             {
                 Write(buffer[..bytesRead]);
             }
+#else
+            byte[] buffer = new byte[BufferSize];
+            while ((bytesRead = st.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                Write(buffer, 0, bytesRead);
+            }
+#endif
         }
 
+        public HugeMemoryStream(byte[] ByteArrayToMem)
+        {
+            Write(ByteArrayToMem, 0, ByteArrayToMem.Length);
+        }
+#if NET5_0_OR_GREATER
         public HugeMemoryStream(Span<byte> SpanToMem)
         {
             Write(SpanToMem);
         }
-
+#endif
         public HugeMemoryStream()
         {
 
@@ -102,7 +115,7 @@ namespace CyberBackendLibrary.Extension
                 _position = _length;
         }
 
-        #endregion Internals
+#endregion Internals
 
         #region Stream
 
@@ -148,7 +161,7 @@ namespace CyberBackendLibrary.Extension
 
                 if (_streamBuffers != null)
                 {
-                    Array? array = _streamBuffers[currentPage++];
+                    Array array = _streamBuffers[currentPage++];
                     if (array != null)
                         Array.Copy(array, currentOffset, buffer, offset, currentLength);
                 }
@@ -230,7 +243,7 @@ namespace CyberBackendLibrary.Extension
 
                 if (_streamBuffers != null)
                 {
-                    Array? array = _streamBuffers[currentPage++];
+                    Array array = _streamBuffers[currentPage++];
                     if (array != null)
                         Array.Copy(buffer, offset, array, currentOffset, currentLength);
                 }

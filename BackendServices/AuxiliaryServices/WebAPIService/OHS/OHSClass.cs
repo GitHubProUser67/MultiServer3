@@ -27,12 +27,12 @@ namespace WebAPIService.OHS
             this.game = game;
         }
 
-        public string? ProcessRequest(byte[] PostData, string? ContentType, string directoryPath)
+        public string ProcessRequest(byte[] PostData, string ContentType, string directoryPath)
         {
             if (string.IsNullOrEmpty(absolutepath) || string.IsNullOrEmpty(directoryPath))
                 return null;
 
-            string? res = null;
+            string res = null;
 
             directoryPath = RemoveCommands(directoryPath);
 

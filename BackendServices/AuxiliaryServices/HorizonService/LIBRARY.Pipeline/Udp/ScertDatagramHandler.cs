@@ -10,9 +10,9 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         public override bool IsSharable => true;
 
 
-        public Action<IChannel>? OnChannelActive;
-        public Action<IChannel>? OnChannelInactive;
-        public Action<IChannel, ScertDatagramPacket>? OnChannelMessage;
+        public Action<IChannel> OnChannelActive;
+        public Action<IChannel> OnChannelInactive;
+        public Action<IChannel, ScertDatagramPacket> OnChannelMessage;
 
         public override void ChannelActive(IChannelHandlerContext ctx)
         {
@@ -40,7 +40,7 @@ namespace Horizon.LIBRARY.Pipeline.Udp
         protected override void ChannelRead0(IChannelHandlerContext ctx, ScertDatagramPacket message)
         {
             // Handle medius version
-            ScertClientAttribute? scertClient = ctx.GetAttribute(Constants.SCERT_CLIENT).Get();
+            ScertClientAttribute scertClient = ctx.GetAttribute(Constants.SCERT_CLIENT).Get();
             if (message.Message != null && scertClient != null && scertClient.OnMessage(message.Message))
                 ctx.GetAttribute(Constants.SCERT_CLIENT).Set(scertClient);
 

@@ -8,11 +8,11 @@ namespace WebAPIService.OHS
 {
     public class Statistic
     {
-        public static string? Set(byte[] PostData, string ContentType)
+        public static string Set(byte[] PostData, string ContentType)
         {
-            string? dataforohs = null;
+            string dataforohs = null;
 
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary))
             {
@@ -49,11 +49,11 @@ namespace WebAPIService.OHS
         }
 
 
-        public static string? HeatmapTracker(byte[] PostData, string ContentType)
+        public static string HeatmapTracker(byte[] PostData, string ContentType)
         {
-            string? dataforohs = null;
+            string dataforohs = null;
 
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary))
             {
@@ -94,11 +94,11 @@ namespace WebAPIService.OHS
                 return JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", 0);
         }
 
-        public static string? PointsTracker(byte[] PostData, string ContentType)
+        public static string PointsTracker(byte[] PostData, string ContentType)
         {
-            string? dataforohs = null;
+            string dataforohs = null;
 
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary))
             {

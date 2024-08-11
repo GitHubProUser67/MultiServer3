@@ -14,7 +14,6 @@ dotnet build MultiServer3.sln --configuration Debug --property WarningLevel=0
 dotnet build MultiServer3.sln --configuration Release --property WarningLevel=0
 
 @echo Copying build output to ~BuildOutput...
-xcopy /E /Y /I "MiddlewareServices/DatabaseMiddleware/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/Horizon/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/MultiSocks/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "SpecializedServers/QuazalServer/bin" "~BuildOutput/MultiServer"
@@ -34,6 +33,18 @@ if exist "Plugins/EdNetCRCCalculator/bin/Debug/net6.0/static" (
 )
 if exist "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" (
     xcopy /E /Y /I "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+)
+if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/static" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+)
+if exist "Plugins/PdfToJpeg/bin/Release/net6.0/static" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+)
+if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" "~BuildOutput/MultiServer/Debug/net6.0/runtimes"
+)
+if exist "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" (
+    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" "~BuildOutput/MultiServer/Release/net6.0/runtimes"
 )
 xcopy /E /Y /I "Plugins/NautilusXP2024/bin" "~BuildOutput/Nautilus"
 

@@ -18,7 +18,7 @@ using System.Buffers;
 
 namespace CyberBackendLibrary.HTTP
 {
-    public class HTTPProcessor
+    public partial class HTTPProcessor
     {
         private static object _StackLock = new object();
 
@@ -617,7 +617,7 @@ namespace CyberBackendLibrary.HTTP
             "default.asp"
         };
 
-        public static string DecodeUrl(string? url)
+        public static string DecodeUrl(string url)
         {
             if (string.IsNullOrEmpty(url)) return string.Empty;
             string newUrl = string.Empty;
@@ -631,16 +631,16 @@ namespace CyberBackendLibrary.HTTP
 
         // http://stackoverflow.com/questions/1029740/get-mime-type-from-filename-extension
 
-        public static string GetMimeType(string? extension, Dictionary<string, string> mimeTypesDic)
+        public static string GetMimeType(string extension, Dictionary<string, string> mimeTypesDic)
         {
             if (string.IsNullOrEmpty(extension))
                 return "application/octet-stream";
             else
             {
-                if (!extension.StartsWith('.'))
+                if (!extension.StartsWith("."))
                     extension = "." + extension;
 
-                return mimeTypesDic.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
+                return mimeTypesDic.TryGetValue(extension, out string mime) ? mime : "application/octet-stream";
             }
         }
 
@@ -654,13 +654,40 @@ namespace CyberBackendLibrary.HTTP
             return true;
         }
 
-        public static string ExtractBoundary(string? contentType)
+
+        /// <summary>
+        /// Check if it's need to return 304 instead.
+        /// </summary>
+        /// <param name="Since">Value of Since based request HTTP header.</param>
+        /// <param name="filePath">Path of the file to check on.</param>
+        /// <param name="reverseConditional">(Optional) use reversed result.</param>
+        /// <returns><c>true</c> if need to return 304 or <c>false</c> if need to return 200 or 404</returns>
+        public static bool CheckLastWriteTime(string filePath, string Since, bool reverseConditional = false)
+        {
+            if (string.IsNullOrWhiteSpace(Since) || string.IsNullOrEmpty(filePath)) return false;
+
+            try
+            {
+                DateTimeOffset? time = ToDateTimeOffset(Since);
+
+                if (time.HasValue && File.Exists(filePath))
+                    return reverseConditional ? time.Value < new FileInfo(filePath).LastWriteTime : time.Value >= new FileInfo(filePath).LastWriteTime;
+            }
+            catch
+            {
+
+            }
+
+            return false;
+        }
+
+        public static string ExtractBoundary(string contentType)
         {
             if (!string.IsNullOrEmpty(contentType))
             {
                 int boundaryIndex = contentType.IndexOf("boundary=", StringComparison.InvariantCultureIgnoreCase);
                 if (boundaryIndex != -1)
-                    return contentType[(boundaryIndex + 9)..];
+                    return contentType.Substring(boundaryIndex + 9);
             }
 
             return contentType ?? string.Empty;
@@ -692,16 +719,19 @@ namespace CyberBackendLibrary.HTTP
 
             // Convert the NameValueCollection to a dictionary for easy sorting
             Dictionary<string, string> formDataDictionary = new Dictionary<string, string>();
-            foreach (string? key in formData.AllKeys)
+            foreach (string key in formData.AllKeys)
             {
                 if (key != null)
                     formDataDictionary[key] = formData[key] ?? string.Empty;
             }
-
+#if NET5_0_OR_GREATER
             return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key));
+#else
+            return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value));
+#endif
         }
 
-        public static string RemoveQueryString(string? input)
+        public static string RemoveQueryString(string input)
         {
             if (string.IsNullOrEmpty(input))
                 return string.Empty;
@@ -709,7 +739,7 @@ namespace CyberBackendLibrary.HTTP
             int indexOfQuestionMark = input.IndexOf('?');
 
             if (indexOfQuestionMark >= 0)
-                return input[..indexOfQuestionMark];
+                return input.Substring(0, indexOfQuestionMark);
             else
                 return input;
         }
@@ -731,12 +761,28 @@ namespace CyberBackendLibrary.HTTP
                 .Normalize(NormalizationForm.FormC);
         }
 
-        public static byte[] CompressZstd(byte[] input)
+
+        /// <summary>
+        /// Convert string to DateTimeOffset
+        /// </summary>
+        /// <param name="input">Input string</param>
+        /// <returns>DateTimeOffset</returns>
+        /// <exception cref="InvalidCastException">Throws if the <paramref name="input"/> is not understood by .NET Runtime.</exception>
+        public static DateTimeOffset? ToDateTimeOffset(string input)
         {
-            using Compressor compressor = new Compressor();
-            return compressor.Wrap(input).ToArray();
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            // see for docs: https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.parse?view=net-6.0
+            return input.ToLower() == "now" ? DateTimeOffset.Now : DateTimeOffset.Parse(input);
         }
 
+        public static byte[] CompressZstd(byte[] input)
+        {
+            using (Compressor compressor = new Compressor())
+                return compressor.Wrap(input).ToArray();
+        }
+#if NET5_0_OR_GREATER
         public static byte[] CompressBrotli(byte[] input)
         {
             using MemoryStream output = new MemoryStream();
@@ -748,26 +794,27 @@ namespace CyberBackendLibrary.HTTP
 
             return output.ToArray();
         }
-
+#endif
         public static byte[] CompressGzip(byte[] input)
         {
-            using MemoryStream output = new MemoryStream();
-            using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest, true))
+            using (MemoryStream output = new MemoryStream())
+            using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest))
+            {
                 gzipStream.Write(input, 0, input.Length);
-
-            return output.ToArray();
+                gzipStream.Close();
+                return output.ToArray();
+            }
         }
 
         public static byte[] Inflate(byte[] input)
         {
-            using MemoryStream output = new MemoryStream();
+            using (MemoryStream output = new MemoryStream())
             using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
             {
                 zlibStream.Write(input, 0, input.Length);
                 zlibStream.finish();
+                return output.ToArray();
             }
-
-            return output.ToArray();
         }
 
         public static Stream ZstdCompressStream(Stream input)
@@ -787,7 +834,7 @@ namespace CyberBackendLibrary.HTTP
             outMemoryStream.Seek(0, SeekOrigin.Begin);
             return outMemoryStream;
         }
-
+#if NET5_0_OR_GREATER
         public static Stream BrotliCompressStream(Stream input)
         {
             Stream outMemoryStream;
@@ -802,7 +849,7 @@ namespace CyberBackendLibrary.HTTP
             outMemoryStream.Seek(0, SeekOrigin.Begin);
             return outMemoryStream;
         }
-
+#endif
         public static Stream GzipCompressStream(Stream input)
         {
             Stream outMemoryStream;
@@ -851,6 +898,7 @@ namespace CyberBackendLibrary.HTTP
 
             try
             {
+#if NET5_0_OR_GREATER
                 Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock.
 
                 if (lockTaken) // Lock is free.
@@ -874,6 +922,15 @@ namespace CyberBackendLibrary.HTTP
                     if (flush)
                         output.Flush();
                 }
+#else
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    output.Write(buffer, 0, bytesRead);
+                }
+                if (flush)
+                    output.Flush();
+#endif
             }
             finally
             {

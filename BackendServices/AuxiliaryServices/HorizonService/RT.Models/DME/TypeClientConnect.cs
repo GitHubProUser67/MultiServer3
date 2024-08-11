@@ -12,8 +12,8 @@ namespace Horizon.RT.Models
 
         public byte ConnectionIndex;
         public byte ConnectedClientIndex;
-        public IPAddress? PlayerIp;
-        public RSA_KEY? Key;
+        public IPAddress PlayerIp;
+        public RSA_KEY Key;
 
         public override void Deserialize(MessageReader reader)
         {

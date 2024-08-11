@@ -15,7 +15,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
         public class GameClient
         {
-            public ClientObject? Client;
+            public ClientObject Client;
 
             public int DmeId;
             public bool InGame;
@@ -25,14 +25,14 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public int DMEWorldId = -1;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
-        public List<GameClient> Clients = new();
-        public string? GameName;
-        public string? GamePassword;
-        public string? SpectatorPassword;
+        public List<GameClient> Clients = new List<GameClient>();
+        public string GameName;
+        public string GamePassword;
+        public string SpectatorPassword;
         public byte[] GameStats = new byte[Constants.GAMESTATS_MAXLEN];
         public MediusGameHostType GameHostType;
         public MGCL_GAME_HOST_TYPE GAME_HOST_TYPE;
-        public NetAddressList? netAddressList;
+        public NetAddressList netAddressList;
         public int WorldID;
         public int AccountID;
         public int MinPlayers;
@@ -40,7 +40,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public int GameLevel;
         public int PlayerSkillLevel;
         public int RulesSet;
-        public string? Metadata;
+        public string Metadata;
         public int GenericField1;
         public int GenericField2;
         public int GenericField3;
@@ -52,7 +52,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public DMEObject DMEServer;
-        public Channel? ChatChannel;
+        public Channel ChatChannel;
         public ClientObject Host;
 
         public string AccountIdsAtStart => accountIdsAtStart;
@@ -62,7 +62,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
         protected MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
         public bool hasHostJoined = false;
-        protected string? accountIdsAtStart;
+        protected string accountIdsAtStart;
         protected DateTime utcTimeCreated;
         protected DateTime? utcTimeStarted;
         protected DateTime? utcTimeEnded;

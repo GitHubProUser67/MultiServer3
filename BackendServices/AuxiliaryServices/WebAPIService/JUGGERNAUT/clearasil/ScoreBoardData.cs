@@ -9,9 +9,9 @@ namespace WebAPIService.JUGGERNAUT.clearasil
     {
         public class ScoreboardEntry
         {
-            public string? name { get; set; }
+            public string name { get; set; }
             public int score { get; set; }
-            public string? time { get; set; }
+            public string time { get; set; }
         }
 
         private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();

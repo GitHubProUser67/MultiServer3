@@ -11,7 +11,7 @@ namespace Horizon.RT.Models.AntiCheat
         public int world_Index;
         public int client_Index;
         public int iAccountID;
-        public string? acSessionkey; //SESSIONKEY_MAXLEN
+        public string acSessionkey; //SESSIONKEY_MAXLEN
         public int mData;
         public bool mPassedAntiCheat;
 

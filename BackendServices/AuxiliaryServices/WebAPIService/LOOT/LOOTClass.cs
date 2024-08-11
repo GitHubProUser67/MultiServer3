@@ -18,7 +18,7 @@ namespace WebAPIService.LOOT
             this.workpath = workpath;
         }
 
-        public string? ProcessRequest(Dictionary<string, string>? QueryParameters, byte[]? PostData = null, string? ContentType = null)
+        public string ProcessRequest(Dictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;

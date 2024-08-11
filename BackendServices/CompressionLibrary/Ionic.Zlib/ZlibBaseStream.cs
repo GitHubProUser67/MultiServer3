@@ -218,9 +218,9 @@ namespace Ionic.Zlib
                     {
                         // Emit the GZIP trailer: CRC32 and  size mod 2^32
                         int c1 = crc.Crc32Result;
-                        _stream.Write(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(c1) : c1), 0, 4);
+                        _stream.Write(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(c1) : c1), 0, 4);
                         int c2 = (Int32)(crc.TotalBytesRead & 0x00000000FFFFFFFF);
-                        _stream.Write(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(c2) : c2), 0, 4);
+                        _stream.Write(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(c2) : c2), 0, 4);
                     }
                     else
                     {
@@ -388,7 +388,7 @@ namespace Ionic.Zlib
             if (header[0] != 0x1F || header[1] != 0x8B || header[2] != 8)
                 throw new ZlibException("Bad GZIP header.");
 
-            Int32 timet = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(header) : header, 4);
+            Int32 timet = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(header) : header, 4);
             _GzipMtime = GZipStream._unixEpoch.AddSeconds(timet);
             totalBytesRead += n;
             if ((header[3] & 0x04) == 0x04)

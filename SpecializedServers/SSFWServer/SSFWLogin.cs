@@ -1,9 +1,10 @@
 using CustomLogger;
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
 using WebAPIService.SSFW;
+using XI5;
 
 namespace SSFWServer
 {
@@ -60,9 +61,9 @@ namespace SSFWServer
             this.key = key;
         }
 
-        public string? HandleLogin(byte[]? bufferwrite, string env)
+        public string? HandleLogin(byte[]? ticketBuffer, string env)
         {
-            if (bufferwrite != null)
+            if (ticketBuffer != null)
             {
                 bool IsRPCN = false;
                 string salt = string.Empty;
@@ -71,7 +72,7 @@ namespace SSFWServer
                 byte[] extractedData = new byte[0x63 - 0x54 + 1];
 
                 // Copy it
-                Array.Copy(bufferwrite, 0x54, extractedData, 0, extractedData.Length);
+                Array.Copy(ticketBuffer, 0x54, extractedData, 0, extractedData.Length);
 
                 // Convert 0x00 bytes to 0x48 so FileSystem can support it
                 for (int i = 0; i < extractedData.Length; i++)
@@ -80,8 +81,14 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
-                if (DataTypesUtils.FindBytePattern(bufferwrite, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                if (DataUtils.FindBytePattern(ticketBuffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
+                    if (SSFWServerConfiguration.ForceOfficialRPCNSignature && !new XI5Ticket(ticketBuffer).SignedByOfficialRPCN)
+                    {
+                        LoggerAccessor.LogError($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} was caught using an invalid RPCN signature!");
+                        return null;
+                    }
+
                     IsRPCN = true;
                     LoggerAccessor.LogInfo($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                 }
@@ -96,13 +103,12 @@ namespace SSFWServer
                 UserNames.Item2 = ResultStrings.Item2 = Encoding.ASCII.GetString(extractedData) + homeClientVersion;
 
                 // Calculate the MD5 hash of the result
-                using MD5 md5 = MD5.Create();
                 if (!string.IsNullOrEmpty(xsignature))
                     salt = generalsecret + xsignature + XHomeClientVersion;
                 else
                     salt = generalsecret + XHomeClientVersion;
 
-                string hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt))).Replace("-", string.Empty);
+                string hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
 
                 // Trim the hash to a specific length
                 hash = hash[..14];
@@ -123,7 +129,7 @@ namespace SSFWServer
                     else
                         salt = generalsecret + XHomeClientVersion;
 
-                    hash = BitConverter.ToString(md5.ComputeHash(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt))).Replace("-", string.Empty);
+                    hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
 
                     // Trim the hash to a specific length
                     hash = hash[..10];
@@ -133,8 +139,6 @@ namespace SSFWServer
 
                     SessionIDs.Item1 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1);
                 }
-
-                md5.Clear();
 
                 if (!string.IsNullOrEmpty(UserNames.Item1) && !string.IsNullOrEmpty(SessionIDs.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
                 {

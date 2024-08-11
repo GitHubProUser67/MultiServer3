@@ -74,7 +74,7 @@ namespace HomeTools.AFS
             {
                 if (!string.IsNullOrEmpty(regexPatterns.pattern))
                 {
-                    Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern), match => {
+                    Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern).OfType<Match>(), match => {
                         lock (mappedListList)
                         {
                             if (!mappedListList.Contains(new MappedList()
@@ -102,7 +102,7 @@ namespace HomeTools.AFS
             {
                 if (!string.IsNullOrEmpty(regexPatterns.pattern))
                 {
-                    Parallel.ForEach(Regex.Matches(sourceFileContent, regexPatterns.pattern), match => {
+                    Parallel.ForEach(Regex.Matches(sourceFileContent, regexPatterns.pattern).OfType<Match>(), match => {
                         lock (mappedListList)
                         {
                             if (!mappedListList.Contains(new MappedList()
@@ -125,13 +125,13 @@ namespace HomeTools.AFS
 
     public class MappedList
     {
-        public string? type;
-        public string? file;
+        public string type;
+        public string file;
     }
 
     public class RegexPatterns
     {
-        public string? type;
-        public string? pattern;
+        public string type;
+        public string pattern;
     }
 }

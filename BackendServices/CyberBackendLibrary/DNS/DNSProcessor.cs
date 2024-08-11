@@ -8,7 +8,7 @@ namespace CyberBackendLibrary.DNS
 {
     public class DNSProcessor
     {
-        public static byte[]? MakeDnsResponsePacket(byte[] Req, IPAddress Ip)
+        public static byte[] MakeDnsResponsePacket(byte[] Req, IPAddress Ip)
         {
             try
             {

@@ -7,12 +7,12 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_crafting_sold
     {
-        public static string? ProcessCraftingSold(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessCraftingSold(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? amount = QueryParameters["amount"];
+                string user = QueryParameters["user"];
+                string amount = QueryParameters["amount"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(amount))
                 {
@@ -25,7 +25,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <gold> element
-                        XmlElement? goldElement = xmlDoc.SelectSingleNode("/xml/resources/gold") as XmlElement;
+                        XmlElement goldElement = xmlDoc.SelectSingleNode("/xml/resources/gold") as XmlElement;
 
                         if (goldElement != null)
                         {

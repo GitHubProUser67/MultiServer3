@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 using System.Collections.Generic;
@@ -12,8 +11,8 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_APP_LIST;
 
-        public List<int> Targets { get; set; } = new();
-        public byte[]? Payload { get; set; }
+        public List<int> Targets { get; set; } = new List<int>();
+        public byte[] Payload { get; set; }
         public short SourceIn { get; set; }
 
         public override void Deserialize(MessageReader reader)

@@ -6,7 +6,7 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 
 namespace HTTPSecureServerLite.Extensions
 {
@@ -114,7 +114,7 @@ namespace HTTPSecureServerLite.Extensions
                             // into our response headers.
                             index = line.IndexOf(':');
 
-                            HeadersLocal = DataTypesUtils.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
+                            HeadersLocal = DataUtils.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
                         }
                         else
                             // Write non-header lines into the output as is.

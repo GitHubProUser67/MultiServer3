@@ -395,6 +395,13 @@ namespace Horizon.MEDIUS.Config
         public bool AllowGuests { get; set; } = true;
         #endregion
 
+        #region MAS
+        /// <summary>
+        /// Forces RPCN based clients to be issued by the official RPCN server.
+        /// </summary>
+        public bool ForceOfficialRPCNSignature { get; set; } = false;
+        #endregion
+
         /// <summary>
         /// Tries to patch HTTPS ticketlogin check inside Medius client SDK.
         /// </summary>
@@ -411,6 +418,8 @@ namespace Horizon.MEDIUS.Config
         public string PlaystationHomeVersionRetail { get; set; } = "01.86";
 
         public bool PlaystationHomeAntiCheat { get; set; } = false;
+
+        public bool PlaystationHomeAntiCheatIGASecurityPatch { get; set; } = false;
 
         public bool PlaystationHomeUserNameWhitelist { get; set; } = false;
 

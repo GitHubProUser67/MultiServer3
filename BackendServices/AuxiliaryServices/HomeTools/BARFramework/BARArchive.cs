@@ -7,11 +7,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using System.Xml;
-using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
+using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace HomeTools.BARFramework
 {
@@ -176,12 +177,12 @@ namespace HomeTools.BARFramework
 
         private string GetInBARPath(string filePath)
         {
-            return filePath.Replace(Path.DirectorySeparatorChar, '/')[(m_resourceRoot.Length + 1)..];
+            return filePath.Replace(Path.DirectorySeparatorChar, '/').Substring(m_resourceRoot.Length + 1);
         }
 
         private void RunDeleteOperation(HashedFileName fileName, BARFileOperationFlags flags)
         {
-            TOCEntry? value = m_toc[fileName];
+            TOCEntry value = m_toc[fileName];
             if ((flags & BARFileOperationFlags.Delete) == BARFileOperationFlags.Delete && !m_deletedFileSection.ContainsKey(fileName))
                 m_deletedFileSection[fileName] = value;
             m_toc.Remove(fileName);
@@ -209,7 +210,7 @@ namespace HomeTools.BARFramework
                         EndianAwareBinaryReader endianAwareBinaryReader2 = EndianAwareBinaryReader.Create(dataReadStream, EndianType.LittleEndian);
                         byte[] inData = endianAwareBinaryReader2.ReadBytes((int)num2);
                         CompressionMethod method = CompressionMethod.ZLib;
-                        byte[]? buffer = CompressionFactory.Decompress(inData, method, m_header.Flags);
+                        byte[] buffer = CompressionFactory.Decompress(inData, method, m_header.Flags);
                         MemoryStream inStream = new MemoryStream(buffer);
                         if (ReadTOC(inStream, m_endian))
                         {
@@ -245,7 +246,7 @@ namespace HomeTools.BARFramework
                         TOCEntry tocentry = (TOCEntry)obj;
                         dataReadStream.Seek((long)(ulong)(num + tocentry.DataOffset), SeekOrigin.Begin);
                         EndianAwareBinaryReader endianAwareBinaryReader3 = EndianAwareBinaryReader.Create(dataReadStream, EndianType.LittleEndian);
-                        byte[]? array = null;
+                        byte[] array = null;
                         if (tocentry.CompressedSize <= 4194304UL)
                             array = endianAwareBinaryReader3.ReadBytes((int)tocentry.CompressedSize);
                         else
@@ -371,7 +372,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, DataTypesUtils.ByteArrayToHexString(m_header.IV));
+                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, DataUtils.ByteArrayToHexString(m_header.IV));
                     num += 16U;
                 }
                 textWriter.WriteLine("{0:X8} User: {1}", num, m_header.UserData);
@@ -380,7 +381,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, DataTypesUtils.ByteArrayToHexString(m_header.Key));
+                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, DataUtils.ByteArrayToHexString(m_header.Key));
                     num += 16U;
                 }
                 textWriter.WriteLine("\n== Table of Contents ==");
@@ -404,7 +405,7 @@ namespace HomeTools.BARFramework
                         tocentry.Path,
                         (uint)tocentry.FileName.Value,
                         tocentry.Size,
-                        DataTypesUtils.ByteArrayToHexString(tocentry.IV)
+                        DataUtils.ByteArrayToHexString(tocentry.IV)
                         });
                         num += 24U;
                     }
@@ -536,10 +537,10 @@ namespace HomeTools.BARFramework
                     CompressionMethod compression = (CompressionMethod)num3;
                     uint size = endianAwareBinaryReader.ReadUInt32();
                     uint compressedSize = endianAwareBinaryReader.ReadUInt32();
-                    TOCEntry? tocentry = null;
+                    TOCEntry tocentry = null;
                     if (m_header.Version == 512)
                     {
-                        byte[]? IV = null;
+                        byte[] IV = null;
                         if (endian == EndianType.BigEndian) // IV is always little endian.
                             IV = EndianUtils.EndianSwap(endianAwareBinaryReader.ReadBytes(8));
                         else
@@ -616,7 +617,7 @@ namespace HomeTools.BARFramework
             }
         }
 
-        private TOCEntry? GetTocEntryFromFilepath(string filePath, uint dataLength)
+        private TOCEntry GetTocEntryFromFilepath(string filePath, uint dataLength)
         {
             string text = GetInBARPath(filePath).Trim();
             if (!m_allowWhitespaceInFilenames && text.Contains(" "))
@@ -658,7 +659,7 @@ namespace HomeTools.BARFramework
                 tocEntry.Size = (uint)inStream.Length;
                 inStream.Read(array, 0, (int)inStream.Length);
                 inStream.Close();
-                byte[]? array2 = null;
+                byte[] array2 = null;
                 if (isvalid)
                     array2 = Zlib.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
@@ -700,7 +701,7 @@ namespace HomeTools.BARFramework
                 tocEntry.Size = (uint)inStream.Length;
                 inStream.Read(array, 0, (int)inStream.Length);
                 inStream.Close();
-                byte[]? array2 = null;
+                byte[] array2 = null;
                 if (isvalid)
                     array2 = Zlib.ComponentAceEdgeZlibCompress(array);
                 if (array2 != null)
@@ -715,13 +716,13 @@ namespace HomeTools.BARFramework
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
                     if (m_endian == EndianType.BigEndian)
-                        tocEntry.RawData = DataTypesUtils.CombineByteArrays(ToolsImpl.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImpl.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              EndianUtils.EndianSwap(Utils.IntToByteArray(array2.Length)),
                              array2
                         });
                     else
-                        tocEntry.RawData = DataTypesUtils.CombineByteArrays(ToolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              Utils.IntToByteArray(array2.Length),
                              array2
@@ -746,7 +747,7 @@ namespace HomeTools.BARFramework
             {
                 CompressionMethod compressionMethod = compress ? DefaultCompression : CompressionMethod.Uncompressed;
                 byte[] array = new byte[(int)inStream.Length];
-                byte[]? array2 = array;
+                byte[] array2 = array;
                 tocEntry.Size = (uint)inStream.Length;
                 if (inStream.Length == 0L)
                     compressionMethod = CompressionMethod.Uncompressed;
@@ -782,7 +783,7 @@ namespace HomeTools.BARFramework
         {
             DirectoryInfo directoryInfo = new DirectoryInfo(Path.GetDirectoryName(filePath));
             bool flag = false;
-            DirectoryInfo? directoryInfo2 = directoryInfo;
+            DirectoryInfo directoryInfo2 = directoryInfo;
             string b = directory.FullName.ToLower().TrimEnd(new char[]
             {
                 '/',
@@ -843,7 +844,7 @@ namespace HomeTools.BARFramework
             string inBARPath = GetInBARPath(filePath);
             AfsHash afsHash = new AfsHash(inBARPath);
             HashedFileName filename = new HashedFileName(afsHash.Value);
-            TOCEntry? tocentry = m_toc[filename];
+            TOCEntry tocentry = m_toc[filename];
             return tocentry != null;
         }
 
@@ -852,7 +853,7 @@ namespace HomeTools.BARFramework
             string inBARPath = GetInBARPath(filePath);
             AfsHash afsHash = new AfsHash(inBARPath);
             HashedFileName filename = (HashedFileName)afsHash.Value;
-            TOCEntry? tocEntry = m_toc[filename];
+            TOCEntry tocEntry = m_toc[filename];
             FileStream inStream = File.OpenRead(filePath);
             bool compress = ShouldCompress(filePath, options);
             CompressAndAddFile(compress, inStream, tocEntry);
@@ -866,11 +867,11 @@ namespace HomeTools.BARFramework
 
         public void AddFile(string filePath, Stream inStream, BARAddFileOptions options)
         {
-            TOCEntry? tocEntryFromFilepath = GetTocEntryFromFilepath(filePath, (uint)inStream.Length);
+            TOCEntry tocEntryFromFilepath = GetTocEntryFromFilepath(filePath, (uint)inStream.Length);
             bool compress = ShouldCompress(filePath, options);
             CompressAndAddFile(compress, inStream, tocEntryFromFilepath);
             m_toc.Add(tocEntryFromFilepath);
-            TOCEntry? lastEntry = m_toc.GetLastEntry();
+            TOCEntry lastEntry = m_toc.GetLastEntry();
             if (lastEntry == null)
                 tocEntryFromFilepath.DataOffset = 0U;
             else
@@ -942,7 +943,7 @@ namespace HomeTools.BARFramework
             if ((ushort)(m_header.Flags & ArchiveFlags.Bar_Flag_ZTOC) == 1 && m_header.Version != 512)
             {
                 CompressionMethod method = CompressionMethod.ZLib;
-                byte[]? array2 = CompressionFactory.Compress(array, method, m_header.Flags);
+                byte[] array2 = CompressionFactory.Compress(array, method, m_header.Flags);
                 if (array2 != null)
                 {
                     uint num = (uint)Utils.GetFourByteAligned(array2.Length);
@@ -985,17 +986,13 @@ namespace HomeTools.BARFramework
                     byte[] OriginalSigntureIV = new byte[SignatureIV.Length];
                     Buffer.BlockCopy(SignatureIV, 0, OriginalSigntureIV, 0, OriginalSigntureIV.Length);
                     ToolsImpl.IncrementIVBytes(SignatureIV, 3);
-                    byte[]? FileBytes = new byte[(int)tocentry.CompressedSize - 28];
+                    byte[] FileBytes = new byte[(int)tocentry.CompressedSize - 28];
                     Buffer.BlockCopy(tocentry.RawData, 28, FileBytes, 0, FileBytes.Length);
                     FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImpl.DefaultKey, SignatureIV, "CTR");
                     if (FileBytes != null)
                     {
-                        byte[]? SignatureHeader = new byte[24];
-                        byte[] SHA1Data = new byte[0];
-                        using (SHA1 sha1 = SHA1.Create())
-                        {
-                            SHA1Data = sha1.ComputeHash(FileBytes);
-                        }
+                        byte[] SignatureHeader = new byte[24];
+                        byte[] SHA1Data = NetHasher.ComputeSHA1(FileBytes);
                         Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);
@@ -1067,7 +1064,7 @@ namespace HomeTools.BARFramework
             foreach (object obj in hashtable.Keys)
             {
                 HashedFileName hashedFileName2 = (HashedFileName)obj;
-                TOCEntry? tocentry = m_toc[hashedFileName2];
+                TOCEntry tocentry = m_toc[hashedFileName2];
                 if (tocentry != null)
                 {
                     tocentry.Path = (string)hashtable[hashedFileName2];
@@ -1083,21 +1080,21 @@ namespace HomeTools.BARFramework
             textReader.Close();
         }
 
-        public byte[]? GetFileData(string FileName)
+        public byte[] GetFileData(string FileName)
         {
             return GetFileData(new HashedFileName(new AfsHash(FileName).Value));
         }
 
-        public byte[]? GetFileData(HashedFileName FileName)
+        public byte[] GetFileData(HashedFileName FileName)
         {
             return m_toc[FileName]?.GetData(m_header.Flags);
         }
 
         public void UpdateFile(HashedFileName FileName, byte[] inData)
         {
-            TOCEntry? tocentry = m_toc[FileName];
+            TOCEntry tocentry = m_toc[FileName];
             byte[] array = inData;
-            byte[]? array2 = CompressionFactory.Compress(inData, tocentry.Compression, m_header.Flags);
+            byte[] array2 = CompressionFactory.Compress(inData, tocentry.Compression, m_header.Flags);
             if (array2 != null)
             {
                 if (array2.Length < inData.Length)
@@ -1120,16 +1117,16 @@ namespace HomeTools.BARFramework
         {
             foreach (HashedFileName hashedFileName in fileNames)
             {
-                TOCEntry? tocentry = m_toc[hashedFileName];
+                TOCEntry tocentry = m_toc[hashedFileName];
                 if (newMethod == tocentry?.Compression && BARHeader.Flags == newFlags)
                     LoggerAccessor.LogDebug("Skipped " + hashedFileName, Array.Empty<object>());
                 else if (newMethod != CompressionMethod.Uncompressed && !ShouldCompress(tocentry.Path, BARAddFileOptions.Default))
                     LoggerAccessor.LogDebug("Skipped " + hashedFileName, Array.Empty<object>());
                 else
                 {
-                    byte[]? array = CompressionFactory.Decompress(tocentry, tocentry.Compression, m_header.Flags);
+                    byte[] array = CompressionFactory.Decompress(tocentry, tocentry.Compression, m_header.Flags);
                     tocentry.RawData = array ?? Array.Empty<byte>();
-                    byte[]? array2 = CompressionFactory.Compress(tocentry, newMethod, newFlags);
+                    byte[] array2 = CompressionFactory.Compress(tocentry, newMethod, newFlags);
                     if (newMethod != CompressionMethod.Uncompressed && array2?.Length >= array?.Length && newMethod != CompressionMethod.Encrypted)
                     {
                         tocentry.Compression = CompressionMethod.Uncompressed;
@@ -1153,14 +1150,14 @@ namespace HomeTools.BARFramework
             BARHeader.Flags = newFlags;
         }
 
-        public byte[]? GetRawFileData(string FileName)
+        public byte[] GetRawFileData(string FileName)
         {
             return GetRawFileData(new HashedFileName(new AfsHash(GetInBARPath(FileName)).Value));
         }
 
-        public byte[]? GetRawFileData(HashedFileName FileName)
+        public byte[] GetRawFileData(HashedFileName FileName)
         {
-            TOCEntry? tocentry = m_toc[FileName];
+            TOCEntry tocentry = m_toc[FileName];
             if (tocentry != null)
                 return tocentry.RawData;
             return null;
@@ -1168,7 +1165,7 @@ namespace HomeTools.BARFramework
 
         public void ExtractToFile(HashedFileName FileName, string outDir)
         {
-            TOCEntry? tocentry = m_toc[FileName];
+            TOCEntry tocentry = m_toc[FileName];
             string path = string.Empty;
             if (string.IsNullOrEmpty(tocentry.Path))
                 path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, FileName);
@@ -1201,7 +1198,7 @@ namespace HomeTools.BARFramework
             foreach (object obj in m_toc)
             {
                 TOCEntry tocentry = (TOCEntry)obj;
-                string? key = Path.GetDirectoryName(tocentry.Path)?.Replace(Path.DirectorySeparatorChar, '/');
+                string key = Path.GetDirectoryName(tocentry.Path)?.Replace(Path.DirectorySeparatorChar, '/');
                 string fileName = Path.GetFileName(tocentry.Path);
                 List<string> list;
                 if (hashtable.ContainsKey(key))
@@ -1287,11 +1284,11 @@ namespace HomeTools.BARFramework
 
         public bool IsEditMode;
 
-        protected Stream? m_outputStream;
+        protected Stream m_outputStream;
 
-        protected Stream? m_outputStreamCopy;
+        protected Stream m_outputStreamCopy;
 
-        protected Stream? m_sourceStream;
+        protected Stream m_sourceStream;
 
         private delegate void LoadBARDelegate();
 

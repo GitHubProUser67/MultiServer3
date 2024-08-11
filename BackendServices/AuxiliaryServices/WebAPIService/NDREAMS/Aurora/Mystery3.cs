@@ -7,14 +7,14 @@ namespace WebAPIService.NDREAMS.Aurora
 {
     public static class Mystery3
     {
-        public static string? ProcessMystery3(DateTime CurrentDate, byte[]? PostData, string? ContentType, string fullurl, string apipath)
+        public static string ProcessMystery3(DateTime CurrentDate, byte[] PostData, string ContentType, string fullurl, string apipath)
         {
             string key = string.Empty;
             string func = string.Empty;
             string name = string.Empty;
             string resdata = string.Empty;
             string finger = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {

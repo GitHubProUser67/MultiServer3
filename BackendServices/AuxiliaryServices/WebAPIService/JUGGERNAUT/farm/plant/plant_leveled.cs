@@ -8,14 +8,14 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_leveled
     {
-        public static string? ProcessLeveled(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessLeveled(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? type = QueryParameters["type"];
-                string? id = QueryParameters["id"];
-                string? level = QueryParameters["level"];
+                string user = QueryParameters["user"];
+                string type = QueryParameters["type"];
+                string id = QueryParameters["id"];
+                string level = QueryParameters["level"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(level))
                 {
@@ -38,7 +38,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
             {
                 XDocument xdoc = XDocument.Parse(xmlData);
 
-                XElement? plantToUpdate = xdoc.Descendants("plant")
+                XElement plantToUpdate = xdoc.Descendants("plant")
                     .FirstOrDefault(a => a.Element("id")?.Value == id && a.Element("t")?.Value == type);
 
                 if (plantToUpdate != null)

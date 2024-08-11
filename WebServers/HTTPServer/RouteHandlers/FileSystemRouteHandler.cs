@@ -1,5 +1,5 @@
 // Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
-using CyberBackendLibrary.DataTypes;
+using CyberBackendLibrary.Extension;
 using CyberBackendLibrary.FileSystem;
 using CyberBackendLibrary.HTTP;
 using HTTPServer.Extensions;
@@ -7,19 +7,28 @@ using HTTPServer.Models;
 using System.IO;
 using System.Net;
 using System.Text;
+using WebAPIService.WebArchive;
 
 namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string filepath, string Accept, string ServerIP, ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport)
+        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string filepath, string Accept, string ServerIP,
+            ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport, string fullurl, bool GET)
         {
             if (Directory.Exists(filepath) && filepath.EndsWith("/"))
                 return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
             else if (File.Exists(filepath))
                 return Handle_LocalFile(request, filepath);
-            else
-                return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+
+            if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
+            {
+                WebArchiveRequest archiveReq = new($"http://{Host}" + fullurl);
+                if (archiveReq.Archived)
+                    return HttpBuilder.PermanantRedirect(archiveReq.ArchivedURL);
+            }
+
+            return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
         public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string Host, string local_path, string Accept, string ServerIP, ushort ListenerPort)
@@ -34,10 +43,10 @@ namespace HTTPServer.RouteHandlers
                 if (ContentType == "application/octet-stream")
                 {
                     bool matched = false;
-                    byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                    byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(local_path, 10);
                     foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
-                        if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                        if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                         {
                             matched = true;
                             response.Headers["Content-Type"] = entry.Key;
@@ -66,10 +75,10 @@ namespace HTTPServer.RouteHandlers
             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
             if (ContentType == "application/octet-stream")
             {
-                byte[] VerificationChunck = DataTypesUtils.ReadSmallFileChunck(local_path, 10);
+                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(local_path, 10);
                 foreach (var entry in HTTPProcessor._PathernDictionary)
                 {
-                    if (DataTypesUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                     {
                         ContentType = entry.Key;
                         break;

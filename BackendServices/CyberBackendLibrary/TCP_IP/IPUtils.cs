@@ -5,6 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+#if NET7_0_OR_GREATER
+using System.Net.Http;
+#endif
 #if NETCORE3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -100,10 +103,14 @@ namespace CyberBackendLibrary.TCP_IP
                 if (NetworkInterface.GetIsNetworkAvailable())
                 {
                     // Find the first valid interface with the desired IP version.
-                    foreach (NetworkInterface? networkInterface in NetworkInterface.GetAllNetworkInterfaces()
+                    foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces()
+#if NET5_0_OR_GREATER
                         .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.Contains("virtual", StringComparison.InvariantCultureIgnoreCase)))
+#else
+                        .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.ToLower().Contains("virtual")))
+#endif
                     {
-                        IPInterfaceProperties? properties = networkInterface.GetIPProperties();
+                        IPInterfaceProperties properties = networkInterface.GetIPProperties();
 
                         // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
                         System.Collections.Generic.IEnumerable<string> addresses = allowipv6
@@ -134,7 +141,7 @@ namespace CyberBackendLibrary.TCP_IP
         /// <param name="hostName">The domain on which we search.</param>
         /// <param name="fallback">The fallback IP if we fail to find any results</param>
         /// <returns>A string.</returns>
-        public static string? GetFirstActiveIPAddress(string hostName, string? fallback)
+        public static string GetFirstActiveIPAddress(string hostName, string fallback)
         {
             try
             {
@@ -170,7 +177,7 @@ namespace CyberBackendLibrary.TCP_IP
 
         private static string ConvertToIpAddress(uint ip)
         {
-            return new IPAddress(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(ip) : ip)).ToString();
+            return new IPAddress(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ip) : ip)).ToString();
         }
 
         private static bool IsPrivateIpAddress(byte[] ipBytes)

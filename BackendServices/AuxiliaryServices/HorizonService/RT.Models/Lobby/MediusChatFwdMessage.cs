@@ -9,12 +9,12 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusLobbyMessageIds.ChatFwdMessage;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public int OriginatorAccountID;
-        public string? OriginatorAccountName;
+        public string OriginatorAccountName;
         public MediusChatMessageType MessageType;
-        public string? Message;
+        public string Message;
 
         public override void Deserialize(MessageReader reader)
         {

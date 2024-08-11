@@ -6,7 +6,7 @@ namespace WebAPIService.CDM
     public class Leaderboards
     {
 
-        public static string? handleLeaderboards(byte[] PostData, string ContentType, string workpath, string absolutePath)
+        public static string handleLeaderboards(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
             string pubListPath = $"{workpath}/CDM/Leaderboards/";
 

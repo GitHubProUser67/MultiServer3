@@ -7,12 +7,12 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class pushscore
     {
-        public static string? ProcessPushScore(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessPushScore(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? score = QueryParameters["score"];
+                string user = QueryParameters["user"];
+                string score = QueryParameters["score"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(score))
                 {
@@ -34,7 +34,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
                         xmlDoc.Load($"{apiPath}/juggernaut/clearasil/space_access/{user}.xml");
 
                         // Find the <score> element
-                        XmlElement? scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
+                        XmlElement scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
 
                         if (scoreElement != null)
                         {

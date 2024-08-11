@@ -17,7 +17,7 @@ namespace WebAPIService.FROMSOFTWARE
             this.apipath = apipath;
         }
 
-        public (byte[]?, string?, string[][]?) ProcessRequest(byte[]? PostData, string? ContentType)
+        public (byte[], string, string[][]) ProcessRequest(byte[] PostData, string ContentType)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return (null, null, null);

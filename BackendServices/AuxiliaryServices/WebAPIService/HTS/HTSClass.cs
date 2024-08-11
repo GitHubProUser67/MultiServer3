@@ -18,7 +18,7 @@ namespace WebAPIService.HTS
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string ContentType, bool https)
+        public string ProcessRequest(byte[] PostData, string ContentType, bool https)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -28,7 +28,6 @@ namespace WebAPIService.HTS
                 case "POST":
                     switch (absolutepath)
                     {
-
                         #region NPTicket Sample
                         case "/NPTicketing/get_ticket_data.xml":
                         case "/NPTicketing/get_ticket_data.json":

@@ -8,12 +8,12 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class Resource
     {
-        public static string? getResourcePOST(byte[] PostData, string ContentType, string workpath, string fulluripath, string method)
+        public static string getResourcePOST(byte[] PostData, string ContentType, string workpath, string fulluripath, string method)
         {
             string resKey = string.Empty;
             string resSeqNum = string.Empty;
 
-            if(method == "GET") {
+            if (method == "GET") {
                 resKey = HttpUtility.ParseQueryString(fulluripath).Get("key");
                 resSeqNum = HttpUtility.ParseQueryString(fulluripath).Get("seq");
             } else
@@ -1591,18 +1591,16 @@ namespace WebAPIService.PREMIUMAGENCY
             return null;
         }
 
-        public static string? getInformationBoardSchedulePOST(byte[]? PostData, string? ContentType, string workpath, string eventId)
+        public static string getInformationBoardSchedulePOST(byte[] PostData, string ContentType, string workpath, string eventId)
         {
             string resKey = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-                    var data = MultipartFormDataParser.Parse(ms, boundary);
-
-                    resKey = data.GetParameterValue("key");
+                    resKey = MultipartFormDataParser.Parse(ms, boundary).GetParameterValue("key");
 
                     ms.Flush();
                 }

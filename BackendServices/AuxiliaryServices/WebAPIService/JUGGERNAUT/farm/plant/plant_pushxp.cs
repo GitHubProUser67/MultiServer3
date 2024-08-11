@@ -7,13 +7,13 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_pushxp
     {
-        public static string? ProcessPushXp(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessPushXp(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? level = QueryParameters["level"];
-                string? xp = QueryParameters["xp"];
+                string user = QueryParameters["user"];
+                string level = QueryParameters["level"];
+                string xp = QueryParameters["xp"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(level) && !string.IsNullOrEmpty(xp))
                 {
@@ -26,7 +26,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
                         xmlDoc.Load($"{apiPath}/juggernaut/farm/User_Data/{user}.xml");
 
                         // Find the <level> element
-                        XmlElement? levelElement = xmlDoc.SelectSingleNode("/xml/resources/level") as XmlElement;
+                        XmlElement levelElement = xmlDoc.SelectSingleNode("/xml/resources/level") as XmlElement;
 
                         if (levelElement != null)
                         {
@@ -41,7 +41,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
                             }
 
                             // Find the <xp> element
-                            XmlElement? xpElement = xmlDoc.SelectSingleNode("/xml/resources/xp") as XmlElement;
+                            XmlElement xpElement = xmlDoc.SelectSingleNode("/xml/resources/xp") as XmlElement;
 
                             if (xpElement != null)
                             {

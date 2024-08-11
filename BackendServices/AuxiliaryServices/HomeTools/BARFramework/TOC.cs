@@ -60,7 +60,7 @@ namespace HomeTools.BARFramework
             yield break;
         }
 
-        public TOCEntry? this[int index]
+        public TOCEntry this[int index]
         {
             get
             {
@@ -68,18 +68,18 @@ namespace HomeTools.BARFramework
             }
         }
 
-        public TOCEntry? this[HashedFileName filename]
+        public TOCEntry this[HashedFileName filename]
         {
             get
             {
-                TOCEntry? result = null;
+                TOCEntry result = null;
                 if (m_entries.ContainsKey((int)filename))
                     result = m_entries[(int)filename];
                 return result;
             }
         }
 
-        public TOCEntry? this[string path]
+        public TOCEntry this[string path]
         {
             get
             {
@@ -87,7 +87,7 @@ namespace HomeTools.BARFramework
             }
         }
 
-        private TOCEntry? GetEntry(int index)
+        private TOCEntry GetEntry(int index)
         {
             if (index >= m_entries.Count)
                 return null;
@@ -96,10 +96,10 @@ namespace HomeTools.BARFramework
             return array[index];
         }
 
-        public TOCEntry? GetLastEntry()
+        public TOCEntry GetLastEntry()
         {
             int num = -1;
-            TOCEntry? result = null;
+            TOCEntry result = null;
             foreach (TOCEntry tocentry in m_entries.Values)
             {
                 if (tocentry.DataOffset > (uint)num)
@@ -173,10 +173,10 @@ namespace HomeTools.BARFramework
             {
                 if (endian == EndianType.BigEndian)
                 {
-                    binaryWriter.Write(EndianUtils.EndianSwap((int)tocentry.FileName));
-                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.DataOffset |= (uint)tocentry.Compression));
-                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.Size));
-                    binaryWriter.Write(EndianUtils.EndianSwap(tocentry.CompressedSize));
+                    binaryWriter.Write(EndianUtils.ReverseInt((int)tocentry.FileName));
+                    binaryWriter.Write(EndianUtils.ReverseUint(tocentry.DataOffset |= (uint)tocentry.Compression));
+                    binaryWriter.Write(EndianUtils.ReverseUint(tocentry.Size));
+                    binaryWriter.Write(EndianUtils.ReverseUint(tocentry.CompressedSize));
                 }
                 else
                 {
@@ -222,10 +222,10 @@ namespace HomeTools.BARFramework
 
         internal void ResortOffsets()
         {
-            LinkedListNode<TOCEntry>? linkedListNode = new LinkedList<TOCEntry>(SortByDataSectionOffset()).First;
+            LinkedListNode<TOCEntry> linkedListNode = new LinkedList<TOCEntry>(SortByDataSectionOffset()).First;
             if (linkedListNode != null)
             {
-                LinkedListNode<TOCEntry>? next = linkedListNode.Next;
+                LinkedListNode<TOCEntry> next = linkedListNode.Next;
                 if (linkedListNode.Value.DataOffset > 0U)
                     linkedListNode.Value.DataOffset = 0U;
                 while (next != null)

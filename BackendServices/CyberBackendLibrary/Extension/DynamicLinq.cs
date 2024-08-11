@@ -6,7 +6,7 @@
 * as well as various changes in order to support the filter strings GameSpy sends
 */
 
-using Alivate;
+using CyberBackendLibrary.Extension;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,7 +20,7 @@ using System.Threading;
 
 namespace CyberBackendLibrary.Extension
 {
-	public static class DynamicQueryable
+    public static class DynamicQueryable
 	{
 		public static IQueryable<T> Where<T>(this IQueryable<T> source, string predicate, params object[] values)
 		{
@@ -181,12 +181,12 @@ namespace CyberBackendLibrary.Extension
 			return parser.Parse(resultType);
 		}
 
-		public static LambdaExpression ParseLambda(Type itType, Type? resultType, string expression, params object[] values)
+		public static LambdaExpression ParseLambda(Type itType, Type resultType, string expression, params object[] values)
 		{
-			return ParseLambda(new ParameterExpression[] { Expression.Parameter(itType, "") }, resultType, expression, values);
+			return ParseLambda(new ParameterExpression[] { Expression.Parameter(itType, string.Empty) }, resultType, expression, values);
 		}
 
-		public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type? resultType, string expression, params object[] values)
+		public static LambdaExpression ParseLambda(ParameterExpression[] parameters, Type resultType, string expression, params object[] values)
 		{
 			ExpressionParser parser = new ExpressionParser(parameters, expression, values);
 			return Expression.Lambda(parser.Parse(resultType), parameters);
@@ -197,12 +197,12 @@ namespace CyberBackendLibrary.Extension
 			return (Expression<Func<T, S>>)ParseLambda(typeof(T), typeof(S), expression, values);
 		}
 
-		public static Type? CreateClass(params DynamicProperty[] properties)
+		public static Type CreateClass(params DynamicProperty[] properties)
 		{
 			return ClassFactory.Instance.GetDynamicClass(properties);
 		}
 
-		public static Type? CreateClass(IEnumerable<DynamicProperty> properties)
+		public static Type CreateClass(IEnumerable<DynamicProperty> properties)
 		{
 			return ClassFactory.Instance.GetDynamicClass(properties);
 		}
@@ -210,7 +210,7 @@ namespace CyberBackendLibrary.Extension
 
 	internal class DynamicOrdering
 	{
-		public Expression? Selector;
+		public Expression Selector;
 		public bool Ascending;
 	}
 
@@ -233,12 +233,12 @@ namespace CyberBackendLibrary.Extension
 			return hashCode;
 		}
 
-		public override bool Equals(object? obj)
+		public override bool Equals(object obj)
 		{
-			return obj is Signature ? Equals((Signature)obj) : false;
+			return obj is Signature signature && Equals(signature);
 		}
 
-		public bool Equals(Signature? other)
+		public bool Equals(Signature other)
 		{
 			if (properties.Length != other?.properties.Length) return false;
 			for (int i = 0; i < properties.Length; i++) {
@@ -256,7 +256,7 @@ namespace CyberBackendLibrary.Extension
 		static ClassFactory() { }  // Trigger lazy initialization of static fields
 
 		readonly ModuleBuilder module;
-		readonly Dictionary<Signature, Type?> classes;
+		readonly Dictionary<Signature, Type> classes;
 		int classCount;
 		readonly ReaderWriterLock rwLock;
 
@@ -274,16 +274,16 @@ namespace CyberBackendLibrary.Extension
 				PermissionSet.RevertAssert();
 #endif
 			}
-			classes = new Dictionary<Signature, Type?>();
+			classes = new Dictionary<Signature, Type>();
 			rwLock = new ReaderWriterLock();
 		}
 
-		public Type? GetDynamicClass(IEnumerable<DynamicProperty> properties)
+		public Type GetDynamicClass(IEnumerable<DynamicProperty> properties)
 		{
 			rwLock.AcquireReaderLock(Timeout.Infinite);
 			try {
 				Signature signature = new Signature(properties);
-				Type? type;
+				Type type;
 				if (!classes.TryGetValue(signature, out type)) {
 					type = CreateDynamicClass(signature.properties);
 					classes.Add(signature, type);
@@ -294,7 +294,7 @@ namespace CyberBackendLibrary.Extension
 			}
 		}
 
-		private Type? CreateDynamicClass(DynamicProperty[] properties)
+		private Type CreateDynamicClass(DynamicProperty[] properties)
 		{
 			LockCookie cookie = rwLock.UpgradeToWriterLock(Timeout.Infinite);
 			try {
@@ -308,7 +308,7 @@ namespace CyberBackendLibrary.Extension
 					FieldInfo[] fields = GenerateProperties(tb, properties);
 					GenerateEquals(tb, fields);
 					GenerateGetHashCode(tb, fields);
-					Type? result = tb.CreateType();
+					Type result = tb.CreateType();
 					classCount++;
 					return result;
 				} finally {
@@ -614,19 +614,19 @@ namespace CyberBackendLibrary.Extension
 		static readonly string keywordIif = "iif";
 		static readonly string keywordNew = "new";
 
-		static Dictionary<string, object>? keywords;
+		static Dictionary<string, object> keywords;
 
 		readonly Dictionary<string, object> symbols;
-		IDictionary<string, object>? externals;
+		IDictionary<string, object> externals;
 		readonly Dictionary<Expression, string> literals;
-		ParameterExpression? it;
+		ParameterExpression it;
 		readonly string text;
 		int textPos;
 		readonly int textLen;
 		char ch;
 		Token token;
 
-		public ExpressionParser(ParameterExpression[]? parameters, string expression, object[] values)
+		public ExpressionParser(ParameterExpression[] parameters, string expression, object[] values)
 		{
 			if (expression == null) throw new ArgumentNullException("expression");
 			if (keywords == null) keywords = CreateKeywords();
@@ -668,10 +668,10 @@ namespace CyberBackendLibrary.Extension
 			symbols.Add(name, value);
 		}
 
-		public Expression Parse(Type? resultType)
+		public Expression Parse(Type resultType)
 		{
 			int exprPos = token.pos;
-			Expression? expr = ParseExpression();
+			Expression expr = ParseExpression();
 			if (resultType != null)
 				if ((expr = PromoteExpression(expr, resultType, true)) == null)
 					throw ParseError(exprPos, Res.ExpressionTypeMismatch, GetTypeName(resultType));
@@ -771,7 +771,7 @@ namespace CyberBackendLibrary.Extension
 					}
 				} else if (IsEnumType(left.Type).Value || IsEnumType(right.Type).Value) {
 					if (left.Type != right.Type) {
-						Expression? e;
+						Expression e;
 						if ((e = PromoteExpression(right, left.Type, true)) != null) {
 							right = e;
 						} else if ((e = PromoteExpression(left, right.Type, true)) != null) {
@@ -942,7 +942,7 @@ namespace CyberBackendLibrary.Extension
 		{
 			ValidateToken(TokenId.StringEscaped);
 			char quote = token.text[0];
-			string s = token.text[1..^1];
+			string s = token.text.Substring(1, token.text.Length - 2);
 			int start = 0;
 			while (true) {
 				int i = s.IndexOf(quote, start);
@@ -990,20 +990,18 @@ namespace CyberBackendLibrary.Extension
 			ValidateToken(TokenId.IntegerLiteral);
 			string text = token.text.Trim(new char[] { '\'', '"' });
 			if (text[0] != '-') {
-				ulong value;
-				if (!UInt64.TryParse(text, out value))
-					throw ParseError(Res.InvalidIntegerLiteral, text);
-				NextToken();
-				if (value <= (ulong)Int32.MaxValue) return CreateLiteral((int)value, text);
-				if (value <= (ulong)UInt32.MaxValue) return CreateLiteral((uint)value, text);
-				if (value <= (ulong)Int64.MaxValue) return CreateLiteral((long)value, text);
+                if (!ulong.TryParse(text, out ulong value))
+                    throw ParseError(Res.InvalidIntegerLiteral, text);
+                NextToken();
+				if (value <= (ulong)int.MaxValue) return CreateLiteral((int)value, text);
+				if (value <= (ulong)uint.MaxValue) return CreateLiteral((uint)value, text);
+				if (value <= (ulong)long.MaxValue) return CreateLiteral((long)value, text);
 				return CreateLiteral(value, text);
 			} else {
-				long value;
-				if (!Int64.TryParse(text, out value))
-					throw ParseError(Res.InvalidIntegerLiteral, text);
-				NextToken();
-				if (value >= Int32.MinValue && value <= Int32.MaxValue)
+                if (!long.TryParse(text, out long value))
+                    throw ParseError(Res.InvalidIntegerLiteral, text);
+                NextToken();
+				if (value >= int.MinValue && value <= int.MaxValue)
 					return CreateLiteral((int)value, text);
 				return CreateLiteral(value, text);
 			}
@@ -1013,15 +1011,13 @@ namespace CyberBackendLibrary.Extension
 		{
 			ValidateToken(TokenId.RealLiteral);
 			string text = token.text;
-			object? value = null;
-			char last = text[^1];
+			object value = null;
+			char last = text[text.Length - 1];
 			if (last == 'F' || last == 'f') {
-				float f;
-				if (Single.TryParse(text.Substring(0, text.Length - 1), out f)) value = f;
-			} else {
-				double d;
-				if (Double.TryParse(text, out d)) value = d;
-			}
+                if (float.TryParse(text.Substring(0, text.Length - 1), out float f)) value = f;
+            } else {
+                if (double.TryParse(text, out double d)) value = d;
+            }
 			if (value == null) throw ParseError(Res.InvalidRealLiteral, text);
 			NextToken();
 			return CreateLiteral(value, text);
@@ -1047,25 +1043,22 @@ namespace CyberBackendLibrary.Extension
 		Expression ParseIdentifier()
 		{
 			ValidateToken(TokenId.Identifier);
-			object? value;
-			if (keywords.TryGetValue(token.text, out value)) {
-				if (value is Type) return ParseTypeAccess((Type)value);
-				if (value == (object)keywordIt) return ParseIt();
-				if (value == (object)keywordIif) return ParseIif();
-				if (value == (object)keywordNew) return ParseNew();
-				NextToken();
-				return (Expression)value;
-			}
-			if (symbols.TryGetValue(token.text, out value) ||
+            if (keywords.TryGetValue(token.text, out object value))
+            {
+                if (value is Type type) return ParseTypeAccess(type);
+                if (value == (object)keywordIt) return ParseIt();
+                if (value == (object)keywordIif) return ParseIif();
+                if (value == (object)keywordNew) return ParseNew();
+                NextToken();
+                return (Expression)value;
+            }
+            if (symbols.TryGetValue(token.text, out value) ||
 				externals != null && externals.TryGetValue(token.text, out value)) {
-				Expression? expr = value as Expression;
-				if (expr == null) {
-					expr = Expression.Constant(value);
-				} else {
-					LambdaExpression? lambda = expr as LambdaExpression;
-					if (lambda != null) return ParseLambdaInvocation(lambda);
-				}
-				NextToken();
+                if (!(value is Expression expr))
+                    expr = Expression.Constant(value);
+                else if (expr is LambdaExpression lambda)
+                    return ParseLambdaInvocation(lambda);
+                NextToken();
 				return expr;
 			}
 			if (it != null) return ParseMemberAccess(null, it);
@@ -1095,8 +1088,8 @@ namespace CyberBackendLibrary.Extension
 			if (test.Type != typeof(bool))
 				throw ParseError(errorPos, Res.FirstExprMustBeBool);
 			if (expr1.Type != expr2.Type) {
-				Expression? expr1as2 = expr2 != nullLiteral ? PromoteExpression(expr1, expr2.Type, true) : null;
-				Expression? expr2as1 = expr1 != nullLiteral ? PromoteExpression(expr2, expr1.Type, true) : null;
+				Expression expr1as2 = expr2 != nullLiteral ? PromoteExpression(expr1, expr2.Type, true) : null;
+				Expression expr2as1 = expr1 != nullLiteral ? PromoteExpression(expr2, expr1.Type, true) : null;
 				if (expr1as2 != null && expr2as1 == null) {
 					expr1 = expr1as2;
 				} else if (expr2as1 != null && expr1as2 == null) {
@@ -1128,9 +1121,8 @@ namespace CyberBackendLibrary.Extension
 					propName = GetIdentifier();
 					NextToken();
 				} else {
-					MemberExpression? me = expr as MemberExpression;
-					if (me == null) throw ParseError(exprPos, Res.MissingAsClause);
-					propName = me.Member.Name;
+					MemberExpression me = expr as MemberExpression ?? throw ParseError(exprPos, Res.MissingAsClause);
+                    propName = me.Member.Name;
 				}
 				expressions.Add(expr);
 				properties.Add(new DynamicProperty(propName, expr.Type));
@@ -1139,7 +1131,7 @@ namespace CyberBackendLibrary.Extension
 			}
 			ValidateToken(TokenId.CloseParen, Res.CloseParenOrCommaExpected);
 			NextToken();
-			Type? type = DynamicExpression.CreateClass(properties);
+			Type type = DynamicExpression.CreateClass(properties);
 			MemberBinding[] bindings = new MemberBinding[properties.Count];
 			for (int i = 0; i < bindings.Length; i++)
 				bindings[i] = Expression.Bind(type.GetProperty(properties[i].Name), expressions[i]);
@@ -1151,10 +1143,9 @@ namespace CyberBackendLibrary.Extension
 			int errorPos = token.pos;
 			NextToken();
 			Expression[] args = ParseArgumentList();
-			MethodBase? method;
-			if (FindMethod(lambda.Type, "Invoke", false, args, out method) != 1)
-				throw ParseError(errorPos, Res.ArgsIncompatibleWithLambda);
-			return Expression.Invoke(lambda, args);
+            if (FindMethod(lambda.Type, "Invoke", false, args, out _) != 1)
+                throw ParseError(errorPos, Res.ArgsIncompatibleWithLambda);
+            return Expression.Invoke(lambda, args);
 		}
 
 		Expression ParseTypeAccess(Type type)
@@ -1169,18 +1160,18 @@ namespace CyberBackendLibrary.Extension
 			}
 			if (token.id == TokenId.OpenParen) {
 				Expression[] args = ParseArgumentList();
-				MethodBase? method;
-				switch (FindBestMethod(type.GetConstructors(), args, out method)) {
-					case 0:
-						if (args.Length == 1)
-							return GenerateConversion(args[0], type, errorPos);
-						throw ParseError(errorPos, Res.NoMatchingConstructor, GetTypeName(type));
-					case 1:
-						return Expression.New((ConstructorInfo)method, args);
-					default:
-						throw ParseError(errorPos, Res.AmbiguousConstructorInvocation, GetTypeName(type));
-				}
-			}
+                switch (FindBestMethod(type.GetConstructors(), args, out MethodBase method))
+                {
+                    case 0:
+                        if (args.Length == 1)
+                            return GenerateConversion(args[0], type, errorPos);
+                        throw ParseError(errorPos, Res.NoMatchingConstructor, GetTypeName(type));
+                    case 1:
+                        return Expression.New((ConstructorInfo)method, args);
+                    default:
+                        throw ParseError(errorPos, Res.AmbiguousConstructorInvocation, GetTypeName(type));
+                }
+            }
 			ValidateToken(TokenId.Dot, Res.DotOrOpenParenExpected);
 			NextToken();
 			return ParseMemberAccess(type, null);
@@ -1205,7 +1196,7 @@ namespace CyberBackendLibrary.Extension
 				GetTypeName(exprType), GetTypeName(type));
 		}
 
-		Expression ParseMemberAccess(Type? type, Expression? instance)
+		Expression ParseMemberAccess(Type type, Expression instance)
 		{
 			if (instance != null) type = instance.Type;
 			int errorPos = token.pos;
@@ -1213,7 +1204,7 @@ namespace CyberBackendLibrary.Extension
 			NextToken();
 			if (token.id == TokenId.OpenParen) {
 				if (instance != null && type != typeof(string)) {
-					Type? enumerableType = FindGenericType(typeof(IEnumerable<>), type);
+					Type enumerableType = FindGenericType(typeof(IEnumerable<>), type);
 					if (enumerableType != null) {
 						Type elementType = enumerableType.GetGenericArguments()[0];
 						return ParseAggregate(instance, elementType, id, errorPos);
@@ -1238,23 +1229,21 @@ namespace CyberBackendLibrary.Extension
 							id, GetTypeName(type));
 				}
 			} else {
-				MemberInfo? member = FindPropertyOrField(type, id, instance == null);
-				if (member == null)
-					throw ParseError(errorPos, Res.UnknownPropertyOrField,
+				MemberInfo member = FindPropertyOrField(type, id, instance == null) ?? throw ParseError(errorPos, Res.UnknownPropertyOrField,
 						id, GetTypeName(type));
-				return member is PropertyInfo ?
-					Expression.Property(instance, (PropertyInfo)member) :
+                return member is PropertyInfo info ?
+					Expression.Property(instance, info) :
 					Expression.Field(instance, (FieldInfo)member);
 			}
 		}
 
-		static Type? FindGenericType(Type generic, Type? type)
+		static Type FindGenericType(Type generic, Type type)
 		{
 			while (type != null && type != typeof(object)) {
 				if (type.IsGenericType && type.GetGenericTypeDefinition() == generic) return type;
 				if (generic.IsInterface) {
 					foreach (Type intfType in type.GetInterfaces()) {
-						Type? found = FindGenericType(generic, intfType);
+						Type found = FindGenericType(generic, intfType);
 						if (found != null) return found;
 					}
 				}
@@ -1265,7 +1254,7 @@ namespace CyberBackendLibrary.Extension
 
 		Expression ParseAggregate(Expression instance, Type elementType, string methodName, int errorPos)
 		{
-			ParameterExpression? outerIt = it;
+			ParameterExpression outerIt = it;
 			ParameterExpression innerIt = Expression.Parameter(elementType, "");
 			it = innerIt;
 			Expression[] args = ParseArgumentList();
@@ -1319,23 +1308,21 @@ namespace CyberBackendLibrary.Extension
 			if (expr.Type.IsArray) {
 				if (expr.Type.GetArrayRank() != 1 || args.Length != 1)
 					throw ParseError(errorPos, Res.CannotIndexMultiDimArray);
-				Expression? index = PromoteExpression(args[0], typeof(int), true);
-				if (index == null)
-					throw ParseError(errorPos, Res.InvalidIndex);
-				return Expression.ArrayIndex(expr, index);
+				Expression index = PromoteExpression(args[0], typeof(int), true) ?? throw ParseError(errorPos, Res.InvalidIndex);
+                return Expression.ArrayIndex(expr, index);
 			} else {
-				MethodBase mb;
-				switch (FindIndexer(expr.Type, args, out mb)) {
-					case 0:
-						throw ParseError(errorPos, Res.NoApplicableIndexer,
-							GetTypeName(expr.Type));
-					case 1:
-						return Expression.Call(expr, (MethodInfo)mb, args);
-					default:
-						throw ParseError(errorPos, Res.AmbiguousIndexerInvocation,
-							GetTypeName(expr.Type));
-				}
-			}
+                switch (FindIndexer(expr.Type, args, out MethodBase mb))
+                {
+                    case 0:
+                        throw ParseError(errorPos, Res.NoApplicableIndexer,
+                            GetTypeName(expr.Type));
+                    case 1:
+                        return Expression.Call(expr, (MethodInfo)mb, args);
+                    default:
+                        throw ParseError(errorPos, Res.AmbiguousIndexerInvocation,
+                            GetTypeName(expr.Type));
+                }
+            }
 		}
 
 		static bool IsPredefinedType(Type type)
@@ -1344,20 +1331,20 @@ namespace CyberBackendLibrary.Extension
 			return false;
 		}
 
-		static bool IsNullableType(Type? type)
+		static bool IsNullableType(Type type)
 		{
 			return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 		}
 
-		static Type? GetNonNullableType(Type? type)
+		static Type GetNonNullableType(Type type)
 		{
 			return IsNullableType(type) ? type?.GetGenericArguments()[0] : type;
 		}
 
-		static string? GetTypeName(Type type)
+		static string GetTypeName(Type type)
 		{
-			Type? baseType = GetNonNullableType(type);
-			string? s = baseType?.Name;
+			Type baseType = GetNonNullableType(type);
+			string s = baseType?.Name;
 			if (type != baseType) s += '?';
 			return s;
 		}
@@ -1367,7 +1354,7 @@ namespace CyberBackendLibrary.Extension
 			return GetNumericTypeKind(type) != 0;
 		}
 
-		static bool IsSignedIntegralType(Type? type)
+		static bool IsSignedIntegralType(Type type)
 		{
 			return GetNumericTypeKind(type) == 2;
 		}
@@ -1377,7 +1364,7 @@ namespace CyberBackendLibrary.Extension
 			return GetNumericTypeKind(type) == 3;
 		}
 
-		static int GetNumericTypeKind(Type? type)
+		static int GetNumericTypeKind(Type type)
 		{
 			type = GetNonNullableType(type);
 			if (type.IsEnum) return 0;
@@ -1410,11 +1397,10 @@ namespace CyberBackendLibrary.Extension
 		void CheckAndPromoteOperand(Type signatures, string opName, ref Expression expr, int errorPos)
 		{
 			Expression[] args = new Expression[] { expr };
-			MethodBase? method;
-			if (FindMethod(signatures, "F", false, args, out method) != 1)
-				throw ParseError(errorPos, Res.IncompatibleOperand,
-					opName, GetTypeName(args[0].Type));
-			expr = args[0];
+            if (FindMethod(signatures, "F", false, args, out _) != 1)
+                throw ParseError(errorPos, Res.IncompatibleOperand,
+                    opName, GetTypeName(args[0].Type));
+            expr = args[0];
 		}
 
 		void CheckAndPromoteOperands(Type signatures, string opName, ref Expression left, ref Expression right, int errorPos)
@@ -1440,23 +1426,19 @@ namespace CyberBackendLibrary.Extension
 			}
 			
 			// Int32/Double == String
-			if ((left.Type == typeof(Int32) || left.Type == typeof(Double)) && right.Type == typeof(String)) {
+			if ((left.Type == typeof(int) || left.Type == typeof(double)) && right.Type == typeof(string)) {
 				string r = right.ToString();
-				if ((r.StartsWith("\"") && r.EndsWith("\"")) || (r.StartsWith("'") && r.EndsWith("'"))) {
-					r = r.Substring(1, r.Length - 2);
-				}
+				if ((r.StartsWith("\"") && r.EndsWith("\"")) || (r.StartsWith("'") && r.EndsWith("'")))
+                    r = r.Substring(1, r.Length - 2);
 
-				double newRight;
-				if (Double.TryParse(r, NumberStyles.Number, CultureInfo.InvariantCulture, out newRight)) {
-					right = Expression.Convert(Expression.Constant(newRight), left.Type);
-				}
-			}
+                if (double.TryParse(r, NumberStyles.Number, CultureInfo.InvariantCulture, out double newRight))
+                    right = Expression.Convert(Expression.Constant(newRight), left.Type);
+            }
 
-			Expression[] args = new Expression[] { left, right };
-			MethodBase? method;
-			if (FindMethod(signatures, "F", false, args, out method) != 1)
-				throw IncompatibleOperandsError(opName, left, right, errorPos);
-			left = args[0];
+            Expression[] args = new Expression[] { left, right };
+            if (FindMethod(signatures, "F", false, args, out _) != 1)
+                throw IncompatibleOperandsError(opName, left, right, errorPos);
+            left = args[0];
 			right = args[1];
 		}
 
@@ -1466,7 +1448,7 @@ namespace CyberBackendLibrary.Extension
 				opName, GetTypeName(left.Type), GetTypeName(right.Type));
 		}
 
-		static MemberInfo? FindPropertyOrField(Type? type, string memberName, bool staticAccess)
+		static MemberInfo FindPropertyOrField(Type type, string memberName, bool staticAccess)
 		{
 			BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
 				(staticAccess ? BindingFlags.Static : BindingFlags.Instance);
@@ -1478,7 +1460,7 @@ namespace CyberBackendLibrary.Extension
 			return null;
 		}
 
-		int FindMethod(Type type, string methodName, bool staticAccess, Expression[] args, out MethodBase? method)
+		int FindMethod(Type type, string methodName, bool staticAccess, Expression[] args, out MethodBase method)
 		{
 			BindingFlags flags = BindingFlags.Public | BindingFlags.DeclaredOnly |
 				(staticAccess ? BindingFlags.Static : BindingFlags.Instance);
@@ -1492,14 +1474,14 @@ namespace CyberBackendLibrary.Extension
 			return 0;
 		}
 
-		int FindIndexer(Type type, Expression[] args, out MethodBase? method)
+		int FindIndexer(Type type, Expression[] args, out MethodBase method)
 		{
 			foreach (Type t in SelfAndBaseTypes(type)) {
 				MemberInfo[] members = t.GetDefaultMembers();
 				if (members.Length != 0) {
-					IEnumerable<MethodBase?> methods = members.
+					IEnumerable<MethodBase> methods = members.
 						OfType<PropertyInfo>().
-						Select(p => (MethodBase?)p.GetGetMethod()).
+						Select(p => (MethodBase)p.GetGetMethod()).
 						Where(m => m != null);
 					int count = FindBestMethod(methods, args, out method);
 					if (count != 0) return count;
@@ -1509,7 +1491,7 @@ namespace CyberBackendLibrary.Extension
 			return 0;
 		}
 
-		static IEnumerable<Type> SelfAndBaseTypes(Type? type)
+		static IEnumerable<Type> SelfAndBaseTypes(Type type)
 		{
 			if (type.IsInterface) {
 				List<Type> types = new List<Type>();
@@ -1519,7 +1501,7 @@ namespace CyberBackendLibrary.Extension
 			return SelfAndBaseClasses(type);
 		}
 
-		static IEnumerable<Type> SelfAndBaseClasses(Type? type)
+		static IEnumerable<Type> SelfAndBaseClasses(Type type)
 		{
 			while (type != null) {
 				yield return type;
@@ -1537,14 +1519,14 @@ namespace CyberBackendLibrary.Extension
 
 		class MethodData
 		{
-			public MethodBase? MethodBase;
-			public ParameterInfo[]? Parameters;
-			public Expression[]? Args;
+			public MethodBase MethodBase;
+			public ParameterInfo[] Parameters;
+			public Expression[] Args;
 		}
 
-		int FindBestMethod(IEnumerable<MethodBase>? methods, Expression?[] args, out MethodBase? method)
+		int FindBestMethod(IEnumerable<MethodBase> methods, Expression[] args, out MethodBase method)
 		{
-			MethodData[]? applicable = methods?.
+			MethodData[] applicable = methods?.
 				Select(m => new MethodData { MethodBase = m, Parameters = m.GetParameters() }).
 				Where(m => IsApplicable(m, args)).
 				ToArray();
@@ -1573,14 +1555,14 @@ namespace CyberBackendLibrary.Extension
             return 0;
 		}
 
-		bool IsApplicable(MethodData method, Expression?[]? args)
+		bool IsApplicable(MethodData method, Expression[] args)
 		{
 			if (method.Parameters.Length != args.Length) return false;
 			Expression[] promotedArgs = new Expression[args.Length];
 			for (int i = 0; i < args.Length; i++) {
 				ParameterInfo pi = method.Parameters[i];
 				if (pi.IsOut) return false;
-				Expression? promoted = PromoteExpression(args[i], pi.ParameterType, false);
+				Expression promoted = PromoteExpression(args[i], pi.ParameterType, false);
 				if (promoted == null) return false;
 				promotedArgs[i] = promoted;
 			}
@@ -1588,48 +1570,52 @@ namespace CyberBackendLibrary.Extension
 			return true;
 		}
 
-		Expression? PromoteExpression(Expression? expr, Type type, bool exact)
+		Expression PromoteExpression(Expression expr, Type type, bool exact)
 		{
 			if (expr.Type == type) return expr;
-			if (expr is ConstantExpression) {
-				ConstantExpression ce = (ConstantExpression)expr;
-				if (ce == nullLiteral) {
-					if (!type.IsValueType || IsNullableType(type))
-						return Expression.Constant(null, type);
-				} else {
-					string? text;
-					if (literals.TryGetValue(ce, out text)) {
-						Type? target = GetNonNullableType(type);
-						Object? value = null;
-						switch (Type.GetTypeCode(ce.Type)) {
-							case TypeCode.Int32:
-							case TypeCode.UInt32:
-							case TypeCode.Int64:
-							case TypeCode.UInt64:
-								value = ParseNumber(text, target);
-								break;
-							case TypeCode.Double:
-								if (target == typeof(decimal)) value = ParseNumber(text, target);
-								break;
-							case TypeCode.String:
-								value = ParseEnum(text, target);
-								break;
-							default:
-								break;
-						}
-						if (value != null)
-							return Expression.Constant(value, type);
-					}
-				}
-			}
-			if (IsCompatibleWith(expr.Type, type)) {
+            if (expr is ConstantExpression ce)
+            {
+                if (ce == nullLiteral)
+                {
+                    if (!type.IsValueType || IsNullableType(type))
+                        return Expression.Constant(null, type);
+                }
+                else
+                {
+                    if (literals.TryGetValue(ce, out string text))
+                    {
+                        Type target = GetNonNullableType(type);
+                        object value = null;
+                        switch (Type.GetTypeCode(ce.Type))
+                        {
+                            case TypeCode.Int32:
+                            case TypeCode.UInt32:
+                            case TypeCode.Int64:
+                            case TypeCode.UInt64:
+                                value = ParseNumber(text, target);
+                                break;
+                            case TypeCode.Double:
+                                if (target == typeof(decimal)) value = ParseNumber(text, target);
+                                break;
+                            case TypeCode.String:
+                                value = ParseEnum(text, target);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (value != null)
+                            return Expression.Constant(value, type);
+                    }
+                }
+            }
+            if (IsCompatibleWith(expr.Type, type)) {
 				if (type.IsValueType || exact) return Expression.Convert(expr, type);
 				return expr;
 			}
 			return null;
 		}
 
-		static object? ParseNumber(string text, Type? type)
+		static object ParseNumber(string text, Type type)
 		{
 			switch (Type.GetTypeCode(GetNonNullableType(type))) {
 				case TypeCode.SByte:
@@ -1682,7 +1668,7 @@ namespace CyberBackendLibrary.Extension
 			return null;
 		}
 
-		static object? ParseEnum(string name, Type? type)
+		static object ParseEnum(string name, Type type)
 		{
 			if (type.IsEnum) {
 				MemberInfo[] memberInfos = type.FindMembers(MemberTypes.Field,
@@ -1693,12 +1679,12 @@ namespace CyberBackendLibrary.Extension
 			return null;
 		}
 
-		static bool IsCompatibleWith(Type? source, Type? target)
+		static bool IsCompatibleWith(Type source, Type target)
 		{
 			if (source == target) return true;
 			if (!target.IsValueType) return target.IsAssignableFrom(source);
-			Type? st = GetNonNullableType(source);
-			Type? tt = GetNonNullableType(target);
+			Type st = GetNonNullableType(source);
+			Type tt = GetNonNullableType(target);
 			if (st != source && tt == target) return false;
 			TypeCode sc = st.IsEnum ? TypeCode.Object : Type.GetTypeCode(st);
 			TypeCode tc = tt.IsEnum ? TypeCode.Object : Type.GetTypeCode(tt);
@@ -1825,7 +1811,7 @@ namespace CyberBackendLibrary.Extension
 			return false;
 		}
 
-		static bool IsBetterThan(Expression?[] args, MethodData m1, MethodData m2)
+		static bool IsBetterThan(Expression[] args, MethodData m1, MethodData m2)
 		{
 			bool better = false;
 			for (int i = 0; i < args.Length; i++) {
@@ -1841,7 +1827,7 @@ namespace CyberBackendLibrary.Extension
 		// Return 1 if s -> t1 is a better conversion than s -> t2
 		// Return -1 if s -> t2 is a better conversion than s -> t1
 		// Return 0 if neither conversion is better
-		static int CompareConversions(Type? s, Type? t1, Type? t2)
+		static int CompareConversions(Type s, Type t1, Type t2)
 		{
 			if (t1 == t2) return 0;
 			if (s == t1) return 1;
@@ -1917,7 +1903,7 @@ namespace CyberBackendLibrary.Extension
 			return IsLike(left, right);
 		}
 
-		static MethodInfo? IsLikeMethodInfo = null;
+		static MethodInfo IsLikeMethodInfo = null;
 		static Expression IsLike(Expression left, Expression right)
 		{
 			if (IsLikeMethodInfo == null)
@@ -1933,7 +1919,7 @@ namespace CyberBackendLibrary.Extension
 			return IsNotLike(left, right);
 		}
 
-		static MethodInfo? IsNotLikeMethodInfo = null;
+		static MethodInfo IsNotLikeMethodInfo = null;
 		static Expression IsNotLike(Expression left, Expression right)
 		{
 			if (IsNotLikeMethodInfo == null)
@@ -1962,7 +1948,7 @@ namespace CyberBackendLibrary.Extension
 				new[] { left, right });
 		}
 
-		static MethodInfo? GetStaticMethod(string methodName, Expression left, Expression right)
+		static MethodInfo GetStaticMethod(string methodName, Expression left, Expression right)
 		{
 			return left.Type.GetMethod(methodName, new[] { left.Type, right.Type });
 		}
@@ -2246,7 +2232,7 @@ namespace CyberBackendLibrary.Extension
 			return ParseError(token.pos, format, args);
 		}
 
-		static Exception ParseError(int pos, string? format, params object?[] args)
+		static Exception ParseError(int pos, string format, params object[] args)
 		{
 			return new ParseException(string.Format(CultureInfo.CurrentCulture, format, args), pos);
 		}

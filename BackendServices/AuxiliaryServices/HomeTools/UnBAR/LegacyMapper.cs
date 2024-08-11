@@ -14,7 +14,7 @@ namespace HomeTools.UnBAR
         // Declare a global list to store file paths
         private readonly List<string> filePathList = new List<string>();
 
-        public Task MapperStart(string foldertomap, string? helperfolder, string prefix, string bruteforce)
+        public Task MapperStart(string foldertomap, string helperfolder, string prefix, string bruteforce)
         {
             MapperPrepareFiles(foldertomap);
 
@@ -276,8 +276,12 @@ namespace HomeTools.UnBAR
 
                 try
                 {
+#if NET5_0_OR_GREATER
                     string targetPath = Path.Combine(targetDir, Path.GetRelativePath(sourceDir, file));
-                    string? directorytargetPath = Path.GetDirectoryName(targetPath);
+#else
+                    string targetPath = Path.Combine(targetDir, GetRelativePath(sourceDir, file));
+#endif
+                    string directorytargetPath = Path.GetDirectoryName(targetPath);
 
                     if (!string.IsNullOrEmpty(directorytargetPath))
                     {
@@ -865,7 +869,7 @@ namespace HomeTools.UnBAR
             {
                 if (!string.IsNullOrEmpty(regexPatterns.pattern))
                 {
-                    Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern), match => {
+                    Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern).OfType<Match>(), match => {
                         lock (mappedListList)
                         {
                             if (!mappedListList.Contains(new MappedList()
@@ -884,6 +888,13 @@ namespace HomeTools.UnBAR
             });
             return mappedListList;
         }
+#if !NET5_0_OR_GREATER
+        private static string GetRelativePath(string sourceDir, string file)
+        {
+            return Uri.UnescapeDataString(new Uri(sourceDir.TrimEnd(Path.DirectorySeparatorChar)
+                + Path.DirectorySeparatorChar).MakeRelativeUri(new Uri(file)).ToString()).Replace('/', Path.DirectorySeparatorChar);
+        }
+#endif
 #if NET7_0_OR_GREATER
         [GeneratedRegex("[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}")]
         private static partial Regex UUIDRegex();

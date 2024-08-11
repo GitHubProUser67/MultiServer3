@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net6.0</TargetFramework>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
 
@@ -12,8 +12,11 @@
     <PackageReference Include="ZstdSharp.Port" Version="0.8.1" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+	<Reference Include="System.Web" />
+  </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\Alivate\Alivate.csproj" />
     <ProjectReference Include="..\CastleLibrary\CastleLibrary.csproj" />
     <ProjectReference Include="..\CompressionLibrary\CompressionLibrary.csproj" />
   </ItemGroup>

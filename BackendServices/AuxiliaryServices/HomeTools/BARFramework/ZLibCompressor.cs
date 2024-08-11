@@ -9,7 +9,7 @@ namespace HomeTools.BARFramework
     {
         internal static byte[] Compress(byte[] inData, bool NoHeader)
         {
-            byte[]? result = null;
+            byte[] result = null;
             MemoryStream memoryStream = new MemoryStream();
             ZOutputStream zoutputStream = new ZOutputStream(memoryStream, 9, NoHeader);
             try

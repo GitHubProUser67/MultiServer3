@@ -8,7 +8,7 @@ namespace WebAPIService.VEEMEE.olm
 {
     public  class olmUserData
     {
-        public static string? SetUserDataPOST(byte[]? PostData, string? ContentType, string apiPath)
+        public static string SetUserDataPOST(byte[] PostData, string ContentType, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;
@@ -48,7 +48,7 @@ namespace WebAPIService.VEEMEE.olm
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText($"{apiPath}/VEEMEE/olm/User_Data/{psnid}.xml")}</xml>");
 
                     // Find the <score> element
-                    XmlElement? scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
+                    XmlElement scoreElement = xmlDoc.SelectSingleNode("/xml/score") as XmlElement;
 
                     if (scoreElement != null)
                     {
@@ -56,7 +56,7 @@ namespace WebAPIService.VEEMEE.olm
                         scoreElement.InnerText = score;
 
                         // Find the <throws> element
-                        XmlElement? throwsElement = xmlDoc.SelectSingleNode("/xml/throws") as XmlElement;
+                        XmlElement throwsElement = xmlDoc.SelectSingleNode("/xml/throws") as XmlElement;
 
                         if (throwsElement != null)
                         {
@@ -80,7 +80,7 @@ namespace WebAPIService.VEEMEE.olm
             return null;
         }
 
-        public static string? GetUserDataPOST(byte[]? PostData, string? ContentType, string apiPath)
+        public static string GetUserDataPOST(byte[] PostData, string ContentType, string apiPath)
         {
             string key = string.Empty;
             string psnid = string.Empty;

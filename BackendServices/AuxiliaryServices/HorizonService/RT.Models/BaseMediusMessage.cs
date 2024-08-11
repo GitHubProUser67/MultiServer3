@@ -96,10 +96,10 @@ namespace Horizon.RT.Models
 
         #region Dynamic Instantiation
 
-        private static Dictionary<MediusDmeMessageIds, Type>? _dmeMessageClassById = null;
-        private static Dictionary<MediusMGCLMessageIds, Type>? _mgclMessageClassById = null;
-        private static Dictionary<MediusLobbyMessageIds, Type>? _lobbyMessageClassById = null;
-        private static Dictionary<MediusLobbyExtMessageIds, Type>? _lobbyExtMessageClassById = null;
+        private static Dictionary<MediusDmeMessageIds, Type> _dmeMessageClassById = null;
+        private static Dictionary<MediusMGCLMessageIds, Type> _mgclMessageClassById = null;
+        private static Dictionary<MediusLobbyMessageIds, Type> _lobbyMessageClassById = null;
+        private static Dictionary<MediusLobbyExtMessageIds, Type> _lobbyExtMessageClassById = null;
         private static int _messageClassByIdLockValue = 0;
         private static object _messageClassByIdLockObject = _messageClassByIdLockValue;
 
@@ -157,7 +157,7 @@ namespace Horizon.RT.Models
         public static BaseMediusMessage Instantiate(MessageReader reader)
         {
             BaseMediusMessage msg;
-            Type? classType = null;
+            Type classType = null;
 
             // Init
             Initialize();

@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
@@ -22,14 +24,14 @@ namespace HTTPServer.Models
         public Stream? Data { get; set; }
         [JsonIgnore]
         public Route? Route { get; set; }
-        public Dictionary<string, string>? Headers { get; set; }
+        public List<KeyValuePair<string, string>>? Headers { get; set; }
 
         #endregion
 
         #region Constructors
         public HttpRequest()
         {
-            Headers = new Dictionary<string, string>();
+            
         }
 
         #endregion
@@ -42,21 +44,51 @@ namespace HTTPServer.Models
 
         public string RetrieveHeaderValue(string headeruri)
         {
-            if (Headers != null && Headers.TryGetValue(headeruri, out string? value))
-                return value;
+            // Check if Headers is null or empty first to avoid unnecessary LINQ operations
+            if (Headers == null || !Headers.Any())
+                return string.Empty;
 
-            return string.Empty; // Make things simpler instead of null.
+            // Try to find the header with the specified key
+            KeyValuePair<string, string>? header = Headers
+                .FirstOrDefault(h => h.Key.Equals(headeruri));
+
+            // Check if the header was found and its value is not the default empty string
+            if (header.HasValue && !string.IsNullOrEmpty(header.Value.Value))
+                return header.Value.Value;
+
+            return string.Empty;
         }
 
         public string GetContentType()
         {
-            if (Headers == null || Headers.Count == 0)
+            // Check if Headers is null or empty first to avoid unnecessary LINQ operations
+            if (Headers == null || !Headers.Any())
                 return string.Empty;
 
-            if (Headers.TryGetValue("Content-Type", out string? value))
-                return value;
-            else if (Headers.TryGetValue("Content-type", out string? value1))
-                return value1;
+            // Try to find the header with the specified key
+            KeyValuePair<string, string>? header = Headers
+                .FirstOrDefault(h => h.Key.Equals("content-type", StringComparison.InvariantCultureIgnoreCase));
+
+            // Check if the header was found and its value is not the default empty string
+            if (header.HasValue && !string.IsNullOrEmpty(header.Value.Value))
+                return header.Value.Value;
+
+            return string.Empty;
+        }
+
+        public string GetContentLength()
+        {
+            // Check if Headers is null or empty first to avoid unnecessary LINQ operations
+            if (Headers == null || !Headers.Any())
+                return string.Empty;
+
+            // Try to find the header with the specified key
+            KeyValuePair<string, string>? header = Headers
+                .FirstOrDefault(h => h.Key.Equals("content-length", StringComparison.InvariantCultureIgnoreCase));
+
+            // Check if the header was found and its value is not the default empty string
+            if (header.HasValue && !string.IsNullOrEmpty(header.Value.Value))
+                return header.Value.Value;
 
             return string.Empty;
         }
@@ -96,6 +128,48 @@ namespace HTTPServer.Models
                 }
 
                 return null;
+            }
+        }
+
+        [JsonIgnore]
+        public string DataAsString
+        {
+            get
+            {
+                if (Data != null)
+                {
+                    int read = 0;
+                    byte[] buffer = new byte[16 * 1024];
+                    using MemoryStream ms = new();
+                    while ((read = Data.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                    return Encoding.UTF8.GetString(ms.ToArray());
+                }
+
+                return string.Empty;
+            }
+        }
+
+        [JsonIgnore]
+        public byte[] DataAsBytes
+        {
+            get
+            {
+                if (Data != null)
+                {
+                    int read = 0;
+                    byte[] buffer = new byte[16 * 1024];
+                    using MemoryStream ms = new();
+                    while ((read = Data.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                    return ms.ToArray();
+                }
+
+                return Array.Empty<byte>();
             }
         }
 

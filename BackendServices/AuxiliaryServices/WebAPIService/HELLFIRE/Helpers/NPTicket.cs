@@ -1,48 +1,51 @@
-
 using CustomLogger;
 using HttpMultipartParser;
-using System.Security.Cryptography;
 using WebAPIService.SSFW;
 using System.Text;
-using CyberBackendLibrary.DataTypes;
 using System.IO;
 using System;
+using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
     public class NPTicket
     {
-        public static string? RequestNPTicket(byte[]? PostData, string boundary)
+        public static string RequestNPTicket(byte[] PostData, string boundary)
         {
             string userid = string.Empty;
             string sessionid = string.Empty;
             string resultString = string.Empty;
-            byte[]? ticketData = null;
+            byte[] ticketData = null;
 
             if (PostData != null)
             {
-                using MemoryStream copyStream = new MemoryStream(PostData);
-                foreach (var file in MultipartFormDataParser.Parse(copyStream, boundary).Files)
+                using (MemoryStream copyStream = new MemoryStream(PostData))
                 {
-                    using Stream filedata = file.Data;
-                    filedata.Position = 0;
+                    foreach (var file in MultipartFormDataParser.Parse(copyStream, boundary).Files)
+                    {
+                        using (Stream filedata = file.Data)
+                        {
+                            filedata.Position = 0;
 
-                    // Find the number of bytes in the stream
-                    int contentLength = (int)filedata.Length;
+                            // Find the number of bytes in the stream
+                            int contentLength = (int)filedata.Length;
 
-                    // Create a byte array
-                    byte[] buffer = new byte[contentLength];
+                            // Create a byte array
+                            byte[] buffer = new byte[contentLength];
 
-                    // Read the contents of the memory stream into the byte array
-                    filedata.Read(buffer, 0, contentLength);
+                            // Read the contents of the memory stream into the byte array
+                            filedata.Read(buffer, 0, contentLength);
 
-                    if (file.FileName == "ticket.bin")
-                        ticketData = buffer;
+                            if (file.FileName == "ticket.bin")
+                                ticketData = buffer;
 
-                    filedata.Flush();
+                            filedata.Flush();
+                        }
+                    }
+
+                    copyStream.Flush();
                 }
-
-                copyStream.Flush();
             }
 
             if (ticketData != null)
@@ -60,7 +63,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                         extractedData[i] = 0x20;
                 }
 
-                if (DataTypesUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                if (DataUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HFGames] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
@@ -70,21 +73,15 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    using (MD5 md5 = MD5.Create())
-                    {
-                        byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
-                        string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
 
-                        // Trim the hash to a specific length
-                        hash = hash[..10];
+                    // Trim the hash to a specific length
+                    hash = hash.Substring(0, 10);
 
-                        // Append the trimmed hash to the result
-                        resultString += hash;
+                    // Append the trimmed hash to the result
+                    resultString += hash;
 
-                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
-
-                        md5.Clear();
-                    }
+                    sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
                 }
                 else
                 {
@@ -96,21 +93,15 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    using (MD5 md5 = MD5.Create())
-                    {
-                        byte[] hashBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
-                        string hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
 
-                        // Trim the hash to a specific length
-                        hash = hash[..14];
+                    // Trim the hash to a specific length
+                    hash = hash.Substring(0, 14);
 
-                        // Append the trimmed hash to the result
-                        resultString += hash;
+                    // Append the trimmed hash to the result
+                    resultString += hash;
 
-                        sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
-
-                        md5.Clear();
-                    }
+                    sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
                 }
 
                 return $"<response><Thing>{userid};{sessionid}</Thing></response>";

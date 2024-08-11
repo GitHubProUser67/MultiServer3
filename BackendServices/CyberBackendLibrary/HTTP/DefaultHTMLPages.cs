@@ -30,14 +30,14 @@ namespace CyberBackendLibrary.HTTP
 
             if (AIAssistant && WebMachineLearning.IsAvailable())
             {
-                List<string>? Urls = null;
+                List<string> Urls = null;
 
                 // The idea behind this logic, is to prevent too much processing for the same url.
-                if (AINotFoundGuessingResultCache.TryGetValue(absolutepathUrl, out Tuple<DateTime, List<string>>? value) && (DateTime.Now - value.Item1).TotalMinutes <= 30) // We renew cache entry after 30 minutes of validity.
+                if (AINotFoundGuessingResultCache.TryGetValue(absolutepathUrl, out Tuple<DateTime, List<string>> value) && (DateTime.Now - value.Item1).TotalMinutes <= 30) // We renew cache entry after 30 minutes of validity.
                     Urls = value.Item2;
                 else if (searchSemaphore.Wait(0)) // We not await for the semaphore, rather we check if yes or not we can enter.
                 {
-                    Urls = WebMachineLearning.GenerateUrlsSuggestions(absolutepathUrl, HttpRootFolder, 0.1)?.Where(url => url != null).Select(url => url!).ToList();
+                    Urls = WebMachineLearning.GenerateUrlsSuggestions(absolutepathUrl, HttpRootFolder, 0.1)?.Where(url => url != null).ToList();
 
                     if (Urls != null)
                     {

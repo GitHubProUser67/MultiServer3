@@ -11,16 +11,14 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => true;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
-        public string? URL { get; set; }
+        public string URL { get; set; }
 
         public override void Deserialize(MessageReader reader)
         {
-            //
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
             // read URL
@@ -39,13 +37,10 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // Write URL
             if (writer.MediusVersion >= 109)
             {
                 // 1 byte length prefixed url

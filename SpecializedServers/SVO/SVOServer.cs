@@ -12,6 +12,8 @@ namespace SVO
     {
         public static bool IsStarted = false;
 
+        const ushort securePort = 10061;
+
         private X509Certificate2? certificate;
         private Thread? thread;
         private volatile bool threadActive;
@@ -96,10 +98,10 @@ namespace SVO
             {
                 listener = new HttpListener();
                 if (certificate != null)
-                    listener.SetCertificate(certificate);
+                    listener.SetCertificate(securePort, certificate);
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-                listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, 10061));
+                listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, securePort));
                 listener.Start();
             }
             catch (Exception e)

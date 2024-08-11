@@ -22,7 +22,7 @@ namespace WatsonWebserver
         {
             get
             {
-                return (_HttpListener != null) ? _HttpListener.IsListening : false;
+                return (_HttpListener != null) && _HttpListener.IsListening;
             }
         }
 
@@ -98,7 +98,7 @@ namespace WatsonWebserver
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
+                _HttpListener.SetCertificate(Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
@@ -123,7 +123,7 @@ namespace WatsonWebserver
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(new System.Security.Cryptography.X509Certificates.X509Certificate2(Settings.Ssl.PfxCertificateFile, Settings.Ssl.PfxCertificatePassword));
+                _HttpListener.SetCertificate(Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
@@ -143,14 +143,10 @@ namespace WatsonWebserver
             if (!_HttpListener.IsListening) throw new InvalidOperationException("WatsonWebserver is already stopped.");
 
             if (_HttpListener != null && _HttpListener.IsListening)
-            {
                 _HttpListener.Stop();
-            }
 
             if (_TokenSource != null && !_TokenSource.IsCancellationRequested)
-            {
                 _TokenSource.Cancel();
-            }
         }
 
         #endregion

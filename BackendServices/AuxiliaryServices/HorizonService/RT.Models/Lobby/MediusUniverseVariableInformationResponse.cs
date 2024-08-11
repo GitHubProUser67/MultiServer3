@@ -15,25 +15,25 @@ namespace Horizon.RT.Models
 
         public bool IsSuccess => StatusCode >= 0;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
         public MediusUniverseVariableInformationInfoFilter InfoFilter;
         public uint UniverseID;
-        public string? UniverseName; // UNIVERSENAME_MAXLEN
-        public string? DNS; // UNIVERSEDNS_MAXLEN
+        public string UniverseName; // UNIVERSENAME_MAXLEN
+        public string DNS; // UNIVERSEDNS_MAXLEN
         public int Port;
-        public string? UniverseDescription; // UNIVERSEDESCRIPTION_MAXLEN
+        public string UniverseDescription; // UNIVERSEDESCRIPTION_MAXLEN
         public int Status;
         public int UserCount;
         public int MaxUsers;
-        public string? UniverseBilling; // UNIVERSE_BSP_MAXLEN
-        public string? BillingSystemName; // UNIVERSE_BSP_NAME_MAXLEN
-        public string? ExtendedInfo; // UNIVERSE_EXTENDED_INFO_MAXLEN
-        public string? SvoURL; // UNIVERSE_SVO_URL_MAXLEN
+        public string UniverseBilling; // UNIVERSE_BSP_MAXLEN
+        public string BillingSystemName; // UNIVERSE_BSP_NAME_MAXLEN
+        public string ExtendedInfo; // UNIVERSE_EXTENDED_INFO_MAXLEN
+        public string SvoURL; // UNIVERSE_SVO_URL_MAXLEN
         public bool EndOfList;
 
-        public List<int> approvedList = new() { 10421, 20043, 20244, 20043, 20464, 21093, 21094, 21614, 21624, 21834, 20371, 20374, 21324, 21514, 21784, 22073, 20464, 22500, 22920, 22924, 22930 };
+        public List<int> approvedList = new List<int>() { 10421, 20043, 20244, 20043, 20464, 21093, 21094, 21614, 21624, 21834, 20371, 20374, 21324, 21514, 21784, 22073, 20464, 22500, 22920, 22924, 22930 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -130,7 +130,7 @@ namespace Horizon.RT.Models
                 {
                     case 20371:
                         double homebetaver = 0;
-                        string? betafirstFiveElements = null;
+                        string betafirstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
                         {
                             if (ExtendedInfo[0] == '*')
@@ -142,7 +142,7 @@ namespace Horizon.RT.Models
                                 break;
                             }
                             else
-                                betafirstFiveElements = ExtendedInfo[..Math.Min(5, ExtendedInfo.Length)];
+                                betafirstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
                         }
 
                         if (!string.IsNullOrEmpty(betafirstFiveElements))
@@ -168,9 +168,9 @@ namespace Horizon.RT.Models
                         break;
                     case 20374:
                         double homeretailver = 0;
-                        string? firstFiveElements = null;
+                        string firstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
-                            firstFiveElements = ExtendedInfo[..Math.Min(5, ExtendedInfo.Length)];
+                            firstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
 
                         if (!string.IsNullOrEmpty(firstFiveElements))
                         {

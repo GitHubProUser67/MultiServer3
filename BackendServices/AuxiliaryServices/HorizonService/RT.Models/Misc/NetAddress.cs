@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
         public static readonly NetAddress Empty = new NetAddress() { AddressType = NetAddressType.NetAddressNone };
 
         public NetAddressType AddressType;
-        public string? Address;
+        public string Address;
         public uint BinaryAddress;
         public int Port;
 

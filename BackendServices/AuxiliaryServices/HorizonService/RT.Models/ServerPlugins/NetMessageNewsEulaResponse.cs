@@ -18,7 +18,7 @@ namespace Horizon.RT.Models
 
         public byte m_finished;
         public NetMessageNewsEulaResponseContentType m_type;
-        public string? m_content;
+        public string m_content;
         public long m_timestamp;
 
         public override void DeserializePlugin(MessageReader reader)

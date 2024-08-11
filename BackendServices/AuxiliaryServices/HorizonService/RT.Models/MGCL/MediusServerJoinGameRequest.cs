@@ -9,8 +9,8 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerJoinGameRequest;
 
-        public MessageId? MessageID { get; set; }
-        public NetConnectionInfo? ConnectInfo;
+        public MessageId MessageID { get; set; }
+        public NetConnectionInfo ConnectInfo;
 
         public override void Deserialize(MessageReader reader)
         {

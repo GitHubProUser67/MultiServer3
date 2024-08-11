@@ -17,11 +17,11 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Message ID
         /// </summary>
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         /// <summary>
         /// Retrieves local IP Address (as seen by the Medius Servers, not behind a NAT).
         /// </summary>
-        public IPAddress? IP = IPAddress.Any;
+        public IPAddress IP = IPAddress.Any;
         /// <summary>
         /// 
         /// </summary>

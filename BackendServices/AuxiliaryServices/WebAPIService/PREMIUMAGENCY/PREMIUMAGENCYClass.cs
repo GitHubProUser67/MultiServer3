@@ -26,7 +26,7 @@ namespace WebAPIService.PREMIUMAGENCY
             this.method = method;
         }
 
-        public string? ProcessRequest(byte[] PostData, string ContentType)
+        public string ProcessRequest(byte[] PostData, string ContentType)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -194,7 +194,7 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static List<(string, string)>? ReadFormDataFromFile(string filePath)
+        public static List<(string, string)> ReadFormDataFromFile(string filePath)
         {
             try
             {
@@ -203,7 +203,7 @@ namespace WebAPIService.PREMIUMAGENCY
 
                 using (StreamReader reader = new StreamReader(filePath))
                 {
-                    string? line;
+                    string line = null;
                     string currentKey = string.Empty;
                     string currentValue = string.Empty;
 
@@ -223,16 +223,12 @@ namespace WebAPIService.PREMIUMAGENCY
                             }
                         }
                         else
-                        {
                             currentValue += "\n" + line.Trim();
-                        }
                     }
 
                     // Add the last key-value pair
                     if (currentKey != null)
-                    {
                         formData.Add((currentKey.Trim(), currentValue.Trim()));
-                    }
                 }
 
                 return formData;

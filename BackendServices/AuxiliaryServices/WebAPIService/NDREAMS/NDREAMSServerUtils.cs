@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using CustomLogger;
 using NLua;
-using System.Security.Cryptography;
 using System.Text;
 using System;
+using CastleLibrary.Utils.Hash;
 
 namespace WebAPIService.NDREAMS
 {
@@ -11,22 +11,12 @@ namespace WebAPIService.NDREAMS
     {
         public static string DBManager_GenerateSignature(string signature, string username, string data, DateTime timeObj)
         {
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes(signature + username + string.Empty + $"{timeObj.Year}{timeObj.Month}{timeObj.Day}" + data + "Signature"));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes(signature + username + string.Empty + $"{timeObj.Year}{timeObj.Month}{timeObj.Day}" + data + "Signature")).ToLower();
         }
 
         public static string Server_GetSignature(string url, string playername, string data, DateTime dObj)
         {
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes("nDreams" + url + playername + dObj.Year + dObj.Month + dObj.Day + data + "Signature"));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes("nDreams" + url + playername + dObj.Year + dObj.Month + dObj.Day + data + "Signature")).ToLower();
         }
 
         public static string Server_KeyToHash(string key, DateTime dObj, string level)
@@ -68,15 +58,10 @@ namespace WebAPIService.NDREAMS
                 str.Append(mappedChar);
             }
 
-            byte[] SHA1Data = new byte[0];
-            using (SHA1 sha1hash = SHA1.Create())
-            {
-                SHA1Data = sha1hash.ComputeHash(Encoding.UTF8.GetBytes("keyString" + level + dObj.Year + dObj.Month + dObj.Day + str.ToString() + level));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
+            return NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes("keyString" + level + dObj.Year + dObj.Month + dObj.Day + str.ToString() + level)).ToLower();
         }
 
-        public static string? CreateBase64StringFromGuids(List<string> GUIDS)
+        public static string CreateBase64StringFromGuids(List<string> GUIDS)
         {
             if (GUIDS.Count == 0)
                 return null;
@@ -92,7 +77,7 @@ namespace WebAPIService.NDREAMS
             }
 
             // Execute the Lua script and get the result
-            byte[]? LuaTableOutput = ExecuteLuaScript(sb.ToString());
+            byte[] LuaTableOutput = ExecuteLuaScript(sb.ToString());
 
             if (LuaTableOutput != null)
                 return Convert.ToBase64String(LuaTableOutput);
@@ -100,13 +85,14 @@ namespace WebAPIService.NDREAMS
             return null;
         }
 
-        public static byte[]? ExecuteLuaScript(string GUIDList)
+        public static byte[] ExecuteLuaScript(string GUIDList)
         {
-            using Lua lua = new Lua();
-            try
+            using (Lua lua = new Lua())
             {
-                // Execute the Lua script
-                object[]? returnValues = lua.DoString(@"local list = {PUT_GUID_LIST_HERE};
+                try
+                {
+                    // Execute the Lua script
+                    object[] returnValues = lua.DoString(@"local list = {PUT_GUID_LIST_HERE};
 		                local normal = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 		                local key1   = {'i','o','p','1','2','8','x','c','5','t','3','v','h','k','q','0'};
 		                local key2   = {'a','d','1','g','h','4','y','u','8','o','p','2','5','9','e','i'};
@@ -162,33 +148,34 @@ namespace WebAPIService.NDREAMS
 				
 		                return bytes;".Replace("PUT_GUID_LIST_HERE", GUIDList));
 
-                // Accessing the returned values
-                if (returnValues != null && returnValues.Length > 0)
-                {
-                    // Assuming the Lua script returns a table of byte arrays
-                    if (returnValues[0] is LuaTable bytesTable)
+                    // Accessing the returned values
+                    if (returnValues != null && returnValues.Length > 0)
                     {
-                        List<byte> ReturnBytes = new List<byte>();
-
-                        foreach (LuaTable val in bytesTable.Values)
+                        // Assuming the Lua script returns a table of byte arrays
+                        if (returnValues[0] is LuaTable bytesTable)
                         {
-                            foreach (long val1 in val.Values)
-                            {
-                                ReturnBytes.Add((byte)val1);
-                            }
-                        }
+                            List<byte> ReturnBytes = new List<byte>();
 
-                        return ReturnBytes.ToArray();
+                            foreach (LuaTable val in bytesTable.Values)
+                            {
+                                foreach (long val1 in val.Values)
+                                {
+                                    ReturnBytes.Add((byte)val1);
+                                }
+                            }
+
+                            return ReturnBytes.ToArray();
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                // Handle any exceptions that might occur during script execution
-                LoggerAccessor.LogError("[ExecuteLuaScript] - Error executing Lua script: " + ex);
-            }
+                catch (Exception ex)
+                {
+                    // Handle any exceptions that might occur during script execution
+                    LoggerAccessor.LogError("[ExecuteLuaScript] - Error executing Lua script: " + ex);
+                }
 
-            lua.Close();
+                lua.Close();
+            }
 
             return null;
         }

@@ -6,7 +6,6 @@ using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text;
-using System.Security.Cryptography;
 using CyberBackendLibrary.HTTP;
 using static WebAPIService.OHS.UserCounter;
 
@@ -14,14 +13,14 @@ namespace WebAPIService.OHS
 {
     public class User
     {
-        public static string? Set(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
+        public static string Set(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -43,11 +42,11 @@ namespace WebAPIService.OHS
                 {
                     JToken Token = JToken.Parse(dataforohs);
 
-                    object? value = Utils.JtokenUtils.GetValueFromJToken(Token, "value");
+                    object value = Utils.JtokenUtils.GetValueFromJToken(Token, "value");
 
-                    object? key = Utils.JtokenUtils.GetValueFromJToken(Token, "key");
+                    object key = Utils.JtokenUtils.GetValueFromJToken(Token, "key");
 
-                    object? user = Utils.JtokenUtils.GetValueFromJToken(Token, "user");
+                    object user = Utils.JtokenUtils.GetValueFromJToken(Token, "user");
 
                     Directory.CreateDirectory(directorypath + $"/User_Profiles");
 
@@ -61,19 +60,19 @@ namespace WebAPIService.OHS
 
                             if (!string.IsNullOrEmpty(profiledata))
                             {
-                                JObject? jObject = JObject.Parse(profiledata);
+                                JObject jObject = JObject.Parse(profiledata);
 
                                 if (jObject != null)
                                 {
                                     // Check if the key name already exists in the JSON
-                                    JToken? existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == key);
+                                    JToken existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == (string)key);
 
                                     if (existingKey != null && value != null)
                                         // Update the value of the existing key
                                         existingKey.Replace(JToken.FromObject(value));
                                     else if (key != null && value != null)
                                     {
-                                        JToken? KeyEntry = jObject["key"];
+                                        JToken KeyEntry = jObject["key"];
 
                                         if (KeyEntry != null)
                                             // Step 2: Add a new entry to the "Key" object
@@ -86,7 +85,7 @@ namespace WebAPIService.OHS
                         }
                         else if (key != null)
                         {
-                            string? keystring = key.ToString();
+                            string keystring = key.ToString();
 
                             if (keystring != null && user != null && value != null)
                             {
@@ -111,19 +110,19 @@ namespace WebAPIService.OHS
 
                             if (!string.IsNullOrEmpty(globaldata))
                             {
-                                JObject? jObject = JObject.Parse(globaldata);
+                                JObject jObject = JObject.Parse(globaldata);
 
                                 if (jObject != null && value != null)
                                 {
                                     // Check if the key name already exists in the JSON
-                                    JToken? existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == key);
+                                    JToken existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == (string)key);
 
                                     if (existingKey != null)
                                         // Update the value of the existing key
                                         existingKey.Replace(JToken.FromObject(value));
                                     else if (key != null)
                                     {
-                                        JToken? KeyEntry = jObject["key"];
+                                        JToken KeyEntry = jObject["key"];
 
                                         if (KeyEntry != null)
                                             // Step 2: Add a new entry to the "Key" object
@@ -136,7 +135,7 @@ namespace WebAPIService.OHS
                         }
                         else if (key != null)
                         {
-                            string? keystring = key.ToString();
+                            string keystring = key.ToString();
 
                             if (keystring != null && value != null)
                             {
@@ -178,15 +177,15 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Get_All(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
+        public static string Get_All(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
         {
-            string? dataforohs = string.Empty;
-            string? output = string.Empty;
-            string? projectName = string.Empty;
+            string dataforohs = string.Empty;
+            string output = string.Empty;
+            string projectName = string.Empty;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -208,12 +207,12 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? jsonObject = JObject.Parse(dataforohs);
+                    JObject jsonObject = JObject.Parse(dataforohs);
 
                     if (!global)
                     {
                         // Getting the value of the "user" field
-                        dataforohs = (string?)jsonObject["user"];
+                        dataforohs = (string)jsonObject["user"];
 
                         if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}.json"))
                         {
@@ -225,7 +224,7 @@ namespace WebAPIService.OHS
                                 jsonObject = JObject.Parse(tempreader);
 
                                 // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
                                     output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                             }
@@ -243,7 +242,7 @@ namespace WebAPIService.OHS
                                 jsonObject = JObject.Parse(tempreader);	
 
                                 // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     // Convert the JToken to a Lua table-like string
                                     output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, true); // Nested, because we expect the array instead.
                             }
@@ -274,14 +273,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Get(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
+        public static string Get(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -302,13 +301,13 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? jsonObject = JObject.Parse(dataforohs);
+                    JObject jsonObject = JObject.Parse(dataforohs);
 
                     if (!global)
                     {
                         // Getting the value of the "user" field
-                        string? ohsUserName = (string?)jsonObject["user"];
-                        string? ohsKey = (string?)jsonObject["key"];
+                        string ohsUserName = (string)jsonObject["user"];
+                        string ohsKey = (string)jsonObject["key"];
 
                         if (!string.IsNullOrEmpty(ohsUserName) && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
                         {
@@ -320,7 +319,7 @@ namespace WebAPIService.OHS
                                 jsonObject = JObject.Parse(userprofile);
 
                                 // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
@@ -363,17 +362,17 @@ namespace WebAPIService.OHS
                                 jsonObject = JObject.Parse(globaldata);
 
                                 // Check if the "key" property exists and if it is an object
-                                if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                     output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
                             }
                         }
-                        else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
+                        else if ((string)jsonObject["key"] == "global_data" && directorypath.Contains("Uncharted3"))
                             output = "{ [\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = { [\"accuracy\"] = 1 } }";
-                        else if ((string?)jsonObject["key"] == "unlock_data" && directorypath.Contains("killzone_3"))
+                        else if ((string)jsonObject["key"] == "unlock_data" && directorypath.Contains("killzone_3"))
                             output = "{ [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true } }, { [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true } }, { [\"wave_1\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_2\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true }, [\"wave_3\"] = { [\"unlocked\"] = \"1999:10:10\", [\"override\"] = true } }";
-                        else if ((string?)jsonObject["key"] == "global_data" && directorypath.Contains("Halloween2012"))
+                        else if ((string)jsonObject["key"] == "global_data" && directorypath.Contains("Halloween2012"))
                             output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"hemlock\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"wolfsbane\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" } } }";
-                        else if ((string?)jsonObject["key"] == "vickie_version")
+                        else if ((string)jsonObject["key"] == "vickie_version")
                             output = "{ [\"vickie_version\"] = 7 }";
                     }
                 }
@@ -401,14 +400,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? GetMany(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
+        public static string GetMany(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -429,18 +428,18 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? jsonObject = JObject.Parse(dataforohs);
+                    JObject jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field as an array
-                    JArray? usersArray = (JArray?)jsonObject["users"];
+                    JArray usersArray = (JArray)jsonObject["users"];
 
                     if (usersArray != null)
                     {
-                        output = ""; // Initialize output string
+                        output = string.Empty; // Initialize output string
 
                         foreach (var userToken in usersArray)
                         {
-                            string? ohsUserName = userToken.Value<string>();
+                            string ohsUserName = userToken.Value<string>();
 
                             try
                             {
@@ -454,7 +453,7 @@ namespace WebAPIService.OHS
                                         jsonObject = JObject.Parse(userprofile);
 
                                         // Check if the "key" property exists and if it is an object
-                                        if (jsonObject.TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                        if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                         {
                                             // string playerNameToAppend = $"\"[ {ohsUserName} = {keyValueToken.Value<int>()}\"";
 
@@ -507,14 +506,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? Gets(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
+        public static string Gets(byte[] PostData, string ContentType, string directorypath, string batchparams, bool global, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -535,11 +534,11 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Parsing the JSON string
-                    JObject? globalProfile = JObject.Parse(dataforohs);
+                    JObject globalProfile = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string?)globalProfile["user"];
-                    string[]? keys = globalProfile["keys"]?.ToObject<string[]>();
+                    dataforohs = (string)globalProfile["user"];
+                    string[] keys = globalProfile["keys"]?.ToObject<string[]>();
 
                     if (!global)
                     {
@@ -550,7 +549,7 @@ namespace WebAPIService.OHS
                             if (!string.IsNullOrEmpty(userprofile))
                             {
                                 // Check if the "key" property exists and if it is an object
-                                if (JObject.Parse(userprofile).TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                if (JObject.Parse(userprofile).TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 {
                                     JObject keyObject = (JObject)keyValueToken;
 
@@ -559,7 +558,7 @@ namespace WebAPIService.OHS
                                     foreach (string key in keys)
                                     {
                                         // Check if the specific key exists in the JObject
-                                        if (keyObject.TryGetValue(key, out JToken? valueToken))
+                                        if (keyObject.TryGetValue(key, out JToken valueToken))
                                         {
                                             if (st.Length != 2)
                                                 st.Append($", [\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
@@ -583,7 +582,7 @@ namespace WebAPIService.OHS
                             if (!string.IsNullOrEmpty(globaldata))
                             {
                                 // Check if the "key" property exists and if it is an object
-                                if (JObject.Parse(globaldata).TryGetValue("key", out JToken? keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                if (JObject.Parse(globaldata).TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                 {
                                     JObject keyObject = (JObject)keyValueToken;
 
@@ -592,7 +591,7 @@ namespace WebAPIService.OHS
                                     foreach (string key in keys)
                                     {
                                         // Check if the specific key exists in the JObject
-                                        if (keyObject.TryGetValue(key, out JToken? valueToken))
+                                        if (keyObject.TryGetValue(key, out JToken valueToken))
                                         {
                                             if (st.Length != 2)
                                                 st.Append($", [\"{key}\"] = " + LuaUtils.ConvertJTokenToLuaTable(valueToken, false));
@@ -634,13 +633,13 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? User_Id(byte[] PostData, string ContentType, string batchparams, int game)
+        public static string User_Id(byte[] PostData, string ContentType, string batchparams, int game)
         {
-            string? dataforohs = null;
+            string dataforohs = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -664,7 +663,7 @@ namespace WebAPIService.OHS
                     JObject jsonObject = JObject.Parse(dataforohs);
 
                     // Getting the value of the "user" field
-                    dataforohs = (string?)jsonObject["user"];
+                    dataforohs = (string)jsonObject["user"];
                 }
             }
             catch (Exception ex)
@@ -690,13 +689,13 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? User_GetWritekey(byte[] PostData, string ContentType, string batchparams, int game)
+        public static string User_GetWritekey(byte[] PostData, string ContentType, string batchparams, int game)
         {
-            string? dataforohs = null;
+            string dataforohs = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -719,7 +718,7 @@ namespace WebAPIService.OHS
                     // Parsing the JSON string
                     JObject jsonObject = JObject.Parse(dataforohs);
 
-                    dataforohs = GetFirstEightCharacters(CalculateMD5HashToExadecimal((string?)jsonObject["user"]));
+                    dataforohs = GetFirstEightCharacters(CalculateMD5HashToHexadecimal((string)jsonObject["user"]));
                 }
             }
             catch (Exception ex)
@@ -745,28 +744,24 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? CalculateMD5HashToExadecimal(string? input)
+        public static string CalculateMD5HashToHexadecimal(string input)
         {
             if (string.IsNullOrEmpty(input))
                 return null;
 
-            using (MD5 md5 = MD5.Create())
+            byte[] hashBytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Encoding.UTF8.GetBytes(input));
+
+            // Convert the byte array to a hexadecimal string
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hashBytes.Length; i++)
             {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-                byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-                // Convert the byte array to a hexadecimal string
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < hashBytes.Length; i++)
-                {
-                    sb.Append(hashBytes[i].ToString("x2"));
-                }
-
-                return sb.ToString();
+                sb.Append(hashBytes[i].ToString("x2"));
             }
+
+            return sb.ToString();
         }
 
-        public static string? GetFirstEightCharacters(string? input)
+        public static string GetFirstEightCharacters(string input)
         {
             if (string.IsNullOrEmpty(input))
                 return null;
@@ -782,7 +777,7 @@ namespace WebAPIService.OHS
 
         public class OHSGlobalProfile
         {
-            public object? Key { get; set; }
+            public object Key { get; set; }
         }
 
         public static class UniqueNumberGenerator
@@ -790,11 +785,7 @@ namespace WebAPIService.OHS
             // Function to generate a unique number based on a string using MD5
             public static int GenerateUniqueNumber(string inputString)
             {
-                byte[] MD5Data = new byte[0];
-                using (MD5 md5hash = MD5.Create())
-                {
-                    MD5Data = md5hash.ComputeHash(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
-                }
+                byte[] MD5Data = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
 
                 if (!BitConverter.IsLittleEndian)
                     Array.Reverse(MD5Data);
@@ -803,25 +794,5 @@ namespace WebAPIService.OHS
                 return Math.Abs(BitConverter.ToUInt16(MD5Data, 0));
             }
         }
-
-        static string ConcatenateValues(JObject jsonObject, string[] keysRequested)
-        {
-            string response = "";
-            foreach (string key in keysRequested)
-            {
-                if (jsonObject.ContainsKey(key))
-                {
-                    // Check if the "key" property exists and if it is an object
-                    if (jsonObject.TryGetValue("keys", out JToken? keyValueToken))
-                        response += LuaUtils.ConvertJTokenToLuaTable(jsonObject[key]?.ToString(), false);
-                }
-                else
-                {
-                    // Don't write response '//response += "Key '" + key + "' not found ";
-                }
-            }
-            return response.Trim();
-        }
     }
-
 }

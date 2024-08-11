@@ -6,12 +6,12 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class pushrewards
     {
-        public static string? ProcessPushRewards(Dictionary<string, string>? QueryParameters, string apiPath)
+        public static string ProcessPushRewards(Dictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
-                string? reward1 = QueryParameters["reward1"];
+                string user = QueryParameters["user"];
+                string reward1 = QueryParameters["reward1"];
 
                 if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(reward1))
                 {
@@ -24,7 +24,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
                         xmlDoc.Load($"{apiPath}/juggernaut/clearasil/space_access/{user}.xml");
 
                         // Find the <phase2> element
-                        XmlElement? phase2Element = xmlDoc.SelectSingleNode("/xml/phase2") as XmlElement;
+                        XmlElement phase2Element = xmlDoc.SelectSingleNode("/xml/phase2") as XmlElement;
 
                         if (phase2Element != null)
                         {

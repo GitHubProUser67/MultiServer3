@@ -569,7 +569,7 @@ namespace Horizon.MEDIUS.Medius
                                     }
 
                                     #endregion
-                                    else if (rClient != null && rClient.MediusVersion == 108 && rClient.ApplicationId != 10683 && rClient.ApplicationId != 10684)
+                                    else if (rClient != null && rClient.MediusVersion == 108 && rClient.ApplicationId != 10680 && rClient.ApplicationId != 10683 && rClient.ApplicationId != 10684)
                                     {
                                         // Join game DME
                                         await rClient.JoinGame(game, joinGameResponse.DmeClientIndex);
@@ -961,7 +961,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                               {
-                                  new() { BinaryAddress = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.EndianSwap(client.IP.GetAddressBytes()) : client.IP.GetAddressBytes()), BinaryPort = 0, AddressType = NetAddressType.NetAddressTypeBinaryExternal }, //Address = game.netAddressList.AddressList[0].Address, Port = game.netAddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeBinaryExternal},
+                                  new() { BinaryAddress = BitConverter.ToUInt32(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseArray(client.IP.GetAddressBytes()) : client.IP.GetAddressBytes()), BinaryPort = 0, AddressType = NetAddressType.NetAddressTypeBinaryExternal }, //Address = game.netAddressList.AddressList[0].Address, Port = game.netAddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeBinaryExternal},
                                   new() { AddressType = NetAddressType.NetAddressNone},
                               }
                         },

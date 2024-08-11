@@ -8,7 +8,7 @@ namespace WebAPIService.HELLFIRE.HFProcessors
 {
     public class ClearasilSkaterRequestProcessor
     {
-        public static string? ProcessMainPHP(byte[]? PostData, string? ContentType, string? PHPSessionID, string WorkPath)
+        public static string ProcessMainPHP(byte[] PostData, string ContentType, string PHPSessionID, string WorkPath)
         {
             if (PostData == null || string.IsNullOrEmpty(ContentType))
                 return null;
@@ -18,7 +18,7 @@ namespace WebAPIService.HELLFIRE.HFProcessors
             string DisplayName = string.Empty;
             string InstanceID = string.Empty;
             string Region = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (boundary != null)
             {
@@ -97,14 +97,6 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                     }
                 }
             }
-
-            return null;
-        }
-
-        public static string? ProcessPostCards(byte[]? PostData, string? ContentType) // Not yet handled.
-        {
-            if (PostData == null || string.IsNullOrEmpty(ContentType))
-                return null;
 
             return null;
         }

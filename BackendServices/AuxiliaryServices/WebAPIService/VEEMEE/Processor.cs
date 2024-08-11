@@ -1,30 +1,20 @@
 using System;
 using CustomLogger;
-using System.Text;
-using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
+using CastleLibrary.Utils.Hash;
+using System.Text;
 
 namespace WebAPIService.VEEMEE
 {
     public class Processor
     {
-        private static string Sha1Hash(string data)
-        {
-            byte[]? SHA1Data = null;
-            using (var sha1 = SHA1.Create())
-            {
-                SHA1Data = sha1.ComputeHash(Encoding.UTF8.GetBytes($"veemeeHTTPRequ9R3UMWDAT8F3*#@&$^{data}"));
-            }
-            return BitConverter.ToString(SHA1Data).Replace("-", string.Empty).ToLower();
-        }
-
-        public static string? Sign(string jsonData)
+        public static string Sign(string jsonData)
         {
             try
             {
                 string formattedJson = JToken.Parse(jsonData.Replace("\n", string.Empty)).ToString(Newtonsoft.Json.Formatting.None);
 
-                string hash = Sha1Hash(formattedJson).ToUpper();
+                string hash = NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes($"veemeeHTTPRequ9R3UMWDAT8F3*#@&$^{formattedJson}"));
 
                 JToken token = JToken.Parse(formattedJson);
 

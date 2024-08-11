@@ -9,13 +9,13 @@ namespace CyberBackendLibrary.FileSystem
 {
     public static class StaticFileSystem
     {
-        public static IEnumerable<FileSystemInfo> AllFilesAndFolders(this DirectoryInfo dir)
+        public static IEnumerable<FileSystemInfo> AllFilesAndFolders(this DirectoryInfo directory)
         {
-            if ((dir.Attributes & FileAttributes.Hidden) == 0)
+            if ((directory.Attributes & FileAttributes.Hidden) == 0)
             {
-                foreach (FileInfo f in dir.GetFiles().Where(file => (file.Attributes & FileAttributes.Hidden) == 0))
+                foreach (FileInfo f in directory.GetFiles().Where(file => (file.Attributes & FileAttributes.Hidden) == 0))
                     yield return f;
-                foreach (DirectoryInfo d in dir.GetDirectories().Where(dir => (dir.Attributes & FileAttributes.Hidden) == 0))
+                foreach (DirectoryInfo d in directory.GetDirectories().Where(dir => (dir.Attributes & FileAttributes.Hidden) == 0))
                 {
                     yield return d;
                     foreach (FileSystemInfo o in d.AllFilesAndFolders())
@@ -30,7 +30,7 @@ namespace CyberBackendLibrary.FileSystem
                 .AsUnordered().Where(info => (info.Attributes & FileAttributes.Hidden) == 0).ToArray();
         }
 
-        public static IEnumerable<string>? GetMediaFilesList(string directoryPath)
+        public static IEnumerable<string> GetMediaFilesList(string directoryPath)
         {
             // Define a set of valid extensions for media quick lookup
             HashSet<string> validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".mp3", ".aac", ".ts" };
@@ -40,13 +40,13 @@ namespace CyberBackendLibrary.FileSystem
                             .HasFlag(FileAttributes.Hidden));
         }
 
-        public static string? GetM3UStreamFromDirectory(string directoryPath, string httpdirectoryrequest)
+        public static string GetM3UStreamFromDirectory(string directoryPath, string httpdirectoryrequest)
         {
             try
             {
                 if (Directory.Exists(directoryPath))
                 {
-                    IEnumerable<string>? MediaPaths = GetMediaFilesList(directoryPath);
+                    IEnumerable<string> MediaPaths = GetMediaFilesList(directoryPath);
 
                     if (MediaPaths?.Any() == true)
                     {

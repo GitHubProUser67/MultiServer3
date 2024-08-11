@@ -10,13 +10,8 @@ namespace SVO
             if (string.IsNullOrEmpty(clientSVOMac) || clientSVOMac.Length != 32)
                 return null;
 
-            //Get SVOMac from client and combine with speaksId together for new MD5, converting to a byte array for MD5 rehashing
-            byte[] HashedSVOMac = MD5.HashData(Encoding.ASCII.GetBytes($"{clientSVOMac}sp9ck0348sld00000000000000000000"));
-
-            if (HashedSVOMac.Length != 16)
-                return null;
-
-            return $"{BitConverter.ToString(HashedSVOMac).Replace("-", string.Empty).ToLower()}";
+            // Get SVOMac from client and combine with speaksId together for new MD5, converting to a byte array for MD5 rehashing
+            return CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes($"{clientSVOMac}sp9ck0348sld00000000000000000000")).ToLower();
         }
 
         // HMAC-MD5 as result is 16 in length as shown in eboot.

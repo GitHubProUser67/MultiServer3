@@ -69,6 +69,7 @@ ratchet3.pdonline.scek.co.kr,Redirect,IP
 ratchet3-pubeta.pdonline.scea.com,Redirect,IP
 ratchet3-qa.pdonline.scea.com,Redirect,IP
 ratchet3-press.pdonline.scea.com,Redirect,IP
+randc3-preprod.online.scee.com,Redirect,IP
 ratchetdl-prod.pdonline.scea.com,Redirect,IP
 randc-deadlocked.online.scee.com,Redirect,IP
 randc-deadlocked-anz.online.scee.com,Redirect,IP

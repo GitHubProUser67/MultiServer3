@@ -14,7 +14,7 @@ namespace Horizon.RT.Models
 
         public override byte PluginId => 30;
 
-        public string? m_languageExtension;
+        public string m_languageExtension;
 
         public override void DeserializePlugin(MessageReader reader)
         {

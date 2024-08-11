@@ -17,49 +17,49 @@ namespace HomeTools.BARFramework
 
         public override void Write(uint val)
         {
-            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(val) : val);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(val) : val);
             Array.Reverse(bytes);
             m_bw.Write(bytes);
         }
 
         public override void Write(ushort val)
         {
-            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(val) : val);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(val) : val);
             Array.Reverse(bytes);
             m_bw.Write(bytes);
         }
 
         public override void Write(int val)
         {
-            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(val) : val);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(val) : val);
             Array.Reverse(bytes);
             m_bw.Write(bytes);
         }
 
         public override void Write(short val)
         {
-            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(val) : val);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseShort(val) : val);
             Array.Reverse(bytes);
             m_bw.Write(bytes);
         }
 
         public override void Write(float val)
         {
-            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(val) : val);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseFloat(val) : val);
             Array.Reverse(bytes);
             m_bw.Write(bytes);
         }
 
         public override void Write(long val)
         {
-            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(val) : val);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseLong(val) : val);
             Array.Reverse(bytes);
             m_bw.Write(bytes);
         }
 
         public override void Write(ulong val)
         {
-            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(val) : val);
+            byte[] bytes = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(val) : val);
             Array.Reverse(bytes);
             m_bw.Write(bytes);
         }

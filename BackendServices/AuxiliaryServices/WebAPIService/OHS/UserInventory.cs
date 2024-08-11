@@ -13,14 +13,14 @@ namespace WebAPIService.OHS
 {
     public class UserInventory
     {
-        public static string? AddGlobalItems(byte[] PostData, string ContentType, string directoryPath, string batchparams, int game)
+        public static string AddGlobalItems(byte[] PostData, string ContentType, string directoryPath, string batchparams, int game)
         {
-            int itemCount = 0;
+            //int itemCount = 0;
 
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (string.IsNullOrEmpty(batchparams))
             {
@@ -53,11 +53,11 @@ namespace WebAPIService.OHS
                 {
                     JToken Token = JToken.Parse(dataforohs);
 
-                    object? value = Utils.JtokenUtils.GetValueFromJToken(Token, "value");
+                    object value = Utils.JtokenUtils.GetValueFromJToken(Token, "value");
 
-                    object? data = Utils.JtokenUtils.GetValueFromJToken(Token, "data");
+                    object data = Utils.JtokenUtils.GetValueFromJToken(Token, "data");
 
-                    //object? user = DataTypesUtils.GetValueFromJToken(Token, "user");
+                    //object user = DataTypesUtils.GetValueFromJToken(Token, "user");
 
                     string globaldatastring = directoryPath + "/Globals.json";
 
@@ -67,19 +67,19 @@ namespace WebAPIService.OHS
 
                         if (!string.IsNullOrEmpty(globaldata))
                         {
-                            JObject? jObject = JObject.Parse(globaldata);
+                            JObject jObject = JObject.Parse(globaldata);
 
                             if (jObject != null && value != null)
                             {
                                 // Check if the key name already exists in the JSON
-                                JToken? existingKey = jObject.SelectToken($"$..{data}");
+                                JToken existingKey = jObject.SelectToken($"$..{data}");
 
                                 if (existingKey != null)
                                     // Update the value of the existing key
                                     existingKey.Replace(JToken.FromObject(value));
                                 else if (data != null)
                                 {
-                                    JToken? KeyEntry = jObject["key"];
+                                    JToken KeyEntry = jObject["key"];
 
                                     if (KeyEntry != null)
                                         // Step 2: Add a new entry to the "Key" object
@@ -92,7 +92,7 @@ namespace WebAPIService.OHS
                     }
                     else if (data != null)
                     {
-                        string? keystring = data.ToString();
+                        string keystring = data.ToString();
 
                         if (keystring != null && value != null)
                         {
@@ -144,14 +144,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? GetGlobalItems(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string GetGlobalItems(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -207,14 +207,14 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? UpdateUserInventory(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string UpdateUserInventory(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
-            string? output = null;
+            string dataforohs = null;
+            string output = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -235,24 +235,24 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Deserialize the JSON data into a JObject
-                    JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+                    JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
 
-                    string? user = jObject?.Value<string>("user");
-                    string? region = jObject?.Value<string>("region");
+                    string user = jObject?.Value<string>("user");
+                    string region = jObject?.Value<string>("region");
 
-                    StringBuilder? resultBuilder = new StringBuilder();
+                    StringBuilder resultBuilder = new StringBuilder();
 
                     string inventorypath = directorypath + $"/User_Inventory/{user}_{region}/";
 
                     if (Directory.Exists(inventorypath))
                     {
-                        JToken? invName = jObject?.Value<string>("inventory_name");
+                        JToken invName = jObject?.Value<string>("inventory_name");
                         string fileName = inventorypath + invName + ".json";
-                        JArray? invItemsToChange = jObject?.Value<JArray>("changes");
+                        JArray invItemsToChange = jObject?.Value<JArray>("changes");
 
                         //JArray invItemsToChange = JArray.Parse(inventoryChanges);
 
-                        foreach (string? key in invName.Select(v => (string?)v))
+                        foreach (string key in invName.Select(v => (string)v))
                         {
                             if (File.Exists(fileName))
                             {
@@ -260,17 +260,17 @@ namespace WebAPIService.OHS
 
                                 if (!string.IsNullOrEmpty(invFileData))
                                 {
-                                    JObject? existingFileJson = JObject.Parse(invFileData);
+                                    JObject existingFileJson = JObject.Parse(invFileData);
 
                                     // Check if the invName already exists in the JSON
-                                    JToken? existingKey = existingFileJson.SelectToken($"$..{invName}");
+                                    JToken existingKey = existingFileJson.SelectToken($"$..{invName}");
 
                                     if (existingKey != null && invItemsToChange != null)
                                         // Update the value of the existing key
                                         existingKey.Replace(JToken.FromObject(invItemsToChange));
                                     else if (existingKey == null && invItemsToChange != null)
                                     {
-                                        JToken? KeyEntry = existingKey["key"];
+                                        JToken KeyEntry = existingKey["key"];
 
                                         if (KeyEntry != null)
                                             // Step 2: Add a new entry to the "Key" object
@@ -305,13 +305,17 @@ namespace WebAPIService.OHS
                             }
                             else
                             {
-                                string? invCh = (string?)invItemsToChange;
+                                string invCh = (string)invItemsToChange;
 
                                 if (!string.IsNullOrEmpty(invCh))
                                 {
                                     FileStream fs = File.Create(fileName);
-
-                                    fs.Write((byte[]?)invItemsToChange);
+#if NET5_0_OR_GREATER
+                                    fs.Write((byte[])invItemsToChange);
+#else
+                                    byte[] invItemsToChangeBytes = (byte[])invItemsToChange;
+                                    fs.Write(invItemsToChangeBytes, 0, invItemsToChangeBytes.Length);
+#endif
                                     fs.Close();
                                     fs.Dispose();
 
@@ -345,13 +349,13 @@ namespace WebAPIService.OHS
             return dataforohs;
         }
 
-        public static string? GetUserInventory(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
+        public static string GetUserInventory(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
-            string? dataforohs = null;
+            string dataforohs = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
-                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 if (!string.IsNullOrEmpty(boundary))
                 {
@@ -372,26 +376,26 @@ namespace WebAPIService.OHS
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     // Deserialize the JSON data into a JObject
-                    JObject? jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
+                    JObject jObject = JsonConvert.DeserializeObject<JObject>(dataforohs);
 
                     if (jObject != null)
                     {
-                        string? user = jObject.Value<string>("user");
-                        string? region = jObject.Value<string>("region");
+                        string user = jObject.Value<string>("user");
+                        string region = jObject.Value<string>("region");
 
                         if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(region))
                         {
                             string inventorypath = directorypath + $"/User_Inventory/{user}_{region}/";
 
-                            StringBuilder? resultBuilder = new StringBuilder();
+                            StringBuilder resultBuilder = new StringBuilder();
 
                             if (Directory.Exists(inventorypath))
                             {
-                                JToken? keyToken = jObject.GetValue("inventory_names");
+                                JToken keyToken = jObject.GetValue("inventory_names");
 
                                 if (keyToken != null)
                                 {
-                                    foreach (string? key in keyToken)
+                                    foreach (string key in keyToken.Select(v => (string)v))
                                     {
                                         if (File.Exists(inventorypath + key + ".json"))
                                         {
@@ -421,11 +425,11 @@ namespace WebAPIService.OHS
                             {
                                 Directory.CreateDirectory(inventorypath);
 
-                                JToken? keyToken = jObject.GetValue("inventory_names");
+                                JToken keyToken = jObject.GetValue("inventory_names");
 
                                 if (keyToken != null)
                                 {
-                                    foreach (string? key in keyToken)
+                                    foreach (string key in keyToken)
                                     {
                                         if (resultBuilder.Length == 0)
                                             resultBuilder.Append($"{{ [\"{key}\"] = {{ }}");

@@ -189,21 +189,21 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, Tuple<string, string?>> SCBLACKLISTPS3Response = new Dictionary<string, Tuple<string, string?>>()
+        private readonly static Dictionary<string, Tuple<string, string>> SCBLACKLISTPS3Response = new Dictionary<string, Tuple<string, string>>()
         {
-            { "punch_DetectUrls",               new Tuple<string, string?>(@"lb-prod-mm-detect01.ubisoft.com:11020", "lb-prod-mm-detect02.ubisoft.com:11020")},
-            { "SandboxUrlPS3",                  new Tuple<string, string?>(@"prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61131;serviceid=UPxxxx-MYGAME", null)},
-            { "SandboxUrlWS",                   new Tuple<string, string?>(@"ne1-z3-as-rdv03.ubisoft.com:61131", null)},
-            { "uplay_DownloadServiceUrl",       new Tuple<string, string?>(@"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url=", null)},
-            { "uplay_DynContentBaseUrl",        new Tuple<string, string?>(@"http://static8.cdn.ubi.com/u/Uplay/", null)},
-            { "uplay_DynContentSecureBaseUrl",  new Tuple<string, string?>(@"http://static8.cdn.ubi.com/", null)},
-            { "uplay_LinkappBaseUrl",           new Tuple<string, string?>(@"http://static8.cdn.ubi.com/private/Uplay/Packages/linkapp/3.0.0-rc/", null)},
-            { "uplay_MovieBaseUrl",             new Tuple<string, string?>(@"http://static8.cdn.ubi.com/u/Uplay/", null)},
-            { "uplay_PackageBaseUrl",           new Tuple<string, string?>(@"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/", null)},
-            { "uplay_WebServiceBaseUrl",        new Tuple<string, string?>(@"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/", null)},
+            { "punch_DetectUrls",               new Tuple<string, string>(@"lb-prod-mm-detect01.ubisoft.com:11020", "lb-prod-mm-detect02.ubisoft.com:11020")},
+            { "SandboxUrlPS3",                  new Tuple<string, string>(@"prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=61131;serviceid=UPxxxx-MYGAME", null)},
+            { "SandboxUrlWS",                   new Tuple<string, string>(@"ne1-z3-as-rdv03.ubisoft.com:61131", null)},
+            { "uplay_DownloadServiceUrl",       new Tuple<string, string>(@"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url=", null)},
+            { "uplay_DynContentBaseUrl",        new Tuple<string, string>(@"http://static8.cdn.ubi.com/u/Uplay/", null)},
+            { "uplay_DynContentSecureBaseUrl",  new Tuple<string, string>(@"http://static8.cdn.ubi.com/", null)},
+            { "uplay_LinkappBaseUrl",           new Tuple<string, string>(@"http://static8.cdn.ubi.com/private/Uplay/Packages/linkapp/3.0.0-rc/", null)},
+            { "uplay_MovieBaseUrl",             new Tuple<string, string>(@"http://static8.cdn.ubi.com/u/Uplay/", null)},
+            { "uplay_PackageBaseUrl",           new Tuple<string, string>(@"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/", null)},
+            { "uplay_WebServiceBaseUrl",        new Tuple<string, string>(@"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/", null)},
         };
 
-        public static string GetOnlineConfigPSN(string? onlineConfigID)
+        public static string GetOnlineConfigPSN(string onlineConfigID)
         {
             List<OnlineConfigEntry> list = new List<OnlineConfigEntry>();
 

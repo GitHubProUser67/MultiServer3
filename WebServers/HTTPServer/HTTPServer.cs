@@ -1,6 +1,7 @@
 // Copyright (C) 2016 by David Jeske, Barend Erasmus and donated to the public domain
 
 using CustomLogger;
+using CyberBackendLibrary.HTTP;
 using HTTPServer.Models;
 using System;
 using System.Collections.Concurrent;
@@ -19,8 +20,10 @@ namespace HTTPServer
         #region Fields
 
         private readonly ConcurrentDictionary<int, TcpListener> _listeners = new();
+        private readonly ConcurrentDictionary<string, TcpClient> _clients = new();
         private readonly CancellationTokenSource _cts = null!;
         private readonly HttpProcessor Processor;
+        private UniqueIDStore IDstore = new();
 
         #endregion
 
@@ -68,7 +71,36 @@ namespace HTTPServer
                         try
                         {
                             TcpClient tcpClient = await listener.AcceptTcpClientAsync(_cts.Token);
-                            _ = Task.Run(() => Processor.HandleClient(tcpClient, listenerPort));
+
+                            string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
+                            int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
+
+                            if (clientport == null || string.IsNullOrEmpty(clientip))
+                            {
+                                tcpClient.Close();
+                                tcpClient.Dispose();
+                            }
+                            else
+                            {
+                                int clientportValue = clientport.Value;
+                                string storeID = IDstore.GetOrCreate();
+
+                                if (_clients.TryAdd(storeID, tcpClient))
+                                {
+                                    _ = Task.Run(() =>
+                                    {
+                                        Processor.HandleClient(tcpClient, clientip, clientportValue, listenerPort);
+                                        _clients.TryRemove(storeID, out _);
+                                        IDstore.TryRemoveID(storeID);
+                                    });
+                                }
+                                else // If using the same ID, simply process it outside of the clients list (should never happen...)
+                                {
+                                    LoggerAccessor.LogWarn($"[HTTP] - Server tried to add the incomming connection to an already existing ID!");
+                                    _ = Task.Run(() => Processor.HandleClient(tcpClient, clientip, clientportValue, listenerPort));
+                                }
+                            }
+
                             Thread.Sleep(1);
                         }
                         catch (OperationCanceledException)
@@ -77,6 +109,9 @@ namespace HTTPServer
                         }
                         catch (IOException ex)
                         {
+                            if (!_clients.IsEmpty)
+                                _clients.Clear();
+
                             if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
                                 socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
                                 && socketException.SocketErrorCode != SocketError.ConnectionRefused)
@@ -90,6 +125,9 @@ namespace HTTPServer
                         }
                         catch (SocketException ex)
                         {
+                            if (!_clients.IsEmpty)
+                                _clients.Clear();
+
                             if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted && ex.SocketErrorCode != SocketError.ConnectionRefused)
                                 LoggerAccessor.LogError($"[HTTP] - Client loop thrown a SocketException: {ex}");
                             listener.Stop();
@@ -101,6 +139,9 @@ namespace HTTPServer
                         }
                         catch (Exception ex)
                         {
+                            if (!_clients.IsEmpty)
+                                _clients.Clear();
+
                             if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTP] - Client loop thrown an assertion: {ex}");
                             listener.Stop();
 
@@ -110,6 +151,9 @@ namespace HTTPServer
                                 break;
                         }
                     }
+
+                    if (!_clients.IsEmpty)
+                        _clients.Clear();
                 }
                 catch (Exception ex)
                 {
@@ -123,6 +167,7 @@ namespace HTTPServer
         {
             _cts.Cancel();
             _listeners.Values.ToList().ForEach(x => x.Stop());
+            IDstore.Clear();
         }
         #endregion
     }

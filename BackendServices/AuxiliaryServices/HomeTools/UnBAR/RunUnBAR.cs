@@ -3,14 +3,14 @@ using HomeTools.BARFramework;
 using HomeTools.Crypto;
 using System.Diagnostics;
 using System.Text;
-using System.Security.Cryptography;
 using EndianTools;
-using CyberBackendLibrary.DataTypes;
 using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using CompressionLibrary.Edge;
+using CastleLibrary.Utils.Hash;
+using CyberBackendLibrary.Extension;
 
 namespace HomeTools.UnBAR
 {
@@ -30,7 +30,7 @@ namespace HomeTools.UnBAR
 
         public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath, ushort version)
         {
-            using Process? process = Process.Start(new ProcessStartInfo()
+            using (Process process = Process.Start(new ProcessStartInfo()
             {
                 FileName = converterPath + "/make_npdata",
                 Arguments = $"-e \"{filePath}\" \"{sdatfilePath}\" 0 1 {version} 1 4 3 00 \"\" 0",
@@ -39,21 +39,22 @@ namespace HomeTools.UnBAR
                 UseShellExecute = false,
                 WorkingDirectory = converterPath, // Can load various config files.
                 CreateNoWindow = true
-            });
+            }))
+            {
+                process?.WaitForExit();
 
-            process?.WaitForExit();
+                int? ExitCode = process?.ExitCode;
 
-            int? ExitCode = process?.ExitCode;
-
-            if (ExitCode != 0)
-                LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
+                if (ExitCode != 0)
+                    LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
+            }
         }
 
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
-            using Process? process = Process.Start(new ProcessStartInfo()
+            using (Process process = Process.Start(new ProcessStartInfo()
             {
                 FileName = converterPath + "/make_npdata",
                 Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
@@ -62,16 +63,17 @@ namespace HomeTools.UnBAR
                 UseShellExecute = false,
                 WorkingDirectory = converterPath, // Can load various config files.
                 CreateNoWindow = true
-            });
+            }))
+            {
+                process?.WaitForExit();
 
-            process?.WaitForExit();
+                int? ExitCode = process?.ExitCode;
 
-            int? ExitCode = process?.ExitCode;
-
-            if (ExitCode != 0)
-                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
-            else
-                await RunExtract(datfilePath, outDir);
+                if (ExitCode != 0)
+                    LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
+                else
+                    await RunExtract(datfilePath, outDir);
+            }
         }
 
         private static async Task RunExtract(string filePath, string outDir)
@@ -79,7 +81,7 @@ namespace HomeTools.UnBAR
             bool isSharc = false;
             bool isLittleEndian = false;
             string options = ToolsImpl.base64CDNKey2;
-            byte[]? RawBarData = null;
+            byte[] RawBarData = null;
 
             if (File.Exists(filePath))
             {
@@ -117,13 +119,13 @@ namespace HomeTools.UnBAR
                     {
                         try
                         {
-                            byte[]? HeaderIV = new byte[16];
+                            byte[] HeaderIV = new byte[16];
 
                             Buffer.BlockCopy(RawBarData, 8, HeaderIV, 0, HeaderIV.Length);
 
                             if (HeaderIV != null)
                             {
-                                byte[]? SharcHeader = new byte[28];
+                                byte[] SharcHeader = new byte[28];
 
                                 Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
@@ -132,7 +134,7 @@ namespace HomeTools.UnBAR
 
                                 if (SharcHeader == null)
                                     return; // Sharc Header failed to decrypt.
-                                else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                 {
                                     options = ToolsImpl.base64CDNKey1;
 
@@ -143,7 +145,7 @@ namespace HomeTools.UnBAR
 
                                     if (SharcHeader == null)
                                         return; // Sharc Header failed to decrypt.
-                                    else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                    else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
                                         options = ToolsImpl.base64DefaultSharcKey;
 
@@ -154,7 +156,7 @@ namespace HomeTools.UnBAR
 
                                         if (SharcHeader == null)
                                             return; // Sharc Header failed to decrypt.
-                                        else if (!DataTypesUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                        else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                             return; // All keys failed to decrypt.
                                     }
                                 }
@@ -169,7 +171,7 @@ namespace HomeTools.UnBAR
                                 if (!BitConverter.IsLittleEndian)
                                     Array.Reverse(NumOfFiles);
 
-                                byte[]? SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
+                                byte[] SharcTOC = new byte[24 * BitConverter.ToUInt32(NumOfFiles, 0)];
 
                                 Buffer.BlockCopy(RawBarData, 52, SharcTOC, 0, SharcTOC.Length);
 
@@ -193,7 +195,7 @@ namespace HomeTools.UnBAR
 
                                         if (isLittleEndian)
                                         {
-                                            FileBytes = DataTypesUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
+                                            FileBytes = DataUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -203,7 +205,7 @@ namespace HomeTools.UnBAR
                                         }
                                         else
                                         {
-                                            FileBytes = DataTypesUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
+                                            FileBytes = DataUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -249,7 +251,7 @@ namespace HomeTools.UnBAR
                     File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
 
                     // Create a list to hold the tasks
-                    List<Task>? TOCTasks = new List<Task>();
+                    List<Task> TOCTasks = new List<Task>();
 
                     foreach (TOCEntry tableOfContent in archive.TableOfContents)
                     {
@@ -266,10 +268,12 @@ namespace HomeTools.UnBAR
                                         ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
                                     else
                                     {
-                                        using MemoryStream memoryStream = new MemoryStream(FileData);
-                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
-                                            FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)));
-                                        memoryStream.Flush();
+                                        using (MemoryStream memoryStream = new MemoryStream(FileData))
+                                        {
+                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
+                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)));
+                                            memoryStream.Flush();
+                                        }
                                     }
                                 }
                                 catch (Exception ex)
@@ -294,10 +298,10 @@ namespace HomeTools.UnBAR
 
                     if (File.Exists(filePath + ".map"))
                         File.Move(filePath + ".map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                    else if (filePath.Length > 4 && File.Exists(filePath[..^4] + ".sharc.map"))
-                        File.Move(filePath[..^4] + ".sharc.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                    else if (filePath.Length > 4 && File.Exists(filePath[..^4] + ".bar.map"))
-                        File.Move(filePath[..^4] + ".bar.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
+                    else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".sharc.map"))
+                        File.Move(filePath.Substring(0, filePath.Length - 4) + ".sharc.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
+                    else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".bar.map"))
+                        File.Move(filePath.Substring(0, filePath.Length - 4) + ".bar.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
                 }
                 catch (Exception ex)
                 {
@@ -306,15 +310,15 @@ namespace HomeTools.UnBAR
             }
         }
 
-        private static void ExtractToFileBarVersion1(byte[]? RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
+        private static void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
         {
-            TOCEntry? tableOfContent = archive.TableOfContents[FileName];
+            TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
             if (string.IsNullOrEmpty(tableOfContent.Path))
                 path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, fileType).ToUpper();
             else
                 path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar)).ToUpper();
-            string? outdirectory = Path.GetDirectoryName(path);
+            string outdirectory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(outdirectory))
             {
                 Directory.CreateDirectory(outdirectory);
@@ -347,36 +351,30 @@ namespace HomeTools.UnBAR
                             // Copy the first 24 bytes from the source array to the destination array
                             Buffer.BlockCopy(data, 4, EncryptedSignatureHeader, 0, EncryptedSignatureHeader.Length);
 
-                            byte[]? DecryptedSignatureHeader = LIBSECURE.InitiateBlowfishBuffer(EncryptedSignatureHeader, ToolsImpl.SignatureKey, SignatureIV, "CTR");
+                            byte[] DecryptedSignatureHeader = LIBSECURE.InitiateBlowfishBuffer(EncryptedSignatureHeader, ToolsImpl.SignatureKey, SignatureIV, "CTR");
 
                             if (DecryptedSignatureHeader != null)
                             {
-                                string SignatureHeaderHexString = DataTypesUtils.ByteArrayToHexString(DecryptedSignatureHeader);
+                                string SignatureHeaderHexString = DataUtils.ByteArrayToHexString(DecryptedSignatureHeader);
 #if DEBUG
                                 LoggerAccessor.LogInfo($"SignatureHeader - {SignatureHeaderHexString}");
 #endif
                                 // Create a new byte array to store the remaining content
-                                byte[]? FileBytes = new byte[data.Length - 28];
+                                byte[] FileBytes = new byte[data.Length - 28];
 
                                 // Copy the content after the first 28 bytes to the new array
                                 Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
                                 StringBuilder sb = new StringBuilder();
 
-                                byte[] SHA1Data = new byte[0];
-                                using (SHA1 sha1 = SHA1.Create())
-                                {
-                                    SHA1Data = sha1.ComputeHash(FileBytes);
-                                }
-
-                                foreach (byte b in SHA1Data)
+                                foreach (byte b in NetHasher.ComputeSHA1(FileBytes))
                                 {
                                     sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
                                 }
 
                                 string SHA1HexString = sb.ToString();
 
-                                if (string.Equals(SHA1HexString, SignatureHeaderHexString[..^8], StringComparison.CurrentCultureIgnoreCase)) // We strip the original file Compression size.
+                                if (string.Equals(SHA1HexString, SignatureHeaderHexString.Substring(0, SignatureHeaderHexString.Length - 8), StringComparison.CurrentCultureIgnoreCase)) // We strip the original file Compression size.
                                 {
                                     if (tableOfContent.Size == 0) // The original Encryption Proxy seemed to only check for "lua" or "scene" file types, regardless if empty or not.
                                     {
@@ -426,7 +424,7 @@ namespace HomeTools.UnBAR
                                 }
                                 else
                                 {
-                                    LoggerAccessor.LogError($"[RunUnBAR] - Encrypted file (SHA1 - {SHA1HexString}) has been tempered with! (Reference SHA1 - {SignatureHeaderHexString[..^8]}), Aborting decryption.");
+                                    LoggerAccessor.LogError($"[RunUnBAR] - Encrypted file (SHA1 - {SHA1HexString}) has been tempered with! (Reference SHA1 - {SignatureHeaderHexString.Substring(0, SignatureHeaderHexString.Length - 8)}), Aborting decryption.");
                                     fileStream.Write(data, 0, data.Length);
                                     fileStream.Close();
                                 }
@@ -458,7 +456,7 @@ namespace HomeTools.UnBAR
 
         private static void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
         {
-            TOCEntry? tableOfContent = archive.TableOfContents[FileName];
+            TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
             if (!string.IsNullOrEmpty(tableOfContent.Path))
                 path = string.Format("{0}{1}{2}", outDir, Path.DirectorySeparatorChar, tableOfContent.Path.Replace('/', Path.DirectorySeparatorChar)).ToUpper();
@@ -467,11 +465,11 @@ namespace HomeTools.UnBAR
             {
 #if DEBUG
                 LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
-                LoggerAccessor.LogInfo($"Key - {DataTypesUtils.ByteArrayToHexString(Key)}");
-                LoggerAccessor.LogInfo($"IV - {DataTypesUtils.ByteArrayToHexString(tableOfContent.IV)}");
+                LoggerAccessor.LogInfo($"Key - {DataUtils.ByteArrayToHexString(Key)}");
+                LoggerAccessor.LogInfo($"IV - {DataUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
-                byte[]? FileBytes = ToolsImpl.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);
+                byte[] FileBytes = ToolsImpl.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);
 
                 try
                 {
@@ -495,61 +493,70 @@ namespace HomeTools.UnBAR
                     }
                 }
 
-                using MemoryStream memoryStream = new MemoryStream(FileBytes);
-                string registeredExtension = string.Empty;
-
-                try
+                using (MemoryStream memoryStream = new MemoryStream(FileBytes))
                 {
-                    registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
+                    string registeredExtension = string.Empty;
+
+                    try
+                    {
+                        registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
+                    }
+                    catch
+                    {
+                        registeredExtension = ".unknown";
+                    }
+
+
+                    if (path == string.Empty)
+                        path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension).ToUpper();
+
+                    string outdirectory = Path.GetDirectoryName(path);
+                    if (!string.IsNullOrEmpty(outdirectory))
+                    {
+                        Directory.CreateDirectory(outdirectory);
+
+                        using (FileStream fileStream = File.Open(path, (FileMode)2))
+                        {
+                            fileStream.Write(FileBytes, 0, FileBytes.Length);
+                            fileStream.Close();
+                        }
+                    }
+
+                    memoryStream.Flush();
                 }
-                catch
-                {
-                    registeredExtension = ".unknown";
-                }
-
-                if (path == string.Empty)
-                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension).ToUpper();
-
-                string? outdirectory = Path.GetDirectoryName(path);
-                if (!string.IsNullOrEmpty(outdirectory))
-                {
-                    Directory.CreateDirectory(outdirectory);
-
-                    using FileStream fileStream = File.Open(path, (FileMode)2);
-                    fileStream.Write(FileBytes, 0, FileBytes.Length);
-                    fileStream.Close();
-                }
-
-                memoryStream.Flush();
             }
             else
             {
-                using MemoryStream memoryStream = new MemoryStream(data);
-                string registeredExtension = string.Empty;
-
-                try
+                using (MemoryStream memoryStream = new MemoryStream(data))
                 {
-                    registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
+                    string registeredExtension = string.Empty;
+
+                    try
+                    {
+                        registeredExtension = FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream));
+                    }
+                    catch
+                    {
+                        registeredExtension = ".unknown";
+                    }
+
+                    if (path == string.Empty)
+                        path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension).ToUpper();
+
+                    string outdirectory = Path.GetDirectoryName(path);
+                    if (!string.IsNullOrEmpty(outdirectory))
+                    {
+                        Directory.CreateDirectory(outdirectory);
+
+                        using (FileStream fileStream = File.Open(path, (FileMode)2))
+                        {
+                            fileStream.Write(data, 0, data.Length);
+                            fileStream.Close();
+                        }
+                    }
+
+                    memoryStream.Flush();
                 }
-                catch
-                {
-                    registeredExtension = ".unknown";
-                }
-
-                if (path == string.Empty)
-                    path = string.Format("{0}{1}{2:X8}{3}", outDir, Path.DirectorySeparatorChar, FileName.Value, registeredExtension).ToUpper();
-
-                string? outdirectory = Path.GetDirectoryName(path);
-                if (!string.IsNullOrEmpty(outdirectory))
-                {
-                    Directory.CreateDirectory(outdirectory);
-
-                    using FileStream fileStream = File.Open(path, (FileMode)2);
-                    fileStream.Write(data, 0, data.Length);
-                    fileStream.Close();
-                }
-
-                memoryStream.Flush();
             }
 #if DEBUG
             LoggerAccessor.LogInfo("Extracted file {0}", new object[1]
@@ -568,9 +575,9 @@ namespace HomeTools.UnBAR
         /// <param name="data1">The data to search for.</param>
         /// <param name="data2">The data to search into for the data1.</param>
         /// <returns>A int (-1 if not found).</returns>
-        private static int FindDataPositionInBinary(byte[]? data1, byte[] data2)
+        private static int FindDataPositionInBinary(byte[] data1, byte[] data2)
         {
-            if (data1 == null)
+            if (data1 == null || data2 == null)
                 return -1;
 
             for (int i = 0; i < data1.Length - data2.Length + 1; i++)

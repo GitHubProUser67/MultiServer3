@@ -1,17 +1,17 @@
 using System.IO;
 using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WebAPIService.VEEMEE
 {
     public class Storage
     {
-        public static string? ReadConfig(byte[]? PostData, string? ContentType, string apiPath)
+        public static string ReadConfig(byte[] PostData, string ContentType, string apiPath)
         {
             string config = string.Empty;
             string product = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -34,16 +34,15 @@ namespace WebAPIService.VEEMEE
 
                     if (File.Exists(jsonFilePath))
                     {
-                        string? injsondata = File.ReadAllText(jsonFilePath);
+                        JObject jObject = JObject.Parse(File.ReadAllText(jsonFilePath));
 
-                        if (injsondata != null)
+                        if (jObject != null)
                         {
-                            dynamic? jsondata = JsonConvert.DeserializeObject(injsondata);
-
-                            if (jsondata != null)
+                            if (jObject.SelectToken(product) is JObject productToken)
                             {
-                                if (jsondata.ContainsKey(product) && jsondata[product].ContainsKey(config))
-                                    configValue = jsondata[product][config].ToString();
+                                JToken configToken = productToken.SelectToken(config);
+                                if (configToken != null)
+                                    configValue = configToken.ToString();
                             }
                         }
                     }
@@ -55,13 +54,13 @@ namespace WebAPIService.VEEMEE
             return null;
         }
 
-        public static string? ReadTable(byte[]? PostData, string? ContentType, string apiPath)
+        public static string ReadTable(byte[] PostData, string ContentType, string apiPath)
         {
             string psnid = string.Empty;
             string product = string.Empty;
             string hex = string.Empty;
             string __salt = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -80,20 +79,20 @@ namespace WebAPIService.VEEMEE
                     ms.Flush();
                 }
 
-                string? ProfileResult = ProfileManager.ReadProfile(psnid, product, hex, __salt, apiPath);
+                string ProfileResult = ProfileManager.ReadProfile(psnid, product, hex, __salt, apiPath);
 
-                if (ProfileResult != null)
+                if (!string.IsNullOrEmpty(ProfileResult))
                     return ProfileResult;
             }
 
             return null;
         }
 
-        public static string? WriteTable(byte[]? PostData, string? ContentType, string apiPath)
+        public static string WriteTable(byte[] PostData, string ContentType, string apiPath)
         {
             string psnid = string.Empty;
             string profile = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (!string.IsNullOrEmpty(boundary) && PostData != null)
             {
@@ -119,7 +118,7 @@ namespace WebAPIService.VEEMEE
 
     public class ProfileManager
     {
-        public static string? ReadProfile(string psnid, string product, string hex, string salt, string apiPath)
+        public static string ReadProfile(string psnid, string product, string hex, string salt, string apiPath)
         {
             if (string.IsNullOrEmpty(hex) || string.IsNullOrEmpty(salt))
                 return null;

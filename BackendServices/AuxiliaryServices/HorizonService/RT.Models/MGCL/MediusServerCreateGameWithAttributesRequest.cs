@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerCreateGameWithAttributesRequest;
 
-        public MessageId? MessageID { get; set; }
+        public MessageId MessageID { get; set; }
         public int ApplicationID;
         public int MaxClients;
         public MediusWorldAttributesType Attributes;

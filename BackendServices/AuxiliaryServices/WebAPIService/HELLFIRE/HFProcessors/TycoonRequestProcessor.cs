@@ -9,7 +9,7 @@ namespace TycoonServer.HFProcessors
 {
     public class TycoonRequestProcessor
     {
-        public static string? ProcessMainPHP(byte[]? PostData, string? ContentType, string? PHPSessionID, string WorkPath, bool https)
+        public static string ProcessMainPHP(byte[] PostData, string ContentType, string PHPSessionID, string WorkPath, bool https)
         {
             if (PostData == null || string.IsNullOrEmpty(ContentType))
                 return null;
@@ -19,7 +19,7 @@ namespace TycoonServer.HFProcessors
             string DisplayName = string.Empty;
             string InstanceID = string.Empty;
             string Region = string.Empty;
-            string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+            string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
             if (boundary != null)
             {
@@ -133,7 +133,7 @@ namespace TycoonServer.HFProcessors
             return null;
         }
 
-        public static string? ProcessPostCards(byte[]? PostData, string? ContentType) // Not yet handled.
+        public static string ProcessPostCards(byte[] PostData, string ContentType) // Not yet handled.
         {
             if (PostData == null || string.IsNullOrEmpty(ContentType))
                 return null;

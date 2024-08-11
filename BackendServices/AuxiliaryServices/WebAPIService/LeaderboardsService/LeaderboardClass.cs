@@ -6,9 +6,9 @@ namespace WebAPIService.LeaderboardsService
 {
     public class LeaderboardClass
     {
-        public static string? APIPath { get; set; }
+        public static string APIPath { get; set; }
 
-        public static void ScheduledUpdate(object? state)
+        public static void ScheduledUpdate(object state)
         {
             try
             {

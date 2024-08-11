@@ -6,6 +6,6 @@ namespace CyberBackendLibrary.HTTP.PluginManager
     public interface HTTPPlugin
     {
         Task HTTPStartPlugin(string param, ushort port);
-        object? ProcessPluginMessage(object request);
+        object ProcessPluginMessage(object request);
     }
 }

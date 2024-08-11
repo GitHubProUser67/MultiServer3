@@ -4,11 +4,11 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_crafting_down
     {
-        public static string? ProcessCraftingDown(Dictionary<string, string>? QueryParameters, string apiPath) // Just a GetAll Mirror.
+        public static string ProcessCraftingDown(Dictionary<string, string> QueryParameters, string apiPath) // Just a GetAll Mirror.
         {
             if (QueryParameters != null)
             {
-                string? user = QueryParameters["user"];
+                string user = QueryParameters["user"];
 
                 if (!string.IsNullOrEmpty(user))
                 {
