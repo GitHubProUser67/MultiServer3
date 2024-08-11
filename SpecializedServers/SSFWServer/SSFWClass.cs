@@ -41,22 +41,30 @@ namespace SSFWServer
             return CollectHeader;
         }
 
-        public static string GetHeaderValue((string HeaderIndex, string HeaderItem)[] headers, string requestedHeaderIndex)
+        public static string GetHeaderValue((string HeaderIndex, string HeaderItem)[] headers, string requestedHeaderIndex, bool caseSensitive = true)
         {
-            if (headers.Length != 0)
+            if (headers.Length > 0)
             {
                 const string pattern = @"^(.*?):\s(.*)$"; // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
 
                 foreach ((string HeaderIndex, string HeaderItem) in headers)
                 {
-                    if (HeaderIndex.Equals(requestedHeaderIndex))
+                    if (caseSensitive ? HeaderIndex.Equals(requestedHeaderIndex) : HeaderIndex.Equals(requestedHeaderIndex, StringComparison.InvariantCultureIgnoreCase))
                         return HeaderItem;
                     else
                     {
-                        Match match = Regex.Match(HeaderItem, pattern);
+                        try
+                        {
+                            Match match = Regex.Match(HeaderItem, pattern);
 
-                        if (HeaderItem.Contains(requestedHeaderIndex) && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
-                            return match.Groups[2].Value;
+                            if (caseSensitive ? HeaderItem.Contains(requestedHeaderIndex) : HeaderItem.Contains(requestedHeaderIndex, StringComparison.InvariantCultureIgnoreCase)
+                                && match.Success) // Make a GITHUB ticket for netcoreserver, the header tuple can get out of sync with null values, we try to mitigate the problem.
+                                return match.Groups[2].Value;
+                        }
+                        catch
+                        {
+
+                        }
                     }
                 }
             }
@@ -104,11 +112,11 @@ namespace SSFWServer
             {
                 (string HeaderIndex, string HeaderItem)[] Headers = CollectHeaders(request);
 
-                string UserAgent = GetHeaderValue(Headers, "User-Agent");
+                string UserAgent = GetHeaderValue(Headers, "User-Agent", false);
 
-                if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome") && UserAgent.Contains("CellOS")) // Host ban is not perfect, but netcoreserver only has that to offer...
+                if (!string.IsNullOrEmpty(request.Url) && UserAgent.Contains("PSHome")) // Host ban is not perfect, but netcoreserver only has that to offer...
                 {
-                    string? env = ExtractBeforeFirstDot(GetHeaderValue(Headers, "Host"));
+                    string? env = ExtractBeforeFirstDot(GetHeaderValue(Headers, "Host", false));
 
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 
@@ -327,7 +335,7 @@ namespace SSFWServer
                                 if (postbuffer != null)
                                 {
                                     Directory.CreateDirectory(directoryPath);
-                                    switch (GetHeaderValue(Headers, "Content-type"))
+                                    switch (GetHeaderValue(Headers, "Content-type", false))
                                     {
                                         case "image/jpeg":
                                             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", postbuffer);
@@ -357,7 +365,7 @@ namespace SSFWServer
                                 if (putbuffer != null)
                                 {
                                     Directory.CreateDirectory(directoryPath);
-                                    switch (GetHeaderValue(Headers, "Content-type"))
+                                    switch (GetHeaderValue(Headers, "Content-type", false))
                                     {
                                         case "image/jpeg":
                                             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer);
