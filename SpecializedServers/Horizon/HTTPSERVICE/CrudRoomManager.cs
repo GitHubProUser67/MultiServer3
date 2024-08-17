@@ -11,17 +11,17 @@ namespace Horizon.HTTPSERVICE
             new ConcurrentList<Room>()
         );
 
-        public static void AddOrUpdateUser(string? username, int appid)
+        public static void AddOrUpdateUser(string? accountName, int appid)
         {
-            if (!string.IsNullOrEmpty(username))
+            if (!string.IsNullOrEmpty(accountName))
             {
-                KeyValuePair<string, int> newUser = new(username, appid);
+                KeyValuePair<string, int> newUser = new(accountName, appid);
 
                 foreach (KeyValuePair<string, int> User in rooms.Item1.GetItems())
                 {
-                    if (User.Key.Equals(username))
+                    if (User.Key.Equals(accountName))
                     {
-                        rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(username));
+                        rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(accountName));
                         break;
                     }
                 }
@@ -153,10 +153,10 @@ namespace Horizon.HTTPSERVICE
                 rooms.Item2.RemoveAll(r => r.AppId == appId);
         }
 
-        public static void RemoveUser(string? username)
+        public static void RemoveUser(string? accountName)
         {
-            if (!string.IsNullOrEmpty(username))
-                rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(username));
+            if (!string.IsNullOrEmpty(accountName))
+                rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(accountName));
         }
 
         // Get a list of all Rooms
