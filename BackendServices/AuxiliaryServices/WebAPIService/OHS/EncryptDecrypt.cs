@@ -24,7 +24,7 @@ namespace WebAPIService.OHS
                 return string.Empty;
             }
 
-            var chars = new StringBuilder();
+            StringBuilder chars = new StringBuilder();
 
             int offsethi = (offset - 1) / 95;
             int offsetlo = (offset - 1) % 95;
@@ -62,7 +62,7 @@ namespace WebAPIService.OHS
             if (string.IsNullOrEmpty(str))
                 return string.Empty;
 
-            var chars = new StringBuilder();
+            StringBuilder chars = new StringBuilder();
 
             int offsethi = str[0] - 32;
             int offsetlo = str[1] - 32;

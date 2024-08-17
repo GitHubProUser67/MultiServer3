@@ -11,10 +11,10 @@ namespace DLNAService
     // This class is used to broadcast a SSDP message using UDP on port 1900 and to then wait for any replies send back on the LAN
     public class SSDP
     {
-        private static Socket? UdpSocket = null;
+        private static Socket UdpSocket = null;
         public static string Servers = string.Empty;
         private static string NewServer = string.Empty;
-        private static Thread? THSend = null;
+        private static Thread THSend = null;
         private static bool Running = false;
 
         public static void Start()
@@ -57,7 +57,7 @@ namespace DLNAService
             byte[] ReceiveBuffer = new byte[4000];
             // Uses UDP Multicast on 239.255.255.250 with port 1900 to send out invitations that are slow to be answered
             IPEndPoint MulticastEndPoint = new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900); // SSDP port
-            Socket? UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Socket UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             UdpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             UdpSocket.Bind(new IPEndPoint(IPAddress.Any, 6000));
             UdpSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(MulticastEndPoint.Address, IPAddress.Any));

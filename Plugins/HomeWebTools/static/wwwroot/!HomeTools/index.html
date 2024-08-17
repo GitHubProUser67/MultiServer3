@@ -638,6 +638,14 @@
         <div>
           <h2>CDS Encrypter</h2>
           <form class="upload-form" enctype="multipart/form-data" action="/!HomeTools/CDS/" method="POST">
+		  	<div class="toggle">
+			  <label for="cdnmode">CDN Mode:</label>
+			  <select id="cdnmode" name="cdnmode">
+				<option value="0">Retail</option>
+				<option value="1">Beta</option>
+				<option value="2">HDK</option>
+			  </select>
+			</div>
             <div id="encrypter-drag-drop-area" class="drag-drop-area">
               <p>Drag non-encrypted files here or click to browse</p>
             </div>
@@ -650,6 +658,14 @@
         <div>
           <h2>CDS Decrypter</h2>
           <form class="upload-form" enctype="multipart/form-data" action="/!HomeTools/CDSBruteforce/" method="POST">
+		  	<div class="toggle">
+			  <label for="cdnmode">CDN Mode:</label>
+			  <select id="cdnmode" name="cdnmode">
+				<option value="0">Retail</option>
+				<option value="1">Beta</option>
+				<option value="2">HDK</option>
+			  </select>
+			</div>
             <div id="decrypter-drag-drop-area" class="drag-drop-area">
               <p>Drag Encrypted SDC/ODC/HCDB/XML files here or click to browse</p>
             </div>
@@ -698,6 +714,14 @@
                 <input type="radio" name="mode" id="coresharc" value="bar">
                 <span class="checkmark"></span>
               </label>
+			  <div class="toggle">
+				<label for="cdnmode">CDN Mode:</label>
+				<select id="cdnmode" name="cdnmode">
+				  <option value="0">Retail</option>
+				  <option value="1">Beta</option>
+				  <option value="2">HDK</option>
+				</select>
+			  </div>
             </div>
             <div class="checkbox-group hidden">
               <label for="encrypt">Encrypt:</label>
@@ -742,29 +766,38 @@
 
             <div class="toggle-container">
 			  <div class="toggle">
-                <label for="afsengine">AFS Mapper Engine:</label>
-                <label class="switch">
-                  <input type="checkbox" id="afsengine" name="afsengine">
-                  <span class="slider round"></span>
-                </label>
-              </div>
-			  
-              <div class="toggle">
-                <label for="subfolder">Subfolder Mode:</label>
-                <label class="switch">
-                  <input type="checkbox" id="subfolder" name="subfolder">
-                  <span class="slider round"></span>
-                </label>
-              </div>
+				<label for="afsengine">AFS Mapper Engine:</label>
+				<label class="switch">
+				  <input type="checkbox" id="afsengine" name="afsengine">
+				  <span class="slider round"></span>
+				</label>
+			  </div>
 
-              <div class="toggle">
-                <label for="bruteforce">Bruteforce Mode:</label>
-                <label class="switch">
-                  <input type="checkbox" id="bruteforce" name="bruteforce">
-                  <span class="slider round"></span>
-                </label>
-              </div>
-            </div>
+			  <div class="toggle">
+				<label for="subfolder">Subfolder Mode:</label>
+				<label class="switch">
+				  <input type="checkbox" id="subfolder" name="subfolder">
+				  <span class="slider round"></span>
+				</label>
+			  </div>
+
+			  <div class="toggle">
+				<label for="bruteforce">Bruteforce Mode:</label>
+				<label class="switch">
+				  <input type="checkbox" id="bruteforce" name="bruteforce">
+				  <span class="slider round"></span>
+				</label>
+			  </div>
+
+			  <div class="toggle">
+				<label for="cdnmode">CDN Mode:</label>
+				<select id="cdnmode" name="cdnmode">
+				  <option value="0">Retail</option>
+				  <option value="1">Beta</option>
+				  <option value="2">HDK</option>
+				</select>
+			  </div>
+			</div>
             <div class="centered-container">
               <label for="prefix">Path Prefix (if any required):</label>
               <input type="text" id="prefix" name="prefix">

@@ -10,15 +10,15 @@ namespace MultiSpyService.Data
         public int Constant; // always 1e 66 6a b2
         public byte ProtocolVersion;
         public byte RecordType;
-        public byte[]? RecordSpecificData;
+        public byte[] RecordSpecificData;
 
         public int ClientId;
         public byte SequenceId; // (0x00 to 0x03)
         public byte Hoststate; // (0x00 for guest, 0x01 for host)
         public byte UseGamePort;
-        public string? PrivateIPAddress;
+        public string PrivateIPAddress;
         public ushort LocalPort;
-        public string? GameName;
+        public string GameName;
 
         public string ClientPublicIPAddress = "127.0.0.1";
         public ushort ClientPublicPort;
@@ -50,7 +50,7 @@ namespace MultiSpyService.Data
             return "RECORDTYPE: " + RecordType;
         }
 
-        public static NatNegMessage? ParseData(byte[] bytes)
+        public static NatNegMessage ParseData(byte[] bytes)
         {
             if (bytes.Length < 8) return null;
             if (bytes[0] != 0xFD || bytes[1] != 0xFC) return null;
@@ -139,7 +139,7 @@ namespace MultiSpyService.Data
             return bytes.ToArray();
         }
 
-        private static string? _toString(byte[]? bytes) {
+        private static string _toString(byte[] bytes) {
             if (bytes == null) return null;
             List<byte> bs = new List<byte>();
             for (int i = 0; i < bytes.Length && bytes[i] > 0; i++)
@@ -175,30 +175,30 @@ namespace MultiSpyService.Data
             bytes.AddRange(address.Split('.').Select((b) => { return (byte)Convert.ToInt32(b); }));
         }
 
-        private static int _toInt(byte[]? bytes)
+        private static int _toInt(byte[] bytes)
         {
             if (bytes == null) return -1;
             return (int)bytes[0] * 256 * 256 * 256 + (int)bytes[1] * 256 * 256 + (int)bytes[2] * 256 + bytes[3];
         }
 
-        private static int _toIntBigEndian(byte[]? bytes)
+        private static int _toIntBigEndian(byte[] bytes)
         {
             if (bytes == null) return -1;
             return (int)bytes[3] * 256 * 256 * 256 + (int)bytes[2] * 256 * 256 + (int)bytes[1] * 256 + bytes[0];
         }
 
-        private static ushort _toShort(byte[]? bytes)
+        private static ushort _toShort(byte[] bytes)
         {
             if (bytes == null) return 0;
             return (ushort)(bytes[0] * 256 + bytes[1]);
         }
 
-        public static string? _toIpAddress(byte[]? bytes) {
+        public static string _toIpAddress(byte[] bytes) {
             if (bytes == null) return null;
             return string.Join(".", bytes.Select((b) => { return b.ToString(); }));
         }
 
-        private static byte[]? _getBytes(byte[]? bytes, int index, int nofBytes) {
+        private static byte[] _getBytes(byte[] bytes, int index, int nofBytes) {
             if (bytes == null) return null;
             byte[] result = new byte[nofBytes];
             for (int i = 0; i < nofBytes; i++) {

@@ -16,12 +16,12 @@ namespace HomeTools.UnBAR
 {
     public static class RunUnBAR
     {
-        public static async Task Run(string converterPath, string filePath, string outputpath, bool edat)
+        public static async Task Run(string converterPath, string filePath, string outputpath, bool edat, ushort cdnMode)
         {
             if (edat)
-                await RunDecrypt(converterPath, filePath, outputpath);
+                await RunDecrypt(converterPath, filePath, outputpath, cdnMode);
             else
-                await RunExtract(filePath, outputpath);
+                await RunExtract(filePath, outputpath, cdnMode);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -50,7 +50,7 @@ namespace HomeTools.UnBAR
             }
         }
 
-        private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir)
+        private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir, ushort cdnMode)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
@@ -72,15 +72,15 @@ namespace HomeTools.UnBAR
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
                 else
-                    await RunExtract(datfilePath, outDir);
+                    await RunExtract(datfilePath, outDir, cdnMode);
             }
         }
 
-        private static async Task RunExtract(string filePath, string outDir)
+        private static async Task RunExtract(string filePath, string outDir, ushort cdnMode)
         {
             bool isSharc = false;
             bool isLittleEndian = false;
-            string options = ToolsImpl.base64CDNKey2;
+            string options = ToolsImplementation.base64CDNKey2;
             byte[] RawBarData = null;
 
             if (File.Exists(filePath))
@@ -136,7 +136,7 @@ namespace HomeTools.UnBAR
                                     return; // Sharc Header failed to decrypt.
                                 else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                 {
-                                    options = ToolsImpl.base64CDNKey1;
+                                    options = ToolsImplementation.base64CDNKey1;
 
                                     Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
@@ -147,7 +147,7 @@ namespace HomeTools.UnBAR
                                         return; // Sharc Header failed to decrypt.
                                     else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
                                     {
-                                        options = ToolsImpl.base64DefaultSharcKey;
+                                        options = ToolsImplementation.base64DefaultSharcKey;
 
                                         Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
@@ -181,7 +181,7 @@ namespace HomeTools.UnBAR
 
                                     Buffer.BlockCopy(HeaderIV, 0, OriginalIV, 0, OriginalIV.Length);
 
-                                    ToolsImpl.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
+                                    ToolsImplementation.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
 
                                     SharcTOC = LIBSECURE.InitiateAESBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV, "CTR");
 
@@ -271,7 +271,7 @@ namespace HomeTools.UnBAR
                                         using (MemoryStream memoryStream = new MemoryStream(FileData))
                                         {
                                             ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
-                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)));
+                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)), cdnMode);
                                             memoryStream.Flush();
                                         }
                                     }
@@ -283,7 +283,7 @@ namespace HomeTools.UnBAR
                                     if (archive.GetHeader().Version == 512)
                                         ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
                                     else
-                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), ".unknown");
+                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), ".unknown", cdnMode);
                                 }
                             });
 
@@ -310,7 +310,7 @@ namespace HomeTools.UnBAR
             }
         }
 
-        private static void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType)
+        private static void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, int cdnMode)
         {
             TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
@@ -343,7 +343,7 @@ namespace HomeTools.UnBAR
                             LoggerAccessor.LogInfo($"dataStart - 0x{dataStart:X}");
                             LoggerAccessor.LogInfo($"UserData - 0x{userData:X}");
 #endif
-                            byte[] SignatureIV = BitConverter.GetBytes(ToolsImpl.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
+                            byte[] SignatureIV = BitConverter.GetBytes(ToolsImplementation.BuildSignatureIv((int)fileSize, (int)compressedSize, dataStart, userData));
 
                             if (BitConverter.IsLittleEndian)
                                 Array.Reverse(SignatureIV);
@@ -351,7 +351,20 @@ namespace HomeTools.UnBAR
                             // Copy the first 24 bytes from the source array to the destination array
                             Buffer.BlockCopy(data, 4, EncryptedSignatureHeader, 0, EncryptedSignatureHeader.Length);
 
-                            byte[] DecryptedSignatureHeader = LIBSECURE.InitiateBlowfishBuffer(EncryptedSignatureHeader, ToolsImpl.SignatureKey, SignatureIV, "CTR");
+                            byte[] DecryptedSignatureHeader;
+
+                            switch (cdnMode)
+                            {
+                                case 2:
+                                    DecryptedSignatureHeader = LIBSECURE.InitiateBlowfishBuffer(EncryptedSignatureHeader, ToolsImplementation.HDKSignatureKey, SignatureIV, "CTR");
+                                    break;
+                                case 1:
+                                    DecryptedSignatureHeader = LIBSECURE.InitiateBlowfishBuffer(EncryptedSignatureHeader, ToolsImplementation.BetaSignatureKey, SignatureIV, "CTR");
+                                    break;
+                                default:
+                                    DecryptedSignatureHeader = LIBSECURE.InitiateBlowfishBuffer(EncryptedSignatureHeader, ToolsImplementation.SignatureKey, SignatureIV, "CTR");
+                                    break;
+                            }
 
                             if (DecryptedSignatureHeader != null)
                             {
@@ -369,12 +382,12 @@ namespace HomeTools.UnBAR
 
                                 foreach (byte b in NetHasher.ComputeSHA1(FileBytes))
                                 {
-                                    sb.Append(b.ToString("x2")); // Convert each byte to a hexadecimal string
+                                    sb.Append(b.ToString("X2")); // Convert each byte to a hexadecimal string
                                 }
 
                                 string SHA1HexString = sb.ToString();
 
-                                if (string.Equals(SHA1HexString, SignatureHeaderHexString.Substring(0, SignatureHeaderHexString.Length - 8), StringComparison.CurrentCultureIgnoreCase)) // We strip the original file Compression size.
+                                if (string.Equals(SHA1HexString, SignatureHeaderHexString.Substring(0, SignatureHeaderHexString.Length - 8))) // We strip the original file Compression size.
                                 {
                                     if (tableOfContent.Size == 0) // The original Encryption Proxy seemed to only check for "lua" or "scene" file types, regardless if empty or not.
                                     {
@@ -383,9 +396,20 @@ namespace HomeTools.UnBAR
                                     }
                                     else
                                     {
-                                        ToolsImpl.IncrementIVBytes(SignatureIV, 3);
+                                        ToolsImplementation.IncrementIVBytes(SignatureIV, 3);
 
-                                        FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImpl.DefaultKey, SignatureIV, "CTR");
+                                        switch (cdnMode)
+                                        {
+                                            case 2:
+                                                FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImplementation.HDKBlowfishKey, SignatureIV, "CTR");
+                                                break;
+                                            case 1:
+                                                FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImplementation.BetaBlowfishKey, SignatureIV, "CTR");
+                                                break;
+                                            default:
+                                                FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImplementation.BlowfishKey, SignatureIV, "CTR");
+                                                break;
+                                        }
 
                                         if (FileBytes != null)
                                         {
@@ -469,7 +493,7 @@ namespace HomeTools.UnBAR
                 LoggerAccessor.LogInfo($"IV - {DataUtils.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
-                byte[] FileBytes = ToolsImpl.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);
+                byte[] FileBytes = ToolsImplementation.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);
 
                 try
                 {

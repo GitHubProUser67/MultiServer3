@@ -29,6 +29,7 @@ using CyberBackendLibrary.HTTP.PluginManager;
 using WatsonWebserver;
 using CyberBackendLibrary.Extension;
 using WebAPIService.WebArchive;
+using Newtonsoft.Json;
 
 namespace HTTPSecureServerLite
 {
@@ -38,6 +39,38 @@ namespace HTTPSecureServerLite
         private Webserver? _Server;
         private readonly string ip;
         private readonly ushort port;
+
+        #region Domains
+
+        private readonly static List<string> HPDDomains = new() {
+                                    "prd.destinations.scea.com",
+                                    "pre.destinations.scea.com",
+                                    "qa.destinations.scea.com",
+                                    "dev.destinations.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                };
+
+        private readonly static List<string> CAPONEDomains = new() {
+                                    "collector.gr.online.scea.com",
+                                    "collector-nonprod.gr.online.scea.com",
+                                    "collector-dev.gr.online.scea.com",
+                                    "content.gr.online.scea.com",
+                                    "content-nonprod.gr.online.scea.com",
+                                    "content-dev.gr.online.scea.com",
+                                };
+
+
+        private readonly static List<string> nDreamsDomains = new()
+                                {
+                                    "pshome.ndreams.net",
+                                    "www.ndreamshs.com",
+                                    "www.ndreamsportal.com",
+                                    "nDreams-multiserver-cdn"
+                                };
+
+        #endregion
 
         public HttpsProcessor(string certpath, string certpass, string ip, ushort port)
         {
@@ -199,7 +232,31 @@ namespace HTTPSecureServerLite
                             else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                                 CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
-                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl}" + " (" + ctx.Timestamp.TotalMs + "ms)");
+#if DEBUG
+                            IEnumerable<string> HeadersValue;
+                            try
+                            {
+                                HeadersValue = ctx.Request.Headers.AllKeys.SelectMany(key => ctx.Request.Headers.GetValues(key) ?? Enumerable.Empty<string>());
+                            }
+                            catch (ArgumentNullException)
+                            {
+                                HeadersValue = Enumerable.Empty<string>();
+                            }
+                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl} (Details: " + JsonConvert.SerializeObject(new
+                            {
+                                HttpMethod = request.Method,
+                                Url = request.Url.RawWithQuery,
+                                Headers = request.Headers,
+                                HeadersValues = HeadersValue,
+                                UserAgent = string.IsNullOrEmpty(request.Useragent) ? string.Empty : request.Useragent,
+                                ClientAddress = request.Source.IpAddress + ":" + request.Source.Port,
+#if false // Serve as a HTTP json debugging.
+                                Body = request.ContentLength >= 0 ? Convert.ToBase64String(request.DataAsBytes) : string.Empty
+#endif
+                            }, Formatting.Indented) + ") (" + ctx.Timestamp.TotalMs + "ms)");
+#else
+                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl} (" + ctx.Timestamp.TotalMs + "ms)");
+#endif
 
                             absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                             fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
@@ -213,38 +270,6 @@ namespace HTTPSecureServerLite
                 {
 
                 }
-
-                #region Domains
-
-                List<string> HPDDomains = new() {
-                                    "prd.destinations.scea.com",
-                                    "pre.destinations.scea.com",
-                                    "qa.destinations.scea.com",
-                                    "dev.destinations.scea.com",
-                                    "holdemeu.destinations.scea.com",
-                                    "holdemna.destinations.scea.com",
-                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
-                                };
-
-                List<string> CAPONEDomains = new() {
-                                    "collector.gr.online.scea.com",
-                                    "collector-nonprod.gr.online.scea.com",
-                                    "collector-dev.gr.online.scea.com",
-                                    "content.gr.online.scea.com",
-                                    "content-nonprod.gr.online.scea.com",
-                                    "content-dev.gr.online.scea.com",
-                                };
-
-
-                List<string> nDreamsDomains = new()
-                                {
-                                    "pshome.ndreams.net",
-                                    "www.ndreamshs.com",
-                                    "www.ndreamsportal.com",
-                                    "nDreams-multiserver-cdn"
-                                };
-
-                #endregion
 
                 if (statusCode == HttpStatusCode.Continue)
                 {
@@ -389,7 +414,7 @@ namespace HTTPSecureServerLite
 
                                         if (indexFile.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder))
                                         {
-                                            var CollectPHP = Extensions.PHP.ProcessPHPPage(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}", HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                            var CollectPHP = Extensions.PHP.ProcessPHPPage(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}", HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, ctx);
                                             statusCode = HttpStatusCode.OK;
                                             if (CollectPHP.Item2 != null)
                                             {
@@ -465,12 +490,12 @@ namespace HTTPSecureServerLite
                             }
 
                             #region VEEMEE API
-                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && absolutepath.EndsWith(".php"))
+                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 
-                                (string?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.DataAsBytes, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
-                                if (string.IsNullOrEmpty(res.Item1))
+                                (byte[]?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.DataAsBytes, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
+                                if (res.Item1 == null || res.Item1.Length == 0)
                                     statusCode = HttpStatusCode.InternalServerError;
                                 else
                                 {
@@ -941,11 +966,11 @@ namespace HTTPSecureServerLite
                                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                         response.StatusCode = (int)statusCode;
                                                         response.ContentType = "application/json";
-                                                        sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://example.com{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                        sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://{ServerIP}:{ServerPort}{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                                     }
                                                     else if (request.RetrieveQueryValue("m3u") == "on")
                                                     {
-                                                        string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], $"https://example.com{absolutepath[..^1]}");
+                                                        string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], $"https://{ServerIP}:{ServerPort}{absolutepath[..^1]}");
                                                         if (!string.IsNullOrEmpty(m3ufile))
                                                         {
                                                             statusCode = HttpStatusCode.OK;
@@ -972,7 +997,7 @@ namespace HTTPSecureServerLite
 
                                                                 if (indexFile.EndsWith(".php") && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder))
                                                                 {
-                                                                    var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath + $"/{indexFile}", HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                                                    var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath + $"/{indexFile}", HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, ctx);
                                                                     statusCode = HttpStatusCode.OK;
                                                                     if (CollectPHP.Item2 != null)
                                                                     {
@@ -1060,7 +1085,7 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                 {
-                                                    var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                                    var CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, ctx);
                                                     statusCode = HttpStatusCode.OK;
                                                     if (CollectPHP.Item2 != null)
                                                     {
@@ -1305,7 +1330,7 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPSServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                 {
-                                                    (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, clientip, clientport, ctx);
+                                                    (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, HTTPSServerConfiguration.PHPStaticFolder, HTTPSServerConfiguration.PHPVersion, ctx);
                                                     statusCode = HttpStatusCode.OK;
                                                     if (CollectPHP.Item2 != null)
                                                     {
@@ -1328,6 +1353,7 @@ namespace HTTPSecureServerLite
                                                     if (File.Exists(filePath))
                                                     {
                                                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+
                                                         if (ContentType == "application/octet-stream")
                                                         {
                                                             byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
@@ -1340,8 +1366,6 @@ namespace HTTPSecureServerLite
                                                                 }
                                                             }
                                                         }
-
-                                                        string UserAgent = request.Useragent.ToLower();
 
                                                         if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
                                                             sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType);
@@ -1417,10 +1441,10 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.OK;
                                                 }
                                                 else
-                                                    statusCode = HttpStatusCode.Forbidden;
+                                                    statusCode = HttpStatusCode.BadRequest;
                                             }
                                             else
-                                                statusCode = HttpStatusCode.Forbidden;
+                                                statusCode = HttpStatusCode.BadRequest;
                                         }
                                         else
                                             statusCode = HttpStatusCode.Forbidden;
@@ -1603,7 +1627,6 @@ namespace HTTPSecureServerLite
             Stream? st = null;
             bool sent = false;
             bool flush = false;
-            long fileSize = new FileInfo(filePath).Length;
 
             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));

@@ -8,8 +8,8 @@ using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
-    public static string ServerPublicBindAddress { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress();
+    public static string ServerBindAddress { get; set; } = IPUtils.GetLocalIPAddress().ToString();
+    public static string ServerPublicBindAddress { get; set; } = IPUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
     public static bool UsePublicIP { get; set; } = false;
@@ -212,7 +212,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.Extension.DataUtils.IsWindows)
+        if (!DataUtils.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

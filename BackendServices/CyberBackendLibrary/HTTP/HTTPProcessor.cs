@@ -620,7 +620,7 @@ namespace CyberBackendLibrary.HTTP
         public static string DecodeUrl(string url)
         {
             if (string.IsNullOrEmpty(url)) return string.Empty;
-            string newUrl = string.Empty;
+            string newUrl;
             while ((newUrl = Uri.UnescapeDataString(url)) != url)
                 url = newUrl;
             return newUrl;
@@ -888,7 +888,7 @@ namespace CyberBackendLibrary.HTTP
         /// <param name="input">The Stream to copy.</param>
         /// <param name="output">the Steam to copy to.</param>
         /// <param name="BufferSize">the buffersize for the copy.</param>
-        private static void CopyStream(Stream input, Stream output, int BufferSize, bool flush = true)
+        public static void CopyStream(Stream input, Stream output, int BufferSize, bool flush = true)
         {
             if (BufferSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");

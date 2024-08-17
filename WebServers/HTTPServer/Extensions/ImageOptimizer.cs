@@ -7,7 +7,7 @@ namespace HTTPServer.Extensions
 {
     public class ImageOptimizer
     {
-        private static string maindir = HTTPServerConfiguration.APIStaticFolder + "/ImageUpscale/Cache";
+        private static string maindir = Path.GetTempPath() + "/ImageUpscale/Cache";
 
         public static byte[] OptimizeImage(string imagePath, int num)
         {

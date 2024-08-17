@@ -9,6 +9,8 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
 {
     public class OrbrunnerScoreBoardData
     {
+        private static object _Lock = new object();
+
         public class ScoreboardEntry
         {
             public string psnid { get; set; }
@@ -72,9 +74,12 @@ namespace WebAPIService.LeaderboardsService.NDREAMS
 
         public static void UpdateTodayScoreboardXml(string date)
         {
-            Directory.CreateDirectory($"{LeaderboardClass.APIPath}/NDREAMS/Aurora/Orbrunner");
-            File.WriteAllText($"{LeaderboardClass.APIPath}/NDREAMS/Aurora/Orbrunner/leaderboard_{date}.txt", ConvertScoreboardToText());
-            CustomLogger.LoggerAccessor.LogDebug($"[ndreams] - Orbrunner - scoreboard {date} TEXT updated.");
+            lock (_Lock)
+            {
+                Directory.CreateDirectory($"{LeaderboardClass.APIPath}/NDREAMS/Aurora/Orbrunner");
+                File.WriteAllText($"{LeaderboardClass.APIPath}/NDREAMS/Aurora/Orbrunner/leaderboard_{date}.txt", ConvertScoreboardToText());
+                CustomLogger.LoggerAccessor.LogDebug($"[ndreams] - Orbrunner - scoreboard {date} TEXT updated.");
+            }
         }
 
         public static void SanityCheckLeaderboards(string directoryPath, DateTime thresholdDate)

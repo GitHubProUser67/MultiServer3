@@ -866,29 +866,29 @@ namespace NautilusXP2024
                     switch (_settings.ArchiveTypeSettingRem)
                     {
                         case ArchiveTypeSetting.BAR:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", temppath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             fileExtension = ".BAR"; // Set file extension
                             break;
                         case ArchiveTypeSetting.BAR_S:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", temppath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
                             fileExtension = ".bar"; // Set file extension
                             break;
                         case ArchiveTypeSetting.SDAT:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", temppath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             sdat = true;
                             fileExtension = ".sdat";  // Set file extension
                             break;
                         case ArchiveTypeSetting.CORE_SHARC:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", temppath, 0, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImplementation.base64DefaultSharcKey);
                             fileExtension = ".SHARC"; // Set file extension
                             break;
                         case ArchiveTypeSetting.SDAT_SHARC:
                             sdat = true;
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", temppath, 0, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImplementation.base64CDNKey2);
                             fileExtension = ".sdat"; // Set file extension
                             break;
                         case ArchiveTypeSetting.CONFIG_SHARC:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", temppath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", temppath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImplementation.base64CDNKey2);
                             fileExtension = ".sharc"; // Set file extension
                             break;
                     }
@@ -964,29 +964,29 @@ namespace NautilusXP2024
                     switch (_settings.ArchiveTypeSettingRem)
                     {
                         case ArchiveTypeSetting.BAR:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", folderPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", folderPath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             fileExtension = ".BAR"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.BAR_S:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", folderPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.bar", folderPath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true);
                             fileExtension = ".bar"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.SDAT:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", folderPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.BAR", folderPath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), false, true);
                             sdat = true;
                             fileExtension = ".sdat"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.CORE_SHARC:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", folderPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64DefaultSharcKey);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", folderPath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImplementation.base64DefaultSharcKey);
                             fileExtension = ".SHARC"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.SDAT_SHARC:
                             sdat = true;
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", folderPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.SHARC", folderPath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImplementation.base64CDNKey2);
                             fileExtension = ".sdat"; // Set the file extension
                             break;
                         case ArchiveTypeSetting.CONFIG_SHARC:
-                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", folderPath, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImpl.base64CDNKey2);
+                            bararchive = new BARArchive($"{_settings.BarSdatSharcOutputDirectory}/{filename}.sharc", folderPath, _settings.CdsMode, Convert.ToInt32(ArchiveCreatorTimestampTextBox.Text, 16), true, true, ToolsImplementation.base64CDNKey2);
                             fileExtension = ".sharc"; // Set the file extension
                             break;
                     }
@@ -1240,7 +1240,7 @@ namespace NautilusXP2024
                         string barfile = Outputpath + $"/{filename}";
                         // Copy the file to the output directory for processing
                         File.WriteAllBytes(barfile, File.ReadAllBytes(filePath));
-                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false);
+                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false, _settings.CdsMode);
                         ogfilename = filename;
                         filename = filename[..^4];
                         // Delete the copied file after processing
@@ -1251,7 +1251,7 @@ namespace NautilusXP2024
                     {
                         string barfile = Outputpath + $"/{filename}";
                         File.WriteAllBytes(barfile, File.ReadAllBytes(filePath));
-                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false);
+                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), barfile, Outputpath, false, _settings.CdsMode);
                         ogfilename = filename;
                         filename = filename[..^6];
                         if (File.Exists(barfile))
@@ -1260,7 +1260,7 @@ namespace NautilusXP2024
                     else if (filename.ToLower().EndsWith(".sdat"))
                     {
                         // Directly use the original path without copying the file
-                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), filePath, Outputpath, true);
+                        await RunUnBAR.Run(Directory.GetCurrentDirectory(), filePath, Outputpath, true, _settings.CdsMode);
                         ogfilename = filename;
                         filename = filename[..^5];
                     }

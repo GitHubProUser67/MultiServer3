@@ -8,6 +8,8 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
 {
     public class GSScoreBoardData
     {
+        private static object _Lock = new object();
+
         public class ScoreboardEntry
         {
             public string psnid { get; set; }
@@ -78,9 +80,12 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
                 filePath = $"{LeaderboardClass.APIPath}/VEEMEE/sfrgbt/leaderboard_alltime.xml";
             }
 
-            Directory.CreateDirectory(directoryPath);
-            File.WriteAllText(filePath, ConvertScoreboardToXml());
-            CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - goalie_sfrgbt - scoreboard alltime XML updated.");
+            lock (_Lock)
+            {
+                Directory.CreateDirectory(directoryPath);
+                File.WriteAllText(filePath, ConvertScoreboardToXml());
+                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - goalie_sfrgbt - scoreboard alltime XML updated.");
+            }
         }
 
         public static void UpdateTodayScoreboardXml(bool global, string date)
@@ -99,9 +104,12 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
                 filePath = $"{LeaderboardClass.APIPath}/VEEMEE/sfrgbt/leaderboard_{date}.xml";
             }
 
-            Directory.CreateDirectory(directoryPath);
-            File.WriteAllText(filePath, ConvertScoreboardToXml());
-            CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - goalie_sfrgbt - scoreboard {date} XML updated.");
+            lock (_Lock)
+            {
+                Directory.CreateDirectory(directoryPath);
+                File.WriteAllText(filePath, ConvertScoreboardToXml());
+                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - goalie_sfrgbt - scoreboard {date} XML updated.");
+            }
         }
 
         public static void SanityCheckLeaderboards(string directoryPath, DateTime thresholdDate)

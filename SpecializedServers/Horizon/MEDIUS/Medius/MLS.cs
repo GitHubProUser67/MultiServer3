@@ -49,6 +49,10 @@ namespace Horizon.MEDIUS.Medius
 
         private byte[] Ref9 = Convert.FromBase64String("L4MAAA==");
 
+        private byte[] Ref10 = Convert.FromBase64String("QEBAQEBAQEBAQEBAQEBAQA==");
+
+        private uint UintRef1 = 0xCEE2563F ^ 0xDEADBEEF ^ uint.MinValue;
+
         private ConcurrentDictionary<(IPAddress, string?), DateTime> BannedClients = new();
         #endregion
 
@@ -411,15 +415,16 @@ namespace Horizon.MEDIUS.Medius
                                                                     while (true)
                                                                     {
                                                                         if (data.ClientObject.IsInGame)
+                                                                        {
                                                                             CheatQuery(data.ClientObject.HomePointer + 5300U, 8, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
+                                                                            CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                                        }
 
-                                                                        Thread.Sleep(3000);
+                                                                        Thread.Sleep(3500);
                                                                     }
 
                                                                 }));
                                                             }
-
-                                                            CheatQuery(data.ClientObject.HomePointer + 6928U, 84, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
 
                                                             if (BannedClients.ContainsKey((data.ClientObject.IP, data.MachineId)))
                                                             {
@@ -457,6 +462,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -469,6 +477,9 @@ namespace Horizon.MEDIUS.Medius
                                                         _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -483,6 +494,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -495,6 +509,9 @@ namespace Horizon.MEDIUS.Medius
                                                         _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -509,6 +526,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -521,6 +541,9 @@ namespace Horizon.MEDIUS.Medius
                                                         _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -535,6 +558,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -547,6 +573,9 @@ namespace Horizon.MEDIUS.Medius
                                                         _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -561,6 +590,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -573,6 +605,9 @@ namespace Horizon.MEDIUS.Medius
                                                         _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -587,6 +622,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -599,6 +637,9 @@ namespace Horizon.MEDIUS.Medius
                                                         _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
@@ -613,6 +654,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -626,6 +670,9 @@ namespace Horizon.MEDIUS.Medius
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
                                                         data.State = ClientState.DISCONNECTED;
                                                         await clientChannel.CloseAsync();
                                                     }
@@ -635,7 +682,21 @@ namespace Horizon.MEDIUS.Medius
                                                         PokeAddress(0x00335558, new byte[] { 0x38, 0x00, 0x00, 0x00 }, clientChannel);
                                                     break;
                                                 default:
-                                                    if (data.ClientObject != null)
+                                                    if (clientCheatQuery.StartAddress == UintRef1 && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 16 && !DataUtils.AreArraysIdentical(QueryData, Ref10))
+                                                    {
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: IGA SECURITY PATCH CIRCUMVENT) - User:{data.ClientObject?.AccountName} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject?.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
+                                                            BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                    }
+                                                    else if (data.ClientObject != null)
                                                     {
                                                         if (clientCheatQuery.StartAddress == (data.ClientObject.HomePointer + 6928U) && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataUtils.AreArraysIdentical(QueryData, Ref5))
                                                         {
@@ -7048,6 +7109,34 @@ namespace Horizon.MEDIUS.Medius
                                             }
                                             break;
                                     }
+
+                                    if (MediusClass.Settings.PlaystationHomeAntiCheatIGASecurityPatch)
+                                    {
+                                        switch (data.ApplicationId)
+                                        {
+                                            case 20371:
+                                                // TODO!
+                                                break;
+                                            case 20374:
+                                                if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                                                {
+                                                    if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
+                                                    {
+                                                        switch (value)
+                                                        {
+                                                            case "IGA":
+                                                                break;
+                                                            default:
+                                                                CheatQuery(UintRef1, 16, clientChannel);
+                                                                break;
+                                                        }
+                                                    }
+                                                    else
+                                                        CheatQuery(UintRef1, 16, clientChannel);
+                                                }
+                                                break;
+                                        }
+                                    }
                                 }
                             }
 
@@ -11274,16 +11363,23 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         switch (value)
                                         {
-                                            case "RTM":
                                             case "IGA":
                                                 break;
                                             default:
-                                                CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                if (!data.ClientObject.IsOnRPCN)
+                                                    CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                                PokeAddress(UintRef1, Ref10, clientChannel);
                                                 break;
                                         }
                                     }
                                     else
-                                        CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                    {
+                                        if (!data.ClientObject.IsOnRPCN)
+                                            CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                        PokeAddress(UintRef1, Ref10, clientChannel);
+                                    }
                                 }
                                 break;
                         }

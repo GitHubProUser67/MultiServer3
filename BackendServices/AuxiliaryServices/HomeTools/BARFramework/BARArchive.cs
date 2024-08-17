@@ -5,7 +5,6 @@ using System.Collections;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Security.Cryptography;
 using System.Xml;
 using System.IO;
 using System.Collections.Generic;
@@ -39,6 +38,8 @@ namespace HomeTools.BARFramework
 
         private bool encrypt = false;
 
+        private ushort cdnMode = 0;
+
         private string version2key = string.Empty;
 
         public BARArchive()
@@ -50,10 +51,11 @@ namespace HomeTools.BARFramework
             m_allowWhitespaceInFilenames = true;
         }
 
-        public BARArchive(string sourceFilePath, string resourceRoot, int UserData = 0, bool encrypt = false, bool bigendian = false, string version2key = "") : this()
+        public BARArchive(string sourceFilePath, string resourceRoot, ushort cdnMode = 0, int UserData = 0, bool encrypt = false, bool bigendian = false, string version2key = "") : this()
         {
             m_sourceFile = sourceFilePath;
             m_resourceRoot = resourceRoot;
+            this.cdnMode = cdnMode;
             m_header.UserData = UserData;
             if (bigendian)
                 m_endian = EndianType.BigEndian;
@@ -675,7 +677,7 @@ namespace HomeTools.BARFramework
                     tocEntry.Index = count;
                     byte[] IV = new byte[8];
                     Buffer.BlockCopy(tocEntry.IV, 0, IV, 0, tocEntry.IV.Length);
-                    tocEntry.RawData = ToolsImpl.ProcessXTEAProxyBlocks(array2, m_header.Key, IV);
+                    tocEntry.RawData = ToolsImplementation.ProcessXTEAProxyBlocks(array2, m_header.Key, IV);
                 }
                 else
                 {
@@ -716,13 +718,13 @@ namespace HomeTools.BARFramework
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
                     if (m_endian == EndianType.BigEndian)
-                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImpl.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImplementation.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              EndianUtils.EndianSwap(Utils.IntToByteArray(array2.Length)),
                              array2
                         });
                     else
-                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImpl.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImplementation.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              Utils.IntToByteArray(array2.Length),
                              array2
@@ -933,7 +935,7 @@ namespace HomeTools.BARFramework
             {
                 byte[] IV = new byte[16];
                 Buffer.BlockCopy(m_header.IV, 0, IV, 0, m_header.IV.Length);
-                ToolsImpl.IncrementIVBytes(IV, 1); // IV so we increment.
+                ToolsImplementation.IncrementIVBytes(IV, 1); // IV so we increment.
                 array = m_toc.GetBytesVersion2(version2key, IV, m_endian);
             }
             else
@@ -980,15 +982,26 @@ namespace HomeTools.BARFramework
             {
                 if (m_header.Version != 512 && tocentry.Compression == CompressionMethod.Encrypted)
                 {
-                    byte[] SignatureIV = BitConverter.GetBytes(ToolsImpl.BuildSignatureIv((int)tocentry.Size, (int)tocentry.CompressedSize, (int)dataWriterStream.Position, m_header.UserData));
+                    byte[] SignatureIV = BitConverter.GetBytes(ToolsImplementation.BuildSignatureIv((int)tocentry.Size, (int)tocentry.CompressedSize, (int)dataWriterStream.Position, m_header.UserData));
                     if (BitConverter.IsLittleEndian)
                         Array.Reverse(SignatureIV);
                     byte[] OriginalSigntureIV = new byte[SignatureIV.Length];
                     Buffer.BlockCopy(SignatureIV, 0, OriginalSigntureIV, 0, OriginalSigntureIV.Length);
-                    ToolsImpl.IncrementIVBytes(SignatureIV, 3);
+                    ToolsImplementation.IncrementIVBytes(SignatureIV, 3);
                     byte[] FileBytes = new byte[(int)tocentry.CompressedSize - 28];
                     Buffer.BlockCopy(tocentry.RawData, 28, FileBytes, 0, FileBytes.Length);
-                    FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImpl.DefaultKey, SignatureIV, "CTR");
+                    switch (cdnMode)
+                    {
+                        case 2:
+                            FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImplementation.HDKBlowfishKey, SignatureIV, "CTR");
+                            break;
+                        case 1:
+                            FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImplementation.BetaBlowfishKey, SignatureIV, "CTR");
+                            break;
+                        default:
+                            FileBytes = LIBSECURE.InitiateBlowfishBuffer(FileBytes, ToolsImplementation.BlowfishKey, SignatureIV, "CTR");
+                            break;
+                    }
                     if (FileBytes != null)
                     {
                         byte[] SignatureHeader = new byte[24];
@@ -996,7 +1009,18 @@ namespace HomeTools.BARFramework
                         Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);
-                        SignatureHeader = LIBSECURE.InitiateBlowfishBuffer(SignatureHeader, ToolsImpl.SignatureKey, OriginalSigntureIV, "CTR");
+                        switch (cdnMode)
+                        {
+                            case 2:
+                                SignatureHeader = LIBSECURE.InitiateBlowfishBuffer(SignatureHeader, ToolsImplementation.HDKSignatureKey, OriginalSigntureIV, "CTR");
+                                break;
+                            case 1:
+                                SignatureHeader = LIBSECURE.InitiateBlowfishBuffer(SignatureHeader, ToolsImplementation.BetaSignatureKey, OriginalSigntureIV, "CTR");
+                                break;
+                            default:
+                                SignatureHeader = LIBSECURE.InitiateBlowfishBuffer(SignatureHeader, ToolsImplementation.SignatureKey, OriginalSigntureIV, "CTR");
+                                break;
+                        }
                         if (SignatureHeader != null)
                             Buffer.BlockCopy(SignatureHeader, 0, tocentry.RawData, 4, SignatureHeader.Length);
                         else

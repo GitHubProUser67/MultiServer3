@@ -2,17 +2,18 @@
 
 namespace MultiSpyService.Data
 {
-	internal class NonFilterAttribute : Attribute
+	public class NonFilterAttribute : Attribute
 	{
+
 	}
 
-	internal class GameServer
+	public class GameServer
 	{
 		[NonFilter]
 		public bool Valid { get; set; }
 
 		[NonFilter]
-		public string? IPAddress { get; set; }
+		public string IPAddress { get; set; }
 
 		[NonFilter]
 		public int QueryPort { get; set; }
@@ -25,10 +26,10 @@ namespace MultiSpyService.Data
 
 
 		[NonFilter]
-		public string? localip0 { get; set; }
+		public string localip0 { get; set; }
 
 		[NonFilter]
-		public string? localip1 { get; set; }
+		public string localip1 { get; set; }
 
 		[NonFilter]
 		public int localport { get; set; }
@@ -39,16 +40,17 @@ namespace MultiSpyService.Data
 		[NonFilter]
 		public int statechanged { get; set; }
 
-		public string? country { get; set; }
-		public string? hostname { get; set; }
-		public string? gamename { get; set; }
-		public string? gamever { get; set; }
-		public string? mapname { get; set; }
-		public string? gametype { get; set; }
-		public string? gamevariant { get; set; }
+        public string groupid { get; set; }
+        public string country { get; set; }
+		public string hostname { get; set; }
+		public string gamename { get; set; }
+		public string gamever { get; set; }
+		public string mapname { get; set; }
+		public string gametype { get; set; }
+		public string gamevariant { get; set; }
 		public int numplayers { get; set; }
 		public int maxplayers { get; set; }
-		public string? gamemode { get; set; }
+		public string gamemode { get; set; }
 		public bool password { get; set; }
 		public int timelimit { get; set; }
 		public int roundtime { get; set; }
@@ -56,24 +58,24 @@ namespace MultiSpyService.Data
 		public bool bf2_dedicated { get; set; }
 		public bool bf2_ranked { get; set; }
 		public bool bf2_anticheat { get; set; }
-		public string? bf2_os { get; set; }
+		public string bf2_os { get; set; }
 		public bool bf2_autorec { get; set; }
-		public string? bf2_d_idx { get; set; }
-		public string? bf2_d_dl { get; set; }
+		public string bf2_d_idx { get; set; }
+		public string bf2_d_dl { get; set; }
 		public bool bf2_voip { get; set; }
 		public bool bf2_autobalanced { get; set; }
 		public bool bf2_friendlyfire { get; set; }
-		public string? bf2_tkmode { get; set; }
+		public string bf2_tkmode { get; set; }
 		public double bf2_startdelay { get; set; }
 		public double bf2_spawntime { get; set; }
-		public string? bf2_sponsortext { get; set; }
-		public string? bf2_sponsorlogo_url { get; set; }
-		public string? bf2_communitylogo_url { get; set; }
+		public string bf2_sponsortext { get; set; }
+		public string bf2_sponsorlogo_url { get; set; }
+		public string bf2_communitylogo_url { get; set; }
 		public int bf2_scorelimit { get; set; }
 		public double bf2_ticketratio { get; set; }
 		public double bf2_teamratio { get; set; }
-		public string? bf2_team1 { get; set; }
-		public string? bf2_team2 { get; set; }
+		public string bf2_team1 { get; set; }
+		public string bf2_team2 { get; set; }
 		public bool bf2_bots { get; set; }
 		public bool bf2_pure { get; set; }
 		public int bf2_mapsize { get; set; }

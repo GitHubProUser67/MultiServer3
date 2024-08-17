@@ -172,12 +172,6 @@ namespace Horizon.RT.Common
 
         public const int BUFFER_SIZE = 1500;
 
-        #region PSN Specific Ticket
-
-        public const int XI5TICKET_21_LENGTH = 212;
-
-        #endregion
-
         #region Deprecated
 
         /// <summary>

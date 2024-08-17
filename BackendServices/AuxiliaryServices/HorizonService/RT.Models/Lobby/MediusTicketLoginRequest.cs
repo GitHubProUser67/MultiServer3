@@ -1,3 +1,4 @@
+using EndianTools;
 using Horizon.LIBRARY.Common.Stream;
 using Horizon.RT.Common;
 using System;
@@ -18,7 +19,9 @@ namespace Horizon.RT.Models
         /// </summary>
         public string SessionKey; // SESSIONKEY_MAXLEN
 
-        public uint UNK0; 
+        public uint UNK0;
+        public uint Version;
+        public uint Size;
         public byte[] TicketData;
 
         public override void Deserialize(MessageReader reader)
@@ -29,7 +32,9 @@ namespace Horizon.RT.Models
 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             UNK0 = reader.ReadUInt32();
-            TicketData = reader.ReadBytes(Constants.XI5TICKET_21_LENGTH);
+            Version = EndianUtils.ReverseUint(reader.ReadUInt32());
+            Size = EndianUtils.ReverseUint(reader.ReadUInt32());
+            TicketData = reader.ReadBytes((int)Size);
         }
 
         public override void Serialize(MessageWriter writer)
@@ -40,7 +45,9 @@ namespace Horizon.RT.Models
 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(UNK0);
-            writer.Write(TicketData ?? new byte[Constants.XI5TICKET_21_LENGTH]);
+            writer.Write(EndianUtils.ReverseUint(Version));
+            writer.Write(EndianUtils.ReverseUint(Size));
+            writer.Write(TicketData ?? new byte[Size]);
         }
 
         public override string ToString()

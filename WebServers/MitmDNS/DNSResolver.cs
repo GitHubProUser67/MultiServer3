@@ -10,7 +10,7 @@ namespace MitmDNS
 {
     public class DNSResolver
     {
-        public static byte[]? ProcRequest(byte[] data)
+        public static byte[] ProcRequest(byte[] data)
         {
             try
             {
@@ -22,9 +22,9 @@ namespace MitmDNS
 
                 LoggerAccessor.LogInfo($"[DNSResolver] - Host: {fullname} was Requested.");
 
-                string? url = null;
+                string url = null;
 
-                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
+                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress arparuleaddr)) // IPV4 Only.
                 {
                     if (arparuleaddr != null)
                     {
@@ -57,7 +57,7 @@ namespace MitmDNS
                     {
                         foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
                         {
-                            Regex regex = new(rule.Key);
+                            Regex regex = new Regex(rule.Key);
                             if (!regex.IsMatch(fullname))
                                 continue;
 
@@ -78,7 +78,7 @@ namespace MitmDNS
                 {
                     try
                     {
-                        if (!IPAddress.TryParse(url, out IPAddress? address))
+                        if (!IPAddress.TryParse(url, out IPAddress address))
                             ip = Dns.GetHostEntry(url).AddressList[0];
                         else ip = address;
                     }

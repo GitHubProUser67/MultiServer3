@@ -73,13 +73,13 @@ namespace PdfToJpeg
             {
                 HttpResponse? response = null;
 
-                if (!string.IsNullOrEmpty(request.Url))
+                if (!string.IsNullOrEmpty(request.RawUrlWithQuery))
                 {
                     switch (request.Method)
                     {
                         case "POST":
 
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.Url))
+                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.RawUrlWithQuery))
                             {
                                 #region PdfConvert
                                 case "/!PdfConvert/Process/":

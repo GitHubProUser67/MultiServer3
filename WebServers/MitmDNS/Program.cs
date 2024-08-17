@@ -64,9 +64,9 @@ public static class MitmDNSServerConfiguration
             {
                 if (obj is JObject jObject)
                 {
-                    if (jObject.TryGetValue(propertyName, out JToken? value))
+                    if (jObject.TryGetValue(propertyName, out JToken value))
                     {
-                        T? returnvalue = value.ToObject<T>();
+                        T returnvalue = value.ToObject<T>();
                         if (returnvalue != null)
                             return returnvalue;
                     }
@@ -87,10 +87,10 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "dns.json";
     private static string DNSconfigMD5 = string.Empty;
-    private static Task? DNSThread = null;
-    private static Task? DNSRefreshThread = null;
-    private static MitmDNSClass Server = new();
-    private static readonly FileSystemWatcher dnswatcher = new();
+    private static Task DNSThread = null;
+    private static Task DNSRefreshThread = null;
+    private static MitmDNSClass Server = new MitmDNSClass();
+    private static readonly FileSystemWatcher dnswatcher = new FileSystemWatcher();
 
     // Event handler for DNS change event
     private static void OnDNSChanged(object source, FileSystemEventArgs e)

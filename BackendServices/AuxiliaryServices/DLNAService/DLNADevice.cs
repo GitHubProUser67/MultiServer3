@@ -147,7 +147,7 @@ namespace DLNAService
         public string SMP = string.Empty;
         public string HTML = string.Empty;
         public string FriendlyName = string.Empty;
-        public Dictionary<string, DLNAService>? Services = null;
+        public Dictionary<string, DLNAService> Services = null;
 
         private readonly string XMLHead = "<?xml version=\"1.0\"?>" + Environment.NewLine + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + Environment.NewLine + "<SOAP-ENV:Body>" + Environment.NewLine;
         private readonly string XMLFoot = "</SOAP-ENV:Body>" + Environment.NewLine + "</SOAP-ENV:Envelope>" + Environment.NewLine;

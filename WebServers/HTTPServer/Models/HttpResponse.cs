@@ -63,10 +63,10 @@ namespace HTTPServer.Models
                     }
                 }
             }
-            if (stringtosend != null)
+            if (!string.IsNullOrEmpty(stringtosend))
                 response.ContentAsUTF8 = stringtosend;
             else
-                response.ContentStream = null;
+                response.ContentAsUTF8 = string.Empty;
 
             return response;
         }
@@ -95,7 +95,7 @@ namespace HTTPServer.Models
             if (bytearraytosend != null)
                 response.ContentStream = new MemoryStream(bytearraytosend);
             else
-                response.ContentStream = null;
+                response.ContentAsUTF8 = string.Empty;
 
             return response;
         }
@@ -132,7 +132,7 @@ namespace HTTPServer.Models
                 }
             }
             else
-                response.ContentStream = null;
+                response.ContentAsUTF8 = string.Empty;
 
             return response;
         }

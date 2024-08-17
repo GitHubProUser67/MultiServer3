@@ -10,6 +10,7 @@ namespace NautilusXP2024
     public class AppSettings
     {
         public string CdsOutputDirectory { get; set; }
+        public ushort CdsMode { get; set; } = 0;
         public string BarSdatSharcOutputDirectory { get; set; }
         public string MappedOutputDirectory { get; set; }
         public string HcdbOutputDirectory { get; set; }

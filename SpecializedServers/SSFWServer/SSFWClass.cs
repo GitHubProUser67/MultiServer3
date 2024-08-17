@@ -8,6 +8,8 @@ using System.Text.RegularExpressions;
 using System.Net.Security;
 using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
+using System.IO;
+using System;
 
 namespace SSFWServer
 {
@@ -232,6 +234,24 @@ namespace SSFWServer
                                     Response.SetBody();
                                 }
                             }
+                            else if (absolutepath.Contains($"/SaveDataService/avatar/{env}/") && absolutepath.EndsWith(".jpg"))
+                            {
+                                if (File.Exists(filePath))
+                                {
+                                    byte[]? res = FileHelper.ReadAllBytes(filePath, legacykey);
+
+                                    if (res != null)
+                                        Response.MakeGetResponse(res, "image/jpg");
+                                    else
+                                        Response.MakeErrorResponse();
+                                }
+                                else
+                                {
+                                    Response.Clear();
+                                    Response.SetBegin(404);
+                                    Response.SetBody();
+                                }
+                            }
                             else
                             {
                                 Response.Clear();
@@ -368,16 +388,30 @@ namespace SSFWServer
                                     switch (GetHeaderValue(Headers, "Content-type", false))
                                     {
                                         case "image/jpeg":
-                                            File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer);
+                                            string savaDataAvatarFilePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"SaveDataService/avatar/{env}/");
+
+                                            Directory.CreateDirectory(savaDataAvatarFilePath);
+
+                                            string? userName = SSFWUserSessionManager.GetFormatedUsernameBySessionId(sessionid);
+
+                                            if (!string.IsNullOrEmpty(userName))
+                                            {
+                                                Task.WhenAll(File.WriteAllBytesAsync($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer),
+                                                    File.WriteAllBytesAsync($"{savaDataAvatarFilePath}{userName}.jpg", putbuffer)).Wait();
+                                                Response.MakeOkResponse();
+                                            }
+                                            else
+                                                Response.MakeErrorResponse();
                                             break;
                                         case "application/json":
                                             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", putbuffer);
+                                            Response.MakeOkResponse();
                                             break;
                                         default:
                                             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.bin", putbuffer);
+                                            Response.MakeOkResponse();
                                             break;
                                     }
-                                    Response.MakeOkResponse();
                                 }
                                 else
                                 {

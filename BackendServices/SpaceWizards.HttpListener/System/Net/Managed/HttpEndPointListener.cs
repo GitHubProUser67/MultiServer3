@@ -48,7 +48,7 @@ namespace SpaceWizards.HttpListener
         private Dictionary<ListenerPrefix, HttpListener> _prefixes;
         private List<ListenerPrefix> _unhandledPrefixes; // host = '*'
         private List<ListenerPrefix> _allPrefixes;       // host = '+'
-        private X509Certificate _cert;
+        private X509Certificate2 _cert;
         private bool _secure;
 
         public HttpEndPointListener(HttpListener listener, IPAddress addr, int port, bool secure)

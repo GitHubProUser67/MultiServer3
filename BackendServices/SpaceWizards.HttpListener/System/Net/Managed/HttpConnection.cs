@@ -62,19 +62,37 @@ namespace SpaceWizards.HttpListener
         private int _reuses;
         private bool _contextBound;
         private bool _secure;
-        private X509Certificate _cert;
+        private X509Certificate2 _cert;
         private int _timeout = 90000; // 90k ms for first request, 15k ms from then on
         private Timer _timer;
         private IPEndPoint _localEndPoint;
         private HttpListener _lastListener;
         private int[] _clientCertErrors;
         private X509Certificate2 _clientCert;
+        private string _sniDomain;
         private SslStream _sslStream;
         private InputState _inputState = InputState.RequestLine;
         private LineState _lineState = LineState.None;
         private int _position;
 
-        public HttpConnection(Socket sock, HttpEndPointListener epl, bool secure, X509Certificate cert)
+        internal static SslProtocols GetSslProtocol
+        {
+            get
+            {
+#pragma warning disable
+                SslProtocols protocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+#pragma warning restore
+
+#if NET5_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+
+                protocols |= SslProtocols.Tls13;
+#endif
+
+                return protocols;
+            }
+        }
+
+        public HttpConnection(Socket sock, HttpEndPointListener epl, bool secure, X509Certificate2 cert)
         {
             _socket = sock;
             _epl = epl;
@@ -110,7 +128,37 @@ namespace SpaceWizards.HttpListener
             }
 
             _timer = new Timer(OnTimeout, null, Timeout.Infinite, Timeout.Infinite);
-            _sslStream?.AuthenticateAsServer(_cert, false, (SslProtocols)ServicePointManager.SecurityProtocol, false);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (_sslStream != null && CertificateHelper.IsCertificateAuthority(_cert))
+            {
+                _sslStream.AuthenticateAsServer(new SslServerAuthenticationOptions
+                {
+                    ClientCertificateRequired = false,
+                    EnabledSslProtocols = GetSslProtocol,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                    ServerCertificateSelectionCallback = (sender, actualHostName) =>
+                    {
+                        if (string.IsNullOrEmpty(actualHostName))
+                        {
+                            _sniDomain = ((IPEndPoint)sock.LocalEndPoint).Address.ToString() ?? "127.0.0.1";
+                        }
+                        else
+                        {
+                            _sniDomain = actualHostName;
+                        }
+                        return CertificateHelper.MakeChainSignedCert(_sniDomain, _cert, epl.Listener.GetPreferedHashAlgorithm(),
+                        ((IPEndPoint)sock.RemoteEndPoint).Address ?? IPAddress.Any, DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(7),
+                        epl.Listener.wildcardCertificates);
+                    }
+                });
+            }
+            else
+            {
+                _sslStream?.AuthenticateAsServer(_cert, false, GetSslProtocol, false);
+            }
+#else
+            _sslStream?.AuthenticateAsServer(_cert, false, GetSslProtocol, false);
+#endif
             Init();
         }
 

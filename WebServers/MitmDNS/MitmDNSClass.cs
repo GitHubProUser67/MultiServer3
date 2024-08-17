@@ -15,11 +15,11 @@ namespace MitmDNS
 {
     public partial class MitmDNSClass
     {
-        public static Dictionary<string, DnsSettings> DicRules = new();
-        public static Dictionary<string, DnsSettings> StarRules = new();
+        public static Dictionary<string, DnsSettings> DicRules = new Dictionary<string, DnsSettings>();
+        public static Dictionary<string, DnsSettings> StarRules = new Dictionary<string, DnsSettings>();
         public static bool Initiated = false;
-        public MitmDNSUDPProcessor UDPproc = new();
-        public MitmDNSTCPProcessor TCPproc = new();
+        public MitmDNSUDPProcessor UDPproc = new MitmDNSUDPProcessor();
+        public MitmDNSTCPProcessor TCPproc = new MitmDNSTCPProcessor();
 
         public void StartServerAsync(CancellationToken cancellationToken)
         {
@@ -239,7 +239,7 @@ namespace MitmDNS
         }
         #endregion
 
-        private static bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        private static bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

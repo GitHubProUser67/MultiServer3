@@ -9,7 +9,7 @@ namespace MitmDNS
     public class MitmDNSUDPProcessor
     {
         private bool _exit = false;
-        private UdpClient? listener = null;
+        private UdpClient listener = null;
         private CancellationTokenSource _cts = null!;
 
         public void Start(CancellationToken cancellationToken)
@@ -38,8 +38,8 @@ namespace MitmDNS
             Task serverDNS = Task.Run(() =>
             {
                 object _sync = new();
-                Task<UdpReceiveResult>? CurrentRecvTask = null;
-                listener = new(listenPort);
+                Task<UdpReceiveResult> CurrentRecvTask = null;
+                listener = new UdpClient(listenPort);
 
                 LoggerAccessor.LogInfo($"[DNS_UDP] Server initiated on port: {listenPort}...");
 
@@ -60,7 +60,7 @@ namespace MitmDNS
                             {
                                 UdpReceiveResult result = CurrentRecvTask.Result;
                                 CurrentRecvTask = null;
-                                byte[]? ResultBuffer = DNSResolver.ProcRequest(result.Buffer);
+                                byte[] ResultBuffer = DNSResolver.ProcRequest(result.Buffer);
                                 if (ResultBuffer != null)
                                     _ = listener.SendAsync(ResultBuffer, ResultBuffer.Length, result.RemoteEndPoint);
                             }
@@ -68,7 +68,10 @@ namespace MitmDNS
                                 CurrentRecvTask = null;
                         }
 
-                        CurrentRecvTask ??= listener.ReceiveAsync();
+                        if (CurrentRecvTask == null)
+                        {
+                            CurrentRecvTask = listener.ReceiveAsync();
+                        }
                     }
                     catch (Exception ex)
                     {

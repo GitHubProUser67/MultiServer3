@@ -20,7 +20,7 @@ namespace FixedSsl
         private const int SSLv3 = 0x0300;
         private const int TLSv1 = 0x0301;
         private static SecureProtocol legacyProtocols = SecureProtocol.Ssl3 | SecureProtocol.Tls1;
-        public static async Task<Stream?> AuthenticateAsServerAsync(Socket socket, X509Certificate? certificate, bool forceSsl)
+        public static async Task<Stream> AuthenticateAsServerAsync(Socket socket, X509Certificate certificate, bool forceSsl)
         {
             //no certificate, no ssl
             if (certificate == null)
@@ -37,7 +37,11 @@ namespace FixedSsl
 
             //read first 11 bytes, but do not consume them.
             byte[] buffer = new byte[11];
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
             int received = await socket.ReceiveAsync(buffer, SocketFlags.Peek).ConfigureAwait(false);
+#else
+            int received = socket.Receive(buffer, SocketFlags.Peek);
+#endif
             if (received != buffer.Length)
                 return null;
 
@@ -64,7 +68,7 @@ namespace FixedSsl
             return sslStream;
         }
 
-        public static Stream? AuthenticateAsServer(Socket socket, X509Certificate? certificate, bool forceSsl)
+        public static Stream AuthenticateAsServer(Socket socket, X509Certificate certificate, bool forceSsl)
         {
             //no certificate, no ssl
             if (certificate == null)
@@ -109,20 +113,20 @@ namespace FixedSsl
             return sslStream;
         }
 
-        public static IAsyncResult BeginAuthenticateAsServer(Socket socket, X509Certificate? certificate, bool forceSsl, AsyncCallback? callback, object? state)
+        public static IAsyncResult BeginAuthenticateAsServer(Socket socket, X509Certificate certificate, bool forceSsl, AsyncCallback callback, object state)
         {
             return AuthenticateAsServerAsync(socket, certificate, forceSsl).AsApm(callback, state);
         }
 
-        public static Stream? EndAuthenticateAsServer(IAsyncResult result)
+        public static Stream EndAuthenticateAsServer(IAsyncResult result)
         {
-            return ((Task<Stream?>)result).Result;
+            return ((Task<Stream>)result).Result;
         }
 
         #region Helpers
         private static IAsyncResult AsApm<T>(this Task<T> task,
-                                    AsyncCallback? callback,
-                                    object? state)
+                                    AsyncCallback callback,
+                                    object state)
         {
             if (task == null)
                 throw new ArgumentNullException("task");
