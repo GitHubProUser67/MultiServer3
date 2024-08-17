@@ -16,6 +16,8 @@ using Horizon.DME.PluginArgs;
 using Horizon.PluginManager;
 using System.Collections.Generic;
 using System.Linq;
+using EndianTools;
+using CyberBackendLibrary.Extension;
 
 namespace Horizon.DME
 {
@@ -622,7 +624,39 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_APP_SINGLE clientAppSingle:
                     {
-                        data.ClientObject?.DmeWorld?.SendTcpAppSingle(data.ClientObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
+                        if (data.ClientObject != null)
+                        {
+                            bool InvalidRequest = false;
+
+                            if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
+                            {
+                                byte[] HubMessagePayload = clientAppSingle.Payload;
+                                int HubPathernOffset = DataUtils.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00, 0x00 });
+
+                                if (HubPathernOffset != -1) // Hub command.
+                                {
+                                    switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
+                                    {
+                                        case -85: // IGA
+                                            InvalidRequest = true;
+                                            string SupplementalMessage = "Unknown";
+
+                                            switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
+                                            {
+                                                case 0x0B:
+                                                    SupplementalMessage = "Kick";
+                                                    break;
+                                            }
+
+                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.ClientObject.DmeId}");
+                                            break;
+                                    }
+                                }
+                            }
+
+                            if (!InvalidRequest)
+                                data.ClientObject.DmeWorld?.SendTcpAppSingle(data.ClientObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
+                        }
                         break;
                     }
                 case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:

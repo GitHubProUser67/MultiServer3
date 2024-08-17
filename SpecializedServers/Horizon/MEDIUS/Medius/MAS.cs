@@ -409,10 +409,6 @@ namespace Horizon.MEDIUS.Medius
                                                         await clientChannel.CloseAsync();
                                                     }
                                                     break;
-                                                case 0x00335558:
-                                                    if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && !DataUtils.AreArraysIdentical(QueryData, Ref7))
-                                                        PokeAddress(0x00335558, new byte[] { 0x38, 0x00, 0x00, 0x00 }, clientChannel);
-                                                    break;
                                             }
                                         }
                                         break;
@@ -1978,7 +1974,7 @@ namespace Horizon.MEDIUS.Medius
                         {
                             if (MediusClass.Settings.ForceOfficialRPCNSignature && !new XI5Ticket(XI5TicketData).SignedByOfficialRPCN)
                             {
-                                LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} was caught using an invalid RPCN signature!");
+                                LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} was caught using an invalid RPCN signature!");
 
                                 // Account is banned
                                 // Temporary solution is to tell the client the login failed
@@ -1993,7 +1989,21 @@ namespace Horizon.MEDIUS.Medius
 
                             accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN";
                             data.ClientObject.IsOnRPCN = true;
-                            UserOnlineId += "RPCN";
+                            UserOnlineId += "@RPCN";
+                        }
+                        else if (UserOnlineId.EndsWith("@RPCN"))
+                        {
+                            LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} was caught using a RPCN suffix while not on it!");
+
+                            // Account is banned
+                            // Temporary solution is to tell the client the login failed
+                            data.ClientObject.Queue(new MediusTicketLoginResponse()
+                            {
+                                MessageID = ticketLoginRequest.MessageID,
+                                StatusCodeTicketLogin = MediusCallbackStatus.MediusMachineBanned
+                            });
+
+                            break;
                         }
                         else
                             accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on PSN";
@@ -2012,319 +2022,147 @@ namespace Horizon.MEDIUS.Medius
                                 MessageID = ticketLoginRequest.MessageID,
                                 StatusCode = MediusCallbackStatus.MediusAccountLoggedIn
                             });
+
+                            break;
                         }
-                        else
+
+                        //Check if their MacBanned
+                        await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId ?? string.Empty).ContinueWith(async (r) =>
                         {
-                            //Check if their MacBanned
-                            await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId ?? string.Empty).ContinueWith(async (r) =>
+                            if (r.IsCompletedSuccessfully && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                             {
-                                if (r.IsCompletedSuccessfully && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
+                                data.IsBanned = r.IsCompletedSuccessfully && r.Result;
+
+                                #region isBanned?
+                                LoggerAccessor.LogInfo($"Is Connected User MAC Banned: {data.IsBanned}");
+
+                                if (data.IsBanned == true)
                                 {
-                                    data.IsBanned = r.IsCompletedSuccessfully && r.Result;
+                                    LoggerAccessor.LogInfo($"Account MachineID {data.MachineId} is BANNED!");
 
-                                    #region isBanned?
-                                    LoggerAccessor.LogInfo($"Is Connected User MAC Banned: {data.IsBanned}");
-
-                                    if (data.IsBanned == true)
+                                    // Account is banned
+                                    // Temporary solution is to tell the client the login failed
+                                    data?.ClientObject?.Queue(new MediusTicketLoginResponse()
                                     {
-                                        LoggerAccessor.LogInfo($"Account MachineID {data.MachineId} is BANNED!");
+                                        MessageID = ticketLoginRequest.MessageID,
+                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusMachineBanned
+                                    });
 
-                                        // Account is banned
-                                        // Temporary solution is to tell the client the login failed
-                                        data?.ClientObject?.Queue(new MediusTicketLoginResponse()
-                                        {
-                                            MessageID = ticketLoginRequest.MessageID,
-                                            StatusCodeTicketLogin = MediusCallbackStatus.MediusMachineBanned
-                                        });
-
-                                        // Send ban message
-                                        //await QueueBanMessage(data);
-                                    }
-                                    else
+                                    // Send ban message
+                                    //await QueueBanMessage(data);
+                                }
+                                else
+                                {
+                                    await HorizonServerConfiguration.Database.GetAccountByName(UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
                                     {
-                                        await HorizonServerConfiguration.Database.GetAccountByName(UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
-                                        {
-                                            if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
-                                                return;
+                                        if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
+                                            return;
 
-                                            if (r.IsCompletedSuccessfully && r.Result != null && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
+                                        if (r.IsCompletedSuccessfully && r.Result != null && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
+                                        {
+
+                                            LoggerAccessor.LogInfo($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
+
+                                            if (r.Result.IsBanned)
                                             {
-
-                                                LoggerAccessor.LogInfo($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
-
-                                                if (r.Result.IsBanned)
+                                                // Account is banned
+                                                // Respond with Statuscode MediusAccountBanned
+                                                data?.ClientObject?.Queue(new MediusTicketLoginResponse()
                                                 {
-                                                    // Account is banned
-                                                    // Respond with Statuscode MediusAccountBanned
-                                                    data?.ClientObject?.Queue(new MediusTicketLoginResponse()
-                                                    {
-                                                        MessageID = ticketLoginRequest.MessageID,
-                                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountBanned
-                                                    });
+                                                    MessageID = ticketLoginRequest.MessageID,
+                                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountBanned
+                                                });
 
-                                                    // Then queue send ban message
-                                                    await QueueBanMessage(data, "Your CID has been banned");
-                                                }
-                                                else
-                                                {
-                                                    #region AccountWhitelist Check
-                                                    if (appSettings.EnableAccountWhitelist && !appSettings.AccountIdWhitelist.Contains(r.Result.AccountId))
-                                                    {
-                                                        LoggerAccessor.LogError($"AppId {data.ClientObject.ApplicationId} has EnableAccountWhitelist enabled or\n" +
-                                                            $"Contains a AccountIdWhitelist!");
-
-                                                        // Account not allowed to sign in
-                                                        data?.ClientObject?.Queue(new MediusTicketLoginResponse()
-                                                        {
-                                                            MessageID = ticketLoginRequest.MessageID,
-                                                            StatusCodeTicketLogin = MediusCallbackStatus.MediusFail
-                                                        });
-                                                    }
-                                                    #endregion
-
-                                                    if (data != null)
-                                                    {
-                                                        bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
-                                                                       && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
-                                                                       && (string.IsNullOrEmpty(r.Result.AccountName)
-                                                                           || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)
-                                                                           || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName])
-                                                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName] != "ADMIN"));
-
-                                                        if (isHomeCheat)
-                                                        {
-                                                            switch (data.ApplicationId)
-                                                            {
-                                                                case 20371:
-                                                                    // TODO!
-                                                                    break;
-                                                                case 20374:
-                                                                    if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
-                                                                    {
-                                                                        CheatQuery(0x10050500, 9, clientChannel);
-                                                                        CheatQuery(0x10074820, 9, clientChannel);
-                                                                        CheatQuery(0x00335a9c, 4, clientChannel);
-                                                                        CheatQuery(0x00335b30, 4, clientChannel);
-                                                                        CheatQuery(0x00335ba0, 4, clientChannel);
-                                                                        CheatQuery(0x00335c28, 4, clientChannel);
-                                                                        CheatQuery(0x00335ca8, 4, clientChannel);
-                                                                        CheatQuery(0x00335dbc, 4, clientChannel);
-                                                                        CheatQuery(0x00335e34, 4, clientChannel);
-                                                                        CheatQuery(0x00335f0c, 4, clientChannel);
-                                                                        CheatQuery(0x00335fcc, 4, clientChannel);
-                                                                        CheatQuery(0x0033604c, 4, clientChannel);
-                                                                        CheatQuery(0x003360c0, 4, clientChannel);
-                                                                        CheatQuery(0x00336138, 4, clientChannel);
-                                                                        CheatQuery(0x00336274, 4, clientChannel);
-                                                                        CheatQuery(0x00336350, 4, clientChannel);
-                                                                        CheatQuery(0x00336490, 4, clientChannel);
-                                                                    }
-                                                                    break;
-                                                            }
-                                                        }
-
-                                                        if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(r.Result.AccountName)
-                                                        || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)))
-                                                        {
-                                                            data.State = ClientState.DISCONNECTED;
-                                                            await clientChannel.CloseAsync();
-                                                        }
-                                                        else
-                                                        {
-                                                            if (isHomeCheat && MediusClass.Settings.PlaystationHomeAntiCheatIGASecurityPatch)
-                                                            {
-                                                                switch (data.ApplicationId)
-                                                                {
-                                                                    case 20371:
-                                                                        // TODO!
-                                                                        break;
-                                                                    case 20374:
-                                                                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
-                                                                        {
-                                                                            if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
-                                                                            {
-                                                                                switch (value)
-                                                                                {
-                                                                                    case "IGA":
-                                                                                        break;
-                                                                                    default:
-                                                                                        if (!data.ClientObject.IsOnRPCN)
-                                                                                            CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-
-                                                                                        PokeAddress(UintRef1, Ref10, clientChannel);
-                                                                                        break;
-                                                                                }
-                                                                            }
-                                                                            else
-                                                                            {
-                                                                                if (!data.ClientObject.IsOnRPCN)
-                                                                                    CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-
-                                                                                PokeAddress(UintRef1, Ref10, clientChannel);
-                                                                            }
-                                                                        }
-                                                                        break;
-                                                                }
-                                                            }
-
-                                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
-                                                        }
-                                                    }
-                                                }
-
+                                                // Then queue send ban message
+                                                await QueueBanMessage(data, "Your CID has been banned");
                                             }
                                             else
                                             {
-                                                // Account not found, create new and login
-                                                #region AccountCreationDisabled?
-                                                // Check that account creation is enabled
-                                                if (appSettings.DisableAccountCreation)
+                                                #region AccountWhitelist Check
+                                                if (appSettings.EnableAccountWhitelist && !appSettings.AccountIdWhitelist.Contains(r.Result.AccountId))
                                                 {
-                                                    LoggerAccessor.LogError($"AppId {data?.ClientObject?.ApplicationId} has DisableAllowCreation enabled!");
+                                                    LoggerAccessor.LogError($"AppId {data.ClientObject.ApplicationId} has EnableAccountWhitelist enabled or\n" +
+                                                        $"Contains a AccountIdWhitelist!");
 
-                                                    // Reply error
+                                                    // Account not allowed to sign in
                                                     data?.ClientObject?.Queue(new MediusTicketLoginResponse()
                                                     {
                                                         MessageID = ticketLoginRequest.MessageID,
-                                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusFail,
+                                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusFail
                                                     });
-                                                    return;
                                                 }
                                                 #endregion
 
                                                 if (data != null)
+                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            // Account not found, create new and login
+                                            #region AccountCreationDisabled?
+                                            // Check that account creation is enabled
+                                            if (appSettings.DisableAccountCreation)
+                                            {
+                                                LoggerAccessor.LogError($"AppId {data?.ClientObject?.ApplicationId} has DisableAllowCreation enabled!");
+
+                                                // Reply error
+                                                data?.ClientObject?.Queue(new MediusTicketLoginResponse()
                                                 {
-                                                    LoggerAccessor.LogInfo($"Account not found for AppId from Client: {data.ClientObject?.ApplicationId}");
+                                                    MessageID = ticketLoginRequest.MessageID,
+                                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusFail,
+                                                });
+                                                return;
+                                            }
+                                            #endregion
 
-                                                    if (data.ClientObject != null)
+                                            if (data != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"Account not found for AppId from Client: {data.ClientObject?.ApplicationId}");
+
+                                                if (data.ClientObject != null)
+                                                {
+                                                    _ = HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
                                                     {
-                                                        _ = HorizonServerConfiguration.Database.CreateAccount(new CreateAccountDTO()
+                                                        AccountName = UserOnlineId,
+                                                        AccountPassword = "UNSET",
+                                                        MachineId = data.MachineId,
+                                                        MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
+                                                        AppId = data.ClientObject.ApplicationId
+                                                    }, clientChannel).ContinueWith(async (r) =>
+                                                    {
+                                                        LoggerAccessor.LogInfo($"Creating New Account for user {UserOnlineId}!");
+
+                                                        if (r.IsCompletedSuccessfully && r.Result != null)
+                                                            await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
+                                                        else
                                                         {
-                                                            AccountName = UserOnlineId,
-                                                            AccountPassword = "UNSET",
-                                                            MachineId = data.MachineId,
-                                                            MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
-                                                            AppId = data.ClientObject.ApplicationId
-                                                        }, clientChannel).ContinueWith(async (r) =>
-                                                        {
-                                                            LoggerAccessor.LogInfo($"Creating New Account for user {UserOnlineId}!");
-
-                                                            if (r.IsCompletedSuccessfully && r.Result != null)
+                                                            // Reply error
+                                                            data.ClientObject.Queue(new MediusTicketLoginResponse()
                                                             {
-                                                                bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
-                                                                       && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
-                                                                       && (string.IsNullOrEmpty(r.Result.AccountName)
-                                                                           || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)
-                                                                           || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName])
-                                                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[r.Result.AccountName] != "ADMIN"));
-
-                                                                if (isHomeCheat)
-                                                                {
-                                                                    switch (data.ApplicationId)
-                                                                    {
-                                                                        case 20371:
-                                                                            // TODO!
-                                                                            break;
-                                                                        case 20374:
-                                                                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
-                                                                            {
-                                                                                CheatQuery(0x10050500, 9, clientChannel);
-                                                                                CheatQuery(0x10074820, 9, clientChannel);
-                                                                                CheatQuery(0x00335a9c, 4, clientChannel);
-                                                                                CheatQuery(0x00335b30, 4, clientChannel);
-                                                                                CheatQuery(0x00335ba0, 4, clientChannel);
-                                                                                CheatQuery(0x00335c28, 4, clientChannel);
-                                                                                CheatQuery(0x00335ca8, 4, clientChannel);
-                                                                                CheatQuery(0x00335dbc, 4, clientChannel);
-                                                                                CheatQuery(0x00335e34, 4, clientChannel);
-                                                                                CheatQuery(0x00335f0c, 4, clientChannel);
-                                                                                CheatQuery(0x00335fcc, 4, clientChannel);
-                                                                                CheatQuery(0x0033604c, 4, clientChannel);
-                                                                                CheatQuery(0x003360c0, 4, clientChannel);
-                                                                                CheatQuery(0x00336138, 4, clientChannel);
-                                                                                CheatQuery(0x00336274, 4, clientChannel);
-                                                                                CheatQuery(0x00336350, 4, clientChannel);
-                                                                                CheatQuery(0x00336490, 4, clientChannel);
-                                                                            }
-                                                                            break;
-                                                                    }
-                                                                }
-
-                                                                if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (string.IsNullOrEmpty(r.Result.AccountName)
-                                                                || !MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(r.Result.AccountName)))
-                                                                {
-                                                                    data.State = ClientState.DISCONNECTED;
-                                                                    await clientChannel.CloseAsync();
-                                                                }
-                                                                else
-                                                                {
-                                                                    if (isHomeCheat && MediusClass.Settings.PlaystationHomeAntiCheatIGASecurityPatch)
-                                                                    {
-                                                                        switch (data.ApplicationId)
-                                                                        {
-                                                                            case 20371:
-                                                                                // TODO!
-                                                                                break;
-                                                                            case 20374:
-                                                                                if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
-                                                                                {
-                                                                                    if (!string.IsNullOrEmpty(data.ClientObject.AccountName) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(data.ClientObject.AccountName, out string? value) && !string.IsNullOrEmpty(value))
-                                                                                    {
-                                                                                        switch (value)
-                                                                                        {
-                                                                                            case "IGA":
-                                                                                                break;
-                                                                                            default:
-                                                                                                if (!data.ClientObject.IsOnRPCN)
-                                                                                                    CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-
-                                                                                                PokeAddress(UintRef1, Ref10, clientChannel);
-                                                                                                break;
-                                                                                        }
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                        if (!data.ClientObject.IsOnRPCN)
-                                                                                            CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
-
-                                                                                        PokeAddress(UintRef1, Ref10, clientChannel);
-                                                                                    }
-                                                                                }
-                                                                                break;
-                                                                        }
-                                                                    }
-
-                                                                    await Login(ticketLoginRequest.MessageID, clientChannel, data, r.Result, true);
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                // Reply error
-                                                                data.ClientObject.Queue(new MediusTicketLoginResponse()
-                                                                {
-                                                                    MessageID = ticketLoginRequest.MessageID,
-                                                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
-                                                                });
-                                                            }
-                                                        });
-                                                    }
+                                                                MessageID = ticketLoginRequest.MessageID,
+                                                                StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError
+                                                            });
+                                                        }
+                                                    });
                                                 }
                                             }
-                                        });
-                                    }
-                                    #endregion
-                                }
-                                else
-                                {
-                                    // Reply error
-                                    data?.ClientObject?.Queue(new MediusTicketLoginResponse()
-                                    {
-                                        MessageID = ticketLoginRequest.MessageID,
-                                        StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError,
+                                        }
                                     });
                                 }
-                            });
-                        }
+                                #endregion
+                            }
+                            else
+                            {
+                                // Reply error
+                                data?.ClientObject?.Queue(new MediusTicketLoginResponse()
+                                {
+                                    MessageID = ticketLoginRequest.MessageID,
+                                    StatusCodeTicketLogin = MediusCallbackStatus.MediusDBError,
+                                });
+                            }
+                        });
                         break;
                     }
 
@@ -2991,44 +2829,148 @@ namespace Horizon.MEDIUS.Medius
 
             List<int> pre108Secure = new() { 10010, 10031, 10190, 10124, 10680, 10683, 10684 };
 
-            if (data.ClientObject != null)
+            data.ClientObject!.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
+
+            string HomeUserEntry = accountDto.AccountName + ":" + data.ClientObject.IP;
+            bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                           && (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                           && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)
+                               || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[HomeUserEntry])
+                               || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[HomeUserEntry] != "ADMIN"));
+
+            if (isHomeCheat)
             {
-                data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
-                await data.ClientObject.Login(accountDto);
+                switch (data.ApplicationId)
+                {
+                    case 20371:
+                        // TODO!
+                        break;
+                    case 20374:
+                        if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                        {
+                            CheatQuery(0x10050500, 9, clientChannel);
+                            CheatQuery(0x10074820, 9, clientChannel);
+                            CheatQuery(0x00335a9c, 4, clientChannel);
+                            CheatQuery(0x00335b30, 4, clientChannel);
+                            CheatQuery(0x00335ba0, 4, clientChannel);
+                            CheatQuery(0x00335c28, 4, clientChannel);
+                            CheatQuery(0x00335ca8, 4, clientChannel);
+                            CheatQuery(0x00335dbc, 4, clientChannel);
+                            CheatQuery(0x00335e34, 4, clientChannel);
+                            CheatQuery(0x00335f0c, 4, clientChannel);
+                            CheatQuery(0x00335fcc, 4, clientChannel);
+                            CheatQuery(0x0033604c, 4, clientChannel);
+                            CheatQuery(0x003360c0, 4, clientChannel);
+                            CheatQuery(0x00336138, 4, clientChannel);
+                            CheatQuery(0x00336274, 4, clientChannel);
+                            CheatQuery(0x00336350, 4, clientChannel);
+                            CheatQuery(0x00336490, 4, clientChannel);
+                        }
+                        break;
+                }
             }
+
+            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)))
+            {
+                data.State = ClientState.DISCONNECTED;
+                await clientChannel.CloseAsync();
+            }
+            else
+            {
+                if (isHomeCheat && MediusClass.Settings.PlaystationHomeAntiCheatIGASecurityPatch)
+                {
+                    switch (data.ApplicationId)
+                    {
+                        case 20371:
+                            // TODO!
+                            break;
+                        case 20374:
+                            if (!string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeVersionRetail) && MediusClass.Settings.PlaystationHomeVersionRetail.Equals("01.86"))
+                            {
+                                if (MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out string? value) && !string.IsNullOrEmpty(value))
+                                {
+                                    switch (value)
+                                    {
+                                        case "IGA":
+                                            break;
+                                        default:
+                                            PokeAddress(UintRef1, Ref10, clientChannel);
+                                            break;
+                                    }
+                                }
+                                else
+                                    PokeAddress(UintRef1, Ref10, clientChannel);
+                            }
+                            break;
+                    }
+                }
+            }
+
+            await data.ClientObject.Login(accountDto);
 
             #region Update DB IP and CID
             await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
-            if (data.ClientObject != null)
-            {
-                CrudCIDManager.CreateCIDPair(data.ClientObject.AccountName, data.MachineId);
 
-                if (!string.IsNullOrEmpty(data.MachineId))
-                    await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
-            }
+            CrudCIDManager.CreateCIDPair(data.ClientObject.AccountName, data.MachineId);
+
+            if (!string.IsNullOrEmpty(data.MachineId))
+                await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
             #endregion
 
-            if (data.ClientObject != null)
+            // Add to logged in clients
+            MediusClass.Manager.AddClient(data.ClientObject);
+
+            LoggerAccessor.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
+
+            // Tell client
+            if (ticket)
             {
-                // Add to logged in clients
-                MediusClass.Manager.AddClient(data.ClientObject);
-
-                LoggerAccessor.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
-
-                // Tell client
-                if (ticket)
+                #region IF PS3 Client
+                data.ClientObject.Queue(new MediusTicketLoginResponse()
                 {
-                    #region IF PS3 Client
-                    data.ClientObject.Queue(new MediusTicketLoginResponse()
-                    {
-                        //TicketLoginResponse
-                        MessageID = messageId,
-                        StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
-                        PasswordType = MediusPasswordType.MediusPasswordNotSet,
+                    //TicketLoginResponse
+                    MessageID = messageId,
+                    StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
+                    PasswordType = MediusPasswordType.MediusPasswordNotSet,
 
-                        //AccountLoginResponse Wrapped
-                        MessageID2 = messageId,
-                        StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
+                    //AccountLoginResponse Wrapped
+                    MessageID2 = messageId,
+                    StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
+                    AccountID = data.ClientObject.AccountId,
+                    AccountType = MediusAccountType.MediusMasterAccount,
+                    MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                    ConnectInfo = new NetConnectionInfo()
+                    {
+                        AccessKey = data.ClientObject.Token,
+                        SessionKey = data.ClientObject.SessionKey,
+                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                        ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
+                        AddressList = new NetAddressList()
+                        {
+                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                            {
+                                    new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = (MediusClass.Settings.NpMLSPortOverride != -1) ? MediusClass.Settings.NpMLSPortOverride : MediusClass.LobbyServer.TCPPort , AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                            }
+                        },
+                        Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                    },
+                });
+                #endregion
+
+                // Prepare for transition to lobby server
+                data.ClientObject.KeepAliveUntilNextConnection();
+            }
+            else
+            {
+                #region If PS2/PSP
+
+                if (data.ClientObject.MediusVersion > 108)
+                {
+                    data.ClientObject.Queue(new MediusAccountLoginResponse()
+                    {
+                        MessageID = messageId,
+                        StatusCode = MediusCallbackStatus.MediusSuccess,
                         AccountID = data.ClientObject.AccountId,
                         AccountType = MediusAccountType.MediusMasterAccount,
                         MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
@@ -3037,113 +2979,77 @@ namespace Horizon.MEDIUS.Medius
                             AccessKey = data.ClientObject.Token,
                             SessionKey = data.ClientObject.SessionKey,
                             WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
+                            ServerKey = MediusClass.GlobalAuthPublic,
                             AddressList = new NetAddressList()
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = (MediusClass.Settings.NpMLSPortOverride != -1) ? MediusClass.Settings.NpMLSPortOverride : MediusClass.LobbyServer.TCPPort , AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                 }
                             },
                             Type = NetConnectionType.NetConnectionTypeClientServerTCP
                         },
                     });
-                    #endregion
-
-                    // Prepare for transition to lobby server
-                    data.ClientObject.KeepAliveUntilNextConnection();
+                }
+                else if (pre108Secure.Contains(data.ClientObject.ApplicationId)) //10683 / 10684
+                {
+                    data.ClientObject.Queue(new MediusAccountLoginResponse()
+                    {
+                        MessageID = messageId,
+                        StatusCode = MediusCallbackStatus.MediusSuccess,
+                        AccountID = data.ClientObject.AccountId,
+                        AccountType = MediusAccountType.MediusMasterAccount,
+                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                        ConnectInfo = new NetConnectionInfo()
+                        {
+                            AccessKey = data.ClientObject.Token,
+                            SessionKey = data.ClientObject.SessionKey,
+                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            ServerKey = new RSA_KEY(),
+                            AddressList = new NetAddressList()
+                            {
+                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                {
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                }
+                            },
+                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                        },
+                    });
                 }
                 else
                 {
-                    #region If PS2/PSP
-
-                    if (data.ClientObject.MediusVersion > 108)
+                    data.ClientObject.Queue(new MediusAccountLoginResponse()
                     {
-                        data.ClientObject.Queue(new MediusAccountLoginResponse()
+                        MessageID = messageId,
+                        StatusCode = MediusCallbackStatus.MediusSuccess,
+                        AccountID = data.ClientObject.AccountId,
+                        AccountType = MediusAccountType.MediusMasterAccount,
+                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                        ConnectInfo = new NetConnectionInfo()
                         {
-                            MessageID = messageId,
-                            StatusCode = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ConnectInfo = new NetConnectionInfo()
+                            AccessKey = data.ClientObject.Token,
+                            SessionKey = data.ClientObject.SessionKey,
+                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
+                            AddressList = new NetAddressList()
                             {
-                                AccessKey = data.ClientObject.Token,
-                                SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                                ServerKey = MediusClass.GlobalAuthPublic,
-                                AddressList = new NetAddressList()
+                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
                                     new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                                }
                             },
-                        });
-                    }
-                    else if (pre108Secure.Contains(data.ClientObject.ApplicationId)) //10683 / 10684
-                    {
-                        data.ClientObject.Queue(new MediusAccountLoginResponse()
-                        {
-                            MessageID = messageId,
-                            StatusCode = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                AccessKey = data.ClientObject.Token,
-                                SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                                ServerKey = new RSA_KEY(),
-                                AddressList = new NetAddressList()
-                                {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                            },
-                        });
-                    }
-                    else
-                    {
-                        data.ClientObject.Queue(new MediusAccountLoginResponse()
-                        {
-                            MessageID = messageId,
-                            StatusCode = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                AccessKey = data.ClientObject.Token,
-                                SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
-                                ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
-                                AddressList = new NetAddressList()
-                                {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                            },
-                        });
-                    }
-
-                    // Prepare for transition to lobby server
-                    data.ClientObject.KeepAliveUntilNextConnection();
-                    #endregion
+                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                        },
+                    });
                 }
+
+                // Prepare for transition to lobby server
+                data.ClientObject.KeepAliveUntilNextConnection();
+                #endregion
             }
         }
         #endregion
