@@ -8,6 +8,8 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
 {
     public class GFScoreBoardData
     {
+        private static object _Lock = new object();
+
         public class ScoreboardEntry
         {
             public string psnid { get; set; }
@@ -86,16 +88,22 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
 
         public static void UpdateAllTimeScoreboardXml()
         {
-            Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/gofish");
-            File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/gofish/leaderboard_alltime.xml", ConvertScoreboardToXml());
-            CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard alltime XML updated.");
+            lock (_Lock)
+            {
+                Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/gofish");
+                File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/gofish/leaderboard_alltime.xml", ConvertScoreboardToXml());
+                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard alltime XML updated.");
+            }
         }
 
         public static void UpdateTodayScoreboardXml(string date)
         {
-            Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/gofish");
-            File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/gofish/leaderboard_{date}.xml", ConvertScoreboardToXml());
-            CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard {date} XML updated.");
+            lock (_Lock)
+            {
+                Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/gofish");
+                File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/gofish/leaderboard_{date}.xml", ConvertScoreboardToXml());
+                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard {date} XML updated.");
+            }
         }
 
         public static void SanityCheckLeaderboards(string directoryPath, DateTime thresholdDate)

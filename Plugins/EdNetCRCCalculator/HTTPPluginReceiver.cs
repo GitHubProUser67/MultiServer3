@@ -65,13 +65,13 @@ namespace EdNetCRCCalculator
             {
                 HttpResponse? response = null;
 
-                if (!string.IsNullOrEmpty(request.Url))
+                if (!string.IsNullOrEmpty(request.RawUrlWithQuery))
                 {
                     switch (request.Method)
                     {
                         case "GET":
 
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.Url))
+                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.RawUrlWithQuery))
                             {
                                 #region EdNet CRC Tools
                                 case "/!EdNet/GetCRC/":

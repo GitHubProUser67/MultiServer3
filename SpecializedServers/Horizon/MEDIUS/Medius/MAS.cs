@@ -20,6 +20,7 @@ using System.Buffers;
 using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
 using XI5;
+using EndianTools;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -35,6 +36,10 @@ namespace Horizon.MEDIUS.Medius
         private byte[] Ref8 = Convert.FromBase64String("L4AAAA==");
 
         private byte[] Ref9 = Convert.FromBase64String("L4MAAA==");
+
+        private byte[] Ref10 = Convert.FromBase64String("QEBAQEBAQEBAQEBAQEBAQA==");
+
+        private uint UintRef1 = 0xCEE2563F ^ 0xDEADBEEF ^ uint.MinValue;
         #endregion
 
         public static List<Tuple<bool, ClientObject>> GameHostClientQueue = new List<Tuple<bool, ClientObject>>();
@@ -1948,12 +1953,15 @@ namespace Horizon.MEDIUS.Medius
                         }
 
                         string accountLoggingMsg = string.Empty;
+                        byte[] XI5TicketData = DataUtils.CombineByteArray(DataUtils.CombineByteArray(BitConverter.GetBytes(
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), BitConverter.GetBytes(
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size)), ticketLoginRequest.TicketData);
 
                         // Extract the desired portion of the binary data for a npticket 4.0
                         byte[] extractedData = new byte[0x63 - 0x54 + 1];
 
                         // Copy it
-                        Array.Copy(ticketLoginRequest.TicketData, 0x54, extractedData, 0, extractedData.Length);
+                        Array.Copy(XI5TicketData, 0x54, extractedData, 0, extractedData.Length);
 
                         // Trim null bytes
                         int nullByteIndex = Array.IndexOf(extractedData, (byte)0x00);
@@ -1966,9 +1974,9 @@ namespace Horizon.MEDIUS.Medius
 
                         string UserOnlineId = Encoding.UTF8.GetString(extractedData);
 
-                        if (DataUtils.FindBytePattern(ticketLoginRequest.TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                        if (DataUtils.FindBytePattern(XI5TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                         {
-                            if (MediusClass.Settings.ForceOfficialRPCNSignature && !new XI5Ticket(ticketLoginRequest.TicketData).SignedByOfficialRPCN)
+                            if (MediusClass.Settings.ForceOfficialRPCNSignature && !new XI5Ticket(XI5TicketData).SignedByOfficialRPCN)
                             {
                                 LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} was caught using an invalid RPCN signature!");
 
@@ -2137,16 +2145,23 @@ namespace Horizon.MEDIUS.Medius
                                                                             {
                                                                                 switch (value)
                                                                                 {
-                                                                                    case "RTM":
                                                                                     case "IGA":
                                                                                         break;
                                                                                     default:
-                                                                                        CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                                                        if (!data.ClientObject.IsOnRPCN)
+                                                                                            CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                                                                        PokeAddress(UintRef1, Ref10, clientChannel);
                                                                                         break;
                                                                                 }
                                                                             }
                                                                             else
-                                                                                CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                                            {
+                                                                                if (!data.ClientObject.IsOnRPCN)
+                                                                                    CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                                                                PokeAddress(UintRef1, Ref10, clientChannel);
+                                                                            }
                                                                         }
                                                                         break;
                                                                 }
@@ -2257,16 +2272,23 @@ namespace Horizon.MEDIUS.Medius
                                                                                     {
                                                                                         switch (value)
                                                                                         {
-                                                                                            case "RTM":
                                                                                             case "IGA":
                                                                                                 break;
                                                                                             default:
-                                                                                                CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                                                                if (!data.ClientObject.IsOnRPCN)
+                                                                                                    CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                                                                                PokeAddress(UintRef1, Ref10, clientChannel);
                                                                                                 break;
                                                                                         }
                                                                                     }
                                                                                     else
-                                                                                        CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+                                                                                    {
+                                                                                        if (!data.ClientObject.IsOnRPCN)
+                                                                                            CheatQuery(0x00335558, 76, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+
+                                                                                        PokeAddress(UintRef1, Ref10, clientChannel);
+                                                                                    }
                                                                                 }
                                                                                 break;
                                                                         }

@@ -104,7 +104,8 @@ public static class HTTPSServerConfiguration
             "www.ndreamsportal.com",
             "nonprod3.homerewards.online.scee.com",
             "www.services.heavyh2o.net",
-            "nDreams-multiserver-cdn"
+            "nDreams-multiserver-cdn",
+            "secure.cpreprod.homeps3.online.scee.com"
         };
     public static List<ushort>? Ports { get; set; } = new() { 443 };
     public static List<string>? RedirectRules { get; set; }

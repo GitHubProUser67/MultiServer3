@@ -30,8 +30,8 @@ namespace WebAPIService.VEEMEE
                 return Processor.Sign(File.ReadAllText($"{apiPath}/VEEMEE/Acorn_Medow/stats_config.json"));
             if (File.Exists($"{apiPath}/VEEMEE/nml/stats_config.xml"))
                 return Processor.Sign(File.ReadAllText($"{apiPath}/VEEMEE/nml/stats_config.xml"));
-            else
-                return null;
+
+            return null;
         }
 
         public static string Crash(byte[] PostData, string ContentType, string apiPath)

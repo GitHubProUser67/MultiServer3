@@ -6,7 +6,7 @@ namespace DLNAService
 {
     public class FetchDLNARemote
     {
-        public static string? FetchXmlContent(string url)
+        public static string FetchXmlContent(string url)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace DLNAService
         public static DlnaDeviceInfo ParseXml(string xmlContent, string url)
         {
             // Parse the URL
-            if (Uri.TryCreate(url, UriKind.Absolute, out Uri? uri))
+            if (Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
             {
                 return new DlnaDeviceInfo
                 {
@@ -46,7 +46,7 @@ namespace DLNAService
             };
         }
 
-        private static string? GetFriendlyName(string xmlContent)
+        private static string GetFriendlyName(string xmlContent)
         {
             // Use Regex.Match to find the first match
             Match match = Regex.Match(xmlContent, @"<friendlyName>(.*?)</friendlyName>");
@@ -82,8 +82,8 @@ namespace DLNAService
 
     public class DlnaDeviceInfo
     {
-        public string? Path { get; set; }
-        public string? FriendlyName { get; set; }
-        public string? Logo { get; set; }
+        public string Path { get; set; }
+        public string FriendlyName { get; set; }
+        public string Logo { get; set; }
     }
 }

@@ -9,7 +9,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
-using WebAPIService;
 using System.Net;
 
 namespace HomeWebTools
@@ -213,13 +212,13 @@ namespace HomeWebTools
             {
                 HttpResponse? response = null;
 
-                if (!string.IsNullOrEmpty(request.Url))
+                if (!string.IsNullOrEmpty(request.RawUrlWithQuery))
                 {
                     switch (request.Method)
                     {
                         case "POST":
 
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.Url))
+                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(request.RawUrlWithQuery))
                             {
                                 #region LibSecure HomeTools
                                 case "/!HomeTools/MakeBarSdat/":

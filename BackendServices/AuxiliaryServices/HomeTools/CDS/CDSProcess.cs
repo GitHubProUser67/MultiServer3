@@ -7,12 +7,24 @@ namespace HomeTools.CDS
 {
     public class CDSProcess
     {
-        public static byte[] CDSEncrypt_Decrypt(byte[] buffer, string sha1)
+        public static byte[] CDSEncrypt_Decrypt(byte[] buffer, string sha1, ushort cdnMode)
         {
             byte[] digest = ConvertSha1StringToByteArray(sha1.ToUpper());
             if (digest != null)
-                return LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.DefaultKey,
-                    BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(ToolsImpl.Sha1toNonce(digest)) : ToolsImpl.Sha1toNonce(digest)), "CTR"); // Always big endian.
+            {
+                switch (cdnMode)
+                {
+                    case 2:
+                        return LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.HDKBlowfishKey,
+                            BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(ToolsImplementation.Sha1toNonce(digest)) : ToolsImplementation.Sha1toNonce(digest)), "CTR"); // Always big endian.
+                    case 1:
+                        return LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.BetaBlowfishKey,
+                            BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(ToolsImplementation.Sha1toNonce(digest)) : ToolsImplementation.Sha1toNonce(digest)), "CTR"); // Always big endian.
+                    default:
+                        return LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.BlowfishKey,
+                            BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUlong(ToolsImplementation.Sha1toNonce(digest)) : ToolsImplementation.Sha1toNonce(digest)), "CTR"); // Always big endian.
+                }
+            }
 
             return null;
         }

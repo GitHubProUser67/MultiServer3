@@ -13,13 +13,13 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string absolutepath, string Host, string filepath, string Accept, string ServerIP,
-            ushort ListenerPort, string httpdirectoryrequest, string clientip, string? clientport, string fullurl, bool GET)
+        public static HttpResponse Handle(HttpRequest request, string absolutepath, string fullurl, string local_path, string Host, string Accept, 
+            string directoryUrl , bool GET)
         {
-            if (Directory.Exists(filepath) && filepath.EndsWith("/"))
-                return Handle_LocalDir(request, filepath, httpdirectoryrequest, clientip, clientport);
-            else if (File.Exists(filepath))
-                return Handle_LocalFile(request, filepath);
+            if (Directory.Exists(local_path) && local_path.EndsWith("/"))
+                return Handle_LocalDir(request, local_path, directoryUrl);
+            else if (File.Exists(local_path))
+                return Handle_LocalFile(request, local_path);
 
             if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
             {
@@ -28,16 +28,17 @@ namespace HTTPServer.RouteHandlers
                     return HttpBuilder.PermanantRedirect(archiveReq.ArchivedURL);
             }
 
-            return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+            return HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
-        public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string Host, string local_path, string Accept, string ServerIP, ushort ListenerPort)
+        public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string local_path, string Host, string Accept)
         {
             if (File.Exists(local_path))
             {
                 HttpResponse response = new()
                 {
-                    HttpStatusCode = HttpStatusCode.OK
+                    HttpStatusCode = HttpStatusCode.OK,
+                    ContentAsUTF8 = string.Empty
                 };
                 string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(local_path), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                 if (ContentType == "application/octet-stream")
@@ -64,7 +65,7 @@ namespace HTTPServer.RouteHandlers
                 return response;
             }
             else
-                return HttpBuilder.NotFound(request, absolutepath, Host, ServerIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                return HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
         private static HttpResponse Handle_LocalFile(HttpRequest request, string local_path)
@@ -99,8 +100,6 @@ namespace HTTPServer.RouteHandlers
             response.Headers.Add("Accept-Ranges", "bytes");
             response.Headers.Add("Content-Type", ContentType);
 
-            long FileLength = new FileInfo(local_path).Length;
-
             if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale)
             {
                 Ionic.Crc.CRC32 crc = new();
@@ -110,36 +109,33 @@ namespace HTTPServer.RouteHandlers
 
                 response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(local_path, crc.Crc32Result));
             }
-            else
+            else if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/"))
             {
-                if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/"))
+                if (encoding.Contains("zstd"))
                 {
-                    if (encoding.Contains("zstd"))
-                    {
-                        response.Headers.Add("Content-Encoding", "zstd");
-                        response.ContentStream = HTTPProcessor.ZstdCompressStream(File.OpenRead(local_path));
-                    }
-                    else if (encoding.Contains("br"))
-                    {
-                        response.Headers.Add("Content-Encoding", "br");
-                        response.ContentStream = HTTPProcessor.BrotliCompressStream(File.OpenRead(local_path));
-                    }
-                    else if (encoding.Contains("gzip"))
-                    {
-                        response.Headers.Add("Content-Encoding", "gzip");
-                        response.ContentStream = HTTPProcessor.GzipCompressStream(File.OpenRead(local_path));
-                    }
-                    else if (encoding.Contains("deflate"))
-                    {
-                        response.Headers.Add("Content-Encoding", "deflate");
-                        response.ContentStream = HTTPProcessor.InflateStream(File.OpenRead(local_path));
-                    }
-                    else
-                        response.ContentStream = File.OpenRead(local_path);
+                    response.Headers.Add("Content-Encoding", "zstd");
+                    response.ContentStream = HTTPProcessor.ZstdCompressStream(File.OpenRead(local_path));
+                }
+                else if (encoding.Contains("br"))
+                {
+                    response.Headers.Add("Content-Encoding", "br");
+                    response.ContentStream = HTTPProcessor.BrotliCompressStream(File.OpenRead(local_path));
+                }
+                else if (encoding.Contains("gzip"))
+                {
+                    response.Headers.Add("Content-Encoding", "gzip");
+                    response.ContentStream = HTTPProcessor.GzipCompressStream(File.OpenRead(local_path));
+                }
+                else if (encoding.Contains("deflate"))
+                {
+                    response.Headers.Add("Content-Encoding", "deflate");
+                    response.ContentStream = HTTPProcessor.InflateStream(File.OpenRead(local_path));
                 }
                 else
                     response.ContentStream = File.OpenRead(local_path);
             }
+            else
+                response.ContentStream = File.OpenRead(local_path);
 
             return response;
         }
@@ -172,36 +168,35 @@ namespace HTTPServer.RouteHandlers
             return response;
         }
 
-        private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string httpdirectoryrequest, string clientip, string? clientport)
+        private static HttpResponse Handle_LocalDir(HttpRequest request, string local_path, string directoryUrl)
         {
-            string? queryparam = null;
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
-            if (request.QueryParameters != null && request.QueryParameters.TryGetValue("directory", out queryparam) && queryparam == "on")
+            if (request.QueryParameters != null && request.QueryParameters.TryGetValue("directory", out string? queryparam) && queryparam == "on")
             {
                 if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
                 {
                     if (encoding.Contains("zstd"))
                         return HttpResponse.Send(HTTPProcessor.CompressZstd(
-                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "zstd" } });
+                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], directoryUrl, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "zstd" } });
                     else if (encoding.Contains("br"))
                         return HttpResponse.Send(HTTPProcessor.CompressBrotli(
-                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "br" } });
+                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], directoryUrl, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "br" } });
                     else if (encoding.Contains("gzip"))
                         return HttpResponse.Send(HTTPProcessor.CompressGzip(
-                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
+                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], directoryUrl, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "gzip" } });
                     else if (encoding.Contains("deflate"))
                         return HttpResponse.Send(HTTPProcessor.Inflate(
-                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "deflate" } });
+                                Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], directoryUrl, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes))), "application/json", new string[][] { new string[] { "Content-Encoding", "deflate" } });
                     else
-                        return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
+                        return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], directoryUrl, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
                 }
                 else
-                    return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], httpdirectoryrequest, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
+                    return HttpResponse.Send(FileStructureToJson.GetFileStructureAsJson(local_path[..^1], directoryUrl, HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), "application/json");
             }
             else if (request.QueryParameters != null && request.QueryParameters.TryGetValue("m3u", out queryparam) && queryparam == "on")
             {
-                string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(local_path[..^1], httpdirectoryrequest);
+                string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(local_path[..^1], directoryUrl);
                 if (!string.IsNullOrEmpty(m3ufile))
                 {
                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
@@ -231,7 +226,7 @@ namespace HTTPServer.RouteHandlers
                     {
                         if (indexFile.Contains(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                         {
-                            (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(local_path + $"/{indexFile}", HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientport, request);
+                            (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(local_path + $"/{indexFile}", HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
                             if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                             {
                                 if (encoding.Contains("zstd"))
@@ -274,7 +269,6 @@ namespace HTTPServer.RouteHandlers
                     HttpStatusCode = HttpStatusCode.NotFound,
                     ContentAsUTF8 = string.Empty
                 };
-
             }
         }
     }

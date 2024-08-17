@@ -12,7 +12,7 @@ namespace HomeTools.CDS
             this.EncryptedFileBytes = EncryptedFileBytes;
         }
 
-        public byte[] StartBruteForce(int mode = 0)
+        public byte[] StartBruteForce(ushort cdnMode, int mode = 0)
         {
             if (EncryptedFileBytes != null)
             {
@@ -23,7 +23,7 @@ namespace HomeTools.CDS
 
                 Buffer.BlockCopy(EncryptedFileBytes, 0, TempBuffer, 0, TempBuffer.Length);
 
-                DecryptedFileBytes = CTRExploitProcess.ProcessExploit(TempBuffer, EncryptedFileBytes, mode);
+                DecryptedFileBytes = CTRExploitProcess.ProcessExploit(TempBuffer, EncryptedFileBytes, mode, cdnMode);
 
                 if (DecryptedFileBytes != null)
                     CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved SHA1: {0}", CastleLibrary.Utils.Hash.NetHasher.ComputeSHA1StringWithCleanup(DecryptedFileBytes));

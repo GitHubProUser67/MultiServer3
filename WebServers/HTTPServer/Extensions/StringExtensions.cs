@@ -7,14 +7,7 @@ namespace HTTPServer.Extensions
     {
         public static Stream ToStream(this string str)
         {
-            MemoryStream stream = new();
-            using (StreamWriter writer = new(stream, Encoding.UTF8, 1024, true))
-            {
-                writer.Write(str);
-                writer.Flush();
-            }
-            stream.Position = 0;
-            return stream;
+            return new MemoryStream(Encoding.UTF8.GetBytes(str));
         }
     }
 }

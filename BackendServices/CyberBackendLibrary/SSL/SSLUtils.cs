@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CyberBackendLibrary.Extension;
 using Org.BouncyCastle.OpenSsl;
+using System.Linq;
 #if !NET5_0_OR_GREATER
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -230,17 +231,15 @@ namespace CyberBackendLibrary.SSL
 
                     if (DnsList != null) // Some clients do not allow wildcard domains, so we use SAN attributes as a fallback.
                     {
-                        foreach (string str in DnsList)
-                        {
-                            sanBuilder.AddDnsName(str);
-                        }
+                        DnsList.Select(str => str)
+                        .ToList()
+                        .ForEach(sanBuilder.AddDnsName);
                     }
                     if (Wildcard)
                     {
-                        foreach (string tld in tlds)
-                        {
-                            sanBuilder.AddDnsName("*" + tld);
-                        }
+                        tlds.Select(tld => "*" + tld)
+                        .ToList()
+                        .ForEach(sanBuilder.AddDnsName);
                     }
 
                     sanBuilder.AddDnsName("localhost");

@@ -42,6 +42,7 @@ using System.Net.Security;
 using System.Security.Authentication;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
+using Newtonsoft.Json;
 
 namespace HTTPServer
 {
@@ -52,6 +53,45 @@ namespace HTTPServer
         private readonly List<Route> Routes = new();
         private string serverIP = "127.0.0.1";
         private X509Certificate2? certificate = null;
+
+        #region Domains
+
+        private readonly static List<string> HPDDomains = new() {
+                                    "prd.destinations.scea.com",
+                                    "pre.destinations.scea.com",
+                                    "qa.destinations.scea.com",
+                                    "dev.destinations.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                };
+
+        private readonly static List<string> CAPONEDomains = new() {
+                                    "collector.gr.online.scea.com",
+                                    "collector-nonprod.gr.online.scea.com",
+                                    "collector-dev.gr.online.scea.com",
+                                    "content.gr.online.scea.com",
+                                    "content-nonprod.gr.online.scea.com",
+                                    "content-dev.gr.online.scea.com",
+                                };
+
+        private readonly static List<string> nDreamsDomains = new()
+                                {
+                                    "pshome.ndreams.net",
+                                    "www.ndreamshs.com",
+                                    "www.ndreamsportal.com",
+                                    "nDreams-multiserver-cdn"
+                                };
+
+        private readonly static List<string> HTSDomains = new() {
+                                    "samples.hdk.scee.net",
+                                };
+
+        private readonly static List<string> ILoveSonyDomains = new() {
+                                    "www.myresistance.net",
+                                };
+
+        #endregion
 
         #endregion
 
@@ -106,11 +146,14 @@ namespace HTTPServer
             return Task.CompletedTask;
         }
 
-        public void HandleClient(TcpClient tcpClient, string clientip, int clientport, ushort ListenerPort)
+        public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
         {
             try
             {
-                if (IsIPBanned(clientip, clientport))
+                string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
+                int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
+
+                if (!clientport.HasValue || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport.Value))
                 {
                     tcpClient.Close();
                     tcpClient.Dispose();
@@ -142,7 +185,7 @@ namespace HTTPServer
                             else
                                 request = AppendRequestOrInputStream(clientStream, request, clientip, clientportString, ListenerPort);
 
-                            if (request != null && !string.IsNullOrEmpty(request.Url) && !request.RetrieveHeaderValue("User-Agent").Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
                             {
                                 HttpResponse? response = null;
                                 string Method = request.Method;
@@ -151,7 +194,7 @@ namespace HTTPServer
                                     Host = request.RetrieveHeaderValue("HOST");
                                 string Accept = request.RetrieveHeaderValue("Accept");
                                 string SuplementalMessage = string.Empty;
-                                string fullurl = HTTPProcessor.DecodeUrl(request.Url);
+                                string fullurl = HTTPProcessor.DecodeUrl(request.RawUrlWithQuery);
                                 string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
 
                                 if (!string.IsNullOrEmpty(GeoCodeString))
@@ -175,7 +218,11 @@ namespace HTTPServer
                                 else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                                     CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
+#if DEBUG
+                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl} (Details: \n" + JsonConvert.SerializeObject(request, Formatting.Indented) + ')');
+#else
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+#endif
 
                                 string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                                 string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
@@ -269,42 +316,7 @@ namespace HTTPServer
                                     }
                                 }
 
-                                response ??= RouteRequest(clientStream, clientStream, request, absolutepath, Host);
-
-                                List<string> HPDDomains = new() {
-                                    "prd.destinations.scea.com",
-                                    "pre.destinations.scea.com",
-                                    "qa.destinations.scea.com",
-                                    "dev.destinations.scea.com",
-                                    "holdemeu.destinations.scea.com",
-                                    "holdemna.destinations.scea.com",
-                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
-                                };
-
-                                List<string> CAPONEDomains = new() {
-                                    "collector.gr.online.scea.com",
-                                    "collector-nonprod.gr.online.scea.com",
-                                    "collector-dev.gr.online.scea.com",
-                                    "content.gr.online.scea.com",
-                                    "content-nonprod.gr.online.scea.com",
-                                    "content-dev.gr.online.scea.com",
-                                };
-
-                                List<string> nDreamsDomains = new()
-                                {
-                                    "pshome.ndreams.net",
-                                    "www.ndreamshs.com",
-                                    "www.ndreamsportal.com",
-                                    "nDreams-multiserver-cdn"
-                                };
-
-                                List<string> HTSDomains = new() {
-                                    "samples.hdk.scee.net",
-                                };
-
-                                List<string> ILoveSonyDomains = new() {
-                                    "www.myresistance.net",
-                                };
+                                response ??= RouteRequest(request, absolutepath, Host);
 
                                 if (response == null)
                                 {
@@ -382,7 +394,7 @@ namespace HTTPServer
                                             else if ((Host == "away.veemee.com"
                                                 || Host == "home.veemee.com") &&
                                                 !string.IsNullOrEmpty(Method) &&
-                                                absolutepath.EndsWith(".php"))
+                                                (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a VEEMEE  method : {absolutepath}");
 
@@ -390,10 +402,10 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    (string?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
+                                                    (byte[]?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
                                                     postdata.Flush();
 
-                                                    if (string.IsNullOrEmpty(res.Item1))
+                                                    if (res.Item1 == null || res.Item1.Length == 0)
                                                         response = HttpBuilder.InternalServerError();
                                                     else
                                                     {
@@ -405,9 +417,9 @@ namespace HTTPServer
                                                 }
                                                 else
                                                 {
-                                                    (string?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(null, request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
+                                                    (byte[]?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(null, request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
 
-                                                    if (string.IsNullOrEmpty(res.Item1))
+                                                    if (res.Item1 == null || res.Item1.Length == 0)
                                                         response = HttpBuilder.InternalServerError();
                                                     else
                                                     {
@@ -884,7 +896,7 @@ namespace HTTPServer
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
-                                                                    (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientportString, request);
+                                                                    (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
@@ -906,7 +918,7 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(clientStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString, fullurl, true);
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true);
                                                                 }
                                                                 break;
                                                         }
@@ -927,7 +939,7 @@ namespace HTTPServer
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
-                                                                    var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, clientip, clientportString, request);
+                                                                    var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
                                                                     if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
@@ -949,7 +961,7 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(clientStream, request, filePath);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort, $"http://example.com{absolutepath[..^1]}", clientip, clientportString, fullurl, false);
+                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false);
                                                                 }
                                                                 break;
                                                         }
@@ -993,10 +1005,10 @@ namespace HTTPServer
                                                                     response = HttpBuilder.OK();
                                                                 }
                                                                 else
-                                                                    response = HttpBuilder.NotAllowed();
+                                                                    response = HttpBuilder.BadRequest();
                                                             }
                                                             else
-                                                                response = HttpBuilder.NotAllowed();
+                                                                response = HttpBuilder.BadRequest();
                                                         }
                                                         else
                                                             response = HttpBuilder.NotAllowed();
@@ -1023,7 +1035,8 @@ namespace HTTPServer
                                                                             using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
                                                                             response = new()
                                                                             {
-                                                                                HttpStatusCode = HttpStatusCode.OK
+                                                                                HttpStatusCode = HttpStatusCode.OK,
+                                                                                ContentAsUTF8 = string.Empty
                                                                             };
                                                                             response.Headers.Add("Content-Type", vid.ContentType);
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
@@ -1039,7 +1052,7 @@ namespace HTTPServer
                                                             #endregion
 
                                                             default:
-                                                                response = FileSystemRouteHandler.HandleHEAD(request, absolutepath, Host, filePath, Accept, serverIP, ListenerPort);
+                                                                response = FileSystemRouteHandler.HandleHEAD(request, absolutepath, filePath, Host, Accept);
                                                                 break;
                                                         }
                                                         break;
@@ -1085,7 +1098,7 @@ namespace HTTPServer
                                                                 "</a:multistatus>", "text/xml", null, HttpStatusCode.MultiStatus);
                                                         }
                                                         else
-                                                            response = HttpBuilder.NotFound(request, absolutepath, Host, serverIP, ListenerPort.ToString(), !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                                                            response = HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
                                                         break;
                                                     default:
                                                         response = HttpBuilder.NotAllowed();
@@ -1096,8 +1109,7 @@ namespace HTTPServer
                                     }
                                 }
 
-                                if (response != null)
-                                    WriteResponse(clientStream, request, response, filePath);
+                                WriteResponse(clientStream, request, response, filePath);
                             }
                         }
                     }
@@ -1138,7 +1150,7 @@ namespace HTTPServer
 
         private static string Readline(Stream stream)
         {
-            int next_char = 0;
+            int next_char;
             string data = string.Empty;
             while (true)
             {
@@ -1151,28 +1163,17 @@ namespace HTTPServer
             return data;
         }
 
-        private static void WriteResponse(Stream stream, HttpRequest? request, HttpResponse? response, string filePath)
+        private static void WriteResponse(Stream stream, HttpRequest request, HttpResponse? response, string filePath)
         {
-            try
+            if (response != null)
             {
-                if (response != null && request != null)
+                try
                 {
-                    if (response.ContentStream == null)
-                        response.ContentAsUTF8 = string.Empty;
-
-                    if (response.ContentStream != null) // Safety.
+                    if (response.ContentStream != null)
                     {
-                        bool KeepAlive = request.RetrieveHeaderValue("Connection") == "keep-alive";
+                        bool KeepAlive = request.RetrieveHeaderValue("Connection").Equals("keep-alive");
                         string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
                         string? EtagMD5 = ComputeStreamMD5(response.ContentStream);
-
-                        if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
-                        {
-                            response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                            response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
-                            response.Headers.Add("Access-Control-Max-Age", "1728000");
-                        }
-
                         bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
                         bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
 
@@ -1207,6 +1208,13 @@ namespace HTTPServer
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
 
+                            if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
+                            {
+                                response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
+                                response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
+                                response.Headers.Add("Access-Control-Max-Age", "1728000");
+                            }
+
                             if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type"))
                                 response.Headers.Add("Content-Type", "text/plain");
 
@@ -1234,9 +1242,6 @@ namespace HTTPServer
 
                             stream.Flush();
 
-                            if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                                buffersize = 500000;
-
                             using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
                             while (bytesLeft > 0)
                             {
@@ -1252,36 +1257,43 @@ namespace HTTPServer
 
                             ctwire.Flush();
                         }
-
-                        if ((int)response.HttpStatusCode < 400)
-                            LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                        else
-                        {
-                            if (response.HttpStatusCode == HttpStatusCode.NotFound)
-                                LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, filePath, response.HttpStatusCode));
-                            else if (response.HttpStatusCode == HttpStatusCode.NotImplemented || response.HttpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
-                                LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                            else
-                                LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                        }
-
                     }
                     else
-                        response = null; // If null, simply not respond to client.
-                }
-            }
-            catch (IOException ex)
-            {
-                if (ex.InnerException is SocketException socketException &&
-                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
-                    LoggerAccessor.LogError($"[HTTP] - WriteResponse - IO-Socket thrown an exception : {ex}");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[HTTP] - WriteResponse thrown an assertion : {ex}");
-            }
+                    {
+                        response.Headers.Clear();
 
-            response?.Dispose();
+                        response.HttpStatusCode = HttpStatusCode.InternalServerError;
+
+                        WriteLineToStream(stream, response.ToHeader());
+
+                        stream.Flush();
+                    }
+
+                    if ((int)response.HttpStatusCode < 400)
+                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.RawUrlWithQuery, response.HttpStatusCode));
+                    else
+                    {
+                        if (response.HttpStatusCode == HttpStatusCode.NotFound)
+                            LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, filePath, response.HttpStatusCode));
+                        else if (response.HttpStatusCode == HttpStatusCode.NotImplemented || response.HttpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
+                            LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.RawUrlWithQuery, response.HttpStatusCode));
+                        else
+                            LoggerAccessor.LogError(string.Format("{0} -> {1}", request.RawUrlWithQuery, response.HttpStatusCode));
+                    }
+                }
+                catch (IOException ex)
+                {
+                    if (ex.InnerException is SocketException socketException &&
+                        socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted)
+                        LoggerAccessor.LogError($"[HTTP] - WriteResponse - IO-Socket thrown an exception : {ex}");
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[HTTP] - WriteResponse thrown an assertion : {ex}");
+                }
+
+                response.Dispose();
+            }
         }
 
         private static void Handle_LocalFile_Stream(Stream stream, HttpRequest request, string filePath)
@@ -1296,7 +1308,8 @@ namespace HTTPServer
                 if (HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Unmodified-Since"), true))
                     response = new()
                     {
-                        HttpStatusCode = HttpStatusCode.PreconditionFailed
+                        HttpStatusCode = HttpStatusCode.PreconditionFailed,
+                        ContentAsUTF8 = string.Empty
                     };
                 else
                 {
@@ -1508,9 +1521,6 @@ namespace HTTPServer
                         long totalBytes = ms.Length;
                         long bytesLeft = totalBytes;
 
-                        if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                            buffersize = 500000;
-
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                         {
                             while (bytesLeft > 0)
@@ -1532,9 +1542,9 @@ namespace HTTPServer
                         ms.Flush();
                         ms.Close();
 
-                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.RawUrlWithQuery, HttpStatusCode.PartialContent));
 
-                        response?.Dispose();
+                        response.Dispose();
 
                         fs.Flush();
                         fs.Close();
@@ -1664,7 +1674,11 @@ namespace HTTPServer
                     }
                     else
                     {
-                        long TotalBytes = endByte - startByte;
+                        int buffersize = HTTPServerConfiguration.BufferSize;
+                        long totalBytes = endByte - startByte;
+                        long bytesLeft = totalBytes;
+                        string? encoding = null;
+
                         fs.Position = startByte;
 
                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
@@ -1696,10 +1710,6 @@ namespace HTTPServer
                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
 
-                        int buffersize = HTTPServerConfiguration.BufferSize;
-
-                        string? encoding = null;
-
                         if (!response.Headers.ContainsKey("Content-Length"))
                         {
                             if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
@@ -1707,17 +1717,12 @@ namespace HTTPServer
 
                             }
                             else
-                                response.Headers.Add("Content-Length", TotalBytes.ToString());
+                                response.Headers.Add("Content-Length", totalBytes.ToString());
                         }
 
                         WriteLineToStream(stream, response.ToHeader());
 
                         stream.Flush();
-
-                        long bytesLeft = TotalBytes;
-
-                        if (TotalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                            buffersize = 500000;
 
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                         {
@@ -1736,9 +1741,9 @@ namespace HTTPServer
                             ctwire.Flush();
                         }
 
-                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
+                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.RawUrlWithQuery, HttpStatusCode.PartialContent));
 
-                        response?.Dispose();
+                        response.Dispose();
 
                         fs.Flush();
                         fs.Close();
@@ -1752,17 +1757,13 @@ namespace HTTPServer
                     fs.Close();
                 }
 
-                if (response != null && request != null)
+                if (response != null)
                 {
-                    if (response.ContentStream == null)
-                        response.ContentAsUTF8 = string.Empty;
-
-                    if (response.ContentStream != null) // Safety.
+                    if (response.ContentStream != null)
                     {
-                        bool KeepAlive = request.RetrieveHeaderValue("Connection") == "keep-alive";
+                        bool KeepAlive = request.RetrieveHeaderValue("Connection").Equals("keep-alive");
                         string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
                         string? EtagMD5 = ComputeStreamMD5(response.ContentStream);
-
                         bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
                         bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
 
@@ -1824,9 +1825,6 @@ namespace HTTPServer
 
                             stream.Flush();
 
-                            if (totalBytes > 8000000 && buffersize < 500000) // We optimize large file handling.
-                                buffersize = 500000;
-
                             using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
                             while (bytesLeft > 0)
                             {
@@ -1842,21 +1840,29 @@ namespace HTTPServer
 
                             ctwire.Flush();
                         }
-
-                        if ((int)response.HttpStatusCode < 400)
-                            LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                        else
-                        {
-                            if (response.HttpStatusCode == HttpStatusCode.NotFound)
-                                LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, filePath, response.HttpStatusCode));
-                            else if (response.HttpStatusCode == HttpStatusCode.NotImplemented || response.HttpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
-                                LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                            else
-                                LoggerAccessor.LogError(string.Format("{0} -> {1}", request.Url, response.HttpStatusCode));
-                        }
                     }
                     else
-                        response = null; // If null, simply not respond to client.
+                    {
+                        response.Headers.Clear();
+
+                        response.HttpStatusCode = HttpStatusCode.InternalServerError;
+
+                        WriteLineToStream(stream, response.ToHeader());
+
+                        stream.Flush();
+                    }
+
+                    if ((int)response.HttpStatusCode < 400)
+                        LoggerAccessor.LogInfo(string.Format("{0} -> {1}", request.RawUrlWithQuery, response.HttpStatusCode));
+                    else
+                    {
+                        if (response.HttpStatusCode == HttpStatusCode.NotFound)
+                            LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, filePath, response.HttpStatusCode));
+                        else if (response.HttpStatusCode == HttpStatusCode.NotImplemented || response.HttpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
+                            LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.RawUrlWithQuery, response.HttpStatusCode));
+                        else
+                            LoggerAccessor.LogError(string.Format("{0} -> {1}", request.RawUrlWithQuery, response.HttpStatusCode));
+                    }
                 }
             }
             catch (IOException ex)
@@ -1905,7 +1911,7 @@ namespace HTTPServer
             return tcpClient.GetStream();
         }
 
-        protected virtual HttpResponse? RouteRequest(Stream inputStream, Stream outputStream, HttpRequest request, string url, string Host)
+        protected virtual HttpResponse? RouteRequest(HttpRequest request, string url, string Host)
         {
             List<Route> routes = Routes.Where(x => x.UrlRegex != null && Regex.Match(url, x.UrlRegex).Success).ToList();
 
@@ -1947,7 +1953,6 @@ namespace HTTPServer
 			if (newRequest != null)
 			{
 				request?.Dispose();
-                request = null;
                 return newRequest;
 			}
 			else if (request != null)
@@ -1961,7 +1966,7 @@ namespace HTTPServer
 				}
 				else
 				{
-					int bytesRead = 0;
+					int bytesRead;
 					byte[] buffer = new byte[8192];
 
 					request.Data = new HugeMemoryStream(); // We can't predict stream size, so take safer option.
@@ -1984,9 +1989,9 @@ namespace HTTPServer
 			// Read Request Line and check if valid.
 			string[] tokens = Readline(inputStream).Split(' ');
 
-			if (tokens.Length == 3 && tokens[2].Contains("HTTP/"))
+			if (tokens.Length == 3 && !string.IsNullOrEmpty(tokens[2]) && tokens[2].Contains("HTTP/"))
 			{
-				string line = string.Empty;
+				string line;
                 // string protocolVersion = tokens[2]; // Unused.
 
                 // Read Headers
@@ -2010,39 +2015,40 @@ namespace HTTPServer
                     headers.Add(new KeyValuePair<string, string>(line[..separator], line[pos..]));
                 }
 
-                HttpRequest req = new()
+                HttpRequest request = new()
 				{
 					Method = tokens[0].ToUpper(),
-					Url = HTTPProcessor.DecodeUrl(tokens[1]),
+					RawUrlWithQuery = HTTPProcessor.DecodeUrl(tokens[1]),
 					Headers = headers,
 					IP = clientip,
 					Port = clientport,
-					ServerPort = ListenerPort
-				};
+					ServerPort = ListenerPort,
+                    ServerIP = serverIP
+                };
 
-                string ContentLength = req.GetContentLength();
+                string ContentLength = request.GetContentLength();
 
                 if (!string.IsNullOrEmpty(ContentLength))
 				{
                     const int bufferSize = 16 * 1024;
 
-                    int bytesRead = 0;
+                    int bytesRead;
                     long totalBytesCopied = 0;
                     long bytesToCopy = Convert.ToInt32(ContentLength);
                     byte[] buffer = new byte[bufferSize];
 
-                    req.Data = new MemoryStream();
+                    request.Data = new MemoryStream();
 
                     while (totalBytesCopied < bytesToCopy && (bytesRead = inputStream.Read(buffer, 0, (int)Math.Min(bufferSize, bytesToCopy - totalBytesCopied))) > 0)
                     {
-                        req.Data.Write(buffer, 0, bytesRead);
+                        request.Data.Write(buffer, 0, bytesRead);
                         totalBytesCopied += bytesRead;
                     }
 
-                    req.Data.Position = 0;
+                    request.Data.Position = 0;
 				}
 
-				return req;
+				return request;
 			}
 
 			return null;
@@ -2062,19 +2068,11 @@ namespace HTTPServer
         private static string? ComputeStreamMD5(Stream input)
         {
             if (!input.CanSeek)
-                return string.Empty;
+                return null;
 
-            // ComputeHash - returns byte array  
-            byte[] bytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(input);
-
-            input.Position = 0;
-
-            // Convert byte array to a string   
-            StringBuilder builder = new();
-            for (int i = 0; i < bytes.Length; i++)
-                builder.Append(bytes[i].ToString("x2"));
-
-            return builder.ToString();
+            string md5Hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(input).ToLower();
+            input.Seek(0, SeekOrigin.Begin);
+            return md5Hash;
         }
 
 #if NET7_0_OR_GREATER

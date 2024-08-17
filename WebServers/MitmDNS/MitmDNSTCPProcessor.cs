@@ -10,7 +10,7 @@ namespace MitmDNS
 {
     public class MitmDNSTCPProcessor
     {
-        private TcpListener? listener = null;
+        private TcpListener listener = null;
         private CancellationTokenSource _cts = null!;
 
         public void Start(CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ namespace MitmDNS
         {
             Task serverDNS = Task.Run(async () =>
             {
-                TcpListener Listener = new(IPAddress.Any, listenPort); // Set your listener
+                TcpListener Listener = new TcpListener(IPAddress.Any, listenPort); // Set your listener
                 Listener.Start(); // Start your listener
 
                 LoggerAccessor.LogInfo($"[DNS_TCP] Server initiated on port: {listenPort}...");
@@ -51,8 +51,8 @@ namespace MitmDNS
                             NetworkStream ClientStream = Client.GetStream();
                             if (ClientStream.CanRead)
                             {
-                                byte[]? Buffer = new byte[Client.ReceiveBufferSize];
-                                StringBuilder? SB = new();
+                                byte[] Buffer = new byte[Client.ReceiveBufferSize];
+                                StringBuilder SB = new();
                                 do
                                 {
                                     int BytesReaded = ClientStream.Read(Buffer, 0, Buffer.Length);

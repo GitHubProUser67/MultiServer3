@@ -238,6 +238,12 @@ orb.testdriveunlimited.com,Redirect,IP
 testdriveub.available.gamespy.com,Redirect,IP
 key.gamespy.com,Redirect,IP
 peerchat.gamespy.com,Redirect,IP
+conspiracyLB.jetsetgames.net,Redirect,IP
+gameserver.codenamegames.com,Redirect,IP
+samples.hdk.scee.net,Redirect,IP
+home-eas.jp.playstation.com,Redirect,IP
+download.scej-online.jp,Redirect,IP
+secure.cpreprod.homeps3.online.scee.com,Redirect,IP
 gate1.eu.dnas.playstation.org,Redirect,45.7.228.197
 gate1.us.dnas.playstation.org,Redirect,45.7.228.197
 gate1.jp.dnas.playstation.org,Redirect,45.7.228.197

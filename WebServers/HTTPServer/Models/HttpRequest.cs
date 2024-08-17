@@ -16,10 +16,11 @@ namespace HTTPServer.Models
         #region Properties
 
         public string Method { get; set; } = string.Empty;
-        public string? Url { get; set; }
-        public string IP { get; set; } = string.Empty;
-        public string? Port { get; set; } = string.Empty;
-        public ushort ServerPort { get; set; }
+        public string? RawUrlWithQuery { get; set; }
+        public string IP { get; set; } = "127.0.0.1";
+        public string Port { get; set; } = "0";
+        public string ServerIP { get; set; } = "127.0.0.1";
+        public ushort ServerPort { get; set; } = 0;
         [JsonIgnore]
         public Stream? Data { get; set; }
         [JsonIgnore]
@@ -39,7 +40,7 @@ namespace HTTPServer.Models
         #region Public Methods
         public override string ToString()
         {
-            return string.Format("{0} - {1}", Method, Url);
+            return string.Format("{0} - {1}", Method, RawUrlWithQuery);
         }
 
         public string RetrieveHeaderValue(string headeruri)
@@ -95,28 +96,28 @@ namespace HTTPServer.Models
 
         public string? GetPath()
         {
-            if (Route != null && Route.UrlRegex != null && Url != null)
+            if (Route != null && Route.UrlRegex != null && RawUrlWithQuery != null)
             {
-                Match match = Regex.Match(Url, Route.UrlRegex);
+                Match match = Regex.Match(RawUrlWithQuery, Route.UrlRegex);
                 if (match.Groups.Count > 1)
                     return match.Groups[1].Value;
             }
 
-            return Url;
+            return RawUrlWithQuery;
         }
 
         public Dictionary<string, string>? QueryParameters
         {
             get
             {
-                if (Url != null)
+                if (RawUrlWithQuery != null)
                 {
                     Dictionary<string, string> parameterDictionary = new();
 
-                    int questionMarkIndex = Url.IndexOf("?");
+                    int questionMarkIndex = RawUrlWithQuery.IndexOf("?");
                     if (questionMarkIndex != -1) // If '?' is found
                     {
-                        string trimmedurl = Url[(questionMarkIndex + 1)..];
+                        string trimmedurl = RawUrlWithQuery[(questionMarkIndex + 1)..];
                         foreach (string? UrlArg in System.Web.HttpUtility.ParseQueryString(trimmedurl).AllKeys) // Thank you WebOne.
                         {
                             if (!string.IsNullOrEmpty(UrlArg))
@@ -128,6 +129,29 @@ namespace HTTPServer.Models
                 }
 
                 return null;
+            }
+        }
+
+#if true // Serve as a HTTP json debugging.
+        [JsonIgnore]
+#endif
+        public string DataAsBase64
+        {
+            get
+            {
+                if (Data != null)
+                {
+                    int read = 0;
+                    byte[] buffer = new byte[16 * 1024];
+                    using MemoryStream ms = new();
+                    while ((read = Data.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
+                }
+
+                return string.Empty;
             }
         }
 
@@ -188,7 +212,7 @@ namespace HTTPServer.Models
             {
                 if (disposing)
                 {
-                    Url = null;
+                    RawUrlWithQuery = null;
                     Route = null;
                     Headers = null;
                     try
@@ -221,6 +245,6 @@ namespace HTTPServer.Models
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
-        #endregion
+#endregion
     }
 }

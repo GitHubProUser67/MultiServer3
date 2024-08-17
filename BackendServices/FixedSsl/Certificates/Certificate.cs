@@ -52,7 +52,7 @@ namespace Org.Mentalis.Security.Certificates
         /// <returns>Returns the length of the public key in bits. If unable to determine the key's length, returns zero.</returns>
         public int GetPublicKeyLength()
         {
-            return UnderlyingCert.GetRSAPublicKey()!.KeySize;
+            return UnderlyingCert.GetRSAPublicKey().KeySize;
         }
         /// <summary>
         /// Checks whether the <see cref="Certificate"/> has a private key associated with it.
@@ -97,7 +97,7 @@ namespace Org.Mentalis.Security.Certificates
             get
             {
                 var provider = new RSACryptoServiceProvider();
-                provider.ImportParameters(UnderlyingCert.GetRSAPrivateKey()!.ExportParameters(true));
+                provider.ImportParameters(UnderlyingCert.GetRSAPrivateKey().ExportParameters(true));
                 return provider;
             }
         }
@@ -115,7 +115,7 @@ namespace Org.Mentalis.Security.Certificates
 #if NET6_0_OR_GREATER
                 provider.ImportParameters(UnderlyingCert.PublicKey.GetRSAPublicKey()!.ExportParameters(false));
 #else
-                provider.ImportParameters(GetRSAPublicKeyLegacyNet(UnderlyingCert)!.ExportParameters(false));
+                provider.ImportParameters(GetRSAPublicKeyLegacyNet(UnderlyingCert).ExportParameters(false));
 #endif
                 return provider;
             }
@@ -125,9 +125,9 @@ namespace Org.Mentalis.Security.Certificates
         /// <summary>
         /// The handle of the <see cref="CertificateStore"/> object.
         /// </summary>
-        private CertificateStore? m_Store;
+        private CertificateStore m_Store;
 
-        public static RSA? GetRSAPublicKeyLegacyNet(X509Certificate2 certificate)
+        public static RSA GetRSAPublicKeyLegacyNet(X509Certificate2 certificate)
         {
             if (!(certificate.PublicKey.Key is RSA rsaPublicKey))
             {

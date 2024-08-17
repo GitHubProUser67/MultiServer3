@@ -9,6 +9,8 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
 {
     public class olmScoreBoardData
     {
+        private static object _Lock = new object();
+
         public class ScoreboardEntry
         {
             public string psnid { get; set; }
@@ -86,32 +88,37 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
 
         public static void UpdateWeeklyScoreboardXml(string date)
         {
-            Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/olm");
-            // Get all XML files in the scoreboard folder
-            foreach (string file in Directory.GetFiles($"{LeaderboardClass.APIPath}/VEEMEE/olm", "leaderboard_*.xml"))
+            lock (_Lock)
             {
-                // Extract date from the filename
-                Match match = Regex.Match(file, @"leaderboard_(\d{4}_\d{2}_\d{2}).xml");
-                if (match.Success)
-                {
-                    string fileDate = match.Groups[1].Value;
+                Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/olm");
 
-                    // Parse the file date
-                    if (DateTime.TryParse(fileDate, out DateTime fileDateTime))
+                // Get all XML files in the scoreboard folder
+                foreach (string file in Directory.GetFiles($"{LeaderboardClass.APIPath}/VEEMEE/olm", "leaderboard_*.xml"))
+                {
+                    // Extract date from the filename
+                    Match match = Regex.Match(file, @"leaderboard_(\d{4}_\d{2}_\d{2}).xml");
+                    if (match.Success)
                     {
-                        // Check if the file is newer than 7 days
-                        if ((DateTime.Parse(date) - fileDateTime).TotalDays <= 7)
+                        string fileDate = match.Groups[1].Value;
+
+                        // Parse the file date
+                        if (DateTime.TryParse(fileDate, out DateTime fileDateTime))
                         {
-                            // Update the older scoreboard.
-                            File.WriteAllText(file, ConvertScoreboardToXml());
-                            CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - Replaced old scoreboard file entry: {file}");
-                            return;
+                            // Check if the file is newer than 7 days
+                            if ((DateTime.Parse(date) - fileDateTime).TotalDays <= 7)
+                            {
+                                // Update the older scoreboard.
+                                File.WriteAllText(file, ConvertScoreboardToXml());
+                                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - Replaced old scoreboard file entry: {file}");
+                                return;
+                            }
                         }
                     }
                 }
+
+                File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/olm/leaderboard_{date}.xml", ConvertScoreboardToXml());
+                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - scoreboard {date} XML updated.");
             }
-            File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/olm/leaderboard_{date}.xml", ConvertScoreboardToXml());
-            CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - scoreboard {date} XML updated.");
         }
 
         public static void SanityCheckLeaderboards(string directoryPath, DateTime thresholdDate)

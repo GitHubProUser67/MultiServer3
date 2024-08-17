@@ -1,6 +1,5 @@
 using CyberBackendLibrary.HTTP;
 using HTTPServer.Models;
-using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Collections.Generic;
 using System.Net;
 
@@ -20,6 +19,7 @@ namespace HTTPServer
             return new HttpResponse()
             {
                 HttpStatusCode = HttpStatusCode.OK,
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -28,6 +28,7 @@ namespace HTTPServer
             return new HttpResponse()
             {
                 HttpStatusCode = HttpStatusCode.NotImplemented,
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -36,6 +37,7 @@ namespace HTTPServer
             return new HttpResponse()
             {
                 HttpStatusCode = HttpStatusCode.InternalServerError,
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -47,7 +49,8 @@ namespace HTTPServer
                 Headers = new Dictionary<string, string>()
                 {
                     { HttpHeader.Location.ToString(), url }
-                }
+                },
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -59,7 +62,8 @@ namespace HTTPServer
                 Headers = new Dictionary<string, string>()
                 {
                     { HttpHeader.Location.ToString(), url }
-                }
+                },
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -71,7 +75,8 @@ namespace HTTPServer
                 Headers = new Dictionary<string, string>()
                 {
                     { HttpHeader.Location.ToString(), url }
-                }
+                },
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -83,7 +88,8 @@ namespace HTTPServer
                 Headers = new Dictionary<string, string>()
                 {
                     { HttpHeader.Location.ToString(), url }
-                }
+                },
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -92,19 +98,21 @@ namespace HTTPServer
             return new HttpResponse()
             {
                 HttpStatusCode = HttpStatusCode.NoContent,
+                ContentAsUTF8 = string.Empty
             };
         }
 
-        public static HttpResponse NotFound(HttpRequest request, string absolutepath, string Host, string ServerIP, string serverPort, bool HTMLResponse)
+        public static HttpResponse NotFound(HttpRequest request, string absolutepath, string Host, bool HTMLResponse)
         {
             if (!HTMLResponse)
                 return new HttpResponse()
                 {
                     HttpStatusCode = HttpStatusCode.NotFound,
+                    ContentAsUTF8 = string.Empty
                 };
             else
-                return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                    HTTPServerConfiguration.HTTPStaticFolder, "Apache 2.2.22 (Unix) DAV/2", serverPort, HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.NotFound);
+                return HttpResponse.Send(DefaultHTMLPages.GenerateNotFound(absolutepath, $"http://{(string.IsNullOrEmpty(Host) ? (request.ServerIP.Length > 15 ? "[" + request.ServerIP + "]" : request.ServerIP) : Host)}",
+                    HTTPServerConfiguration.HTTPStaticFolder, "Apache 2.2.22 (Unix) DAV/2", request.ServerPort.ToString(), HTTPServerConfiguration.NotFoundSuggestions).Result, "text/html", null, HttpStatusCode.NotFound);
         }
 
         public static HttpResponse NotAllowed()
@@ -112,6 +120,7 @@ namespace HTTPServer
             return new HttpResponse()
             {
                 HttpStatusCode = HttpStatusCode.Forbidden,
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -120,6 +129,7 @@ namespace HTTPServer
             return new HttpResponse()
             {
                 HttpStatusCode = HttpStatusCode.MethodNotAllowed,
+                ContentAsUTF8 = string.Empty
             };
         }
 
@@ -128,6 +138,7 @@ namespace HTTPServer
             return new HttpResponse()
             {
                 HttpStatusCode = HttpStatusCode.BadRequest,
+                ContentAsUTF8 = string.Empty
             };
         }
         #endregion

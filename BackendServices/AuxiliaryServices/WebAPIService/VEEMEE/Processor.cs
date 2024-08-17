@@ -3,18 +3,21 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using CastleLibrary.Utils.Hash;
 using System.Text;
+using System.Collections.Generic;
 
 namespace WebAPIService.VEEMEE
 {
     public class Processor
     {
+        private const string HashSalt = "veemeeHTTPRequ9R3UMWDAT8F3*#@&$^";
+
         public static string Sign(string jsonData)
         {
             try
             {
                 string formattedJson = JToken.Parse(jsonData.Replace("\n", string.Empty)).ToString(Newtonsoft.Json.Formatting.None);
 
-                string hash = NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes($"veemeeHTTPRequ9R3UMWDAT8F3*#@&$^{formattedJson}"));
+                string hash = NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes($"{HashSalt}{formattedJson}"));
 
                 JToken token = JToken.Parse(formattedJson);
 
@@ -43,6 +46,21 @@ namespace WebAPIService.VEEMEE
             }
 
             return null;
+        }
+
+        public static string GetVerificationSalt(string hex, Dictionary<string, string> PostDataKeyValuesDic = null)
+        {
+            string localSalt = HashSalt;
+
+            if (PostDataKeyValuesDic != null)
+            {
+                foreach (KeyValuePair<string, string> KeyPair in PostDataKeyValuesDic)
+                {
+                    localSalt = localSalt + KeyPair.Key + KeyPair.Value;
+                }
+            }
+
+            return NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes($"{localSalt}hex{hex}"));
         }
     }
 }

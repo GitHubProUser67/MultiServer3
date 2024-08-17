@@ -17,7 +17,7 @@ namespace MultiSpyService.Utils
                 return _enctype1_data;
             }
         }
-        private static byte[]? _enctype1_data = null;
+        private static byte[] _enctype1_data = null;
         private static string enctype1_data_string =
              "01 ba fa b2 51 00 54 80 75 16 8e 8e 02 08 36 a5" +
             " 2d 05 0d 16 52 07 b4 22 8c e9 09 d6 b9 26 00 04" +

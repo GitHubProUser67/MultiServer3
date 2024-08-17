@@ -171,28 +171,26 @@ namespace HomeTools.ChannelID
 
         public SceneKey Generate(ushort SceneID)
         {
-            byte[] bytes1 = new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes();
             byte[] bytes2 = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(SceneID) : SceneID);
             byte[] bytes3 = SceneKey.New().GetBytes();
             int index1 = bytes3[0] & 15;
             bytes3[m_ScatterTable[index1, 0]] = bytes2[0];
             bytes3[m_ScatterTable[index1, 1]] = bytes2[1];
             byte[] numArray = new byte[16];
-            new BitArray(bytes3).Xor(new BitArray(bytes1)).CopyTo(numArray, 0);
+            new BitArray(bytes3).Xor(new BitArray(new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes())).CopyTo(numArray, 0);
             numArray[15] = CRC.Create(numArray, 0, 15);
             return new SceneKey(numArray);
         }
 
         public SceneKey GenerateNewerType(ushort SceneID)
         {
-            byte[] bytes1 = new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes();
             byte[] bytes2 = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(SceneID) : SceneID);
             byte[] bytes3 = SceneKey.New().GetBytes();
             int index1 = bytes3[0] & 15;
             bytes3[m_NewerScatterTable[index1, 0]] = bytes2[0];
             bytes3[m_NewerScatterTable[index1, 1]] = bytes2[1];
             byte[] numArray = new byte[16];
-            new BitArray(bytes3).Xor(new BitArray(bytes1)).CopyTo(numArray, 0);
+            new BitArray(bytes3).Xor(new BitArray(new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes())).CopyTo(numArray, 0);
             uint num = CRC16.CalcCcittCRC16(numArray, 14);
             numArray[14] = (byte)(num >> 8); // Get the higher 8 bits
             numArray[15] = (byte)num;        // Get the lower 8 bits
@@ -201,10 +199,8 @@ namespace HomeTools.ChannelID
 
         public ushort ExtractSceneID(SceneKey Key)
         {
-            byte[] bytes1 = Key.GetBytes();
-            byte[] bytes2 = new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes();
             byte[] numArray = new byte[16];
-            new BitArray(bytes1).Xor(new BitArray(bytes2)).CopyTo(numArray, 0);
+            new BitArray(Key.GetBytes()).Xor(new BitArray(new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes())).CopyTo(numArray, 0);
             int index1 = numArray[0] & 15;
             ushort sceneID = (ushort)(numArray[m_ScatterTable[index1, 0]] | (uint)numArray[m_ScatterTable[index1, 1]] << 8);
             if (sceneID < m_SIDMin || sceneID > m_SIDMax)
@@ -214,10 +210,8 @@ namespace HomeTools.ChannelID
 
         public ushort ExtractSceneIDNewerType(SceneKey Key)
         {
-            byte[] bytes1 = Key.GetBytes();
-            byte[] bytes2 = new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes();
             byte[] numArray = new byte[16];
-            new BitArray(bytes1).Xor(new BitArray(bytes2)).CopyTo(numArray, 0);
+            new BitArray(Key.GetBytes()).Xor(new BitArray(new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes())).CopyTo(numArray, 0);
             int index1 = numArray[0] & 15;
             ushort sceneID = (ushort)(numArray[m_NewerScatterTable[index1, 0]] | (uint)numArray[m_NewerScatterTable[index1, 1]] << 8);
             if (sceneID < m_SIDMin || sceneID > m_SIDMax)

@@ -5,7 +5,6 @@ using HomeTools.Crypto;
 using HomeTools.UnBAR;
 using CyberBackendLibrary.HTTP;
 using HomeTools.CDS;
-using CustomLogger;
 using HttpMultipartParser;
 using System.IO.Compression;
 using System.IO;
@@ -18,7 +17,7 @@ using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
 using WebAPIService.Utils;
 
-namespace WebAPIService
+namespace HomeWebTools
 {
     public class HomeToolsInterface
     {
@@ -39,15 +38,16 @@ namespace WebAPIService
                         PostData.CopyTo(ms);
                         ms.Position = 0;
                         ushort SDATVersion = 4;
+                        ushort cdnMode = 0;
                         string filename = string.Empty;
-                        var data = MultipartFormDataParser.Parse(ms, boundary);
-                        string mode = data.GetParameterValue("mode");
-                        string TimeStamp = data.GetParameterValue("TimeStamp");
-                        string options = data.GetParameterValue("options");
                         string leanzlib = string.Empty;
                         string encrypt = string.Empty;
                         string version2 = string.Empty;
                         string bigendian = string.Empty;
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        string mode = data.GetParameterValue("mode");
+                        string TimeStamp = data.GetParameterValue("TimeStamp");
+                        string options = data.GetParameterValue("options");
                         try
                         {
                             leanzlib = data.GetParameterValue("leanzlib");
@@ -88,16 +88,24 @@ namespace WebAPIService
                         {
                             // Not Important
                         }
+                        try
+                        {
+                            cdnMode = ushort.Parse(data.GetParameterValue("cdnmode"));
+                        }
+                        catch
+                        {
+                            // Not Important
+                        }
                         switch (options)
                         {
                             case "cdn1":
-                                options = ToolsImpl.base64CDNKey1;
+                                options = ToolsImplementation.base64CDNKey1;
                                 break;
                             case "cdn2":
-                                options = ToolsImpl.base64CDNKey2;
+                                options = ToolsImplementation.base64CDNKey2;
                                 break;
                             default:
-                                options = ToolsImpl.base64DefaultSharcKey;
+                                options = ToolsImplementation.base64DefaultSharcKey;
                                 break;
                         }
                         foreach (FilePart multipartfile in data.Files)
@@ -143,25 +151,25 @@ namespace WebAPIService
                                 if (version2 == "on")
                                 {
                                     if (bigendian == "on")
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16), true, true, options);
+                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, Convert.ToInt32(TimeStamp, 16), true, true, options);
                                     else
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16), true, false, options);
+                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, Convert.ToInt32(TimeStamp, 16), true, false, options);
                                 }
                                 else
                                 {
                                     if (encrypt == "on")
                                     {
                                         if (bigendian == "on")
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16), true, true);
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16), true, true);
                                         else
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16), true);
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16), true);
                                     }
                                     else
                                     {
                                         if (bigendian == "on")
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16), false, true);
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16), false, true);
                                         else
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, Convert.ToInt32(TimeStamp, 16));
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16));
                                     }
                                     if (leanzlib == "on")
                                     {
@@ -381,13 +389,14 @@ namespace WebAPIService
                     {
                         PostData.CopyTo(ms);
                         ms.Position = 0;
+                        ushort cdnMode = 0;
                         string filename = string.Empty;
                         string ogfilename = string.Empty;
-                        var data = MultipartFormDataParser.Parse(ms, boundary);
-                        string prefix = data.GetParameterValue("prefix");
                         string subfolder = string.Empty;
                         string bruteforce = string.Empty;
                         string afsengine = string.Empty;
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        string prefix = data.GetParameterValue("prefix");
                         try
                         {
                             subfolder = data.GetParameterValue("subfolder");
@@ -407,6 +416,14 @@ namespace WebAPIService
                         try
                         {
                             afsengine = data.GetParameterValue("afsengine");
+                        }
+                        catch
+                        {
+                            // Not Important
+                        }
+                        try
+                        {
+                            cdnMode = ushort.Parse(data.GetParameterValue("cdnmode"));
                         }
                         catch
                         {
@@ -468,19 +485,19 @@ namespace WebAPIService
 
                                 if (filename.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase) || filename.EndsWith(".dat", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false);
+                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false, cdnMode);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 4).ToUpper();
                                 }
                                 else if (filename.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false);
+                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false, 0);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 6).ToUpper();
                                 }
                                 else if (filename.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, true);
+                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, true, cdnMode);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 5).ToUpper();
                                 }
@@ -663,13 +680,22 @@ namespace WebAPIService
                         PostData.CopyTo(ms);
                         ms.Position = 0;
                         int i = 0;
+                        ushort cdnMode = 0;
                         string filename = string.Empty;
-                        var data = MultipartFormDataParser.Parse(ms, boundary);
                         string decrypt = string.Empty;
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
                         string sha1 = data.GetParameterValue("sha1");
                         try
                         {
                             decrypt = data.GetParameterValue("decrypt");
+                        }
+                        catch
+                        {
+                            // Not Important
+                        }
+                        try
+                        {
+                            cdnMode = ushort.Parse(data.GetParameterValue("cdnmode"));
                         }
                         catch
                         {
@@ -694,14 +720,14 @@ namespace WebAPIService
 
                                 if (!string.IsNullOrEmpty(sha1) && sha1.Length >= 16)
                                 {
-                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, sha1.Substring(0, 16));
+                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, sha1.Substring(0, 16), cdnMode);
 
                                     if (ProcessedFileBytes != null)
                                         TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_decrypted{Path.GetExtension(filename)}"));
                                 }
                                 else
                                 {
-                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.ComputeSHA1StringWithCleanup(buffer).Substring(0, 16).ToUpper());
+                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.ComputeSHA1StringWithCleanup(buffer).Substring(0, 16).ToUpper(), cdnMode);
 
                                     if (ProcessedFileBytes != null)
                                         TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_encrypted{Path.GetExtension(filename)}"));
@@ -759,8 +785,18 @@ namespace WebAPIService
                         PostData.CopyTo(ms);
                         ms.Position = 0;
                         int i = 0;
+                        ushort cdnMode = 0;
                         string filename = string.Empty;
-                        foreach (FilePart multipartfile in MultipartFormDataParser.Parse(ms, boundary).Files)
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        try
+                        {
+                            cdnMode = ushort.Parse(data.GetParameterValue("cdnmode"));
+                        }
+                        catch
+                        {
+                            // Not Important
+                        }
+                        foreach (FilePart multipartfile in data.Files)
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
@@ -780,11 +816,11 @@ namespace WebAPIService
                                 BruteforceProcess proc = new BruteforceProcess(buffer);
 
                                 if (filename.ToLower().Contains(".hcdb"))
-                                    TasksResult.Add((proc.StartBruteForce(1), $"{filename}_Bruteforced.hcdb"));
+                                    TasksResult.Add((proc.StartBruteForce(cdnMode, 1), $"{filename}_Bruteforced.hcdb"));
                                 else if (filename.ToLower().Contains(".bar"))
-                                    TasksResult.Add((proc.StartBruteForce(2), $"{filename}_Bruteforced.bar"));
+                                    TasksResult.Add((proc.StartBruteForce(cdnMode, 2), $"{filename}_Bruteforced.bar"));
                                 else
-                                    TasksResult.Add((proc.StartBruteForce(), $"{filename}_Bruteforced.xml"));
+                                    TasksResult.Add((proc.StartBruteForce(cdnMode), $"{filename}_Bruteforced.xml"));
 
                                 proc = null;
 
@@ -948,24 +984,24 @@ namespace WebAPIService
                                 {
                                     byte[] ProcessedFileBytes = new byte[buffer.Length - 8];
                                     Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
-                                    ProcessedFileBytes = LIBSECURE.InitiateBlowfishBuffer(ProcessedFileBytes, ToolsImpl.TicketListV1Key, ToolsImpl.TicketListV1IV, "CTR");
+                                    ProcessedFileBytes = LIBSECURE.InitiateBlowfishBuffer(ProcessedFileBytes, ToolsImplementation.TicketListV1Key, ToolsImplementation.TicketListV1IV, "CTR");
                                     if (ProcessedFileBytes != null)
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else if (version1 == "on")
-                                    TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV1Key, ToolsImpl.TicketListV1IV, "CTR"))
+                                    TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV1Key, ToolsImplementation.TicketListV1IV, "CTR"))
                                             , $"{filename}_Encrypted.lst"));
                                 else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                                     && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
                                 {
                                     byte[] ProcessedFileBytes = new byte[buffer.Length - 8];
                                     Buffer.BlockCopy(buffer, 8, ProcessedFileBytes, 0, ProcessedFileBytes.Length);
-                                    ProcessedFileBytes = LIBSECURE.InitiateBlowfishBuffer(ProcessedFileBytes, ToolsImpl.TicketListV0Key, ToolsImpl.TicketListV0IV, "CTR");
+                                    ProcessedFileBytes = LIBSECURE.InitiateBlowfishBuffer(ProcessedFileBytes, ToolsImplementation.TicketListV0Key, ToolsImplementation.TicketListV0IV, "CTR");
                                     if (ProcessedFileBytes != null)
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else
-                                    TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.TicketListV0Key, ToolsImpl.TicketListV0IV, "CTR"))
+                                    TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV0Key, ToolsImplementation.TicketListV0IV, "CTR"))
                                             , $"{filename}_Encrypted.lst"));
 
                                 i++;
@@ -1040,19 +1076,19 @@ namespace WebAPIService
 
                                 if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0x00 && buffer[3] == 0x01)
                                 {
-                                    buffer = ToolsImpl.RemovePaddingPrefix(buffer);
+                                    buffer = ToolsImplementation.RemovePaddingPrefix(buffer);
 
-                                    byte[] decryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.MetaDataV1Key, ToolsImpl.MetaDataV1IV, "CTR");
+                                    byte[] decryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.MetaDataV1Key, ToolsImplementation.MetaDataV1IV, "CTR");
 
                                     if (decryptedfilebytes != null)
                                         TasksResult.Add((decryptedfilebytes, $"{filename}_Decrypted.bin"));
                                 }
                                 else if (buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5)
                                 {
-                                    byte[] encryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImpl.MetaDataV1Key, ToolsImpl.MetaDataV1IV, "CTR");
+                                    byte[] encryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.MetaDataV1Key, ToolsImplementation.MetaDataV1IV, "CTR");
 
                                     if (encryptedfilebytes != null)
-                                        TasksResult.Add((ToolsImpl.ApplyLittleEndianPaddingPrefix(encryptedfilebytes), $"{filename}_Encrypted.bin"));
+                                        TasksResult.Add((ToolsImplementation.ApplyLittleEndianPaddingPrefix(encryptedfilebytes), $"{filename}_Encrypted.bin"));
                                 }
 
                                 i++;
@@ -1174,8 +1210,7 @@ namespace WebAPIService
                             try
                             {
                                 SIDKeyGenerator.Instance.VerifyNewerKey(sceneKey);
-                                ushort num = SIDKeyGenerator.Instance.ExtractSceneIDNewerType(sceneKey);
-                                res = num.ToString();
+                                res = SIDKeyGenerator.Instance.ExtractSceneIDNewerType(sceneKey).ToString();
                             }
                             catch (SceneKeyException)
                             {
@@ -1193,8 +1228,7 @@ namespace WebAPIService
                             try
                             {
                                 SIDKeyGenerator.Instance.Verify(sceneKey);
-                                ushort num = SIDKeyGenerator.Instance.ExtractSceneID(sceneKey);
-                                res = num.ToString();
+                                res = SIDKeyGenerator.Instance.ExtractSceneID(sceneKey).ToString();
                             }
                             catch (SceneKeyException)
                             {

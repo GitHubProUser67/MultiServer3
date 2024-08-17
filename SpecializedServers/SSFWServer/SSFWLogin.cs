@@ -1,7 +1,5 @@
 using CustomLogger;
 using CyberBackendLibrary.Extension;
-using Newtonsoft.Json;
-using System.Security.Cryptography;
 using System.Text;
 using WebAPIService.SSFW;
 using XI5;
@@ -10,20 +8,20 @@ namespace SSFWServer
 {
     public static class SSFWUserSessionManager
     {
-        private static List<UserSession>? userSessions = new();
+        private static List<(int, UserSession)>? userSessions = new();
 
-        public static void RegisterUser(string username, string sessionid)
+        public static void RegisterUser(string userName, string sessionid, int realuserNameSize)
         {
             if (userSessions != null)
             {
-                if (userSessions.Any(u => u.SessionId == sessionid))
+                if (userSessions.Any(u => u.Item2.SessionId == sessionid))
                 {
                     // Do nothing.
                 }
                 else
                 {
-                    userSessions.Add(new UserSession { Username = username, SessionId = sessionid });
-                    LoggerAccessor.LogInfo($"[UserSessionManager] - User '{username}' successfully registered with SessionId '{sessionid}'.");
+                    userSessions.Add((realuserNameSize, new UserSession { Username = userName, SessionId = sessionid }));
+                    LoggerAccessor.LogInfo($"[UserSessionManager] - User '{userName}' successfully registered with SessionId '{sessionid}'.");
                 }
             }
         }
@@ -33,7 +31,27 @@ namespace SSFWServer
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            return userSessions?.FirstOrDefault(u => u.SessionId == sessionId)?.Username;
+            return userSessions?.FirstOrDefault(u => u.Item2.SessionId == sessionId).Item2.Username;
+        }
+
+        public static string? GetFormatedUsernameBySessionId(string sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+                return null;
+
+            (int, UserSession)? userSession = userSessions?.FirstOrDefault(u => u.Item2.SessionId == sessionId);
+
+            if (userSession.HasValue)
+            {
+                string? userName = userSession.Value.Item2.Username;
+
+                if (!string.IsNullOrEmpty(userName) && userName.Length > userSession.Value.Item1)
+                    userName = userName.Substring(0, userSession.Value.Item1);
+
+                return userName;
+            }
+
+            return null;
         }
     }
 
@@ -81,9 +99,11 @@ namespace SSFWServer
                         extractedData[i] = 0x48;
                 }
 
+                XI5Ticket ticket = new XI5Ticket(ticketBuffer);
+
                 if (DataUtils.FindBytePattern(ticketBuffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
-                    if (SSFWServerConfiguration.ForceOfficialRPCNSignature && !new XI5Ticket(ticketBuffer).SignedByOfficialRPCN)
+                    if (SSFWServerConfiguration.ForceOfficialRPCNSignature && !ticket.SignedByOfficialRPCN)
                     {
                         LoggerAccessor.LogError($"[SSFW] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} was caught using an invalid RPCN signature!");
                         return null;
@@ -142,7 +162,7 @@ namespace SSFWServer
 
                 if (!string.IsNullOrEmpty(UserNames.Item1) && !string.IsNullOrEmpty(SessionIDs.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
                 {
-                    SSFWUserSessionManager.RegisterUser(UserNames.Item1, SessionIDs.Item1);
+                    SSFWUserSessionManager.RegisterUser(UserNames.Item1, SessionIDs.Item1, ticket.OnlineId.Length);
 
                     if (SSFWAccountManagement.AccountExists(UserNames.Item2, SessionIDs.Item2))
                         SSFWAccountManagement.CopyAccountProfile(UserNames.Item2, UserNames.Item1, SessionIDs.Item2, SessionIDs.Item1, key);
@@ -151,7 +171,7 @@ namespace SSFWServer
                 {
                     IsRPCN = false;
 
-                    SSFWUserSessionManager.RegisterUser(UserNames.Item2, SessionIDs.Item2);
+                    SSFWUserSessionManager.RegisterUser(UserNames.Item2, SessionIDs.Item2, ticket.OnlineId.Length);
                 }
                 else
                 {
