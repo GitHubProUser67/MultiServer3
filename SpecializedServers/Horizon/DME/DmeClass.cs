@@ -275,11 +275,22 @@ namespace Horizon.DME
 
             // Load settings
             if (File.Exists(CONFIG_FILE))
-                // Populate existing object
-                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+            {
+                try
                 {
-                    MissingMemberHandling = MissingMemberHandling.Ignore,
-                });
+                    // Populate existing object
+                    JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+                    {
+                        MissingMemberHandling = MissingMemberHandling.Ignore,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[DmeClass] - RefreshConfig failed to read the json config, reason: {ex}");
+
+                    return;
+                }
+            }
             else
             {
                 // Save defaults
