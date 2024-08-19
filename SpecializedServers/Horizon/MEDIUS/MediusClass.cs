@@ -520,11 +520,22 @@ namespace Horizon.MEDIUS
                 File.WriteAllText(CONFIG_FILE ?? Directory.GetCurrentDirectory() + "/static/medius.json", JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
             else
-                // Populate existing object
-                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+            {
+                try
                 {
-                    MissingMemberHandling = MissingMemberHandling.Ignore,
-                });
+                    // Populate existing object
+                    JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
+                    {
+                        MissingMemberHandling = MissingMemberHandling.Ignore,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[MediusClass] - RefreshConfig failed to read the json config, reason: {ex}");
+                }
+
+                return;
+            }
             #endregion
 
             // Determine server ip
