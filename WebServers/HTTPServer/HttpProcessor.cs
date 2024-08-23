@@ -37,6 +37,7 @@ using CyberBackendLibrary.HTTP.PluginManager;
 using CyberBackendLibrary.Extension;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
+using Newtonsoft.Json;
 
 namespace HTTPServer
 {
@@ -181,7 +182,7 @@ namespace HTTPServer
                                 HttpResponse? response = null;
                                 string Method = request.Method;
                                 string Host = request.RetrieveHeaderValue("Host");
-								if (string.IsNullOrEmpty(Host))
+                                if (string.IsNullOrEmpty(Host))
                                     Host = request.RetrieveHeaderValue("HOST");
                                 string Accept = request.RetrieveHeaderValue("Accept");
                                 string SuplementalMessage = string.Empty;
@@ -827,7 +828,8 @@ namespace HTTPServer
                                                                 if (ServerIP.Length > 15)
                                                                     ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
                                                                 WebVideoPlayer? WebPlayer = new((request.QueryParameters ?? new Dictionary<string, string>()).Aggregate(new NameValueCollection(),
-                                                                    (seed, current) => {
+                                                                    (seed, current) =>
+                                                                    {
                                                                         seed.Add(current.Key, current.Value);
                                                                         return seed;
                                                                     }), $"http://{ServerIP}/!webvideo/?");
@@ -923,7 +925,7 @@ namespace HTTPServer
                                                                 response = HttpBuilder.OK();
                                                                 break;
                                                             #endregion
-															
+
                                                             default:
                                                                 if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
                                                                     response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
