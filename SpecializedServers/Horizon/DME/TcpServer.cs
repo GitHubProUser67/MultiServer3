@@ -633,7 +633,7 @@ namespace Horizon.DME
                                 byte[] HubMessagePayload = clientAppSingle.Payload;
                                 int HubPathernOffset = DataUtils.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00, 0x00 });
 
-                                if (HubPathernOffset != -1) // Hub command.
+                                if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 4) // Hub command.
                                 {
                                     switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
                                     {
