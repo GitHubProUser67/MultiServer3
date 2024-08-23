@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace NetCoreServer
 {
@@ -143,23 +144,29 @@ namespace NetCoreServer
         /// </summary>
         public (string, string) Header(int i)
         {
-            Debug.Assert((i < _headers.Count), "Index out of bounds!");
+            Debug.Assert(i < _headers.Count, "Index out of bounds!");
             if (i >= _headers.Count)
                 return ("", "");
 
             return _headers[i];
         }
+
         /// <summary>
         /// Get the HTTP response body as string
         /// </summary>
+#if true // Serve as a HTTP json debugging.
+        [JsonIgnore]
+#endif
         public string Body { get { return _cache.ExtractString(_bodyIndex, _bodySize); } }
         /// <summary>
         /// Get the HTTP request body as byte array
         /// </summary>
+        [JsonIgnore]
         public byte[] BodyBytes { get { return _cache.Data[_bodyIndex..(_bodyIndex + _bodySize)]; } }
         /// <summary>
         /// Get the HTTP request body as read-only byte span
         /// </summary>
+        [JsonIgnore]
         public ReadOnlySpan<byte> BodySpan { get { return new ReadOnlySpan<byte>(_cache.Data, _bodyIndex, _bodySize); } }
         /// <summary>
         /// Get the HTTP response body length
@@ -169,6 +176,7 @@ namespace NetCoreServer
         /// <summary>
         /// Get the HTTP response cache content
         /// </summary>
+        [JsonIgnore]
         public Buffer Cache { get { return _cache; } }
 
         /// <summary>

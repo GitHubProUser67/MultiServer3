@@ -3,18 +3,14 @@ using CyberBackendLibrary.GeoLocalization;
 using System.Data;
 using System.Data.SQLite;
 using System.Net;
-using System.Runtime.InteropServices;
 
 namespace MultiSpy.Data
 {
 	public class LoginDatabase : IDisposable
 	{
-		private static LoginDatabase? _instance;
+		public static LoginDatabase? _instance;
 
 		private SQLiteConnection? _db;
-
-		private delegate bool EventHandler(CtrlType sig);
-		private static EventHandler? _closeHandler;
 
 		private SQLiteCommand? _getUsersByName;
 		private SQLiteCommand? _getUsersByEmail;
@@ -32,11 +28,6 @@ namespace MultiSpy.Data
 
 		public static void Initialize(string databasePath)
 		{
-			// we need to safely dispose of the database when the application closes
-			// this is a console app, so we need to hook into the console ctrl signal
-			_closeHandler += CloseHandler;
-			SetConsoleCtrlHandler(_closeHandler, true);
-
 			_instance = new LoginDatabase();
 
 			databasePath = Path.GetFullPath(databasePath);
@@ -127,21 +118,6 @@ namespace MultiSpy.Data
 			_logUserUpdateCountry.Parameters.Add("@ip", DbType.String);
 			_logUserUpdateCountry.Parameters.Add("@time", DbType.Int64);
 			_logUserUpdateCountry.Parameters.Add("@name", DbType.String);
-		}
-
-		private static bool CloseHandler(CtrlType sig)
-		{
-			if (_instance != null)
-				_instance.Dispose();
-
-			switch (sig) {
-				case CtrlType.CTRL_C_EVENT:
-				case CtrlType.CTRL_LOGOFF_EVENT:
-				case CtrlType.CTRL_SHUTDOWN_EVENT:
-				case CtrlType.CTRL_CLOSE_EVENT:
-				default:
-					return false;
-			}
 		}
 
 		public void Dispose()
@@ -395,10 +371,7 @@ namespace MultiSpy.Data
 			return existing;
 		}
 
-		[DllImport("Kernel32")]
-		private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
-
-		private enum CtrlType
+        public enum CtrlType
 		{
 			CTRL_C_EVENT = 0,
 			CTRL_BREAK_EVENT = 1,

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace NetCoreServer
 {
@@ -32,7 +33,7 @@ namespace NetCoreServer
         /// <summary>
         /// Is the HTTP request empty?
         /// </summary>
-        public bool IsEmpty { get { return (_cache.Size == 0); } }
+        public bool IsEmpty { get { return _cache.Size == 0; } }
         /// <summary>
         /// Is the HTTP request error flag set?
         /// </summary>
@@ -74,7 +75,7 @@ namespace NetCoreServer
         /// </summary>
         public (string, string) Cookie(int i)
         {
-            Debug.Assert((i < _cookies.Count), "Index out of bounds!");
+            Debug.Assert(i < _cookies.Count, "Index out of bounds!");
             if (i >= _cookies.Count)
                 return ("", "");
 
@@ -83,15 +84,23 @@ namespace NetCoreServer
         /// <summary>
         /// Get the HTTP request body as string
         /// </summary>
+#if true // Serve as a HTTP json debugging.
+        [JsonIgnore]
+#endif
         public string Body { get { return _cache.ExtractString(_bodyIndex, _bodySize); } }
+
         /// <summary>
         /// Get the HTTP request body as byte array
         /// </summary>
+        [JsonIgnore]
         public byte[] BodyBytes { get { return _cache.Data[_bodyIndex..(_bodyIndex + _bodySize)]; } }
+
         /// <summary>
         /// Get the HTTP request body as byte span
         /// </summary>
+        [JsonIgnore]
         public Span<byte> BodySpan { get { return new Span<byte>(_cache.Data, _bodyIndex, _bodySize); } }
+
         /// <summary>
         /// Get the HTTP request body length
         /// </summary>
@@ -100,6 +109,7 @@ namespace NetCoreServer
         /// <summary>
         /// Get the HTTP request cache content
         /// </summary>
+        [JsonIgnore]
         public Buffer Cache { get { return _cache; } }
 
         /// <summary>

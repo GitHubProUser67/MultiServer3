@@ -1,16 +1,19 @@
 using CustomLogger;
 using CyberBackendLibrary.GeoLocalization;
 using CyberBackendLibrary.TCP_IP;
+using MultiSpy;
 using MultiSpy.Data;
 using MultiSpy.Servers;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.InteropServices;
 
 public static class MultiSpyServerConfiguration
 {
     public static bool EnableLogin { get; set; } = true;
+    public static bool EnablePeerChat { get; set; } = true;
     public static bool EnableNatNeg { get; set; } = true;
     public static bool EnableCdKey { get; set; } = true;
     public static bool EnableMaster { get; set; } = true;
@@ -4727,6 +4730,7 @@ public static class MultiSpyServerConfiguration
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
                 new JProperty("enable_login", EnableLogin),
+                new JProperty("enable_peer_chat", EnablePeerChat),
                 new JProperty("enable_natneg", EnableNatNeg),
                 new JProperty("enable_cdkey", EnableCdKey),
                 new JProperty("enable_master", EnableMaster),
@@ -4743,6 +4747,7 @@ public static class MultiSpyServerConfiguration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             EnableLogin = GetValueOrDefault(config, "enable_login", EnableLogin);
+            EnablePeerChat = GetValueOrDefault(config, "enable_peer_chat", EnablePeerChat);
             EnableNatNeg = GetValueOrDefault(config, "enable_natneg", EnableNatNeg);
             EnableCdKey = GetValueOrDefault(config, "enable_cdkey", EnableCdKey);
             EnableMaster = GetValueOrDefault(config, "enable_master", EnableMaster);
@@ -4805,6 +4810,8 @@ public static class MultiSpyServerConfiguration
 
 class Program
 {
+    private delegate bool EventHandler(LoginDatabase.CtrlType sig);
+
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "multispy.json";
     private static IPAddress bindAddr = IPAddress.Any;
@@ -4813,6 +4820,12 @@ class Program
     private static ServerListReport? serverListReport = null;
     private static ServerListRetrieve? serverListRetrieve = null;
     private static ServerNatNeg? serverNatNeg = null;
+    private static PythonExecEngine? serverChat = null;
+    private static EventHandler? _closeHandler;
+
+
+    [DllImport("Kernel32")]
+    private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
 
     private static void StartOrUpdateServer()
     {
@@ -4821,6 +4834,7 @@ class Program
         serverListReport?.Dispose();
         serverListRetrieve?.Dispose();
         serverNatNeg?.Dispose();
+		serverChat?.ForceQuitPythonProcess();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -4834,17 +4848,39 @@ class Program
 
         if (MultiSpyServerConfiguration.EnableCdKey)
             serverCdKey = new CDKeyServer(bindAddr, 29910);
+
         if (MultiSpyServerConfiguration.EnableMaster)
         {
             serverListReport = new ServerListReport(bindAddr, 27900);
+
             if (MultiSpyServerConfiguration.EnableList)
                 serverListRetrieve = new ServerListRetrieve(bindAddr, 28910, serverListReport);
         }
+
         if (MultiSpyServerConfiguration.EnableNatNeg)
             serverNatNeg = new ServerNatNeg(bindAddr, 27901);
 
-        /* if (MultiSpyServerConfiguration.EnablePeerChat)
-            serverNatNeg = new ServerPeerChat(bindAddr, 6667); */
+        if (MultiSpyServerConfiguration.EnablePeerChat)
+		{
+            LoggerAccessor.LogInfo("[ServerNatNeg] - Starting Peer Chat Listener");
+            serverChat = new PythonExecEngine(Directory.GetCurrentDirectory() + "/Python_Scripts/gschatserver.py", CyberBackendLibrary.Extension.DataUtils.IsWindows);
+        }
+    }
+
+    private static bool CloseHandler(LoginDatabase.CtrlType sig)
+    {
+        serverChat?.ForceQuitPythonProcess();
+        LoginDatabase._instance?.Dispose();
+
+        switch (sig)
+        {
+            case LoginDatabase.CtrlType.CTRL_C_EVENT:
+            case LoginDatabase.CtrlType.CTRL_LOGOFF_EVENT:
+            case LoginDatabase.CtrlType.CTRL_SHUTDOWN_EVENT:
+            case LoginDatabase.CtrlType.CTRL_CLOSE_EVENT:
+            default:
+                return false;
+        }
     }
 
     static void Main()
@@ -4877,6 +4913,11 @@ class Program
 
         MultiSpyServerConfiguration.RefreshVariables(configPath);
 
+        // we need to safely dispose of the database when the application closes
+        // this is a console app, so we need to hook into the console ctrl signal
+        _closeHandler += CloseHandler;
+        SetConsoleCtrlHandler(_closeHandler, true);
+
         StartOrUpdateServer();
 
         if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
@@ -4897,6 +4938,9 @@ class Program
                         if (char.ToLower(Console.ReadKey().KeyChar) == 'y')
                         {
                             LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+
+							CloseHandler(LoginDatabase.CtrlType.CTRL_C_EVENT);
+
                             Environment.Exit(0);
                         }
                         break;

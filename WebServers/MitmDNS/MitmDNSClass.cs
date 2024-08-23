@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+#if NET7_0_OR_GREATER
 using System.Net.Http;
+#endif
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
@@ -19,20 +21,15 @@ namespace MitmDNS
         public static Dictionary<string, DnsSettings> StarRules = new Dictionary<string, DnsSettings>();
         public static bool Initiated = false;
         public MitmDNSUDPProcessor UDPproc = new MitmDNSUDPProcessor();
-        public MitmDNSTCPProcessor TCPproc = new MitmDNSTCPProcessor();
 
         public void StartServerAsync(CancellationToken cancellationToken)
         {
-            Parallel.Invoke(() => {
-                _ = Task.Run(() => UDPproc.Start(cancellationToken));
-                _ = Task.Run(() => TCPproc.Start(cancellationToken));
-            });
+            _ = Task.Run(() => UDPproc.Start(cancellationToken));
         }
 
         public void StopServer()
         {
             UDPproc.Stop();
-            TCPproc.Stop();
         }
 
         public async static void RenewConfig()

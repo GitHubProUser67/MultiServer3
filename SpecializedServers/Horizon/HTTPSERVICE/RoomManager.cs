@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Horizon.HTTPSERVICE
 {
-    public class CrudRoomManager
+    public class RoomManager
     {
         private static (ConcurrentList<KeyValuePair<string, int>>, ConcurrentList<Room>) rooms = (
             new ConcurrentList<KeyValuePair<string, int>>(),
@@ -31,7 +31,7 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Update or Create a Room based on the provided parameters
-        public static void UpdateOrCreateRoom(string appId, string? gameName, string? worldId, string? accountName, string? languageType, bool host)
+        public static void UpdateOrCreateRoom(string appId, string? gameName, int? gameId, string? worldId, string? accountName, int? accountDmeId, string? languageType, bool host)
         {
             Room? roomToUpdate = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
 
@@ -53,28 +53,28 @@ namespace Horizon.HTTPSERVICE
 
                 GameList? gameToUpdate = worldToUpdate?.GameSessions?.FirstOrDefault(w => w.Name == gameName);
 
-                if (gameToUpdate == null && !string.IsNullOrEmpty(gameName))
+                if (gameToUpdate == null && !string.IsNullOrEmpty(gameName) && gameId.HasValue)
                 {
-                    gameToUpdate = new GameList { Name = gameName, CreationDate = DateTime.Now.ToUniversalTime(), Clients = new List<Player>() };
+                    gameToUpdate = new GameList { DmeWorldId = gameId.Value, Name = gameName, CreationDate = DateTime.Now.ToUniversalTime(), Clients = new List<Player>() };
                     worldToUpdate?.GameSessions?.Add(gameToUpdate);
                 }
 
                 Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
 
-                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType))
+                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType) && accountDmeId.HasValue)
                 {
                     if (gameToUpdate.Name.Contains("AP|"))
                     {
                         Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
                         if (playerToUpdatehashed == null)
                         {
-                            playerToUpdate = new Player { Name = XORString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
+                            playerToUpdate = new Player { DmeId = accountDmeId.Value, Name = XORString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
                     else
                     {
-                        playerToUpdate = new Player { Name = accountName, Languages = languageType, Host = host };
+                        playerToUpdate = new Player { DmeId = accountDmeId.Value, Name = accountName, Languages = languageType, Host = host };
                         gameToUpdate.Clients?.Add(playerToUpdate);
                     }
                 }
@@ -206,6 +206,7 @@ namespace Horizon.HTTPSERVICE
 
     public class GameList
     {
+        public int DmeWorldId { get; set; }
         public string? Name { get; set; }
         public DateTime CreationDate { get; set; }
         public List<Player>? Clients { get; set; }
@@ -213,6 +214,7 @@ namespace Horizon.HTTPSERVICE
 
     public class Player
     {
+        public int DmeId { get; set; }
         public bool Host { get; set; }
         public string? Name { get; set; }
         public string? Languages { get; set; }

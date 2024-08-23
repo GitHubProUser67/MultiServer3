@@ -864,8 +864,8 @@ namespace HomeTools.UnBAR
                 input = streamReader.ReadToEnd();
                 streamReader.Close();
             }
-            // Process 2 patherns at a time, removing the limit is not tolerable as CPU usage goes way too high.
-            Parallel.ForEach(regexPatternsList, new ParallelOptions { MaxDegreeOfParallelism = 2 }, regexPatterns =>
+            // Process Environment.ProcessorCount patherns at a time, removing the limit is not tolerable as CPU usage goes way too high.
+            Parallel.ForEach(regexPatternsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, regexPatterns =>
             {
                 if (!string.IsNullOrEmpty(regexPatterns.pattern))
                 {

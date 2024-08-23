@@ -115,6 +115,7 @@ namespace SSFWServer
                 else
                     LoggerAccessor.LogInfo($"[SSFW] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
+                (string, string) OldRPCNProfile = new();
                 (string, string) UserNames = new();
                 (string, string) ResultStrings = new();
                 (string, string) SessionIDs = new();
@@ -140,8 +141,11 @@ namespace SSFWServer
 
                 if (IsRPCN)
                 {
+                    string oldRPCNAccountName = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
+                    OldRPCNProfile.Item1 = oldRPCNAccountName;
+
                     // Convert the modified data to a string
-                    UserNames.Item1 = ResultStrings.Item1 = Encoding.ASCII.GetString(extractedData) + "RPCN" + homeClientVersion;
+                    UserNames.Item1 = ResultStrings.Item1 = Encoding.ASCII.GetString(extractedData) + "@RPCN" + homeClientVersion;
 
                     // Calculate the MD5 hash of the result
                     if (!string.IsNullOrEmpty(xsignature))
@@ -158,6 +162,13 @@ namespace SSFWServer
                     ResultStrings.Item1 += hash;
 
                     SessionIDs.Item1 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1);
+
+                    hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(oldRPCNAccountName + salt));
+
+                    // Trim the hash to a specific length
+                    hash = hash[..10];
+
+                    OldRPCNProfile.Item2 = GuidGenerator.SSFWGenerateGuid(hash, oldRPCNAccountName + hash);
                 }
 
                 if (!string.IsNullOrEmpty(UserNames.Item1) && !string.IsNullOrEmpty(SessionIDs.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
@@ -166,6 +177,8 @@ namespace SSFWServer
 
                     if (SSFWAccountManagement.AccountExists(UserNames.Item2, SessionIDs.Item2))
                         SSFWAccountManagement.CopyAccountProfile(UserNames.Item2, UserNames.Item1, SessionIDs.Item2, SessionIDs.Item1, key);
+                    else if (!string.IsNullOrEmpty(OldRPCNProfile.Item1) && !string.IsNullOrEmpty(OldRPCNProfile.Item2) && SSFWAccountManagement.AccountExists(OldRPCNProfile.Item1, OldRPCNProfile.Item2))
+                        SSFWAccountManagement.CopyAccountProfile(OldRPCNProfile.Item1, UserNames.Item1, OldRPCNProfile.Item2, SessionIDs.Item1, key);
                 }
                 else if (!string.IsNullOrEmpty(UserNames.Item2) && !string.IsNullOrEmpty(SessionIDs.Item2))
                 {

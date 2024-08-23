@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Horizon.HTTPSERVICE
 {
-    public class CrudCIDManager
+    public class CIDManager
     {
         private static readonly ConcurrentList<CIDPair> cids = new();
 

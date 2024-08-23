@@ -74,28 +74,28 @@ namespace Horizon.HTTPSERVICE
                             if (encoding.Contains("zstd"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                                await ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
                             }
                             else if (encoding.Contains("br"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "br");
-                                await ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
                             }
                             else if (encoding.Contains("gzip"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                await ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
                             }
                             else if (encoding.Contains("deflate"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                                await ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(CrudRoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
                             }
                             else
-                                await ctx.Response.Send(CrudRoomManager.ToJson());
+                                await ctx.Response.Send(RoomManager.ToJson());
                         }
                         else
-                            await ctx.Response.Send(CrudRoomManager.ToJson());
+                            await ctx.Response.Send(RoomManager.ToJson());
                     }
                 });
 
@@ -126,28 +126,28 @@ namespace Horizon.HTTPSERVICE
                             if (encoding.Contains("zstd"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                                await ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(CrudCIDManager.ToJson(localhost ? false : true))));
+                                await ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(CIDManager.ToJson(!localhost))));
                             }
                             else if (encoding.Contains("br"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "br");
-                                await ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(CrudCIDManager.ToJson(localhost ? false : true))));
+                                await ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(CIDManager.ToJson(!localhost))));
                             }
                             else if (encoding.Contains("gzip"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                await ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(CrudCIDManager.ToJson(localhost ? false : true))));
+                                await ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(CIDManager.ToJson(!localhost))));
                             }
                             else if (encoding.Contains("deflate"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                                await ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(CrudCIDManager.ToJson(localhost ? false : true))));
+                                await ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(CIDManager.ToJson(!localhost))));
                             }
                             else
-                                await ctx.Response.Send(CrudCIDManager.ToJson(localhost ? false : true));
+                                await ctx.Response.Send(CIDManager.ToJson(!localhost));
                         }
                         else
-                            await ctx.Response.Send(CrudCIDManager.ToJson(localhost ? false : true));
+                            await ctx.Response.Send(CIDManager.ToJson(!localhost));
                     }
                 });
 

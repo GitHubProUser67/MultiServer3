@@ -412,7 +412,8 @@ namespace Horizon.MUM
             try
             {
                 if (player.Client != null)
-                    CrudRoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame?.GameName, player.Client.CurrentGame?.WorldID.ToString(), player.Client.AccountName, player.Client.LanguageType.ToString(), ishost);
+                    RoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame?.GameName, player.Client.CurrentGame?.MediusWorldId,
+                        player.Client.CurrentGame?.WorldID.ToString(), player.Client.AccountName, player.Client.DmeClientId, player.Client.LanguageType.ToString(), ishost);
             }
             catch
             {
@@ -468,10 +469,10 @@ namespace Horizon.MUM
             try
             {
                 if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !string.IsNullOrEmpty(client.AccountName) && !string.IsNullOrEmpty(WorldId))
-                    CrudRoomManager.RemoveUserFromGame(client.ApplicationId.ToString(), client.CurrentGame.GameName, WorldId, client.AccountName);
+                    RoomManager.RemoveUserFromGame(client.ApplicationId.ToString(), client.CurrentGame.GameName, WorldId, client.AccountName);
 
                 if (PlayerCount <= 1)
-                    CrudRoomManager.RemoveGame(client.ApplicationId.ToString(), WorldId, GameName);
+                    RoomManager.RemoveGame(client.ApplicationId.ToString(), WorldId, GameName);
             }
             catch
             {
@@ -667,7 +668,7 @@ namespace Horizon.MUM
 
             try
             {
-                CrudRoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
+                RoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
             }
             catch
             {

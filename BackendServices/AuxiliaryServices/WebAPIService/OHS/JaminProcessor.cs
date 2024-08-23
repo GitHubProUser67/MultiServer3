@@ -140,7 +140,7 @@ namespace WebAPIService.OHS
                     LoggerAccessor.LogInfo($"[OHS] - JaminFormat Assembled Data : {LuaReturn}");
 #endif
                     if (game != 0)
-                        return EncryptDecrypt.Encrypt(LuaReturn, new Random().Next(1, 95 * 95), game);
+                        return EncryptDecrypt.Encrypt(LuaReturn, new Random().Next(1, 9025), game);
                     else
                         return LuaReturn;
                 }
