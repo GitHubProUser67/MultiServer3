@@ -46,6 +46,7 @@ namespace HTTPServer
 
         private readonly List<Route> Routes = new();
         private string serverIP = "127.0.0.1";
+        private int KeepAliveClients = 0;
 
         #endregion
 
@@ -141,6 +142,8 @@ namespace HTTPServer
 
         public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
         {
+            bool IsInterlocked = false;
+
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
@@ -153,6 +156,9 @@ namespace HTTPServer
                     tcpClient.Dispose();
                     return;
                 }
+				
+                IsInterlocked = Interlocked.Increment(ref KeepAliveClients) > 0;
+                bool AllowKeepAlive = KeepAliveClients < HTTPServerConfiguration.MaximumAllowedKeepAliveClients;
 
                 HttpRequest? request = null;
 
@@ -902,7 +908,7 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, false);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive);
                                                                     else
                                                                         response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true);
                                                                 }
@@ -945,7 +951,7 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, false);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive);
                                                                     else
                                                                         response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false);
                                                                 }
@@ -1095,7 +1101,7 @@ namespace HTTPServer
                                 }
 
                                 if (response != null)
-                                    WriteResponse(outputStream, request, response, filePath, false);
+                                    WriteResponse(outputStream, request, response, filePath, AllowKeepAlive);
                             }
                         }
                     }
@@ -1121,6 +1127,9 @@ namespace HTTPServer
             {
                 LoggerAccessor.LogError($"[HTTP] - HandleClient thrown an exception : {ex}");
             }
+			
+            if (IsInterlocked)
+                Interlocked.Decrement(ref KeepAliveClients);
 
             tcpClient.Close();
             tcpClient.Dispose();
