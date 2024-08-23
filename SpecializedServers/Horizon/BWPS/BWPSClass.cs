@@ -145,22 +145,11 @@ namespace Horizon.BWPS
         {
             // Load settings
             if (File.Exists(CONFIG_FILE))
-            {
-                try
+                // Populate existing object
+                JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
                 {
-                    // Populate existing object
-                    JsonConvert.PopulateObject(File.ReadAllText(CONFIG_FILE), Settings, new JsonSerializerSettings()
-                    {
-                        MissingMemberHandling = MissingMemberHandling.Ignore,
-                    });
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[BWPSClass] - RefreshConfig failed to read the json config, reason: {ex}");
-
-                    return;
-                }
-            }
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                });
             else
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(CONFIG_FILE) ?? Directory.GetCurrentDirectory() + "/static");
