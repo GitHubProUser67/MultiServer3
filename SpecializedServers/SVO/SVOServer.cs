@@ -21,6 +21,8 @@ namespace SVO
         private HttpListener? listener;
         private readonly string ip;
 
+        protected readonly int MaxConcurrentListeners = Environment.ProcessorCount;
+
         public SVOServer(string ip, X509Certificate2? certificate = null)
         {
             this.ip = ip;
@@ -112,7 +114,7 @@ namespace SVO
             }
 
             HashSet<Task> requests = new();
-            for (int i = 0; i < Environment.ProcessorCount; i++)
+            for (int i = 0; i < MaxConcurrentListeners; i++)
                 requests.Add(listener.GetContextAsync());
 
             // wait for requests
@@ -127,30 +129,36 @@ namespace SVO
 
                     if (t is Task<HttpListenerContext>)
                     {
-                        HttpListenerContext? ctx = (t as Task<HttpListenerContext>)?.Result;
-                        requests.Add(ProcessContext(ctx));
+                        HttpListenerContext? ctx = null;
+
+                        try
+                        {
+                            ctx = (t as Task<HttpListenerContext>)?.Result;
+                        }
+                        catch (AggregateException ex)
+                        {
+                            ex.Handle(innerEx =>
+                            {
+                                if (innerEx is TaskCanceledException)
+                                    return true; // Indicate that the exception was handled
+
+                                LoggerAccessor.LogWarn($"[SVO] - HttpListenerContext Task thrown an AggregateException: {ex}");
+
+                                return false;
+                            });
+                        }
+
+                        requests.Add(Task.Run(() => ProcessContext(ctx)));
                         requests.Add(listener.GetContextAsync());
                     }
                 }
                 catch (HttpListenerException e)
                 {
                     if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - A HttpListenerException Occured: " + e.Message);
-                    listener.Stop();
-
-                    if (!listener.IsListening) // Check if server is closed, then, start it again.
-                        listener.Start();
-                    else
-                        threadActive = false;
                 }
                 catch (Exception e)
                 {
                     LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
-                    listener.Stop();
-
-                    if (!listener.IsListening) // Check if server is closed, then, start it again.
-                        listener.Start();
-                    else
-                        threadActive = false;
                 }
             }
         }

@@ -1,7 +1,7 @@
 // Copyright (C) 2016 by Barend Erasmus and donated to the public domain
 using CyberBackendLibrary.Extension;
-using CyberBackendLibrary.HTTP;
 using HTTPServer.Extensions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +16,7 @@ namespace HTTPServer.Models
         #region Properties
 
         public HttpStatusCode HttpStatusCode { get; set; }
+        [JsonIgnore]
         public Stream? ContentStream { get; set; }
         public Dictionary<string, string> Headers { get; set; }
         private string HttpVersion { get; set; }

@@ -1042,7 +1042,7 @@ namespace Horizon.MUIS
                                     await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
                                 }
 
-                                CrudRoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, false);
+                                RoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, null, null, false);
                             }
                         }
                     }

@@ -2142,7 +2142,7 @@ namespace Horizon.MUM
                         {
                             try
                             {
-                                CrudRoomManager.RemoveWorld(channel.ApplicationId.ToString(), channel.Id.ToString());
+                                RoomManager.RemoveWorld(channel.ApplicationId.ToString(), channel.Id.ToString());
                             }
                             catch
                             {

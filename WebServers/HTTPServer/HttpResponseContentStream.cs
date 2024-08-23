@@ -12,9 +12,11 @@ namespace HTTPServer
 	{
 		//RTFM: https://datatracker.ietf.org/doc/html/rfc9112#section-7
 
-		private readonly Stream inner;
+        private const string newLine = "\r\n";
+
+        private readonly byte[] newLineBytes = Encoding.ASCII.GetBytes(newLine);
+        private readonly Stream inner;
 		private readonly bool UseChunkedTransfer;
-		private string newLine = "\r\n";
 
         /// <summary>
         /// Initialize this HttpResponseContentStream instance.
@@ -52,7 +54,7 @@ namespace HTTPServer
 				// Send chunk
 				inner.Write(Encoding.ASCII.GetBytes((count - offset).ToString("X") + newLine).AsSpan());
 				inner.Write(buffer, offset, count);
-				inner.Write(Encoding.ASCII.GetBytes(newLine).AsSpan());
+				inner.Write(newLineBytes, 0, newLineBytes.Length);
 			}
 			else
                 // Just write the body

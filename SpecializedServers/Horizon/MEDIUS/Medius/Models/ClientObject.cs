@@ -52,11 +52,6 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public int DmeId { get; protected set; } = 0;
-
-        /// <summary>
-        /// 
-        /// </summary>
         public uint ScertId { get; set; } = 0;
 
         /// <summary>
@@ -536,7 +531,7 @@ namespace Horizon.MEDIUS.Medius.Models
             // Logout
             _logoutTime = Utils.GetHighPrecisionUtcTime();
 
-            CrudRoomManager.RemoveUser(AccountName);
+            RoomManager.RemoveUser(AccountName);
 
             // Tell database
             PostStatus();
@@ -560,7 +555,7 @@ namespace Horizon.MEDIUS.Medius.Models
             // Login
             _loginTime = Utils.GetHighPrecisionUtcTime();
 
-            CrudRoomManager.AddOrUpdateUser(AccountName, ApplicationId);
+            RoomManager.AddOrUpdateUser(AccountName, ApplicationId);
 
             // WE ARE ANONYMOUS SO DON'T POST TO DATABASE!!!!
         }
@@ -589,7 +584,7 @@ namespace Horizon.MEDIUS.Medius.Models
                     // Update last sign in date
                     _ = HorizonServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
 
-                    CrudRoomManager.AddOrUpdateUser(AccountName, ApplicationId);
+                    RoomManager.AddOrUpdateUser(AccountName, ApplicationId);
 
                     // Update database status
                     PostStatus();
@@ -993,8 +988,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public override string ToString()
         {
-            return $"({AccountId}:{AccountName}:{ApplicationId})";
-            //return $"(worldId: {DmeWorld.WorldId},clientId: {DmeId})";
+            return $"({AccountId}:{AccountName}:{ApplicationId}:{DmeClientId})";
         }
     }
 

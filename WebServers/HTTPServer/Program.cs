@@ -13,6 +13,8 @@ using System.Reflection;
 using CyberBackendLibrary.HTTP;
 using System.Threading.Tasks;
 using CyberBackendLibrary.TCP_IP;
+using System.Collections.Concurrent;
+using System.Linq;
 
 public static class HTTPServerConfiguration
 {
@@ -24,6 +26,7 @@ public static class HTTPServerConfiguration
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static int BufferSize { get; set; } = 4096;
+    public static int MaximumAllowedKeepAliveClients { get; set; } = 150;
     public static string HttpVersion { get; set; } = "1.1";
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
@@ -73,6 +76,7 @@ public static class HTTPServerConfiguration
                 new JProperty("http_temp_folder", HTTPTempFolder),
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("buffer_size", BufferSize),
+                new JProperty("maximum_allowed_keep_alive_clients", MaximumAllowedKeepAliveClients),
                 new JProperty("http_version", HttpVersion),
                 SerializeMimeTypes(),
                 SerializeDateTimeOffset(),
@@ -109,6 +113,7 @@ public static class HTTPServerConfiguration
             HTTPTempFolder = GetValueOrDefault(config, "http_temp_folder", HTTPTempFolder);
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             BufferSize = GetValueOrDefault(config, "buffer_size", BufferSize);
+            MaximumAllowedKeepAliveClients = GetValueOrDefault(config, "maximum_allowed_keep_alive_clients", MaximumAllowedKeepAliveClients);
             HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
             MimeTypes = GetValueOrDefault(config, "mime_types", MimeTypes);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
@@ -210,11 +215,27 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "http.json";
     private static Timer? FilesystemTree = null;
-    private static HttpServer? Server = null;
+    private static ConcurrentBag<HttpServer>? HTTPBag = null;
+    private static readonly HttpProcessor Processor = InitializeProcessor();
+
+    private static HttpProcessor InitializeProcessor()
+    {
+        HttpProcessor proc = new();
+
+        HTTPServer.RouteHandlers.staticRoutes.Main.index.ForEach(route => proc.AddRoute(route));
+
+        return proc;
+    }
 
     private static void StartOrUpdateServer()
     {
-        Server?.Stop();
+        if (HTTPBag != null)
+        {
+            foreach (HttpServer httpBag in HTTPBag)
+            {
+                httpBag.Stop();
+            }
+        }
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -237,7 +258,23 @@ class Program
             }
         }
 
-        Server = new HttpServer(HTTPServerConfiguration.Ports, HTTPServer.RouteHandlers.staticRoutes.Main.index, new CancellationTokenSource().Token);
+        if (HTTPServerConfiguration.Ports != null && HTTPServerConfiguration.Ports.Count > 0)
+        {
+            HTTPBag = new();
+
+            _ = Processor.TryGetServerIP(HTTPServerConfiguration.Ports.First());
+
+            Parallel.ForEach(HTTPServerConfiguration.Ports, port =>
+            {
+                if (TCP_UDPUtils.IsTCPPortAvailable(port))
+                    HTTPBag.Add(new HttpServer(port, new List<HTTPServer.Models.Route> { } /*TODO: Make it so we can input custom routes*/, Processor, new CancellationTokenSource().Token));
+            });
+        }
+        else
+        {
+            HTTPBag = null;
+            LoggerAccessor.LogError("[HTTP] - No ports were found in the server configuration, ignoring server startup...");
+        }
     }
 
     static void Main()

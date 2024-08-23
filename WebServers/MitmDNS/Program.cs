@@ -13,6 +13,8 @@ public static class MitmDNSServerConfiguration
 {
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
+    public static uint MaximumNumberOfRequests { get; set; } = 200;
+    public static uint MinimumDeltaTimeMs { get; set; } = 1000;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
 
     /// <summary>
@@ -33,6 +35,8 @@ public static class MitmDNSServerConfiguration
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
                 new JProperty("online_routes_config", DNSOnlineConfig),
+                new JProperty("maximum_number_of_requests", MaximumNumberOfRequests),
+                new JProperty("minimum_delta_time_ms", MinimumDeltaTimeMs),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests)
             ).ToString());
@@ -46,6 +50,8 @@ public static class MitmDNSServerConfiguration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             DNSOnlineConfig = GetValueOrDefault(config, "online_routes_config", DNSOnlineConfig);
+            MaximumNumberOfRequests = GetValueOrDefault(config, "maximum_number_of_requests", MaximumNumberOfRequests);
+            MinimumDeltaTimeMs = GetValueOrDefault(config, "minimum_delta_time_ms", MinimumDeltaTimeMs);
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
         }

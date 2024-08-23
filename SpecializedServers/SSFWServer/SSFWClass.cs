@@ -8,8 +8,7 @@ using System.Text.RegularExpressions;
 using System.Net.Security;
 using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
-using System.IO;
-using System;
+using System.Text.Json;
 
 namespace SSFWServer
 {
@@ -120,7 +119,12 @@ namespace SSFWServer
                 {
                     string? env = ExtractBeforeFirstDot(GetHeaderValue(Headers, "Host", false));
 
+#if DEBUG
+                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url} (Details: \n{{ \"NetCoreServer\":" + JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true }) 
+                        + (Headers.Length > 0 ? $", \"Headers\":{JsonSerializer.Serialize(Headers.ToDictionary(header => header.HeaderIndex, header => header.HeaderItem), new JsonSerializerOptions { WriteIndented = true })} }} )" : "} )"));
+#else
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
+#endif
 
                     string sessionid = GetHeaderValue(Headers, "X-Home-Session-Id");
 
