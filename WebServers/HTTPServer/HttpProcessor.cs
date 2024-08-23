@@ -14,8 +14,6 @@ using WebAPIService.CDM;
 using WebAPIService.MultiMedia;
 using WebAPIService.UBISOFT.gsconnect;
 using WebAPIService.HELLFIRE;
-using WebAPIService.HTS;
-using WebAPIService.ILoveSony;
 using CyberBackendLibrary.GeoLocalization;
 using CyberBackendLibrary.HTTP;
 using CustomLogger;
@@ -37,12 +35,8 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using CyberBackendLibrary.HTTP.PluginManager;
 using CyberBackendLibrary.Extension;
-using System.Security.Cryptography.X509Certificates;
-using System.Net.Security;
-using System.Security.Authentication;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
-using Newtonsoft.Json;
 
 namespace HTTPServer
 {
@@ -52,8 +46,8 @@ namespace HTTPServer
 
         private readonly List<Route> Routes = new();
         private string serverIP = "127.0.0.1";
-        private X509Certificate2? certificate = null;
-        private int KeepAliveClients = 0;
+
+        #endregion
 
         #region Domains
 
@@ -94,20 +88,18 @@ namespace HTTPServer
 
         #endregion
 
-        #endregion
-
         #region Constructors
 
-        public HttpProcessor(X509Certificate2? certificate = null)
+        public HttpProcessor()
         {
-            this.certificate = certificate;
+            
         }
 
         #endregion
 
         #region Public Methods
 
-        public static bool IsIPBanned(string ipAddress, int clientport)
+        public static bool IsIPBanned(string ipAddress, int? clientport)
         {
             if (HTTPServerConfiguration.BannedIPs != null && HTTPServerConfiguration.BannedIPs.Contains(ipAddress))
             {
@@ -147,41 +139,38 @@ namespace HTTPServer
             return Task.CompletedTask;
         }
 
-        public Task HandleClient(TcpClient tcpClient, ushort ListenerPort)
+        public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
         {
-            bool IsInterlocked = false;
-
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
+
                 int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
 
-                if (!clientport.HasValue || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport.Value))
+                if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
                 {
+                    tcpClient.Close();
                     tcpClient.Dispose();
-                    return Task.CompletedTask;
+                    return;
                 }
 
-                IsInterlocked = Interlocked.Increment(ref KeepAliveClients) > 0;
-                bool AllowKeepAlive = KeepAliveClients < HTTPServerConfiguration.MaximumAllowedKeepAliveClients;
-                string clientportString = clientport.ToString() ?? string.Empty;
-                bool secure = clientportString.EndsWith("443");
                 HttpRequest? request = null;
 
-                using (Stream? clientStream = GetStream(tcpClient, secure))
+                using Stream? inputStream = GetInputStream(tcpClient);
+                using (Stream? outputStream = GetOutputStream(tcpClient))
                 {
                     while (tcpClient.IsConnected())
                     {
-                        if (tcpClient.Available > 0 && clientStream.CanWrite)
+                        if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
                             DateTime CurrentDate = DateTime.UtcNow;
 
                             if (request == null)
-                                request = GetRequest(clientStream, clientip, clientportString, ListenerPort);
+                                request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
                             else
-                                request = AppendRequestOrInputStream(clientStream, request, clientip, clientportString, ListenerPort);
+                                request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
 
-                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
                                 HttpResponse? response = null;
                                 string Method = request.Method;
@@ -312,7 +301,7 @@ namespace HTTPServer
                                     }
                                 }
 
-                                response ??= RouteRequest(request, absolutepath, Host);
+                                response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
                                 if (response == null)
                                 {
@@ -321,19 +310,19 @@ namespace HTTPServer
                                         default:
 
                                             #region Outso OHS API
-                                            if ((Host == "stats.outso-srv1.com" 
+                                            if ((Host == "stats.outso-srv1.com"
                                                 || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 (absolutepath.Contains("/ohs_") ||
                                                 absolutepath.Contains("/ohs/") ||
                                                 absolutepath.Contains("/statistic/") ||
                                                 absolutepath.Contains("/Konami/") ||
-                                                absolutepath.Contains("/tracker/" )) && absolutepath.EndsWith("/"))
+                                                absolutepath.Contains("/tracker/")) && absolutepath.EndsWith("/"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
 
                                                 string? res = null;
-												
+
                                                 #region OHS API Version
                                                 int version = 0;
                                                 if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
@@ -349,14 +338,14 @@ namespace HTTPServer
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
                                                 #endregion
-												
+
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream?.CopyTo(postdata);
                                                     res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                     postdata.Flush();
                                                 }
-												
+
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
@@ -365,9 +354,9 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Outso OUWF Debug API
-                                            else if (Host == "ouwf.outso-srv1.com" 
-                                                && request.GetDataStream != null 
-                                                && !string.IsNullOrEmpty(Method) 
+                                            else if (Host == "ouwf.outso-srv1.com"
+                                                && request.GetDataStream != null
+                                                && !string.IsNullOrEmpty(Method)
                                                 && request.GetContentType().StartsWith("multipart/form-data"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a OuWF method : {absolutepath}");
@@ -430,7 +419,7 @@ namespace HTTPServer
 
                                             #region nDreams API
                                             else if (nDreamsDomains.Contains(Host)
-                                                && !string.IsNullOrEmpty(Method) 
+                                                && !string.IsNullOrEmpty(Method)
                                                 && (absolutepath.EndsWith(".php")
                                                 || absolutepath.Contains("/NDREAMS/")
                                                 || absolutepath.Contains("/gateway/")))
@@ -483,8 +472,8 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Juggernaut Games API
-                                            else if (Host == "juggernaut-games.com" 
-                                                && !string.IsNullOrEmpty(Method) 
+                                            else if (Host == "juggernaut-games.com"
+                                                && !string.IsNullOrEmpty(Method)
                                                 && absolutepath.EndsWith(".php"))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
@@ -511,8 +500,8 @@ namespace HTTPServer
                                             #endregion
 
                                             #region LOOT API
-                                            else if ((Host == "server.lootgear.com" 
-                                                || Host == "alpha.lootgear.com") 
+                                            else if ((Host == "server.lootgear.com"
+                                                || Host == "alpha.lootgear.com")
                                                 && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
@@ -542,7 +531,7 @@ namespace HTTPServer
                                                 Host == "homeec.scej-nbs.jp" ||
                                                 Host == "homeecqa.scej-nbs.jp" ||
                                                 Host == "homect-scej.jp" ||
-                                                Host == "qa-homect-scej.jp") 
+                                                Host == "qa-homect-scej.jp")
                                                 && !string.IsNullOrEmpty(Method)
                                                 && absolutepath.Contains("/eventController/"))
                                             {
@@ -584,8 +573,8 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Ubisoft API
-                                            else if (Host.Contains("api-ubiservices.ubi.com") 
-                                                && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client") 
+                                            else if (Host.Contains("api-ubiservices.ubi.com")
+                                                && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client")
                                                 && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
@@ -671,10 +660,10 @@ namespace HTTPServer
                                                     response = HttpBuilder.NotAllowed();
                                             }
                                             #endregion
-											
-											#region gsconnect API
+
+                                            #region gsconnect API
                                             else if (Host == "gsconnect.ubisoft.com"
-											    && !string.IsNullOrEmpty(Method))
+                                                && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
 
@@ -703,7 +692,7 @@ namespace HTTPServer
 
                                                     if (res.Item3 != null)
                                                     {
-                                                        foreach (KeyValuePair<string, string> headertoadd in  res.Item3)
+                                                        foreach (KeyValuePair<string, string> headertoadd in res.Item3)
                                                         {
                                                             response.Headers.TryAdd(headertoadd.Key, headertoadd.Value);
                                                         }
@@ -713,14 +702,14 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CentralDispatchManager API
-                                            else if (HPDDomains.Contains(Host) 
+                                            else if (HPDDomains.Contains(Host)
                                                 && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
 
                                                 string? res = null;
 
-                                                if(Method == "POST")
+                                                if (Method == "POST")
                                                 {
                                                     if (request.GetDataStream != null)
                                                     {
@@ -729,7 +718,8 @@ namespace HTTPServer
                                                         res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
                                                         postdata.Flush();
                                                     }
-                                                } else
+                                                }
+                                                else
                                                 {
 
                                                     using (MemoryStream postdata = new())
@@ -747,7 +737,7 @@ namespace HTTPServer
                                             #endregion
 
                                             #region CAPONE GriefReporter API
-                                            else if (CAPONEDomains.Contains(Host) 
+                                            else if (CAPONEDomains.Contains(Host)
                                                 && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CAPONE method : {absolutepath}");
@@ -912,7 +902,7 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(clientStream, request, filePath, AllowKeepAlive);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, false);
                                                                     else
                                                                         response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true);
                                                                 }
@@ -955,7 +945,7 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(clientStream, request, filePath, AllowKeepAlive);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, false);
                                                                     else
                                                                         response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false);
                                                                 }
@@ -1031,8 +1021,7 @@ namespace HTTPServer
                                                                             using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
                                                                             response = new()
                                                                             {
-                                                                                HttpStatusCode = HttpStatusCode.OK,
-                                                                                ContentAsUTF8 = string.Empty
+                                                                                HttpStatusCode = HttpStatusCode.OK
                                                                             };
                                                                             response.Headers.Add("Content-Type", vid.ContentType);
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
@@ -1106,12 +1095,13 @@ namespace HTTPServer
                                 }
 
                                 if (response != null)
-                                    WriteResponse(clientStream, request, response, filePath, AllowKeepAlive);
+                                    WriteResponse(outputStream, request, response, filePath, false);
                             }
                         }
                     }
-                    clientStream.Flush();
+                    outputStream.Flush();
                 }
+                inputStream.Flush();
 
                 request?.Dispose();
             }
@@ -1132,12 +1122,8 @@ namespace HTTPServer
                 LoggerAccessor.LogError($"[HTTP] - HandleClient thrown an exception : {ex}");
             }
 
-            if (IsInterlocked)
-                Interlocked.Decrement(ref KeepAliveClients);
-
+            tcpClient.Close();
             tcpClient.Dispose();
-
-            return Task.CompletedTask;
         }
 
         public void AddRoute(Route route)
@@ -1882,77 +1868,56 @@ namespace HTTPServer
             stream.Write(Encoding.UTF8.GetBytes(text).AsSpan());
         }
 
-        protected virtual Stream GetStream(TcpClient tcpClient, bool secure)
+        protected virtual Stream GetOutputStream(TcpClient tcpClient)
         {
-            if (secure)
-            {
-                if (certificate == null)
-                {
-                    LoggerAccessor.LogError("[HTTP] - Client tried to establish a SSL tunnel, but processor doesn't have a SSL Certificate attached to it, sending plain stream instead.");
-                    return tcpClient.GetStream();
-                }
-
-                // Get client stream
-                NetworkStream stream = tcpClient.GetStream();
-
-                SslStream sslStream = new(stream, false, new RemoteCertificateValidationCallback(AcceptCertificate));
-
-                // Authenticate server with self-signed certificate, false (for not requiring client authentication), SSL protocol type, ...
-                sslStream.AuthenticateAsServer(certificate,
-                                                    false,
-                                                    (SslProtocols)ServicePointManager.SecurityProtocol,
-                                                    false);
-
-                return sslStream;
-            }
-
             return tcpClient.GetStream();
         }
 
-        protected virtual HttpResponse? RouteRequest(HttpRequest request, string url, string Host)
+        protected virtual Stream GetInputStream(TcpClient tcpClient)
+        {
+            return tcpClient.GetStream();
+        }
+
+        protected virtual HttpResponse? RouteRequest(Stream inputStream, Stream outputStream, HttpRequest request, string url, string Host)
         {
             List<Route> routes = Routes.Where(x => x.UrlRegex != null && Regex.Match(url, x.UrlRegex).Success).ToList();
 
             if (!routes.Any())
                 return null;
 
-            Route? route = routes.SingleOrDefault(x => x.Method == request.Method && (string.IsNullOrEmpty(x.Host) || x.Host == Host));
+            Route? route = routes.SingleOrDefault(x => x.Method == request.Method && (x.Host == Host || x.Host == string.Empty));
 
             if (route == null)
                 return null;
 
             request.Route = route;
 
-            if (route.Callable != null)
+            try
             {
-                HttpResponse? result = null;
-
-                try
+                if (route.Callable != null)
                 {
-                    result = route.Callable(request);
+                    HttpResponse? result = route.Callable(request);
                     if (result != null && result.IsValid())
                         return result;
                 }
-                catch
-                {
-
-                }
-
-                result?.Dispose(); // Just in case.
+            }
+            catch
+            {
+                // Not Important
             }
 
             return null;
         }
 
-        protected virtual HttpRequest? AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string clientport, ushort ListenerPort)
+        protected virtual HttpRequest AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string? clientport, ushort ListenerPort)
 		{
-			HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport, ListenerPort);
+            HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport, ListenerPort);
 
-			if (newRequest != null)
-			{
-				request.Dispose();
+            if (newRequest != null)
+            {
+                request.Dispose();
                 return newRequest;
-			}
+            }
 
             if (request.Data != null && request.Data.CanSeek)
             {
@@ -1977,17 +1942,17 @@ namespace HTTPServer
             }
 
             return request;
-		}
+        }
 
 
-        protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string clientport, ushort ListenerPort)
+        protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
 		{
-			// Read Request Line and check if valid.
-			string[] tokens = Readline(inputStream).Split(' ');
+            // Read Request Line and check if valid.
+            string[] tokens = Readline(inputStream).Split(' ');
 
-			if (tokens.Length == 3 && !string.IsNullOrEmpty(tokens[2]) && tokens[2].Contains("HTTP/"))
-			{
-				string line;
+            if (tokens.Length == 3 && !string.IsNullOrEmpty(tokens[2]) && tokens[2].Contains("HTTP/"))
+            {
+                string line;
                 // string protocolVersion = tokens[2]; // Unused.
 
                 // Read Headers
@@ -2012,20 +1977,20 @@ namespace HTTPServer
                 }
 
                 HttpRequest request = new()
-				{
-					Method = tokens[0].ToUpper(),
-					RawUrlWithQuery = HTTPProcessor.DecodeUrl(tokens[1]),
-					Headers = headers,
-					IP = clientip,
-					Port = clientport,
-					ServerPort = ListenerPort,
+                {
+                    Method = tokens[0].ToUpper(),
+                    RawUrlWithQuery = HTTPProcessor.DecodeUrl(tokens[1]),
+                    Headers = headers,
+                    IP = clientip,
+                    Port = clientport,
+                    ServerPort = ListenerPort,
                     ServerIP = serverIP
                 };
 
                 string ContentLength = request.GetContentLength();
 
                 if (!string.IsNullOrEmpty(ContentLength))
-				{
+                {
                     const int bufferSize = 16 * 1024;
 
                     int bytesRead;
@@ -2042,17 +2007,12 @@ namespace HTTPServer
                     }
 
                     request.Data.Position = 0;
-				}
+                }
 
-				return request;
-			}
+                return request;
+            }
 
-			return null;
-		}
-
-        private bool AcceptCertificate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
-        {
-            return true;
+            return null;
         }
 
         /// <summary>
@@ -2079,6 +2039,6 @@ namespace HTTPServer
         [GeneratedRegex("\\b\\d{3}\\b")]
         private static partial Regex HttpStatusCodeRegex();
 #endif
-        #endregion
+#endregion
     }
 }
