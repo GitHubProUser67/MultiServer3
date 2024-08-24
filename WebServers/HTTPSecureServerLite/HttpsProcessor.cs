@@ -95,6 +95,7 @@ namespace HTTPSecureServerLite
                 Hostname = ip,
                 Port = port,
             };
+            settings.IO.StreamBufferSize = HTTPSServerConfiguration.BufferSize;
             if (secure)
             {
                 settings.Ssl.PfxCertificateFile = certpath;
