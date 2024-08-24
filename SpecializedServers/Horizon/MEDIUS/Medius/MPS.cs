@@ -971,7 +971,7 @@ namespace Horizon.MEDIUS.Medius
             }, channel);
         }
 
-        public void SendServerCreateGameWithAttributesRequest(string msgId, int acctId, int gameId, bool partyType, int gameAttributes, int clientAppId, int gameMaxPlayers)
+        public void SendServerCreateGameWithAttributesRequest(string msgId, int acctId, uint worldId, int gameId, bool partyType, int gameAttributes, int clientAppId, int gameMaxPlayers)
         {
             //{gameId}-{acctId}-{messageId}-{partyType}
             Queue(new RT_MSG_SERVER_APP()
@@ -979,7 +979,7 @@ namespace Horizon.MEDIUS.Medius
                 Message = new MediusServerCreateGameWithAttributesRequest()
                 {
                     MessageID = new MessageId($"{gameId}-{acctId}-{msgId}-{1}"),
-                    WorldID = (uint)gameId,
+                    WorldID = worldId,
                     Attributes = (MediusWorldAttributesType)gameAttributes,
                     ApplicationID = clientAppId,
                     MaxClients = gameMaxPlayers

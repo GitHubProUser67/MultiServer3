@@ -1756,7 +1756,7 @@ namespace Horizon.MUM
                         });
                     }
                     else
-                        mps.SendServerCreateGameWithAttributesRequest(request.MessageID.ToString(), client.AccountId, party.MediusWorldId, true, (int)party.Attributes, client.ApplicationId, party.MaxPlayers);
+                        mps.SendServerCreateGameWithAttributesRequest(request.MessageID.ToString(), client.AccountId, (uint)party.WorldID, party.MediusWorldId, true, (int)party.Attributes, client.ApplicationId, party.MaxPlayers);
 
                     return;
                 }
