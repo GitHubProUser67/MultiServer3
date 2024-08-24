@@ -8,7 +8,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_watered
     {
-        public static string ProcessWatered(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessWatered(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

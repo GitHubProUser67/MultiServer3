@@ -882,6 +882,22 @@ namespace CyberBackendLibrary.HTTP
         }
 
         /// <summary>
+        /// Compute the MD5 checksum of a stream.
+        /// <para>Calcul la somme des contr�les en MD5 d'un stream.</para>
+        /// </summary>
+        /// <param name="input">The input stream (must be seekable).</param>
+        /// <returns>A string.</returns>
+        public static string ComputeStreamMD5(Stream input)
+        {
+            if (!input.CanSeek)
+                return null;
+
+            string md5Hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(input).ToLower();
+            input.Seek(0, SeekOrigin.Begin);
+            return md5Hash;
+        }
+
+        /// <summary>
         /// Copies a Stream to an other.
         /// <para>Copie d'un Stream � un autre.</para>
         /// </summary>

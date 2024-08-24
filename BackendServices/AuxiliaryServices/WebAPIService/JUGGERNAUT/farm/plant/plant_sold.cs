@@ -9,7 +9,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_sold
     {
-        public static string ProcessSold(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessSold(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

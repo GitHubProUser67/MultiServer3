@@ -4,7 +4,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class getscores
     {
-        public static string ProcessGetScores(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessGetScores(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

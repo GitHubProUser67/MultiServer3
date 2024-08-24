@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using System.Text;
+using HTTPSecureServerLite.Extensions;
 using CyberBackendLibrary.HTTP;
 using CyberBackendLibrary.DNS;
 using CyberBackendLibrary.GeoLocalization;
@@ -30,12 +31,17 @@ using WatsonWebserver;
 using CyberBackendLibrary.Extension;
 using WebAPIService.WebArchive;
 using Newtonsoft.Json;
+using WebAPIService.OUWF;
+using WebAPIService.JUGGERNAUT;
+using WebAPIService.FROMSOFTWARE;
+using WebAPIService.UBISOFT.gsconnect;
+using WebAPIService.HTS;
+using WebAPIService.ILoveSony;
 
 namespace HTTPSecureServerLite
 {
     public partial class HttpsProcessor
     {
-        private static string serverIP = "127.0.0.1";
         private Webserver? _Server;
         private readonly string ip;
         private readonly ushort port;
@@ -70,9 +76,17 @@ namespace HTTPSecureServerLite
                                     "nDreams-multiserver-cdn"
                                 };
 
+        private readonly static List<string> HTSDomains = new() {
+                                    "samples.hdk.scee.net",
+                                };
+
+        private readonly static List<string> ILoveSonyDomains = new() {
+                                    "www.myresistance.net",
+                                };
+
         #endregion
 
-        public HttpsProcessor(string certpath, string certpass, string ip, ushort port)
+        public HttpsProcessor(string certpath, string certpass, string ip, ushort port, bool secure)
         {
             this.ip = ip;
             this.port = port;
@@ -81,9 +95,12 @@ namespace HTTPSecureServerLite
                 Hostname = ip,
                 Port = port,
             };
-            settings.Ssl.PfxCertificateFile = certpath;
-            settings.Ssl.PfxCertificatePassword = certpass;
-            settings.Ssl.Enable = true;
+            if (secure)
+            {
+                settings.Ssl.PfxCertificateFile = certpath;
+                settings.Ssl.PfxCertificatePassword = certpass;
+                settings.Ssl.Enable = true;
+            }
             _Server = new Webserver(settings, DefaultRoute);
 
             StartServer();
@@ -97,35 +114,6 @@ namespace HTTPSecureServerLite
                 ctx.Response.StatusCode = 403;
                 await ctx.Response.Send();
             }
-        }
-
-        public Task TryGetServerIP(ushort Port)
-        {
-            // We want to check if the router allows external IPs first.
-            string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
-            try
-            {
-                using TcpClient client = new(ServerIP, Port);
-                client.Close();
-            }
-            catch // Failed to connect to public ip, so we fallback to local IP.
-            {
-                ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
-
-                try
-                {
-                    using TcpClient client = new(ServerIP, Port);
-                    client.Close();
-                }
-                catch // Failed to connect to local ip, trying IPV4 only as a last resort.
-                {
-                    ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
-                }
-            }
-
-            serverIP = ServerIP;
-
-            return Task.CompletedTask;
         }
 
         public void StopServer()
@@ -144,8 +132,6 @@ namespace HTTPSecureServerLite
 
         public void StartServer()
         {
-			_ = TryGetServerIP(port);
-
             if (_Server != null && !_Server.IsListening)
             {
                 _Server.Routes.AuthenticateRequest = AuthorizeConnection;
@@ -181,9 +167,12 @@ namespace HTTPSecureServerLite
         {
             try
             {
+                bool sent = false;
+                bool requestValid = false;
                 HttpRequestBase request = ctx.Request;
                 DateTime CurrentDate = request.Timestamp.Start;
                 HttpResponseBase response = ctx.Response;
+                response.ProtocolVersion = HTTPSServerConfiguration.HttpVersion;
                 HttpStatusCode statusCode = HttpStatusCode.Forbidden;
                 string fullurl = string.Empty;
                 string absolutepath = string.Empty;
@@ -196,7 +185,7 @@ namespace HTTPSecureServerLite
                 string clientport = request.Source.Port.ToString();
                 string ServerIP = request.Destination.IpAddress;
                 int ServerPort = request.Destination.Port;
-                bool sent = false;
+                bool secure = ServerPort.ToString().EndsWith("443");
 
                 try
                 {
@@ -260,7 +249,7 @@ namespace HTTPSecureServerLite
 
                             absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
                             fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
-                            statusCode = HttpStatusCode.Continue;
+                            requestValid = true;
                         }
                     }
                     else
@@ -271,7 +260,7 @@ namespace HTTPSecureServerLite
 
                 }
 
-                if (statusCode == HttpStatusCode.Continue)
+                if (requestValid)
                 {
                     if (HTTPSServerConfiguration.RedirectRules != null)
                     {
@@ -389,6 +378,8 @@ namespace HTTPSecureServerLite
                         }
                         else
                         {
+                            response.ChunkedTransfer = HTTPSServerConfiguration.HttpVersion.Equals("1.1") && HTTPSServerConfiguration.ChunkedTransfers;
+
                             // Split the URL into segments
                             string[] segments = absolutepath.Trim('/').Split('/');
 
@@ -430,7 +421,10 @@ namespace HTTPSecureServerLite
                                             response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}").ToString("r"));
                                             response.StatusCode = (int)statusCode;
                                             response.ContentType = "text/html";
-                                            sent = await response.Send(CollectPHP.Item1);
+                                            if (response.ChunkedTransfer)
+                                                sent = await response.SendFinalChunk(CollectPHP.Item1);
+                                            else
+                                                sent = await response.Send(CollectPHP.Item1);
                                         }
                                         if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
                                             sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}",
@@ -454,10 +448,14 @@ namespace HTTPSecureServerLite
                                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}").ToString("r"));
                                                 response.StatusCode = (int)statusCode;
                                                 response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}"), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
-                                                sent = await response.Send(buffer);
+                                                if (response.ChunkedTransfer)
+                                                    sent = await response.SendFinalChunk(buffer);
+                                                else
+                                                    sent = await response.Send(buffer);
                                             }
                                             else
                                             {
+                                                response.ChunkedTransfer = false;
                                                 statusCode = HttpStatusCode.InternalServerError;
                                                 response.StatusCode = (int)statusCode;
                                                 response.ContentType = "text/plain";
@@ -477,12 +475,17 @@ namespace HTTPSecureServerLite
 
                                     if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                     {
+                                        string htmlContent = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                                            HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions);
                                         response.ContentType = "text/html";
-                                        sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                            HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
+                                        if (response.ChunkedTransfer)
+                                            sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(htmlContent));
+                                        else
+                                            sent = await response.Send(htmlContent);
                                     }
                                     else
                                     {
+                                        response.ChunkedTransfer = false;
                                         response.ContentType = "text/plain";
                                         sent = await response.Send();
                                     }
@@ -494,7 +497,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 
-                                (byte[]?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.DataAsBytes, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
+                                (byte[]?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.ContentLength > 0 ? request.DataAsBytes : null, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
                                 if (res.Item1 == null || res.Item1.Length == 0)
                                     statusCode = HttpStatusCode.InternalServerError;
                                 else
@@ -507,7 +510,10 @@ namespace HTTPSecureServerLite
                                     response.ContentType = res.Item2;
                                 else
                                     response.ContentType = "text/plain";
-                                sent = await response.Send(res.Item1);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(res.Item1);
+                                else
+                                    sent = await response.Send(res.Item1);
                             }
                             #endregion
 
@@ -519,8 +525,8 @@ namespace HTTPSecureServerLite
                             || absolutepath.Contains("/gateway/")))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
-                                string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiPath, $"https://nDreams-multiserver-cdn/", $"https://{Host}{request.Url.RawWithQuery}", absolutepath,
-                                    HTTPSServerConfiguration.APIStaticFolder, Host).ProcessRequest(null, request.DataAsBytes, request.ContentType);
+                                string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiPath, $"{(secure ? "https" : "http")}://nDreams-multiserver-cdn/", $"{(secure ? "https" : "http")}://{Host}{request.Url.RawWithQuery}", absolutepath,
+                                    HTTPSServerConfiguration.APIStaticFolder, Host).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -533,7 +539,10 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
-                                sent = await response.Send(res);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
                             }
                             #endregion
 
@@ -542,7 +551,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                                string? res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(request.DataAsBytes, request.ContentType, true);
+                                string res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -555,7 +564,10 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
-                                sent = await response.Send(res);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
                             }
                             #endregion
 
@@ -569,7 +581,23 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
-                                string? res = new OHSClass(request.Method.ToString(), absolutepath, 0).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                                #region OHS API Version
+                                int version = 0;
+                                if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
+                                    version = 2;
+                                else if (absolutepath.Contains("/SCEA/SaucerPop/"))
+                                    version = 2;
+                                else if (absolutepath.Contains("/AirRace/"))
+                                    version = 2;
+                                else if (absolutepath.Contains("/Uncharted2/"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/Infamous/"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/warhawk_shooter/"))
+                                    version = 1;
+                                #endregion
+
+                                string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -583,7 +611,35 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
-                                sent = await response.Send(res);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Outso OUWF Debug API
+                            else if (Host == "ouwf.outso-srv1.com" && request.ContentType.StartsWith("multipart/form-data"))
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Identified a OuWF method : {absolutepath}");
+
+                                string? res = new OuWFClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.HTTPSStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
                             }
                             #endregion
 
@@ -592,15 +648,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
 
-                                NameValueCollection QueryElements = request.Query.Elements;
-                                Dictionary<string, string> QueryElementsList = new();
-
-                                foreach (string? k in QueryElements.AllKeys)
-                                {
-                                    QueryElements.Add(k, QueryElements[k]);
-                                }
-
-                                string? res = new LOOTClass(request.Method.ToString(), absolutepath, apiPath).ProcessRequest(QueryElementsList, request.DataAsBytes, request.ContentType);
+                                string? res = new LOOTClass(request.Method.ToString(), absolutepath, apiPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -613,7 +661,47 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
-                                sent = await response.Send(res);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+
+                            #region Juggernaut Games API
+                            else if (Host == "juggernaut-games.com" && absolutepath.EndsWith(".php"))
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
+
+                                string? res = null;
+                                JUGGERNAUTClass juggernaut = new(request.Method.ToString(), absolutepath);
+                                if (request.ContentLength > 0)
+                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), HTTPSServerConfiguration.APIStaticFolder, request.DataAsBytes, request.ContentType);
+                                else
+                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), HTTPSServerConfiguration.APIStaticFolder);
+
+                                juggernaut.Dispose();
+                                if (res == null)
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else if (res == string.Empty)
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(res != null ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
                             }
                             #endregion
 
@@ -641,7 +729,41 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
-                                sent = await response.Send(res);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region FROMSOFTWARE API
+                            else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp")
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
+
+                                (byte[]?, string?, string[][]?) res = res = new FROMSOFTWAREClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
+
+                                if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = res.Item2;
+                                    statusCode = HttpStatusCode.OK;
+                                    foreach (string[] innerArray in res.Item3!)
+                                    {
+                                        // Ensure the inner array has at least two elements
+                                        if (innerArray.Length >= 2)
+                                            // Extract two values from the inner array
+                                            response.Headers.Add(innerArray[0], innerArray[1]);
+                                    }
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(res.Item1);
+                                else
+                                    sent = await response.Send(res.Item1);
                             }
                             #endregion
 
@@ -700,15 +822,59 @@ namespace HTTPSecureServerLite
                                         response.ContentType = res.Item2;
                                     else
                                         response.ContentType = "text/plain";
-                                    sent = await response.Send(res.Item1);
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res.Item1) ? Encoding.UTF8.GetBytes(res.Item1) : null);
+                                    else
+                                        sent = await response.Send(res.Item1);
                                 }
                                 else
                                 {
+                                    response.ChunkedTransfer = false;
                                     statusCode = HttpStatusCode.Forbidden;
                                     response.StatusCode = (int)statusCode;
                                     response.ContentType = "text/plain";
                                     sent = await response.Send();
                                 }
+                            }
+                            #endregion
+
+
+                            #region gsconnect API
+                            else if (Host == "gsconnect.ubisoft.com")
+                            {
+                                response.ChunkedTransfer = false;
+                                response.ProtocolVersion = "1.0";
+
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
+
+                                (string?, string?, Dictionary<string, string>?) res;
+                                gsconnectClass gsconn = new(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder);
+                                if (request.ContentLength > 0)
+                                    res = gsconn.ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                else
+                                    res = gsconn.ProcessRequest(request.Query.Elements.ToDictionary());
+
+                                if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = res.Item2;
+                                    statusCode = HttpStatusCode.OK;
+                                    if (res.Item3 != null)
+                                    {
+                                        foreach (KeyValuePair<string, string> header in res.Item3)
+                                        {
+                                            response.Headers.Add(header.Key, header.Value);
+                                        }
+                                    }
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res.Item1) ? Encoding.UTF8.GetBytes(res.Item1) : null);
+                                else
+                                    sent = await response.Send(res.Item1);
                             }
                             #endregion
 
@@ -730,7 +896,10 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
-                                sent = await response.Send(res);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
                             }
                             #endregion
 
@@ -752,7 +921,61 @@ namespace HTTPSecureServerLite
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
-                                sent = await response.Send(res);
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+
+                            #region HTS Samples API
+                            else if (HTSDomains.Contains(Host))
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Identified a HTS Samples method : {absolutepath}");
+
+                                string? res = null;
+                                if (request.ContentLength > 0)
+                                    res = new HTSClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                if (string.IsNullOrEmpty(res))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region ILoveSony API
+                            else if (ILoveSonyDomains.Contains(Host))
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Identified a IloveSony EULA method : {absolutepath}");
+
+                                string? res = null;
+                                if (request.ContentLength > 0)
+                                    res = new ILoveSonyClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                if (string.IsNullOrEmpty(res))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
                             }
                             #endregion
 
@@ -764,7 +987,10 @@ namespace HTTPSecureServerLite
                                 statusCode = HttpStatusCode.OK;
                                 response.StatusCode = (int)statusCode;
                                 response.ContentType = "text/plain";
-                                sent = await response.Send("false");
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("false"));
+                                else
+                                    sent = await response.Send("false");
                             }
                             #endregion
 
@@ -799,14 +1025,20 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.MethodNotAllowed;
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "text/plain";
-                                                    sent = await response.Send("DNS system not enabled or initializing");
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("DNS system not enabled or initializing"));
+                                                    else
+                                                        sent = await response.Send("DNS system not enabled or initializing");
                                                 }
                                                 else if (!acceptsDoH)
                                                 {
                                                     statusCode = HttpStatusCode.BadRequest;
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "text/plain";
-                                                    sent = await response.Send("Bad Request");
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("Bad Request"));
+                                                    else
+                                                        sent = await response.Send("Bad Request");
                                                 }
                                                 else
                                                 {
@@ -816,7 +1048,10 @@ namespace HTTPSecureServerLite
                                                         statusCode = HttpStatusCode.BadRequest;
                                                         response.StatusCode = (int)statusCode;
                                                         response.ContentType = "text/plain";
-                                                        sent = await response.Send("Bad Request");
+                                                        if (response.ChunkedTransfer)
+                                                            sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("Bad Request"));
+                                                        else
+                                                            sent = await response.Send("Bad Request");
                                                     }
                                                     else
                                                     {
@@ -922,18 +1157,23 @@ namespace HTTPSecureServerLite
                                                                 statusCode = HttpStatusCode.OK;
                                                                 response.StatusCode = (int)statusCode;
                                                                 response.ContentType = "application/dns-message";
-                                                                sent = await response.Send(DnsReq);
+                                                                if (response.ChunkedTransfer)
+                                                                    sent = await response.SendFinalChunk(DnsReq);
+                                                                else
+                                                                    sent = await response.Send(DnsReq);
                                                             }
                                                             else
                                                             {
+                                                                response.ChunkedTransfer = false;
                                                                 statusCode = HttpStatusCode.InternalServerError;
                                                                 response.StatusCode = (int)statusCode;
                                                                 response.ContentType = "text/plain";
                                                                 sent = await response.Send();
                                                             }
                                                         }
-                                                        catch (Exception)
+                                                        catch
                                                         {
+                                                            response.ChunkedTransfer = false;
                                                             statusCode = HttpStatusCode.InternalServerError;
                                                             response.StatusCode = (int)statusCode;
                                                             response.ContentType = "text/plain";
@@ -954,7 +1194,10 @@ namespace HTTPSecureServerLite
                                                 {
                                                     response.Headers.Add(HeaderCollection[0], HeaderCollection[1]);
                                                 }
-                                                sent = await response.Send(WebPlayer.HtmlPage);
+                                                if (response.ChunkedTransfer)
+                                                    sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(WebPlayer.HtmlPage));
+                                                else
+                                                    sent = await response.Send(WebPlayer.HtmlPage);
                                                 WebPlayer = null;
                                                 break;
                                             default:
@@ -966,20 +1209,27 @@ namespace HTTPSecureServerLite
                                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                         response.StatusCode = (int)statusCode;
                                                         response.ContentType = "application/json";
-                                                        sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"https://{ServerIP}:{ServerPort}{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                        if (response.ChunkedTransfer)
+                                                            sent = await response.Send(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes)));
+                                                        else
+                                                            sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                                     }
                                                     else if (request.RetrieveQueryValue("m3u") == "on")
                                                     {
-                                                        string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], $"https://{ServerIP}:{ServerPort}{absolutepath[..^1]}");
+                                                        string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}");
                                                         if (!string.IsNullOrEmpty(m3ufile))
                                                         {
                                                             statusCode = HttpStatusCode.OK;
                                                             response.StatusCode = (int)statusCode;
                                                             response.ContentType = "audio/x-mpegurl";
-                                                            sent = await response.Send(m3ufile);
+                                                            if (response.ChunkedTransfer)
+                                                                sent = await response.Send(Encoding.UTF8.GetBytes(m3ufile));
+                                                            else
+                                                                sent = await response.Send(m3ufile);
                                                         }
                                                         else
                                                         {
+                                                            response.ChunkedTransfer = false;
                                                             statusCode = HttpStatusCode.NoContent;
                                                             response.StatusCode = (int)statusCode;
                                                             sent = await response.Send();
@@ -1013,7 +1263,10 @@ namespace HTTPSecureServerLite
                                                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + $"/{indexFile}").ToString("r"));
                                                                     response.StatusCode = (int)statusCode;
                                                                     response.ContentType = "text/html";
-                                                                    sent = await response.Send(CollectPHP.Item1);
+                                                                    if (response.ChunkedTransfer)
+                                                                        sent = await response.SendFinalChunk(CollectPHP.Item1);
+                                                                    else
+                                                                        sent = await response.Send(CollectPHP.Item1);
                                                                 }
                                                                 else
                                                                 {
@@ -1034,10 +1287,14 @@ namespace HTTPSecureServerLite
                                                                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + $"/{indexFile}").ToString("r"));
                                                                         response.StatusCode = (int)statusCode;
                                                                         response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath + $"/{indexFile}"), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
-                                                                        sent = await response.Send(buffer);
+                                                                        if (response.ChunkedTransfer)
+                                                                            sent = await response.SendFinalChunk(buffer);
+                                                                        else
+                                                                            sent = await response.Send(buffer);
                                                                     }
                                                                     else
                                                                     {
+                                                                        response.ChunkedTransfer = false;
                                                                         statusCode = HttpStatusCode.InternalServerError;
                                                                         response.StatusCode = (int)statusCode;
                                                                         response.ContentType = "text/plain";
@@ -1057,12 +1314,18 @@ namespace HTTPSecureServerLite
 
                                                             if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                                             {
+                                                                string htmlPage = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions);
+
                                                                 response.ContentType = "text/html";
-                                                                sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
+                                                                if (response.ChunkedTransfer)
+                                                                    sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(htmlPage));
+                                                                else
+                                                                    sent = await response.Send(htmlPage);
                                                             }
                                                             else
                                                             {
+                                                                response.ChunkedTransfer = false;
                                                                 response.ContentType = "text/plain";
                                                                 sent = await response.Send();
                                                             }
@@ -1071,6 +1334,7 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPSServerConfiguration.ASPNETRedirectUrl))
                                                 {
+                                                    response.ChunkedTransfer = false;
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.ASPNETRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
@@ -1078,6 +1342,7 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
                                                 {
+                                                    response.ChunkedTransfer = false;
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
@@ -1100,7 +1365,10 @@ namespace HTTPSecureServerLite
                                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "text/html";
-                                                    sent = await response.Send(CollectPHP.Item1);
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendFinalChunk(CollectPHP.Item1);
+                                                    else
+                                                        sent = await response.Send(CollectPHP.Item1);
                                                 }
                                                 else
                                                 {
@@ -1138,7 +1406,7 @@ namespace HTTPSecureServerLite
                                                             // send file
                                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                            sent = await SendFile(ctx, encoding, filePath, ContentType);
+                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer);
                                                         }
                                                     }
                                                     else
@@ -1152,6 +1420,7 @@ namespace HTTPSecureServerLite
                                                             WebArchiveRequest archiveReq = new($"https://{Host}" + fullurl);
                                                             if (archiveReq.Archived)
                                                             {
+                                                                response.ChunkedTransfer = false;
                                                                 ArchiveOrgProcessed = true;
                                                                 statusCode = HttpStatusCode.PermanentRedirect;
                                                                 response.Headers.Add("Location", archiveReq.ArchivedURL);
@@ -1167,12 +1436,18 @@ namespace HTTPSecureServerLite
 
                                                             if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                                             {
+                                                                string htmlPage = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions);
+
                                                                 response.ContentType = "text/html";
-                                                                sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
+                                                                if (response.ChunkedTransfer)
+                                                                    sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(htmlPage));
+                                                                else
+                                                                    sent = await response.Send(htmlPage);
                                                             }
                                                             else
                                                             {
+                                                                response.ChunkedTransfer = false;
                                                                 response.ContentType = "text/plain";
                                                                 sent = await response.Send();
                                                             }
@@ -1191,14 +1466,20 @@ namespace HTTPSecureServerLite
                                                     statusCode = HttpStatusCode.MethodNotAllowed;
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "text/plain";
-                                                    sent = await response.Send("DNS system not enabled or initializing");
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("DNS system not enabled or initializing"));
+                                                    else
+                                                        sent = await response.Send("DNS system not enabled or initializing");
                                                 }
                                                 else if (!string.Equals(request.ContentType, "application/dns-message", StringComparison.OrdinalIgnoreCase))
                                                 {
                                                     statusCode = HttpStatusCode.UnsupportedMediaType;
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "text/plain";
-                                                    sent = await response.Send("Unsupported Media Type");
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("Unsupported Media Type"));
+                                                    else
+                                                        sent = await response.Send("Unsupported Media Type");
                                                 }
                                                 else
                                                 {
@@ -1294,18 +1575,23 @@ namespace HTTPSecureServerLite
                                                             statusCode = HttpStatusCode.OK;
                                                             response.StatusCode = (int)statusCode;
                                                             response.ContentType = "application/dns-message";
-                                                            sent = await response.Send(DnsReq);
+                                                            if (response.ChunkedTransfer)
+                                                                sent = await response.SendFinalChunk(DnsReq);
+                                                            else
+                                                                sent = await response.Send(DnsReq);
                                                         }
                                                         else
                                                         {
+                                                            response.ChunkedTransfer = false;
                                                             statusCode = HttpStatusCode.InternalServerError;
                                                             response.StatusCode = (int)statusCode;
                                                             response.ContentType = "text/plain";
                                                             sent = await response.Send();
                                                         }
                                                     }
-                                                    catch (Exception)
+                                                    catch
                                                     {
+                                                        response.ChunkedTransfer = false;
                                                         statusCode = HttpStatusCode.InternalServerError;
                                                         response.StatusCode = (int)statusCode;
                                                         response.ContentType = "text/plain";
@@ -1316,6 +1602,7 @@ namespace HTTPSecureServerLite
                                             default:
                                                 if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPSServerConfiguration.ASPNETRedirectUrl))
                                                 {
+                                                    response.ChunkedTransfer = false;
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.ASPNETRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
@@ -1323,6 +1610,7 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPSServerConfiguration.PHPRedirectUrl))
                                                 {
+                                                    response.ChunkedTransfer = false;
                                                     statusCode = HttpStatusCode.PermanentRedirect;
                                                     response.Headers.Add("Location", $"{HTTPSServerConfiguration.PHPRedirectUrl}{request.Url.RawWithQuery}");
                                                     response.StatusCode = (int)statusCode;
@@ -1346,7 +1634,10 @@ namespace HTTPSecureServerLite
                                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "text/html";
-                                                    sent = await response.Send(CollectPHP.Item1);
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendFinalChunk(CollectPHP.Item1);
+                                                    else
+                                                        sent = await response.Send(CollectPHP.Item1);
                                                 }
                                                 else
                                                 {
@@ -1374,7 +1665,7 @@ namespace HTTPSecureServerLite
                                                             // send file
                                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                            sent = await SendFile(ctx, encoding, filePath, ContentType);
+                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer);
                                                         }
                                                     }
                                                     else
@@ -1386,12 +1677,18 @@ namespace HTTPSecureServerLite
 
                                                         if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                                         {
+                                                            string htmlPage = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
+                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions);
+
                                                             response.ContentType = "text/html";
-                                                            sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
+                                                            if (response.ChunkedTransfer)
+                                                                sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(htmlPage));
+                                                            else
+                                                                sent = await response.Send(htmlPage);
                                                         }
                                                         else
                                                         {
+                                                            response.ChunkedTransfer = false;
                                                             response.ContentType = "text/plain";
                                                             sent = await response.Send();
                                                         }
@@ -1401,6 +1698,8 @@ namespace HTTPSecureServerLite
                                         }
                                         break;
                                     case "PUT":
+                                        response.ChunkedTransfer = false;
+
                                         if (HTTPSServerConfiguration.EnablePUTMethod)
                                         {
                                             string ContentType = request.ContentType;
@@ -1453,12 +1752,15 @@ namespace HTTPSecureServerLite
                                         sent = await response.Send();
                                         break;
                                     case "DELETE":
+                                        response.ChunkedTransfer = false;
                                         statusCode = HttpStatusCode.Forbidden;
                                         response.StatusCode = (int)statusCode;
                                         response.ContentType = "text/plain";
                                         sent = await response.Send();
                                         break;
                                     case "HEAD":
+                                        response.ChunkedTransfer = false;
+
                                         FileInfo? fileInfo = new(filePath);
                                         if (fileInfo.Exists)
                                         {
@@ -1497,22 +1799,13 @@ namespace HTTPSecureServerLite
 
                                             statusCode = HttpStatusCode.NotFound;
                                             response.StatusCode = (int)statusCode;
-
-                                            if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
-                                            {
-                                                response.ContentType = "text/html";
-                                                sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
-                                            }
-                                            else
-                                            {
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            response.ContentType = "text/plain";
+                                            sent = await response.Send();
                                         }
                                         fileInfo = null;
                                         break;
                                     case "OPTIONS":
+                                        response.ChunkedTransfer = false;
                                         statusCode = HttpStatusCode.OK;
                                         response.StatusCode = (int)statusCode;
                                         response.ContentType = "text/plain";
@@ -1520,6 +1813,8 @@ namespace HTTPSecureServerLite
                                         sent = await response.Send();
                                         break;
                                     case "PROPFIND":
+                                        response.ChunkedTransfer = false;
+
                                         if (File.Exists(filePath))
                                         {
                                             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
@@ -1547,7 +1842,7 @@ namespace HTTPSecureServerLite
                                                 $"  xmlns:b=\"urn:uuid:{Guid.NewGuid()}/\"\r\n" +
                                                 "  xmlns:a=\"DAV:\">\r\n" +
                                                 " <a:response>\r\n" +
-                                                $"   <a:href>https://{ServerIP}:{ServerPort}{absolutepath}</a:href>\r\n" +
+                                                $"   <a:href>{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath}</a:href>\r\n" +
                                                 "   <a:propstat>\r\n" +
                                                 "    <a:status>HTTP/1.1 200 OK</a:status>\r\n" +
                                                 "       <a:prop>\r\n" +
@@ -1562,21 +1857,12 @@ namespace HTTPSecureServerLite
                                         {
                                             statusCode = HttpStatusCode.NotFound;
                                             response.StatusCode = (int)statusCode;
-
-                                            if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
-                                            {
-                                                response.ContentType = "text/html";
-                                                sent = await response.Send(await DefaultHTMLPages.GenerateNotFound(absolutepath, $"https://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                    HTTPSServerConfiguration.HTTPSStaticFolder, "Apache 2.2.22 (Unix) DAV/2", ServerPort.ToString(), HTTPSServerConfiguration.NotFoundSuggestions));
-                                            }
-                                            else
-                                            {
-                                                response.ContentType = "text/plain";
-                                                sent = await response.Send();
-                                            }
+                                            response.ContentType = "text/plain";
+                                            sent = await response.Send();
                                         }
                                         break;
                                     default:
+                                        response.ChunkedTransfer = false;
                                         statusCode = HttpStatusCode.Forbidden;
                                         response.StatusCode = (int)statusCode;
                                         response.ContentType = "text/plain";
@@ -1617,22 +1903,33 @@ namespace HTTPSecureServerLite
                 LoggerAccessor.LogError($"[HTTPS] - DefaultRoute - thrown an exception: {ex}");
             }
 
+            ctx.Response.ChunkedTransfer = false;
             ctx.Response.StatusCode = 500;
             ctx.Response.ContentType = "text/plain";
             await ctx.Response.Send();
         }
 
-        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string contentType)
+        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string contentType, bool ChunkedMode)
         {
-            Stream? st = null;
             bool sent = false;
             bool flush = false;
+            Stream? st;
 
+            ctx.Response.ChunkedTransfer = ChunkedMode;
             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
             ctx.Response.ContentType = contentType;
             ctx.Response.StatusCode = 200;
-            if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && contentType.StartsWith("text/"))
+            if (HTTPSServerConfiguration.EnableImageUpscale && contentType.StartsWith("image/"))
+            {
+                Ionic.Crc.CRC32 crc = new();
+                byte[] PathIdent = Encoding.UTF8.GetBytes(filePath);
+
+                crc.SlurpBlock(PathIdent, 0, PathIdent.Length);
+
+                st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, crc.Crc32Result));
+            }
+            else if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && contentType.StartsWith("text/"))
             {
                 if (encoding.Contains("zstd"))
                 {
@@ -1664,7 +1961,58 @@ namespace HTTPSecureServerLite
             else
                 st = File.OpenRead(filePath);
 
-            sent = await ctx.Response.Send(st.Length, st);
+            string NoneMatch = ctx.Request.RetrieveHeaderValue("If-None-Match");
+            string? EtagMD5 = HTTPProcessor.ComputeStreamMD5(st);
+            bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
+            bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, ctx.Request.RetrieveHeaderValue("If-Modified-Since"));
+
+            if ((isNoneMatchValid && isModifiedSinceValid) ||
+                (isNoneMatchValid && string.IsNullOrEmpty(ctx.Request.RetrieveHeaderValue("If-Modified-Since"))) ||
+                (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
+            {
+                ctx.Response.ChunkedTransfer = false;
+                ctx.Response.Headers.Clear();
+                if (!string.IsNullOrEmpty(EtagMD5))
+                {
+                    ctx.Response.Headers.Add("ETag", EtagMD5);
+                    ctx.Response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                }               
+                ctx.Response.StatusCode = 304;
+                sent = await ctx.Response.Send();
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(EtagMD5))
+                {
+                    ctx.Response.Headers.Add("ETag", EtagMD5);
+                    ctx.Response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                }
+
+                if (ctx.Response.ChunkedTransfer)
+                {
+                    const int buffersize = 16 * 1024;
+
+                    bool isNotlastChunk;
+                    long bytesLeft = st.Length;
+                    byte[] buffer;
+
+                    while (bytesLeft > 0)
+                    {
+                        isNotlastChunk = bytesLeft > buffersize;
+                        buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
+                        int n = st.Read(buffer, 0, buffer.Length);
+
+                        if (isNotlastChunk)
+                            await ctx.Response.SendChunk(buffer);
+                        else
+                            sent = await ctx.Response.SendFinalChunk(buffer);
+
+                        bytesLeft -= n;
+                    }
+                }
+                else
+                    sent = await ctx.Response.Send(st.Length, st);
+            }
 
             if (flush)
                 st.Flush();

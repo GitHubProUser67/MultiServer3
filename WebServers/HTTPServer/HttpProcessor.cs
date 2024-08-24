@@ -1169,7 +1169,7 @@ namespace HTTPServer
                 {
                     bool KeepAlive = AllowKeepAlive && request.RetrieveHeaderValue("Connection").Equals("keep-alive");
                     string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
-                    string? EtagMD5 = ComputeStreamMD5(response.ContentStream);
+                    string? EtagMD5 = HTTPProcessor.ComputeStreamMD5(response.ContentStream);
                     bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
                     bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
 
@@ -1758,7 +1758,7 @@ namespace HTTPServer
                     {
                         bool KeepAlive = AllowKeepAlive && request.RetrieveHeaderValue("Connection").Equals("keep-alive");
                         string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
-                        string? EtagMD5 = ComputeStreamMD5(response.ContentStream);
+                        string? EtagMD5 = HTTPProcessor.ComputeStreamMD5(response.ContentStream);
                         bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
                         bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
 
@@ -2024,22 +2024,6 @@ namespace HTTPServer
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Compute the MD5 checksum of a stream.
-        /// <para>Calcul la somme des contr�les en MD5 d'un stream.</para>
-        /// </summary>
-        /// <param name="input">The input stream (must be seekable).</param>
-        /// <returns>A string.</returns>
-        private static string? ComputeStreamMD5(Stream input)
-        {
-            if (!input.CanSeek)
-                return null;
-
-            string md5Hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(input).ToLower();
-            input.Seek(0, SeekOrigin.Begin);
-            return md5Hash;
         }
 
 #if NET7_0_OR_GREATER

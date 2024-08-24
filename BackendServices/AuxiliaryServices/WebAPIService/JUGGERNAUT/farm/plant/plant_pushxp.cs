@@ -7,7 +7,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_pushxp
     {
-        public static string ProcessPushXp(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessPushXp(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

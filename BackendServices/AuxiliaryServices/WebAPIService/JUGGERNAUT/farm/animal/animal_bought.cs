@@ -9,7 +9,7 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
 {
     public class animal_bought
     {
-        public static string ProcessBought(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessBought(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

@@ -8,7 +8,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
 {
     public class plant_leveled
     {
-        public static string ProcessLeveled(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessLeveled(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
