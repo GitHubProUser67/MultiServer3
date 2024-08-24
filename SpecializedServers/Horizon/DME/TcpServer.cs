@@ -14,8 +14,6 @@ using System.Net;
 using DotNetty.Handlers.Timeout;
 using Horizon.DME.PluginArgs;
 using Horizon.PluginManager;
-using System.Collections.Generic;
-using System.Linq;
 using EndianTools;
 using CyberBackendLibrary.Extension;
 
@@ -159,6 +157,14 @@ namespace Horizon.DME
                         _bossGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
                         _workerGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)));
             }
+        }
+
+        /// <summary>
+        /// Gets DME Server client object.
+        /// </summary>
+        public ClientObject? GetServerPerAppId(int ApplicationId)
+        {
+            return _channelDatas.Values.Where(channel => channel.ApplicationId == ApplicationId).FirstOrDefault()?.ClientObject;
         }
 
         /// <summary>
