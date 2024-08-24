@@ -67,19 +67,12 @@ namespace WebAPIService.VEEMEE.audi_tech
                                         {
                                             double? score = GetTotalScore(document, $"{(i % 3) + 1} {Math.Floor((decimal)((i / 3) % 2)) + 1} {Math.Floor((decimal)((i / 6) + 1))}");
 
-                                            if (score.HasValue)
+                                            if (score.HasValue && score.Value > 0)
                                             {
                                                 if (scoreSerializer.Length == 1)
                                                     scoreSerializer.Append(score.Value.ToString().Replace(",", "."));
                                                 else
                                                     scoreSerializer.Append("," + score.Value.ToString().Replace(",", "."));
-                                            }
-                                            else
-                                            {
-                                                if (scoreSerializer.Length == 1)
-                                                    scoreSerializer.Append(0);
-                                                else
-                                                    scoreSerializer.Append(",0");
                                             }
                                         }
 
@@ -89,11 +82,11 @@ namespace WebAPIService.VEEMEE.audi_tech
                                 catch
                                 {
                                     // Silence the error and send default value instead.
-                                    profileSerializer.Append("[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]");
+                                    profileSerializer.Append("[]");
                                 }
                             }
                             else
-                                profileSerializer.Append("[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]");
+                                profileSerializer.Append("[]");
 
                             profileSerializer.Append("]");
 
