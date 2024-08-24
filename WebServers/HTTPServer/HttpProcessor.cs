@@ -180,6 +180,7 @@ namespace HTTPServer
 
                             if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
+                                bool EtagCompatible = false;
                                 DateTime CurrentDate = DateTime.UtcNow;
                                 HttpResponse? response = null;
                                 string Method = request.Method;
@@ -914,7 +915,11 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true);
+                                                                    {
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true);
+                                                                        EtagCompatible = handleResponse.Item1;
+                                                                        response = handleResponse.Item2;
+                                                                    }
                                                                 }
                                                                 break;
                                                         }
@@ -957,7 +962,11 @@ namespace HTTPServer
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
                                                                         Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive);
                                                                     else
-                                                                        response = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false);
+                                                                    {
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false);
+                                                                        EtagCompatible = handleResponse.Item1;
+                                                                        response = handleResponse.Item2;
+                                                                    }
                                                                 }
                                                                 break;
                                                         }
@@ -1105,7 +1114,7 @@ namespace HTTPServer
                                 }
 
                                 if (response != null)
-                                    WriteResponse(outputStream, request, response, filePath, AllowKeepAlive);
+                                    WriteResponse(outputStream, request, response, filePath, AllowKeepAlive, EtagCompatible);
                             }
                         }
 
@@ -1165,26 +1174,31 @@ namespace HTTPServer
             return data;
         }
 
-        private static void WriteResponse(Stream stream, HttpRequest request, HttpResponse response, string filePath, bool AllowKeepAlive)
+        private static void WriteResponse(Stream stream, HttpRequest request, HttpResponse response, string filePath, bool AllowKeepAlive, bool EtagCompatible)
         {
             try
             {
                 if (response.ContentStream != null)
                 {
                     bool KeepAlive = AllowKeepAlive && request.RetrieveHeaderValue("Connection").Equals("keep-alive");
-                    string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
-                    string? EtagMD5 = HTTPProcessor.ComputeStreamMD5(response.ContentStream);
-                    bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
-                    bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
+                    string NoneMatch = EtagCompatible ? request.RetrieveHeaderValue("If-None-Match") : string.Empty;
+                    string? EtagMD5 = EtagCompatible ? HTTPProcessor.ComputeStreamMD5(response.ContentStream) : null;
+                    bool isNoneMatchValid = EtagCompatible && !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
+                    bool isModifiedSinceValid = EtagCompatible && HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
 
-                    if ((isNoneMatchValid && isModifiedSinceValid) ||
+                    if (EtagCompatible && ((isNoneMatchValid && isModifiedSinceValid) ||
                         (isNoneMatchValid && string.IsNullOrEmpty(request.RetrieveHeaderValue("If-Modified-Since"))) ||
-                        (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
+                        (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch))))
                     {
                         response.Headers.Clear();
 
+                        response.Headers.Add("Server", "Apache");
+
                         if (KeepAlive)
+                        {
                             response.Headers.Add("Connection", "Keep-Alive");
+                            response.Headers.Add("Keep-Alive", "timeout=15, max=98");
+                        }
                         else
                             response.Headers.Add("Connection", "close");
 
@@ -1207,8 +1221,13 @@ namespace HTTPServer
                         long bytesLeft = totalBytes;
                         string? encoding = null;
 
+                        response.Headers.Add("Server", "Apache");
+
                         if (KeepAlive)
+                        {
                             response.Headers.Add("Connection", "Keep-Alive");
+                            response.Headers.Add("Keep-Alive", "timeout=15, max=98");
+                        }
                         else
                             response.Headers.Add("Connection", "close");
 
@@ -1270,6 +1289,7 @@ namespace HTTPServer
                 {
                     response.Headers.Clear();
 
+                    response.Headers.Add("Server", "Apache");
                     response.Headers.Add("Connection", "close");
 
                     response.HttpStatusCode = HttpStatusCode.InternalServerError;
@@ -1505,6 +1525,7 @@ namespace HTTPServer
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
+                        response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -1712,6 +1733,7 @@ namespace HTTPServer
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
+                        response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Content-Type", ContentType);
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
@@ -1782,8 +1804,13 @@ namespace HTTPServer
                         {
                             response.Headers.Clear();
 
+                            response.Headers.Add("Server", "Apache");
+
                             if (KeepAlive)
+                            {
                                 response.Headers.Add("Connection", "Keep-Alive");
+                                response.Headers.Add("Keep-Alive", "timeout=15, max=98");
+                            }
                             else
                                 response.Headers.Add("Connection", "close");
 
@@ -1806,8 +1833,13 @@ namespace HTTPServer
                             long bytesLeft = totalBytes;
                             string? encoding = null;
 
+                            response.Headers.Add("Server", "Apache");
+
                             if (KeepAlive)
+                            {
                                 response.Headers.Add("Connection", "Keep-Alive");
+                                response.Headers.Add("Keep-Alive", "timeout=15, max=98");
+                            }
                             else
                                 response.Headers.Add("Connection", "close");
 
@@ -1862,6 +1894,7 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
+                        response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Connection", "close");
 
                         response.HttpStatusCode = HttpStatusCode.InternalServerError;
