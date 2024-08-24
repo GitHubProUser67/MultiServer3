@@ -13,22 +13,22 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static HttpResponse Handle(HttpRequest request, string absolutepath, string fullurl, string local_path, string Host, string Accept, 
+        public static (bool, HttpResponse) Handle(HttpRequest request, string absolutepath, string fullurl, string local_path, string Host, string Accept, 
             string directoryUrl , bool GET)
         {
             if (Directory.Exists(local_path) && local_path.EndsWith("/"))
-                return Handle_LocalDir(request, local_path, directoryUrl);
+                return (false, Handle_LocalDir(request, local_path, directoryUrl));
             else if (File.Exists(local_path))
-                return Handle_LocalFile(request, local_path);
+                return (true, Handle_LocalFile(request, local_path));
 
             if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
             {
                 WebArchiveRequest archiveReq = new($"http://{Host}" + fullurl);
                 if (archiveReq.Archived)
-                    return HttpBuilder.PermanantRedirect(archiveReq.ArchivedURL);
+                    return (true, HttpBuilder.PermanantRedirect(archiveReq.ArchivedURL));
             }
 
-            return HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+            return (true, HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html")));
         }
 
         public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string local_path, string Host, string Accept)
