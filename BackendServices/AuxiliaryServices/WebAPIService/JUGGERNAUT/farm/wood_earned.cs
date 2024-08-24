@@ -7,7 +7,7 @@ namespace WebAPIService.JUGGERNAUT.farm
 {
     public class wood_earned
     {
-        public static string ProcessWoodEarned(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessWoodEarned(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

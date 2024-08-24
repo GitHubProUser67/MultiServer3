@@ -7,7 +7,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class pushscore
     {
-        public static string ProcessPushScore(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessPushScore(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

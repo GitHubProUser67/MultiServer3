@@ -7,7 +7,7 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
 {
     public class animal_collect_renew
     {
-        public static string ProcessCollectRenew(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessCollectRenew(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

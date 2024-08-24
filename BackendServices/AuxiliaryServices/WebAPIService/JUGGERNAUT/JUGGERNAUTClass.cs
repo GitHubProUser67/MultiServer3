@@ -19,7 +19,7 @@ namespace WebAPIService.JUGGERNAUT
             this.method = method;
         }
 
-        public string ProcessRequest(Dictionary<string, string> QueryParameters, string apiStaticPath, byte[] PostData = null, string ContentType = null)
+        public string ProcessRequest(IDictionary<string, string> QueryParameters, string apiStaticPath, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;

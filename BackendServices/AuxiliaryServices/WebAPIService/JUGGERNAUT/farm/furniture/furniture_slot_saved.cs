@@ -6,7 +6,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_slot_saved
     {
-        public static string ProcessSlotSaved(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessSlotSaved(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

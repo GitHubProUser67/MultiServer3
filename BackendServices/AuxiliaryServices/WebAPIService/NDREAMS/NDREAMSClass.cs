@@ -35,7 +35,7 @@ namespace WebAPIService.NDREAMS
             this.host = host;
         }
 
-        public string ProcessRequest(Dictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
+        public string ProcessRequest(IDictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;

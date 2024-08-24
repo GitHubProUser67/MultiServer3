@@ -4,7 +4,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class pushtime
     {
-        public static string ProcessPushTime(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessPushTime(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

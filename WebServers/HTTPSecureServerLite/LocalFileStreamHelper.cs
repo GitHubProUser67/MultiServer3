@@ -12,6 +12,8 @@ namespace HTTPSecureServerLite
     {
         public static bool Handle_LocalFile_Stream(HttpContextBase ctx, string filePath, string ContentType)
         {
+            ctx.Response.ChunkedTransfer = false;
+
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
 

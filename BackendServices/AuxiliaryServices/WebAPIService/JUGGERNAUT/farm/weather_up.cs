@@ -6,7 +6,7 @@ namespace WebAPIService.JUGGERNAUT.farm
 {
     public class weather_up
     {
-        public static string ProcessWeatherUp(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessWeatherUp(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

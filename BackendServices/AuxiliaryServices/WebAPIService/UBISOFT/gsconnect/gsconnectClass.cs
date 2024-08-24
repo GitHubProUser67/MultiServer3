@@ -18,7 +18,7 @@ namespace WebAPIService.UBISOFT.gsconnect
             apistaticpath = apiStaticpath;
         }
 
-        public (string, string, Dictionary<string, string>) ProcessRequest(Dictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
+        public (string, string, Dictionary<string, string>) ProcessRequest(IDictionary<string, string> QueryParameters, byte[] PostData = null, string ContentType = null)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return (null, null, null);

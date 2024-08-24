@@ -8,7 +8,7 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
 {
     public class animal_fed
     {
-        public static string ProcessFed(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessFed(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

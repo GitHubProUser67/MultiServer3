@@ -6,7 +6,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 {
     public class furniture_crafting_up
     {
-        public static string ProcessCraftingUp(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessCraftingUp(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

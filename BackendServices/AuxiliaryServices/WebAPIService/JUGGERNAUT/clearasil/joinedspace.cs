@@ -4,7 +4,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class joinedspace
     {
-        public static string ProcessJoinedSpace(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessJoinedSpace(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {

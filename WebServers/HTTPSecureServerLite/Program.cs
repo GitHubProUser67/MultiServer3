@@ -25,6 +25,7 @@ public static class HTTPSServerConfiguration
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
+    public static string HttpVersion { get; set; } = "1.1";
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string HTTPSTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
@@ -37,11 +38,13 @@ public static class HTTPSServerConfiguration
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
+    public static bool ChunkedTransfers { get; set; } = false;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool NotFoundWebArchive { get; set; } = false;
     public static int NotFoundWebArchiveDateLimit { get; set; } = 0;
     public static bool EnableHTTPCompression { get; set; } = true;
     public static bool EnablePUTMethod { get; set; } = false;
+    public static bool EnableImageUpscale { get; set; } = false;
     public static bool EnableLiveTranscoding { get; set; } = false;
     public static Dictionary<string, string>? MimeTypes { get; set; } = HTTPProcessor._mimeTypes;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
@@ -143,6 +146,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("api_static_folder", APIStaticFolder),
                 new JProperty("https_static_folder", HTTPSStaticFolder),
                 new JProperty("https_temp_folder", HTTPSTempFolder),
+                new JProperty("http_version", HttpVersion),
                 SerializeMimeTypes(),
                 SerializeDateTimeOffset(),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
@@ -155,8 +159,10 @@ public static class HTTPSServerConfiguration
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
                 new JProperty("404_not_found_web_archive", NotFoundWebArchive),
                 new JProperty("404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit),
+                new JProperty("enable_chunked_transfers", ChunkedTransfers),
                 new JProperty("enable_http_compression", EnableHTTPCompression),
                 new JProperty("enable_put_method", EnablePUTMethod),
+                new JProperty("enable_image_upscale", EnableImageUpscale),
                 new JProperty("enable_live_transcoding", EnableLiveTranscoding),
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
@@ -184,6 +190,7 @@ public static class HTTPSServerConfiguration
             PHPDebugErrors = GetValueOrDefault(config.php, "debug_errors", PHPDebugErrors);
             HTTPSStaticFolder = GetValueOrDefault(config, "https_static_folder", HTTPSStaticFolder);
             HTTPSTempFolder = GetValueOrDefault(config, "https_temp_folder", HTTPSTempFolder);
+            HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
@@ -193,8 +200,10 @@ public static class HTTPSServerConfiguration
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             NotFoundWebArchive = GetValueOrDefault(config, "404_not_found_web_archive", NotFoundWebArchive);
             NotFoundWebArchiveDateLimit = GetValueOrDefault(config, "404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit);
+            ChunkedTransfers = GetValueOrDefault(config, "enable_chunked_transfers", ChunkedTransfers);
             EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
+            EnableImageUpscale = GetValueOrDefault(config, "enable_image_upscale", EnableImageUpscale);
             EnableLiveTranscoding = GetValueOrDefault(config, "enable_live_transcoding", EnableLiveTranscoding);
             MimeTypes = GetValueOrDefault(config, "mime_types", MimeTypes);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
@@ -400,7 +409,7 @@ class Program
             Parallel.ForEach(HTTPSServerConfiguration.Ports, port =>
             {
                 if (TCP_UDPUtils.IsTCPPortAvailable(port))
-                    HTTPSBag.Add(new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword, "*", port));
+                    HTTPSBag.Add(new HttpsProcessor(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword, "*", port, port.ToString().EndsWith("443")));
             });
         }
         else

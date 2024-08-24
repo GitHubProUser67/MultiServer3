@@ -6,7 +6,7 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 {
     public class pushrewards
     {
-        public static string ProcessPushRewards(Dictionary<string, string> QueryParameters, string apiPath)
+        public static string ProcessPushRewards(IDictionary<string, string> QueryParameters, string apiPath)
         {
             if (QueryParameters != null)
             {
