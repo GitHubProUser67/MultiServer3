@@ -141,8 +141,11 @@ namespace HTTPServer
             return Task.CompletedTask;
         }
 
-        public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
+        public void HandleClient(TcpClient? tcpClient, ushort ListenerPort)
         {
+            if (tcpClient == null)
+                return;
+
             bool IsInterlocked = false;
 
             try
@@ -170,8 +173,6 @@ namespace HTTPServer
                     {
                         if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
-                            DateTime CurrentDate = DateTime.UtcNow;
-
                             if (request == null)
                                 request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
                             else
@@ -179,6 +180,7 @@ namespace HTTPServer
 
                             if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
                             {
+                                DateTime CurrentDate = DateTime.UtcNow;
                                 HttpResponse? response = null;
                                 string Method = request.Method;
                                 string Host = request.RetrieveHeaderValue("Host");
@@ -1106,6 +1108,8 @@ namespace HTTPServer
                                     WriteResponse(outputStream, request, response, filePath, AllowKeepAlive);
                             }
                         }
+
+                        Thread.Sleep(1);
                     }
                     outputStream.Flush();
                 }
@@ -1181,10 +1185,14 @@ namespace HTTPServer
 
                         if (KeepAlive)
                             response.Headers.Add("Connection", "Keep-Alive");
+                        else
+                            response.Headers.Add("Connection", "close");
 
                         if (!string.IsNullOrEmpty(EtagMD5))
+                        {
                             response.Headers.Add("ETag", EtagMD5);
-                        response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                        }
 
                         response.HttpStatusCode = HttpStatusCode.NotModified;
 
@@ -1201,6 +1209,8 @@ namespace HTTPServer
 
                         if (KeepAlive)
                             response.Headers.Add("Connection", "Keep-Alive");
+                        else
+                            response.Headers.Add("Connection", "close");
 
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
 
@@ -1218,8 +1228,10 @@ namespace HTTPServer
                         {
                             response.Headers.Add("Date", DateTime.Now.ToString("r"));
                             if (!string.IsNullOrEmpty(EtagMD5))
+                            {
                                 response.Headers.Add("ETag", EtagMD5);
-                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            }
                             if (File.Exists(filePath))
                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                         }
@@ -1257,6 +1269,8 @@ namespace HTTPServer
                 else
                 {
                     response.Headers.Clear();
+
+                    response.Headers.Add("Connection", "close");
 
                     response.HttpStatusCode = HttpStatusCode.InternalServerError;
 
@@ -1770,10 +1784,14 @@ namespace HTTPServer
 
                             if (KeepAlive)
                                 response.Headers.Add("Connection", "Keep-Alive");
+                            else
+                                response.Headers.Add("Connection", "close");
 
                             if (!string.IsNullOrEmpty(EtagMD5))
+                            {
                                 response.Headers.Add("ETag", EtagMD5);
-                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            }
 
                             response.HttpStatusCode = HttpStatusCode.NotModified;
 
@@ -1790,6 +1808,8 @@ namespace HTTPServer
 
                             if (KeepAlive)
                                 response.Headers.Add("Connection", "Keep-Alive");
+                            else
+                                response.Headers.Add("Connection", "close");
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
 
@@ -1800,8 +1820,10 @@ namespace HTTPServer
                             {
                                 response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                 if (!string.IsNullOrEmpty(EtagMD5))
+                                {
                                     response.Headers.Add("ETag", EtagMD5);
-                                response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                    response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                }
                                 if (File.Exists(filePath))
                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                             }
@@ -1839,6 +1861,8 @@ namespace HTTPServer
                     else
                     {
                         response.Headers.Clear();
+
+                        response.Headers.Add("Connection", "close");
 
                         response.HttpStatusCode = HttpStatusCode.InternalServerError;
 
