@@ -747,7 +747,7 @@ namespace Horizon.MEDIUS.Medius
                         string connectingIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove);
 
                         // get index of client
-                        int queueIndex = GameHostClientQueue.FindIndex(tuple => 
+                        int queueIndex = GameHostClientQueue.FindIndex(tuple =>
                             !tuple.Item1 && // auth = false
                             tuple.Item2.IP.ToString().Trim(charsToRemove) == connectingIP // ip matches
                         );
@@ -759,12 +759,12 @@ namespace Horizon.MEDIUS.Medius
                             ClientObject client = GameHostClientQueue[queueIndex].Item2;
 
                             // update list
-                            GameHostClientQueue[queueIndex] = Tuple.Create(true, client);
+                            lock (GameHostClientQueue)
+                                GameHostClientQueue[queueIndex] = Tuple.Create(true, client);
 
                             // update auth client
                             data.ClientObject = client;
                         }
-
 
                         List<int> nonSecure = new() { 10010, 10031, 10190 };
 
