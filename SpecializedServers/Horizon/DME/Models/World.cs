@@ -18,7 +18,7 @@ namespace Horizon.DME.Models
         private static ConcurrentDictionary<uint, World> _idToWorld = new();
         private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
 
-        private void RegisterWorld(uint WorldId)
+        private void RegisterWorld(uint WorldId, uint ChatChannelWorldId)
         {
             if (_idToWorld.Count > MAX_WORLDS)
             {
@@ -27,6 +27,7 @@ namespace Horizon.DME.Models
             }
 
             this.WorldId = WorldId;
+            this.ChatChannelWorldId = ChatChannelWorldId;
 
             _idToWorld.TryAdd(WorldId, this);
             LoggerAccessor.LogInfo($"[DMEWorld] - Registered world with id {WorldId}");
@@ -36,6 +37,11 @@ namespace Horizon.DME.Models
         {
             _idToWorld.TryRemove(WorldId, out _);
             LoggerAccessor.LogInfo($"[DMEWorld] - Unregistered world with id {WorldId}");
+        }
+
+        public World? GetWorldByChatChannelWorldId(uint ChatChannelWorldId)
+        {
+            return _idToWorld.Values.FirstOrDefault(world => world.ChatChannelWorldId == ChatChannelWorldId);
         }
 
         private bool TryRegisterNewClientIndex(out int index)
@@ -65,6 +71,8 @@ namespace Horizon.DME.Models
 
         #endregion
 
+        public uint ChatChannelWorldId { get; protected set; } = 0;
+
         public uint WorldId { get; protected set; } = 0;
 
         public int ApplicationId { get; protected set; } = 0;
@@ -87,7 +95,7 @@ namespace Horizon.DME.Models
 
         public MPSClient? Manager { get; } = null;
         
-        public World(MPSClient manager, int appId, int maxPlayers, uint WorldId)
+        public World(MPSClient manager, int appId, int maxPlayers, uint WorldId, uint ChatChannelWorldId)
         {
             MaxPlayers = (DmeClass.Settings.MaxClientsOverride != -1) ? DmeClass.Settings.MaxClientsOverride : maxPlayers;
 
@@ -104,7 +112,7 @@ namespace Horizon.DME.Models
             for (int i = 0; i < MAX_CLIENTS_PER_WORLD; ++i)
                 _pIdIsUsed.TryAdd(i, false);
 
-            RegisterWorld(WorldId);
+            RegisterWorld(WorldId, ChatChannelWorldId);
         }
 
         public void Dispose()

@@ -484,7 +484,7 @@ namespace Horizon.DME
                                     // Not Important.
                                 }
 
-                                World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, gameOrPartyId);
+                                World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, gameOrPartyId, createGameWithAttributesRequest.WorldID);
                                 _worlds.Add(world);
 
                                 Enqueue(new MediusServerCreateGameWithAttributesResponse()
