@@ -35,6 +35,7 @@ public static class HTTPSServerConfiguration
     public static string PHPVersion { get; set; } = "php-8.3.0";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
+    public static int BufferSize { get; set; } = 4096;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
@@ -151,6 +152,7 @@ public static class HTTPSServerConfiguration
                 SerializeDateTimeOffset(),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("converters_folder", ConvertersFolder),
+                new JProperty("buffer_size", BufferSize),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
@@ -190,6 +192,7 @@ public static class HTTPSServerConfiguration
             PHPDebugErrors = GetValueOrDefault(config.php, "debug_errors", PHPDebugErrors);
             HTTPSStaticFolder = GetValueOrDefault(config, "https_static_folder", HTTPSStaticFolder);
             HTTPSTempFolder = GetValueOrDefault(config, "https_temp_folder", HTTPSTempFolder);
+            BufferSize = GetValueOrDefault(config, "buffer_size", BufferSize);
             HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
