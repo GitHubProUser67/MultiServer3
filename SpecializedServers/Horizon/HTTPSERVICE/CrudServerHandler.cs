@@ -173,7 +173,8 @@ namespace Horizon.HTTPSERVICE
                         || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
                         {
                             if (!string.IsNullOrEmpty(Command) && ctx.Request.QuerystringExists("DmeId") && short.TryParse(ctx.Request.RetrieveQueryValue("DmeId"), out short DmeId)
-                             && ctx.Request.QuerystringExists("WorldId") && uint.TryParse(ctx.Request.RetrieveQueryValue("WorldId"), out uint WorldId))
+                             && ctx.Request.QuerystringExists("WorldId") && uint.TryParse(ctx.Request.RetrieveQueryValue("WorldId"), out uint WorldId)
+                             && ctx.Request.QuerystringExists("DmeWorldId") && uint.TryParse(ctx.Request.RetrieveQueryValue("DmeWorldId"), out uint DmeWorldId))
                             {
                                 bool Retail = true;
                                 string result = "Command Unknown!";
@@ -188,7 +189,7 @@ namespace Horizon.HTTPSERVICE
                                 switch (Command)
                                 {
                                     case "Kick":
-                                        result = PSHomeIGA.KickClient(DmeId, WorldId, Retail);
+                                        result = PSHomeIGA.KickClient(DmeId, WorldId, DmeWorldId, Retail);
                                         break;
                                     default:
                                         LoggerAccessor.LogWarn($"[CrudServerHandler] - Unknown Home IGA command: {Command}");
