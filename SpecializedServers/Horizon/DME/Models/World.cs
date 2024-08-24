@@ -39,9 +39,9 @@ namespace Horizon.DME.Models
             LoggerAccessor.LogInfo($"[DMEWorld] - Unregistered world with id {WorldId}");
         }
 
-        public World? GetWorldByChatChannelWorldId(uint ChatChannelWorldId)
+        public World? GetWorldById(uint ChatChannelWorldId, uint DmeWorldId)
         {
-            return _idToWorld.Values.FirstOrDefault(world => world.ChatChannelWorldId == ChatChannelWorldId);
+            return _idToWorld.Values.FirstOrDefault(world => world.ChatChannelWorldId == ChatChannelWorldId && world.WorldId == DmeWorldId);
         }
 
         private bool TryRegisterNewClientIndex(out int index)
