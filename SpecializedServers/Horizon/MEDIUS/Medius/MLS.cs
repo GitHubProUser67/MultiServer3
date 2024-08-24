@@ -871,7 +871,8 @@ namespace Horizon.MEDIUS.Medius
                         }, clientChannel);
 
                         // update queue
-                        MAS.GameHostClientQueue.RemoveAll(tuple => tuple.Item2 == data.ClientObject);
+                        lock (MAS.GameHostClientQueue)
+                            MAS.GameHostClientQueue.RemoveAll(tuple => tuple.Item2 == data.ClientObject);
 
                         // End session
                         data.ClientObject.EndSession();
@@ -7107,7 +7108,8 @@ namespace Horizon.MEDIUS.Medius
                         if (!queueContainsClient)
                         {
                             LoggerAccessor.LogWarn($"QUEUING {data.ClientObject.AccountName} FOR REAUTH");
-                            MAS.GameHostClientQueue.Add(new Tuple<bool, ClientObject>(false, data.ClientObject));
+                            lock (MAS.GameHostClientQueue)
+                                MAS.GameHostClientQueue.Add(new Tuple<bool, ClientObject>(false, data.ClientObject));
                         }
 
                         if (data.ClientObject.CurrentGame != null)
