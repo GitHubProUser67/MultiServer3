@@ -484,7 +484,8 @@ namespace Horizon.DME
                                 }
 
                                 World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, gameOrPartyId, createGameWithAttributesRequest.WorldID);
-                                _worlds.Add(world);
+                                lock (_worlds)
+                                    _worlds.Add(world);
 
                                 Enqueue(new MediusServerCreateGameWithAttributesResponse()
                                 {
@@ -505,7 +506,11 @@ namespace Horizon.DME
                     {
                         if (uint.TryParse(joinGameRequest.MessageID?.Value.Split('-')[0], out uint gameOrPartyId))
                         {
-                            World? world = _worlds.FirstOrDefault(x => x.WorldId == gameOrPartyId);
+                            World? world = null;
+
+                            lock (_worlds)
+                                world = _worlds.FirstOrDefault(x => x.WorldId == gameOrPartyId);
+
                             if (world == null)
                                 Enqueue(new MediusServerJoinGameResponse()
                                 {
@@ -530,7 +535,8 @@ namespace Horizon.DME
                     }
                 case MediusServerEndGameRequest endGameRequest:
                     {
-                        _worlds.FirstOrDefault(x => x.WorldId == endGameRequest.MediusWorldID)?.OnEndGameRequest(endGameRequest);
+                        lock (_worlds)
+                            _worlds.FirstOrDefault(x => x.WorldId == endGameRequest.MediusWorldID)?.OnEndGameRequest(endGameRequest);
 
                         break;
                     }
