@@ -2942,7 +2942,7 @@ namespace Horizon.MEDIUS.Medius
                 }
             }
 
-            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)))
+            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && isHome && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)))
             {
                 data.State = ClientState.DISCONNECTED;
                 await clientChannel.CloseAsync();
