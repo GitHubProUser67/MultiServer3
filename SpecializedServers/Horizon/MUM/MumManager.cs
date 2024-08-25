@@ -49,7 +49,12 @@ namespace Horizon.MUM
         #region Clients
         public List<ClientObject> GetClients(int appId)
         {
-            return _lookupsByAppId.Where(x => GetAppIdsInGroup(appId).Contains(x.Key)).SelectMany(x => x.Value.AccountIdToClient.Select(x => x.Value)).ToList();
+            return appId == 0
+                ? _lookupsByAppId.SelectMany(x => x.Value.AccountIdToClient.Select(x => x.Value)).ToList()
+                : _lookupsByAppId
+                    .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                    .SelectMany(x => x.Value.AccountIdToClient.Select(x => x.Value))
+                    .ToList();
         }
 
         public ClientObject? GetClientByAccountId(int accountId, int appId)

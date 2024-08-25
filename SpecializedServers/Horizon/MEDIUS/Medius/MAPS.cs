@@ -64,20 +64,18 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
-                        if (!scertClient.IsPS3Client)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService?.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = 0,
                             ScertId = GenerateNewScertClientId(),
-                            PlayerCount = 0x0001,
+                            PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
                         Queue(new RT_MSG_SERVER_ECHO(), clientChannel);
                         break;
                     }

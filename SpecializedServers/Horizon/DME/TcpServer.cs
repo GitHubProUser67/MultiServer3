@@ -16,6 +16,7 @@ using Horizon.DME.PluginArgs;
 using Horizon.PluginManager;
 using EndianTools;
 using CyberBackendLibrary.Extension;
+using Horizon.LIBRARY.Pipeline.Attribute;
 
 namespace Horizon.DME
 {
@@ -323,8 +324,8 @@ namespace Horizon.DME
         protected async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            bool enableEncryption = false /*DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption*/;
+            ScertClientAttribute? scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            bool enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -370,39 +371,18 @@ namespace Horizon.DME
                             LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
                             data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
                             if (data.ClientObject != null)
-                            {
                                 LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
-                                //var clients = Program.GetClients(clientConnectTcpAuxUdp.AppId);
-                                //Logger.Warn($"Clients Count for AppId {clients.Count()}");
-                                /*
-                                foreach (var client in clients)
-                                {
-                                    if (client.Token == clientConnectTcp.AccessToken)
-                                    {
-
-                                        LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
-                                        data.ClientObject = client;
-                                    }
-                                }
-                                */
-                            }
                             else
                             {
                                 LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
-                                //var clients = Program.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
-                                //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                                ClientObject clientObject = new(clientConnectTcpAuxUdp.SessionKey ?? string.Empty)
+
+                                data.ClientObject = new ClientObject(clientConnectTcpAuxUdp.SessionKey ?? string.Empty)
                                 {
                                     ApplicationId = clientConnectTcpAuxUdp.AppId
                                 };
-                                data.ClientObject = clientObject;
                             }
                         }
 
-                        /*
-                        if (data.ClientObject == null || data.ClientObject.DmeWorld == null || data.ClientObject.DmeWorld.WorldId != clientConnectTcpAuxUdp.ARG1)
-                            throw new Exception($"Client connected with invalid world id!");
-                        */
                         data.ClientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
                         data.ClientObject.OnTcpConnected(clientChannel);
                         data.ClientObject.ScertId = GenerateNewScertClientId();
@@ -418,13 +398,13 @@ namespace Horizon.DME
 
                         if (scertClient.MediusVersion > 108 || scertClient.IsPS3Client)
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
-                        else if (data.ClientObject.DmeWorld != null)
+                        else
                         {
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                             {
                                 PlayerId = (ushort)data.ClientObject.DmeId,
                                 ScertId = data.ClientObject.ScertId,
-                                PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
+                                PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
                             Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
@@ -450,19 +430,12 @@ namespace Horizon.DME
                             else
                             {
                                 LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
-                                //var clients = DmeClass.GetClientsByAppId(clientConnectTcpAuxUdp.AppId);
-                                //data.ClientObject = clients.Where(x => x.Token == clientConnectTcpAuxUdp.AccessToken).FirstOrDefault();  
-                                ClientObject clientObject = new(clientConnectTcp.SessionKey ?? string.Empty)
+
+                                data.ClientObject = new ClientObject(clientConnectTcp.SessionKey ?? string.Empty)
                                 {
                                     ApplicationId = clientConnectTcp.AppId
                                 };
-                                data.ClientObject = clientObject;
                             }
-                        }
-
-                        if (enableEncryption == true && scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.RsaAuthKey != null)
-                        {
-                            //Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                         }
 
                         data.ClientObject.OnTcpConnected(clientChannel);
@@ -474,18 +447,19 @@ namespace Horizon.DME
                             break;
                         }
 
-                        if (data.ClientObject.DmeWorld != null)
-                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
-                            {
-                                PlayerId = (ushort)data.ClientObject.DmeId,
-                                ScertId = data.ClientObject.ScertId,
-                                PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
-                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                            }, clientChannel);
+                        if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.MediusVersion >= 109 && !scertClient.IsPS3Client)
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                        {
+                            PlayerId = (ushort)data.ClientObject.DmeId,
+                            ScertId = data.ClientObject.ScertId,
+                            PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
+                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                        }, clientChannel);
 
                         //pre108Complete
 
-                        if (data.ClientObject.DmeWorld != null && (scertClient.MediusVersion == 108 || scertClient.ApplicationID == 10683 || scertClient.ApplicationID == 10684))
+                        if (scertClient.MediusVersion == 108 || scertClient.ApplicationID == 10683 || scertClient.ApplicationID == 10684)
                             Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
                             {
                                 ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
@@ -495,14 +469,15 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
-                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
-                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
-                            {
-                                PlayerId = (ushort)data.ClientObject.DmeId,
-                                ScertId = data.ClientObject.ScertId,
-                                PlayerCount = (ushort)data.ClientObject.DmeWorld.Clients.Count,
-                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                            }, clientChannel);
+                        if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && !scertClient.IsPS3Client)
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                        {
+                            PlayerId = (ushort)data.ClientObject!.DmeId,
+                            ScertId = data.ClientObject.ScertId,
+                            PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
+                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                        }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
