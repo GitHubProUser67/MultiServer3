@@ -117,7 +117,6 @@ namespace Horizon.MEDIUS.Medius
                             LoggerAccessor.LogInfo("MPS Client Connected!");
                             data.ClientObject.OnConnected();
                             data.ClientObject.ApplicationId = clientConnectTcp.AppId;
-                            data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
                         }
                         else
                         {
@@ -128,7 +127,6 @@ namespace Horizon.MEDIUS.Medius
                                 LoggerAccessor.LogInfo("MPS DME Client Connected!");
                                 data.ClientObject.OnConnected();
                                 data.ClientObject.ApplicationId = clientConnectTcp.AppId;
-                                data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
                             }
                         }
 

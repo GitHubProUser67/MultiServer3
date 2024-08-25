@@ -75,7 +75,7 @@ namespace Horizon.MEDIUS.Medius.Models
         public DMEObject(MediusServerSetAttributesRequest request)
         {
             Port = request.ListenServerAddress.Port;
-            SetIp(request.ListenServerAddress.Address ?? MediusClass.SERVER_IP.ToString());
+            SetIp(request.ListenServerAddress.Address ?? "0.0.0.0");
 
             // Generate new session key
             SessionKey = MediusClass.GenerateSessionKey();
@@ -90,7 +90,7 @@ namespace Horizon.MEDIUS.Medius.Models
         {
             ApplicationId = request.ApplicationID;
             Port = request.Port;
-            SetIp(IP ?? MediusClass.SERVER_IP.ToString());
+            SetIp(IP ?? "0.0.0.0");
 
             // Generate new session key
             SessionKey = MediusClass.GenerateSessionKey();

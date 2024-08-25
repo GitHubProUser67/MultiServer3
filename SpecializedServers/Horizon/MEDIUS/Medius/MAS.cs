@@ -810,7 +810,7 @@ namespace Horizon.MEDIUS.Medius
                             }
                             else
                                 // NetAddressTypeExternal
-                                data.ClientObject.SetIp(mgclAuthRequest.AddressList.AddressList[0].Address ?? "127.0.0.1");
+                                data.ClientObject.SetIp(mgclAuthRequest.AddressList.AddressList[0].Address ?? "0.0.0.0");
 
                             if (nonSecure.Contains(data.ClientObject.ApplicationId))
                             {
@@ -2879,7 +2879,8 @@ namespace Horizon.MEDIUS.Medius
 
             List<int> pre108Secure = new() { 10010, 10031, 10190, 10124, 10680, 10683, 10684 };
 
-            data.ClientObject!.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
+            if (data.ClientObject!.IP == IPAddress.Any)
+                data.ClientObject!.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
 
             string HomeUserEntry = accountDto.AccountName + ":" + data.ClientObject.IP;
             bool isHome = data.ApplicationId == 20371 || data.ApplicationId == 20374;
@@ -3106,10 +3107,9 @@ namespace Horizon.MEDIUS.Medius
             if (data.ClientObject != null)
             {
                 char[] charsToRemove = { ':', 'f', '{', '}' };
-                data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
+                if (data.ClientObject.IP == IPAddress.Any)
+                    data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(charsToRemove));
             }
-
-            //await data.ClientObject.Login(accountDto);
 
             if (data.ClientObject != null)
             {
