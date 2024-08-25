@@ -21,6 +21,7 @@ namespace Horizon.DME
         public DateTime? TimeLostConnection { get; set; } = null;
         public string? SessionKey = null;
         public string? AccessKey = null;
+        public byte[]? GameKey = null;
         public int ApplicationId { get; } = 0;
 
         private enum MPSConnectionState
@@ -349,6 +350,11 @@ namespace Horizon.DME
                             });
 
                         _mpsState = MPSConnectionState.CONNECT_TCP;
+                        break;
+                    }
+                case RT_MSG_SERVER_CRYPTKEY_GAME serverCryptGame:
+                    {
+                        GameKey = serverCryptGame.GameKey;
                         break;
                     }
                 case RT_MSG_SERVER_CONNECT_ACCEPT_TCP serverConnectAcceptTcp:

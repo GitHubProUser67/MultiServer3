@@ -1,20 +1,10 @@
 ﻿using HashLib;
 using System;
-using System.Linq;
-#if NET5_0_OR_GREATER
-using ILGPU;
-using ILGPU.Runtime;
-#endif
 
 namespace CastleLibrary.Utils.Hash
 {
     public class NetHasher
     {
-#if NET5_0_OR_GREATER
-        private static readonly Context context = Context.CreateDefault();
-        private static readonly Device device = context?.GetPreferredDevice(false);
-#endif
-
         public static byte[] ComputeMD5(object input)
         {
             byte[] result = HashFactory.Crypto.BuildIn.CreateMD5CryptoServiceProvider().ComputeObject(input).GetBytes();
@@ -62,19 +52,7 @@ namespace CastleLibrary.Utils.Hash
 
         public static byte[] ComputeSHA256(object input)
         {
-            byte[] result = Array.Empty<byte>();
-
-#if NET5_0_OR_GREATER
-            if (device != null && input is byte[] byteInput)
-            {
-#if DEBUG
-                CustomLogger.LoggerAccessor.LogWarn($"[NetHasher] - Starting SHA256 task on the GPU: {device.Name}");
-#endif
-                result = ILGPUModels.Sha256.ComputeSHA256(context, device, byteInput);
-            }
-            else
-#endif
-                result = HashFactory.Crypto.BuildIn.CreateSHA256Managed().ComputeObject(input).GetBytes();
+            byte[] result = HashFactory.Crypto.BuildIn.CreateSHA256Managed().ComputeObject(input).GetBytes();
 
             if (result.Length != 32)
                 throw new InvalidOperationException("The computed SHA256 hash is not 32 bytes long.");

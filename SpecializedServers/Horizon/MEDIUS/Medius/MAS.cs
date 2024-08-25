@@ -103,29 +103,47 @@ namespace Horizon.MEDIUS.Medius
                         }
                         #endregion
 
-                        // If this is a PS3 client or medius version equal or superior to 109
-                        if (scertClient.IsPS3Client || scertClient.MediusVersion >= 109)
+                        #region if PS3
+                        if (scertClient.IsPS3Client)
                         {
+                            List<int> ConnectAcceptTCPGames = new() { 20623, 20624, 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
+
+                            //CAC & Warhawk
+                            if (ConnectAcceptTCPGames.Contains(scertClient.ApplicationID))
+                            {
+                                Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                                {
+                                    PlayerId = 0,
+                                    ScertId = GenerateNewScertClientId(),
+                                    PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                                    IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                                }, clientChannel);
+                            }
+                            else
+                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
+                        }
+                        #endregion
+                        // If medius version superior to 108
+                        else if (scertClient.MediusVersion > 108 && scertClient.ApplicationID != 11484)
                             // Send a Server_Connect_Require with no Password needed
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
-                        }
                         else
                         {
+                            //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
+                            if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION))
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                             // Do NOT send hereCryptKey Game
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                             {
                                 PlayerId = 0,
                                 ScertId = GenerateNewScertClientId(),
-                                PlayerCount = 0x0001,
+                                PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
+
+                            if (pre108ServerComplete.Contains(data.ApplicationId) || post108ServerComplete.Contains(data.ApplicationId))
+                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
                         }
-
-                        if (scertClient.RsaAuthKey != null && scertClient.CipherService?.EnableEncryption == true)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-
-                        if (pre108ServerComplete.Contains(data.ApplicationId))
-                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
                         if (MediusClass.Settings.HttpsSVOCheckPatcher)
                         {
@@ -447,14 +465,13 @@ namespace Horizon.MEDIUS.Medius
 
                 case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
                     {
-                        if (scertClient.RsaAuthKey != null)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService?.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-
+                        if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && !scertClient.IsPS3Client)
+                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
                             PlayerId = 0,
                             ScertId = GenerateNewScertClientId(),
-                            PlayerCount = 0x0001,
+                            PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
                         break;
@@ -462,7 +479,7 @@ namespace Horizon.MEDIUS.Medius
 
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
 
                         if (scertClient.MediusVersion > 108) //data.ApplicationId != 10694
                             Queue(new RT_MSG_SERVER_ECHO(), clientChannel);

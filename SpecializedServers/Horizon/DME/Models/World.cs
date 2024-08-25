@@ -262,11 +262,28 @@ namespace Horizon.DME.Models
 
         public void SendTcpAppList(ClientObject source, List<int> targetDmeIds, byte[] Payload)
         {
-            foreach (int targetId in targetDmeIds)
+            if (targetDmeIds.Count > 0)
             {
-                if (Clients.TryGetValue(targetId, out ClientObject? client))
+                foreach (int targetId in targetDmeIds)
                 {
-                    if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
+                    if (Clients.TryGetValue(targetId, out ClientObject? client))
+                    {
+                        if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
+                            continue;
+
+                        client.EnqueueTcp(new RT_MSG_CLIENT_APP_LIST()
+                        {
+                            SourceIn = (short)source.DmeId,
+                            Payload = Payload
+                        });
+                    }
+                }
+            }
+            else
+            {
+                foreach (var client in Clients.Values)
+                {
+                    if (client == null || client == source || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
                         continue;
 
                     client.EnqueueTcp(new RT_MSG_CLIENT_APP_LIST()
@@ -280,11 +297,28 @@ namespace Horizon.DME.Models
 
         public void SendUdpAppList(ClientObject source, List<int> targetDmeIds, byte[] Payload)
         {
-            foreach (int targetId in targetDmeIds)
+            if (targetDmeIds.Count > 0)
             {
-                if (Clients.TryGetValue(targetId, out ClientObject? client))
+                foreach (int targetId in targetDmeIds)
                 {
-                    if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
+                    if (Clients.TryGetValue(targetId, out ClientObject? client))
+                    {
+                        if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
+                            continue;
+
+                        client.EnqueueUdp(new RT_MSG_CLIENT_APP_LIST()
+                        {
+                            SourceIn = (short)source.DmeId,
+                            Payload = Payload
+                        });
+                    }
+                }
+            }
+            else
+            {
+                foreach (var client in Clients.Values)
+                {
+                    if (client == null || client == source || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
                         continue;
 
                     client.EnqueueUdp(new RT_MSG_CLIENT_APP_LIST()
@@ -459,14 +493,23 @@ namespace Horizon.DME.Models
             if (existingClient.Value != null)
             {
                 // found existing
-                return new MediusServerJoinGameResponse()
-                {
-                    MessageID = request.MessageID,
-                    DmeClientIndex = existingClient.Value.DmeId,
-                    AccessKey = request.ConnectInfo.AccessKey,
-                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                    pubKey = request.ConnectInfo.ServerKey
-                };
+                if (!DmeClass.GetAppSettingsOrDefault(ApplicationId).EnableDmeEncryption)
+                    return new MediusServerJoinGameResponse()
+                    {
+                        MessageID = request.MessageID,
+                        DmeClientIndex = existingClient.Value.DmeId,
+                        AccessKey = request.ConnectInfo.AccessKey,
+                        Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
+                    };
+                else
+                    return new MediusServerJoinGameResponse()
+                    {
+                        MessageID = request.MessageID,
+                        DmeClientIndex = existingClient.Value.DmeId,
+                        AccessKey = request.ConnectInfo.AccessKey,
+                        Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                        pubKey = request.ConnectInfo.ServerKey
+                    };
             }
 
             // If world is full then fail
@@ -507,7 +550,7 @@ namespace Horizon.DME.Models
             // Add client to manager
             Manager.AddClient(newClient);
 
-            if (true /*!DmeClass.GetAppSettingsOrDefault(ApplicationId).EnableDmeEncryption*/)
+            if (!DmeClass.GetAppSettingsOrDefault(ApplicationId).EnableDmeEncryption)
                 return new MediusServerJoinGameResponse()
                 {
                     MessageID = request.MessageID,

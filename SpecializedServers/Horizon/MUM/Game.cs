@@ -413,7 +413,7 @@ namespace Horizon.MUM
             {
                 if (player.Client != null)
                     RoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame?.GameName, player.Client.CurrentGame?.MediusWorldId,
-                        player.Client.CurrentGame?.WorldID.ToString(), player.Client.AccountName, player.Client.DmeClientId, player.Client.LanguageType.ToString(), ishost);
+                        player.Client.CurrentChannel?.Id.ToString(), player.Client.AccountName, player.Client.DmeClientId, player.Client.LanguageType.ToString(), ishost);
             }
             catch
             {
