@@ -5792,13 +5792,32 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        if (data.ClientObject.ApplicationId == 10538 || data.ClientObject.ApplicationId == 10190)
+                        ClientObject? rClient;
+
+                        if (gameListRequest.SessionKey.Equals(data.ClientObject.SessionKey))
+                            rClient = data.ClientObject;
+                        else
+                            rClient = MediusClass.Manager.GetClientBySessionKey(gameListRequest.SessionKey, data.ClientObject.ApplicationId);
+
+                        if (rClient == null)
+                        {
+                            LoggerAccessor.LogError("[MLS] - MediusGameListRequest request's SessionKey had no matching ClientObject!");
+
+                            data.ClientObject.Queue(new MediusGameListResponse()
+                            {
+                                MessageID = gameListRequest.MessageID,
+                                StatusCode = MediusCallbackStatus.MediusFail,
+                                EndOfList = true
+                            });
+                            break;
+                        }
+
+                        if (rClient.ApplicationId == 10538 || rClient.ApplicationId == 10190)
                         {
                             var gameList = MediusClass.Manager.GetGameListAppId(
-                               data.ClientObject.ApplicationId,
+                               rClient.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize)
-                            .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 1.0)))
                             .OrderByDescending(x => x.PlayerCount)
                             .Select(x => new MediusGameListResponse()
                             {
@@ -5819,10 +5838,10 @@ namespace Horizon.MEDIUS.Medius
                                 gameList[^1].EndOfList = true;
 
                                 // Add to responses
-                                data.ClientObject.Queue(gameList);
+                                rClient.Queue(gameList);
                             }
                             else
-                                data.ClientObject.Queue(new MediusGameListResponse()
+                                rClient.Queue(new MediusGameListResponse()
                                 {
                                     MessageID = gameListRequest.MessageID,
                                     StatusCode = MediusCallbackStatus.MediusNoResult,
@@ -5832,11 +5851,10 @@ namespace Horizon.MEDIUS.Medius
                         else
                         {
                             var gameList = MediusClass.Manager.GetGameList(
-                               data.ClientObject.ApplicationId,
+                               rClient.ApplicationId,
                                gameListRequest.PageID,
                                gameListRequest.PageSize,
-                               data.ClientObject.GameListFilters)
-                            .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 1.0)))
+                               rClient.GameListFilters)
                             .OrderByDescending(x => x.PlayerCount)
                             .Select(x => new MediusGameListResponse()
                             {
@@ -5857,10 +5875,10 @@ namespace Horizon.MEDIUS.Medius
                                 gameList[^1].EndOfList = true;
 
                                 // Add to responses
-                                data.ClientObject.Queue(gameList);
+                                rClient.Queue(gameList);
                             }
                             else
-                                data.ClientObject.Queue(new MediusGameListResponse()
+                                rClient.Queue(new MediusGameListResponse()
                                 {
                                     MessageID = gameListRequest.MessageID,
                                     StatusCode = MediusCallbackStatus.MediusNoResult,
@@ -5895,7 +5913,6 @@ namespace Horizon.MEDIUS.Medius
                                gameList_ExtraInfoRequest.PageID,
                                gameList_ExtraInfoRequest.PageSize,
                                data.ClientObject.GameListFilters)
-                            .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 1.0)))
                             .OrderByDescending(x => x.PlayerCount)
                             .Select(x => new MediusGameList_ExtraInfoResponse()
                             {
@@ -5949,7 +5966,6 @@ namespace Horizon.MEDIUS.Medius
                                 data.ClientObject.ApplicationId,
                                 gameList_ExtraInfoRequest.PageID,
                                 gameList_ExtraInfoRequest.PageSize)
-                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 1.0)))
                                 .OrderByDescending(x => x.PlayerCount)
                                 .Select(x => new MediusGameList_ExtraInfoResponse()
                                 {
@@ -6021,7 +6037,6 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.ApplicationId,
                             gameList_ExtraInfoRequest0.PageID,
                             gameList_ExtraInfoRequest0.PageSize)
-                            .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 1.0)))
                             .OrderByDescending(x => x.PlayerCount)
                             .Select(x => new MediusGameList_ExtraInfoResponse0()
                             {
@@ -6073,7 +6088,6 @@ namespace Horizon.MEDIUS.Medius
                                 gameList_ExtraInfoRequest0.PageID,
                                 gameList_ExtraInfoRequest0.PageSize,
                                 data.ClientObject.GameListFilters)
-                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 1.0)))
                                 .OrderByDescending(x => x.PlayerCount)
                                 .Select(x => new MediusGameList_ExtraInfoResponse0()
                                 {
@@ -6105,7 +6119,6 @@ namespace Horizon.MEDIUS.Medius
                                 gameList_ExtraInfoRequest0.PageID,
                                 gameList_ExtraInfoRequest0.PageSize,
                                 data.ClientObject.GameListFilters)
-                                .Where(x => x.PlayerCount > 0 && (x.utcLastJoined == null || IsAtLeastLater(x.utcLastJoined.Value, 1.0)))
                                 .OrderByDescending(x => x.PlayerCount)
                                 .Select(x => new MediusGameList_ExtraInfoResponse0()
                                 {
@@ -11305,12 +11318,6 @@ namespace Horizon.MEDIUS.Medius
             }
 
             return null;
-        }
-
-        public bool IsAtLeastLater(DateTime utcTimeCreated, double seconds) // Needed to prevent GameList collision issue.
-        {
-            // Check the difference
-            return (DateTime.UtcNow - utcTimeCreated).TotalSeconds >= seconds;
         }
 
         #region GuestLogin
