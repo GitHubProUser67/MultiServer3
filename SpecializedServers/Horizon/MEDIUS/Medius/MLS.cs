@@ -127,6 +127,14 @@ namespace Horizon.MEDIUS.Medius
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
+                        Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcp.TargetWorldId, data.ApplicationId);
+
+                        if (targetChannel == null)
+                        {
+                            LoggerAccessor.LogError($"[MLS] - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
+                            break;
+                        }
+
                         data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
                         if (data.ClientObject == null)
                         {
@@ -140,6 +148,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
                                     data.ClientObject = client;
+                                    break;
                                 }
                             }
                         }
@@ -154,6 +163,8 @@ namespace Horizon.MEDIUS.Medius
                                 data.ClientObject.OnConnected();
                                 data.ClientObject.ApplicationId = clientConnectTcp.AppId;
                                 data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
+
+                                await data.ClientObject.JoinChannel(targetChannel);
 
                                 if (!await GuestLogin(clientChannel, data))
                                 {
@@ -174,6 +185,8 @@ namespace Horizon.MEDIUS.Medius
                             data.ClientObject.OnConnected();
                             data.ClientObject.ApplicationId = clientConnectTcp.AppId;
                             data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
+
+                            await data.ClientObject.JoinChannel(targetChannel);
 
                             string HomeUserEntry = data.ClientObject.AccountName + ":" + data.ClientObject.IP;
                             bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
@@ -3781,61 +3794,18 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    Channel? foundchannel = null;
-
-                                    try
-                                    {
-                                        foundchannel = MediusClass.Manager.GetChannelByRequestFilter(
-                                            data.ClientObject.ApplicationId,
-                                            ChannelType.Lobby,
-                                            data.ClientObject.FilterMask1,
-                                            data.ClientObject.FilterMask2,
-                                            data.ClientObject.FilterMask3,
-                                            data.ClientObject.FilterMask4,
-                                            data.ClientObject.FilterMaskLevel
-                                            );
-                                    }
-                                    catch
-                                    {
-                                        // Returned no result so default fallback.
-                                    }
-
-                                    foundchannel ??= MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId); // If filtered result not found, put in default channel.
-
-                                    if (foundchannel != null)
-                                    {
-                                        // Join new channel
-                                        await data.ClientObject.JoinChannel(foundchannel);
-
-                                        LoggerAccessor.LogInfo($"[MLS] - Successfully JoinedChatWorld [{foundchannel.Id}] {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
-                                    }
-                                    else
-                                        LoggerAccessor.LogError($"[MLS] - Requested a non-existant JoinedChatWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    LoggerAccessor.LogInfo($"[MLS] - Successfully Joined ChatWorld [{data.ClientObject.CurrentChannel?.Id}] {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     break;
                                 }
                             case MediusUserAction.LeftGameWorld:
                                 {
-                                    if (data.ClientObject.CurrentGame != null)
-                                    {
-                                        await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
-                                        LoggerAccessor.LogInfo($"[MLS] - Successfully LeftGameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
-                                    }
-                                    else
-                                        LoggerAccessor.LogWarn($"[MLS] - LeftGameWorld but client wasn't in a Game! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
-
+                                    LoggerAccessor.LogInfo($"[MLS] - Successfully Left GameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
                                     break;
                                 }
                             case MediusUserAction.LeftPartyWorld:
                                 {
-                                    if (data.ClientObject.CurrentParty != null)
-                                    {
-                                        await data.ClientObject.LeaveParty(data.ClientObject.CurrentParty);
-                                        LoggerAccessor.LogInfo($"[MLS] - Successfully LeftPartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
-                                    }
-                                    else
-                                        LoggerAccessor.LogWarn($"[MLS] - LeftPartyWorld but client wasn't in a Party! {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
-
+                                    LoggerAccessor.LogInfo($"[MLS] - Successfully Left PartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     break;
                                 }
                             default:
