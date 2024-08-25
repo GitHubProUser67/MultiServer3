@@ -482,18 +482,18 @@ namespace Horizon.MUM
             // Send to plugins
             await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_LEFT_GAME, new OnPlayerGameArgs() { Player = client, Game = this });
 
-            // Remove from clients list
-            lock (LocalClients)
-                LocalClients.RemoveAll(x => x.Client == client);
-
             // Remove host
             if (Host == client)
             {
                 // Send to plugins
                 await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_HOST_LEFT, new OnPlayerGameArgs() { Player = client, Game = this });
 
-                Host = LocalClients.FirstOrDefault()?.Client;
+                Host = null;
             }
+
+            // Remove from clients list
+            lock (LocalClients)
+                LocalClients.RemoveAll(x => x.Client == client);
         }
 
         public virtual async Task OnEndGameReport(MediusEndGameReport report, int appid)

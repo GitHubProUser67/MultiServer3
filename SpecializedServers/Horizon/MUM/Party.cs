@@ -236,13 +236,13 @@ namespace Horizon.MUM
         {
             LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: {client} removed.");
 
+            // Remove host
+            if (Host == client)
+                Host = null;
+
             // Remove from clients list
             lock (LocalClients)
                 LocalClients.RemoveAll(x => x.Client == client);
-
-            // Remove host
-            if (Host == client)
-                Host = LocalClients.FirstOrDefault()?.Client;
         }
 
         public virtual void OnPartyPlayerReport(MediusPartyPlayerReport report)
