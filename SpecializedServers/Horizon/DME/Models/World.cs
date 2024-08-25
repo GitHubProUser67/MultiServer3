@@ -19,6 +19,20 @@ namespace Horizon.DME.Models
         private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
         private static object _lock = new();
 
+        private static uint GetNextAvailableId()
+        {
+            lock (_idToWorld)
+            {
+                for (uint nextId = 0; nextId < uint.MaxValue; nextId++)
+                {
+                    if (!_idToWorld.ContainsKey(nextId))
+                        return nextId;
+                }
+            }
+
+            throw new InvalidOperationException("No available ID found.");
+        }
+
         private void RegisterWorld(uint WorldId, uint ChatChannelWorldId)
         {
             if (_idToWorld.Count > MAX_WORLDS)
@@ -27,11 +41,30 @@ namespace Horizon.DME.Models
                 return;
             }
 
-            this.WorldId = WorldId;
             this.ChatChannelWorldId = ChatChannelWorldId;
+            this.WorldId = WorldId;
 
-            _idToWorld.TryAdd(WorldId, this);
-            LoggerAccessor.LogInfo($"[DMEWorld] - Registered world with id {WorldId}");
+            if (_idToWorld.TryAdd(WorldId, this))
+                LoggerAccessor.LogInfo($"[DMEWorld] - Registered world with id {WorldId}");
+            else
+            {
+                try
+                {
+                    uint NextAvailableWorldId = GetNextAvailableId();
+                    this.WorldId = NextAvailableWorldId;
+                    if (_idToWorld.TryAdd(NextAvailableWorldId, this))
+                    {
+                        LoggerAccessor.LogInfo($"[DMEWorld] - Registered world with id {NextAvailableWorldId} instead of id {WorldId}");
+                        return;
+                    }
+                }
+                catch
+                {
+
+                }
+
+                LoggerAccessor.LogError($"[DMEWorld] - Failed to register world with id {WorldId}");
+            }
         }
 
         private void FreeWorld()
