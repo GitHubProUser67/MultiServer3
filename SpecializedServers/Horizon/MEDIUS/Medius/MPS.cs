@@ -819,15 +819,35 @@ namespace Horizon.MEDIUS.Medius
                 /// </summary>
                 case MediusServerEndGameOnMeRequest serverEndGameOnMeRequest:
                     {
-                        if (data.ClientObject != null)
-                        {
-                            if (data.ClientObject.CurrentGame != null)
-                                await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
+                        Game? game = MediusClass.Manager.GetGameByGameId(serverEndGameOnMeRequest.MediusWorldID);
+                        Party? party = MediusClass.Manager.GetPartyByPartyId(serverEndGameOnMeRequest.MediusWorldID);
 
-                            data.ClientObject.Queue(new MediusServerEndGameOnMeResponse()
+                        if (game != null)
+                        {
+                            await data.ClientObject!.LeaveGame(game);
+
+                            data.ClientObject!.Queue(new MediusServerEndGameOnMeResponse()
                             {
                                 MessageID = serverEndGameOnMeRequest.MessageID,
                                 Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                            });
+                        }
+                        else if (party != null)
+                        {
+                            await data.ClientObject!.LeaveParty(party);
+
+                            data.ClientObject!.Queue(new MediusServerEndGameOnMeResponse()
+                            {
+                                MessageID = serverEndGameOnMeRequest.MessageID,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                            });
+                        }
+                        else
+                        {
+                            data.ClientObject!.Queue(new MediusServerEndGameOnMeResponse()
+                            {
+                                MessageID = serverEndGameOnMeRequest.MessageID,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG,
                             });
                         }
 
@@ -888,29 +908,38 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerEndGameRequest
                 case MediusServerEndGameRequest endGameRequest:
                     {
-                        var game = MediusClass.Manager.GetGameByGameId(endGameRequest.MediusWorldID);
+                        Game? game = MediusClass.Manager.GetGameByGameId(endGameRequest.MediusWorldID);
+                        Party? party = MediusClass.Manager.GetPartyByPartyId(endGameRequest.MediusWorldID);
 
-                        if (game != null && endGameRequest.BrutalFlag == true && data.ClientObject != null)
+                        if (game != null)
                         {
-                            await game.EndGame(data.ClientObject.ApplicationId);
+                            if (endGameRequest.BrutalFlag)
+                                await game.EndGame(data.ClientObject!.ApplicationId);
+                            else
+                                await data.ClientObject!.LeaveGame(game);
 
-                            data.ClientObject.Queue(new MediusServerEndGameResponse()
+                            data.ClientObject!.Queue(new MediusServerEndGameResponse()
                             {
                                 MessageID = endGameRequest.MessageID,
                                 Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
                             });
                         }
-                        else if (game != null && endGameRequest.BrutalFlag == false)
+                        else if (party != null)
                         {
-                            data.ClientObject?.Queue(new MediusServerEndGameResponse()
+                            if (endGameRequest.BrutalFlag)
+                                await party.EndParty(data.ClientObject!.ApplicationId);
+                            else
+                                await data.ClientObject!.LeaveParty(party);
+
+                            data.ClientObject!.Queue(new MediusServerEndGameResponse()
                             {
                                 MessageID = endGameRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS
                             });
                         }
                         else
                         {
-                            data.ClientObject?.Queue(new MediusServerEndGameResponse()
+                            data.ClientObject!.Queue(new MediusServerEndGameResponse()
                             {
                                 MessageID = endGameRequest.MessageID,
                                 Confirmation = MGCL_ERROR_CODE.MGCL_INVALID_ARG

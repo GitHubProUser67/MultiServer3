@@ -262,28 +262,11 @@ namespace Horizon.DME.Models
 
         public void SendTcpAppList(ClientObject source, List<int> targetDmeIds, byte[] Payload)
         {
-            if (targetDmeIds.Count > 0)
+            foreach (int targetId in targetDmeIds)
             {
-                foreach (int targetId in targetDmeIds)
+                if (Clients.TryGetValue(targetId, out ClientObject? client))
                 {
-                    if (Clients.TryGetValue(targetId, out ClientObject? client))
-                    {
-                        if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
-                            continue;
-
-                        client.EnqueueTcp(new RT_MSG_CLIENT_APP_LIST()
-                        {
-                            SourceIn = (short)source.DmeId,
-                            Payload = Payload
-                        });
-                    }
-                }
-            }
-            else
-            {
-                foreach (var client in Clients.Values)
-                {
-                    if (client == null || client == source || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
+                    if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
                         continue;
 
                     client.EnqueueTcp(new RT_MSG_CLIENT_APP_LIST()
@@ -297,28 +280,11 @@ namespace Horizon.DME.Models
 
         public void SendUdpAppList(ClientObject source, List<int> targetDmeIds, byte[] Payload)
         {
-            if (targetDmeIds.Count > 0)
+            foreach (int targetId in targetDmeIds)
             {
-                foreach (int targetId in targetDmeIds)
+                if (Clients.TryGetValue(targetId, out ClientObject? client))
                 {
-                    if (Clients.TryGetValue(targetId, out ClientObject? client))
-                    {
-                        if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
-                            continue;
-
-                        client.EnqueueUdp(new RT_MSG_CLIENT_APP_LIST()
-                        {
-                            SourceIn = (short)source.DmeId,
-                            Payload = Payload
-                        });
-                    }
-                }
-            }
-            else
-            {
-                foreach (var client in Clients.Values)
-                {
-                    if (client == null || client == source || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
+                    if (client == null || !client.IsAuthenticated || !client.IsConnected || !client.HasRecvFlag(RT_RECV_FLAG.RECV_LIST))
                         continue;
 
                     client.EnqueueUdp(new RT_MSG_CLIENT_APP_LIST()

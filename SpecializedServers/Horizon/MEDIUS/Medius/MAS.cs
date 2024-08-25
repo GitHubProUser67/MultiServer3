@@ -596,7 +596,7 @@ namespace Horizon.MEDIUS.Medius
                                         {
                                             AccessKey = data.ClientObject.Token,
                                             SessionKey = data.ClientObject.SessionKey,
-                                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                            WorldID = data.ClientObject.CurrentChannel!.Id,
                                             ServerKey = new RSA_KEY(),
                                             AddressList = new NetAddressList()
                                             {
@@ -621,7 +621,7 @@ namespace Horizon.MEDIUS.Medius
                                         {
                                             AccessKey = data.ClientObject.Token,
                                             SessionKey = data.ClientObject.SessionKey,
-                                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                            WorldID = data.ClientObject.CurrentChannel!.Id,
                                             ServerKey = MediusClass.GlobalAuthPublic,
                                             AddressList = new NetAddressList()
                                             {
@@ -691,7 +691,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     AccessKey = data.ClientObject.Token,
                                     SessionKey = data.ClientObject.SessionKey,
-                                    WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                    WorldID = data.ClientObject.CurrentChannel!.Id,
                                     ServerKey = MediusClass.GlobalAuthPublic,
                                     AddressList = new NetAddressList()
                                     {
@@ -737,7 +737,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     AccessKey = data.ClientObject.Token,
                                     SessionKey = data.ClientObject.SessionKey,
-                                    WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                    WorldID = data.ClientObject.CurrentChannel!.Id,
                                     ServerKey = MediusClass.GlobalAuthPublic,
                                     AddressList = new NetAddressList()
                                     {
@@ -822,7 +822,7 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         AccessKey = data.ClientObject.Token,
                                         SessionKey = data.ClientObject.SessionKey,
-                                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                        WorldID = data.ClientObject.CurrentChannel!.Id,
                                         ServerKey = new RSA_KEY(),
                                         AddressList = new NetAddressList()
                                         {
@@ -850,7 +850,7 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         AccessKey = data.ClientObject.Token,
                                         SessionKey = data.ClientObject.SessionKey,
-                                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId).Id,
+                                        WorldID = data.ClientObject.CurrentChannel!.Id,
                                         ServerKey = MediusClass.GlobalAuthPublic,
                                         AddressList = new NetAddressList()
                                         {
@@ -2583,7 +2583,6 @@ namespace Horizon.MEDIUS.Medius
                             ChannelType.Lobby
                         );
 
-
                         foreach (var channel in lobbyChannels)
                         {
                             channelResponses.Add(new MediusChannelListResponse()
@@ -2837,16 +2836,23 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             case MediusUserAction.JoinedChatWorld:
                                 {
-                                    //await data.ClientObject.JoinChannel(Program.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId));
+                                    LoggerAccessor.LogInfo($"[MAS] - Successfully Joined ChatWorld [{data.ClientObject.CurrentChannel?.Id}] {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
                                     break;
                                 }
                             case MediusUserAction.LeftGameWorld:
                                 {
-                                    if (data.ClientObject.CurrentGame != null)
-                                    {
-                                        await data.ClientObject.LeaveGame(data.ClientObject.CurrentGame);
-                                        MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
-                                    }
+                                    LoggerAccessor.LogInfo($"[MAS] - Successfully Left GameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
+                                    break;
+                                }
+                            case MediusUserAction.LeftPartyWorld:
+                                {
+                                    LoggerAccessor.LogInfo($"[MAS] - Successfully Left PartyWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
+                                    break;
+                                }
+                            default:
+                                {
+                                    LoggerAccessor.LogWarn($"[MAS] - Requested a non-existant UserState {data.ClientObject.AccountId}:{data.ClientObject.AccountName}, please report to GITHUB.");
                                     break;
                                 }
                         }
@@ -2974,12 +2980,11 @@ namespace Horizon.MEDIUS.Medius
                         StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
                         AccountID = data.ClientObject.AccountId,
                         AccountType = MediusAccountType.MediusMasterAccount,
-                        MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
                         ConnectInfo = new NetConnectionInfo()
                         {
                             AccessKey = data.ClientObject.Token,
                             SessionKey = data.ClientObject.SessionKey,
-                            WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                            WorldID = data.ClientObject.CurrentChannel!.Id,
                             ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
                             AddressList = new NetAddressList()
                             {
@@ -3009,12 +3014,11 @@ namespace Horizon.MEDIUS.Medius
                             StatusCode = MediusCallbackStatus.MediusSuccess,
                             AccountID = data.ClientObject.AccountId,
                             AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
                             ConnectInfo = new NetConnectionInfo()
                             {
                                 AccessKey = data.ClientObject.Token,
                                 SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                                WorldID = data.ClientObject.CurrentChannel!.Id,
                                 ServerKey = MediusClass.GlobalAuthPublic,
                                 AddressList = new NetAddressList()
                                 {
@@ -3036,12 +3040,11 @@ namespace Horizon.MEDIUS.Medius
                             StatusCode = MediusCallbackStatus.MediusSuccess,
                             AccountID = data.ClientObject.AccountId,
                             AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
                             ConnectInfo = new NetConnectionInfo()
                             {
                                 AccessKey = data.ClientObject.Token,
                                 SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                                WorldID = data.ClientObject.CurrentChannel!.Id,
                                 ServerKey = new RSA_KEY(),
                                 AddressList = new NetAddressList()
                                 {
@@ -3063,12 +3066,11 @@ namespace Horizon.MEDIUS.Medius
                             StatusCode = MediusCallbackStatus.MediusSuccess,
                             AccountID = data.ClientObject.AccountId,
                             AccountType = MediusAccountType.MediusMasterAccount,
-                            MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
                             ConnectInfo = new NetConnectionInfo()
                             {
                                 AccessKey = data.ClientObject.Token,
                                 SessionKey = data.ClientObject.SessionKey,
-                                WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                                WorldID = data.ClientObject.CurrentChannel!.Id,
                                 ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
                                 AddressList = new NetAddressList()
                                 {
@@ -3134,12 +3136,11 @@ namespace Horizon.MEDIUS.Medius
                     StatusCode = MediusCallbackStatus.MediusSuccess,
                     AccountID = iAccountID,
                     AccountType = MediusAccountType.MediusMasterAccount,
-                    MediusWorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
                     ConnectInfo = new NetConnectionInfo()
                     {
                         AccessKey = data.ClientObject.Token,
                         SessionKey = data.ClientObject.SessionKey,
-                        WorldID = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ClientObject.ApplicationId).Id,
+                        WorldID = data.ClientObject.CurrentChannel!.Id,
                         ServerKey = new RSA_KEY(), // Null for 108 clients
                         AddressList = new NetAddressList()
                         {
