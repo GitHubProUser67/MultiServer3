@@ -119,7 +119,6 @@ namespace Horizon.DME
             bootstrap
                 .Group(_bossGroup, _workerGroup)
                 .Channel<TcpServerSocketChannel>()
-                .Option(ChannelOption.SoBacklog, 100)
                 .Handler(new LoggingHandler(LogLevel.INFO))
                 .ChildHandler(new ActionChannelInitializer<ISocketChannel>(channel =>
                 {
@@ -132,7 +131,9 @@ namespace Horizon.DME
                     pipeline.AddLast(new ScertDecoder());
                     pipeline.AddLast(new ScertMultiAppDecoder());
                     pipeline.AddLast(_scertHandler);
-                }));
+                }))
+                .ChildOption(ChannelOption.TcpNodelay, true)
+                .ChildOption(ChannelOption.SoTimeout, 1000 * 60 * 15);
 
             _boundChannel = await bootstrap.BindAsync(Port);
         }

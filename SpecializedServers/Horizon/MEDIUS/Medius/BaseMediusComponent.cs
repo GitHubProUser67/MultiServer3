@@ -150,20 +150,21 @@ namespace Horizon.MEDIUS.Medius
                 bootstrap
                     .Group(_bossGroup, _workerGroup)
                     .Channel<TcpServerSocketChannel>()
-                    //.Option(ChannelOption.SoBacklog, 100)
                     .Handler(new LoggingHandler(LogLevel.INFO))
                     .ChildHandler(new ActionChannelInitializer<ISocketChannel>(channel =>
                     {
                         IChannelPipeline pipeline = channel.Pipeline;
 
-                        pipeline.AddLast(new WriteTimeoutHandler(30));
+                        pipeline.AddLast(new WriteTimeoutHandler(120));
                         pipeline.AddLast(new ScertEncoder());
                         pipeline.AddLast(new ScertIEnumerableEncoder());
                         pipeline.AddLast(new ScertTcpFrameDecoder(DotNetty.Buffers.ByteOrder.LittleEndian, 2048, 1, 2, 0, 0, false));
                         pipeline.AddLast(new ScertDecoder());
                         pipeline.AddLast(new ScertMultiAppDecoder());
                         pipeline.AddLast(_scertHandler);
-                    }));
+                    }))
+                    .ChildOption(ChannelOption.TcpNodelay, true)
+                    .ChildOption(ChannelOption.SoTimeout, 1000 * 60 * 15);
 
                 _boundChannel = new ConcurrentBag<IChannel?> { await bootstrap.BindAsync(TCPPort), (UDPPort != 0) ? await bootstrap.BindAsync(UDPPort) : null };
             }
