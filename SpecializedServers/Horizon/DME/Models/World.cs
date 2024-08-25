@@ -17,6 +17,7 @@ namespace Horizon.DME.Models
 
         private static ConcurrentDictionary<uint, World> _idToWorld = new();
         private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
+        private static object _lock = new();
 
         private void RegisterWorld(uint WorldId, uint ChatChannelWorldId)
         {
@@ -46,12 +47,15 @@ namespace Horizon.DME.Models
 
         private bool TryRegisterNewClientIndex(out int index)
         {
-            for (index = 0; index < _pIdIsUsed.Count; ++index)
+            lock (_lock)
             {
-                if (_pIdIsUsed.TryGetValue(index, out bool isUsed) && !isUsed)
+                for (index = 0; index < _pIdIsUsed.Count; ++index)
                 {
-                    _pIdIsUsed[index] = true;
-                    return true;
+                    if (_pIdIsUsed.TryGetValue(index, out bool isUsed) && !isUsed)
+                    {
+                        _pIdIsUsed[index] = true;
+                        return true;
+                    }
                 }
             }
 
