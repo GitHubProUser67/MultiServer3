@@ -20,11 +20,7 @@ namespace WebAPIService.CAPONE
                 {
                     // Read the multipart content.
                     var provider = MultipartFormDataParser.Parse(ms, boundary);
-
-                    LoggerAccessor.LogInfo($"workPath {workPath}, absolutePath {absolutePath}");
                     string finalPath = workPath + absolutePath;
-
-                    LoggerAccessor.LogInfo($"FinalPath {finalPath}");
 
                     Directory.CreateDirectory(finalPath);
 
