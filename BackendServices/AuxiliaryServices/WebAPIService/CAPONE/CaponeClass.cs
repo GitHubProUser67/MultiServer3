@@ -1,6 +1,9 @@
 
+using CustomLogger;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
+using System.Text;
 
 namespace WebAPIService.CAPONE
 {
@@ -18,14 +21,13 @@ namespace WebAPIService.CAPONE
             this.method = method;
         }
 
-        public string ProcessRequest(byte[] PostData, string ContentType, string directoryPath)
+
+        public string? ProcessRequest(byte[] PostData, string ContentType, bool https)
         {
-            if (string.IsNullOrEmpty(absolutePath) || string.IsNullOrEmpty(directoryPath))
+            if (string.IsNullOrEmpty(absolutePath))
                 return null;
 
             string res = string.Empty;
-
-            Directory.CreateDirectory(directoryPath);
 
             switch (method)
             {
@@ -34,14 +36,18 @@ namespace WebAPIService.CAPONE
                     {
                         case "/capone/reportCollector/submit/":
                             {
-                                string output = GriefReporter.caponeReportCollectorSubmit(PostData, ContentType, directoryPath);
-                                return output;
+
+                                res = GriefReporter.caponeReportCollectorSubmit(PostData, ContentType, workPath);
+                                return res;
                             }
-                        case "/capone/contentStore/10/":
-                            {
-                                string output = GriefReporter.caponeContentStoreUpload(PostData, ContentType, directoryPath);
-                                return output;
-                            }
+
+                            //Case statement won't handle dynamic changing strings
+                        default:
+
+                            res = GriefReporter.caponeContentStoreUpload(PostData, ContentType, workPath, absolutePath);
+                            return res;
+
+                            
                     }
                     break;
                 default:
