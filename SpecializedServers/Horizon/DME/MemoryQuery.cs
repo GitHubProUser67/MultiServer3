@@ -53,7 +53,8 @@ namespace Horizon.DME
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    if (!ReadProcessMemory(processHandle, IntPtr.Add(Process.GetCurrentProcess().MainModule.BaseAddress, (int)baseAddress), buffer, (uint)numberOfBytesToRead, out bytesRead))
+                    ProcessModule? module = Process.GetCurrentProcess().MainModule;
+                    if (module == null || !ReadProcessMemory(processHandle, IntPtr.Add(module.BaseAddress, (int)baseAddress), buffer, (uint)numberOfBytesToRead, out bytesRead))
                     {
                         LoggerAccessor.LogError("[MediusMemoryQuery] - Windows Failed to read process memory.");
                         return null;

@@ -1,6 +1,5 @@
 using Horizon.RT.Models.Misc;
-using Horizon.MEDIUS.Medius.Models;
-using Horizon.MUM;
+using Horizon.MUM.Models;
 
 namespace Horizon.MEDIUS.PluginArgs
 {

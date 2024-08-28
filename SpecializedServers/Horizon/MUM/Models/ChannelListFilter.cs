@@ -1,7 +1,6 @@
 using Horizon.RT.Common;
-using Horizon.MUM;
 
-namespace Horizon.MEDIUS.Medius.Models
+namespace Horizon.MUM.Models
 {
     public class ChannelListFilter
     {

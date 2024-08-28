@@ -1,5 +1,5 @@
 using Horizon.RT.Models;
-using Horizon.DME.Models;
+using Horizon.MUM.Models;
 
 namespace Horizon.DME.PluginArgs
 {

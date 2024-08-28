@@ -1,5 +1,5 @@
 using Horizon.RT.Models.Misc;
-using Horizon.MUIS.Models;
+using Horizon.MUM.Models;
 
 namespace Horizon.MUIS.PluginArgs
 {

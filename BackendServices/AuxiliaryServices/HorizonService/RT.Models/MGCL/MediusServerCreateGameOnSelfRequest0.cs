@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
         public int GenericField3;
         public MGCL_GAME_HOST_TYPE GameHostType;
         public NetAddressList AddressList;
-        public int WorldID;
+        public int MediusWorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -55,7 +55,7 @@ namespace Horizon.RT.Models
             GenericField3 = reader.ReadInt32();
             GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             AddressList = reader.Read<NetAddressList>();
-            WorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -78,7 +78,7 @@ namespace Horizon.RT.Models
             writer.Write(GenericField3);
             writer.Write(GameHostType);
             writer.Write(AddressList);
-            writer.Write(WorldID);
+            writer.Write(MediusWorldID);
         }
 
         public override string ToString()
@@ -99,7 +99,7 @@ namespace Horizon.RT.Models
                 $"GenericField3: {GenericField3:X8} " +
                 $"GameHostType: {GameHostType} " +
                 $"AddressList: {AddressList} " +
-                $"WorldID: {WorldID} ";
+                $"WorldID: {MediusWorldID} ";
         }
     }
 }

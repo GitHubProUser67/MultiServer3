@@ -8,10 +8,10 @@ using System.Data;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.MEDIUS;
-using Horizon.MEDIUS.Medius.Models;
 using System.Text.Json.Serialization;
+using Horizon.MUIS;
 
-namespace Horizon.MUM
+namespace Horizon.MUM.Models
 {
     public class Game
     {
@@ -63,14 +63,11 @@ namespace Horizon.MUM
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
-        public DMEObject? DMEServer;
+        public ClientObject? DMEServer;
         public Channel? ChatChannel;
         public ClientObject? Host;
 
         public string? AccountIdsAtStart => accountIdsAtStart;
-        public DateTime UtcTimeCreated => utcTimeCreated;
-        public DateTime? UtcTimeStarted => utcTimeStarted;
-        public DateTime? UtcTimeEnded => utcTimeEnded;
 
         public MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
         public bool hasHostJoined = false;
@@ -89,7 +86,7 @@ namespace Horizon.MUM
 
         public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
-        public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, DMEObject? dmeServer, int WorldId = 0)
+        public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, ClientObject? dmeServer, int WorldId = 0)
         {
             if (createGame is MediusCreateGameRequest r)
                 FromCreateGameRequest(r, WorldId);
@@ -175,7 +172,7 @@ namespace Horizon.MUM
             GameHostType = createGame.GameHostType;
             Attributes = createGame.WorldAttributesType;
             MatchOptions = createGame.MatchOptions;
-			WorldID = WorldId;
+            WorldID = WorldId;
         }
 
         private void FromCreateGameRequest(MediusCreateGameRequest createGame, int WorldId)
@@ -199,7 +196,7 @@ namespace Horizon.MUM
             SpectatorPassword = createGame.SpectatorPassword;
             GameHostType = createGame.GameHostType;
             Attributes = createGame.Attributes;
-			WorldID = WorldId;
+            WorldID = WorldId;
         }
 
         private void FromCreateGameRequest0(MediusCreateGameRequest0 createGame, int WorldId)
@@ -216,7 +213,7 @@ namespace Horizon.MUM
             GenericField3 = createGame.GenericField3;
             GamePassword = createGame.GamePassword;
             GameHostType = createGame.GameHostType;
-			WorldID = WorldId;
+            WorldID = WorldId;
         }
 
 
@@ -261,7 +258,7 @@ namespace Horizon.MUM
             GenericField8 = serverCreateGameOnMe.GenericField8;
             GAME_HOST_TYPE = serverCreateGameOnMe.GameHostType;
             netAddressList = serverCreateGameOnMe.AddressList;
-            WorldID = serverCreateGameOnMe.WorldID;
+            WorldID = serverCreateGameOnMe.MediusWorldID;
         }
 
         private void FromCreateGameOnSelfRequest(MediusServerCreateGameOnSelfRequest serverCreateGameOnSelf)
@@ -280,7 +277,7 @@ namespace Horizon.MUM
             GenericField3 = serverCreateGameOnSelf.GenericField3;
             GAME_HOST_TYPE = serverCreateGameOnSelf.GameHostType;
             netAddressList = serverCreateGameOnSelf.AddressList;
-            WorldID = serverCreateGameOnSelf.WorldID;
+            WorldID = serverCreateGameOnSelf.MediusWorldID;
             AccountID = serverCreateGameOnSelf.AccountID;
         }
 
@@ -300,7 +297,7 @@ namespace Horizon.MUM
             GenericField3 = serverCreateGameOnSelf0.GenericField3;
             GAME_HOST_TYPE = serverCreateGameOnSelf0.GameHostType;
             netAddressList = serverCreateGameOnSelf0.AddressList;
-            WorldID = serverCreateGameOnSelf0.WorldID;
+            WorldID = serverCreateGameOnSelf0.MediusWorldID;
         }
 
         public virtual int ReassignGameMediusWorldID(MediusReassignGameMediusWorldID reassignGameMediusWorldID)
@@ -629,6 +626,57 @@ namespace Horizon.MUM
             return Task.CompletedTask;
         }
 
+        public virtual async Task EndGame()
+        {
+            // destroy flag
+            destroyed = true;
+
+            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: EndGame() called.");
+
+            // Send to plugins
+            await MuisClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this });
+
+            // Remove players from game world
+            while (LocalClients.Count > 0)
+            {
+                ClientObject? client = LocalClients[0].Client;
+                if (client == null)
+                {
+                    lock (LocalClients)
+                        LocalClients.RemoveAt(0);
+                }
+                else
+                    await client.LeaveGame(this);
+            }
+
+
+            // Unregister from channel
+            ChatChannel?.UnregisterGame(this);
+
+            // Send end game
+            DMEServer?.Queue(new MediusServerEndGameRequest()
+            {
+                MediusWorldID = MediusWorldId,
+                BrutalFlag = false
+            });
+
+            try
+            {
+                RoomManager.RemoveGame(ApplicationId.ToString(), WorldID.ToString(), GameName);
+            }
+            catch
+            {
+                // Not Important
+            }
+
+            // Delete db entry if game hasn't started
+            // Otherwise do a final update
+            if (!utcTimeStarted.HasValue)
+                _ = HorizonServerConfiguration.Database.DeleteGame(MediusWorldId);
+            else
+                _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
+        }
+
         public virtual async Task EndGame(int appid)
         {
             // destroy flag
@@ -649,11 +697,7 @@ namespace Horizon.MUM
                         LocalClients.RemoveAt(0);
                 }
                 else
-                {
                     await client.LeaveGame(this);
-                    if (ChatChannel != null)
-                        await client.LeaveChannel(ChatChannel);
-                }
             }
 
             // Unregister from channel

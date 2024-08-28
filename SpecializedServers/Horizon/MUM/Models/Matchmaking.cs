@@ -1,4 +1,4 @@
-namespace Horizon.MEDIUS.Medius.Models
+namespace Horizon.MUM.Models
 {
     public class Matchmaking
     {

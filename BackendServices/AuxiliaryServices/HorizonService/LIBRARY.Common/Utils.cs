@@ -69,18 +69,19 @@ namespace Horizon.LIBRARY.Common
                 yield return list;
             }
         }
-
-        /// <summary>
+		
+#if !NET6_0_OR_GREATER
+		/// <summary>
         /// By user Ash on
         /// https://stackoverflow.com/questions/914109/how-to-use-linq-to-select-object-with-minimum-or-maximum-property-value
         /// </summary>
-        public static TSource MediusMinBy<TSource, TKey>(this IEnumerable<TSource> source,
+        public static TSource MinBy<TSource, TKey>(this IEnumerable<TSource> source,
     Func<TSource, TKey> selector)
         {
-            return source.MediusMinBy(selector, null);
+            return source.MinBy(selector, null);
         }
 
-        public static TSource MediusMinBy<TSource, TKey>(this IEnumerable<TSource> source,
+        public static TSource MinBy<TSource, TKey>(this IEnumerable<TSource> source,
             Func<TSource, TKey> selector, IComparer<TKey> comparer)
         {
             if (source != null && selector != null)
@@ -110,7 +111,7 @@ namespace Horizon.LIBRARY.Common
 
             return default;
         }
-
+#endif
         #endregion
 
         #region Time

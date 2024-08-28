@@ -157,13 +157,20 @@ class Program
     {
         if (HorizonServerConfiguration.EnableMedius)
         {
-            MUMServer = new MumServerHandler("*", 10076);
-
-            HTTPBag = new ConcurrentBag<CrudServerHandler>
+            try
             {
-                new("*", 61920),
-                new("*", 8443, HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword)
-            };
+                MUMServer = new MumServerHandler("*", 10076);
+
+                HTTPBag = new ConcurrentBag<CrudServerHandler>
+                {
+                    new("*", 61920),
+                    new("*", 8443, HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword)
+                };
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError("[HTTPSERVICE] - An exception was thrown while starting the Medius HTTP Services: " + ex);
+            }
         }
 
         if (HorizonServerConfiguration.EnableMedius && !Horizon.MEDIUS.MediusClass.started)

@@ -24,13 +24,13 @@ namespace HTTPServer.Models
 
         #region Constructors
 
-        public HttpResponse(string? HttpVersionOverride = null)
+        public HttpResponse(string? HttpVersionOverride = null, bool disableChunkedEncoding = false)
         {
             HttpVersion = (!string.IsNullOrEmpty(HttpVersionOverride)) ? HttpVersionOverride : HTTPServerConfiguration.HttpVersion;
 
             Headers = new Dictionary<string, string>();
 
-            if (HttpVersion == "1.1" && HTTPServerConfiguration.ChunkedTransfers)
+            if (HTTPServerConfiguration.ChunkedTransfers && !disableChunkedEncoding && HttpVersion.Equals("1.1"))
                 Headers.Add("Transfer-Encoding", "chunked");
         }
 
@@ -101,9 +101,9 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, string? HttpVersionOverride = null)
+        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
         {
-            HttpResponse response = new(HttpVersionOverride)
+            HttpResponse response = new()
             {
                 HttpStatusCode = statuscode
             };

@@ -3,8 +3,8 @@ using DotNetty.Transport.Channels;
 using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.RT.Models.ServerPlugins;
-using Horizon.MEDIUS.Medius.Models;
 using System.Net;
+using Horizon.MUM.Models;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -58,6 +58,42 @@ namespace Horizon.MEDIUS.Medius
                         #endregion
 
                         data.ApplicationId = clientConnectTcp.AppId;
+                        scertClient.ApplicationID = clientConnectTcp.AppId;
+
+                        Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcp.TargetWorldId, data.ApplicationId);
+
+                        if (targetChannel == null)
+                        {
+                            Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
+
+                            if (DefaultChannel.Id == clientConnectTcp.TargetWorldId)
+                                targetChannel = DefaultChannel;
+
+                            if (targetChannel == null)
+                            {
+                                LoggerAccessor.LogError($"[MAPS] - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
+                                break;
+                            }
+                        }
+
+                        data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
+                        if (data.ClientObject == null)
+                            data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
+
+                        if (data.ClientObject != null)
+                            LoggerAccessor.LogInfo($"[MAPS] - Client Connected {clientChannel.RemoteAddress}!");
+                        else
+                        {
+                            data.Ignore = true;
+                            LoggerAccessor.LogError($"[MAPS] - ClientObject could not be granted for {clientChannel.RemoteAddress}: {clientConnectTcp}");
+                            break;
+                        }
+
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
+                        data.ClientObject.ApplicationId = clientConnectTcp.AppId;
+                        data.ClientObject.OnConnected();
+
+                        await data.ClientObject.JoinChannel(targetChannel);
 
                         Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
                         break;
@@ -68,14 +104,14 @@ namespace Horizon.MEDIUS.Medius
                         {
                             PlayerId = 0,
                             ScertId = GenerateNewScertClientId(),
-                            PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                            PlayerCount = 0x0001,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                         Queue(new RT_MSG_SERVER_ECHO(), clientChannel);
                         break;
                     }

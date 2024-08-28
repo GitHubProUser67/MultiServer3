@@ -1,6 +1,6 @@
 using DotNetty.Transport.Channels;
 using Horizon.RT.Models;
-using Horizon.MUIS.Models;
+using Horizon.MUM.Models;
 
 namespace Horizon.MUIS.PluginArgs
 {

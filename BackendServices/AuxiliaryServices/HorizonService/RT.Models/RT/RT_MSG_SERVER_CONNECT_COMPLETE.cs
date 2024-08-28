@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_SERVER_CONNECT_COMPLETE;
 
-        public ushort ClientCountAtConnect = 0x0001;
+        public ushort ClientCountAtConnect = 0x0001; // Be carefull, only increment when in a DME game.
 
         public override void Deserialize(MessageReader reader)
         {

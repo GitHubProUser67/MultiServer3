@@ -285,10 +285,10 @@ namespace HTTPServer
                                 string[] segments = absolutepath.Trim('/').Split('/');
 
                                 // Combine the folder segments into a directory path
-                                string directoryPath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+                                string directoryPath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                                 // Process the request based on the HTTP method
-                                string filePath = Path.Combine(HTTPServerConfiguration.HTTPStaticFolder, absolutepath[1..]);
+                                string filePath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
 
                                 string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
 
@@ -1040,7 +1040,8 @@ namespace HTTPServer
                                                                             using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
                                                                             response = new()
                                                                             {
-                                                                                HttpStatusCode = HttpStatusCode.OK
+                                                                                HttpStatusCode = HttpStatusCode.OK,
+                                                                                ContentAsUTF8 = string.Empty
                                                                             };
                                                                             response.Headers.Add("Content-Type", vid.ContentType);
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
@@ -1448,13 +1449,7 @@ namespace HTTPServer
                             {
                                 ms.Flush();
                                 ms.Close();
-                                if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                                    response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                                    {
-                                        HttpStatusCode = HttpStatusCode.OK
-                                    };
-                                else
-                                    response = new()
+                                response = new()
                                     {
                                         HttpStatusCode = HttpStatusCode.OK
                                     };
@@ -1515,13 +1510,7 @@ namespace HTTPServer
                         ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                         ms.Write(Separator);
                         ms.Position = 0;
-                        if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                            response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                            {
-                                HttpStatusCode = HttpStatusCode.PartialContent
-                            };
-                        else
-                            response = new()
+                        response = new()
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
@@ -1659,13 +1648,7 @@ namespace HTTPServer
                                 }
                             }
                         }
-                        if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                            response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                            {
-                                HttpStatusCode = HttpStatusCode.OK
-                            };
-                        else
-                            response = new()
+                        response = new()
                             {
                                 HttpStatusCode = HttpStatusCode.OK
                             };
@@ -1723,13 +1706,7 @@ namespace HTTPServer
                                 }
                             }
                         }
-                        if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome") && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
-                            response = new("1.0") // Home has a game bug where media files do not play well in screens/jukboxes with http 1.1.
-                            {
-                                HttpStatusCode = HttpStatusCode.PartialContent
-                            };
-                        else
-                            response = new()
+                        response = new()
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };

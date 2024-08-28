@@ -7,11 +7,11 @@ using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Tcp;
 using Horizon.LIBRARY.Common;
-using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.MEDIUS;
+using Horizon.MUM.Models;
 
 namespace Horizon.DME
 {
@@ -33,7 +33,6 @@ namespace Horizon.DME
             HANDSHAKE,
             CONNECT_TCP,
             SET_ATTRIBUTES,
-            PENDING_TCP_ACK,
             AUTHENTICATED
         }
 
@@ -70,6 +69,7 @@ namespace Horizon.DME
 
             return null;
         }
+
         public ClientObject? GetClientByAccessToken(string accessToken)
         {
             if (_accessTokenToClient.TryGetValue(accessToken, out var result))
@@ -77,6 +77,7 @@ namespace Horizon.DME
 
             return null;
         }
+
         public ClientObject? GetClientBySessionKey(string sessionKey)
         {
             if (_sessionKeyToClient.TryGetValue(sessionKey, out var result))
@@ -85,19 +86,18 @@ namespace Horizon.DME
             return null;
         }
 
-
         public void AddClient(ClientObject client)
         {
             if (client.Destroy)
                 throw new InvalidOperationException($"Attempting to add {client} to MediusManager but client is ready to be destroyed.");
 
-            if (string.IsNullOrEmpty(client.Token) || string.IsNullOrEmpty(client.SessionKey))
+            if (string.IsNullOrEmpty(client.AccessToken) || string.IsNullOrEmpty(client.SessionKey))
                 throw new InvalidOperationException($"Attempting to add {client} but it has invalid token or SessionKey.");
 
-            if (_accessTokenToClient.TryAdd(client.Token, client))
+            if (_accessTokenToClient.TryAdd(client.AccessToken, client))
             {
                 if (!_sessionKeyToClient.TryAdd(client.SessionKey, client))
-                    _accessTokenToClient.TryRemove(client.Token, out _);
+                    _accessTokenToClient.TryRemove(client.AccessToken, out _);
             }
         }
 
@@ -106,11 +106,11 @@ namespace Horizon.DME
             if (client == null)
                 return;
 
-            if (string.IsNullOrEmpty(client.Token) || string.IsNullOrEmpty(client.SessionKey))
+            if (string.IsNullOrEmpty(client.AccessToken) || string.IsNullOrEmpty(client.SessionKey))
                 throw new InvalidOperationException($"Attempting to remove {client} but it has invalid token or SessionKey.");
 
             _sessionKeyToClient.TryRemove(client.SessionKey, out _);
-            _accessTokenToClient.TryRemove(client.Token, out _);
+            _accessTokenToClient.TryRemove(client.AccessToken, out _);
         }
 
         #endregion
@@ -346,7 +346,8 @@ namespace Horizon.DME
                                 SessionKey = SessionKey,
                                 AccessToken = AccessKey,
                                 AppId = ApplicationId,
-                                Key = DmeClass.GlobalAuthPublic
+                                Key = DmeClass.GlobalAuthPublic,
+                                TargetWorldId = 1
                             });
 
                         _mpsState = MPSConnectionState.CONNECT_TCP;
@@ -368,14 +369,6 @@ namespace Horizon.DME
 
                             });
 
-                        _mpsState = MPSConnectionState.PENDING_TCP_ACK;
-                        break;
-                    }
-                case RT_MSG_SERVER_CONNECT_COMPLETE serverComplete:
-                    {
-                        if (_mpsState != MPSConnectionState.PENDING_TCP_ACK)
-                            throw new Exception($"Unexpected RT_MSG_SERVER_CONNECT_COMPLETE from server. {serverComplete}");
-
                         _mpsState = MPSConnectionState.AUTHENTICATED;
                         break;
                     }
@@ -386,6 +379,11 @@ namespace Horizon.DME
                             {
                                 ServReq = 0
                             });
+                        break;
+                    }
+                case RT_MSG_SERVER_CONNECT_COMPLETE serverComplete:
+                    {
+                        // Ignore.
                         break;
                     }
                 case RT_MSG_SERVER_ECHO serverEcho:
@@ -421,7 +419,6 @@ namespace Horizon.DME
                             await ProcessMediusMessage(serverApp.Message, serverChannel);
                         break;
                     }
-
                 case RT_MSG_SERVER_FORCED_DISCONNECT serverForcedDisconnect:
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                     {

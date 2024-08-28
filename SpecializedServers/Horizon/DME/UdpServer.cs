@@ -6,12 +6,12 @@ using DotNetty.Transport.Channels.Sockets;
 using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Udp;
-using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.DME.PluginArgs;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.PluginManager;
+using Horizon.MUM.Models;
 
 namespace Horizon.DME
 {
@@ -148,7 +148,7 @@ namespace Horizon.DME
             {
                 case RT_MSG_CLIENT_CONNECT_AUX_UDP connectAuxUdp:
                     {
-                        var clientObject = DmeClass.TcpServer.GetClientByScertId(connectAuxUdp.ScertId);
+                        ClientObject? clientObject = DmeClass.TcpServer.GetClientByScertId(connectAuxUdp.ScertId);
                         if (clientObject != ClientObject && ClientObject?.DmeId != connectAuxUdp.PlayerId)
                             break;
 
@@ -176,19 +176,23 @@ namespace Horizon.DME
                 case RT_MSG_CLIENT_CONNECT_READY_AUX_UDP readyAuxUdp:
                     {
                         /*
-                        ClientObject?.OnConnectionCompleted();
-
-                        var msg = new RT_MSG_SERVER_CONNECT_COMPLETE()
+                        if (ClientObject != null && ClientObject.DmeWorld != null)
                         {
-                            ClientCountAtConnect = (ushort)ClientObject.DmeWorld.Clients.Count,
-                            SkipEncryption = true,
-                        };
+                            ClientObject.OnConnectionCompleted();
 
-                        _boundChannel.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
+                            RT_MSG_SERVER_CONNECT_COMPLETE msg = new()
+                            {
+                                ClientCountAtConnect = (ushort)ClientObject.DmeWorld.Clients.Count,
+                                SkipEncryption = true,
+                            };
+
+                            // Send it twice in case of packet loss
+                            //_boundChannel.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
+                            _boundChannel?.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
+                        }
                         */
                         break;
                     }
-
                 case RT_MSG_SERVER_ECHO serverEchoReply:
                     {
 

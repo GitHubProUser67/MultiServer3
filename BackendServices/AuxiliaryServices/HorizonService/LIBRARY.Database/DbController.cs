@@ -6,6 +6,7 @@ using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Database.Config;
 using Horizon.LIBRARY.Database.Entities;
 using Horizon.LIBRARY.Database.Models;
+using HorizonService.LIBRARY.Database.Simulated;
 using System.Text;
 using System.Web;
 using DotNetty.Transport.Channels;
@@ -17,7 +18,7 @@ using System;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
-using HorizonService.LIBRARY.Database.Simulated;
+using Horizon.LIBRARY.libAntiCheat.Models;
 
 namespace Horizon.LIBRARY.Database
 {
@@ -32,7 +33,7 @@ namespace Horizon.LIBRARY.Database
         private int _simulatedClanInvitationIdCounter = 1;
         private readonly int[] SimulatedAppIdList = new int[] {
             120,
-			10680,
+            10680,
             10683,
             10684,
             11354,
@@ -121,6 +122,36 @@ namespace Horizon.LIBRARY.Database
 
         public DbController(string configFile)
         {
+            /*Task t = new Task(() => {
+                SimulatedAppIdList = new int[65536];
+             
+                // Initialize the first element
+                SimulatedAppIdList[0] = 0;
+
+                // Initialize the first small chunk manually
+                for (int i = 1; i < 1024; i++)
+                {
+                    SimulatedAppIdList[i] = i;
+                }
+
+                int currentLength = 1024;
+
+                // Use Array.Copy to double the size of initialized chunks
+                while (currentLength < SimulatedAppIdList.Length)
+                {
+                    int copyLength = Math.Min(currentLength, SimulatedAppIdList.Length - currentLength);
+                    Array.Copy(SimulatedAppIdList, 0, SimulatedAppIdList, currentLength, copyLength);
+
+                    // Adjust the copied values
+                    for (int i = currentLength; i < currentLength + copyLength; i++)
+                    {
+                        SimulatedAppIdList[i] += currentLength;
+                    }
+
+                    currentLength += copyLength;
+                }
+            });*/
+
             if (!string.IsNullOrEmpty(configFile))
             {
                 directoryPath = Path.GetDirectoryName(configFile);
@@ -132,18 +163,36 @@ namespace Horizon.LIBRARY.Database
                     if (File.Exists(configFile))
                     {
                         // Populate existing object
-                        try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
+                        try
+                        {
+                            JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings);
+
+                            /*if (_settings.SimulatedMode)
+                                t.Start();*/
+                        }
                         catch (Exception ex) { LoggerAccessor.LogError(ex); }
                     }
                     else
                     {
-                        File.WriteAllText(configFile, JsonConvert.SerializeObject(_settings));
                         // Populate existing object
-                        try { JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings); }
+                        try
+                        { 
+                            File.WriteAllText(configFile, JsonConvert.SerializeObject(_settings)); 
+                            JsonConvert.PopulateObject(File.ReadAllText(configFile), _settings);
+
+                            /*if (_settings.SimulatedMode)
+                                t.Start();*/
+                        }
                         catch (Exception ex) { LoggerAccessor.LogError(ex); }
                     }
                 }
             }
+
+            /*if (t.Status != TaskStatus.Created)
+            {
+                t.Wait();
+                t.Dispose();
+            }*/
         }
 
         #region Sub Classes
@@ -3684,6 +3733,12 @@ namespace Horizon.LIBRARY.Database
                         new ChannelDTO()
                         {
                             AppId = 10683,
+                            Id = 16844801,
+                            Name = "Default",
+                        },
+                        new ChannelDTO()
+                        {
+                            AppId = 10683,
                             Id = 1,
                             Name = "CY00000000-00",
                             MaxPlayers = 256,
@@ -3692,6 +3747,12 @@ namespace Horizon.LIBRARY.Database
                             GenericField3 = 0,
                             GenericField4 = 0,
                             GenericFieldFilter = 32
+                        },
+                        new ChannelDTO()
+                        {
+                            AppId = 10684,
+                            Id = 16844801,
+                            Name = "Default",
                         },
                         new ChannelDTO()
                         {

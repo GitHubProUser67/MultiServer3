@@ -12,6 +12,9 @@ using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUIS.Config;
 using Horizon.MEDIUS;
+using static Horizon.MEDIUS.Medius.BaseMediusComponent;
+using Horizon.MUM.Models;
+using Horizon.MEDIUS.Medius;
 
 namespace Horizon.MUIS
 {
@@ -34,12 +37,7 @@ namespace Horizon.MUIS
         protected ScertServerHandler? _scertHandler = null;
         private uint _clientCounter = 0;
 
-        protected internal class ChannelData
-        {
-            public int ApplicationId { get; set; } = 0;
-            public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
-            public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
-        }
+        private static ChannelData? channelData = null;
 
         protected ConcurrentDictionary<string, ChannelData> _channelDatas = new();
 
@@ -191,7 +189,7 @@ namespace Horizon.MUIS
 
         #region Message Processing
 
-        protected void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
+        protected async void ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
@@ -203,12 +201,37 @@ namespace Horizon.MUIS
                 {
                     case RT_MSG_CLIENT_HELLO clientHello:
                         {
-                            // send hello
+                            if (data.State > ClientState.HELLO)
+                            {
+                                LoggerAccessor.LogError($"Unexpected RT_MSG_CLIENT_HELLO from {clientChannel.RemoteAddress}: {clientHello}");
+                                break;
+                            }
+
+                            data.State = ClientState.HELLO;
                             Queue(new RT_MSG_SERVER_HELLO() { RsaPublicKey = MuisClass.Settings.EncryptMessages ? MuisClass.Settings.DefaultKey.N : Org.BouncyCastle.Math.BigInteger.Zero }, clientChannel);
                             break;
                         }
                     case RT_MSG_CLIENT_CRYPTKEY_PUBLIC clientCryptKeyPublic:
                         {
+                            if (data.State > ClientState.HANDSHAKE)
+                            {
+                                LoggerAccessor.LogError($"Unexpected RT_MSG_CLIENT_CRYPTKEY_PUBLIC from {clientChannel.RemoteAddress}: {clientCryptKeyPublic}");
+                                break;
+                            }
+
+                            /*
+                            // Ensure key is correct
+                            if (!clientCryptKeyPublic.PublicKey.Reverse().SequenceEqual(MediusStarter.Settings.MPSKey.N.ToByteArrayUnsigned()))
+                            {
+                                LoggerAccessor.LogError($"Client {clientChannel.RemoteAddress} attempting to authenticate with invalid key {Encoding.Default.GetString(clientCryptKeyPublic.PublicKey)}");
+                                data.State = ClientState.DISCONNECTED;
+                                await clientChannel.CloseAsync();
+                                break;
+                            }
+                            */
+
+                            data.State = ClientState.CONNECT_1;
+
                             if (clientCryptKeyPublic.PublicKey != null)
                             {
                                 // generate new client session key
@@ -221,15 +244,51 @@ namespace Horizon.MUIS
                         }
                     case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                         {
+                            if (data.State > ClientState.CONNECT_1)
+                            {
+                                LoggerAccessor.LogError($"Unexpected RT_MSG_CLIENT_CONNECT_TCP from {clientChannel.RemoteAddress}: {clientConnectTcp}");
+                                break;
+                            }
+
                             data.ApplicationId = clientConnectTcp.AppId;
                             scertClient.ApplicationID = clientConnectTcp.AppId;
 
                             List<int> pre108ServerComplete = new() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
 
+                            Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcp.TargetWorldId, data.ApplicationId);
+
+                            if (targetChannel == null)
+                            {
+                                Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
+
+                                if (DefaultChannel.Id == clientConnectTcp.TargetWorldId)
+                                    targetChannel = DefaultChannel;
+
+                                if (targetChannel == null)
+                                {
+                                    LoggerAccessor.LogError($"[MUIS] - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
+                                    break;
+                                }
+                            }
+
+                            LoggerAccessor.LogInfo($"[MUIS] - Client Connected {clientChannel.RemoteAddress} with new ClientObject!");
+
+                            data.ClientObject = new()
+                            {
+                                MuisIP = MuisClass.SERVER_IP,
+                                MediusVersion = scertClient.MediusVersion ?? 0,
+                                ApplicationId = clientConnectTcp.AppId
+                            };
+                            data.ClientObject.OnConnected();
+
+                            await data.ClientObject.JoinChannel(targetChannel);
+
+                            data.State = ClientState.AUTHENTICATED;
+
                             // If this is a PS3 client or medius version superior to 108
                             if (scertClient.IsPS3Client || scertClient.MediusVersion > 108)
                                 //Send a Server_Connect_Require with no Password needed
-                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { ReqServerPassword = 0x00 }, clientChannel);
+                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE(), clientChannel);
                             else
                             {
                                 //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
@@ -239,12 +298,12 @@ namespace Horizon.MUIS
                                 {
                                     PlayerId = 0,
                                     ScertId = GenerateNewScertClientId(),
-                                    PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                                    PlayerCount = 0x0001,
                                     IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                 }, clientChannel);
 
                                 if (pre108ServerComplete.Contains(data.ApplicationId))
-                                    Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
+                                    Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                             }
 
                             break;
@@ -257,14 +316,14 @@ namespace Horizon.MUIS
                             {
                                 PlayerId = 0,
                                 ScertId = GenerateNewScertClientId(),
-                                PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                                PlayerCount = 0x0001,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
                             break;
                         }
                     case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                         {
-                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                             break;
                         }
                     case RT_MSG_SERVER_ECHO serverEchoReply:
@@ -279,6 +338,12 @@ namespace Horizon.MUIS
                         }
                     case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
                         {
+                            if (data.State != ClientState.AUTHENTICATED)
+                            {
+                                LoggerAccessor.LogError($"Unexpected RT_MSG_CLIENT_APP_TOSERVER from {clientChannel.RemoteAddress}: {clientAppToServer}");
+                                break;
+                            }
+
                             if (clientAppToServer.Message != null)
                                 ProcessMediusMessage(clientAppToServer.Message, clientChannel, data);
                             break;
@@ -289,9 +354,24 @@ namespace Horizon.MUIS
                             break;
                         }
                     case RT_MSG_CLIENT_DISCONNECT _:
+                        {
+                            //Medius 1.08 (Used on WRC 4) haven't a state
+                            if (scertClient.MediusVersion > 108)
+                                data.State = ClientState.DISCONNECTED;
+
+                            await clientChannel.CloseAsync();
+
+                            LoggerAccessor.LogInfo($"[MUIS] - Client disconnected by request with no specific reason\n");
+                            break;
+                        }
                     case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                         {
-                            _ = clientChannel.CloseAsync();
+                            if (clientDisconnectWithReason.disconnectReason <= RT_MSG_CLIENT_DISCONNECT_REASON.RT_MSG_CLIENT_DISCONNECT_LENGTH_MISMATCH)
+                                LoggerAccessor.LogInfo($"[MUIS] - Disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
+                            else
+                                LoggerAccessor.LogInfo($"[MUIS] - Disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
+
+                            await clientChannel.CloseAsync();
                             break;
                         }
                     default:
