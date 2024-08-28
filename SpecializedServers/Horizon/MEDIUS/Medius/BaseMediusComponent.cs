@@ -8,11 +8,11 @@ using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
 using Horizon.RT.Cryptography.RC;
-using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
+using Horizon.MUM.Models;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -41,7 +41,7 @@ namespace Horizon.MEDIUS.Medius
         protected ScertServerHandler? _scertHandler = null;
         private uint _clientCounter = 0;
 
-        protected internal class ChannelData
+        public class ChannelData
         {
             public int ApplicationId { get; set; } = 0;
             public ClientObject? ClientObject { get; set; } = null;

@@ -15,6 +15,7 @@ using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
 
 using Horizon.MUM;
+using Horizon.MUM.Models;
 
 namespace Horizon.MEDIUS
 {
@@ -40,7 +41,7 @@ namespace Horizon.MEDIUS
         public static MPS ProxyServer = new();
 
         public static AntiCheat AntiCheatPlugin = new();
-        public static Horizon.LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
+        public static LIBRARY.libAntiCheat.Models.ClientObject AntiCheatClient = new();
 
         public static Dictionary<string, string> MUMLocalServersAccessList = new();
 

@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using CyberBackendLibrary.HTTP;
 using CyberBackendLibrary.Crypto;
+using Horizon.MUM.Models;
 
 namespace Horizon.MUM
 {

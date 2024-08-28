@@ -1,28 +1,55 @@
 using CustomLogger;
+using System.Collections.Concurrent;
+using System.Net;
 using DotNetty.Transport.Channels;
 using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Database.Models;
-using Horizon.MEDIUS.PluginArgs;
 using Horizon.LIBRARY.Pipeline.Udp;
-using System.Collections.Concurrent;
-using System.Net;
-using static Horizon.MUM.Game;
 using Horizon.PluginManager;
-using Horizon.MUM;
-using Horizon.HTTPSERVICE;
+using Horizon.DME;
+using Horizon.MEDIUS.PluginArgs;
+using Horizon.MEDIUS;
 
-namespace Horizon.MEDIUS.Medius.Models
+namespace Horizon.MUM.Models
 {
     public class ClientObject
     {
         protected static Random RNG = new();
+
         public IPAddress IP { get; protected set; } = IPAddress.Any;
 
-        public List<GameClient> Clients = new();
+        public IPAddress MuisIP { get; set; } = IPAddress.Any;
+
+        public List<Game.GameClient> Clients = new();
 
         public ConcurrentDictionary<string, Task> Tasks = new();
+
+        public int MaxWorlds { get; protected set; } = 0;
+        public int MaxPlayersPerWorld { get; protected set; } = 0;
+        public int CurrentWorlds { get; protected set; } = 0;
+        public int CurrentPlayers { get; protected set; } = 0;
+
+        public MGCL_ALERT_LEVEL MGCL_ALERT_LEVEL { get; protected set; } = MGCL_ALERT_LEVEL.MGCL_ALERT_NONE;
+
+        public MGCL_TRUST_LEVEL MGCL_TRUST_LEVEL { get; set; }
+        public MGCL_SERVER_ATTRIBUTES MGCL_SERVER_ATTRIBUTES { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public UdpServer? Udp { get; protected set; } = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int UdpPort => Udp?.Port ?? 50000;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Port { get; set; } = 0;
 
         /// <summary>
         /// 
@@ -37,12 +64,17 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public int UdpPort = 0;
+        public IChannel? Tcp { get; protected set; } = null;
 
         /// <summary>
         /// 
         /// </summary>
-        public IChannel? Tcp { get; protected set; } = null;
+        public int DmeId { get; protected set; } = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public World? DmeWorld { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -57,7 +89,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public RT_RECV_FLAG RecvFlag { get; set; } = RT_RECV_FLAG.RECV_BROADCAST;
+        public RT_RECV_FLAG RecvFlag { get; set; } = RT_RECV_FLAG.RECV_BROADCAST | RT_RECV_FLAG.RECV_SINGLE | RT_RECV_FLAG.RECV_LIST;
 
         /// <summary>
         /// 
@@ -78,6 +110,11 @@ namespace Horizon.MEDIUS.Medius.Models
         /// 
         /// </summary>
         public MGCL_GAME_HOST_TYPE ServerType { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string? ServerVersion { get; set; }
 
         /// <summary>
         /// 
@@ -127,7 +164,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// Current access token required to access the account.
         /// </summary>
-        public string? Token { get; protected set; } = null;
+        public string? AccessToken { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -162,7 +199,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public int WorldId { get; set; }
+        public int MediusWorldID { get; set; }
 
         /// <summary>
         /// 
@@ -232,7 +269,7 @@ namespace Horizon.MEDIUS.Medius.Models
         /// <summary>
         /// 
         /// </summary>
-        public DateTime UtcLastServerEchoSent { get; protected set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime UtcLastServerEchoSent { get; set; } = Utils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
@@ -304,12 +341,16 @@ namespace Horizon.MEDIUS.Medius.Models
         /// </summary>
         public int AggTimeMs { get; set; } = 20;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasJoined { get; set; } = false;
+
         public virtual bool IsLoggedIn => !_logoutTime.HasValue && _loginTime.HasValue && IsConnected;
-        public bool IsInGame => CurrentGame != null && CurrentChannel != null /*&& CurrentChannel.Type == ChannelType.Game*/;
-        //public bool 
+        public bool IsInGame => CurrentGame != null && CurrentChannel != null;
         public virtual bool IsConnectingGracePeriod => !TimeAuthenticated.HasValue && (Utils.GetHighPrecisionUtcTime() - TimeCreated).TotalSeconds < MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         public virtual bool Timedout => UtcLastServerEchoReply < UtcLastServerEchoSent && (Utils.GetHighPrecisionUtcTime() - UtcLastServerEchoReply).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
-        public virtual bool IsConnected => KeepAlive || (_hasSocket && _hasActiveSession && !Timedout);  //(KeepAlive || _hasActiveSession) && !Timedout;
+        public virtual bool IsConnected => KeepAlive || (_hasSocket && _hasActiveSession && !Timedout);
         public virtual bool IsAuthenticated => TimeAuthenticated.HasValue;
         public virtual bool Destroy => Disconnected || (!IsConnected && !IsConnectingGracePeriod);
         public virtual bool IsDestroyed { get; protected set; } = false;
@@ -366,7 +407,7 @@ namespace Horizon.MEDIUS.Medius.Models
             // Generate new token
             byte[] tokenBuf = new byte[12];
             RNG.NextBytes(tokenBuf);
-            Token = Convert.ToBase64String(tokenBuf);
+            AccessToken = Convert.ToBase64String(tokenBuf);
 
             // default last echo to creation of client object
             if (MediusVersion <= 108)
@@ -376,6 +417,38 @@ namespace Horizon.MEDIUS.Medius.Models
             }
             else
                 UtcLastServerEchoReply = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+        }
+
+        public ClientObject(string sessionKey, World dmeWorld, int dmeId)
+        {
+            SessionKey = sessionKey;
+
+            DmeId = dmeId;
+            DmeWorld = dmeWorld;
+            AggTimeMs = DmeClass.GetAppSettingsOrDefault(ApplicationId).DefaultClientWorldAggTime;
+
+            // Generate new token
+            byte[] tokenBuf = new byte[12];
+            RNG.NextBytes(tokenBuf);
+            AccessToken = Convert.ToBase64String(tokenBuf);
+
+            // default last echo to creation of client object
+            if (MediusVersion <= 108)
+            {
+                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
+                UtcLastServerEchoReply = Utils.GetHighPrecisionUtcTime();
+            }
+            else
+                UtcLastServerEchoReply = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+        }
+
+        public void BeginUdp()
+        {
+            if (Udp != null)
+                return;
+
+            Udp = new UdpServer(this);
+            _ = Udp.Start();
         }
 
         public void QueueServerEcho()
@@ -417,28 +490,52 @@ namespace Horizon.MEDIUS.Medius.Models
         public virtual void OnPlayerReport(MediusPlayerReport report)
         {
             // Ensure report is for correct game world
-            if (report.MediusWorldID != WorldId)
+            if (report.MediusWorldID != MediusWorldID)
                 return;
 
             AccountStats = report.Stats;
         }
 
-        #region Send Queue
-
-        public void EnqueueTcp(BaseScertMessage message)
+        public void OnServerReport(MediusServerReport report)
         {
-            TcpSendMessageQueue.Enqueue(message);
+            MaxWorlds = report.MaxWorlds;
+            MaxPlayersPerWorld = report.MaxPlayersPerWorld;
+            CurrentWorlds = report.ActiveWorldCount;
+            CurrentPlayers = report.TotalActivePlayers;
+            MGCL_ALERT_LEVEL = report.AlertLevel;
         }
-
-        public void EnqueueTcp(IEnumerable<BaseScertMessage> messages)
-        {
-            foreach (var message in messages)
-                EnqueueTcp(message);
-        }
-
-        #endregion
 
         #region Connection / Disconnection
+
+        public async Task Stop()
+        {
+            if (IsDestroyed)
+                return;
+
+            try
+            {
+                if (Udp != null)
+                    await Udp.Stop();
+
+                if (Tcp != null)
+                {
+                    await Tcp.CloseAsync();
+                    Tcp = null;
+                }
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                OnDestroyed?.Invoke(this);
+            }
+
+            Tcp = null;
+            Udp = null;
+            IsDestroyed = true;
+        }
 
         public void KeepAliveUntilNextConnection()
         {
@@ -456,9 +553,37 @@ namespace Horizon.MEDIUS.Medius.Models
             _hasSocket = false;
         }
 
+        public void OnTcpConnected(IChannel channel)
+        {
+            Tcp = channel;
+        }
+
+        public void OnTcpDisconnected()
+        {
+            Disconnected = true;
+        }
+
+        public void OnUdpConnected()
+        {
+
+        }
+
+        public void OnConnectionCompleted()
+        {
+            TimeAuthenticated = Utils.GetHighPrecisionUtcTime();
+        }
+
         #endregion
 
         #region Status
+
+        public bool HasRecvFlag(RT_RECV_FLAG flag)
+        {
+            if (MediusVersion <= 108)
+                return true;
+
+            return RecvFlag.HasFlag(flag);
+        }
 
         /// <summary>
         /// 
@@ -531,7 +656,7 @@ namespace Horizon.MEDIUS.Medius.Models
             // Logout
             _logoutTime = Utils.GetHighPrecisionUtcTime();
 
-            RoomManager.RemoveUser(AccountName);
+            HTTPSERVICE.RoomManager.RemoveUser(AccountName);
 
             // Tell database
             PostStatus();
@@ -555,7 +680,7 @@ namespace Horizon.MEDIUS.Medius.Models
             // Login
             _loginTime = Utils.GetHighPrecisionUtcTime();
 
-            RoomManager.AddOrUpdateUser(AccountName, ApplicationId);
+            HTTPSERVICE.RoomManager.AddOrUpdateUser(AccountName, ApplicationId);
 
             // WE ARE ANONYMOUS SO DON'T POST TO DATABASE!!!!
         }
@@ -584,7 +709,7 @@ namespace Horizon.MEDIUS.Medius.Models
                     // Update last sign in date
                     _ = HorizonServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
 
-                    RoomManager.AddOrUpdateUser(AccountName, ApplicationId);
+                    HTTPSERVICE.RoomManager.AddOrUpdateUser(AccountName, ApplicationId);
 
                     // Update database status
                     PostStatus();
@@ -893,6 +1018,43 @@ namespace Horizon.MEDIUS.Medius.Models
 
         #region Send Queue
 
+        public void EnqueueTcp(BaseScertMessage message)
+        {
+            TcpSendMessageQueue.Enqueue(message);
+        }
+
+        public void EnqueueTcp(IEnumerable<BaseScertMessage> messages)
+        {
+            foreach (var message in messages)
+                EnqueueTcp(message);
+        }
+
+        public void EnqueueTcp(IEnumerable<BaseMediusMessage> messages)
+        {
+            EnqueueTcp(messages.Select(x => new RT_MSG_SERVER_APP() { Message = x }));
+        }
+
+        public void EnqueueUdp(BaseScertMessage message)
+        {
+            Udp?.Send(message);
+        }
+
+        public void EnqueueUdp(IEnumerable<BaseScertMessage> messages)
+        {
+            foreach (var message in messages)
+                EnqueueUdp(message);
+        }
+
+        public void EnqueueUdp(BaseMediusMessage message)
+        {
+            EnqueueUdp(new RT_MSG_SERVER_APP() { Message = message });
+        }
+
+        public void EnqueueUdp(IEnumerable<BaseMediusMessage> messages)
+        {
+            EnqueueUdp(messages.Select(x => new RT_MSG_SERVER_APP() { Message = x }));
+        }
+
         public void Queue(BaseScertMessage message)
         {
             SendMessageQueue.Enqueue(message);
@@ -924,14 +1086,58 @@ namespace Horizon.MEDIUS.Medius.Models
             Queue(messages.Select(x => new RT_MSG_SERVER_APP() { Message = x }));
         }
 
+        public Task HandleIncomingMessages()
+        {
+            // udp
+            if (Udp != null)
+                return Udp.HandleIncomingMessages();
+
+            return Task.CompletedTask;
+        }
+
+        public void HandleOutgoingMessages()
+        {
+            List<BaseScertMessage> responses = new List<BaseScertMessage>();
+
+            // set aggtime to locked intervals of whatever is stored in AggTimeMs
+            // sometimes this server will be +- a few milliseconds on an agg and
+            // we don't want that to change when messages get sent
+            //if (LastAggTime.HasValue)
+            //    LastAggTime += AggTimeMs * ((Utils.GetMillisecondsSinceStartup() - LastAggTime.Value) / AggTimeMs);
+            //else
+            LastAggTime = Utils.GetMillisecondsSinceStartup();
+
+            // tcp
+            if (Tcp != null)
+            {
+                while (TcpSendMessageQueue.TryDequeue(out var message))
+                    responses.Add(message);
+
+                // send
+                if (responses.Count > 0)
+                    _ = Tcp.WriteAndFlushAsync(responses);
+            }
+
+            // udp
+            Udp?.HandleOutgoingMessages();
+        }
+
         #endregion
 
         #region SetIP
         public void SetIp(string ip)
         {
+            if (string.IsNullOrEmpty(ip))
+                return;
+
             switch (Uri.CheckHostName(ip))
             {
                 case UriHostNameType.IPv4:
+                    {
+                        IP = IPAddress.Parse(ip);
+                        break;
+                    }
+                case UriHostNameType.IPv6:
                     {
                         IP = IPAddress.Parse(ip).MapToIPv4();
                         break;
@@ -947,6 +1153,17 @@ namespace Horizon.MEDIUS.Medius.Models
                         break;
                     }
             }
+        }
+
+        public void SetIpPort(NetAddress ListenServerAddress)
+        {
+            if (IPAddress.TryParse(ListenServerAddress.Address, out IPAddress? addr) && addr != null)
+            {
+                IP = addr;
+                Port = ListenServerAddress.Port;
+            }
+            else
+                LoggerAccessor.LogError($"Unhandled NetAddress {ListenServerAddress} in DMEObject.SetIpPort()");
         }
         #endregion
 
@@ -967,7 +1184,7 @@ namespace Horizon.MEDIUS.Medius.Models
                 }
                 catch
                 {
-                    
+
                 }
             }
 
@@ -988,7 +1205,7 @@ namespace Horizon.MEDIUS.Medius.Models
 
         public override string ToString()
         {
-            return $"({AccountId}:{AccountName}:{ApplicationId}:{DmeClientId})";
+            return $"[ ({AccountId}:{AccountName}:{ApplicationId}:{DmeClientId}) ({IP}:{Port}) ({SessionKey}:{AccessToken}) ]";
         }
     }
 

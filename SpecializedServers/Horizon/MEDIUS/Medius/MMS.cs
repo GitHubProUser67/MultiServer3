@@ -9,6 +9,7 @@ using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Tcp;
 using System.Net;
+using Horizon.MUM.Models;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -208,22 +209,42 @@ namespace Horizon.MEDIUS.Medius
                         data.ApplicationId = clientConnectTcp.AppId;
                         scertClient.ApplicationID = clientConnectTcp.AppId;
 
+                        Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcp.TargetWorldId, data.ApplicationId);
+
+                        if (targetChannel == null)
+                        {
+                            Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
+
+                            if (DefaultChannel.Id == clientConnectTcp.TargetWorldId)
+                                targetChannel = DefaultChannel;
+
+                            if (targetChannel == null)
+                            {
+                                LoggerAccessor.LogError($"[MMS] - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
+                                break;
+                            }
+                        }
+
                         data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
+                        if (data.ClientObject == null)
+                            data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
 
                         #region Client Object Null?
-                        //If Client Object is null, then ignore
                         if (data.ClientObject == null)
                         {
-                            LoggerAccessor.LogError($"IGNORING CLIENT 1 {data} || {data.ClientObject}");
                             data.Ignore = true;
+                            LoggerAccessor.LogError($"[MMS] - ClientObject could not be granted for {clientChannel.RemoteAddress}: {clientConnectTcp}");
                         }
                         #endregion
                         else
                         {
+                            data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
+                            data.ClientObject.ApplicationId = clientConnectTcp.AppId;
                             data.ClientObject.OnConnected();
 
-                            // Update our client object to use existing one
-                            data.ClientObject.ApplicationId = clientConnectTcp.AppId;
+                            LoggerAccessor.LogInfo($"[MMS] - Client Connected {clientChannel.RemoteAddress}!");
+
+                            await data.ClientObject.JoinChannel(targetChannel);
 
                             #region if PS3
                             if (scertClient.IsPS3Client)
@@ -237,7 +258,7 @@ namespace Horizon.MEDIUS.Medius
                                     {
                                         PlayerId = 0,
                                         ScertId = GenerateNewScertClientId(),
-                                        PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ClientObject.ApplicationId).Count,
+                                        PlayerCount = 0x0001,
                                         IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                     }, clientChannel);
                                 }
@@ -256,12 +277,12 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     PlayerId = 0,
                                     ScertId = GenerateNewScertClientId(),
-                                    PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ClientObject.ApplicationId).Count,
+                                    PlayerCount = 0x0001,
                                     IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                 }, clientChannel);
 
                                 if (pre108ServerComplete.Contains(data.ApplicationId))
-                                    Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ClientObject.ApplicationId).Count }, clientChannel);
+                                    Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                             }
                         }
 
@@ -275,14 +296,14 @@ namespace Horizon.MEDIUS.Medius
                         {
                             PlayerId = 0,
                             ScertId = GenerateNewScertClientId(),
-                            PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                            PlayerCount = 0x0001,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
                         if (scertClient.MediusVersion > 108)
                             Queue(new RT_MSG_SERVER_ECHO(), clientChannel);
@@ -316,7 +337,7 @@ namespace Horizon.MEDIUS.Medius
                             data.State = ClientState.DISCONNECTED;
                         await clientChannel.CloseAsync();
 
-                        LoggerAccessor.LogInfo($"Client id = {data.ClientObject.AccountId} disconnected by request with no specific reason\n");
+                        LoggerAccessor.LogInfo($"Client id = {data.ClientObject?.AccountId} disconnected by request with no specific reason\n");
                         break;
                     }
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:

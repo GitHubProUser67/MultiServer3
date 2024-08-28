@@ -20,7 +20,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public DMEObject(ClientObject client, MediusServerCreateGameOnSelfRequest request)
         {
             ApplicationId = request.ApplicationID;
-            WorldId = request.WorldID;
+            WorldId = request.MediusWorldID;
             IP = client.IP;
 
             // Generate new session key
@@ -35,7 +35,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public DMEObject(ClientObject client, MediusServerCreateGameOnSelfRequest0 request)
         {
             ApplicationId = request.ApplicationID;
-            WorldId = request.WorldID;
+            WorldId = request.MediusWorldID;
             IP = client.IP;
 
             // Generate new session key
@@ -50,7 +50,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public DMEObject(ClientObject client, MediusServerCreateGameOnMeRequest request)
         {
             ApplicationId = request.ApplicationID;
-            WorldId = request.WorldID;
+            WorldId = request.MediusWorldID;
             IP = client.IP;
 
             // Generate new session key

@@ -46,9 +46,9 @@ namespace Horizon.DME.Config
         {
             string? value = null;
 
-            /* EnableDmeEncryption
+            // EnableDmeEncryption
             if (settings.TryGetValue("EnableDmeEncryption", out value) && bool.TryParse(value, out var enableDmeEncryption))
-                EnableDmeEncryption = enableDmeEncryption; */
+                EnableDmeEncryption = enableDmeEncryption;
             // DefaultClientWorldAggTime
             if (settings.TryGetValue("DefaultClientWorldAggTime", out value) && int.TryParse(value, out var defaultClientWorldAggTime))
                 DefaultClientWorldAggTime = defaultClientWorldAggTime;

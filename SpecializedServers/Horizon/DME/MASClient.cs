@@ -32,7 +32,6 @@ namespace Horizon.DME
             HELLO,
             HANDSHAKE,
             CONNECT_TCP,
-            PENDING_TCP_ACK,
             ACK_TCP,
             AUTHENTICATED
         }
@@ -305,8 +304,9 @@ namespace Horizon.DME
                         if (_masChannel != null)
                             await _masChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_CONNECT_TCP()
                             {
-                                AppId = 120, // We authenticate with DME server appid.
-                                Key = DmeClass.GlobalAuthPublic
+                                AppId = ApplicationId,
+                                Key = DmeClass.GlobalAuthPublic,
+                                TargetWorldId = 1
                             });
 
                         _masState = MASConnectionState.CONNECT_TCP;
@@ -316,20 +316,6 @@ namespace Horizon.DME
                     {
                         if (_masState != MASConnectionState.CONNECT_TCP)
                             throw new Exception($"Unexpected RT_MSG_SERVER_CONNECT_ACCEPT_TCP from server. {serverConnectAcceptTcp}");
-
-                        if (_masChannel != null)
-                            await _masChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_CONNECT_READY_TCP()
-                            {
-
-                            });
-
-                        _masState = MASConnectionState.PENDING_TCP_ACK;
-                        break;
-                    }
-                case RT_MSG_SERVER_CONNECT_COMPLETE serverComplete:
-                    {
-                        if (_masState != MASConnectionState.PENDING_TCP_ACK)
-                            throw new Exception($"Unexpected RT_MSG_SERVER_CONNECT_COMPLETE from server. {serverComplete}");
 
                         if (_masChannel != null)
                             await _masChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_APP_TOSERVER()
@@ -355,6 +341,11 @@ namespace Horizon.DME
                             {
                                 ServReq = 0
                             });
+                        break;
+                    }
+                case RT_MSG_SERVER_CONNECT_COMPLETE serverComplete:
+                    {
+                        // Ignore.
                         break;
                     }
                 case RT_MSG_SERVER_ECHO serverEcho:

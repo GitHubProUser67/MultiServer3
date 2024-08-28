@@ -9,7 +9,6 @@ using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Database.Models;
 using Horizon.LIBRARY.libAntiCheat;
 using Horizon.MEDIUS.Config;
-using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using System.Net;
 using Horizon.PluginManager;
@@ -22,6 +21,7 @@ using System.Collections.Concurrent;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
+using Horizon.MUM.Models;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -55,35 +55,6 @@ namespace Horizon.MEDIUS.Medius
         public MLS()
         {
 
-        }
-
-        //KILLZONE PS2 ONLY
-        public ClientObject ReserveClient(MediusVersionServerRequest request)
-        {
-            ClientObject client = new();
-            client.BeginSession();
-            return client;
-        }
-
-        public ClientObject ReserveClient(MediusSessionBeginRequest request)
-        {
-            ClientObject client = new();
-            client.BeginSession();
-            return client;
-        }
-
-        public ClientObject ReserveClient1(MediusSessionBeginRequest1 request)
-        {
-            ClientObject client = new();
-            client.BeginSession();
-            return client;
-        }
-
-        public ClientObject ReserveClient(MediusExtendedSessionBeginRequest request)
-        {
-            ClientObject client = new();
-            client.BeginSession();
-            return client;
         }
 
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
@@ -131,27 +102,21 @@ namespace Horizon.MEDIUS.Medius
 
                         if (targetChannel == null)
                         {
-                            LoggerAccessor.LogError($"[MLS] - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
-                            break;
+                            Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
+
+                            if (DefaultChannel.Id == clientConnectTcp.TargetWorldId)
+                                targetChannel = DefaultChannel;
+
+                            if (targetChannel == null)
+                            {
+                                LoggerAccessor.LogError($"[MLS] - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
+                                break;
+                            }
                         }
 
                         data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
                         if (data.ClientObject == null)
-                        {
-                            LoggerAccessor.LogWarn("CLIENTOBJECT NULL FALLBACK");
-
-                            List<ClientObject> clients = MediusClass.Manager.GetClients(clientConnectTcp.AppId);
-                            LoggerAccessor.LogWarn($"Clients Count for AppId {clients.Count}");
-                            foreach (ClientObject client in clients)
-                            {
-                                if (client.Token == clientConnectTcp.AccessToken)
-                                {
-                                    LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
-                                    data.ClientObject = client;
-                                    break;
-                                }
-                            }
-                        }
+                            data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
 
                         #region Client Object Null?
                         //If Client Object is null, then ignore or create a guest.
@@ -159,37 +124,42 @@ namespace Horizon.MEDIUS.Medius
                         {
                             if (MediusClass.Settings.AllowGuests)
                             {
-                                data.ClientObject = new();
+                                data.ClientObject = new()
+                                {
+                                    MediusVersion = scertClient.MediusVersion ?? 0,
+                                    ApplicationId = clientConnectTcp.AppId
+                                };
                                 data.ClientObject.OnConnected();
-                                data.ClientObject.ApplicationId = clientConnectTcp.AppId;
                                 data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
 
                                 await data.ClientObject.JoinChannel(targetChannel);
 
                                 if (!await GuestLogin(clientChannel, data))
                                 {
-                                    LoggerAccessor.LogError($"IGNORING BANNED CLIENT {data} || {data.ClientObject}");
-                                    //data.Ignore = true;
+                                    data.Ignore = true;
+                                    LoggerAccessor.LogError($"[MLS] - Ignoring banned client for {clientChannel.RemoteAddress}: {clientConnectTcp}");
                                     break;
                                 }
                             }
                             else
                             {
-                                LoggerAccessor.LogError($"IGNORING UNKNOWN CLIENT {data} || {data.ClientObject}");
-                                //data.Ignore = true;
+                                data.Ignore = true;
+                                LoggerAccessor.LogWarn($"[MLS] - Ignoring guest login for {clientChannel.RemoteAddress}: {clientConnectTcp}");
                                 break;
                             }
                         }
                         else
                         {
-                            data.ClientObject.OnConnected();
+                            data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.ApplicationId = clientConnectTcp.AppId;
+                            data.ClientObject.OnConnected();
 
                             await data.ClientObject.JoinChannel(targetChannel);
 
                             string HomeUserEntry = data.ClientObject.AccountName + ":" + data.ClientObject.IP;
+                            bool IsHome = data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374;
                             bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
-                                               && (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
+                                               && IsHome
                                                && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)
                                                    || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[HomeUserEntry])
                                                    || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[HomeUserEntry] != "ADMIN"));
@@ -226,7 +196,7 @@ namespace Horizon.MEDIUS.Medius
                                 }
                             }
 
-                            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374) && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)))
+                            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && IsHome && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)))
                             {
                                 data.State = ClientState.DISCONNECTED;
                                 await clientChannel.CloseAsync();
@@ -234,8 +204,6 @@ namespace Horizon.MEDIUS.Medius
                             }
                         }
                         #endregion
-
-                        LoggerAccessor.LogInfo("Client valid!");
 
                         #region if PS3
                         if (scertClient.IsPS3Client)
@@ -249,7 +217,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     PlayerId = 0,
                                     ScertId = GenerateNewScertClientId(),
-                                    PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ClientObject.ApplicationId).Count,
+                                    PlayerCount = 0x0001,
                                     IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                 }, clientChannel);
                             }
@@ -268,12 +236,12 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 PlayerId = 0,
                                 ScertId = GenerateNewScertClientId(),
-                                PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ClientObject.ApplicationId).Count,
+                                PlayerCount = 0x0001,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
 
                             if (pre108ServerComplete.Contains(data.ApplicationId))
-                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ClientObject.ApplicationId).Count }, clientChannel);
+                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                         }
 
                         break;
@@ -701,7 +669,7 @@ namespace Horizon.MEDIUS.Medius
 
                                                             LoggerAccessor.LogError(anticheatMsg);
 
-                                                            if (data.ClientObject.IP != IPAddress.Any)
+                                                            if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
                                                                 BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                             data.State = ClientState.DISCONNECTED;
@@ -715,7 +683,7 @@ namespace Horizon.MEDIUS.Medius
 
                                                             LoggerAccessor.LogError(anticheatMsg);
 
-                                                            if (data.ClientObject.IP != IPAddress.Any)
+                                                            if (data.ClientObject != null && data.ClientObject.IP != IPAddress.Any)
                                                                 BannedClients.TryAdd((data.ClientObject.IP, data.MachineId), DateTime.Now.AddDays(2));
 
                                                             data.State = ClientState.DISCONNECTED;
@@ -739,14 +707,14 @@ namespace Horizon.MEDIUS.Medius
                         {
                             PlayerId = 0,
                             ScertId = GenerateNewScertClientId(),
-                            PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                            PlayerCount = 0x0001,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
                         if (scertClient.MediusVersion > 108)
                             Queue(new RT_MSG_SERVER_ECHO(), clientChannel);
@@ -832,20 +800,9 @@ namespace Horizon.MEDIUS.Medius
                             }
                         }, clientChannel);
 
-                        // update queue
-                        lock (MAS.GameHostClientQueue)
-                            MAS.GameHostClientQueue.RemoveAll(tuple => tuple.Item2 == data.ClientObject);
-
                         // End session
                         data.ClientObject.EndSession();
                         data.ClientObject = null;
-                        /*
-                        if (data.ClientObject.IsLoggedIn)
-                        {
-                            LoggerAccessor.LogInfo($"SessionEnd Success");
-                            await data.ClientObject.Logout();
-                        }
-                        */
                         break;
                     }
 
@@ -3799,7 +3756,7 @@ namespace Horizon.MEDIUS.Medius
                             case MediusUserAction.LeftGameWorld:
                                 {
                                     LoggerAccessor.LogInfo($"[MLS] - Successfully Left GameWorld {data.ClientObject.AccountId}:{data.ClientObject.AccountName}");
-                                    MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.WorldId, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
+                                    MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_UPDATEUSERSTATE(AnticheatEventCode.anticheatLEAVEGAME, data.ClientObject.MediusWorldID, data.ClientObject.AccountId, MediusClass.AntiCheatClient, updateUserState, 256);
                                     break;
                                 }
                             case MediusUserAction.LeftPartyWorld:
@@ -7033,17 +6990,6 @@ namespace Horizon.MEDIUS.Medius
                             break;
                         }
 
-                        // perform search on queue
-                        bool queueContainsClient = MAS.GameHostClientQueue.Any(tuple => tuple.Item2 == data.ClientObject);
-
-                        // add host to queue
-                        if (!queueContainsClient)
-                        {
-                            LoggerAccessor.LogWarn($"QUEUING {data.ClientObject.AccountName} FOR REAUTH");
-                            lock (MAS.GameHostClientQueue)
-                                MAS.GameHostClientQueue.Add(new Tuple<bool, ClientObject>(false, data.ClientObject));
-                        }
-
                         if (data.ClientObject.CurrentGame != null)
                         {
                             if (data.ApplicationId == 20371 || data.ApplicationId == 20374)
@@ -7679,7 +7625,7 @@ namespace Horizon.MEDIUS.Medius
                                     StatusCode = MediusCallbackStatus.MediusSuccess,
                                     ConnectInfo = new NetConnectionInfo()
                                     {
-                                        AccessKey = data.ClientObject.Token,
+                                        AccessKey = data.ClientObject.AccessToken,
                                         SessionKey = data.ClientObject.SessionKey,
                                         WorldID = channel.Id,
                                         ServerKey = new RSA_KEY(),
@@ -7703,7 +7649,7 @@ namespace Horizon.MEDIUS.Medius
                                     StatusCode = MediusCallbackStatus.MediusSuccess,
                                     ConnectInfo = new NetConnectionInfo()
                                     {
-                                        AccessKey = data.ClientObject.Token,
+                                        AccessKey = data.ClientObject.AccessToken,
                                         SessionKey = data.ClientObject.SessionKey,
                                         WorldID = channel.Id,
                                         ServerKey = MediusClass.GlobalAuthPublic,
@@ -7774,7 +7720,7 @@ namespace Horizon.MEDIUS.Medius
                                 StatusCode = MediusCallbackStatus.MediusSuccess,
                                 ConnectInfo = new NetConnectionInfo()
                                 {
-                                    AccessKey = data.ClientObject.Token,
+                                    AccessKey = data.ClientObject.AccessToken,
                                     SessionKey = data.ClientObject.SessionKey,
                                     WorldID = channel.Id,
                                     ServerKey = MediusClass.GlobalAuthPublic,
@@ -10501,7 +10447,7 @@ namespace Horizon.MEDIUS.Medius
                     {
                         if (accountClientToAdd != null && clientObject.ApplicationId != 20214)
                         {
-                            LoggerAccessor.LogInfo($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.WorldId}]");
+                            LoggerAccessor.LogInfo($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.MediusWorldID}]");
                             LoggerAccessor.LogInfo($"accountToAdd [{accountClientToAdd.AccountName}] is online, forwarding request!");
                             //channel.AddToBuddyListConfirmationSingleRequest(clientObject, accountClientToAdd, addToBuddyListConfirmation);
 
@@ -10544,7 +10490,7 @@ namespace Horizon.MEDIUS.Medius
                     {
                         if (accountClientToAdd != null && clientObject.ApplicationId != 20214)
                         {
-                            LoggerAccessor.LogInfo($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.WorldId}]");
+                            LoggerAccessor.LogInfo($"AnswerAddToBuddyListConfirmationRequest: Target player found in cache. forwarding to ClientIndex [{clientObject.AccountId}] WorldID [{clientObject.MediusWorldID}]");
                             LoggerAccessor.LogInfo($"accountToAdd [{accountClientToAdd.AccountName}] is online, forwarding request!");
                             //channel.AddToBuddyListConfirmationSymmetricRequest(clientObject, accountClientToAdd, addToBuddyListConfirmation);
                             if (accountClientToAdd.IsLoggedIn == true)
@@ -11219,17 +11165,17 @@ namespace Horizon.MEDIUS.Medius
             anticheatEvent_CreateLobbyWorld.LobbyName = LobbyName;
             anticheatEvent_CreateLobbyWorld.LobbyPassword = LobbyPassword;
 
-            MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_CREATELOBBYWORLD(AnticheatEventCode.anticheatCREATELOBBYWORLD, client.WorldId, client.AccountId, MediusClass.AntiCheatClient, anticheatEvent_CreateLobbyWorld, 96);
+            MediusClass.AntiCheatPlugin.mc_anticheat_event_msg_CREATELOBBYWORLD(AnticheatEventCode.anticheatCREATELOBBYWORLD, client.MediusWorldID, client.AccountId, MediusClass.AntiCheatClient, anticheatEvent_CreateLobbyWorld, 96);
         }
 
-        public DMEObject? GetFreeMPS(int appId)
+        public ClientObject? GetFreeMPS(int appId)
         {
             try
             {
                 return _scertHandler?.Group?
                     .Select(x => _channelDatas[x.Id.AsLongText()]?.ClientObject)
-                    .Where(x => x is DMEObject && x != null && (x.ApplicationId == appId || x.ApplicationId == 0))
-                    .MinBy(x => (x as DMEObject).CurrentWorlds) as DMEObject;
+                    .Where(x => x is ClientObject && x != null && (x.ApplicationId == appId || x.ApplicationId == 0))
+                    .MinBy(x => x!.CurrentWorlds);
             }
             catch (Exception ex)
             {
@@ -11354,9 +11300,9 @@ namespace Horizon.MEDIUS.Medius
             CIDManager.CreateCIDPair(accountDto.AccountName, data.MachineId);
 
             // Add to logged in clients
-            MediusClass.Manager.AddClient(data.ClientObject);
+            MediusClass.Manager.AddOrUpdateLoggedInClient(data.ClientObject);
 
-            LoggerAccessor.LogInfo($"CREATING GUEST IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.Token}");
+            LoggerAccessor.LogInfo($"CREATING GUEST IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.AccessToken}");
 
             return true;
         }

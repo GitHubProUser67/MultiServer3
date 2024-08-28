@@ -178,7 +178,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GenericField8 = serverCreateGameOnMe.GenericField8;
             GAME_HOST_TYPE = serverCreateGameOnMe.GameHostType;
             netAddressList = serverCreateGameOnMe.AddressList;
-            WorldID = serverCreateGameOnMe.WorldID;
+            WorldID = serverCreateGameOnMe.MediusWorldID;
             AccountID = serverCreateGameOnMe.AccountID;
         }
 
@@ -198,7 +198,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GenericField3 = serverCreateGameOnSelf.GenericField3;
             GAME_HOST_TYPE = serverCreateGameOnSelf.GameHostType;
             netAddressList = serverCreateGameOnSelf.AddressList;
-            WorldID = serverCreateGameOnSelf.WorldID;
+            WorldID = serverCreateGameOnSelf.MediusWorldID;
             AccountID = serverCreateGameOnSelf.AccountID;
         }
 
@@ -218,7 +218,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GenericField3 = serverCreateGameOnSelf0.GenericField3;
             GAME_HOST_TYPE = serverCreateGameOnSelf0.GameHostType;
             netAddressList = serverCreateGameOnSelf0.AddressList;
-            WorldID = serverCreateGameOnSelf0.WorldID;
+            WorldID = serverCreateGameOnSelf0.MediusWorldID;
         }
 
         public string GetActivePlayerList()

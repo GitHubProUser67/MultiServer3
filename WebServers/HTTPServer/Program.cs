@@ -33,6 +33,7 @@ public static class HTTPServerConfiguration
     public static string HTTPTempFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwtemp";
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static bool ChunkedTransfers { get; set; } = false;
+    public static bool DomainFolder { get; set; } = false;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool NotFoundWebArchive { get; set; } = false;
     public static int NotFoundWebArchiveDateLimit { get; set; } = 0;
@@ -86,6 +87,7 @@ public static class HTTPServerConfiguration
                 new JProperty("404_not_found_web_archive", NotFoundWebArchive),
                 new JProperty("404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit),
                 new JProperty("enable_chunked_transfers", ChunkedTransfers),
+                new JProperty("enable_domain_folder", DomainFolder),
                 new JProperty("enable_http_compression", EnableHTTPCompression),
                 new JProperty("enable_put_method", EnablePUTMethod),
                 new JProperty("enable_image_upscale", EnableImageUpscale),
@@ -123,6 +125,7 @@ public static class HTTPServerConfiguration
             NotFoundWebArchive = GetValueOrDefault(config, "404_not_found_web_archive", NotFoundWebArchive);
             NotFoundWebArchiveDateLimit = GetValueOrDefault(config, "404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit);
             ChunkedTransfers = GetValueOrDefault(config, "enable_chunked_transfers", ChunkedTransfers);
+            DomainFolder = GetValueOrDefault(config, "enable_domain_folder", DomainFolder);
             EnableHTTPCompression = GetValueOrDefault(config, "enable_http_compression", EnableHTTPCompression);
             EnablePUTMethod = GetValueOrDefault(config, "enable_put_method", EnablePUTMethod);
             EnableImageUpscale = GetValueOrDefault(config, "enable_image_upscale", EnableImageUpscale);

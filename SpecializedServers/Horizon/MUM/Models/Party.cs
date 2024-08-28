@@ -8,9 +8,8 @@ using System.Data;
 using Horizon.PluginManager;
 using System.Text.Json.Serialization;
 using Horizon.MEDIUS;
-using Horizon.MEDIUS.Medius.Models;
 
-namespace Horizon.MUM
+namespace Horizon.MUM.Models
 {
     public class Party
     {
@@ -44,7 +43,7 @@ namespace Horizon.MUM
         public int GenericField7;
         public int GenericField8;
         public MediusWorldAttributesType Attributes;
-        public DMEObject DMEServer;
+        public ClientObject DMEServer;
         public Channel? ChatChannel;
         public ClientObject? Host;
 
@@ -68,7 +67,7 @@ namespace Horizon.MUM
 
         public int PlayerCount => LocalClients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
 
-        public Party(ClientObject client, IMediusRequest partyCreate, Channel? chatChannel, DMEObject dmeServer, int WorldId)
+        public Party(ClientObject client, IMediusRequest partyCreate, Channel? chatChannel, ClientObject dmeServer, int WorldId)
         {
             if (partyCreate is MediusPartyCreateRequest r)
                 FromPartyCreateRequest(r);

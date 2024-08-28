@@ -1,4 +1,4 @@
-using Horizon.MUM;
+using Horizon.MUM.Models;
 
 namespace Horizon.MEDIUS.PluginArgs
 {

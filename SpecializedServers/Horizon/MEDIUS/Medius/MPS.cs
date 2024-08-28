@@ -5,14 +5,14 @@ using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
 using Horizon.MEDIUS.Config;
-using Horizon.MEDIUS.Medius.Models;
 using Horizon.MEDIUS.PluginArgs;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using System.Net;
 using Horizon.PluginManager;
 using Horizon.RT.Models.MGCL;
-using Horizon.MUM;
 using System.Globalization;
+using Horizon.MUM.Models;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace Horizon.MEDIUS.Medius
 {
@@ -25,7 +25,6 @@ namespace Horizon.MEDIUS.Medius
 
         private static IChannel? channel = null;
         private static ChannelData? channelData = null;
-        private static ClientObject? clientObject = null;
 
         public MPS()
         {
@@ -110,25 +109,40 @@ namespace Horizon.MEDIUS.Medius
 
                         List<int> pre108ServerComplete = new() { 10114, 10164, 10190, 10124, 10130, 10164, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
 
-                        data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, data.ApplicationId);
-                        if (data.ClientObject != null)
+                        Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcp.TargetWorldId, data.ApplicationId);
+
+                        if (targetChannel == null)
                         {
-                            clientObject = data.ClientObject;
-                            LoggerAccessor.LogInfo("MPS Client Connected!");
-                            data.ClientObject.OnConnected();
-                            data.ClientObject.ApplicationId = clientConnectTcp.AppId;
-                        }
-                        else
-                        {
-                            data.ClientObject = MediusClass.Manager.GetDmeByAccessToken(clientConnectTcp.AccessToken, data.ApplicationId);
-                            if (data.ClientObject != null)
+                            Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
+
+                            if (DefaultChannel.Id == clientConnectTcp.TargetWorldId)
+                                targetChannel = DefaultChannel;
+
+                            if (targetChannel == null)
                             {
-                                clientObject = data.ClientObject;
-                                LoggerAccessor.LogInfo("MPS DME Client Connected!");
-                                data.ClientObject.OnConnected();
-                                data.ClientObject.ApplicationId = clientConnectTcp.AppId;
+                                LoggerAccessor.LogError($"[MPS] - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
+                                break;
                             }
                         }
+
+                        data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
+                        if (data.ClientObject == null)
+                            data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
+
+                        if (data.ClientObject != null)
+                            LoggerAccessor.LogInfo($"[MPS] - Client Connected {clientChannel.RemoteAddress}!");
+                        else
+                        {
+                            data.Ignore = true;
+                            LoggerAccessor.LogError($"[MPS] - ClientObject could not be granted for {clientChannel.RemoteAddress}: {clientConnectTcp}");
+                            break;
+                        }
+
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
+                        data.ClientObject.ApplicationId = clientConnectTcp.AppId;
+                        data.ClientObject.OnConnected();
+
+                        await data.ClientObject.JoinChannel(targetChannel);
 
                         data.State = ClientState.AUTHENTICATED;
 
@@ -144,7 +158,7 @@ namespace Horizon.MEDIUS.Medius
                                 {
                                     PlayerId = 0,
                                     ScertId = GenerateNewScertClientId(),
-                                    PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                                    PlayerCount = 0x0001,
                                     IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                 }, clientChannel);
                             }
@@ -163,12 +177,12 @@ namespace Horizon.MEDIUS.Medius
                             {
                                 PlayerId = 0,
                                 ScertId = GenerateNewScertClientId(),
-                                PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                                PlayerCount = 0x0001,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
 
                             if (pre108ServerComplete.Contains(data.ApplicationId))
-                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
+                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                         }
 
                         break;
@@ -181,14 +195,14 @@ namespace Horizon.MEDIUS.Medius
                         {
                             PlayerId = 0,
                             ScertId = GenerateNewScertClientId(),
-                            PlayerCount = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count,
+                            PlayerCount = 0x0001,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = (ushort)MediusClass.Manager.GetClients(data.ApplicationId).Count }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
 
                         if (scertClient.MediusVersion > 108)
                             Queue(new RT_MSG_SERVER_ECHO(), clientChannel);
@@ -217,11 +231,22 @@ namespace Horizon.MEDIUS.Medius
                     }
                 case RT_MSG_CLIENT_DISCONNECT _:
                     {
-                        //LoggerAccessor.LogInfo($"Client id = {data.ClientObject.AccountId} disconnected by request with no specific reason\n");
+                        //Medius 1.08 (Used on WRC 4) haven't a state
+                        if (scertClient.MediusVersion > 108)
+                            data.State = ClientState.DISCONNECTED;
+
+                        await clientChannel.CloseAsync();
+
+                        LoggerAccessor.LogInfo($"[MPS] - Client disconnected by request with no specific reason\n");
                         break;
                     }
                 case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                     {
+                        if (clientDisconnectWithReason.disconnectReason <= RT_MSG_CLIENT_DISCONNECT_REASON.RT_MSG_CLIENT_DISCONNECT_LENGTH_MISMATCH)
+                            LoggerAccessor.LogInfo($"[MPS] - Disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
+                        else
+                            LoggerAccessor.LogInfo($"[MPS] - Disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
+
                         data.State = ClientState.DISCONNECTED;
                         await clientChannel.CloseAsync();
                         break;
@@ -461,7 +486,7 @@ namespace Horizon.MEDIUS.Medius
                                     PartyHostType = party.PartyHostType,
                                     ConnectionInfo = new NetConnectionInfo()
                                     {
-                                        AccessKey = rClient.Token,
+                                        AccessKey = rClient.AccessToken,
                                         SessionKey = rClient.SessionKey,
                                         WorldID = party.WorldID,
                                         ServerKey = joinGameResponse.pubKey,
@@ -469,7 +494,7 @@ namespace Horizon.MEDIUS.Medius
                                         {
                                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                                     {
-                                                    new NetAddress() { Address = ((DMEObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((DMEObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                                    new NetAddress() { Address = ((ClientObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((ClientObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
                                                     new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
                                                     }
                                         },
@@ -574,7 +599,7 @@ namespace Horizon.MEDIUS.Medius
                                             GameHostType = game.GameHostType,
                                             ConnectInfo = new NetConnectionInfo()
                                             {
-                                                AccessKey = rClient.Token,
+                                                AccessKey = rClient.AccessToken,
                                                 SessionKey = rClient.SessionKey,
                                                 WorldID = game.WorldID,
                                                 ServerKey = game.pubKey,
@@ -626,7 +651,7 @@ namespace Horizon.MEDIUS.Medius
                                                 {
                                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                                     {
-                                                    new NetAddress() { Address = ((DMEObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((DMEObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                                    new NetAddress() { Address = ((ClientObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((ClientObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
                                                     new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                                     }
                                                 },
@@ -655,7 +680,7 @@ namespace Horizon.MEDIUS.Medius
                                                 {
                                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                                     {
-                                                            new NetAddress() { Address = ((DMEObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((DMEObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                                            new NetAddress() { Address = ((ClientObject)data.ClientObject).IP.MapToIPv4().ToString(), Port = ((ClientObject)data.ClientObject).Port, AddressType = NetAddressType.NetAddressTypeExternal},
                                                             new NetAddress() { Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService }
                                                     }
                                                 },
@@ -681,12 +706,19 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerCreateGameOnSelfRequest
                 case MediusServerCreateGameOnSelfRequest serverCreateGameOnSelfRequest:
                     {
-                        // Create DME object on Player
-                        var dme = new DMEObject(serverCreateGameOnSelfRequest);
-                        dme.BeginSession();
-                        MediusClass.Manager.AddDmeClient(dme);
-
-                        data.ClientObject?.OnConnected();
+                        if (serverCreateGameOnSelfRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternal)
+                            data.ClientObject?.SetIp(ConvertFromIntegerToIpAddress(serverCreateGameOnSelfRequest.AddressList.AddressList[0].BinaryAddress));
+                        else if (serverCreateGameOnSelfRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+                            || serverCreateGameOnSelfRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
+                        {
+                            data.ClientObject?.SetIp(serverCreateGameOnSelfRequest.AddressList.AddressList[0].IPBinaryBitOne + "." +
+                                    serverCreateGameOnSelfRequest.AddressList.AddressList[0].IPBinaryBitTwo + "." +
+                                    serverCreateGameOnSelfRequest.AddressList.AddressList[0].IPBinaryBitThree + "." +
+                                    serverCreateGameOnSelfRequest.AddressList.AddressList[0].IPBinaryBitFour);
+                        }
+                        else
+                            // NetAddressTypeExternal
+                            data.ClientObject?.SetIp(serverCreateGameOnSelfRequest.AddressList.AddressList[0].Address ?? "0.0.0.0");
 
                         // validate name
                         if (!MediusClass.PassTextFilter(data.ApplicationId, TextFilterContext.GAME_NAME, Convert.ToString(serverCreateGameOnSelfRequest.GameName)))
@@ -702,7 +734,7 @@ namespace Horizon.MEDIUS.Medius
                         // Send to plugins
                         await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_CREATE_GAME, new OnPlayerRequestArgs() { Player = data.ClientObject, Request = serverCreateGameOnSelfRequest });
 
-                        await MediusClass.Manager.CreateGameP2P(data.ClientObject, serverCreateGameOnSelfRequest, clientChannel, dme);
+                        await MediusClass.Manager.CreateGameP2P(data.ClientObject, serverCreateGameOnSelfRequest, clientChannel);
                         break;
                     }
                 #endregion
@@ -710,13 +742,19 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerCreateGameOnSelfRequest0
                 case MediusServerCreateGameOnSelfRequest0 serverCreateGameOnSelfRequest0:
                     {
-                        // Create DME object
-                        var dme = new DMEObject(serverCreateGameOnSelfRequest0);
-
-                        dme.BeginSession();
-                        MediusClass.Manager.AddDmeClient(dme);
-
-                        data.ClientObject?.OnConnected();
+                        if (serverCreateGameOnSelfRequest0.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternal)
+                            data.ClientObject?.SetIp(ConvertFromIntegerToIpAddress(serverCreateGameOnSelfRequest0.AddressList.AddressList[0].BinaryAddress));
+                        else if (serverCreateGameOnSelfRequest0.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+                            || serverCreateGameOnSelfRequest0.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
+                        {
+                            data.ClientObject?.SetIp(serverCreateGameOnSelfRequest0.AddressList.AddressList[0].IPBinaryBitOne + "." +
+                                    serverCreateGameOnSelfRequest0.AddressList.AddressList[0].IPBinaryBitTwo + "." +
+                                    serverCreateGameOnSelfRequest0.AddressList.AddressList[0].IPBinaryBitThree + "." +
+                                    serverCreateGameOnSelfRequest0.AddressList.AddressList[0].IPBinaryBitFour);
+                        }
+                        else
+                            // NetAddressTypeExternal
+                            data.ClientObject?.SetIp(serverCreateGameOnSelfRequest0.AddressList.AddressList[0].Address ?? "0.0.0.0");
 
                         // validate name
                         if (!MediusClass.PassTextFilter(data.ApplicationId, TextFilterContext.GAME_NAME, Convert.ToString(serverCreateGameOnSelfRequest0.GameName)))
@@ -732,7 +770,7 @@ namespace Horizon.MEDIUS.Medius
                         // Send to plugins
                         await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_CREATE_GAME, new OnPlayerRequestArgs() { Player = data.ClientObject, Request = serverCreateGameOnSelfRequest0 });
 
-                        await MediusClass.Manager.CreateGameP2P(data.ClientObject, serverCreateGameOnSelfRequest0, clientChannel, dme);
+                        await MediusClass.Manager.CreateGameP2P(data.ClientObject, serverCreateGameOnSelfRequest0, clientChannel);
                         break;
                     }
                 #endregion
@@ -740,13 +778,19 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerCreateGameOnMeRequest   
                 case MediusServerCreateGameOnMeRequest serverCreateGameOnMeRequest:
                     {
-                        // Create DME object
-                        var dme = new DMEObject(serverCreateGameOnMeRequest);
-
-                        dme.BeginSession();
-                        MediusClass.Manager.AddDmeClient(dme);
-
-                        data.ClientObject?.OnConnected();
+                        if (serverCreateGameOnMeRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternal)
+                            data.ClientObject?.SetIp(ConvertFromIntegerToIpAddress(serverCreateGameOnMeRequest.AddressList.AddressList[0].BinaryAddress));
+                        else if (serverCreateGameOnMeRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+                            || serverCreateGameOnMeRequest.AddressList.AddressList[0].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
+                        {
+                            data.ClientObject?.SetIp(serverCreateGameOnMeRequest.AddressList.AddressList[0].IPBinaryBitOne + "." +
+                                    serverCreateGameOnMeRequest.AddressList.AddressList[0].IPBinaryBitTwo + "." +
+                                    serverCreateGameOnMeRequest.AddressList.AddressList[0].IPBinaryBitThree + "." +
+                                    serverCreateGameOnMeRequest.AddressList.AddressList[0].IPBinaryBitFour);
+                        }
+                        else
+                            // NetAddressTypeExternal
+                            data.ClientObject?.SetIp(serverCreateGameOnMeRequest.AddressList.AddressList[0].Address ?? "0.0.0.0");
 
                         // validate name
                         if (!MediusClass.PassTextFilter(data.ApplicationId, TextFilterContext.GAME_NAME, Convert.ToString(serverCreateGameOnMeRequest.GameName)))
@@ -762,7 +806,7 @@ namespace Horizon.MEDIUS.Medius
                         // Send to plugins
                         await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_CREATE_GAME, new OnPlayerRequestArgs() { Player = data.ClientObject, Request = serverCreateGameOnMeRequest });
 
-                        await MediusClass.Manager.CreateGameP2P(data.ClientObject, serverCreateGameOnMeRequest, clientChannel, dme);
+                        await MediusClass.Manager.CreateGameP2P(data.ClientObject, serverCreateGameOnMeRequest, clientChannel);
 
                         break;
                     }
@@ -856,12 +900,8 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerReport
                 case MediusServerReport serverReport:
                     {
-
-                        (data.ClientObject as DMEObject)?.OnServerReport(serverReport);
+                        data.ClientObject?.OnServerReport(serverReport);
                         data.ClientObject?.OnConnected();
-                        //data.ClientObject.OnConnected();
-                        //data.ClientObject.KeepAliveUntilNextConnection();
-                        //LoggerAccessor.LogInfo($"ServerReport SessionKey {serverReport.SessionKey} MaxWorlds {serverReport.MaxWorlds} MaxPlayersPerWorld {serverReport.MaxPlayersPerWorld} TotalWorlds {serverReport.ActiveWorldCount} TotalPlayers {serverReport.TotalActivePlayers} Alert {serverReport.AlertLevel} ConnIndex {data.ClientObject.DmeId} WorldID {data.ClientObject.WorldId}");
                         break;
                     }
                 #endregion
@@ -869,15 +909,15 @@ namespace Horizon.MEDIUS.Medius
                 #region MediusServerConnectNotification
                 case MediusServerConnectNotification connectNotification:
                     {
-                        if (data.ClientObject != null && MediusClass.Manager.GetGameByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
+                        if (data.ClientObject != null && MediusClass.Manager.GetGameByMediusWorldId((data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
                         {
-                            Game? conn = MediusClass.Manager.GetGameByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
+                            Game? conn = MediusClass.Manager.GetGameByMediusWorldId((data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
                                 await conn.OnMediusServerConnectNotification(connectNotification);
                         }
                         else if (data.ClientObject != null)
                         {
-                            Party? conn = MediusClass.Manager.GetPartyByMediusWorldId(((DMEObject)data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
+                            Party? conn = MediusClass.Manager.GetPartyByMediusWorldId((data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
                             if (conn != null)
                                 await conn.OnMediusServerConnectNotification(connectNotification);
                         }
@@ -987,14 +1027,14 @@ namespace Horizon.MEDIUS.Medius
             }
         }
 
-        public DMEObject? GetFreeDme(int appId)
+        public ClientObject? GetFreeDme(int appId)
         {
             try
             {
                 return _scertHandler?.Group?
                     .Select(x => _channelDatas[x.Id.AsLongText()]?.ClientObject)
-                    .Where(x => x is DMEObject && x != null && (x.ApplicationId == appId || x.ApplicationId == 0))
-                    .MediusMinBy(x => (x as DMEObject).CurrentWorlds) as DMEObject;
+                    .Where(x => x is ClientObject && x != null && (x.ApplicationId == appId || x.ApplicationId == 0))
+                    .MinBy(x => x!.CurrentWorlds);
             }
             catch (Exception e)
             {
@@ -1018,7 +1058,7 @@ namespace Horizon.MEDIUS.Medius
                     MaxClients = game.MaxPlayers,
                     ConnectInfo = new NetConnectionInfo()
                     {
-                        AccessKey = client.Token,
+                        AccessKey = client.AccessToken,
                         SessionKey = client.SessionKey,
                         WorldID = game.WorldID,
                         ServerKey = new RSA_KEY(),
@@ -1052,37 +1092,26 @@ namespace Horizon.MEDIUS.Medius
             }, channel);
         }
 
-        //Actual DME flow unimplemented
-        public DMEObject ReserveDMEObject(MediusServerSessionBeginRequest request, IChannel clientChannel)
+        #region ConvertFromIntegerToIpAddress
+        /// <summary>
+        /// Convert from Binary Ip Address to UInt
+        /// </summary>
+        /// <param name="ipAddress">Binary formatted IP Address</param>
+        /// <returns></returns>
+        public static string ConvertFromIntegerToIpAddress(uint ipAddress)
         {
-            DMEObject dme = new(request, ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
-            dme.BeginSession();
-            MediusClass.Manager.AddDmeClient(dme);
-            return dme;
-        }
+            byte[] bytes = BitConverter.GetBytes(ipAddress);
+            string ipAddressConverted = new IPAddress(bytes).ToString();
 
-        public DMEObject ReserveDMEObject(MediusServerSessionBeginRequest1 request)
-        {
-            DMEObject dme = new(request);
-            dme.BeginSession();
-            MediusClass.Manager.AddDmeClient(dme);
-            return dme;
+            // flip little-endian to big-endian(network order)
+            /* NOT NEEDED
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+            */
+            return ipAddressConverted;
         }
-
-        public DMEObject ReserveDMEObject(MediusServerSessionBeginRequest2 request)
-        {
-            DMEObject dme = new(request);
-            dme.BeginSession();
-            MediusClass.Manager.AddDmeClient(dme);
-            return dme;
-        }
-
-        public ClientObject ReserveClient(MediusServerSessionBeginRequest mgclSessionBeginRequest)
-        {
-            ClientObject client = new();
-            client.BeginSession();
-            MediusClass.Manager.AddClient(client);
-            return client;
-        }
+        #endregion
     }
 }

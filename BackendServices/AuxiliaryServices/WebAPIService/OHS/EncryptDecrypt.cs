@@ -1,5 +1,4 @@
 using CustomLogger;
-using System;
 using System.Text;
 
 namespace WebAPIService.OHS
@@ -27,8 +26,8 @@ namespace WebAPIService.OHS
 
             StringBuilder chars = new StringBuilder();
 
-            chars.Append((char)((int)Math.Floor((offset - 1) / 95.0) + 32));
-            chars.Append((char)((offset - 1) % 95 + 32));
+            chars.Append((char)(((int)System.Math.Floor((double)((offset - 1) / 95))) + 32));
+            chars.Append((char)(((offset - 1) % 95) + 32));
 
             for (int i = 0; i < str.Length; i++)
             {
@@ -42,13 +41,13 @@ namespace WebAPIService.OHS
                 int cipherbyte;
 
                 if (game == 1)
-                    cipherbyte = StaticKeys.version1cipher[Wrapped(i + offset, StaticKeys.version1cipher.Length) - 1];
+                    cipherbyte = StaticKeys.version1cipher[Wrapped(i + offset, StaticKeys.version1cipher.Length - 1)];
                 else if (game == 2)
-                    cipherbyte = StaticKeys.version2cipher[Wrapped(i + offset, StaticKeys.version2cipher.Length) - 1];
+                    cipherbyte = StaticKeys.version2cipher[Wrapped(i + offset, StaticKeys.version2cipher.Length - 1)];
                 else
                     return null;
 
-                chars.Append((char)(srcbyte + cipherbyte) % 95 + 32);
+                chars.Append((char)((srcbyte + cipherbyte) % 95 + 32));
             }
 
             return chars.ToString();
@@ -61,9 +60,9 @@ namespace WebAPIService.OHS
 
             StringBuilder chars = new StringBuilder();
 
-            int offset = str[0] - 32 * 95 + str[1] - 32 + 1;
+            int offset = (str[0] - 32) * 95 + (str[1] - 32) + 1;
 
-            for (int i = 2; i < str.Length; i++)
+            for (int i = 2; i < str.Length; i++) // Corrected loop start index to 2
             {
                 int srcbyte = str[i] - 32;
                 if (srcbyte < 0 || srcbyte > 95)
@@ -75,13 +74,13 @@ namespace WebAPIService.OHS
                 int cipherbyte;
 
                 if (game == 1)
-                    cipherbyte = StaticKeys.version1cipher[Wrapped(i - 2 + offset, StaticKeys.version1cipher.Length) - 1];
+                    cipherbyte = StaticKeys.version1cipher[Wrapped(i - 2 + offset, StaticKeys.version1cipher.Length - 1)];
                 else if (game == 2)
-                    cipherbyte = StaticKeys.version2cipher[Wrapped(i - 2 + offset, StaticKeys.version2cipher.Length) - 1];
+                    cipherbyte = StaticKeys.version2cipher[Wrapped(i - 2 + offset, StaticKeys.version2cipher.Length - 1)];
                 else
                     return null;
 
-                chars.Append((char)(srcbyte - cipherbyte + 95) % 95 + 32);
+                chars.Append((char)((srcbyte - cipherbyte + 95) % 95 + 32));
             }
 
             return chars.ToString();
@@ -96,10 +95,17 @@ namespace WebAPIService.OHS
                 lo = (ushort)((b + lo) % 255);
                 hi = (ushort)((255 - b + hi) % 255);
 
-                lo = (ushort)((ushort)(hi % 16) * 16 + (ushort)(lo % 16));
-                hi = (ushort)((ushort)(hi / 16) * 16 + (ushort)(lo / 16));
+                ushort lolo = (ushort)(lo % 16);
+                ushort lohi = (ushort)(lo / 16);
+                ushort hilo = (ushort)(hi % 16);
+                ushort hihi = (ushort)(hi / 16);
 
-                (hi, lo) = (lo, hi);
+                lo = (ushort)(hilo * 16 + lolo);
+                hi = (ushort)(hihi * 16 + lohi);
+
+                ushort temp = lo;
+                lo = hi;
+                hi = temp;
             }
 
             return (ushort)(hi * 255 + lo);

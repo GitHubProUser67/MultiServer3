@@ -385,10 +385,10 @@ namespace HTTPSecureServerLite
                             string[] segments = absolutepath.Trim('/').Split('/');
 
                             // Combine the folder segments into a directory path
-                            string directoryPath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+                            string directoryPath = Path.Combine(!HTTPSServerConfiguration.DomainFolder ? HTTPSServerConfiguration.HTTPSStaticFolder : HTTPSServerConfiguration.HTTPSStaticFolder + '/' + Host, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                             // Process the request based on the HTTP method
-                            string filePath = Path.Combine(HTTPSServerConfiguration.HTTPSStaticFolder, absolutepath[1..]);
+                            string filePath = Path.Combine(!HTTPSServerConfiguration.DomainFolder ? HTTPSServerConfiguration.HTTPSStaticFolder : HTTPSServerConfiguration.HTTPSStaticFolder + '/' + Host, absolutepath[1..]);
 
                             string apiPath = Path.Combine(HTTPSServerConfiguration.APIStaticFolder, absolutepath[1..]);
 

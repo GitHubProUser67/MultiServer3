@@ -7,6 +7,7 @@ using Horizon.PluginManager;
 using System.Net;
 using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
+using Horizon.MUM;
 
 
 namespace Horizon.MUIS
@@ -19,7 +20,7 @@ namespace Horizon.MUIS
 
         public static IPAddress SERVER_IP = IPAddress.None;
 
-        public static MediusManager Manager = new();
+        public static MumManager Manager = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
         public static RSA_KEY? GlobalAuthPublic = null;

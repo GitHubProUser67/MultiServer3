@@ -8,7 +8,6 @@ using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Tcp;
 using Horizon.LIBRARY.Common;
-using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using DotNetty.Handlers.Timeout;
@@ -17,6 +16,8 @@ using Horizon.PluginManager;
 using EndianTools;
 using CyberBackendLibrary.Extension;
 using Horizon.LIBRARY.Pipeline.Attribute;
+using Horizon.MUM.Models;
+using Horizon.MEDIUS;
 
 namespace Horizon.DME
 {
@@ -47,7 +48,7 @@ namespace Horizon.DME
             /// <summary>
             /// Timesout client if they authenticated after a given number of seconds.
             /// </summary>
-            public bool ShouldDestroy => ClientObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
+            public bool ShouldDestroy => ClientObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         }
 
         protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new();
@@ -292,7 +293,7 @@ namespace Horizon.DME
                         if (data.ClientObject != null)
                         {
                             // Echo
-                            if (data.ClientObject.MediusVersion > 108 && (Utils.GetHighPrecisionUtcTime() - data.ClientObject.UtcLastServerEchoSent).TotalSeconds > DmeClass.GetAppSettingsOrDefault(data.ClientObject.ApplicationId).ServerEchoIntervalSeconds)
+                            if (data.ClientObject.MediusVersion > 108 && (Utils.GetHighPrecisionUtcTime() - data.ClientObject.UtcLastServerEchoSent).TotalSeconds > MediusClass.GetAppSettingsOrDefault(data.ClientObject.ApplicationId).ServerEchoIntervalSeconds)
                             {
                                 var message = new RT_MSG_SERVER_ECHO();
                                 if (!await PassMessageToPlugins(clientChannel, data, message, false))
@@ -364,29 +365,31 @@ namespace Horizon.DME
                         */
 
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
-                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
+                        scertClient.ApplicationID = clientConnectTcpAuxUdp.AppId;
 
+                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
                         if (data.ClientObject == null)
                         {
-                            LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
                             data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
                             if (data.ClientObject != null)
-                                LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
+                                LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
                             else
                             {
-                                LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
-
-                                data.ClientObject = new ClientObject(clientConnectTcpAuxUdp.SessionKey ?? string.Empty)
-                                {
-                                    ApplicationId = clientConnectTcpAuxUdp.AppId
-                                };
+                                data.Ignore = true;
+                                LoggerAccessor.LogError($"[DME] - TcpServer - ClientObject could not be found for {clientChannel.RemoteAddress}:{data.ClientObject?.Port}: {clientConnectTcpAuxUdp}");
+                                break;
                             }
                         }
+                        else
+                            LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
 
+                        List<int> pre108ServerComplete = new() { 10114, 10164, 10190, 10124, 10130, 10164, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
+
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion!.Value;
                         data.ClientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
                         data.ClientObject.OnTcpConnected(clientChannel);
                         data.ClientObject.ScertId = GenerateNewScertClientId();
-                        data.ClientObject.MediusVersion = scertClient.MediusVersion;
+
                         if (!_scertIdToClient.TryAdd(data.ClientObject.ScertId, data.ClientObject))
                         {
                             LoggerAccessor.LogError($"Duplicate scert client id");
@@ -400,6 +403,9 @@ namespace Horizon.DME
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
                         else
                         {
+                            //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
+                            if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.MediusVersion >= 109)
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                             {
                                 PlayerId = (ushort)data.ClientObject.DmeId,
@@ -407,6 +413,13 @@ namespace Horizon.DME
                                 PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
+
+                            if (pre108ServerComplete.Contains(scertClient.ApplicationID))
+                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
+                                {
+                                    ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
+                                }, clientChannel);
+
                             Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
                             {
                                 Ip = DmeClass.SERVER_IP,
@@ -418,52 +431,57 @@ namespace Horizon.DME
                 case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
                     {
                         data.ApplicationId = clientConnectTcp.AppId;
+                        scertClient.ApplicationID = clientConnectTcp.AppId;
 
-                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcp.AccessToken ?? string.Empty);
-
+                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcp.AccessToken);
                         if (data.ClientObject == null)
                         {
-                            LoggerAccessor.LogWarn("Access Token for client not found, fallback to Sessionkey!");
-                            data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcp.SessionKey ?? string.Empty);
+                            data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcp.SessionKey);
                             if (data.ClientObject != null)
-                                LoggerAccessor.LogWarn("CLIENTOBJECT FALLBACK FOUND!!");
+                                LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
                             else
                             {
-                                LoggerAccessor.LogWarn("AccessToken and SessionKey null! FALLBACK WITH NEW CLIENTOBJECT!");
-
-                                data.ClientObject = new ClientObject(clientConnectTcp.SessionKey ?? string.Empty)
-                                {
-                                    ApplicationId = clientConnectTcp.AppId
-                                };
+                                data.Ignore = true;
+                                LoggerAccessor.LogError($"[DME] - TcpServer - ClientObject could not be found for {clientChannel.RemoteAddress}:{data.ClientObject?.Port}: {clientConnectTcp}");
+                                break;
                             }
                         }
+                        else
+                            LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
 
+                        List<int> pre108ServerComplete = new() { 10114, 10164, 10190, 10124, 10130, 10164, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
+
+                        data.ClientObject.MediusVersion = scertClient.MediusVersion!.Value;
+                        data.ClientObject.ApplicationId = clientConnectTcp.AppId;
                         data.ClientObject.OnTcpConnected(clientChannel);
                         data.ClientObject.ScertId = GenerateNewScertClientId();
-                        data.ClientObject.MediusVersion = scertClient.MediusVersion;
+
                         if (!_scertIdToClient.TryAdd(data.ClientObject.ScertId, data.ClientObject))
                         {
-                            LoggerAccessor.LogWarn($"Duplicate scert client id");
+                            LoggerAccessor.LogError($"Duplicate scert client id");
                             break;
                         }
 
-                        if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.MediusVersion >= 109 && !scertClient.IsPS3Client)
-                            Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                        Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                        if (scertClient.MediusVersion > 108 || scertClient.IsPS3Client)
+                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
+                        else
                         {
-                            PlayerId = (ushort)data.ClientObject.DmeId,
-                            ScertId = data.ClientObject.ScertId,
-                            PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
-                            IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                        }, clientChannel);
-
-                        //pre108Complete
-
-                        if (scertClient.MediusVersion == 108 || scertClient.ApplicationID == 10683 || scertClient.ApplicationID == 10684)
-                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
+                            if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.MediusVersion >= 109 && !scertClient.IsPS3Client)
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                             {
-                                ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
+                                PlayerId = (ushort)data.ClientObject.DmeId,
+                                ScertId = data.ClientObject.ScertId,
+                                PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
+
+                            if (pre108ServerComplete.Contains(scertClient.ApplicationID))
+                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
+                                {
+                                    ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
+                                }, clientChannel);
+                        }
 
                         break;
                     }
