@@ -541,7 +541,8 @@ namespace HTTPServer
                                                 Host == "homeec.scej-nbs.jp" ||
                                                 Host == "homeecqa.scej-nbs.jp" ||
                                                 Host == "homect-scej.jp" ||
-                                                Host == "qa-homect-scej.jp")
+                                                Host == "qa-homect-scej.jp" ||
+                                                Host == "home-eas.jp.playstation.com") 
                                                 && !string.IsNullOrEmpty(Method)
                                                 && absolutepath.Contains("/eventController/"))
                                             {
@@ -745,7 +746,7 @@ namespace HTTPServer
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
                                             #endregion
-
+                                            
                                             #region CAPONE GriefReporter API
                                             else if (CAPONEDomains.Contains(Host)
                                                 && !string.IsNullOrEmpty(Method))
@@ -757,7 +758,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new CAPONEClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    res = new CAPONEClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -766,7 +767,7 @@ namespace HTTPServer
                                                     response = HttpResponse.Send(res, "text/xml");
                                             }
                                             #endregion
-
+                                            
                                             #region HTS Samples API
                                             else if (HTSDomains.Contains(Host)
                                                 && !string.IsNullOrEmpty(Method))
