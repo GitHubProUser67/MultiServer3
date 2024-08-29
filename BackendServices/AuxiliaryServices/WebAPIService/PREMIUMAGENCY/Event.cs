@@ -9,7 +9,68 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class Event
     {
-        public static string checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
+        public static string? confirmEventRequestPOST(byte[]? PostData, string? ContentType, string eventId, string workPath, string fulluripath, string method)
+        {
+            string nid = string.Empty;
+
+            if (method == "GET")
+            {
+                nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
+            }
+            else
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+
+                using MemoryStream ms = new MemoryStream(PostData);
+                var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                nid = data.GetParameterValue("nid");
+
+                ms.Flush();
+            }
+
+            if (nid == null || eventId == null)
+            {
+                LoggerAccessor.LogError("[PREMIUMAGENCY] - name id or event id is null, this shouldn't happen!!!");
+                return null;
+            }
+
+            switch (eventId)
+            {
+                case "53":
+                    string ufo09FilePathPublic = $"{workPath}/eventController/UFO09/confirmEvent.xml";
+
+                    if (File.Exists(ufo09FilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEvent FOUND for PUBLIC UFO09 {eventId}!");
+                        string res = File.ReadAllText(ufo09FilePathPublic);
+
+                        return "<confirm_event>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">CONFIRM</description>\r\n\t" +
+                             $"{res}\r\n" +
+                             "</confirm_event>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEvent FALLBACK sent for PUBLIC UFO09 {eventId}!\nExpected path {ufo09FilePathPublic}");
+
+                        return "<confirm_event>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">CONFIRM</description>\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</confirm_event>";
+                    }
+
+                default:
+                    {
+                        LoggerAccessor.LogError($"[PREMIUMAGENCY] - ConfirmEvent unhandled for eventId {eventId} | POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
+                        return null;
+                    }
+            }
+        }
+
+        public static string? checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
@@ -311,6 +372,34 @@ namespace WebAPIService.PREMIUMAGENCY
                              $"<status type=\"int\">0</status>\r\n" +
                              "</xml>";
                     }
+
+                case "298":
+                    string Halloween2010EventPathPublic = $"{workpath}/eventController/Halloween/2010/checkEvent.xml";
+                    if (File.Exists(Halloween2010EventPathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FOUND for PUBLIC Halloween 2010 {eventId}!");
+                        string res = File.ReadAllText(Halloween2010EventPathPublic);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - CheckEvent FALLBACK sent for PUBLIC Halloween 2010 {eventId}!\nExpected path {Halloween2010EventPathPublic}");
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"<status type=\"int\">0</status>\r\n" +
+                             "</xml>";
+                    }
+
                 case "300":
                     string j_liargame2Path = $"{workpath}/eventController/j_liargame2";
                     if (File.Exists(j_liargame2Path))
@@ -522,6 +611,35 @@ namespace WebAPIService.PREMIUMAGENCY
 
             switch (eventId)
             {
+                case "53":
+                    string ufo09FilePathPublic = $"{workPath}/eventController/UFO09/entryEvent.xml";
+
+                    if (File.Exists(ufo09FilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for PUBLIC UFO09 {eventId}!");
+                        string res = File.ReadAllText(ufo09FilePathPublic);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC UFO09 {eventId}!\nExpected path {ufo09FilePathPublic}");
+
+                        return "<xml>\r\n\t" +
+                              "<result type=\"int\">1</result>\r\n\t" +
+                              "<description type=\"text\">Success</description>\r\n\t" +
+                              "<error_no type=\"int\">0</error_no>\r\n\t" +
+                              "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                              $"<status type=\"int\">0</status>\r\n" +
+                              "</xml>";
+                    }
+
                 case "63":
                     string mikuLiveEventFilePathQA = $"{workPath}/eventController/MikuLiveEvent/qaentryEvent.xml";
                     if (File.Exists(mikuLiveEventFilePathQA))
@@ -676,7 +794,7 @@ namespace WebAPIService.PREMIUMAGENCY
                     }
                     else
                     {
-                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ] FALLBACK sent for PUBLIC MikuJackEvent {eventId}!\nExpected path {mikuLiveJackFilePathPublic}");
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - FALLBACK sent for PUBLIC MikuJackEvent {eventId}!\nExpected path {mikuLiveJackFilePathPublic}");
 
                         return "<xml>\r\n\t" +
                              "<result type=\"int\">1</result>\r\n\t" +
@@ -711,6 +829,36 @@ namespace WebAPIService.PREMIUMAGENCY
                              $"<status type=\"int\">0</status>\r\n" +
                              "</xml>";
                     }
+
+                case "298":
+                    string Halloween2010FilePathPublic = $"{workPath}/eventController/Halloween/2010/entryEvent.xml";
+
+                    if (File.Exists(Halloween2010FilePathPublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FOUND for PUBLIC Halloween 2010 {eventId}!");
+                        string res = File.ReadAllText(Halloween2010FilePathPublic);
+
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - EntryEvent FALLBACK sent for PUBLIC Halloween 2010 {eventId}!\nExpected path {Halloween2010FilePathPublic}");
+
+                        return "<xml>\r\n\t" +
+                              "<result type=\"int\">1</result>\r\n\t" +
+                              "<description type=\"text\">Success</description>\r\n\t" +
+                              "<error_no type=\"int\">0</error_no>\r\n\t" +
+                              "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                              $"<status type=\"int\">0</status>\r\n" +
+                              "</xml>";
+                    }
+
                 case "300":
                     string j_liargame2Path = $"{workPath}/eventController/j_liargame2";
                     if (File.Exists(j_liargame2Path))
