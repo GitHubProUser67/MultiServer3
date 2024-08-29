@@ -92,7 +92,7 @@ namespace WebAPIService.PREMIUMAGENCY
                         case "/eventController/getResource.do":
                             return Resource.getResourcePOST(PostData, ContentType, workpath, fulluripath, method);
                         case "/eventController/confirmEvent.do":
-                            //return Event.confirmEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath); //Unimplemented 
+                            return Event.confirmEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/checkEvent.do":
                             return Event.checkEventRequestPOST(PostData, ContentType, evid, workpath, fulluripath, method);
                         case "/eventController/entryEvent.do":

@@ -374,6 +374,8 @@ namespace WebAPIService.OHS
                             output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"hemlock\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"wolfsbane\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" } } }";
                         else if ((string)jsonObject["key"] == "vickie_version")
                             output = "{ [\"vickie_version\"] = 7 }";
+                        else if ((string)jsonObject["key"] == "maxSceaPlazaReward")
+                            output = "{ [\"maxSceaPlazaReward\"] = 5 }";
                     }
                 }
             }
