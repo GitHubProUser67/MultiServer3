@@ -387,7 +387,9 @@ namespace HTTPServer
 
                                             #region VEEMEE API
                                             else if ((Host == "away.veemee.com"
-                                                || Host == "home.veemee.com") &&
+                                                || Host == "home.veemee.com"
+                                                || Host == "ww-prod-sec.destinations.scea.com"
+                                                || Host == "ww-prod.destinations.scea.com") &&
                                                 !string.IsNullOrEmpty(Method) &&
                                                 (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
                                             {

@@ -494,7 +494,11 @@ namespace HTTPSecureServerLite
                             }
 
                             #region VEEMEE API
-                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
+                            else if ((Host == "away.veemee.com" 
+                                || Host == "home.veemee.com"
+                                || Host == "ww-prod-sec.destinations.scea.com"
+                                || Host == "ww-prod.destinations.scea.com") 
+                                && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 

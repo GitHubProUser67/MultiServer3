@@ -12,7 +12,7 @@ namespace WebAPIService.CDM
     {
         public static string handlePublisherList(byte[] PostData, string ContentType, string workpath, string absolutePath)
         {
-            string pubListPath = $"{workpath}/CDM/Publishers/";
+            string pubListPath = $"{workpath}/CDM/Publishers";
 
             Directory.CreateDirectory(pubListPath);
             string filePath = $"{pubListPath}/list.xml";
