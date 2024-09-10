@@ -119,6 +119,12 @@ namespace WebAPIService.PREMIUMAGENCY
                             return Ranking.getItemRankingTargetListHandler(PostData, ContentType, workpath, evid, fulluripath, method);
                         case "/eventController/getInformationBoardSchedule.do":
                             return InfoBoard.getInformationBoardSchedulePOST(PostData, ContentType, workpath, evid);
+                        case "/eventController/checkAccount.do":
+                            return Account.checkAccount(PostData, ContentType, workpath);
+                        case "/eventController/entryAccount.do":
+                            return Account.entryAccount(PostData, ContentType, workpath);
+                        case "/eventController/confirmAccount.do":
+                            //return Account.confirmAccount(PostData, ContentType, workpath, evid);
                         default:
                             {
                                 LoggerAccessor.LogError($"[PREMIUMAGENCY] - Unhandled {method} server request discovered: {absolutepath.Replace("/eventController/", "")} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");

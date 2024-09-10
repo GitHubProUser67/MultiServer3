@@ -13,6 +13,9 @@ namespace WebAPIService.PREMIUMAGENCY
             string resKey = string.Empty;
             string resSeqNum = string.Empty;
 
+            string regcd = string.Empty;
+
+
             if (method == "GET") {
                 resKey = HttpUtility.ParseQueryString(fulluripath).Get("key");
                 resSeqNum = HttpUtility.ParseQueryString(fulluripath).Get("seq");
@@ -26,6 +29,7 @@ namespace WebAPIService.PREMIUMAGENCY
 
                     resKey = data.GetParameterValue("key");
                     resSeqNum = data.GetParameterValue("seq");
+                    regcd = data.GetParameterValue("regcd");
 
                     ms.Flush();
                 }
@@ -43,6 +47,7 @@ namespace WebAPIService.PREMIUMAGENCY
             string GundamPath = $"{workpath}/eventController/Gundam/Resources";
             string SCEAsiaHSMannedEvent2013 = $"{workpath}/eventController/hs/SCEAsia/MannedEvent/Resources";
 
+            string fifaSimPredictorPath = $"{workpath}/eventController/Fifa/SimPred/Resources";
             string homecafeEnquetePath = $"{workpath}/eventController/hc/hc_Enquete/Resources";
             string homecafeGalleryPath = $"{workpath}/eventController/hc/hc_gallery/Resources";
             string homecafeShopPath = $"{workpath}/eventController/hc/hc_Shop/Resources";
@@ -1781,6 +1786,48 @@ namespace WebAPIService.PREMIUMAGENCY
                     break;
                 #endregion
 
+                #region Fifa Simulator Predictor
+
+                case "fifa_toto_data":
+                    {
+                        Directory.CreateDirectory(fifaSimPredictorPath);
+                        string filePath = $"{fifaSimPredictorPath}/{resKey}.xml";
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            string res = File.ReadAllText(filePath);
+
+                            string resourceXML = "<xml>\r\n" +
+                                "<result type=\"int\">1</result>\r\n" +
+                                "<description type=\"text\">Success</description>\r\n" +
+                                "<error_no type=\"int\">0</error_no>\r\n" +
+                                "<error_message type=\"text\">None</error_message>\r\n" +
+                                $"<key type=\"text\">{resKey}</key>\r\n" +
+                                $"{res}\r\n" +
+                                "</xml>";
+
+                            return resourceXML;
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}! Using a supported fallback!");
+
+                            string fallbackXML = @$"<xml>
+<result type=""int"">1</result>
+<description type=""text"">RESOURCE_DATA</description>
+<error_no type=""int"">0</error_no>
+<error_message type=""text"">None</error_message>
+<key type=""text"">fifa_toto_data</key>
+<resource>
+<seq type=""int"">1</seq>
+<data type=""text"">event_id=""225""xp_ev_id=""226""event_data=""http://playstationhome.jp/eventController/Fifa/SimPredicator/Toto_Event.xml""result_data=""http://playstationhome.jp/eventController/Fifa/SimPredicator/Toto_ItemListData.xml""localise_data=""http://playstationhome.jp/eventController/Fifa/SimPredicator/Toto_Localise_{regcd}.xml""</data>
+</resource>
+</xml>";
+                        }
+                    }
+                    break;
+
+                #endregion
 
                 default:
                     {
