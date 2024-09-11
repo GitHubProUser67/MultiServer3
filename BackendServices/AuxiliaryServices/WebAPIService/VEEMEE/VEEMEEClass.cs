@@ -28,6 +28,13 @@ namespace WebAPIService.VEEMEE
             string result = null;
             string resultContentType = null;
 
+            if(absolutepath.Contains("//WardrobeWars/Images"))
+            {
+                byte[] resultImage = Podium.RequestWWImage(contentType, apiPath, absolutepath);
+                resultContentType = "image/jpeg";
+                return (resultImage, resultContentType);
+            }
+
             switch (method)
             {
                 case "POST":
@@ -171,7 +178,7 @@ namespace WebAPIService.VEEMEE
                             result = Podium.RequestVote(postData, contentType);
                             break;
                         case "/WardrobeWars/podium_score.php":
-                            result = Podium.RequestScore(postData, contentType);
+                            result = Podium.RequestScore(postData, contentType, apiPath);
                             break;
                         case "/WardrobeWars/reward.php":
                             result = Podium.RequestRewards(postData, contentType, apiPath);
