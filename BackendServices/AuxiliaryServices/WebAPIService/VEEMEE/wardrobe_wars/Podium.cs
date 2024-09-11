@@ -81,37 +81,51 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
 
             if (PostData != null)
             {
-                using (MemoryStream ms = new MemoryStream(PostData))
-                {
 
-                    Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
 
 
-                    urlEncodedData.TryGetValue("id", out id);
-                    urlEncodedData.TryGetValue("previous", out previousid);
-                    urlEncodedData.TryGetValue("limitLocal", out limitLocal);
+                urlEncodedData.TryGetValue("id", out id);
+                urlEncodedData.TryGetValue("previous", out previousid);
+                urlEncodedData.TryGetValue("limitLocal", out limitLocal);
 
-                    //indexId = Convert.ToInt32(id.Split(".").First());
-                    LoggerAccessor.LogInfo($"id {id} previous {previousid} limitLocal {limitLocal}");
+                //indexId = Convert.ToInt32(id.Split(".").First());
+                LoggerAccessor.LogInfo($"id {id} previous {previousid} limitLocal {limitLocal}");
 
 
 
-                    string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/";
+                string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/";
+
+                try {
 
                     if (Directory.Exists(serverFilePath))
                     {
 
                         string[] userProfiles = Directory.GetFiles(serverFilePath);
 
+                        LoggerAccessor.LogInfo($"TEST {Convert.ToInt32(id.Substring(1, 1))}");
+
+                        string userfileName = Path.GetFileName(userProfiles[Convert.ToInt32(id.Substring(1, 1))]);
+
                         //string index = userProfiles[Convert.ToInt32(id)].
 
                         //psnNameFromFileName = userProfileIndexSelected.Split("/").First();
 
-                        psnNameFromFileName = userProfiles[0];
-                    } else
-                    {
-                        LoggerAccessor.LogError($"No date directory found for today in path {serverFilePath}!");
+                        psnNameFromFileName = userfileName;
+
+
+                        return $"{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{psnNameFromFileName},{psnNameFromFileName.Split("_").First()},0,{indexId},0";
                     }
+                    else
+                    {
+                        LoggerAccessor.LogError($"No date directory found for today in path {serverFilePath} !");
+                        return $"0,{psnNameFromFileName.Split("_").First()},0,{id},0";
+                    }
+                } catch (Exception e)
+                {
+                    LoggerAccessor.LogWarn($"Failed to find a image at index {id} with exception: {e}");
+                    return $"0,{psnNameFromFileName.Split("_").First()},0,{id},0";
+                }
 
 
 
@@ -120,10 +134,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     LoggerAccessor.LogInfo($"[VEEMEE] - Podium Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
 #endif
 
-                    ms.Flush();
-                }
-
-                return $"1,{psnNameFromFileName},0,{indexId},0";
             }
 
             return null;
@@ -172,7 +182,7 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
         /// Entry 2 is if Vote_Successful send entrant score
         /// Entry 3 is bool localVoted
         /// </summary>
-        public static string RequestScore(byte[] PostData, string ContentType)
+        public static string RequestScore(byte[] PostData, string ContentType, string apiPath)
         {
             string id = string.Empty;
             string entrant_id = string.Empty;
@@ -198,6 +208,7 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
 #endif
 
 
+                    string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/";
 
 
 
@@ -473,6 +484,20 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Special function to call images from the user submissions for //WardrobeWars/Images/ VEEMEE endpoint
+        /// </summary>
+        public static byte[] RequestWWImage(string ContentType, string apiPath, string absolutePath)
+        {
+
+            byte[] imgSubmission;
+            string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{Path.GetFileName(absolutePath)}";
+
+            imgSubmission = File.ReadAllBytes(serverFilePath);
+
+            return imgSubmission;
         }
 
     }
