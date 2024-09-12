@@ -7,6 +7,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Transforms;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Formats;
 
 namespace WebAPIService.VEEMEE.wardrobe_wars
 {
@@ -76,6 +81,13 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             string previousid = string.Empty;
             string limitLocal = string.Empty;
 
+
+            string territory = string.Empty;
+            string region = string.Empty;
+            string time = string.Empty;
+            string psnid = string.Empty;
+            string language = string.Empty;
+
             string psnNameFromFileName = string.Empty;
             int indexId = -1;
 
@@ -89,12 +101,29 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                 urlEncodedData.TryGetValue("previous", out previousid);
                 urlEncodedData.TryGetValue("limitLocal", out limitLocal);
 
+
+                urlEncodedData.TryGetValue("territory", out territory);
+                urlEncodedData.TryGetValue("region", out region);
+                urlEncodedData.TryGetValue("time", out time);
+                urlEncodedData.TryGetValue("psnid", out psnid);
+                urlEncodedData.TryGetValue("language", out language);
+
                 //indexId = Convert.ToInt32(id.Split(".").First());
                 LoggerAccessor.LogInfo($"id {id} previous {previousid} limitLocal {limitLocal}");
 
-
-
                 string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/";
+
+                int IDFromString = 0;
+                if (previousid == "0")
+                {
+                    IDFromString = 1;
+                }
+                else
+                {
+                    IDFromString = Convert.ToInt32(previousid.Split(".").First());
+                }
+
+                string serverScoreFilePath = serverFilePath + $"/Scores/{IDFromString}";
 
                 try {
 
@@ -103,18 +132,25 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
 
                         string[] userProfiles = Directory.GetFiles(serverFilePath);
 
-                        LoggerAccessor.LogInfo($"TEST {Convert.ToInt32(id.Substring(1, 1))}");
 
-                        string userfileName = Path.GetFileName(userProfiles[Convert.ToInt32(id.Substring(1, 1))]);
+                        LoggerAccessor.LogInfo($"TEST {IDFromString}");
 
-                        //string index = userProfiles[Convert.ToInt32(id)].
-
-                        //psnNameFromFileName = userProfileIndexSelected.Split("/").First();
+                        string userfileName = Path.GetFileName(userProfiles[IDFromString]);
 
                         psnNameFromFileName = userfileName;
 
+                        string voteScore = "0";
 
-                        return $"{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{psnNameFromFileName},{psnNameFromFileName.Split("_").First()},0,{indexId},0";
+                        if (Directory.Exists(serverScoreFilePath))
+                        {
+
+                            string[] userScoreProfiles = Directory.GetFiles(serverScoreFilePath);
+
+                            voteScore = File.ReadAllText(serverFilePath + $"/{userScoreProfiles.Contains(psnid)}.txt");
+                        }
+
+
+                        return $"{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{psnNameFromFileName},{psnNameFromFileName.Split("_").First()},{voteScore},{indexId},0";
                     }
                     else
                     {
@@ -123,16 +159,10 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     }
                 } catch (Exception e)
                 {
-                    LoggerAccessor.LogWarn($"Failed to find a image at index {id} with exception: {e}");
+                    LoggerAccessor.LogWarn($"Failed to find a image at index {id}");
                     return $"0,{psnNameFromFileName.Split("_").First()},0,{id},0";
                 }
 
-
-
-
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Podium Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
 
             }
 
@@ -143,11 +173,18 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
         /// Entry 1 tells 1 is successful Vote_Successful, 2 is Vote_Failure
         /// Entry 2 is if Vote_Successful send entrant score
         /// </summary>
-        public static string RequestVote(byte[] PostData, string ContentType)
+        public static string RequestVote(byte[] PostData, string ContentType, string apiPath)
         {
             string id = string.Empty;
             string entrant_id = string.Empty;
             string vote = string.Empty;
+
+
+            string territory = string.Empty;
+            string region = string.Empty;
+            string time = string.Empty;
+            string psnid = string.Empty;
+            string language = string.Empty;
 
             if (PostData != null)
             {
@@ -161,7 +198,20 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     urlEncodedData.TryGetValue("entrant_id", out entrant_id);
                     urlEncodedData.TryGetValue("vote", out vote);
 
+
+
+                    urlEncodedData.TryGetValue("territory", out territory);
+                    urlEncodedData.TryGetValue("region", out region);
+                    urlEncodedData.TryGetValue("time", out time);
+                    urlEncodedData.TryGetValue("psnid", out psnid);
+                    urlEncodedData.TryGetValue("language", out language);
+
                     LoggerAccessor.LogInfo($"id {id} entrant_id {entrant_id} vote {vote}");
+
+                    string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/Scores/{id}";
+                    Directory.CreateDirectory(serverFilePath);
+
+                    File.WriteAllText(serverFilePath + $"/{psnid}_{DateTime.UtcNow.ToString("hh-mm-ss")}.txt", vote);
 
 
 #if DEBUG
@@ -171,7 +221,7 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     ms.Flush();
                 }
 
-                return "1,10";
+                return $"1,{vote}";
             }
 
             return null;
@@ -474,9 +524,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
 #endif
 
 
-
-
-
                     ms.Flush();
                 }
                 //return id
@@ -495,9 +542,39 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             byte[] imgSubmission;
             string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{Path.GetFileName(absolutePath)}";
 
+
             imgSubmission = File.ReadAllBytes(serverFilePath);
 
-            return imgSubmission;
+            using (MemoryStream inputStream = new MemoryStream(imgSubmission))
+            {
+                // Load the image from the byte array
+                using (Image image = Image.Load(inputStream))
+                {
+                    // Target dimensions
+                    int targetWidth = 340;
+                    int targetHeight = 360;
+
+                    // Resize the image to exactly fit the target size, cropping the sides if necessary
+                    image.Mutate(ctx => ctx.Resize(new ResizeOptions
+                    {
+                        Mode = ResizeMode.Crop, // Ensures the image is cropped to fit exactly into the target size
+                        Size = new Size(targetWidth, targetHeight),
+                        Sampler = KnownResamplers.Lanczos3 // High-quality resampling
+                    }));
+
+                    // Save the final image to a MemoryStream
+                    using (MemoryStream outputStream = new MemoryStream())
+                    {
+                        // Save the image in its original format (you can adjust format here if needed)
+                        image.Save(outputStream, image.Metadata.DecodedImageFormat);
+
+                        // Return the byte array
+                        return outputStream.ToArray();
+                    }
+                }
+            }
+        
+
         }
 
     }

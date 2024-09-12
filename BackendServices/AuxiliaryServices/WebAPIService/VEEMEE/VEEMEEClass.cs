@@ -175,7 +175,7 @@ namespace WebAPIService.VEEMEE
                             result = Podium.CheckPodium(postData, contentType, apiPath);
                             break;
                         case "/WardrobeWars/podium_vote.php":
-                            result = Podium.RequestVote(postData, contentType);
+                            result = Podium.RequestVote(postData, contentType, apiPath);
                             break;
                         case "/WardrobeWars/podium_score.php":
                             result = Podium.RequestScore(postData, contentType, apiPath);
