@@ -1391,6 +1391,7 @@ namespace WebAPIService.PREMIUMAGENCY
             string homecafeDJMusicTriggerPath = $"{workpath}/eventController/hc/DJMusic/Triggers/";
             string homecafeGalleryTriggerPath = $"{workpath}/eventController/hc/hc_gallery/Triggers/";
             string Halloween2010TriggerPath = $"{workpath}/eventController/Halloween/2010/Triggers/";
+            string Halloween2010EffectsTriggerPath = $"{workpath}/eventController/HalloweenEffects/2010/Triggers/";
             string homecafeRollyCafe1FTriggerPath = $"{workpath}/eventController/hc/RollyCafe1F/Triggers/";
             string iDOLMASTERSLiveEventTriggerPath = $"{workpath}/eventController/iDOLMASTERs/LiveEvent/Triggers/";
             string iDOLMASTERSEventShopTriggerPath = $"{workpath}/eventController/iDOLMASTERs/EventShop/Triggers/";
@@ -2804,6 +2805,46 @@ namespace WebAPIService.PREMIUMAGENCY
                 #endregion
 
                 #region Halloween 2010
+                case "299":
+                    string Halloween2010TriggerPathAmbiencePublic = Halloween2010EffectsTriggerPath + "confirmEventTrigger.xml";
+                    if (File.Exists(Halloween2010TriggerPathAmbiencePublic))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger sent for evid PUBLIC Halloween 2010 {eventId}!");
+                        string res = File.ReadAllText(Halloween2010TriggerPathAmbiencePublic);
+                        return "<xml>\r\n\t" +
+                             "<result type=\"int\">1</result>\r\n\t" +
+                             "<description type=\"text\">Success</description>\r\n\t" +
+                             "<error_no type=\"int\">0</error_no>\r\n\t" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n\t" +
+                             $"{res}\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - ConfirmEventTrigger FALLBACK sent for evid PUBLIC Halloween 2010 {eventId}!\nExpected path {Halloween2010TriggerPathAmbiencePublic}");
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n" +
+                            "<is_active type=\"bool\">true</is_active>\r\n" +
+                            "<trigger_id type=\"int\">1</trigger_id>\r\n\r\n" +
+                            "<start_year type=\"int\">2023</start_year>\r\n" +
+                            "<start_month type=\"int\">09</start_month>\r\n" +
+                            "<start_day type=\"int\">12</start_day>\r\n" +
+                            "<start_hour type=\"int\">08</start_hour>\r\n" +
+                            "<start_minutes type=\"int\">00</start_minutes>\r\n" +
+                            "<start_second type=\"int\">0</start_second>\r\n\r\n" +
+                            "<end_year type=\"int\">2100</end_year>\r\n" +
+                            "<end_month type=\"int\">09</end_month>\r\n" +
+                            "<end_day type=\"int\">17</end_day>\r\n" +
+                            "<end_hour type=\"int\">00</end_hour>\r\n" +
+                            "<end_minutes type=\"int\">30</end_minutes>\r\n" +
+                            "<end_second type=\"int\">0</end_second>\r\n\r\n" +
+                            "<trigger_flag type=\"int\">999</trigger_flag>\r\n\r\n" +
+                            "</xml>";
+                    }
+
                 case "298":
                     string Halloween2010TriggerPathPublic = Halloween2010TriggerPath + "confirmEventTrigger.xml";
                     if (File.Exists(Halloween2010TriggerPathPublic))
