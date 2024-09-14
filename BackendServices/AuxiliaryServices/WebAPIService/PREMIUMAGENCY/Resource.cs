@@ -13,10 +13,12 @@ namespace WebAPIService.PREMIUMAGENCY
             string resKey = string.Empty;
             string resSeqNum = string.Empty;
 
-            if (method == "GET") {
+            if (method == "GET")
+            {
                 resKey = HttpUtility.ParseQueryString(fulluripath).Get("key");
                 resSeqNum = HttpUtility.ParseQueryString(fulluripath).Get("seq");
-            } else
+            }
+            else
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
@@ -59,6 +61,8 @@ namespace WebAPIService.PREMIUMAGENCY
 
             string j_liargame2Path = $"{workpath}/eventController/j_liargame2/Resources";
             string j_liargame2demoPath = $"{workpath}/eventController/j_liargame2demo/Resources";
+
+            string JapanChristmas2010 = $"{workpath}/eventController/Christmas/2010/Resources";
 
             string july2009infoboard = $"{workpath}/eventController/infoboard/09/Resources";
             string MikuLiveEvent = $"{workpath}/eventController/MikuLiveEvent/Resources";
@@ -1565,6 +1569,63 @@ namespace WebAPIService.PREMIUMAGENCY
                         {
                             LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
                         }
+                    }
+                    break;
+                #endregion
+
+                #region Japan Christmas 2010
+                case "adventureReward":
+                    {
+                        Directory.CreateDirectory(JapanChristmas2010);
+                        string filePath = $"{JapanChristmas2010}/{resKey}.xml";
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            string res = File.ReadAllText(filePath);
+
+                            string resourceXML = "<xml>\r\n" +
+                                "<result type=\"int\">1</result>\r\n" +
+                                "<description type=\"text\">Success</description>\r\n" +
+                                "<error_no type=\"int\">0</error_no>\r\n" +
+                                "<error_message type=\"text\">None</error_message>\r\n" +
+                                $"<key type=\"text\">{resKey}</key>\r\n" +
+                                $"{res}\r\n" +
+                                "</xml>";
+
+                            return resourceXML;
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                        }
+
+                    }
+                    break;
+                case "adventureTool":
+                    {
+                        Directory.CreateDirectory(JapanChristmas2010);
+                        string filePath = $"{JapanChristmas2010}/{resKey}.xml";
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            string res = File.ReadAllText(filePath);
+
+                            string resourceXML = "<xml>\r\n" +
+                                "<result type=\"int\">1</result>\r\n" +
+                                "<description type=\"text\">Success</description>\r\n" +
+                                "<error_no type=\"int\">0</error_no>\r\n" +
+                                "<error_message type=\"text\">None</error_message>\r\n" +
+                                $"<key type=\"text\">{resKey}</key>\r\n" +
+                                $"{res}\r\n" +
+                                "</xml>";
+
+                            return resourceXML;
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                        }
+
                     }
                     break;
                 #endregion
