@@ -106,7 +106,9 @@ namespace Horizon.LIBRARY.Database
             20042,
             20043,
             20044,
-            21354
+            21354,
+            20230,
+            22720
         };
         private string _dbAccessToken = null;
         private string _dbAccountName = null;
