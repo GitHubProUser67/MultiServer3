@@ -52,6 +52,8 @@ namespace WebAPIService.PREMIUMAGENCY
 
             #endregion
 
+            DateTime currentTime = DateTime.Now;
+
             switch (eventId)
             {
                 #region MikuLiveJack QA
@@ -910,37 +912,36 @@ namespace WebAPIService.PREMIUMAGENCY
                             "<is_active type=\"bool\">true</is_active>\r\n" +
                             "<trigger_id type=\"int\">1</trigger_id>\r\n" +
                             "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
-                            $"<start_year type=\"int\">{DateTime.Now.ToString("yyyy")}</start_year>\r\n\t\t" +
-                            $"<start_month type=\"int\">{DateTime.Now.ToString("MM")}</start_month>\r\n\t\t" +
-                            $"<start_day type=\"int\">{DateTime.Now.ToString("dd")}</start_day>\r\n\t\t" +
-                            $"<start_hour type=\"int\">{DateTime.Now.ToString("hh")}</start_hour>\r\n\t\t" +
-                            $"<start_minutes type=\"int\">{DateTime.Now.ToString("mm") + 1}</start_minutes>\r\n\t\t" +
-                            $"<start_second type=\"int\">{DateTime.Now.ToString("ss")}</start_second>\r\n\r\n\t\t" +
-                            $"<end_year type=\"int\">{DateTime.Now.ToString("yyyy") + 1}</end_year>\r\n\t\t" +
-                            $"<end_year type=\"int\">{DateTime.Now.ToString("yyyy") + 1}</end_year>\r\n\t\t" +
-                            $"<end_month type=\"int\">{DateTime.Now.ToString("MM")}</end_month>\r\n\t\t" +
-                            $"<end_day type=\"int\">{DateTime.Now.ToString("dd")}</end_day>\r\n\t\t" +
-                            $"<end_hour type=\"int\">{DateTime.Now.ToString("hh")}</end_hour>\r\n\t\t" +
-                            $"<end_minutes type=\"int\">{DateTime.Now.ToString("mm")}</end_minutes>\r\n\t\t" +
-                            $"<end_second type=\"int\">{DateTime.Now.ToString("ss")}</end_second>\r\n\r\n\t\t" +
+                            $"<start_year type=\"int\">{currentTime.ToString("yyyy")}</start_year>\r\n\t\t" +
+                            $"<start_month type=\"int\">{currentTime.ToString("MM")}</start_month>\r\n\t\t" +
+                            $"<start_day type=\"int\">{currentTime.ToString("dd")}</start_day>\r\n\t\t" +
+                            $"<start_hour type=\"int\">{currentTime.ToString("HH")}</start_hour>\r\n\t\t" +
+                            $"<start_minutes type=\"int\">{currentTime.AddMinutes(2).ToString("mm")}</start_minutes>\r\n\t\t" +
+                            $"<start_second type=\"int\">{currentTime.ToString("ss")}</start_second>\r\n\r\n\t\t" +
+                            $"<end_year type=\"int\">{currentTime.AddYears(1).ToString("yyyy")}</end_year>\r\n\t\t" +
+                            $"<end_month type=\"int\">{currentTime.ToString("MM")}</end_month>\r\n\t\t" +
+                            $"<end_day type=\"int\">{currentTime.ToString("dd")}</end_day>\r\n\t\t" +
+                            $"<end_hour type=\"int\">{currentTime.ToString("HH")}</end_hour>\r\n\t\t" +
+                            $"<end_minutes type=\"int\">{currentTime.ToString("mm")}</end_minutes>\r\n\t\t" +
+                            $"<end_second type=\"int\">{currentTime.ToString("ss")}</end_second>\r\n\r\n\t\t" +
                             "<trigger_flag type=\"int\">1</trigger_flag>\r\n\t" +
                             "</trigger_time>\r\n" +
                             "<trigger_time>\r\n\t\t" +
                             "<is_active type=\"bool\">true</is_active>\r\n" +
                             "<trigger_id type=\"int\">2</trigger_id>\r\n" +
                             "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
-                            $"<start_year type=\"int\">{DateTime.Now.ToString("yyyy")}</start_year>\r\n\t\t" +
-                            $"<start_month type=\"int\">{DateTime.Now.ToString("MM")}</start_month>\r\n\t\t" +
-                            $"<start_day type=\"int\">{DateTime.Now.ToString("dd")}</start_day>\r\n\t\t" +
-                            $"<start_hour type=\"int\">{DateTime.Now.ToString("hh")}</start_hour>\r\n\t\t" +
-                            $"<start_minutes type=\"int\">{DateTime.Now.ToString("mm") + 1}</start_minutes>\r\n\t\t" +
-                            $"<start_second type=\"int\">{DateTime.Now.ToString("ss")}</start_second>\r\n\r\n\t\t" +
-                            $"<end_year type=\"int\">{DateTime.Now.ToString("yyyy") + 1}</end_year>\r\n\t\t" +
-                            $"<end_month type=\"int\">{DateTime.Now.ToString("MM")}</end_month>\r\n\t\t" +
-                            $"<end_day type=\"int\">{DateTime.Now.ToString("dd")}</end_day>\r\n\t\t" +
-                            $"<end_hour type=\"int\">{DateTime.Now.ToString("hh")}</end_hour>\r\n\t\t" +
-                            $"<end_minutes type=\"int\">{DateTime.Now.ToString("mm")}</end_minutes>\r\n\t\t" +
-                            $"<end_second type=\"int\">{DateTime.Now.ToString("ss")}</end_second>\r\n\r\n\t\t" +
+                            $"<start_year type=\"int\">{currentTime.ToString("yyyy")}</start_year>\r\n\t\t" +
+                            $"<start_month type=\"int\">{currentTime.ToString("MM")}</start_month>\r\n\t\t" +
+                            $"<start_day type=\"int\">{currentTime.ToString("dd")}</start_day>\r\n\t\t" +
+                            $"<start_hour type=\"int\">{currentTime.ToString("HH")}</start_hour>\r\n\t\t" +
+                            $"<start_minutes type=\"int\">{currentTime.AddMinutes(2).ToString("mm")}</start_minutes>\r\n\t\t" +
+                            $"<start_second type=\"int\">{currentTime.ToString("ss")}</start_second>\r\n\r\n\t\t" +
+                            $"<end_year type=\"int\">{currentTime.ToString("yyyy")}</end_year>\r\n\t\t" +
+                            $"<end_month type=\"int\">{currentTime.ToString("MM")}</end_month>\r\n\t\t" +
+                            $"<end_day type=\"int\">{currentTime.AddDays(30).ToString("dd")}</end_day>\r\n\t\t" +
+                            $"<end_hour type=\"int\">{currentTime.ToString("HH")}</end_hour>\r\n\t\t" +
+                            $"<end_minutes type=\"int\">{currentTime.ToString("mm")}</end_minutes>\r\n\t\t" +
+                            $"<end_second type=\"int\">{currentTime.ToString("ss")}</end_second>\r\n\r\n\t\t" +
                             "<trigger_flag type=\"int\">1</trigger_flag>\r\n\t" +
                             "</trigger_time>\r\n" +
                             "</xml>";
