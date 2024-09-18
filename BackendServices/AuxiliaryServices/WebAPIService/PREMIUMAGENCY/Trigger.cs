@@ -906,6 +906,7 @@ namespace WebAPIService.PREMIUMAGENCY
                             "<error_message type=\"text\">None</error_message>\r\n" +
                             $"<trigger_count type=\"int\">{readcnt}</trigger_count>\r\n\t" +
                             "<trigger_time>\r\n\t\t" +
+                            "<is_active type=\"bool\">true</is_active>\r\n" +
                             "<trigger_id type=\"int\">1</trigger_id>\r\n" +
                             "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
                             $"<start_year type=\"int\">{DateTime.Now.ToString("yyyy")}</start_year>\r\n\t\t" +
@@ -924,6 +925,7 @@ namespace WebAPIService.PREMIUMAGENCY
                             "<trigger_flag type=\"int\">1</trigger_flag>\r\n\t" +
                             "</trigger_time>\r\n" +
                             "<trigger_time>\r\n\t\t" +
+                            "<is_active type=\"bool\">true</is_active>\r\n" +
                             "<trigger_id type=\"int\">2</trigger_id>\r\n" +
                             "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
                             $"<start_year type=\"int\">{DateTime.Now.ToString("yyyy")}</start_year>\r\n\t\t" +
