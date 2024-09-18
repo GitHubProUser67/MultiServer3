@@ -149,6 +149,33 @@ namespace WebAPIService.PREMIUMAGENCY
                              "<error_message type=\"text\">None</error_message>\r\n" +
                              "</xml>";
                     }
+
+                case "210":
+                    string capcomCollabILNPath = $"{workpath}/eventController/collabo_iln/Custom";
+                    Directory.CreateDirectory(capcomCollabILNPath);
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{capcomCollabILNPath}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    if (File.Exists(capcomCollabILNPath))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC LiarGame2 {eventId}!");
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FALLBACK sent for PUBLIC LiarGame2 {eventId}!\nExpected path {capcomCollabILNPath}");
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n" +
+                             "</xml>";
+                    }
+
                 case "300":
                     string j_liargame2Path = $"{workpath}/eventController/j_liargame2/Custom";
                     Directory.CreateDirectory(j_liargame2Path);
