@@ -3,6 +3,7 @@ using CyberBackendLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Text;
+using System;
 
 namespace WebAPIService.PREMIUMAGENCY
 {
@@ -901,25 +902,43 @@ namespace WebAPIService.PREMIUMAGENCY
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetEventTrigger FALLBACK sent for PUBLIC Basara {eventId}!\nExpected path {basaraHomeSquarePUBLICTriggerPath}");
                         return "<xml>\r\n" +
                             "<result type=\"int\">1</result>\r\n" +
-                            "<description type=\"text\">Success</description>\r\n" +
+                            "<description type=\"text\">GET_TRIGGER</description>\r\n" +
                             "<error_no type=\"int\">0</error_no>\r\n" +
                             "<error_message type=\"text\">None</error_message>\r\n" +
                             $"<trigger_count type=\"int\">{readcnt}</trigger_count>\r\n\t" +
                             "<trigger_time>\r\n\t\t" +
                             "<trigger_id type=\"int\">1</trigger_id>\r\n" +
                             "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
-                            "<start_year type=\"int\">2024</start_year>\r\n\t\t" +
-                            "<start_month type=\"int\">01</start_month>\r\n\t\t" +
-                            "<start_day type=\"int\">15</start_day>\r\n\t\t" +
-                            "<start_hour type=\"int\">00</start_hour>\r\n\t\t" +
-                            "<start_minutes type=\"int\">00</start_minutes>\r\n\t\t" +
-                            "<start_second type=\"int\">00</start_second>\r\n\r\n\t\t" +
-                            "<end_year type=\"int\">2124</end_year>\r\n\t\t" +
-                            "<end_month type=\"int\">02</end_month>\r\n\t\t" +
-                            "<end_day type=\"int\">20</end_day>\r\n\t\t" +
-                            "<end_hour type=\"int\">05</end_hour>\r\n\t\t" +
-                            "<end_minutes type=\"int\">45</end_minutes>\r\n\t\t" +
-                            "<end_second type=\"int\">0</end_second>\r\n\r\n\t\t" +
+                            $"<start_year type=\"int\">{DateTime.Now.ToString("yyyy")}</start_year>\r\n\t\t" +
+                            $"<start_month type=\"int\">{DateTime.Now.ToString("MM")}</start_month>\r\n\t\t" +
+                            $"<start_day type=\"int\">{DateTime.Now.ToString("dd")}</start_day>\r\n\t\t" +
+                            $"<start_hour type=\"int\">{DateTime.Now.ToString("hh")}</start_hour>\r\n\t\t" +
+                            $"<start_minutes type=\"int\">{DateTime.Now.ToString("mm") + 1}</start_minutes>\r\n\t\t" +
+                            $"<start_second type=\"int\">{DateTime.Now.ToString("ss")}</start_second>\r\n\r\n\t\t" +
+                            $"<end_year type=\"int\">{DateTime.Now.ToString("yyyy") + 1}</end_year>\r\n\t\t" +
+                            $"<end_year type=\"int\">{DateTime.Now.ToString("yyyy") + 1}</end_year>\r\n\t\t" +
+                            $"<end_month type=\"int\">{DateTime.Now.ToString("MM")}</end_month>\r\n\t\t" +
+                            $"<end_day type=\"int\">{DateTime.Now.ToString("dd")}</end_day>\r\n\t\t" +
+                            $"<end_hour type=\"int\">{DateTime.Now.ToString("hh")}</end_hour>\r\n\t\t" +
+                            $"<end_minutes type=\"int\">{DateTime.Now.ToString("mm")}</end_minutes>\r\n\t\t" +
+                            $"<end_second type=\"int\">{DateTime.Now.ToString("ss")}</end_second>\r\n\r\n\t\t" +
+                            "<trigger_flag type=\"int\">1</trigger_flag>\r\n\t" +
+                            "</trigger_time>\r\n" +
+                            "<trigger_time>\r\n\t\t" +
+                            "<trigger_id type=\"int\">2</trigger_id>\r\n" +
+                            "\r\n\t\t<!-- Event Start Trigger --> \r\n\t\t" +
+                            $"<start_year type=\"int\">{DateTime.Now.ToString("yyyy")}</start_year>\r\n\t\t" +
+                            $"<start_month type=\"int\">{DateTime.Now.ToString("MM")}</start_month>\r\n\t\t" +
+                            $"<start_day type=\"int\">{DateTime.Now.ToString("dd")}</start_day>\r\n\t\t" +
+                            $"<start_hour type=\"int\">{DateTime.Now.ToString("hh")}</start_hour>\r\n\t\t" +
+                            $"<start_minutes type=\"int\">{DateTime.Now.ToString("mm") + 1}</start_minutes>\r\n\t\t" +
+                            $"<start_second type=\"int\">{DateTime.Now.ToString("ss")}</start_second>\r\n\r\n\t\t" +
+                            $"<end_year type=\"int\">{DateTime.Now.ToString("yyyy") + 1}</end_year>\r\n\t\t" +
+                            $"<end_month type=\"int\">{DateTime.Now.ToString("MM")}</end_month>\r\n\t\t" +
+                            $"<end_day type=\"int\">{DateTime.Now.ToString("dd")}</end_day>\r\n\t\t" +
+                            $"<end_hour type=\"int\">{DateTime.Now.ToString("hh")}</end_hour>\r\n\t\t" +
+                            $"<end_minutes type=\"int\">{DateTime.Now.ToString("mm")}</end_minutes>\r\n\t\t" +
+                            $"<end_second type=\"int\">{DateTime.Now.ToString("ss")}</end_second>\r\n\r\n\t\t" +
                             "<trigger_flag type=\"int\">1</trigger_flag>\r\n\t" +
                             "</trigger_time>\r\n" +
                             "</xml>";
@@ -1439,7 +1458,7 @@ namespace WebAPIService.PREMIUMAGENCY
             string homesquareUFO09TriggerPath = $"{workpath}/eventController/UFO09/Triggers/";
             string homecafeDJMusicTriggerPath = $"{workpath}/eventController/hc/DJMusic/Triggers/";
             string homecafeGalleryTriggerPath = $"{workpath}/eventController/hc/hc_gallery/Triggers/";
-            string Halloween2010TriggerPath = $"{workpath}/eventController/Halloween/2010/Triggers/";
+            string Halloween2010TriggerPath = $"{workpath}/eventController/HalloweenV2/2010/Triggers/";
             string Halloween2010EffectsTriggerPath = $"{workpath}/eventController/HalloweenEffects/2010/Triggers/";
             string homecafeRollyCafe1FTriggerPath = $"{workpath}/eventController/hc/RollyCafe1F/Triggers/";
             string iDOLMASTERSLiveEventTriggerPath = $"{workpath}/eventController/iDOLMASTERs/LiveEvent/Triggers/";
@@ -1452,7 +1471,7 @@ namespace WebAPIService.PREMIUMAGENCY
             string MikuliveJackTriggerPath = $"{workpath}/eventController/MikuLiveJack/Triggers/";
             string MikuLiveJukeboxTriggerPath = $"{workpath}/eventController/MikuLiveJukebox/Triggers/";
             string MikuliveEventTriggerPath = $"{workpath}/eventController/MikuLiveEvent/Triggers/";
-            string RainbowEventTriggerPath = $"{workpath}/eventController/MikuLiveEvent/Triggers/";
+            string RainbowEventTriggerPath = $"{workpath}/eventController/Rainbow/Triggers/";
             string PrinnyJackTriggerPath = $"{workpath}/eventController/PrinnyJack/Triggers/";
             string RollyJukeboxTriggerPath = $"{workpath}/eventController/RollyJukebox/Triggers/";
             string SCEAsiaChristmas2010OBJTrigger = $"{workpath}/eventController/Christmas/2010/OBJTrig/Triggers/";

@@ -58,8 +58,9 @@ namespace WebAPIService.PREMIUMAGENCY
 
 
             string HSAquariumStatuePath = $"{workpath}/eventController/AquariumStatue";
-            
+
             string Halloween2010Path = $"{workpath}/eventController/Halloween/2010/Resources";
+            string HalloweenV22010Path = $"{workpath}/eventController/HalloweenV2/2010/Resources";
             string Halloween2010EffectsTriggerPath = $"{workpath}/eventController/HalloweenEffects/2010/Resources";
             string idolMasterLiveEventPath = $"{workpath}/eventController/iDOLMASTERs/LiveEvent/Resources";
 
@@ -1007,10 +1008,10 @@ namespace WebAPIService.PREMIUMAGENCY
                     }
                     break;
 
-                case "halloween2010_event":
+                case "halloween_demo_cfg":
                     {
-                        Directory.CreateDirectory(Halloween2010EffectsTriggerPath);
-                        string filePath = $"{Halloween2010EffectsTriggerPath}/{resKey}.xml";
+                        Directory.CreateDirectory(HalloweenV22010Path);
+                        string filePath = $"{HalloweenV22010Path}/{resKey}.xml";
                         if (File.Exists(filePath))
                         {
                             LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
@@ -1022,6 +1023,111 @@ namespace WebAPIService.PREMIUMAGENCY
                                 "<error_no type=\"int\">0</error_no>\r\n" +
                                 "<error_message type=\"text\">None</error_message>\r\n" +
                                 $"<key type=\"text\">{resKey}</key>\r\n" +
+                                $"{res}\r\n" +
+                                "</xml>";
+
+                            return resourceXML;
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                        }
+
+                    }
+                    break;
+
+
+                case "halloween_demo_cfg_dev":
+                    {
+                        Directory.CreateDirectory(HalloweenV22010Path);
+                        string filePath = $"{HalloweenV22010Path}/{resKey}.xml";
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            string res = File.ReadAllText(filePath);
+
+                            string resourceXML = "<xml>\r\n" +
+                                "<result type=\"int\">1</result>\r\n" +
+                                "<description type=\"text\">RESOURCE_DATA</description>\r\n" +
+                                "<error_no type=\"int\">0</error_no>\r\n" +
+                                "<error_message type=\"text\">None</error_message>\r\n" +
+                                $"<key type=\"text\">{resKey}</key>\r\n" +
+                                $"{res}\r\n" +
+                                "</xml>";
+
+                            return resourceXML;
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                        }
+
+                    }
+                    break;
+
+                case "halloween_demo_totv2":
+                    {
+                        Directory.CreateDirectory(HalloweenV22010Path);
+                        string filePath = $"{HalloweenV22010Path}/{resKey}.xml";
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            string res = File.ReadAllText(filePath);
+
+                            string resourceXML = "<xml>\r\n" +
+                                "<result type=\"int\">1</result>\r\n" +
+                                "<description type=\"text\">RESOURCE_DATA</description>\r\n" +
+                                "<error_no type=\"int\">0</error_no>\r\n" +
+                                "<error_message type=\"text\">None</error_message>\r\n" +
+                                $"<key type=\"text\">{resKey}</key>\r\n" +
+                                $"{res}\r\n" +
+                                "</xml>";
+
+                            return resourceXML;
+                        }
+                        else
+                        {
+                            LoggerAccessor.LogError($"[PREMIUMAGENCY] - Failed to find resource {resKey} with expected path {filePath}!");
+                        }
+
+                    }
+                    break;
+
+                case "halloween2010_event":
+                    {
+                        Directory.CreateDirectory(Halloween2010EffectsTriggerPath);
+                        string filePath = $"{Halloween2010EffectsTriggerPath}/{resKey}.xml";
+
+                        string fileEventPath = $"{Halloween2010EffectsTriggerPath}/dbg_seq_id.txt";
+
+                        if (File.Exists(filePath))
+                        {
+                            LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - Resource with resource key {resKey} found and sent!");
+                            string res = File.ReadAllText(filePath);
+
+                            string EventFlagType;
+                            if (File.Exists(fileEventPath))
+                            {
+                                EventFlagType = File.ReadAllText(fileEventPath);
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogWarn($"Using fallback dbg_seq_id, missing entry at {fileEventPath}");
+                                EventFlagType = "1";
+                            }
+
+                            string resourceXML = "<xml>\r\n" +
+                                "<result type=\"int\">1</result>\r\n" +
+                                "<description type=\"text\">RESOURCE_DATA</description>\r\n" +
+                                "<error_no type=\"int\">0</error_no>\r\n" +
+                                "<error_message type=\"text\">None</error_message>\r\n" +
+                                $"<key type=\"text\">{resKey}</key>\r\n" +
+                                "<resourcecs>\r\n\r\n" +
+                                "<resource>\r\n" +
+                                "<seq type=\"int\">1</seq>\r\n" +
+                                $"<data type=\"text\">event_id=\"297\"event_xml_reskey=\"halloween2010_xml\"dbg_print=\"1\"event_xml_mem=\"1000\"localise_xml=\"http://playstationhome.jp/j.home/event/for101805/Halloween2010_localise{regcd}.xml\"dbg_seq_id=\"{EventFlagType}\"dbg_seq_time=\"30\"cloth_check_seqence=\"2\"cloth_check_interval=\"1.0\"effect_check_interval=\"5.0\"effect_interval=\"1.0\"eff_memory_limit=\"1000\"effect_instance_max=\"64\"effect_create_xzradius=\"10\"light_max=\"64\"infodisp_start_time=\"20\"infodisp_time_range=\"30\"</data>\r\n" +
+                                $"</resource>\r\n\r\n" +
+                                $"</resourcecs>\r\n" +
                                 $"{res}\r\n" +
                                 "</xml>";
 
