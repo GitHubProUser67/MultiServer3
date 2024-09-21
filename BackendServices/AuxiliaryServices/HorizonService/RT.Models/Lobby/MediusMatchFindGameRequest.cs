@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// MediusGameWorldID
         /// </summary>
-        public uint GameWorldID;
+        public uint MediusWorldID;
         /// <summary>
         /// Game Password
         /// </summary>
@@ -89,7 +89,7 @@ namespace Horizon.RT.Models
             
             //
             SupersetID = reader.ReadUInt32();
-            GameWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadUInt32();
             PlayerJoinType = reader.Read<MediusJoinType>();
             MinPlayers = reader.ReadUInt32();
             MaxPlayers = reader.ReadUInt32();
@@ -118,7 +118,7 @@ namespace Horizon.RT.Models
 
             //
             writer.Write(SupersetID);
-            writer.Write(GameWorldID);
+            writer.Write(MediusWorldID);
             writer.Write(PlayerJoinType);
             writer.Write(MinPlayers);
             writer.Write(MaxPlayers);
@@ -142,7 +142,7 @@ namespace Horizon.RT.Models
                 $"MessageID: {MessageID} " +
                 $"SessionKey: {SessionKey} " +
                 $"SupersetID: {SupersetID} " +
-                $"GameWorldID: {GameWorldID} " +
+                $"GameWorldID: {MediusWorldID} " +
                 $"PlayerJoinType: {PlayerJoinType} " +
                 $"MinPlayers: {MinPlayers} " +
                 $"MaxPlayers: {MaxPlayers} " +

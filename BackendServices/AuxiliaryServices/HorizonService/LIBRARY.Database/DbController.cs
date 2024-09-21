@@ -18,7 +18,7 @@ using System;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
-using Horizon.LIBRARY.libAntiCheat.Models;
+using CyberBackendLibrary.Extension;
 
 namespace Horizon.LIBRARY.Database
 {
@@ -32,10 +32,15 @@ namespace Horizon.LIBRARY.Database
         private int _simulatedClanMessageIdCounter = 1;
         private int _simulatedClanInvitationIdCounter = 1;
         private readonly int[] SimulatedAppIdList = new int[] {
+            0,
             120,
+            20624, // Warhawk DME.
+            10414,
             10680,
+            10681,
             10683,
             10684,
+            11204,
             11354,
             21914,
             21624,
@@ -48,6 +53,7 @@ namespace Horizon.LIBRARY.Database
             22924,
             21731,
             21834,
+            22720,
             23624,
             20043,
             20032,
@@ -111,14 +117,14 @@ namespace Horizon.LIBRARY.Database
         private string _dbAccessToken = null;
         private string _dbAccountName = null;
 
-        private readonly List<AccountDTO> _simulatedAccounts = new List<AccountDTO>();
-        private readonly List<AccountRelationInviteDTO> _simulatedBuddyInvitations = new List<AccountRelationInviteDTO>();
-        private readonly List<NpIdDTO> _simulatedNpIdAccounts = new List<NpIdDTO>();
-        private readonly List<ClanDTO> _simulatedClans = new List<ClanDTO>();
-        private readonly List<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new List<MatchmakingSupersetDTO>();
-        private readonly List<FileDTO> _simulatedMediusFiles = new List<FileDTO>();
-        private readonly List<FileMetaDataDTO> _simulatedFileMetaData = new List<FileMetaDataDTO>();
-        private readonly List<FileAttributesDTO> _simulatedFileAttributes = new List<FileAttributesDTO>();
+        private readonly ConcurrentList<AccountDTO> _simulatedAccounts = new ConcurrentList<AccountDTO>();
+        private readonly ConcurrentList<AccountRelationInviteDTO> _simulatedBuddyInvitations = new ConcurrentList<AccountRelationInviteDTO>();
+        private readonly ConcurrentList<NpIdDTO> _simulatedNpIdAccounts = new ConcurrentList<NpIdDTO>();
+        private readonly ConcurrentList<ClanDTO> _simulatedClans = new ConcurrentList<ClanDTO>();
+        private readonly ConcurrentList<MatchmakingSupersetDTO> _simulatedMatchmakingSupersets = new ConcurrentList<MatchmakingSupersetDTO>();
+        private readonly ConcurrentList<FileDTO> _simulatedMediusFiles = new ConcurrentList<FileDTO>();
+        private readonly ConcurrentList<FileMetaDataDTO> _simulatedFileMetaData = new ConcurrentList<FileMetaDataDTO>();
+        private readonly ConcurrentList<FileAttributesDTO> _simulatedFileAttributes = new ConcurrentList<FileAttributesDTO>();
 
         public DbController(string configFile)
         {
@@ -299,6 +305,8 @@ namespace Horizon.LIBRARY.Database
                             Ignored = Array.Empty<AccountRelationDTO>(),
                             IsBanned = false
                         });
+
+                        return R2PuBeta;
                     }
                     else if (name == "ftb3 Moderator_0" && appId == 21694)
                     {
@@ -317,6 +325,8 @@ namespace Horizon.LIBRARY.Database
                             Ignored = Array.Empty<AccountRelationDTO>(),
                             IsBanned = false
                         });
+
+                        return ftb3Mod;
                     }
                     else
                         result = _simulatedAccounts.FirstOrDefault(x => x.AppId == appId && x.AccountName != null && name != null && x.AccountName.ToLower() == name.ToLower());
@@ -2858,10 +2868,10 @@ namespace Horizon.LIBRARY.Database
                 }
                 else
                 {
-                    result = (await PostDbAsync<ClanTeamChallengeDTO>($"Clan/requestClanTeamChallenge?challengerClanId={challengerClanId}&againstClanId={againstClanId}&accountId={accountId}&message={message}&appId={appId}", new ClanTeamChallengeDTO()
+                    result = await PostDbAsync<ClanTeamChallengeDTO>($"Clan/requestClanTeamChallenge?challengerClanId={challengerClanId}&againstClanId={againstClanId}&accountId={accountId}&message={message}&appId={appId}", new ClanTeamChallengeDTO()
                     {
 
-                    }));
+                    });
                 }
             }
             catch (Exception e)
@@ -2997,70 +3007,120 @@ namespace Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    if (appId == 24000)
+                    switch (appId)
                     {
-                        return new DimAnnouncements[]
-                        {
-                            new DimAnnouncements()
+                        case 24000:
+                            return new DimAnnouncements[]
                             {
-                                Id = 1,
-                                AnnouncementTitle = "MultiServer Announcement! ",
-                                AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal HD Server!",
-                                CreateDt = DateTime.UtcNow,
-                            }
-                        };
-                    }
-                    else if (appId == 10680 || appId == 10683 || appId == 10684)
-                    {
-                        return new DimAnnouncements[]
-                        {
-                            new DimAnnouncements()
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal HD Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        case 24180:
+                            return new DimAnnouncements[]
                             {
-                                Id = 1,
-                                AnnouncementTitle = "MultiServer Announcement! ",
-                                AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal Server!",
-                                CreateDt = DateTime.UtcNow,
-                            }
-                        };
-                    }
-                    else if (appId == 24180)
-                    {
-                        return new DimAnnouncements[]
-                        {
-                            new DimAnnouncements()
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer Deadlocked HD Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        case 10680:
+                            return new DimAnnouncements[]
                             {
-                                Id = 1,
-                                AnnouncementTitle = "MultiServer Announcement! ",
-                                AnnouncementBody = "Welcome to the MultiServer Deadlocked HD Server!",
-                                CreateDt = DateTime.UtcNow,
-                            }
-                        };
-                    }
-                    else if (appId == 11354)
-                    {
-                        return new DimAnnouncements[]
-                        {
-                            new DimAnnouncements()
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal Beta Trial Code Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        case 10681:
+                            return new DimAnnouncements[]
                             {
-                                Id = 1,
-                                AnnouncementTitle = "MultiServer Announcement! ",
-                                AnnouncementBody = "Welcome to the MultiServer Deadlocked Server!",
-                                CreateDt = DateTime.UtcNow,
-                            }
-                        };
-                    }
-                    else
-                    {
-                        return new DimAnnouncements[]
-                        {
-                            new DimAnnouncements()
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal Press Beta Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        case 10683:
+                        case 10684:
+                            return new DimAnnouncements[]
                             {
-                                Id = 1,
-                                AnnouncementTitle = "Announcement Title",
-                                AnnouncementBody = "Announcement Body",
-                                CreateDt = DateTime.UtcNow,
-                            }
-                        };
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer Up Your Arsenal Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        case 11354:
+                            return new DimAnnouncements[]
+                            {
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer Deadlocked Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        case 11204:
+                            return new DimAnnouncements[]
+                            {
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer JakX Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        case 21564:
+                        case 21574:
+                        case 21584:
+                        case 21594:
+                        case 22274:
+                        case 22284:
+                        case 22294:
+                        case 22304:
+                        case 20040:
+                        case 20041:
+                        case 20042:
+                        case 20043:
+                        case 20044:
+                            return new DimAnnouncements[]
+                            {
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "MultiServer Announcement! ",
+                                    AnnouncementBody = "Welcome to the MultiServer Warhawk Server!",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
+                        default:
+                            return new DimAnnouncements[]
+                            {
+                                new DimAnnouncements()
+                                {
+                                    Id = 1,
+                                    AnnouncementTitle = "Announcement Title",
+                                    AnnouncementBody = "Announcement Body",
+                                    CreateDt = DateTime.UtcNow,
+                                }
+                            };
                     }
                 }
                 else
@@ -3242,13 +3302,13 @@ namespace Horizon.LIBRARY.Database
                     {
                         _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID);
 
-                        result = _simulatedMediusFiles;
+                        result = _simulatedMediusFiles.ToList();
                     }
                     else
                     {
                         _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID && x.FileName != null && x.FileName.StartsWith(FileNameBeginsWith));
 
-                        result = _simulatedMediusFiles;
+                        result = _simulatedMediusFiles.ToList();
                     }
                 }
                 else
@@ -3282,7 +3342,6 @@ namespace Horizon.LIBRARY.Database
                 {
                     if (FileNameBeginsWith == "*")
                     {
-
                         FileMetaDataDTO fileMetaDataDTO = new FileMetaDataDTO()
                         {
                             AppId = appId,
@@ -3291,7 +3350,7 @@ namespace Horizon.LIBRARY.Database
                         };
                         _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID && x.fileMetaDataDTO == _simulatedFileMetaData.Find(y => y == fileMetaDataDTO));
 
-                        result = _simulatedMediusFiles;
+                        result = _simulatedMediusFiles.ToList();
                     }
                     else
                     {
@@ -3303,7 +3362,7 @@ namespace Horizon.LIBRARY.Database
                         };
                         _simulatedMediusFiles.Find(x => x.AppId == appId && x.OwnerID == OwnerByID && x.FileName != null && x.FileName.StartsWith(FileNameBeginsWith) && x.fileMetaDataDTO == _simulatedFileMetaData.Find(y => y == fileMetaDataDTO));
 
-                        result = _simulatedMediusFiles;
+                        result = _simulatedMediusFiles.ToList();
                     }
                 }
                 else
@@ -3353,7 +3412,7 @@ namespace Horizon.LIBRARY.Database
                     });
 
 
-                    result = _simulatedFileAttributes;
+                    result = _simulatedFileAttributes.ToList();
                 }
                 else
                     result = await PostDbAsync<List<FileAttributesDTO>>($"FileServices/updateFileAttributes?File={file}", file);
@@ -3388,7 +3447,7 @@ namespace Horizon.LIBRARY.Database
                     _simulatedFileAttributes.Find(x => x.FileID == mediusFile.FileID);
 
 
-                    result = _simulatedFileAttributes;
+                    result = _simulatedFileAttributes.ToList();
                 }
                 else
                     result = await GetDbAsync<List<FileAttributesDTO>>($"FileServices/getFileAttributes?AppId={mediusFile.AppId}&File={mediusFile}");
@@ -3466,7 +3525,7 @@ namespace Horizon.LIBRARY.Database
                     if (_simulatedFileMetaData == null)
                         return result;
 
-                    result = _simulatedFileMetaData;
+                    result = _simulatedFileMetaData.ToList();
                 }
                 else
                     result = await GetDbAsync<List<FileMetaDataDTO>>($"FileServices/getFileMetaData?appId={appId}&FileName={fileName}&Key={Key}");
@@ -3494,7 +3553,6 @@ namespace Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    LoggerAccessor.LogWarn("Simulated DB NpID Success");
                     _simulatedNpIdAccounts.Add(new NpIdDTO()
                     {
                         AppId = NpId.AppId,
@@ -3507,9 +3565,7 @@ namespace Horizon.LIBRARY.Database
                         CreateDt = DateTime.UtcNow
                     });
 
-                    result = true;
-
-                    return result;
+                    return true;
                 }
                 else
                 {
@@ -3664,7 +3720,7 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="gameId">Game id.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<bool> DeleteGame(int gameId)
+        public async Task<bool> DeleteGame(uint gameId)
         {
             bool result = false;
 
@@ -3720,180 +3776,7 @@ namespace Horizon.LIBRARY.Database
                 {
                     return new ChannelDTO[]
                     {
-                        // Ratchet UYA PS2
-                        new ChannelDTO()
-                        {
-                            AppId = 10550,
-                            Id = 1,
-                            Name = "US",
-                            MaxPlayers = 128,
-                            GenericField1 = 1000,
-                            GenericFieldFilter = 16
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10683,
-                            Id = 16844801,
-                            Name = "Default",
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10683,
-                            Id = 1,
-                            Name = "CY00000000-00",
-                            MaxPlayers = 256,
-                            GenericField1 = 0,
-                            GenericField2 = 0,
-                            GenericField3 = 0,
-                            GenericField4 = 0,
-                            GenericFieldFilter = 32
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10684,
-                            Id = 16844801,
-                            Name = "Default",
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10684,
-                            Id = 1,
-                            Name = "CY00000000-00",
-                            MaxPlayers = 256,
-                            GenericField1 = 0,
-                            GenericField2 = 0,
-                            GenericField3 = 0,
-                            GenericField4 = 0,
-                            GenericFieldFilter = 32
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10694,
-                            Id = 1,
-                            Name = "US",
-                            MaxPlayers = 128,
-                            GenericField1 = 1,
-                            GenericField2 = 1,
-                            GenericFieldFilter = 64
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 20624,
-                            Id = 1,
-                            Name = "US",
-                            MaxPlayers = 512,
-                            GenericField1 = 1,
-                            GenericField2 = 1,
-                            GenericFieldFilter = 64
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 20244,
-                            Id = 1,
-                            Name = "NBA 07",
-                            MaxPlayers = 256,
-                            GenericField1 = 1,
-                            GenericFieldFilter = 64
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10540,
-                            Id = 2,
-                            Name = "Rank2",
-                            MaxPlayers = 256,
-                            GenericField1 = 16,
-                            GenericFieldFilter = 1
-                        },
-                        // Arc the Lad: End of Darkness
-                        new ChannelDTO()
-                        {
-                            AppId = 10984,
-                            Id = 1,
-                            Name = "Yewbell",
-                            MaxPlayers = 256,
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10984,
-                            Id = 2,
-                            Name = "Rueloon",
-                            MaxPlayers = 256,
-                        },
-                        // WRC 04
-                        new ChannelDTO()
-                        {
-                            AppId = 10394,
-                            Id = 1,
-                            Name = "Internal 1",
-                            MaxPlayers = 256,
-                            GenericField1 = 4096,
-                            GenericFieldFilter = 1
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10394,
-                            Id = 2,
-                            Name = "Internal 2",
-                            MaxPlayers = 256,
-                            GenericField1 = 8192,
-                            GenericFieldFilter = 1
-                        },
-                        //WRC05 Beta
-                        new ChannelDTO()
-                        {
-                            AppId = 10933,
-                            Id = 1,
-                            Name = "Internal 1",
-                            MaxPlayers = 256,
-                            GenericField1 = 4096,
-                            GenericFieldFilter = 1
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10933,
-                            Id = 2,
-                            Name = "Internal 2",
-                            MaxPlayers = 256,
-                            GenericField1 = 8192,
-                            GenericFieldFilter = 1
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10933,
-                            Id = 3,
-                            Name = "Internal 3",
-                            MaxPlayers = 256,
-                            GenericField1 = 16384,
-                            GenericFieldFilter = 1
-                        },
-                        //WRC Rally Evolved
-                        new ChannelDTO()
-                        {
-                            AppId = 10934,
-                            Id = 1,
-                            Name = "Internal 1",
-                            MaxPlayers = 256,
-                            GenericField1 = 4096,
-                            GenericFieldFilter = 1
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10934,
-                            Id = 2,
-                            Name = "Internal 2",
-                            MaxPlayers = 256,
-                            GenericField1 = 8192,
-                            GenericFieldFilter = 1
-                        },
-                        new ChannelDTO()
-                        {
-                            AppId = 10934,
-                            Id = 3,
-                            Name = "Internal 3",
-                            MaxPlayers = 256,
-                            GenericField1 = 16384,
-                            GenericFieldFilter = 1
-                        }
+                        
                     };
                 }
                 else
@@ -3949,6 +3832,12 @@ namespace Horizon.LIBRARY.Database
                         },
                         new LocationDTO()
                         {
+                            AppId = 10681,
+                            Id = 40,
+                            Name = "Aquatos"
+                        },
+                        new LocationDTO()
+                        {
                             AppId = 10683,
                             Id = 40,
                             Name = "Aquatos"
@@ -3985,6 +3874,7 @@ namespace Horizon.LIBRARY.Database
                         case 24000:
                         case 24180:
                         case 10680:
+                        case 10681:
                         case 10683:
                         case 10684:
                             return new LocationDTO[]
@@ -4176,7 +4066,7 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="partyId">Party id.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<bool> DeleteParty(int partyId)
+        public async Task<bool> DeleteParty(uint partyId)
         {
             bool result = false;
 

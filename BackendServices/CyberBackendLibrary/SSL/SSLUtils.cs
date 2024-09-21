@@ -431,7 +431,7 @@ namespace CyberBackendLibrary.SSL
                     fileSystemWatcher.EnableRaisingEvents = true;
 
                     // Wait for the file to be deleted or for cancellation
-                    await deletionCompletionSource.Task;
+                    await deletionCompletionSource.Task.ConfigureAwait(false);
                 }
             }
         }

@@ -9,16 +9,16 @@ namespace Horizon.RT.Models
         public static readonly MediusPlayerOnlineState Empty = new MediusPlayerOnlineState();
 
         public MediusPlayerStatus ConnectStatus;
-        public int MediusLobbyWorldID;
-        public int MediusGameWorldID;
+        public uint MediusLobbyWorldID;
+        public uint MediusGameWorldID;
         public string LobbyName;
         public string GameName;
 
         public void Deserialize(BinaryReader reader)
         {
             ConnectStatus = reader.Read<MediusPlayerStatus>();
-            MediusLobbyWorldID = reader.ReadInt32();
-            MediusGameWorldID = reader.ReadInt32();
+            MediusLobbyWorldID = reader.ReadUInt32();
+            MediusGameWorldID = reader.ReadUInt32();
             LobbyName = reader.ReadString(Constants.WORLDNAME_MAXLEN);
             GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
         }

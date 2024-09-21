@@ -10,8 +10,8 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
-using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
+using CastleLibrary.Utils;
 
 namespace HomeTools.BARFramework
 {

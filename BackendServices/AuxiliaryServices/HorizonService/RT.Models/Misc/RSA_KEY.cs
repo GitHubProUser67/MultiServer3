@@ -35,6 +35,22 @@ namespace Horizon.RT.Models
                 writer.Write(i >= key.Length ? 0 : key[i]);
         }
 
+        public byte[] ToByteArray()
+        {
+            byte[] result = new byte[key.Length * 4]; // Each uint is 4 bytes.
+
+            for (int i = 0; i < key.Length; i++)
+            {
+                // Convert each uint to 4 bytes in little-endian order.
+                result[i * 4] = (byte)(key[i] & 0xFF);              // Byte 0 (least significant byte)
+                result[(i * 4) + 1] = (byte)((key[i] >> 8) & 0xFF); // Byte 1
+                result[(i * 4) + 2] = (byte)((key[i] >> 16) & 0xFF); // Byte 2
+                result[(i * 4) + 3] = (byte)((key[i] >> 24) & 0xFF); // Byte 3 (most significant byte)
+            }
+
+            return result;
+        }
+
         public override string ToString()
         {
             return string.Join(string.Empty, key?.Select(x => x.ToString("X8")));

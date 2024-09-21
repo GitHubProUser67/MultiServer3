@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -35,8 +34,6 @@ namespace Horizon.RT.Models
 
         public override string ToString()
         {
-            //var ProtoBytesReversed = ReverseBytes(protocolInfo);
-
             return base.ToString() + " " +
                 $"m_success: {m_success} " +
                 $"m_isOnline: {m_isOnline} " +

@@ -10,12 +10,11 @@ namespace Horizon.RT.Models
 	[MediusMessage(NetMessageClass.MessageClassLobbyReport, MediusMGCLMessageIds.ServerCreateGameResponse)]
     public class MediusServerCreateGameResponse : BaseMGCLMessage, IMediusResponse
     {
-
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerCreateGameResponse;
 
         public MessageId MessageID { get; set; }
         public MGCL_ERROR_CODE Confirmation;
-        public int WorldID;
+        public int MediusWorldID;
 
         public bool IsSuccess => Confirmation >= 0;
 
@@ -26,7 +25,7 @@ namespace Horizon.RT.Models
             MessageID = reader.Read<MessageId>();
             Confirmation = reader.Read<MGCL_ERROR_CODE>();
             reader.ReadBytes(2);
-            WorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -36,7 +35,7 @@ namespace Horizon.RT.Models
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(Confirmation);
             writer.Write(new byte[2]);
-            writer.Write(WorldID);
+            writer.Write(MediusWorldID);
         }
 
         public override string ToString()
@@ -44,7 +43,7 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"Confirmation: {Confirmation} " +
-                $"WorldID: {WorldID}";
+                $"WorldID: {MediusWorldID}";
         }
     }
 }

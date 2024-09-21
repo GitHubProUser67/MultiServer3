@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -18,13 +17,10 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
 
-            // 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
             ConnectInfo = reader.Read<NetConnectionInfo>();
@@ -32,13 +28,10 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
 
-            // 
             writer.Write(new byte[3]);
             writer.Write(StatusCode);
             writer.Write(ConnectInfo);
@@ -49,8 +42,8 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID:{MessageID} " +
-             $"StatusCode:{StatusCode} " +
-$"ConnectInfo:{ConnectInfo}";
+                $"StatusCode:{StatusCode} " +
+                $"ConnectInfo:{ConnectInfo}";
         }
     }
 }

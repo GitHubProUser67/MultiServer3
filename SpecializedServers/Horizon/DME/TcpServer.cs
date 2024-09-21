@@ -8,6 +8,7 @@ using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Tcp;
 using Horizon.LIBRARY.Common;
+using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using DotNetty.Handlers.Timeout;
@@ -15,9 +16,9 @@ using Horizon.DME.PluginArgs;
 using Horizon.PluginManager;
 using EndianTools;
 using CyberBackendLibrary.Extension;
-using Horizon.LIBRARY.Pipeline.Attribute;
+using Horizon.SERVER;
 using Horizon.MUM.Models;
-using Horizon.MEDIUS;
+using Horizon.SERVER.Medius;
 
 namespace Horizon.DME
 {
@@ -39,7 +40,7 @@ namespace Horizon.DME
         {
             public int ApplicationId { get; set; } = 0;
             public bool Ignore { get; set; } = false;
-            public ClientObject? ClientObject { get; set; } = null;
+            public DMEObject? DMEObject { get; set; } = null;
             public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
             public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
             public DateTime TimeConnected { get; set; } = Utils.GetHighPrecisionUtcTime();
@@ -48,12 +49,12 @@ namespace Horizon.DME
             /// <summary>
             /// Timesout client if they authenticated after a given number of seconds.
             /// </summary>
-            public bool ShouldDestroy => ClientObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
+            public bool ShouldDestroy => DMEObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         }
 
         protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new();
         protected ConcurrentDictionary<string, ChannelData> _channelDatas = new();
-        protected ConcurrentDictionary<uint, ClientObject> _scertIdToClient = new();
+        protected ConcurrentDictionary<uint, DMEObject> _scertIdToClient = new();
 
         /// <summary>
         /// Start the Dme Tcp Server.
@@ -77,10 +78,10 @@ namespace Horizon.DME
                 string key = channel.Id.AsLongText();
                 if (_channelDatas.TryRemove(key, out var data))
                 {
-                    if (data.ClientObject != null)
+                    if (data.DMEObject != null)
                     {
-                        data.ClientObject.OnTcpDisconnected();
-                        _scertIdToClient.TryRemove(data.ClientObject.ScertId, out _);
+                        data.DMEObject.OnTcpDisconnected();
+                        _scertIdToClient.TryRemove(data.DMEObject.ScertId, out _);
                     }
                 }
             };
@@ -91,12 +92,12 @@ namespace Horizon.DME
                 string key = channel.Id.AsLongText();
                 if (_channelDatas.TryGetValue(key, out var data))
                 {
-                    if (!data.Ignore && (data.ClientObject == null || !data.ClientObject.IsDestroyed))
+                    if (!data.Ignore && (data.DMEObject == null || !data.DMEObject.IsDestroyed))
                     {
 
                         OnTcpMsg pluginArgs = new()
                         {
-                            Player = data.ClientObject,
+                            Player = data.DMEObject,
                             Packet = message
                         };
 
@@ -104,17 +105,17 @@ namespace Horizon.DME
                         await DmeClass.Plugins.OnEvent(PluginEvent.DME_GAME_ON_RECV_TCP, pluginArgs);
 
                         data.RecvQueue.Enqueue(message);
-
+                        data.DMEObject?.OnRecv(message);
                         if (message is RT_MSG_SERVER_ECHO serverEcho)
-                            data.ClientObject?.OnRecvServerEcho(serverEcho);
+                            data.DMEObject?.OnRecvServerEcho(serverEcho);
                         else if (message is RT_MSG_CLIENT_ECHO clientEcho)
-                            data.ClientObject?.OnRecvClientEcho(clientEcho);
+                            data.DMEObject?.OnRecvClientEcho(clientEcho);
                     }
                 }
 
                 // Log if id is set
                 if (message.CanLog())
-                    LoggerAccessor.LogDebug($"TCP {data?.ClientObject},{channel}: {message}");
+                    LoggerAccessor.LogDebug($"DME_TCP {data?.DMEObject},{channel}: {message}");
             };
 
             var bootstrap = new ServerBootstrap();
@@ -126,7 +127,7 @@ namespace Horizon.DME
                 {
                     IChannelPipeline pipeline = channel.Pipeline;
 
-                    pipeline.AddLast(new WriteTimeoutHandler(30));
+                    pipeline.AddLast(new WriteTimeoutHandler(60 * 15));
                     pipeline.AddLast(new ScertEncoder());
                     pipeline.AddLast(new ScertIEnumerableEncoder());
                     pipeline.AddLast(new ScertTcpFrameDecoder(DotNetty.Buffers.ByteOrder.LittleEndian, 2048, 1, 2, 0, 0, false));
@@ -165,9 +166,9 @@ namespace Horizon.DME
         /// <summary>
         /// Gets DME Server client object.
         /// </summary>
-        public ClientObject? GetServerPerAppId(int ApplicationId)
+        public DMEObject? GetServerPerAppId(int ApplicationId)
         {
-            return _channelDatas.Values.Where(channel => channel.ApplicationId == ApplicationId).FirstOrDefault()?.ClientObject;
+            return _channelDatas.Values.Where(channel => channel.ApplicationId == ApplicationId).FirstOrDefault()?.DMEObject;
         }
 
         /// <summary>
@@ -209,7 +210,7 @@ namespace Horizon.DME
 
                 // Remove
                 _channelDatas.TryRemove(channel.Id.AsLongText(), out var d);
-                LoggerAccessor.LogWarn($"REMOVING CHANNEL {channel},{d},{d?.ClientObject}");
+                LoggerAccessor.LogWarn($"REMOVING CHANNEL {channel},{d},{d?.DMEObject}");
 
                 // close after 5 seconds
                 _ = Task.Run(async () =>
@@ -276,7 +277,7 @@ namespace Horizon.DME
                     }
 
                     // Disconnect on destroy
-                    if (data.ClientObject != null && data.ClientObject.IsDestroyed)
+                    if (data.DMEObject != null && data.DMEObject.IsDestroyed)
                     {
                         data.Ignore = true;
                         return;
@@ -290,21 +291,21 @@ namespace Horizon.DME
                             if (!await PassMessageToPlugins(clientChannel, data, message, false))
                                 responses.Add(message);
 
-                        if (data.ClientObject != null)
+                        if (data.DMEObject != null)
                         {
                             // Echo
-                            if (data.ClientObject.MediusVersion > 108 && (Utils.GetHighPrecisionUtcTime() - data.ClientObject.UtcLastServerEchoSent).TotalSeconds > MediusClass.GetAppSettingsOrDefault(data.ClientObject.ApplicationId).ServerEchoIntervalSeconds)
+                            if (data.DMEObject.MediusVersion > 108 && (Utils.GetHighPrecisionUtcTime() - data.DMEObject.UtcLastServerEchoSent).TotalSeconds > DmeClass.GetAppSettingsOrDefault(data.DMEObject.ApplicationId).ServerEchoIntervalSeconds)
                             {
                                 var message = new RT_MSG_SERVER_ECHO();
                                 if (!await PassMessageToPlugins(clientChannel, data, message, false))
                                     responses.Add(message);
-                                data.ClientObject.UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+                                data.DMEObject.UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
                             }
 
                             // Add client object's send queue to responses
                             // But only if not in a world
-                            if (data.ClientObject.DmeWorld == null || data.ClientObject.DmeWorld.Destroyed)
-                                while (data.ClientObject.TcpSendMessageQueue.TryDequeue(out var message))
+                            if (data.DMEObject.DmeWorld == null || data.DMEObject.DmeWorld.Destroyed)
+                                while (data.DMEObject.TcpSendMessageQueue.TryDequeue(out var message))
                                     if (!await PassMessageToPlugins(clientChannel, data, message, false))
                                         responses.Add(message);
                         }
@@ -325,8 +326,8 @@ namespace Horizon.DME
         protected async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
         {
             // Get ScertClient data
-            ScertClientAttribute? scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            bool enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
+            var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
+            bool enableEncryption = false /*DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption*/;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -364,105 +365,120 @@ namespace Horizon.DME
                         }
                         */
 
+                        ClientObject? mumClient;
+
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
                         scertClient.ApplicationID = clientConnectTcpAuxUdp.AppId;
 
-                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
-                        if (data.ClientObject == null)
+                        Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcpAuxUdp.TargetWorldId, data.ApplicationId);
+
+                        if (targetChannel == null)
                         {
-                            data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
-                            if (data.ClientObject != null)
-                                LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
-                            else
+                            Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId, scertClient.MediusVersion!.Value);
+
+                            if (DefaultChannel.Id == clientConnectTcpAuxUdp.TargetWorldId)
+                                targetChannel = DefaultChannel;
+
+                            if (targetChannel == null)
                             {
-                                data.Ignore = true;
-                                LoggerAccessor.LogError($"[DME] - TcpServer - ClientObject could not be found for {clientChannel.RemoteAddress}:{data.ClientObject?.Port}: {clientConnectTcpAuxUdp}");
+                                LoggerAccessor.LogError($"[DME] - TcpServer - Client: {clientConnectTcpAuxUdp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcpAuxUdp.TargetWorldId} doesn't exist!");
+                                await clientChannel.CloseAsync();
                                 break;
                             }
                         }
-                        else
-                            LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
 
-                        List<int> pre108ServerComplete = new() { 10114, 10164, 10190, 10124, 10130, 10164, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
-
-                        data.ClientObject.MediusVersion = scertClient.MediusVersion!.Value;
-                        data.ClientObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
-                        data.ClientObject.OnTcpConnected(clientChannel);
-                        data.ClientObject.ScertId = GenerateNewScertClientId();
-
-                        if (!_scertIdToClient.TryAdd(data.ClientObject.ScertId, data.ClientObject))
+                        // If booth are null, it means DME client wants a new object.
+                        if (!string.IsNullOrEmpty(clientConnectTcpAuxUdp.AccessToken) && !string.IsNullOrEmpty(clientConnectTcpAuxUdp.SessionKey))
                         {
-                            LoggerAccessor.LogError($"Duplicate scert client id");
+                            mumClient = MediusClass.Manager.GetClientByAccessToken(clientConnectTcpAuxUdp.AccessToken, clientConnectTcpAuxUdp.AppId);
+                            if (mumClient == null)
+                                mumClient = MediusClass.Manager.GetClientBySessionKey(clientConnectTcpAuxUdp.SessionKey, clientConnectTcpAuxUdp.AppId);
+
+                            if (mumClient != null)
+                                LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.DMEObject}: {clientChannel}");
+                            else
+                            {
+                                data.Ignore = true;
+                                LoggerAccessor.LogError($"[DME] - TcpServer - ClientObject could not be granted for {clientChannel.RemoteAddress}:{data.DMEObject}: {clientConnectTcpAuxUdp}");
+                                break;
+                            }
+
+                            mumClient.MediusVersion = scertClient.MediusVersion ?? 0;
+                            mumClient.ApplicationId = clientConnectTcpAuxUdp.AppId;
+                            mumClient.OnConnected();
+                        }
+                        else // MAG uses DME directly to register a ClientObject.
+                        {
+                            LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress} with new ClientObject!");
+
+                            mumClient = new(scertClient.MediusVersion ?? 0)
+                            {
+                                ApplicationId = clientConnectTcpAuxUdp.AppId
+                            };
+                            mumClient.OnConnected();
+
+                            MAS.ReserveClient(mumClient); // ONLY RESERVE CLIENTS HERE!
+                        }
+
+                        await mumClient.JoinChannel(targetChannel);
+
+                        if (!string.IsNullOrEmpty(clientConnectTcpAuxUdp.AccessToken) && !string.IsNullOrEmpty(clientConnectTcpAuxUdp.SessionKey))
+                        {
+                            data.DMEObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcpAuxUdp.AccessToken);
+                            if (data.DMEObject == null)
+                                data.DMEObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcpAuxUdp.SessionKey);
+
+                            if (data.DMEObject != null)
+                                LoggerAccessor.LogInfo($"[DME] - TcpServer - DMEClient Connected {clientChannel.RemoteAddress}:{data.DMEObject}: {clientChannel}");
+                            else
+                            {
+                                data.Ignore = true;
+                                LoggerAccessor.LogError($"[DME] - TcpServer - DMEClientObject could not be granted for {clientChannel.RemoteAddress}:{data.DMEObject}: {clientConnectTcpAuxUdp}");
+                                break;
+                            }
+                        }
+                        else // MAG uses DME TCP directly to register a ClientObject.
+                        {
+                            LoggerAccessor.LogInfo($"[DME] - TcpServer - DMEClient Connected {clientChannel.RemoteAddress} with new ClientObject!");
+
+                            data.DMEObject = new DMEObject(clientConnectTcpAuxUdp.SessionKey);
+                        }
+
+                        data.DMEObject.ApplicationId = clientConnectTcpAuxUdp.AppId;
+                        data.DMEObject.OnTcpConnected(clientChannel);
+                        data.DMEObject.ScertId = GenerateNewScertClientId();
+                        data.DMEObject.MediusVersion = scertClient.MediusVersion;
+
+                        if (!_scertIdToClient.TryAdd(data.DMEObject.ScertId, data.DMEObject))
+                        {
+                            LoggerAccessor.LogWarn($"Duplicate scert client id");
                             break;
                         }
 
                         // start udp server
-                        data.ClientObject.BeginUdp();
+                        data.DMEObject.BeginUdp();
 
-                        if (scertClient.MediusVersion > 108 || scertClient.IsPS3Client)
-                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
-                        else
+                        #region if PS3
+                        if (scertClient.IsPS3Client)
                         {
-                            //Older Medius titles do NOT use CRYPTKEY_GAME, newer ones have this.
-                            if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.MediusVersion >= 109)
-                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
-                            {
-                                PlayerId = (ushort)data.ClientObject.DmeId,
-                                ScertId = data.ClientObject.ScertId,
-                                PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
-                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
-                            }, clientChannel);
+                            List<int> ConnectAcceptTCPGames = new() { 20623, 20624, 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
 
-                            if (pre108ServerComplete.Contains(scertClient.ApplicationID))
-                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
+                            //CAC & Warhawk
+                            if (ConnectAcceptTCPGames.Contains(data.ApplicationId))
+                            {
+                                Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                                 {
-                                    ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
+                                    PlayerId = (ushort)data.DMEObject.DmeId,
+                                    ScertId = data.DMEObject.ScertId,
+                                    PlayerCount = (ushort?)data.DMEObject.DmeWorld?.Clients.Count() ?? 0x0001,
+                                    IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                 }, clientChannel);
-
-                            Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
-                            {
-                                Ip = DmeClass.SERVER_IP,
-                                Port = (ushort)data.ClientObject.UdpPort
-                            }, clientChannel);
-                        }
-                        break;
-                    }
-                case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
-                    {
-                        data.ApplicationId = clientConnectTcp.AppId;
-                        scertClient.ApplicationID = clientConnectTcp.AppId;
-
-                        data.ClientObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcp.AccessToken);
-                        if (data.ClientObject == null)
-                        {
-                            data.ClientObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcp.SessionKey);
-                            if (data.ClientObject != null)
-                                LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
-                            else
-                            {
-                                data.Ignore = true;
-                                LoggerAccessor.LogError($"[DME] - TcpServer - ClientObject could not be found for {clientChannel.RemoteAddress}:{data.ClientObject?.Port}: {clientConnectTcp}");
-                                break;
                             }
+                            else
+                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
                         }
-                        else
-                            LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.ClientObject.Port}: {clientChannel}");
-
-                        List<int> pre108ServerComplete = new() { 10114, 10164, 10190, 10124, 10130, 10164, 10284, 10330, 10334, 10414, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10680, 10683, 10684, 10724 };
-
-                        data.ClientObject.MediusVersion = scertClient.MediusVersion!.Value;
-                        data.ClientObject.ApplicationId = clientConnectTcp.AppId;
-                        data.ClientObject.OnTcpConnected(clientChannel);
-                        data.ClientObject.ScertId = GenerateNewScertClientId();
-
-                        if (!_scertIdToClient.TryAdd(data.ClientObject.ScertId, data.ClientObject))
-                        {
-                            LoggerAccessor.LogError($"Duplicate scert client id");
-                            break;
-                        }
-
-                        if (scertClient.MediusVersion > 108 || scertClient.IsPS3Client)
+                        #endregion
+                        else if (scertClient.MediusVersion > 108 && scertClient.ApplicationID != 11484)
                             Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
                         else
                         {
@@ -470,17 +486,150 @@ namespace Horizon.DME
                                 Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                             Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                             {
-                                PlayerId = (ushort)data.ClientObject.DmeId,
-                                ScertId = data.ClientObject.ScertId,
-                                PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
+                                PlayerId = (ushort)data.DMEObject.DmeId,
+                                ScertId = data.DMEObject.ScertId,
+                                PlayerCount = (ushort?)data.DMEObject.DmeWorld?.Clients.Count() ?? 0x0001,
                                 IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                             }, clientChannel);
 
-                            if (pre108ServerComplete.Contains(scertClient.ApplicationID))
-                                Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
+                            // DME has no server complete even on older clients.
+
+                            Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
+                            {
+                                Ip = DmeClass.SERVER_IP,
+                                Port = (ushort)data.DMEObject.UdpPort
+                            }, clientChannel);
+                        }
+
+                        break;
+                    }
+                case RT_MSG_CLIENT_CONNECT_TCP clientConnectTcp:
+                    {
+                        ClientObject? mumClient;
+
+                        data.ApplicationId = clientConnectTcp.AppId;
+                        scertClient.ApplicationID = clientConnectTcp.AppId;
+
+                        Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcp.TargetWorldId, data.ApplicationId);
+
+                        if (targetChannel == null)
+                        {
+                            Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId, scertClient.MediusVersion!.Value);
+
+                            if (DefaultChannel.Id == clientConnectTcp.TargetWorldId)
+                                targetChannel = DefaultChannel;
+
+                            if (targetChannel == null)
+                            {
+                                LoggerAccessor.LogError($"[DME] - TcpServer - Client: {clientConnectTcp.AccessToken} tried to join, but targetted WorldId:{clientConnectTcp.TargetWorldId} doesn't exist!");
+                                await clientChannel.CloseAsync();
+                                break;
+                            }
+                        }
+
+                        // If booth are null, it means DME client wants a new object.
+                        if (!string.IsNullOrEmpty(clientConnectTcp.AccessToken) && !string.IsNullOrEmpty(clientConnectTcp.SessionKey))
+                        {
+                            mumClient = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
+                            if (mumClient == null)
+                                mumClient = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
+
+                            if (mumClient != null)
+                                LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress}:{data.DMEObject}: {clientChannel}");
+                            else
+                            {
+                                data.Ignore = true;
+                                LoggerAccessor.LogError($"[DME] - TcpServer - ClientObject could not be granted for {clientChannel.RemoteAddress}:{data.DMEObject}: {clientConnectTcp}");
+                                break;
+                            }
+
+                            mumClient.MediusVersion = scertClient.MediusVersion ?? 0;
+                            mumClient.ApplicationId = clientConnectTcp.AppId;
+                            mumClient.OnConnected();
+                        }
+                        else // MAG uses DME directly to register a ClientObject.
+                        {
+                            LoggerAccessor.LogInfo($"[DME] - TcpServer - Client Connected {clientChannel.RemoteAddress} with new ClientObject!");
+
+                            mumClient = new(scertClient.MediusVersion ?? 0)
+                            {
+                                ApplicationId = clientConnectTcp.AppId
+                            };
+                            mumClient.OnConnected();
+
+                            MAS.ReserveClient(mumClient); // ONLY RESERVE CLIENTS HERE!
+                        }
+
+                        await mumClient.JoinChannel(targetChannel);
+
+                        if (!string.IsNullOrEmpty(clientConnectTcp.AccessToken) && !string.IsNullOrEmpty(clientConnectTcp.SessionKey))
+                        {
+                            data.DMEObject = DmeClass.GetMPSClientByAccessToken(clientConnectTcp.AccessToken);
+                            if (data.DMEObject == null)
+                                data.DMEObject = DmeClass.GetMPSClientBySessionKey(clientConnectTcp.SessionKey);
+
+                            if (data.DMEObject != null)
+                                LoggerAccessor.LogInfo($"[DME] - TcpServer - DMEClient Connected {clientChannel.RemoteAddress}:{data.DMEObject}: {clientChannel}");
+                            else
+                            {
+                                data.Ignore = true;
+                                LoggerAccessor.LogError($"[DME] - TcpServer - DMEClientObject could not be granted for {clientChannel.RemoteAddress}:{data.DMEObject}: {clientConnectTcp}");
+                                break;
+                            }
+                        }
+                        else // MAG uses DME TCP directly to register a ClientObject.
+                        {
+                            LoggerAccessor.LogInfo($"[DME] - TcpServer - DMEClient Connected {clientChannel.RemoteAddress} with new ClientObject!");
+
+                            data.DMEObject = new DMEObject(clientConnectTcp.SessionKey);
+                        }
+
+                        data.DMEObject.ApplicationId = clientConnectTcp.AppId;
+                        data.DMEObject.OnTcpConnected(clientChannel);
+                        data.DMEObject.ScertId = GenerateNewScertClientId();
+                        data.DMEObject.MediusVersion = scertClient.MediusVersion;
+
+                        if (!_scertIdToClient.TryAdd(data.DMEObject.ScertId, data.DMEObject))
+                        {
+                            LoggerAccessor.LogWarn($"Duplicate scert client id");
+                            break;
+                        }
+
+                        #region if PS3
+                        if (scertClient.IsPS3Client)
+                        {
+                            List<int> ConnectAcceptTCPGames = new() { 20623, 20624, 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
+
+                            //CAC & Warhawk
+                            if (ConnectAcceptTCPGames.Contains(data.ApplicationId))
+                            {
+                                Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                                 {
-                                    ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
+                                    PlayerId = (ushort)data.DMEObject.DmeId,
+                                    ScertId = data.DMEObject.ScertId,
+                                    PlayerCount = (ushort?)data.DMEObject.DmeWorld?.Clients.Count() ?? 0x0001,
+                                    IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                                 }, clientChannel);
+                            }
+                            else
+                                Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
+                        }
+                        #endregion
+                        else if (scertClient.MediusVersion > 108 && scertClient.ApplicationID != 11484)
+                            Queue(new RT_MSG_SERVER_CONNECT_REQUIRE() { MaxPacketSize = Constants.MEDIUS_MESSAGE_MAXLEN, MaxUdpPacketSize = Constants.MEDIUS_UDP_MESSAGE_MAXLEN }, clientChannel);
+                        else
+                        {
+                            if (scertClient.CipherService != null && scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION) && scertClient.MediusVersion >= 109 && !scertClient.IsPS3Client)
+                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
+                            Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
+                            {
+                                PlayerId = (ushort)data.DMEObject.DmeId,
+                                ScertId = data.DMEObject.ScertId,
+                                PlayerCount = (ushort?)data.DMEObject.DmeWorld?.Clients.Count() ?? 0x0001,
+                                IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
+                            }, clientChannel);
+
+                            // DME has no server complete even on older clients.
                         }
 
                         break;
@@ -491,45 +640,43 @@ namespace Horizon.DME
                             Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
                         Queue(new RT_MSG_SERVER_CONNECT_ACCEPT_TCP()
                         {
-                            PlayerId = (ushort)data.ClientObject!.DmeId,
-                            ScertId = data.ClientObject.ScertId,
-                            PlayerCount = (ushort)data.ClientObject.DmeWorld!.Clients.Count,
+                            PlayerId = (ushort)data.DMEObject!.DmeId,
+                            ScertId = data.DMEObject.ScertId,
+                            PlayerCount = (ushort?)data.DMEObject.DmeWorld?.Clients.Count() ?? 0x0001,
                             IP = (clientChannel.RemoteAddress as IPEndPoint)?.Address
                         }, clientChannel);
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_TCP clientConnectReadyTcp:
                     {
-                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
+                        if (data.DMEObject != null)
                         {
                             // Update recv flag
-                            data.ClientObject.RecvFlag = clientConnectReadyTcp.RecvFlag;
+                            data.DMEObject.RecvFlag = clientConnectReadyTcp.RecvFlag;
 
                             Queue(new RT_MSG_SERVER_STARTUP_INFO_NOTIFY()
                             {
                                 GameHostType = (byte)MGCL_GAME_HOST_TYPE.MGCLGameHostClientServerAuxUDP,
-                                Timebase = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                                Timebase = (uint?)data.DMEObject.DmeWorld?.WorldTimer.ElapsedMilliseconds ?? Utils.GetUnixTime()
                             }, clientChannel);
                             Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
                             {
                                 Ip = DmeClass.SERVER_IP,
-                                Port = (ushort)data.ClientObject.UdpPort
+                                Port = (ushort)data.DMEObject.UdpPort
                             }, clientChannel);
                         }
                         break;
                     }
                 case RT_MSG_CLIENT_CONNECT_READY_AUX_UDP connectReadyAuxUdp:
                     {
-                        data.ClientObject?.OnConnectionCompleted();
+                        data.DMEObject?.OnConnectionCompleted();
 
-                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
-                            Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
-                            {
-                                ClientCountAtConnect = (ushort)data.ClientObject.DmeWorld.Clients.Count
-                            }, clientChannel);
+                        Queue(new RT_MSG_SERVER_CONNECT_COMPLETE()
+                        {
+                            ClientCountAtConnect = (ushort?)data.DMEObject?.DmeWorld?.Clients.Count() ?? 0x0001
+                        }, clientChannel);
 
-                        //MSPR doesn't need this packet sent
-                        if ((scertClient.MediusVersion > 108 && (data.ApplicationId == 24000 || data.ApplicationId == 24180)) || data.ApplicationId == 10683 || data.ApplicationId == 10684)
+                        if (scertClient.MediusVersion > 108)
                         {
                             Queue(new RT_MSG_SERVER_APP()
                             {
@@ -540,7 +687,7 @@ namespace Horizon.DME
                             }, clientChannel);
                         }
 
-                        data.ClientObject?.DmeWorld?.OnPlayerJoined(data.ClientObject);
+                        data.DMEObject?.DmeWorld?.OnPlayerJoined(data.DMEObject);
                         break;
                     }
                 case RT_MSG_SERVER_ECHO serverEchoReply:
@@ -555,8 +702,8 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_SET_RECV_FLAG setRecvFlag:
                     {
-                        if (data.ClientObject != null)
-                            data.ClientObject.RecvFlag = setRecvFlag.Flag;
+                        if (data.DMEObject != null)
+                            data.DMEObject.RecvFlag = setRecvFlag.Flag;
                         break;
                     }
                 case RT_MSG_CLIENT_SET_AGG_TIME setAggTime:
@@ -564,8 +711,8 @@ namespace Horizon.DME
                         LoggerAccessor.LogInfo($"rt_msg_server_process_client_set_agg_time_msg: new agg time = {setAggTime.AggTime}");
                         List<int> preClientObject = new() { 10952, 10954, 10130 };
 
-                        if (data.ClientObject != null && preClientObject.Contains(scertClient.ApplicationID))
-                            data.ClientObject.AggTimeMs = setAggTime.AggTime; //Else we don't set AggTime here YET, the client object isn't created! for Pre-108 clients
+                        if (data.DMEObject != null && preClientObject.Contains(scertClient.ApplicationID))
+                            data.DMEObject.AggTimeMs = setAggTime.AggTime; //Else we don't set AggTime here YET, the client object isn't created! for Pre-108 clients
                         break;
                     }
                 case RT_MSG_CLIENT_FLUSH_ALL flushAll:
@@ -576,17 +723,17 @@ namespace Horizon.DME
 
                 case RT_MSG_CLIENT_TIMEBASE_QUERY timebaseQuery:
                     {
-                        if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
+                        if (data.DMEObject != null && data.DMEObject.DmeWorld != null)
                         {
                             RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY timebaseQueryNotifyMessage = new()
                             {
                                 ClientTime = timebaseQuery.Timestamp,
-                                ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                                ServerTime = (uint)data.DMEObject.DmeWorld.WorldTimer.ElapsedMilliseconds
                             };
 
-                            //if (data.ClientObject?.Udp != null && data.ClientObject.RemoteUdpEndpoint != null)
+                            //if (data.DMEObject?.Udp != null && data.DMEObject.RemoteUdpEndpoint != null)
                             //{
-                            //    await data.ClientObject.Udp.SendImmediate(timebaseQueryNotifyMessage);
+                            //    await data.DMEObject.Udp.SendImmediate(timebaseQueryNotifyMessage);
                             //}
                             //else
                             //{
@@ -597,12 +744,12 @@ namespace Horizon.DME
                             //await clientChannel.WriteAndFlushAsync(new RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY()
                             //{
                             //    ClientTime = timebaseQuery.Timestamp,
-                            //    ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                            //    ServerTime = (uint)data.DMEObject.DmeWorld.WorldTimer.ElapsedMilliseconds
                             //});
                             //Queue(new RT_MSG_SERVER_TIMEBASE_QUERY_NOTIFY()
                             //{
                             //    ClientTime = timebaseQuery.Timestamp,
-                            //    ServerTime = (uint)data.ClientObject.DmeWorld.WorldTimer.ElapsedMilliseconds
+                            //    ServerTime = (uint)data.DMEObject.DmeWorld.WorldTimer.ElapsedMilliseconds
                             //}, clientChannel);
                         }
                         break;
@@ -614,48 +761,55 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_APP_BROADCAST clientAppBroadcast:
                     {
-                        data.ClientObject?.DmeWorld?.BroadcastTcp(data.ClientObject, clientAppBroadcast.Payload);
+                        data.DMEObject?.DmeWorld?.BroadcastTcp(data.DMEObject, clientAppBroadcast.Payload);
                         break;
                     }
                 case RT_MSG_CLIENT_APP_LIST clientAppList:
                     {
-                        data.ClientObject?.DmeWorld?.SendTcpAppList(data.ClientObject, clientAppList.Targets, clientAppList.Payload ?? Array.Empty<byte>());
+                        data.DMEObject?.DmeWorld?.SendTcpAppList(data.DMEObject, clientAppList.Targets, clientAppList.Payload ?? Array.Empty<byte>());
                         break;
                     }
                 case RT_MSG_CLIENT_APP_SINGLE clientAppSingle:
                     {
-                        if (data.ClientObject != null)
+                        if (data.DMEObject != null)
                         {
                             bool InvalidRequest = false;
 
-                            if (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374)
+                            if (data.DMEObject.ApplicationId == 20371 || data.DMEObject.ApplicationId == 20374)
                             {
                                 byte[] HubMessagePayload = clientAppSingle.Payload;
                                 int HubPathernOffset = DataUtils.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00, 0x00 });
 
                                 if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 4) // Hub command.
                                 {
-                                    switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
+                                    try
                                     {
-                                        case -85: // IGA
-                                            InvalidRequest = true;
-                                            string SupplementalMessage = "Unknown";
+                                        switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
+                                        {
+                                            case -85: // IGA
+                                                InvalidRequest = true;
+                                                string SupplementalMessage = "Unknown";
 
-                                            switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
-                                            {
-                                                case 0x0B:
-                                                    SupplementalMessage = "Kick";
-                                                    break;
-                                            }
+                                                switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
+                                                {
+                                                    case 0x0B:
+                                                        SupplementalMessage = "Kick";
+                                                        break;
+                                                }
 
-                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.ClientObject.DmeId}");
-                                            break;
+                                                LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
+                                                break;
+                                        }
+                                    }
+                                    catch
+                                    {
+
                                     }
                                 }
                             }
 
                             if (!InvalidRequest)
-                                data.ClientObject.DmeWorld?.SendTcpAppSingle(data.ClientObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
+                                data.DMEObject.DmeWorld?.SendTcpAppSingle(data.DMEObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
                         }
                         break;
                     }
@@ -692,7 +846,7 @@ namespace Horizon.DME
             {
                 case TypePing ping:
                     {
-                        LoggerAccessor.LogInfo($"PingPacketHandler: client {data.ClientObject} received \n");
+                        LoggerAccessor.LogInfo($"PingPacketHandler: client {data.DMEObject} received \n");
                         if (ping.RequestEcho == true)
                         {
                             byte[] value = new byte[0xA];
@@ -715,7 +869,7 @@ namespace Horizon.DME
                         });
                         */
 
-                        data.ClientObject?.EnqueueTcp(new RT_MSG_SERVER_APP() { 
+                        data.DMEObject?.EnqueueTcp(new RT_MSG_SERVER_APP() { 
                             Message = new TypePing()
                             {
                                 TimeOfSend = Utils.GetUnixTime(),
@@ -733,7 +887,7 @@ namespace Horizon.DME
 
         protected virtual Task ProcessRTTHostTokenMessage(RT_MSG_CLIENT_TOKEN_MESSAGE clientTokenMsg, IChannel clientChannel, ChannelData data)
         {
-            LoggerAccessor.LogInfo($"rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.ClientObject?.ScertId}, target token = {clientTokenMsg.targetToken}");
+            LoggerAccessor.LogInfo($"rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.DMEObject?.ScertId}, target token = {clientTokenMsg.targetToken}");
 
             bool isTokenValid = rt_token_is_valid(clientTokenMsg.targetToken);
 
@@ -745,34 +899,40 @@ namespace Horizon.DME
                 {
                     case RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_CLIENT_REQUEST:
                         {
-                            if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
+                            if (data.DMEObject != null && data.DMEObject.DmeWorld != null)
                             {
-                                if (!data.ClientObject.DmeWorld.clientTokens.ContainsKey(clientTokenMsg.targetToken))
+                                if (!data.DMEObject.DmeWorld.clientTokens.ContainsKey(clientTokenMsg.targetToken))
                                 {
-                                    data.ClientObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new List<int> { data.ClientObject.DmeId });
+                                    data.DMEObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new ConcurrentList<int>() { data.DMEObject.DmeId });
 
-                                    data.ClientObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to broadcast the signal that this token is owned.
+                                    if (data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Count > 0)
+                                        data.DMEObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to broadcast the signal that this token is owned.
+                                        {
+                                            TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED, clientTokenMsg.targetToken, (ushort)data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken][0]) }
+                                        });
+                                    else
                                     {
-                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED,
-                                        TokenID = clientTokenMsg.targetToken,
-                                        TokenHost = (ushort)data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken][0],
-                                    });
+                                        LoggerAccessor.LogError($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.DMEObject?.IP} requested a token request but errored out while owning a token!");
+
+                                        Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
+                                        {
+                                            Reason = SERVER_FORCE_DISCONNECT_REASON.SERVER_FORCED_DISCONNECT_ERROR
+                                        }, clientChannel);
+                                    }
                                 }
                                 else
                                 {
-                                    lock (data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken])
-                                        data.ClientObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Add(data.ClientObject.DmeId);
+                                    data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Add(data.DMEObject.DmeId);
 
                                     Queue(new RT_MSG_SERVER_TOKEN_MESSAGE() // This message should not be broadcasted, Home doesn't like it.
                                     {
-                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED,
-                                        TokenID = clientTokenMsg.targetToken
+                                        TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED, clientTokenMsg.targetToken, 0) }
                                     }, clientChannel);
                                 }
                             }
                             else
                             {
-                                LoggerAccessor.LogWarn($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.ClientObject?.IP} requested a token request without being in a DmeWorld!");
+                                LoggerAccessor.LogError($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.DMEObject?.IP} requested a token request without being in a DmeWorld!");
 
                                 Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
                                 {
@@ -785,50 +945,46 @@ namespace Horizon.DME
 
                     case RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_CLIENT_RELEASE:
                         {
-                            if (data.ClientObject != null && data.ClientObject.DmeWorld != null)
+                            if (data.DMEObject != null && data.DMEObject.DmeWorld != null)
                             {
-                                if (data.ClientObject.DmeWorld.clientTokens.TryGetValue(clientTokenMsg.targetToken, out List<int>? value))
+                                if (data.DMEObject.DmeWorld.clientTokens.TryGetValue(clientTokenMsg.targetToken, out ConcurrentList<int>? value) && value != null)
                                 {
-                                    if (value.Contains(data.ClientObject.DmeId))
+                                    if (value.Contains(data.DMEObject.DmeId))
                                     {
-                                        if (value.IndexOf(data.ClientObject.DmeId) == 0)
+                                        if (value.IndexOf(data.DMEObject.DmeId) == 0)
                                         {
-                                            data.ClientObject.DmeWorld.clientTokens.TryRemove(clientTokenMsg.targetToken, out _);
+                                            data.DMEObject.DmeWorld.clientTokens.TryRemove(clientTokenMsg.targetToken, out _);
 
-                                            data.ClientObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                            data.DMEObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                             {
-                                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED,
-                                                TokenID = clientTokenMsg.targetToken,
+                                                TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED, clientTokenMsg.targetToken, 0) }
                                             });
                                         }
                                         else
                                         {
-                                            lock (value)
-                                                value.Remove(data.ClientObject.DmeId);
+                                            value.Remove(data.DMEObject.DmeId);
 
                                             Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                             {
-                                                tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED,
-                                                TokenID = clientTokenMsg.targetToken,
+                                                TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED, clientTokenMsg.targetToken, 0) }
                                             }, clientChannel);
                                         }
                                     }
                                     else
                                         Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                         {
-                                            tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED,
-                                            TokenID = clientTokenMsg.targetToken,
+                                            TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED, clientTokenMsg.targetToken, 0) }
                                         }, clientChannel);
                                 }
                                 else
                                     Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                     {
-                                        tokenMsgType = RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNER_REMOVED,
+                                        TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNER_REMOVED, 0, 0) }
                                     }, clientChannel);
                             }
                             else
                             {
-                                LoggerAccessor.LogWarn($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.ClientObject?.IP} requested a token release without being in a DmeWorld!");
+                                LoggerAccessor.LogError($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.DMEObject?.IP} requested a token release without being in a DmeWorld!");
 
                                 Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
                                 {
@@ -915,7 +1071,7 @@ namespace Horizon.DME
         {
             var onMsg = new OnMessageArgs(isIncoming)
             {
-                Player = data.ClientObject,
+                Player = data.DMEObject,
                 Channel = clientChannel,
                 Message = message
             };
@@ -930,7 +1086,7 @@ namespace Horizon.DME
             {
                 OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
-                    Player = data.ClientObject,
+                    Player = data.DMEObject,
                     Channel = clientChannel,
                     Message = clientApp.Message
                 };
@@ -943,7 +1099,7 @@ namespace Horizon.DME
             {
                 OnMediusMessageArgs onMediusMsg = new(isIncoming)
                 {
-                    Player = data.ClientObject,
+                    Player = data.DMEObject,
                     Channel = clientChannel,
                     Message = serverApp.Message
                 };
@@ -958,7 +1114,7 @@ namespace Horizon.DME
 
         #endregion
 
-        public ClientObject? GetClientByScertId(ushort scertId)
+        public DMEObject? GetClientByScertId(ushort scertId)
         {
             if (_scertIdToClient.TryGetValue(scertId, out var result))
                 return result;

@@ -12,10 +12,10 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public string SessionKey; // SESSIONKEY_MAXLEN
-        public int MediusWorldID;
+        public uint MediusWorldID;
         public MediusJoinType JoinType;
         public string GamePassword; // GAMEPASSWORD_MAXLEN
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public RSA_KEY pubKey;
         public NetAddressList AddressList;
 
@@ -27,10 +27,10 @@ namespace Horizon.RT.Models
 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
-            MediusWorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadUInt32();
             JoinType = reader.Read<MediusJoinType>();
             GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             pubKey = reader.Read<RSA_KEY>();
             AddressList = reader.Read<NetAddressList>();
         }

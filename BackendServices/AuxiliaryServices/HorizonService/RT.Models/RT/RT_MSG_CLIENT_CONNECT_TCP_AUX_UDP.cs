@@ -1,6 +1,6 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using System;
 
 namespace Horizon.RT.Models
 {
@@ -9,7 +9,9 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_CONNECT_TCP_AUX_UDP;
 
-        public uint ARG1;
+        public uint TargetWorldId;
+        public byte UNK0;
+        public byte[] UNK1;
         public int AppId;
         public RSA_KEY Key;
 
@@ -21,13 +23,14 @@ namespace Horizon.RT.Models
             SessionKey = null;
             AccessToken = null;
 
-            if (reader.MediusVersion > 108)
-                ARG1 = reader.ReadUInt32();
-            else
+            if (reader.MediusVersion < 109)
             {
-                reader.ReadBytes(3);
-                ARG1 = reader.ReadUInt16();
+                UNK1 = reader.ReadBytes(3);
+                TargetWorldId = reader.ReadByte();
+                UNK0 = reader.ReadByte();
             }
+            else
+                TargetWorldId = reader.ReadUInt32();
             AppId = reader.ReadInt32();
             Key = reader.Read<RSA_KEY>();
 
@@ -40,21 +43,26 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            if (writer.MediusVersion > 108)
-                writer.Write(ARG1);
-            else
+            if (writer.MediusVersion < 109)
             {
                 writer.Write(new byte[3]);
-                writer.Write((ushort)ARG1);
+                writer.Write((byte)TargetWorldId);
+                writer.Write(UNK0);
             }
+            else
+                writer.Write(TargetWorldId);
             writer.Write(AppId);
-            writer.Write(Key ?? new RSA_KEY());
+            writer.Write(Key);
+            writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
+            writer.Write(AccessToken, Constants.NET_ACCESS_KEY_LEN);
         }
 
         public override string ToString()
         {
             return base.ToString() + " " +
-                $"ARG1: {ARG1} " +
+                $"TargetWorldId: {TargetWorldId} " +
+                $"UNK1: {(UNK1 != null ? BitConverter.ToString(UNK1) : global::System.Array.Empty<byte>())} " +
+                $"UNK0: {UNK0:X2} " +
                 $"AppId: {AppId} " +
                 $"Key: {Key} " +
                 $"SessionKey: {SessionKey} " +

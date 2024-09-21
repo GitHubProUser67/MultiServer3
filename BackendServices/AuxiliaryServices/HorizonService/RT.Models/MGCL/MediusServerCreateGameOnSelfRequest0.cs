@@ -15,8 +15,8 @@ namespace Horizon.RT.Models
         public byte[] GameStats = new byte[Constants.MGCL_GAMESTATS_MAXLEN];
         public string GamePassword; // MGCL_GAMEPASSWORD_MAXLEN
         public int ApplicationID;
-        public int MaxClients;
-        public int MinClients;
+        public int MaxPlayers;
+        public int MinPlayers;
         public int GameLevel;
         public int PlayerSkillLevel;
         public int RulesSet;
@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
         public int GenericField3;
         public MGCL_GAME_HOST_TYPE GameHostType;
         public NetAddressList AddressList;
-        public int MediusWorldID;
+        public int WorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -45,8 +45,8 @@ namespace Horizon.RT.Models
                 GamePassword = reader.ReadString(Constants.MGCL_GAMEPASSWORD_MAXLEN);
             reader.ReadBytes(3);
             ApplicationID = reader.ReadInt32();
-            MaxClients = reader.ReadInt32();
-            MinClients = reader.ReadInt32();
+            MaxPlayers = reader.ReadInt32();
+            MinPlayers = reader.ReadInt32();
             GameLevel = reader.ReadInt32();
             PlayerSkillLevel = reader.ReadInt32();
             RulesSet = reader.ReadInt32();
@@ -55,7 +55,7 @@ namespace Horizon.RT.Models
             GenericField3 = reader.ReadInt32();
             GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             AddressList = reader.Read<NetAddressList>();
-            MediusWorldID = reader.ReadInt32();
+            WorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -68,8 +68,8 @@ namespace Horizon.RT.Models
             writer.Write(GamePassword, Constants.MGCL_GAMEPASSWORD_MAXLEN);
             writer.Write(new byte[3]);
             writer.Write(ApplicationID);
-            writer.Write(MaxClients);
-            writer.Write(MinClients);
+            writer.Write(MaxPlayers);
+            writer.Write(MinPlayers);
             writer.Write(GameLevel);
             writer.Write(PlayerSkillLevel);
             writer.Write(RulesSet);
@@ -78,7 +78,7 @@ namespace Horizon.RT.Models
             writer.Write(GenericField3);
             writer.Write(GameHostType);
             writer.Write(AddressList);
-            writer.Write(MediusWorldID);
+            writer.Write(WorldID);
         }
 
         public override string ToString()
@@ -89,8 +89,8 @@ namespace Horizon.RT.Models
                 $"GameStats: {GameStats} " +
                 $"GamePassword: {GamePassword} " +
                 $"ApplicationID: {ApplicationID} " +
-                $"MaxClients: {MaxClients} " +
-                $"MinClients: {MinClients} " +
+                $"MaxClients: {MaxPlayers} " +
+                $"MinClients: {MinPlayers} " +
                 $"GameLevel: {GameLevel} " +
                 $"PlayerSkillLevel: {PlayerSkillLevel} " +
                 $"RulesSet: {RulesSet} " +
@@ -99,7 +99,7 @@ namespace Horizon.RT.Models
                 $"GenericField3: {GenericField3:X8} " +
                 $"GameHostType: {GameHostType} " +
                 $"AddressList: {AddressList} " +
-                $"WorldID: {MediusWorldID} ";
+                $"WorldID: {WorldID} ";
         }
     }
 }

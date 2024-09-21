@@ -30,7 +30,7 @@ namespace Horizon.RT.Models
         public int GenericField6;
         public int GenericField7;
         public int GenericField8;
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public MediusWorldAttributesType Attributes;
 
         public override void Deserialize(MessageReader reader)
@@ -58,7 +58,7 @@ namespace Horizon.RT.Models
             GenericField6 = reader.ReadInt32();
             GenericField7 = reader.ReadInt32();
             GenericField8 = reader.ReadInt32();
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             Attributes = reader.Read<MediusWorldAttributesType>();
         }
 

@@ -59,7 +59,6 @@ namespace Horizon.MUIS.Config
         /// </summary>
         public string TextFilterGameName { get; private set; } = string.Empty;
 
-
         /// <summary>
         /// When true, server will encrypt all messages.
         /// </summary>
@@ -90,6 +89,11 @@ namespace Horizon.MUIS.Config
         /// Time since last echo before timing the client out.
         /// </summary>
         public int ClientTimeoutSeconds { get; private set; } = 25;
+
+        /// <summary>
+        /// Time since last echo before timing the client out.
+        /// </summary>
+        public int ClientLongTimeoutSeconds { get; private set; } = 60 * 5;
 
         /// <summary>
         /// Time since game created and host never connected to close the game world.

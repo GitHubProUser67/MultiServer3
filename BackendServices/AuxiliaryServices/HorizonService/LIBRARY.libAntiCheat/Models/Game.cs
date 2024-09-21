@@ -11,7 +11,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 {
     public class Game
     {
-        public static int IdCounter = 1;
+        public static uint IdCounter = 1;
 
         public class GameClient
         {
@@ -21,7 +21,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             public bool InGame;
         }
 
-        public int Id = 0;
+        public uint Id = 0;
         public int DMEWorldId = -1;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
@@ -30,8 +30,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public string GamePassword;
         public string SpectatorPassword;
         public byte[] GameStats = new byte[Constants.GAMESTATS_MAXLEN];
-        public MediusGameHostType GameHostType;
-        public MGCL_GAME_HOST_TYPE GAME_HOST_TYPE;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public NetAddressList netAddressList;
         public int WorldID;
         public int AccountID;
@@ -163,8 +162,8 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GameStats = serverCreateGameOnMe.GameStats;
             GamePassword = serverCreateGameOnMe.GamePassword;
             ApplicationId = serverCreateGameOnMe.ApplicationID;
-            MaxPlayers = serverCreateGameOnMe.MaxClients;
-            MinPlayers = serverCreateGameOnMe.MinClients;
+            MaxPlayers = serverCreateGameOnMe.MaxPlayers;
+            MinPlayers = serverCreateGameOnMe.MinPlayers;
             GameLevel = serverCreateGameOnMe.GameLevel;
             PlayerSkillLevel = serverCreateGameOnMe.PlayerSkillLevel;
             RulesSet = serverCreateGameOnMe.RulesSet;
@@ -176,9 +175,9 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GenericField6 = serverCreateGameOnMe.GenericField6;
             GenericField7 = serverCreateGameOnMe.GenericField7;
             GenericField8 = serverCreateGameOnMe.GenericField8;
-            GAME_HOST_TYPE = serverCreateGameOnMe.GameHostType;
+            GameHostType = serverCreateGameOnMe.GameHostType;
             netAddressList = serverCreateGameOnMe.AddressList;
-            WorldID = serverCreateGameOnMe.MediusWorldID;
+            WorldID = serverCreateGameOnMe.WorldID;
             AccountID = serverCreateGameOnMe.AccountID;
         }
 
@@ -188,17 +187,17 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GameStats = serverCreateGameOnSelf.GameStats;
             GamePassword = serverCreateGameOnSelf.GamePassword;
             ApplicationId = serverCreateGameOnSelf.ApplicationID;
-            MaxPlayers = serverCreateGameOnSelf.MaxClients;
-            MinPlayers = serverCreateGameOnSelf.MinClients;
+            MaxPlayers = serverCreateGameOnSelf.MaxPlayers;
+            MinPlayers = serverCreateGameOnSelf.MinPlayers;
             GameLevel = serverCreateGameOnSelf.GameLevel;
             PlayerSkillLevel = serverCreateGameOnSelf.PlayerSkillLevel;
             RulesSet = serverCreateGameOnSelf.RulesSet;
             GenericField1 = serverCreateGameOnSelf.GenericField1;
             GenericField2 = serverCreateGameOnSelf.GenericField2;
             GenericField3 = serverCreateGameOnSelf.GenericField3;
-            GAME_HOST_TYPE = serverCreateGameOnSelf.GameHostType;
+            GameHostType = serverCreateGameOnSelf.GameHostType;
             netAddressList = serverCreateGameOnSelf.AddressList;
-            WorldID = serverCreateGameOnSelf.MediusWorldID;
+            WorldID = serverCreateGameOnSelf.WorldID;
             AccountID = serverCreateGameOnSelf.AccountID;
         }
 
@@ -208,17 +207,17 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             GameStats = serverCreateGameOnSelf0.GameStats;
             GamePassword = serverCreateGameOnSelf0.GamePassword;
             ApplicationId = serverCreateGameOnSelf0.ApplicationID;
-            MaxPlayers = serverCreateGameOnSelf0.MaxClients;
-            MinPlayers = serverCreateGameOnSelf0.MinClients;
+            MaxPlayers = serverCreateGameOnSelf0.MaxPlayers;
+            MinPlayers = serverCreateGameOnSelf0.MinPlayers;
             GameLevel = serverCreateGameOnSelf0.GameLevel;
             PlayerSkillLevel = serverCreateGameOnSelf0.PlayerSkillLevel;
             RulesSet = serverCreateGameOnSelf0.RulesSet;
             GenericField1 = serverCreateGameOnSelf0.GenericField1;
             GenericField2 = serverCreateGameOnSelf0.GenericField2;
             GenericField3 = serverCreateGameOnSelf0.GenericField3;
-            GAME_HOST_TYPE = serverCreateGameOnSelf0.GameHostType;
+            GameHostType = serverCreateGameOnSelf0.GameHostType;
             netAddressList = serverCreateGameOnSelf0.AddressList;
-            WorldID = serverCreateGameOnSelf0.MediusWorldID;
+            WorldID = serverCreateGameOnSelf0.WorldID;
         }
 
         public string GetActivePlayerList()

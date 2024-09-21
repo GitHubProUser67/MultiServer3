@@ -189,7 +189,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// If set, which game the user is in.
         /// </summary>
-        public int? GameId { get; set; }
+        public uint? GameId { get; set; }
 
         /// <summary>
         /// Name of game
@@ -199,7 +199,7 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// If set, which game the user is in.
         /// </summary>
-        public int? PartyId { get; set; }
+        public uint? PartyId { get; set; }
 
         /// <summary>
         /// Name of game
@@ -209,12 +209,12 @@ namespace Horizon.LIBRARY.Database.Models
         /// <summary>
         /// If set, which channel the user is in.
         /// </summary>
-        public int? ChannelId { get; set; }
+        public uint? ChannelId { get; set; }
 
         /// <summary>
         /// If set, which world the user is in.
         /// </summary>
-        public int? WorldId { get; set; }
+        public uint? WorldId { get; set; }
     }
 
 }

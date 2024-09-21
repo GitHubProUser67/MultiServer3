@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
@@ -62,8 +63,7 @@ namespace CyberBackendLibrary.TCP_IP
                             for (int i = 0; i < table.numberOfEntries; i++)
                             {
                                 MibTcpRow row = (MibTcpRow)Marshal.PtrToStructure(handle, typeof(MibTcpRow));
-                                int port = (((row.localPort3 << 0x18) | (row.localPort4 << 0x10)) | (row.localPort1 << 8)) | row.localPort2;
-                                ports[i] = port;
+                                ports[i] = (((row.localPort3 << 0x18) | (row.localPort4 << 0x10)) | (row.localPort1 << 8)) | row.localPort2;
                                 handle = (IntPtr)(((long)handle) + Marshal.SizeOf(row));
                             }
                         }
@@ -104,6 +104,52 @@ namespace CyberBackendLibrary.TCP_IP
                             return -1;
                         return GetNextVacantTCPPort(sourceport, attemptcount);
                     }
+                }
+
+                return sourceport;
+            }
+
+            return GetNextVacantTCPPortUnix(sourceport, attemptcount);
+        }
+
+        /// <summary>
+        /// Get the next available port on the system.
+        /// <para>Obtiens le prochain port disponible.</para>
+        /// </summary>
+        /// <param name="sourceport">The initial port to start with.</param>
+        /// <param name="attemptcount">Maximum number of tries.</param>
+        /// <returns>A int.</returns>
+        public static int GetNextVacantTCPPortUnix(int sourceport, uint attemptcount)
+        {
+            if (attemptcount == 0)
+                throw new ArgumentOutOfRangeException("attemptcount");
+
+            List<int> portArray = new List<int>();
+
+            IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
+
+            // getting active connections
+            TcpConnectionInformation[] connections = properties.GetActiveTcpConnections();
+            portArray.AddRange(from n in connections
+                               select n.LocalEndPoint.Port);
+
+            // getting active tcp listners - WCF service listening in tcp
+            portArray.AddRange(from n in properties.GetActiveTcpListeners()
+                               select n.Port);
+
+            portArray.Sort();
+
+            foreach (int port in portArray)
+            {
+                if (sourceport == port)
+                {
+                    sourceport += 1;
+                    attemptcount -= 1;
+                    if (sourceport >= 0xffff && attemptcount > 0)
+                        sourceport = 1;
+                    else if (sourceport >= 0xffff && attemptcount == 0)
+                        return -1;
+                    return GetNextVacantTCPPortUnix(sourceport, attemptcount);
                 }
             }
 
@@ -146,7 +192,7 @@ namespace CyberBackendLibrary.TCP_IP
             IEnumerable<int> range = Enumerable.Range(startingAtPort, maxNumberOfPortsToCheck);
 
             if (range.Except(from p in range
-                             join used in System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners()
+                             join used in IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners()
                          on p equals used.Port
                              select p).FirstOrDefault() > 0)
                 // The port is available

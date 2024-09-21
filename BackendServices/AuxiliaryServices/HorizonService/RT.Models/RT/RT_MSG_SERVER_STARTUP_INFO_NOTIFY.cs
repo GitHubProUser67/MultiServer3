@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Common.Stream;
@@ -19,7 +18,7 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            if(reader.MediusVersion == 109)
+            if (reader.MediusVersion == 109)
             {
                 Field1 = reader.ReadRest();
                 Host = reader.ReadInt16();
@@ -28,7 +27,6 @@ namespace Horizon.RT.Models
             }
             else
             {
-
                 GameHostType = reader.ReadByte();
                 Timebase = reader.ReadUInt32();
             }
@@ -36,7 +34,7 @@ namespace Horizon.RT.Models
 
         public override void Serialize(MessageWriter writer)
         {
-            if(writer.MediusVersion == 109)
+            if (writer.MediusVersion == 109)
             {
                 writer.Write(Field1);
                 writer.Write(Host);

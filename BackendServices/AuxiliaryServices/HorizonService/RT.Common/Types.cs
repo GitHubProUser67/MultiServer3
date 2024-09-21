@@ -1183,55 +1183,6 @@ namespace Horizon.RT.Common
     }
     #endregion
 
-    #region MediusGameHostType
-    /// <summary>
-    /// Defines which host type of game is being described
-    /// </summary>
-    public enum MediusGameHostType : int
-    {
-        /// <summary>
-        /// Create a client-server based game.
-        /// </summary>
-        MediusGameHostClientServer,
-
-        /// <summary>
-        /// Create a integrated server game where the game server and a client are on the same host.
-        /// </summary>
-        MediusGameHostIntegratedServer,
-
-        /// <summary>
-        /// Host a peer-to-peer game.
-        /// </summary>
-        MediusGameHostPeerToPeer,
-
-        /// <summary>
-        /// Host a LAN based game.
-        /// </summary>
-        MediusGameHostLANPlay,
-
-        /// <summary>
-        /// Introduced in Medius 1.42<br></br>
-        /// Host a client-server, auxiliary UDP game.
-        /// </summary>
-        MediusGameHostClientServerAuxUDP,
-
-        /// <summary>
-        /// Host a client-server, primary UDP game.
-        /// </summary>
-        MediusGameHostClientServerUDP,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        MediusGameHostIndependent,
-
-        /// <summary>
-        /// Game Hosts are at Max
-        /// </summary>
-        MediusGameHostMax,
-    }
-    #endregion
-
     #region MediusBanReasonType
     /// <summary>
     /// 

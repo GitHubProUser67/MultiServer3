@@ -5,7 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
 	<DockerfileRunArguments>-p 29900:29900 -p 29901:29901 -p 29910:29910 -p 27900:27900 -p 28910:28910 -p 27901:27901 -p 6667:6667</DockerfileRunArguments>
 	<ApplicationIcon>MultiSpy.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
@@ -49,7 +49,7 @@
   
   <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">
     <!-- Path to the JSON file you want to modify -->
-    <Exec Command="powershell -ExecutionPolicy Bypass -File $(ProjectDir)DepsFixer.ps1 -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
+    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)DepsFixer.ps1&quot; -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
   </Target>
 
 </Project>

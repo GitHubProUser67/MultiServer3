@@ -1,3 +1,4 @@
+using CastleLibrary.Utils;
 using CustomLogger;
 using CyberBackendLibrary.Extension;
 using System.Text;
@@ -128,7 +129,7 @@ namespace SSFWServer
                 else
                     salt = generalsecret + XHomeClientVersion;
 
-                string hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
+                string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
 
                 // Trim the hash to a specific length
                 hash = hash[..14];
@@ -149,7 +150,7 @@ namespace SSFWServer
                     else
                         salt = generalsecret + XHomeClientVersion;
 
-                    hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
+                    hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
 
                     // Trim the hash to a specific length
                     hash = hash[..10];

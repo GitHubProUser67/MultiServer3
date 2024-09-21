@@ -46,7 +46,7 @@ namespace Horizon.RT.Models
                 $"ApplicationID: {ApplicationID} " +
                 $"MaxClients: {MaxClients} " +
                 $"Attributes: {Attributes} " +
-                $"MediusWorldUID: {WorldID}";
+                $"WorldUID: {WorldID}";
         }
     }
 }

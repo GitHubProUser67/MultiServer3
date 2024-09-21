@@ -9,8 +9,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using CompressionLibrary.Edge;
-using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
+using CastleLibrary.Utils;
 
 namespace HomeTools.UnBAR
 {
@@ -125,6 +125,7 @@ namespace HomeTools.UnBAR
 
                             if (HeaderIV != null)
                             {
+                                byte[] EmptyArray = new byte[4];
                                 byte[] SharcHeader = new byte[28];
 
                                 Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
@@ -134,7 +135,7 @@ namespace HomeTools.UnBAR
 
                                 if (SharcHeader == null)
                                     return; // Sharc Header failed to decrypt.
-                                else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
                                 {
                                     options = ToolsImplementation.base64CDNKey1;
 
@@ -145,7 +146,7 @@ namespace HomeTools.UnBAR
 
                                     if (SharcHeader == null)
                                         return; // Sharc Header failed to decrypt.
-                                    else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                    else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
                                     {
                                         options = ToolsImplementation.base64DefaultSharcKey;
 
@@ -156,7 +157,7 @@ namespace HomeTools.UnBAR
 
                                         if (SharcHeader == null)
                                             return; // Sharc Header failed to decrypt.
-                                        else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, new byte[4]))
+                                        else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
                                             return; // All keys failed to decrypt.
                                     }
                                 }

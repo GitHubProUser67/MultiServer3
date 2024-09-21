@@ -2,6 +2,7 @@
 
 using CustomLogger;
 using HTTPServer.Models;
+using HTTPServer.Extensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using ValueTaskSupplement;
 
 namespace HTTPServer
 {
@@ -50,9 +52,9 @@ namespace HTTPServer
                     LoggerAccessor.LogInfo($"[HTTP] - Server initiated on port: {listenerPort}...");
                     _listeners.TryAdd(listenerPort, listener);
 
-                    HashSet<Task> requests = new();
+                    HashSet<ValueTask<TcpClient>> requests = new();
                     for (int i = 0; i < MaxConcurrentListeners; i++)
-                        requests.Add(listener.AcceptTcpClientAsync(_cts.Token).AsTask());
+                        requests.Add(listener.AcceptTcpClientAsync(_cts.Token));
 
                     while (!_cts.Token.IsCancellationRequested)
                     {
@@ -60,33 +62,12 @@ namespace HTTPServer
                         {
                             if (_cts.Token.IsCancellationRequested) break;
 
-                            Task t = await Task.WhenAny(requests);
-                            requests.Remove(t);
+                            (int, TcpClient) t = await ValueTaskEx.WhenAny(requests);
 
-                            if (t is Task<TcpClient>)
-                            {
-                                TcpClient? ctx = null;
+                            _ = Task.Run(() => Processor.HandleClient(t.Item2, listenerPort));
 
-                                try
-                                {
-                                    ctx = (t as Task<TcpClient>)?.Result;
-                                }
-                                catch (AggregateException ex)
-                                {
-                                    ex.Handle(innerEx =>
-                                    {
-                                        if (innerEx is TaskCanceledException)
-                                            return true; // Indicate that the exception was handled
-
-                                        LoggerAccessor.LogWarn($"[HTTP] - TcpClient Task thrown an AggregateException: {ex}");
-
-                                        return false;
-                                    });
-                                }
-
-                                requests.Add(Task.Run(() => Processor.HandleClient(ctx, listenerPort)));
-                                requests.Add(listener.AcceptTcpClientAsync(_cts.Token).AsTask());
-                            }
+                            requests.RemoveAt(t.Item1);
+                            requests.Add(listener.AcceptTcpClientAsync(_cts.Token));
                         }
                         catch (OperationCanceledException)
                         {

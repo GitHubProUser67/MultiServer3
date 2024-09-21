@@ -42,8 +42,9 @@ namespace CyberBackendLibrary.GeoLocalization
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
+                // Not Important.
             }
         }
 
@@ -93,7 +94,7 @@ namespace CyberBackendLibrary.GeoLocalization
                     if (Instance.Reader.TryCountry(IPAddr, out CountryResponse countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
                         return countryresponse.Country.Name + $"-{countryresponse.Country.IsInEuropeanUnion}";
                 }
-                catch (Exception)
+                catch
                 {
                     // Not Important.
                 }

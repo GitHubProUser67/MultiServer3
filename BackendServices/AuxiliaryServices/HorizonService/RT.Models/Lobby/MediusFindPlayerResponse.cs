@@ -38,7 +38,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// World ID
         /// </summary>
-        public int MediusWorldID;
+        public uint MediusWorldID;
         /// <summary>
         /// Account ID
         /// </summary>
@@ -66,7 +66,7 @@ namespace Horizon.RT.Models
             ApplicationID = reader.ReadInt32();
             ApplicationName = reader.ReadString(Constants.APPNAME_MAXLEN);
             ApplicationType = reader.Read<MediusApplicationType>();
-            MediusWorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadUInt32();
             AccountID = reader.ReadInt32();
             AccountName = reader.ReadString(Constants.ACCOUNTNAME_MAXLEN);
             EndOfList = reader.ReadBoolean();

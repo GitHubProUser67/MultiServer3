@@ -61,6 +61,9 @@ namespace CyberBackendLibrary.Extension
         /// <returns>A boolean.</returns>
         public static bool AreArraysIdentical(byte[] b1, byte[] b2)
         {
+            if (b1 == null || b2 == null)
+                return false;
+
             if (IsWindows)
                 // Validate buffers are the same length.
                 // This also ensures that the count does not exceed the length of either buffer.  

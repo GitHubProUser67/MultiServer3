@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -22,7 +21,6 @@ namespace Horizon.RT.Models.Lobby
             base.Deserialize(reader);
 
             MessageID = reader.Read<MessageId>();
-            //reader.ReadBytes(3);
 
             StatusCode = reader.Read<MediusCallbackStatus>();
             MediusWorldID = reader.ReadInt32();
@@ -34,7 +32,6 @@ namespace Horizon.RT.Models.Lobby
             base.Serialize(writer);
 
             writer.Write(MessageID ?? MessageId.Empty);
-            //writer.Write(new byte[3]);
 
             writer.Write(StatusCode);
             writer.Write(MediusWorldID);

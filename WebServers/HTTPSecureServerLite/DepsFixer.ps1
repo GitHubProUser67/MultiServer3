@@ -24,8 +24,9 @@ $propertiesToRemove = @(
     "HomeTools/1.0.0",
 	"TechnitiumLibrary.Net/5.0.0",
 	"WebAPIService/1.0.0",
-	"TechnitiumLibrary.Net.Firewall/5.0.0.0",
-	"SpaceWizards.HttpListener/0.2.0"
+	"TechnitiumLibrary.Net.Firewall/5.0.0",
+	"SpaceWizards.HttpListener/0.2.0",
+	"WatsonWebserver/6.2.0"
 )
 
 try {
