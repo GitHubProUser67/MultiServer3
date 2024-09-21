@@ -7,7 +7,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobby, MediusLobbyMessageIds.CreateGameResponse)]
     public class MediusCreateGameResponse : BaseLobbyMessage, IMediusResponse
     {
-
         public override byte PacketType => (byte)MediusLobbyMessageIds.CreateGameResponse;
 
         public bool IsSuccess => StatusCode >= 0;
@@ -15,7 +14,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public int MediusWorldID;
+        public uint MediusWorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -25,7 +24,7 @@ namespace Horizon.RT.Models
 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadUInt32();
         }
 
         public override void Serialize(MessageWriter writer)

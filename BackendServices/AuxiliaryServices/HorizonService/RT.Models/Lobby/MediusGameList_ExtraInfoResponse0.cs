@@ -7,7 +7,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobby, MediusLobbyMessageIds.GameList_ExtraInfoResponse0)]
     public class MediusGameList_ExtraInfoResponse0 : BaseLobbyMessage, IMediusResponse
     {
-
         public override byte PacketType => (byte)MediusLobbyMessageIds.GameList_ExtraInfoResponse0;
 
         public bool IsSuccess => StatusCode >= 0;
@@ -15,7 +14,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public int MediusWorldID;
+        public uint MediusWorldID;
         public ushort PlayerCount;
         public ushort MinPlayers;
         public ushort MaxPlayers;
@@ -27,7 +26,7 @@ namespace Horizon.RT.Models
         public int GenericField3;
         public MediusWorldSecurityLevelType SecurityLevel;
         public MediusWorldStatus WorldStatus;
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public string GameName;
         public byte[] GameStats = new byte[Constants.GAMESTATS_MAXLEN];
         public bool EndOfList;
@@ -43,7 +42,7 @@ namespace Horizon.RT.Models
             // 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadUInt32();
             PlayerCount = reader.ReadUInt16();
             MinPlayers = reader.ReadUInt16();
             MaxPlayers = reader.ReadUInt16();
@@ -56,7 +55,7 @@ namespace Horizon.RT.Models
             GenericField3 = reader.ReadInt32();
             SecurityLevel = reader.Read<MediusWorldSecurityLevelType>();
             WorldStatus = reader.Read<MediusWorldStatus>();
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
             GameStats = reader.ReadBytes(Constants.GAMESTATS_MAXLEN);
             EndOfList = reader.ReadBoolean();

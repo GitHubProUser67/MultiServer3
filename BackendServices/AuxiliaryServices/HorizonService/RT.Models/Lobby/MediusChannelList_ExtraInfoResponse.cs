@@ -15,7 +15,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public int MediusWorldID;
+        public uint MediusWorldID;
         public ushort PlayerCount;
         public ushort MaxPlayers;
         public ushort GameWorldCount;
@@ -28,7 +28,7 @@ namespace Horizon.RT.Models
         public string LobbyName; // LOBBYNAME_MAXLEN
         public bool EndOfList;
 
-        public List<int> channelList1pre108Response = new List<int>() { 10202, 10304, 10550, 10724, 10683, 10684 };
+        public List<int> channelList1pre108Response = new List<int>() { 10202, 10304, 10550, 10724, 10680, 10681, 10683, 10684 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -38,7 +38,7 @@ namespace Horizon.RT.Models
 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadUInt32();
             PlayerCount = reader.ReadUInt16();
             MaxPlayers = reader.ReadUInt16();
 

@@ -21,6 +21,13 @@ namespace Horizon.LIBRARY.Pipeline.Attribute
             OnMediusVersionChanged();
         }
 
+        public ScertClientAttribute(int MediusVersion)
+        {
+            // default
+            this.MediusVersion = MediusVersion;
+            OnMediusVersionChanged();
+        }
+
         #region OnMessage
         public bool OnMessage(BaseScertMessage message)
         {

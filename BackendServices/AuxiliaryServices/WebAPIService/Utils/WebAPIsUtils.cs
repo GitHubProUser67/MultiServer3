@@ -1,8 +1,8 @@
-﻿using CastleLibrary.Utils.Hash;
-using CustomLogger;
+﻿using CustomLogger;
 using System.IO.Compression;
 using System.IO;
 using System;
+using CastleLibrary.Utils;
 
 namespace WebAPIService.Utils
 {
@@ -10,7 +10,7 @@ namespace WebAPIService.Utils
     {
         public static string GenerateDynamicCacheGuid(string input)
         {
-            return NetHasher.ComputeMD5StringWithCleanup(GetCurrentDateTime() + input);
+            return NetHasher.ComputeMD5String(GetCurrentDateTime() + input);
         }
 
         public static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)

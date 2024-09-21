@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using EndianTools;
 using Ionic.Zlib;
 using CyberBackendLibrary.Extension;
+using CastleLibrary.Utils;
 
 namespace QuazalServer.QNetZ
 {
@@ -326,7 +327,7 @@ namespace QuazalServer.QNetZ
             }
 
             for (uint i = 0; i < count; i++)
-                buff = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(buff);
+                buff = NetHasher.ComputeMD5(buff);
 
             return buff;
 		}

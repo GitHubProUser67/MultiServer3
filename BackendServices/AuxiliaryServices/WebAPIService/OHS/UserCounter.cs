@@ -136,6 +136,9 @@ namespace WebAPIService.OHS
             string dataforohs = null;
             (string, string)? output = null;
 
+            if (directorypath.Contains("casino"))
+                v2 = true;
+
             if (string.IsNullOrEmpty(batchparams))
             {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
@@ -447,7 +450,7 @@ namespace WebAPIService.OHS
                     // Getting the value of the "user" field
                     dataforohs = (string)jsonObject["user"];
 
-                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
+                    if (!string.IsNullOrEmpty(dataforohs) && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
                         string tempreader = File.ReadAllText(directorypath + $"User_Profiles/{dataforohs}_Stats.json");
 
@@ -521,25 +524,32 @@ namespace WebAPIService.OHS
                     dataforohs = (string)jsonObject["user"];
                     string[] keys = jsonObject["keys"]?.ToObject<string[]>();
 
-                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
+                    if (keys != null && !string.IsNullOrEmpty(dataforohs) && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
                         string tempreader = File.ReadAllText(directorypath + $"User_Profiles/{dataforohs}_Stats.json");
 
                         if (!string.IsNullOrEmpty(tempreader))
                         {
+                            StringBuilder counterSb = new StringBuilder("{");
+
                             // Parse the JSON string to a JObject
                             jsonObject = JObject.Parse(tempreader);
 
-                            if (keys != null)
+                            foreach (string key in keys)
                             {
-                                foreach (string key in keys)
+                                // Check if the "key" property exists
+                                if (jsonObject.TryGetValue(key, out JToken keyValueToken))
                                 {
-                                    // Check if the "key" property exists
-                                    if (jsonObject.TryGetValue(key, out JToken keyValueToken))
-                                        // Convert the JToken to a Lua table-like string
-                                        output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
+                                    string outputOriginal = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
+
+                                    if (counterSb.Length != 1)
+                                        counterSb.Append($",[\"{key}\"] = {outputOriginal}");
+                                    else
+                                        counterSb.Append($"[\"{key}\"] = {outputOriginal}");
                                 }
                             }
+
+                            output = counterSb.ToString() + '}';
                         }
                     }
                 }
@@ -599,22 +609,25 @@ namespace WebAPIService.OHS
 
                     // Getting the value of the "user" field
                     dataforohs = (string)jsonObject["user"];
+                    string ohsKey = (string)jsonObject["key"];
 
-                    if (dataforohs != null && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
+                    if (!string.IsNullOrEmpty(dataforohs) && File.Exists(directorypath + $"/User_Profiles/{dataforohs}_Stats.json"))
                     {
                         string currencydata = File.ReadAllText(directorypath + $"/User_Profiles/{dataforohs}_Stats.json");
 
                         if (!string.IsNullOrEmpty(currencydata))
                         {
-                            // Parse the JSON string to a JObject
-                            jsonObject = JObject.Parse(currencydata);
-
                             // Check if the "Key" property exists and if it is an object
-                            if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
-                                // Convert the JToken to a Lua table-like string
-                                output = LuaUtils.ConvertJTokenToLuaTable(keyValueToken, false);
+                            if (JObject.Parse(currencydata).TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                            {
+                                if (((JObject)keyValueToken).TryGetValue(ohsKey, out JToken wishlistToken))
+                                    output = LuaUtils.ConvertJTokenToLuaTable(wishlistToken, false);
+                            }
                         }
                     }
+
+                    if (string.IsNullOrEmpty(output))
+                        output = "0";
                 }
             }
             catch (Exception ex)

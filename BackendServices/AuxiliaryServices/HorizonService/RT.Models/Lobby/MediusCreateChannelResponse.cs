@@ -14,7 +14,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public int MediusWorldID;
+        public uint WorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -24,7 +24,7 @@ namespace Horizon.RT.Models
 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadInt32();
+            WorldID = reader.ReadUInt32();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -35,7 +35,7 @@ namespace Horizon.RT.Models
 
             writer.Write(new byte[3]);
             writer.Write(StatusCode);
-            writer.Write(MediusWorldID);
+            writer.Write(WorldID);
         }
 
         public override string ToString()
@@ -43,7 +43,7 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"StatusCode: {StatusCode} " +
-                $"MediusWorldID: {MediusWorldID}";
+                $"MediusWorldID: {WorldID}";
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Horizon.RT.Models
         public string Announcement; // ANNOUNCEMENT_MAXLEN
         public bool EndOfList;
 
-        public List<int> warhawkIds = new List<int>() { 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 }; // list of warhawk app IDs
+        public List<int> old113AnnouncementMaxLenAppIds = new List<int>() { 21564, 21574, 21584, 21594, 22274, 22284, 22294, 22304, 20040, 20041, 20042, 20043, 20044 };
 
         public override void Deserialize(MessageReader reader)
         {
@@ -35,8 +35,7 @@ namespace Horizon.RT.Models
                 Announcement = reader.ReadString(Constants.ANNOUNCEMENT_MAXLEN);
             else if (reader.MediusVersion == 113)
             {
-                // warhawk
-                if (warhawkIds.Contains(reader.AppId))
+                if (old113AnnouncementMaxLenAppIds.Contains(reader.AppId))
                     Announcement = reader.ReadString(Constants.ANNOUNCEMENT_MAXLEN);
                 else
                     Announcement = reader.ReadString(Constants.ANNOUNCEMENT1_MAXLEN);
@@ -62,8 +61,7 @@ namespace Horizon.RT.Models
                 writer.Write(Announcement, Constants.ANNOUNCEMENT_MAXLEN);
             else if (writer.MediusVersion == 113)
             {
-                // warhawk
-                if (warhawkIds.Contains(writer.AppId))
+                if (old113AnnouncementMaxLenAppIds.Contains(writer.AppId))
                     writer.Write(Announcement, Constants.ANNOUNCEMENT_MAXLEN);
                 else
                     writer.Write(Announcement, Constants.ANNOUNCEMENT1_MAXLEN);

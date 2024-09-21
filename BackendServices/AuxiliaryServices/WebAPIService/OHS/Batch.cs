@@ -94,7 +94,11 @@ namespace WebAPIService.OHS
                                         resultfromcommand = User.GetMany(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
                                         break;
                                     case "user/set/":
+                                    case "user/setifempty/":
                                         resultfromcommand = User.Set(PostData, ContentType, directorypath + $"/{project}/", data, false, game);
+                                        break;
+                                    case "user/clearentry/":
+                                        resultfromcommand = User.ClearEntry(PostData, ContentType, directorypath + $"/{project}/", data, game);
                                         break;
                                     case "user/getwritekey/":
                                         resultfromcommand = User.User_GetWritekey(PostData, ContentType, data, game);

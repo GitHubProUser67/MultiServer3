@@ -1,10 +1,11 @@
+using CastleLibrary.Utils;
 using CustomLogger;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace QuazalServer.QNetZ
 {
-	public static class NetworkPlayers
+    public static class NetworkPlayers
 	{
 		public static uint RVCIDCounter = 0xBB98E;
 
@@ -73,7 +74,7 @@ namespace QuazalServer.QNetZ
         public static uint GenerateUniqueUint(string input)
         {
             // Compute hash using MD5 algorithm
-            byte[] hashBytes = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(input);
+            byte[] hashBytes = NetHasher.ComputeMD5(input);
 
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(hashBytes);

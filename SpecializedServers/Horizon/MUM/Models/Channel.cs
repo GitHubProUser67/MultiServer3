@@ -1,8 +1,10 @@
 using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
-using Horizon.MEDIUS;
+using Horizon.SERVER;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
+using CustomLogger;
 
 namespace Horizon.MUM.Models
 {
@@ -15,17 +17,26 @@ namespace Horizon.MUM.Models
     public class Channel
     {
         [JsonIgnore]
-        private static int IdCounter = 0;
+        private static object _Lock = new();
+
+        [JsonIgnore]
+        private static ConcurrentDictionary<int, ConcurrentDictionary<uint, bool>> _IdCounter = new();
 
         [JsonIgnore]
         public List<ClientObject> LocalClients = new();
+        [JsonIgnore]
+        public List<Game> _games = new();
+        [JsonIgnore]
+        public List<Party> _parties = new();
+
         public List<Channel> LocalChannels = new();
 
         public string LobbyIp = MediusClass.SERVER_IP.ToString();
         public string RegionCode = CyberBackendLibrary.GeoLocalization.GeoIP.GetGeoCodeFromIP(MediusClass.SERVER_IP) ?? string.Empty;
         public int LobbyPort = MediusClass.LobbyServer.TCPPort;
-        public int Id = 0;
+        public uint Id = 0;
         public int ApplicationId = 0;
+        public int MediusVersion = 0;
         public ChannelType Type = ChannelType.Lobby;
         public string Name = "MediusLobby";
         public string? Password = null;
@@ -33,7 +44,7 @@ namespace Horizon.MUM.Models
         public int MaxPlayers = 10;
         public int GameLevel = 0;
         public int PlayerSkillLevel = 0;
-        public int RuleSet = 0;
+        public int RulesSet = 0;
         public MediusApplicationType AppType = MediusApplicationType.LobbyChatChannel;
         public MediusWorldSecurityLevelType SecurityLevel = MediusWorldSecurityLevelType.WORLD_SECURITY_NONE;
         public MediusLobbyFilterMaskLevelType LobbyFilterMaskLevelType = MediusLobbyFilterMaskLevelType.MediusLobbyFilterMaskLevel0;
@@ -42,30 +53,123 @@ namespace Horizon.MUM.Models
         public ulong GenericField3 = 0;
         public ulong GenericField4 = 0;
         public MediusWorldGenericFieldLevelType GenericFieldLevel = MediusWorldGenericFieldLevelType.MediusWorldGenericFieldLevel0;
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public MediusWorldStatus WorldStatus;
 
-        public virtual bool ReadyToDestroy => Type == ChannelType.Game && (_removeChannel || (Utils.GetHighPrecisionUtcTime() - _timeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds && GameCount == 0 && PartyCount == 0);
-        public virtual int PlayerCount => LocalClients.Count;
-        public int GameCount => _games.Count;
-        public int PartyCount => _parties.Count;
-
-        [JsonIgnore]
-        public List<Game> _games = new();
-        [JsonIgnore]
-        public List<Party> _parties = new();
+        protected bool _removeChannel = false;
         public DateTime _timeCreated = Utils.GetHighPrecisionUtcTime();
 
-        protected bool _removeChannel = false;
+        public virtual bool ReadyToDestroy => Type == ChannelType.Game && (_removeChannel || ((Utils.GetHighPrecisionUtcTime() - _timeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) && GameCount == 0 && PartyCount == 0);
+        public virtual int PlayerCount => LocalClients.Count;
+        public virtual int GameCount => _games.Count;
+        public virtual int PartyCount => _parties.Count;
 
-        public Channel()
+        private static bool InitializeAppId(int ApplicationId, bool Pre108)
         {
-            Id = IdCounter++;
+            if (_IdCounter.TryAdd(ApplicationId, new ConcurrentDictionary<uint, bool> { }))
+            {
+                if (Pre108)
+                {
+                    // populate collection for Pre108 list as an optimization.
+                    for (byte i = 1; i < 255; ++i)
+                        _IdCounter[ApplicationId].TryAdd(i, false);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
-        public Channel(int ApplicationId, string Name, string Password, int MaxPlayers, uint GenericField1, uint GenericField2, uint GenericField3, uint GenericField4, MediusWorldGenericFieldLevelType GenericFieldLevel)
+        private static bool TryGetNextAvailableId(int ApplicationId, bool Pre108, out uint index)
         {
-            Id = IdCounter++;
+            lock (_Lock)
+            {
+                // If the ApplicationId does not exist, initialize it
+                InitializeAppId(ApplicationId, Pre108);
+
+                if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<uint, bool>? intList))
+                {
+                    // Start at index 2, 1 is reserved.
+                    for (index = 2; index < (Pre108 ? 255 : uint.MaxValue); ++index)
+                    {
+                        if (intList.TryGetValue(index, out bool isUsed) && !isUsed)
+                        {
+                            intList[index] = true;
+                            return true;
+                        }
+                        else if (intList.TryAdd(index, true))
+                            return true;
+                    }
+                }
+            }
+
+            index = 0;
+            return false;
+        }
+
+        private static bool TryRegisterNewId(int ApplicationId, uint idToAdd, bool Pre108)
+        {
+            if (idToAdd <= 0)
+                return false;
+            else if (Pre108 && idToAdd > 255)
+                return false;
+
+            lock (_Lock)
+            {
+                // If the ApplicationId does not exist, initialize it
+                InitializeAppId(ApplicationId, Pre108);
+
+                if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<uint, bool>? intList))
+                {
+                    if (!intList.ContainsKey(idToAdd))
+                        return intList.TryAdd(idToAdd, true);
+                    else
+                    {
+                        intList[idToAdd] = true;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static void UnregisterId(int ApplicationId, uint idToRemove)
+        {
+            if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<uint, bool>? intList) && intList.ContainsKey(idToRemove))
+                intList[idToRemove] = false;
+        }
+
+        public Channel(int ApplicationId, int mediusVersion)
+        {
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+                LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
+
+            this.Id = Id;
+            MediusVersion = mediusVersion;
+
+            this.ApplicationId = ApplicationId;
+        }
+
+        public Channel(uint Id, int ApplicationId, int mediusVersion)
+        {
+            if (!TryRegisterNewId(ApplicationId, Id, mediusVersion <= 108))
+                LoggerAccessor.LogError($"[Channel] - Id:{Id} could not be added in the MUM cache for AppId:{ApplicationId}!");
+
+            this.Id = Id;
+            MediusVersion = mediusVersion;
+
+            this.ApplicationId = ApplicationId;
+        }
+
+        public Channel(uint Id, int ApplicationId, int mediusVersion, string Name, string Password, int MaxPlayers, ulong GenericField1, ulong GenericField2, ulong GenericField3, ulong GenericField4, MediusWorldGenericFieldLevelType GenericFieldLevel, ChannelType type)
+        {
+            if (!TryRegisterNewId(ApplicationId, Id, mediusVersion <= 108))
+                LoggerAccessor.LogError($"[Channel] - Id:{Id} could not be added in the MUM cache for AppId:{ApplicationId}!");
+
+            this.Id = Id;
+            MediusVersion = mediusVersion;
 
             this.ApplicationId = ApplicationId;
             this.Name = Name;
@@ -77,28 +181,19 @@ namespace Horizon.MUM.Models
             this.GenericField3 = GenericField3;
             this.GenericField4 = GenericField4;
             this.GenericFieldLevel = GenericFieldLevel;
+            this.Type = type;
         }
 
-        public Channel(int ApplicationId, string Name, string? Password, int MaxPlayers, uint GenericField1, uint GenericField2, uint GenericField3, MediusWorldGenericFieldLevelType GenericFieldLevel)
+        public Channel(int mediusVersion, MediusCreateChannelRequest request)
         {
-            Id = IdCounter++;
-
-            this.ApplicationId = ApplicationId;
-            this.Name = Name;
-            this.Password = Password;
-            SecurityLevel = string.IsNullOrEmpty(Password) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD;
-            this.MaxPlayers = MaxPlayers;
-            this.GenericField1 = GenericField1;
-            this.GenericField2 = GenericField2;
-            this.GenericField3 = GenericField3;
-            this.GenericFieldLevel = GenericFieldLevel;
-        }
-
-        public Channel(MediusCreateChannelRequest request)
-        {
-            Id = IdCounter++;
-
             ApplicationId = request.ApplicationID;
+
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+                LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
+
+            this.Id = Id;
+            MediusVersion = mediusVersion;
+
             Name = request.LobbyName;
             Password = request.LobbyPassword;
             SecurityLevel = string.IsNullOrEmpty(Password) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD;
@@ -110,31 +205,46 @@ namespace Horizon.MUM.Models
             GenericFieldLevel = request.GenericFieldLevel;
         }
 
-        public Channel(MediusCreateChannelRequest0 request)
+        public Channel(int mediusVersion, MediusCreateChannelRequest0 request)
         {
-            Id = IdCounter++;
-
             ApplicationId = request.ApplicationID;
+
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+                LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
+
+            this.Id = Id;
+            MediusVersion = mediusVersion;
+
             MinPlayers = request.MinPlayers;
             MaxPlayers = request.MaxPlayers;
             GameLevel = request.GameLevel;
             Password = request.GamePassword;
             PlayerSkillLevel = request.PlayerSkillLevel;
-            RuleSet = request.RuleSet;
+            RulesSet = request.RulesSet;
             GenericField1 = request.GenericField1;
             GenericField2 = request.GenericField2;
             GenericField3 = request.GenericField3;
             GameHostType = request.GameHostType;
         }
 
-        public Channel(MediusCreateChannelRequest1 request)
+        public Channel(int mediusVersion, MediusCreateChannelRequest1 request)
         {
-            Id = IdCounter++;
-
             ApplicationId = request.ApplicationID;
+
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+                LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
+
+            this.Id = Id;
+            MediusVersion = mediusVersion;
+
             MaxPlayers = request.MaxPlayers;
             Name = request.LobbyName;
             Password = request.LobbyPassword;
+        }
+
+        public static Channel GetDefaultChannel(int ApplicationId, int mediusVersion)
+        {
+            return new Channel(1, ApplicationId, mediusVersion) { Name = "Default", Type = ChannelType.Lobby };
         }
 
         public virtual Task Tick()
@@ -175,6 +285,7 @@ namespace Horizon.MUM.Models
 
         public virtual void RegisterParty(Party party)
         {
+            _removeChannel = false; // If an other thread removed party but channel not closed yet.
             _parties.Add(party);
         }
 
@@ -192,6 +303,7 @@ namespace Horizon.MUM.Models
         #region Games
         public virtual void RegisterGame(Game game)
         {
+            _removeChannel = false; // If an other thread removed game but channel not closed yet.
             _games.Add(game);
         }
 
@@ -416,7 +528,7 @@ namespace Horizon.MUM.Models
             {
                 client.Queue(new MediusGenericChatFwdMessage1()
                 {
-                    OriginatorAccountID = 0,
+                    OriginatorAccountID = 95481,
                     OriginatorAccountName = "SYSTEM",
                     Message = message,
                     MessageType = MediusChatMessageType.Broadcast,
@@ -427,7 +539,7 @@ namespace Horizon.MUM.Models
             {
                 client.Queue(new MediusGenericChatFwdMessage()
                 {
-                    OriginatorAccountID = 0,
+                    OriginatorAccountID = 95481,
                     OriginatorAccountName = "SYSTEM",
                     Message = message,
                     MessageType = MediusChatMessageType.Broadcast,
@@ -451,7 +563,7 @@ namespace Horizon.MUM.Models
                 {
                     target?.Queue(new MediusGenericChatFwdMessage1()
                     {
-                        OriginatorAccountID = 0,
+                        OriginatorAccountID = 95481,
                         OriginatorAccountName = "SYSTEM",
                         Message = message,
                         MessageType = MediusChatMessageType.Broadcast,
@@ -462,7 +574,7 @@ namespace Horizon.MUM.Models
                 {
                     target?.Queue(new MediusGenericChatFwdMessage()
                     {
-                        OriginatorAccountID = 0,
+                        OriginatorAccountID = 95481,
                         OriginatorAccountName = "SYSTEM",
                         Message = message,
                         MessageType = MediusChatMessageType.Broadcast,

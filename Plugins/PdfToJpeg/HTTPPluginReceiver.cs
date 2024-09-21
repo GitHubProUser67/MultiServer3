@@ -11,10 +11,10 @@ using System.Net;
 using HttpMultipartParser;
 using System.Collections.Generic;
 using System.IO.Compression;
-using CastleLibrary.Utils.Hash;
 using PDFtoImage;
 using SkiaSharp;
 using WebAPIService.Utils;
+using CastleLibrary.Utils;
 
 namespace PdfToJpeg
 {
@@ -127,7 +127,7 @@ namespace PdfToJpeg
                             using Stream filedata = multipartfile.Data;
                             using MemoryStream pdfstream = new();
                             int i = 0;
-                            string pdfDirectory = $"{maindir}/{NetHasher.ComputeMD5StringWithCleanup(WebAPIsUtils.GetCurrentDateTime() + filename)}/";
+                            string pdfDirectory = $"{maindir}/{NetHasher.ComputeMD5String(WebAPIsUtils.GetCurrentDateTime() + filename)}/";
                             string pdfPrefix = pdfDirectory + Path.GetFileNameWithoutExtension(filename);
                             Directory.CreateDirectory(pdfDirectory);
                             filedata.CopyTo(pdfstream);

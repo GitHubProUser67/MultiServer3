@@ -23,7 +23,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// World ID of the channel to get information about.
         /// </summary>
-        public int WorldID;
+        public uint WorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -34,7 +34,7 @@ namespace Horizon.RT.Models
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
 
-            WorldID = reader.ReadInt32();
+            WorldID = reader.ReadUInt32();
         }
 
         public override void Serialize(MessageWriter writer)

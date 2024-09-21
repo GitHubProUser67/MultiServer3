@@ -13,9 +13,9 @@ using System;
 using System.Threading.Tasks;
 using System.Linq;
 using CompressionLibrary.Edge;
-using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
 using WebAPIService.Utils;
+using CastleLibrary.Utils;
 
 namespace HomeWebTools
 {
@@ -727,7 +727,7 @@ namespace HomeWebTools
                                 }
                                 else
                                 {
-                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.ComputeSHA1StringWithCleanup(buffer).Substring(0, 16).ToUpper(), cdnMode);
+                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.ComputeSHA1String(buffer).Substring(0, 16).ToUpper(), cdnMode);
 
                                     if (ProcessedFileBytes != null)
                                         TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_encrypted{Path.GetExtension(filename)}"));

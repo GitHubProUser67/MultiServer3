@@ -1,3 +1,4 @@
+using CastleLibrary.Utils;
 using CustomLogger;
 using CyberBackendLibrary.TCP_IP;
 using MitmDNS;
@@ -183,7 +184,7 @@ class Program
     {
         using FileStream stream = File.OpenRead(filePath);
         // Convert the byte array to a hexadecimal string
-        return CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(stream);
+        return NetHasher.ComputeMD5String(stream);
     }
 
     static void Main()

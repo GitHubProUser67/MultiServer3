@@ -29,7 +29,7 @@ namespace Horizon.RT.Models
         public MediusWorldStatus WorldStatus;
         public MediusJoinType JoinType;
         public string GamePassword; // GAMEPASSWORD_MAXLEN
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public NetAddressList AddressList;
         public uint AppDataSize;
         public byte[] AppData;
@@ -59,7 +59,7 @@ namespace Horizon.RT.Models
             WorldStatus = reader.Read<MediusWorldStatus>();
             JoinType = reader.Read<MediusJoinType>();
             GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             AddressList = reader.Read<NetAddressList>();
             AppDataSize = reader.ReadUInt32();
             AppData = reader.ReadBytes((int)AppDataSize);

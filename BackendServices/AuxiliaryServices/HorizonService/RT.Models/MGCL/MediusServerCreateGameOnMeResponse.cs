@@ -12,7 +12,7 @@ namespace Horizon.RT.Models
 
         public MessageId MessageID { get; set; }
         public MGCL_ERROR_CODE Confirmation;
-        public int MediusWorldID;
+        public uint MediusWorldID;
 
         public bool IsSuccess => Confirmation >= 0;
 
@@ -23,7 +23,7 @@ namespace Horizon.RT.Models
             MessageID = reader.Read<MessageId>();
             Confirmation = reader.Read<MGCL_ERROR_CODE>();
             reader.ReadBytes(2);
-            MediusWorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadUInt32();
         }
 
         public override void Serialize(MessageWriter writer)

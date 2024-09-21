@@ -12,7 +12,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public string SessionKey; // SESSIONKEY_MAXLEN
-        public int WorldID;
+        public uint WorldID;
         public string LobbyChannelPassword; // LOBBYPASSWORD_MAXLEN
 
         public override void Deserialize(MessageReader reader)
@@ -23,7 +23,7 @@ namespace Horizon.RT.Models
 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
-            WorldID = reader.ReadInt32();
+            WorldID = reader.ReadUInt32();
             LobbyChannelPassword = reader.ReadString(Constants.LOBBYPASSWORD_MAXLEN);
         }
 

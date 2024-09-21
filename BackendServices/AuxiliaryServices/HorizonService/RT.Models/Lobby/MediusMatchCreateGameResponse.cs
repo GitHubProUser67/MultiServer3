@@ -14,7 +14,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public int MediusWorldID;
+        public uint MediusWorldID;
         public int SystemSpecificStatusCode;
         public string RequestData; // REQUESTDATA_MAXLEN
         public int ApplicationDataSize;
@@ -27,7 +27,7 @@ namespace Horizon.RT.Models
             MessageID = reader.Read<MessageId>();
 
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadInt32();
+            MediusWorldID = reader.ReadUInt32();
             SystemSpecificStatusCode = reader.ReadInt32();
             RequestData = reader.ReadString(Constants.REQUESTDATA_MAXLEN);
             ApplicationDataSize = reader.ReadInt32();

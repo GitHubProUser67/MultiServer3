@@ -83,7 +83,7 @@ namespace MitmDNS
                     else
                     {
                         string[] split = s.Split(',');
-                        DnsSettings dns = new();
+                        DnsSettings dns = new DnsSettings();
                         switch (split[1].Trim().ToLower())
                         {
                             case "deny":
@@ -119,14 +119,28 @@ namespace MitmDNS
                             domain = domain.Replace("*", ".*");
 
                             lock (StarRules)
+#if NETCOREAPP2_0_OR_GREATER
                                 StarRules.TryAdd(domain, dns);
+#else
+                            {
+                                if (!StarRules.ContainsKey(domain))
+                                    StarRules.Add(domain, dns);
+                            }
+#endif
                         }
                         else
                         {
                             lock (DicRules)
                             {
+#if NETCOREAPP2_0_OR_GREATER
                                 DicRules.TryAdd(domain, dns);
                                 DicRules.TryAdd("www." + domain, dns);
+#else
+                                if (!DicRules.ContainsKey(domain))
+                                    DicRules.Add(domain, dns);
+                                if (!DicRules.ContainsKey("www." + domain))
+                                    DicRules.Add("www." + domain, dns);
+#endif
                             }
                         }
                     }
@@ -144,7 +158,7 @@ namespace MitmDNS
             string[] lines = File.ReadAllLines(Filename);
 
             // Define a list to store extracted hostnames
-            List<string> hostnames = new();
+            List<string> hostnames = new List<string>();
 
             foreach (string line in lines)
             {
@@ -157,7 +171,7 @@ namespace MitmDNS
                     hostnames.Add(parts[1].Trim());
             }
 
-            DnsSettings dns = new();
+            DnsSettings dns = new DnsSettings();
 
             Parallel.ForEach(hostnames, hostname =>
             {
@@ -171,10 +185,10 @@ namespace MitmDNS
                         if (line.StartsWith("\t\tA"))
                         {
                             // Extract the IP address using a regular expression
-#if NET6_0
-                            Match match = new Regex(@"A\\s+(\\S+)").Match(line);
-#elif NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
                             Match match = SimpleDNSRegex().Match(line);
+#else
+                            Match match = new Regex(@"A\\s+(\\S+)").Match(line);
 #endif
                             if (match.Success)
                             {
@@ -183,8 +197,15 @@ namespace MitmDNS
 
                                 lock (DicRules)
                                 {
+#if NETCOREAPP2_0_OR_GREATER
                                     DicRules.TryAdd(hostname, dns);
                                     DicRules.TryAdd("www." + hostname, dns);
+#else
+                                    if (!DicRules.ContainsKey(hostname))
+                                        DicRules.Add(hostname, dns);
+                                    if (!DicRules.ContainsKey("www." + hostname))
+                                        DicRules.Add("www." + hostname, dns);
+#endif
                                 }
 
                                 break;

@@ -15,6 +15,7 @@ using CyberBackendLibrary.Extension;
 using Ionic.Exploration;
 using System.Threading;
 using System.Buffers;
+using CastleLibrary.Utils;
 
 namespace CyberBackendLibrary.HTTP
 {
@@ -892,7 +893,7 @@ namespace CyberBackendLibrary.HTTP
             if (!input.CanSeek)
                 return null;
 
-            string md5Hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(input).ToLower();
+            string md5Hash = NetHasher.ComputeMD5String(input).ToLower();
             input.Seek(0, SeekOrigin.Begin);
             return md5Hash;
         }

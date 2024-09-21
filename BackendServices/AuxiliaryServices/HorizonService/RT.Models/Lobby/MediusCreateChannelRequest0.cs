@@ -21,11 +21,11 @@ namespace Horizon.RT.Models
         public int GameLevel;
         public string GamePassword; // GAMEPASSWORD_MAXLEN
         public int PlayerSkillLevel;
-        public int RuleSet;
+        public int RulesSet;
         public uint GenericField1;
         public uint GenericField2;
         public uint GenericField3;
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -41,11 +41,11 @@ namespace Horizon.RT.Models
             GameLevel = reader.ReadInt32();
             GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
             PlayerSkillLevel = reader.ReadInt32();
-            RuleSet = reader.ReadInt32();
+            RulesSet = reader.ReadInt32();
             GenericField1 = reader.ReadUInt32();
             GenericField2 = reader.ReadUInt32();
             GenericField3 = reader.ReadUInt32();
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
         }
 
         public override void Serialize(MessageWriter writer)
@@ -62,7 +62,7 @@ namespace Horizon.RT.Models
             writer.Write(GameLevel);
             writer.Write(GamePassword);
             writer.Write(PlayerSkillLevel);
-            writer.Write(RuleSet);
+            writer.Write(RulesSet);
             writer.Write(GenericField1);
             writer.Write(GenericField2);
             writer.Write(GenericField3);
@@ -80,7 +80,7 @@ namespace Horizon.RT.Models
                 $"GameLevel: {GameLevel} " +
                 $"GamePassword: {GamePassword} " +
                 $"PlayerSkillLevel: {PlayerSkillLevel} " +
-                $"Ruleset: {RuleSet} " +
+                $"Ruleset: {RulesSet} " +
                 $"GenericField1: {GenericField1:X8} " +
                 $"GenericField2: {GenericField2:X8} " +
                 $"GenericField3: {GenericField3:X8} " +

@@ -3,12 +3,12 @@ using Newtonsoft.Json;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
 using Horizon.DME.Config;
+using Horizon.DME.Models;
 using System.Diagnostics;
 using System.Net;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
-using Horizon.MUM.Models;
 
 
 namespace Horizon.DME
@@ -344,7 +344,7 @@ namespace Horizon.DME
                                     await HorizonServerConfiguration.Database.SetServerSettings(appId, appSettings.GetSettings());
                                 }
 
-                                RoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, null, null, false);
+                                RoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, 0, null, false);
                             }
                         }
                     }
@@ -369,12 +369,7 @@ namespace Horizon.DME
             }
         }
 
-        public static ClientObject? GetMPSClients(string appId)
-        {
-            return MPSManagers.Select(x => x.Value.GetClientByAppId(appId)).FirstOrDefault(x => x != null);
-        }
-
-        public static ClientObject? GetMPSClientByAccessToken(string? accessToken)
+        public static DMEObject? GetMPSClientByAccessToken(string? accessToken)
         {
             if (string.IsNullOrEmpty(accessToken))
                 return null;
@@ -382,7 +377,7 @@ namespace Horizon.DME
             return MPSManagers.Select(x => x.Value.GetClientByAccessToken(accessToken)).FirstOrDefault(x => x != null);
         }
 
-        public static ClientObject? GetMPSClientBySessionKey(string? sessionKey)
+        public static DMEObject? GetMPSClientBySessionKey(string? sessionKey)
         {
             if (string.IsNullOrEmpty(sessionKey))
                 return null;

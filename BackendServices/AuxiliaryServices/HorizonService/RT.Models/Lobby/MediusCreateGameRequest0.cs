@@ -26,7 +26,7 @@ namespace Horizon.RT.Models
         public int GenericField1;
         public int GenericField2;
         public int GenericField3;
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -47,7 +47,7 @@ namespace Horizon.RT.Models
             GenericField1 = reader.ReadInt32();
             GenericField2 = reader.ReadInt32();
             GenericField3 = reader.ReadInt32();
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
         }
 
         public override void Serialize(MessageWriter writer)

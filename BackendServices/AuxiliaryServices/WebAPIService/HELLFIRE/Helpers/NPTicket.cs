@@ -4,8 +4,8 @@ using WebAPIService.SSFW;
 using System.Text;
 using System.IO;
 using System;
-using CastleLibrary.Utils.Hash;
 using CyberBackendLibrary.Extension;
+using CastleLibrary.Utils;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
@@ -73,7 +73,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
+                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 10);
@@ -93,7 +93,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
+                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 14);
