@@ -4,7 +4,7 @@ namespace Horizon.LIBRARY.Database.Models
 {
     public class PartyDTO
     {
-        public uint PartyId { get; set; }
+        public int PartyId { get; set; }
         public int AppId { get; set; }
         public int MinPlayers { get; set; }
         public int MaxPlayers { get; set; }

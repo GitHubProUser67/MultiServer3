@@ -15,7 +15,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public uint MediusWorldID;
+        public int MediusWorldID;
         public string GameName;
         public MediusWorldStatus WorldStatus;
         public MGCL_GAME_HOST_TYPE GameHostType;
@@ -33,7 +33,7 @@ namespace Horizon.RT.Models
             // 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
             GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
             WorldStatus = reader.Read<MediusWorldStatus>();
             GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();

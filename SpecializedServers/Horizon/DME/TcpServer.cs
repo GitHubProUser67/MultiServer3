@@ -780,30 +780,23 @@ namespace Horizon.DME
                                 byte[] HubMessagePayload = clientAppSingle.Payload;
                                 int HubPathernOffset = DataUtils.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00, 0x00 });
 
-                                if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 4) // Hub command.
+                                if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                 {
-                                    try
+                                    switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
                                     {
-                                        switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
-                                        {
-                                            case -85: // IGA
-                                                InvalidRequest = true;
-                                                string SupplementalMessage = "Unknown";
+                                        case -85: // IGA
+                                            InvalidRequest = true;
+                                            string SupplementalMessage = "Unknown";
 
-                                                switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
-                                                {
-                                                    case 0x0B:
-                                                        SupplementalMessage = "Kick";
-                                                        break;
-                                                }
+                                            switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
+                                            {
+                                                case 0x0B:
+                                                    SupplementalMessage = "Kick";
+                                                    break;
+                                            }
 
-                                                LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
-                                                break;
-                                        }
-                                    }
-                                    catch
-                                    {
-
+                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
+                                            break;
                                     }
                                 }
                             }

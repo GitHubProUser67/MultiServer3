@@ -23,7 +23,7 @@ namespace Horizon.MUM.Models
         }
 
         public int MediusVersion = 0;
-        public uint MediusWorldId = 0;
+        public int MediusWorldId = 0;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
         public List<GameClient> LocalClients = new();
@@ -436,7 +436,7 @@ namespace Horizon.MUM.Models
             MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
-        public virtual uint ReassignGameMediusWorldID(MediusReassignGameMediusWorldID reassignGameMediusWorldID)
+        public virtual int ReassignGameMediusWorldID(MediusReassignGameMediusWorldID reassignGameMediusWorldID)
         {
             // Ensure reassignedGame Old MediusWorldID matches current Game
             if (reassignGameMediusWorldID.OldMediusWorldID != MediusWorldId)
@@ -479,11 +479,9 @@ namespace Horizon.MUM.Models
             }
 
             // Auto close when everyone leaves or if host fails to connect after timeout time if not a p2p game.
-            bool CloseWorld = (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer) ? (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame)
+            if ((GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer) ? (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame)
                 && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
-                : (!utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds);
-
-            if (CloseWorld)
+                : (!utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
             {
                 LoggerAccessor.LogWarn("AUTO CLOSING WORLD");
                 utcTimeEmpty = Utils.GetHighPrecisionUtcTime();

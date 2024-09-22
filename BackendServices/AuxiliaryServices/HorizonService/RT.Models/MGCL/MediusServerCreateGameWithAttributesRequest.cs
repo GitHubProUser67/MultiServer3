@@ -13,7 +13,7 @@ namespace Horizon.RT.Models
         public int ApplicationID;
         public int MaxClients;
         public MediusWorldAttributesType Attributes;
-        public uint WorldID;
+        public int WorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -24,7 +24,7 @@ namespace Horizon.RT.Models
             ApplicationID = reader.ReadInt32();
             MaxClients = reader.ReadInt32();
             Attributes = reader.Read<MediusWorldAttributesType>();
-            WorldID = reader.ReadUInt32();
+            WorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)

@@ -291,7 +291,7 @@ namespace Horizon.SERVER.Medius
                         {
                             bool offseted = false;
                             int partyType = 0;
-                            uint gameOrPartyId = 0;
+                            int gameOrPartyId = 0;
                             int accountId = 0;
                             string msgId = string.Empty;
 
@@ -300,11 +300,11 @@ namespace Horizon.SERVER.Medius
                             if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
                             {
                                 offseted = true;
-                                gameOrPartyId = uint.Parse(messageParts[0]);
+                                gameOrPartyId = int.Parse(messageParts[0]);
                                 accountId = -int.Parse(messageParts[2]);
                                 msgId = messageParts[3];
                             }
-                            else if (uint.TryParse(messageParts[0], out gameOrPartyId) &&
+                            else if (int.TryParse(messageParts[0], out gameOrPartyId) &&
                                 int.TryParse(messageParts[1], out accountId))
                                 msgId = messageParts[2];
                             else
@@ -432,7 +432,7 @@ namespace Horizon.SERVER.Medius
                         {
                             bool offseted = false;
                             int partyType = 0;
-                            uint gameOrPartyId = 0;
+                            int gameOrPartyId = 0;
                             int accountId = 0;
                             string msgId = string.Empty;
                             List<int> approvedMaxPlayersAppIds = new() { 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
@@ -445,11 +445,11 @@ namespace Horizon.SERVER.Medius
                             if (messageParts != null && messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
                             {
                                 offseted = true;
-                                gameOrPartyId = uint.Parse(messageParts[0]);
+                                gameOrPartyId = int.Parse(messageParts[0]);
                                 accountId = -int.Parse(messageParts[2]);
                                 msgId = messageParts[3];
                             }
-                            else if (messageParts != null && uint.TryParse(messageParts[0], out gameOrPartyId) &&
+                            else if (messageParts != null && int.TryParse(messageParts[0], out gameOrPartyId) &&
                                 int.TryParse(messageParts[1], out accountId))
                                 msgId = messageParts[2];
                             else
@@ -1067,7 +1067,7 @@ namespace Horizon.SERVER.Medius
             return null;
         }
 
-        public void SendServerCreateGameWithAttributesRequestP2P(string msgId, int acctId, uint gameId, bool partyType, Game game, ClientObject client)
+        public void SendServerCreateGameWithAttributesRequestP2P(string msgId, int acctId, int gameId, bool partyType, Game game, ClientObject client)
         {
             //{gameId}-{acctId}-{messageId}-{partyType}
             Queue(new RT_MSG_SERVER_APP()
@@ -1099,7 +1099,7 @@ namespace Horizon.SERVER.Medius
             }, channel);
         }
 
-        public void SendServerCreateGameWithAttributesRequest(string msgId, int acctId, uint worldId, uint gameId, bool partyType, int gameAttributes, int clientAppId, int gameMaxPlayers)
+        public void SendServerCreateGameWithAttributesRequest(string msgId, int acctId, int worldId, int gameId, bool partyType, int gameAttributes, int clientAppId, int gameMaxPlayers)
         {
             //{gameId}-{acctId}-{messageId}-{partyType}
             Queue(new RT_MSG_SERVER_APP()
@@ -1126,13 +1126,9 @@ namespace Horizon.SERVER.Medius
             byte[] bytes = BitConverter.GetBytes(ipAddress);
             string ipAddressConverted = new IPAddress(bytes).ToString();
 
-            // flip little-endian to big-endian(network order)
-            /* NOT NEEDED
-            if (BitConverter.IsLittleEndian)
-            {
+            if (!BitConverter.IsLittleEndian)
                 Array.Reverse(bytes);
-            }
-            */
+
             return ipAddressConverted;
         }
         #endregion

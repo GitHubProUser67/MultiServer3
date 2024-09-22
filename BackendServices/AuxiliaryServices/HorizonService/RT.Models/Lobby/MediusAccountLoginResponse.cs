@@ -16,7 +16,7 @@ namespace Horizon.RT.Models
         public MediusCallbackStatus StatusCode;
         public int AccountID;
         public MediusAccountType AccountType;
-        public uint WorldID;
+        public int WorldID;
         public NetConnectionInfo ConnectInfo;
 
         public override void Deserialize(MessageReader reader)
@@ -29,7 +29,7 @@ namespace Horizon.RT.Models
             StatusCode = reader.Read<MediusCallbackStatus>();
             AccountID = reader.ReadInt32();
             AccountType = reader.Read<MediusAccountType>();
-            WorldID = reader.ReadUInt32();
+            WorldID = reader.ReadInt32();
             ConnectInfo = reader.Read<NetConnectionInfo>();
         }
 

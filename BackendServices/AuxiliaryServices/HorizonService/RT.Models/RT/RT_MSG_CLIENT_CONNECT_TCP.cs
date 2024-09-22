@@ -9,7 +9,7 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_CONNECT_TCP;
 
-        public uint TargetWorldId = 1;
+        public int TargetWorldId = 1;
         public byte UNK0;
         public byte[] UNK1;
         public int AppId;
@@ -30,7 +30,7 @@ namespace Horizon.RT.Models
                 UNK0 = reader.ReadByte();
             }
             else
-                TargetWorldId = reader.ReadUInt32();
+                TargetWorldId = reader.ReadInt32();
             AppId = reader.ReadInt32();
             Key = reader.Read<RSA_KEY>();
 

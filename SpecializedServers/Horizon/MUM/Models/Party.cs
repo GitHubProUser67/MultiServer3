@@ -26,7 +26,7 @@ namespace Horizon.MUM.Models
         }
 
         public int MediusVersion = 0;
-        public uint MediusWorldID = 0;
+        public int MediusWorldID = 0;
         public int ApplicationId = 0;
         public List<PartyClient> LocalClients = new();
         public string? PartyName;

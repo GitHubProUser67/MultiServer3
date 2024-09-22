@@ -9,7 +9,6 @@ using Horizon.RT.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.SERVER.Extension.PlayStationHome;
-using Microsoft.Extensions.Logging;
 
 namespace Horizon.MUM.Models
 {
@@ -210,7 +209,7 @@ namespace Horizon.MUM.Models
         /// </summary>
         public Party? CurrentParty { get; protected set; } = null;
 
-        public uint? PartyIndex { get; protected set; } = null;
+        public int? PartyIndex { get; protected set; } = null;
 
         /// <summary>
         /// 
@@ -613,7 +612,7 @@ namespace Horizon.MUM.Models
 
         #region Party
 
-        public async Task JoinParty(Party party, uint partyIndex)
+        public async Task JoinParty(Party party, int partyIndex)
         {
             // Leave current game
             await LeaveCurrentParty();

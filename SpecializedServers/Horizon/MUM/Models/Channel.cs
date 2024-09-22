@@ -20,7 +20,7 @@ namespace Horizon.MUM.Models
         private static object _Lock = new();
 
         [JsonIgnore]
-        private static ConcurrentDictionary<int, ConcurrentDictionary<uint, bool>> _IdCounter = new();
+        private static ConcurrentDictionary<int, ConcurrentDictionary<int, bool>> _IdCounter = new();
 
         [JsonIgnore]
         public List<ClientObject> LocalClients = new();
@@ -34,7 +34,7 @@ namespace Horizon.MUM.Models
         public string LobbyIp = MediusClass.SERVER_IP.ToString();
         public string RegionCode = CyberBackendLibrary.GeoLocalization.GeoIP.GetGeoCodeFromIP(MediusClass.SERVER_IP) ?? string.Empty;
         public int LobbyPort = MediusClass.LobbyServer.TCPPort;
-        public uint Id = 0;
+        public int Id = 0;
         public int ApplicationId = 0;
         public int MediusVersion = 0;
         public ChannelType Type = ChannelType.Lobby;
@@ -66,7 +66,7 @@ namespace Horizon.MUM.Models
 
         private static bool InitializeAppId(int ApplicationId, bool Pre108)
         {
-            if (_IdCounter.TryAdd(ApplicationId, new ConcurrentDictionary<uint, bool> { }))
+            if (_IdCounter.TryAdd(ApplicationId, new ConcurrentDictionary<int, bool> { }))
             {
                 if (Pre108)
                 {
@@ -81,17 +81,17 @@ namespace Horizon.MUM.Models
             return false;
         }
 
-        private static bool TryGetNextAvailableId(int ApplicationId, bool Pre108, out uint index)
+        private static bool TryGetNextAvailableId(int ApplicationId, bool Pre108, out int index)
         {
             lock (_Lock)
             {
                 // If the ApplicationId does not exist, initialize it
                 InitializeAppId(ApplicationId, Pre108);
 
-                if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<uint, bool>? intList))
+                if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<int, bool>? intList))
                 {
                     // Start at index 2, 1 is reserved.
-                    for (index = 2; index < (Pre108 ? 255 : uint.MaxValue); ++index)
+                    for (index = 2; index < (Pre108 ? 255 : int.MaxValue); ++index)
                     {
                         if (intList.TryGetValue(index, out bool isUsed) && !isUsed)
                         {
@@ -108,7 +108,7 @@ namespace Horizon.MUM.Models
             return false;
         }
 
-        private static bool TryRegisterNewId(int ApplicationId, uint idToAdd, bool Pre108)
+        private static bool TryRegisterNewId(int ApplicationId, int idToAdd, bool Pre108)
         {
             if (idToAdd <= 0)
                 return false;
@@ -120,7 +120,7 @@ namespace Horizon.MUM.Models
                 // If the ApplicationId does not exist, initialize it
                 InitializeAppId(ApplicationId, Pre108);
 
-                if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<uint, bool>? intList))
+                if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<int, bool>? intList))
                 {
                     if (!intList.ContainsKey(idToAdd))
                         return intList.TryAdd(idToAdd, true);
@@ -135,15 +135,15 @@ namespace Horizon.MUM.Models
             return false;
         }
 
-        public static void UnregisterId(int ApplicationId, uint idToRemove)
+        public static void UnregisterId(int ApplicationId, int idToRemove)
         {
-            if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<uint, bool>? intList) && intList.ContainsKey(idToRemove))
+            if (_IdCounter.TryGetValue(ApplicationId, out ConcurrentDictionary<int, bool>? intList) && intList.ContainsKey(idToRemove))
                 intList[idToRemove] = false;
         }
 
         public Channel(int ApplicationId, int mediusVersion)
         {
-            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out int Id))
                 LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
 
             this.Id = Id;
@@ -152,7 +152,7 @@ namespace Horizon.MUM.Models
             this.ApplicationId = ApplicationId;
         }
 
-        public Channel(uint Id, int ApplicationId, int mediusVersion)
+        public Channel(int Id, int ApplicationId, int mediusVersion)
         {
             if (!TryRegisterNewId(ApplicationId, Id, mediusVersion <= 108))
                 LoggerAccessor.LogError($"[Channel] - Id:{Id} could not be added in the MUM cache for AppId:{ApplicationId}!");
@@ -163,7 +163,7 @@ namespace Horizon.MUM.Models
             this.ApplicationId = ApplicationId;
         }
 
-        public Channel(uint Id, int ApplicationId, int mediusVersion, string Name, string Password, int MaxPlayers, ulong GenericField1, ulong GenericField2, ulong GenericField3, ulong GenericField4, MediusWorldGenericFieldLevelType GenericFieldLevel, ChannelType type)
+        public Channel(int Id, int ApplicationId, int mediusVersion, string Name, string Password, int MaxPlayers, ulong GenericField1, ulong GenericField2, ulong GenericField3, ulong GenericField4, MediusWorldGenericFieldLevelType GenericFieldLevel, ChannelType type)
         {
             if (!TryRegisterNewId(ApplicationId, Id, mediusVersion <= 108))
                 LoggerAccessor.LogError($"[Channel] - Id:{Id} could not be added in the MUM cache for AppId:{ApplicationId}!");
@@ -188,7 +188,7 @@ namespace Horizon.MUM.Models
         {
             ApplicationId = request.ApplicationID;
 
-            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out int Id))
                 LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
 
             this.Id = Id;
@@ -209,7 +209,7 @@ namespace Horizon.MUM.Models
         {
             ApplicationId = request.ApplicationID;
 
-            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out int Id))
                 LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
 
             this.Id = Id;
@@ -231,7 +231,7 @@ namespace Horizon.MUM.Models
         {
             ApplicationId = request.ApplicationID;
 
-            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out uint Id))
+            if (!TryGetNextAvailableId(ApplicationId, mediusVersion <= 108, out int Id))
                 LoggerAccessor.LogError($"[Channel] - Failed to get a new Id in the MUM cache for AppId:{ApplicationId}!");
 
             this.Id = Id;

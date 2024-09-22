@@ -16,12 +16,12 @@ namespace Horizon.RT.Models
         /// <summary>
         /// Old Medius game world ID
         /// </summary>
-        public uint OldMediusWorldID;
+        public int OldMediusWorldID;
 
         /// <summary>
         /// New Medius game world ID
         /// </summary>
-        public uint NewMediusWorldID;
+        public int NewMediusWorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -29,8 +29,8 @@ namespace Horizon.RT.Models
             base.Deserialize(reader);
 
             // 
-            OldMediusWorldID = reader.ReadUInt32();
-            NewMediusWorldID = reader.ReadUInt32();
+            OldMediusWorldID = reader.ReadInt32();
+            NewMediusWorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)

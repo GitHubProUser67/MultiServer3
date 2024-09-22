@@ -17,7 +17,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// WorldID of the Connected client
         /// </summary>
-        public uint TargetWorldID;
+        public int TargetWorldID;
         /// <summary>
         /// ServerKey
         /// </summary>
@@ -35,7 +35,7 @@ namespace Horizon.RT.Models
         {
             Type = reader.Read<NetConnectionType>();
             AddressList = reader.Read<NetAddressList>();
-            TargetWorldID = reader.ReadUInt32();
+            TargetWorldID = reader.ReadInt32();
             ServerKey = reader.Read<RSA_KEY>();
             SessionKey = reader.ReadString(Constants.NET_SESSION_KEY_LEN);
             AccessKey = reader.ReadString(Constants.NET_ACCESS_KEY_LEN);

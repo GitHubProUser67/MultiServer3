@@ -15,7 +15,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public string SessionKey; // SESSIONKEY_MAXLEN
-        public uint MediusWorldID;
+        public int MediusWorldID;
         public string GamePassword; // GAMEPASSWORD_MAXLEN
         public MGCL_GAME_HOST_TYPE GameHostType;
         public NetAddressList AddressList;
@@ -28,7 +28,7 @@ namespace Horizon.RT.Models
 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
             GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
             GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             AddressList = reader.Read<NetAddressList>();

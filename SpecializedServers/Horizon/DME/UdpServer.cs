@@ -245,6 +245,7 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_FLUSH_ALL flushAll:
                     {
+
                         return;
                     }
                 case RT_MSG_CLIENT_DISCONNECT _:

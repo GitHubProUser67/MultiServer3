@@ -11,7 +11,7 @@ namespace Horizon.RT.Models
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerEndGameOnMeRequest;
 
         public MessageId MessageID { get; set; }
-        public uint MediusWorldID;
+        public int MediusWorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -19,7 +19,7 @@ namespace Horizon.RT.Models
 
             MessageID = reader.Read<MessageId>();
             reader.ReadBytes(3);
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)

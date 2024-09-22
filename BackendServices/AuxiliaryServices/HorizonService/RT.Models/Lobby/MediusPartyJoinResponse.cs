@@ -31,7 +31,7 @@ namespace Horizon.RT.Models
         /// </summary>
         public NetConnectionInfo ConnectionInfo;
 
-        public uint partyIndex;
+        public int partyIndex;
 
         public int maxPlayers;
 
@@ -47,7 +47,7 @@ namespace Horizon.RT.Models
             StatusCode = reader.Read<MediusCallbackStatus>();
             PartyHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             ConnectionInfo = reader.Read<NetConnectionInfo>();
-            partyIndex = reader.ReadUInt32();
+            partyIndex = reader.ReadInt32();
             if (SetMaxPlayers)
                 maxPlayers = reader.ReadInt32();
         }
