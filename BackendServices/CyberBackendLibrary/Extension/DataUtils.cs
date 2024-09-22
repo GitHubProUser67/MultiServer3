@@ -2,6 +2,7 @@ using System.Linq;
 using System.IO;
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CyberBackendLibrary.Extension
 {
@@ -28,6 +29,36 @@ namespace CyberBackendLibrary.Extension
                     result[i] = ((uint)s[1]) + ((uint)s[0] << 16);
             }
             return result;
+        }
+
+        public static string HexStringToString(string hexString)
+        {
+            byte[] bytes = new byte[hexString.Length / 2];
+
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = Convert.ToByte(hexString.Substring(i * 2, 2), 16);
+            }
+
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        /// <summary>
+        /// Transform a string to it's hexadecimal representation.
+        /// <para>Obtenir un string dans sa représentation hexadecimale.</para>
+        /// <param name="str">The string to transform.</param>
+        /// </summary>
+        /// <returns>A string.</returns>
+        public static string StringToHexString(string str)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (byte t in Encoding.UTF8.GetBytes(str))
+            {
+                sb.Append(t.ToString("X2"));
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>
