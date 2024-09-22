@@ -20,7 +20,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// MediusWorldID
         /// </summary>
-        public uint MediusWorldID;
+        public int MediusWorldID;
         /// <summary>
         /// Party Password
         /// </summary>
@@ -53,7 +53,7 @@ namespace Horizon.RT.Models
             reader.ReadBytes(2);
 
             //
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
             PartyPassword = reader.ReadString(Constants.PARTYPASSWORD_MAXLEN);
             PartyHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             pubKey = reader.Read<RSA_KEY>();

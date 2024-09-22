@@ -3720,7 +3720,7 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="gameId">Game id.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<bool> DeleteGame(uint gameId)
+        public async Task<bool> DeleteGame(int gameId)
         {
             bool result = false;
 
@@ -4066,7 +4066,7 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="partyId">Party id.</param>
         /// <returns>Success or failure.</returns>
-        public async Task<bool> DeleteParty(uint partyId)
+        public async Task<bool> DeleteParty(int partyId)
         {
             bool result = false;
 

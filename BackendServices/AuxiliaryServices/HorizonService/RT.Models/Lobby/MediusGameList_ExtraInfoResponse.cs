@@ -13,7 +13,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public uint MediusWorldID;
+        public int MediusWorldID;
         public ushort PlayerCount;
         public ushort MinPlayers;
         public ushort MaxPlayers;
@@ -46,7 +46,7 @@ namespace Horizon.RT.Models
             // 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
             PlayerCount = reader.ReadUInt16();
             MinPlayers = reader.ReadUInt16();
             MaxPlayers = reader.ReadUInt16();

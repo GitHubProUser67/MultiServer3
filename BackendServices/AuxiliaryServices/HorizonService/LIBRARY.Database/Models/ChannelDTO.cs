@@ -2,7 +2,7 @@ namespace Horizon.LIBRARY.Database.Models
 {
     public class ChannelDTO
     {
-        public uint Id { get; set; }
+        public int Id { get; set; }
         public int AppId { get; set; }
         public int MediusVersion { get; set; }
         public string Name { get; set; }

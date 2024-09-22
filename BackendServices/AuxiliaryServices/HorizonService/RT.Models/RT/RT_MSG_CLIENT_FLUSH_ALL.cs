@@ -8,22 +8,22 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_FLUSH_ALL;
 
-        public byte[] Contents;
+        public byte[] Payload;
 
         public override void Deserialize(MessageReader reader)
         {
-            Contents = reader.ReadRest();
+            Payload = reader.ReadRest();
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            writer.Write(Contents);
+            writer.Write(Payload);
         }
 
         public override string ToString()
         {
             return base.ToString() + " " +
-                $"Contents: {System.BitConverter.ToString(Contents)}";
+                $"Contents: {System.BitConverter.ToString(Payload)}";
         }
     }
 }

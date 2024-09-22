@@ -14,7 +14,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public uint MediusWorldID;
+        public int MediusWorldID;
         public string LobbyName; // LOBBYNAME_MAXLEN
         public int PlayerCount;
         public bool EndOfList;
@@ -27,7 +27,7 @@ namespace Horizon.RT.Models
 
             reader.ReadBytes(3);
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
             LobbyName = reader.ReadString(Constants.LOBBYNAME_MAXLEN);
             PlayerCount = reader.ReadInt32();
             EndOfList = reader.ReadBoolean();

@@ -1925,8 +1925,8 @@ namespace Horizon.SERVER.Medius
                                     OnlineState = new MediusPlayerOnlineState()
                                     {
                                         ConnectStatus = (friendClient != null && friendClient.IsLoggedIn) ? friendClient.PlayerStatus : MediusPlayerStatus.MediusPlayerDisconnected,
-                                        MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? 0,
-                                        MediusGameWorldID = friendClient?.CurrentGame?.MediusWorldId ?? 0,
+                                        MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? -1,
+                                        MediusGameWorldID = friendClient?.CurrentGame?.MediusWorldId ?? -1,
                                         GameName = friendClient?.CurrentGame?.GameName ?? string.Empty,
                                         LobbyName = friendClient?.CurrentChannel?.Name ?? string.Empty
                                     },
@@ -1973,7 +1973,7 @@ namespace Horizon.SERVER.Medius
                                         {
                                             ConnectStatus = (friendClient != null && friendClient.IsLoggedIn) ? friendClient.PlayerStatus : MediusPlayerStatus.MediusPlayerDisconnected,
                                             MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId, data.ClientObject.MediusVersion).Id,
-                                            MediusGameWorldID = friendClient?.CurrentGame?.MediusWorldId ?? 0,
+                                            MediusGameWorldID = friendClient?.CurrentGame?.MediusWorldId ?? -1,
                                             GameName = friendClient?.CurrentGame?.GameName ?? string.Empty,
                                             LobbyName = friendClient?.CurrentChannel?.Name ?? string.Empty
                                         },
@@ -1991,8 +1991,8 @@ namespace Horizon.SERVER.Medius
                                         OnlineState = new MediusPlayerOnlineState()
                                         {
                                             ConnectStatus = (friendClient != null && friendClient.IsLoggedIn) ? friendClient.PlayerStatus : MediusPlayerStatus.MediusPlayerDisconnected,
-                                            MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? 0,
-                                            MediusGameWorldID = friendClient?.CurrentGame?.MediusWorldId ?? 0,
+                                            MediusLobbyWorldID = friendClient?.CurrentChannel?.Id ?? -1,
+                                            MediusGameWorldID = friendClient?.CurrentGame?.MediusWorldId ?? -1,
                                             GameName = friendClient?.CurrentGame?.GameName ?? string.Empty,
                                             LobbyName = friendClient?.CurrentChannel?.Name ?? string.Empty
                                         },
@@ -2694,8 +2694,8 @@ namespace Horizon.SERVER.Medius
                                             ConnectStatus = account?.PlayerStatus ?? MediusPlayerStatus.MediusPlayerDisconnected,
                                             GameName = account?.CurrentGame?.GameName,
                                             LobbyName = account?.CurrentChannel?.Name ?? string.Empty,
-                                            MediusGameWorldID = account?.CurrentGame?.MediusWorldId ?? 0,
-                                            MediusLobbyWorldID = account?.CurrentChannel?.Id ?? 0
+                                            MediusGameWorldID = account?.CurrentGame?.MediusWorldId ?? -1,
+                                            MediusLobbyWorldID = account?.CurrentChannel?.Id ?? -1
                                         },
                                         StatusCode = MediusCallbackStatus.MediusSuccess,
                                         EndOfList = false
@@ -2772,8 +2772,8 @@ namespace Horizon.SERVER.Medius
                                         OnlineState = new MediusPlayerOnlineState()
                                         {
                                             ConnectStatus = MediusPlayerStatus.MediusPlayerDisconnected,
-                                            MediusGameWorldID = 0,
-                                            MediusLobbyWorldID = 0,
+                                            MediusGameWorldID = -1,
+                                            MediusLobbyWorldID = -1,
                                             LobbyName = null,
                                             GameName = null
                                         },
@@ -2799,8 +2799,8 @@ namespace Horizon.SERVER.Medius
                                         OnlineState = new MediusPlayerOnlineState()
                                         {
                                             ConnectStatus = MediusPlayerStatus.MediusPlayerDisconnected,
-                                            MediusGameWorldID = 0,
-                                            MediusLobbyWorldID = 0,
+                                            MediusGameWorldID = -1,
+                                            MediusLobbyWorldID = -1,
                                             LobbyName = null,
                                             GameName = null
                                         },
@@ -2817,8 +2817,8 @@ namespace Horizon.SERVER.Medius
                                     OnlineState = new MediusPlayerOnlineState()
                                     {
                                         ConnectStatus = MediusPlayerStatus.MediusPlayerDisconnected,
-                                        MediusGameWorldID = 0,
-                                        MediusLobbyWorldID = 0,
+                                        MediusGameWorldID = -1,
+                                        MediusLobbyWorldID = -1,
                                         LobbyName = null,
                                         GameName = null
                                     },
@@ -3154,7 +3154,7 @@ namespace Horizon.SERVER.Medius
                                 AccountName = foundPlayer.AccountName,
                                 ApplicationType = (foundPlayer.PlayerStatus == MediusPlayerStatus.MediusPlayerInGameWorld) ? MediusApplicationType.MediusAppTypeGame : MediusApplicationType.LobbyChatChannel,
                                 ApplicationName = appName,
-                                MediusWorldID = (foundPlayer.PlayerStatus == MediusPlayerStatus.MediusPlayerInGameWorld) ? foundPlayer.CurrentGame?.MediusWorldId ?? 0 : foundPlayer.CurrentChannel?.Id ?? 0,
+                                MediusWorldID = (foundPlayer.PlayerStatus == MediusPlayerStatus.MediusPlayerInGameWorld) ? foundPlayer.CurrentGame?.MediusWorldId ?? -1 : foundPlayer.CurrentChannel?.Id ?? -1,
                                 EndOfList = true
                             });
 
@@ -3794,8 +3794,8 @@ namespace Horizon.SERVER.Medius
                                                 ConnectStatus = account?.PlayerStatus ?? MediusPlayerStatus.MediusPlayerDisconnected,
                                                 GameName = account?.CurrentGame?.GameName,
                                                 LobbyName = account?.CurrentChannel?.Name ?? string.Empty,
-                                                MediusGameWorldID = account?.CurrentGame?.MediusWorldId ?? 0,
-                                                MediusLobbyWorldID = account?.CurrentChannel?.Id ?? 0
+                                                MediusGameWorldID = account?.CurrentGame?.MediusWorldId ?? -1,
+                                                MediusLobbyWorldID = account?.CurrentChannel?.Id ?? -1
                                             },
                                             LadderStat = getClanMemberList_ExtraInfoRequest.LadderStatIndex + 1,
                                             LadderPosition = (uint)r.Result.ClanMember.FindIndex(x => x == cachedAccount.Result),
@@ -5141,11 +5141,11 @@ namespace Horizon.SERVER.Medius
                             break;
                         }
 
-                        uint result = data.ClientObject.CurrentGame.ReassignGameMediusWorldID(reassignGameMediusWorldID);
+                        int result = data.ClientObject.CurrentGame.ReassignGameMediusWorldID(reassignGameMediusWorldID);
                         if (result != 0)
                         {
-                            uint iCurrentMediusWorldID = reassignGameMediusWorldID.OldMediusWorldID;
-                            uint iNewMediusWorldID = result;
+                            int iCurrentMediusWorldID = reassignGameMediusWorldID.OldMediusWorldID;
+                            int iNewMediusWorldID = result;
 
                             data.ClientObject.Queue(new MediusReassignGameMediusWorldID()
                             {
@@ -6585,8 +6585,8 @@ namespace Horizon.SERVER.Medius
                                     ConnectStatus = x.PlayerStatus,
                                     GameName = x.CurrentGame?.GameName,
                                     LobbyName = x.CurrentChannel?.Name,
-                                    MediusGameWorldID = x.CurrentGame?.MediusWorldId ?? 0,
-                                    MediusLobbyWorldID = x.CurrentChannel?.Id ?? 0
+                                    MediusGameWorldID = x.CurrentGame?.MediusWorldId ?? -1,
+                                    MediusLobbyWorldID = x.CurrentChannel?.Id ?? -1
                                 },
                                 EndOfList = false
                             }).ToArray();

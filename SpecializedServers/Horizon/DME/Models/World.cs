@@ -16,7 +16,7 @@ namespace Horizon.DME.Models
 
         #region Id Management
 
-        private static ConcurrentDictionary<uint, World> _idToWorld = new();
+        private static ConcurrentDictionary<int, World> _idToWorld = new();
         private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
 
         private static object _lock = new();
@@ -25,7 +25,7 @@ namespace Horizon.DME.Models
         {
             lock (_idToWorld)
             {
-                for (uint index = 1; index < uint.MaxValue; ++index)
+                for (int index = 1; index < int.MaxValue; ++index)
                 {
                     if (!_idToWorld.TryGetValue(index, out _))
                     {
@@ -39,7 +39,7 @@ namespace Horizon.DME.Models
             }
         }
 
-        private void RegisterWorld(uint MediusWorldId, uint WorldId)
+        private void RegisterWorld(int MediusWorldId, int WorldId)
         {
             if (_idToWorld.Count > MAX_WORLDS)
             {
@@ -68,7 +68,7 @@ namespace Horizon.DME.Models
                 LoggerAccessor.LogError($"[DMEWorld] - Failed to unregister world with id {WorldId}");
         }
 
-        public World? GetWorldById(uint MediusWorldId, uint DmeWorldId)
+        public World? GetWorldById(int MediusWorldId, int DmeWorldId)
         {
             return _idToWorld.Values.FirstOrDefault(world => world.MediusWorldId == MediusWorldId && world.WorldId == DmeWorldId);
         }
@@ -103,9 +103,9 @@ namespace Horizon.DME.Models
 
         #endregion
 
-        public uint WorldId { get; protected set; } = 0;
+        public int WorldId { get; protected set; } = 0;
 
-        public uint MediusWorldId { get; protected set; } = 0;
+        public int MediusWorldId { get; protected set; } = 0;
 
         public int ApplicationId { get; protected set; } = 0;
 
@@ -129,7 +129,7 @@ namespace Horizon.DME.Models
 
         public MPSClient? Manager { get; } = null;
         
-        public World(MPSClient manager, int appId, int maxPlayers, uint MediusWorldId, uint WorldId)
+        public World(MPSClient manager, int appId, int maxPlayers, int MediusWorldId, int WorldId)
         {
             MaxPlayers = (DmeClass.Settings.MaxClientsOverride != -1) ? DmeClass.Settings.MaxClientsOverride : maxPlayers;
 

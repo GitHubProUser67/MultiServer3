@@ -12,7 +12,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public string SessionKey; // SESSIONKEY_MAXLEN
-        public uint MediusWorldID;
+        public int MediusWorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
             // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             reader.ReadBytes(2);
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)

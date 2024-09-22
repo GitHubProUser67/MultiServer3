@@ -31,7 +31,7 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Update or Create a Room based on the provided parameters
-        public static void UpdateOrCreateRoom(string appId, string? gameName, uint? gameId, string? worldId, string? accountName, int accountDmeId, string? languageType, bool host)
+        public static void UpdateOrCreateRoom(string appId, string? gameName, int? gameId, string? worldId, string? accountName, int accountDmeId, string? languageType, bool host)
         {
             Room? roomToUpdate = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
 
@@ -227,7 +227,7 @@ namespace Horizon.HTTPSERVICE
 
     public class GameList
     {
-        public uint DmeWorldId { get; set; }
+        public int DmeWorldId { get; set; }
         public string? Name { get; set; }
         public DateTime CreationDate { get; set; }
         public List<Player>? Clients { get; set; }

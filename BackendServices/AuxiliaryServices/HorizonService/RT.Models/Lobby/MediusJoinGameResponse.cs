@@ -2,7 +2,6 @@ using System.IO;
 using CustomLogger;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
-using System.Collections.Generic;
 
 namespace Horizon.RT.Models
 {

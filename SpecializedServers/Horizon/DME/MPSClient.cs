@@ -438,7 +438,7 @@ namespace Horizon.DME
                             {
                                 bool offseted = false;
                                 int partyType = 0;
-                                uint gameOrPartyId = 0;
+                                int gameOrPartyId = 0;
                                 int accountId = 0;
                                 string msgId = string.Empty;
 
@@ -447,11 +447,11 @@ namespace Horizon.DME
                                 if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
                                 {
                                     offseted = true;
-                                    gameOrPartyId = uint.Parse(messageParts[0]);
+                                    gameOrPartyId = int.Parse(messageParts[0]);
                                     accountId = -int.Parse(messageParts[2]);
                                     msgId = messageParts[3];
                                 }
-                                else if (uint.TryParse(messageParts[0], out gameOrPartyId) &&
+                                else if (int.TryParse(messageParts[0], out gameOrPartyId) &&
                                     int.TryParse(messageParts[1], out accountId))
                                     msgId = messageParts[2];
                                 else
@@ -492,7 +492,7 @@ namespace Horizon.DME
                     }
                 case MediusServerJoinGameRequest joinGameRequest:
                     {
-                        if (uint.TryParse(joinGameRequest.MessageID?.Value.Split('-')[0], out uint gameOrPartyId))
+                        if (int.TryParse(joinGameRequest.MessageID?.Value.Split('-')[0], out int gameOrPartyId))
                         {
                             World? world = _worlds.FirstOrDefault(x => x.WorldId == gameOrPartyId && !x.Destroyed);
                             if (world == null)

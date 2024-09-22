@@ -79,7 +79,7 @@ namespace Horizon.MUM
             return -1;
         }
 
-        public static int GetIndexOfLocalChannelByIdAndAppId(uint channelId, int AppId)
+        public static int GetIndexOfLocalChannelByIdAndAppId(int channelId, int AppId)
         {
             try
             {
@@ -131,7 +131,7 @@ namespace Horizon.MUM
             return null;
         }
 
-        public static Channel? GetRemoteChannelById(uint WorldId, int Appid, IPAddress ClientIp)
+        public static Channel? GetRemoteChannelById(int WorldId, int Appid, IPAddress ClientIp)
         {
             try
             {

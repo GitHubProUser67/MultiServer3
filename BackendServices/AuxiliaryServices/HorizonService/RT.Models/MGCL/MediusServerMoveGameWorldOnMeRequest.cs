@@ -14,8 +14,8 @@ namespace Horizon.RT.Models
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerMoveGameWorldOnMeRequest;
 
         public MessageId MessageID { get; set; }
-        public uint CurrentMediusWorldID;
-        public uint NewGameMediusWorldID;
+        public int CurrentMediusWorldID;
+        public int NewGameMediusWorldID;
         public NetAddressList AddressList;
 
         public override void Deserialize(MessageReader reader)
@@ -24,8 +24,8 @@ namespace Horizon.RT.Models
 
             MessageID = reader.Read<MessageId>();
             reader.ReadBytes(3);
-            CurrentMediusWorldID = reader.ReadUInt32();
-            NewGameMediusWorldID = reader.ReadUInt32();
+            CurrentMediusWorldID = reader.ReadInt32();
+            NewGameMediusWorldID = reader.ReadInt32();
             AddressList = reader.Read<NetAddressList>();
         }
 

@@ -25,8 +25,8 @@ namespace Horizon.MUM
             public Dictionary<int, AccountDTO> BuddyInvitationsToClient = new();
 
             public Dictionary<int, List<Channel>> AppIdToChannel = new();
-            public Dictionary<uint, Game> GameIdToGame = new();
-            public Dictionary<uint, Party> PartyIdToGame = new();
+            public Dictionary<int, Game> GameIdToGame = new();
+            public Dictionary<int, Party> PartyIdToGame = new();
 
             public Dictionary<int, Clan> ClanIdToClan = new();
             public Dictionary<string, Clan> ClanNameToClan = new();
@@ -256,7 +256,7 @@ namespace Horizon.MUM
             return null;
         }
 
-        public Game? GetGameByGameId(uint gameId)
+        public Game? GetGameByGameId(int gameId)
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
@@ -338,7 +338,7 @@ namespace Horizon.MUM
             return Games;
         }
 
-        public Party? GetPartyByPartyId(uint partyId)
+        public Party? GetPartyByPartyId(int partyId)
         {
             foreach (var lookupByAppId in _lookupsByAppId)
             {
@@ -515,7 +515,7 @@ namespace Horizon.MUM
                     Message = new MediusCreateGameResponse()
                     {
                         MessageID = request.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusGameNameExists
                     }
                 });
@@ -531,7 +531,7 @@ namespace Horizon.MUM
                 client.Queue(new MediusCreateGameResponse()
                 {
                     MessageID = request.MessageID,
-                    MediusWorldID = 0,
+                    MediusWorldID = -1,
                     StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
                 });
                 return;
@@ -549,7 +549,7 @@ namespace Horizon.MUM
                     dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        WorldID = (uint)game.MediusWorldId,
+                        WorldID = game.MediusWorldId,
                         Attributes = game.Attributes,
                         ApplicationID = client.ApplicationId,
                         MaxClients = game.MaxPlayers
@@ -567,7 +567,7 @@ namespace Horizon.MUM
             client.Queue(new MediusCreateGameResponse()
             {
                 MessageID = request.MessageID,
-                MediusWorldID = 0,
+                MediusWorldID = -1,
                 StatusCode = MediusCallbackStatus.MediusFail
             });
         }
@@ -598,7 +598,7 @@ namespace Horizon.MUM
                     Message = new MediusCreateGameResponse()
                     {
                         MessageID = request.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusGameNameExists
                     }
                 });
@@ -614,7 +614,7 @@ namespace Horizon.MUM
                 client.Queue(new MediusCreateGameResponse()
                 {
                     MessageID = request.MessageID,
-                    MediusWorldID = 0,
+                    MediusWorldID = -1,
                     StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
                 });
                 return;
@@ -632,7 +632,7 @@ namespace Horizon.MUM
                     dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        WorldID = (uint)game.MediusWorldId,
+                        WorldID = game.MediusWorldId,
                         Attributes = game.Attributes,
                         ApplicationID = client.ApplicationId,
                         MaxClients = game.MaxPlayers
@@ -650,7 +650,7 @@ namespace Horizon.MUM
             client.Queue(new MediusCreateGameResponse()
             {
                 MessageID = request.MessageID,
-                MediusWorldID = 0,
+                MediusWorldID = -1,
                 StatusCode = MediusCallbackStatus.MediusFail
             });
         }
@@ -677,7 +677,7 @@ namespace Horizon.MUM
                     Message = new MediusMatchCreateGameResponse()
                     {
                         MessageID = matchCreateGameRequest.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusGameNameExists
                     }
                 });
@@ -703,7 +703,7 @@ namespace Horizon.MUM
                         client.Queue(new MediusMatchCreateGameResponse()
                         {
                             MessageID = matchCreateGameRequest.MessageID,
-                            MediusWorldID = 0,
+                            MediusWorldID = -1,
                             StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
                         });
                         return;
@@ -733,7 +733,7 @@ namespace Horizon.MUM
                     client.Queue(new MediusMatchCreateGameResponse()
                     {
                         MessageID = matchCreateGameRequest.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusMatchGameCreationFailed
                     });
                 }
@@ -749,7 +749,7 @@ namespace Horizon.MUM
                     client.Queue(new MediusMatchCreateGameResponse()
                     {
                         MessageID = matchCreateGameRequest.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
                     });
                     return;
@@ -770,7 +770,7 @@ namespace Horizon.MUM
                     dme.Queue(new MediusServerCreateGameWithAttributesRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{matchCreateGameRequest.MessageID}-{0}"),
-                        WorldID = (uint)game.MediusWorldId,
+                        WorldID = game.MediusWorldId,
                         Attributes = game.Attributes,
                         ApplicationID = client.ApplicationId,
                         MaxClients = game.MaxPlayers
@@ -784,7 +784,7 @@ namespace Horizon.MUM
                     client.Queue(new MediusMatchCreateGameResponse()
                     {
                         MessageID = matchCreateGameRequest.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusMatchGameCreationFailed
                     });
                 }
@@ -857,7 +857,7 @@ namespace Horizon.MUM
                     Message = new MediusCreateGameResponse()
                     {
                         MessageID = request.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusGameNameExists
                     }
                 });
@@ -896,7 +896,7 @@ namespace Horizon.MUM
             client.Queue(new MediusCreateGameResponse()
             {
                 MessageID = request.MessageID,
-                MediusWorldID = 0,
+                MediusWorldID = -1,
                 StatusCode = MediusCallbackStatus.MediusFail
             });
 
@@ -915,7 +915,27 @@ namespace Horizon.MUM
             if ((client.ApplicationId == 20371 || client.ApplicationId == 20374) && client.ClientHomeData != null && client.ClientHomeData.VersionAsDouble >= 01.21)
                 approvedMaxPlayersAppIds.Add(client.ApplicationId);
 
-            Game? game = GetGameByGameId(request.MediusWorldID); // MUM original fetches GameWorldData
+            Game? game = null;
+            if (request.MediusWorldID == -1)
+            {
+                IEnumerable<Game>? gameList = GetGameListAppId(client.ApplicationId, 1, 100); // -1 means any?
+
+                if (gameList == null)
+                {
+                    LoggerAccessor.LogWarn($"[MediusManager] - Join Game Request Handler Error: Error in retrieving game world info from MUM cache [{request.MediusWorldID}]");
+                    client.Queue(new MediusJoinGameResponse()
+                    {
+                        SetMaxPlayers = approvedMaxPlayersAppIds.Contains(client.ApplicationId),
+                        MessageID = request.MessageID,
+                        StatusCode = MediusCallbackStatus.MediusGameNotFound
+                    });
+                }
+                else
+                    game = gameList.FirstOrDefault();
+            }
+            else
+                game = GetGameByGameId(request.MediusWorldID); // MUM original fetches GameWorldData
+
             if (game == null)
             {
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: Error in retrieving game world info from MUM cache [{request.MediusWorldID}]");
@@ -1205,7 +1225,7 @@ namespace Horizon.MUM
             return channels;
         }
 
-        public Channel? GetChannelByChannelId(uint channelId, int appId)
+        public Channel? GetChannelByChannelId(int channelId, int appId)
         {
             foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
@@ -1401,20 +1421,6 @@ namespace Horizon.MUM
         {
             List<int> approvedMaxPlayersAppIds = new() { 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
 
-            #region Client
-            /*
-            if (client == null)
-            {
-                Logger.Warn($"Join Game Request Handler Error: Player is not priviliged [{client}]");
-                client.Queue(new MediusJoinGameResponse()
-                {
-                    MessageID = request.MessageID,
-                    StatusCode = MediusCallbackStatus.MediusGameNotFound
-                });
-            }
-            */
-            #endregion
-
             Party? party = GetPartyByPartyId(request.MediusWorldID); // MUM original fetches GameWorldData
             if (party == null)
             {
@@ -1577,7 +1583,7 @@ namespace Horizon.MUM
                     Message = new MediusCreateGameResponse()
                     {
                         MessageID = request.MessageID,
-                        MediusWorldID = 0,
+                        MediusWorldID = -1,
                         StatusCode = MediusCallbackStatus.MediusGameNameExists
                     }
                 });
@@ -1595,7 +1601,7 @@ namespace Horizon.MUM
                 client.Queue(new MediusPartyCreateResponse()
                 {
                     MessageID = request.MessageID,
-                    MediusWorldID = 0,
+                    MediusWorldID = -1,
                     StatusCode = MediusCallbackStatus.MediusTransactionTimedOut
                 });
                 return;
@@ -1634,7 +1640,7 @@ namespace Horizon.MUM
             client.Queue(new MediusPartyCreateResponse()
             {
                 MessageID = request.MessageID,
-                MediusWorldID = 0,
+                MediusWorldID = -1,
                 StatusCode = MediusCallbackStatus.MediusFail
             });
         }
@@ -2025,8 +2031,8 @@ namespace Horizon.MUM
         {
             try
             {
-                Queue<(QuickLookup, uint)> gamesToRemove = new();
-                Queue<(QuickLookup, uint)> partiesToRemove = new();
+                Queue<(QuickLookup, int)> gamesToRemove = new();
+                Queue<(QuickLookup, int)> partiesToRemove = new();
 
                 // Tick games
                 foreach (var quickLookup in _lookupsByAppId)

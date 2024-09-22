@@ -4,7 +4,7 @@ namespace Horizon.LIBRARY.Database.Models
 {
     public class GameDTO
     {
-        public uint GameId { get; set; }
+        public int GameId { get; set; }
         public int AppId { get; set; }
         public int MinPlayers { get; set; }
         public int MaxPlayers { get; set; }

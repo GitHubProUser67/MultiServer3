@@ -13,7 +13,7 @@ namespace Horizon.RT.Models.MGCL
         public int ApplicationID;
         public int MaxClients;
         public MediusWorldAttributesType Attributes;
-        public uint MediusWorldUID;
+        public int MediusWorldUID;
         public NetConnectionInfo ConnectInfo;
 
         public override void Deserialize(MessageReader reader)
@@ -25,7 +25,7 @@ namespace Horizon.RT.Models.MGCL
             ApplicationID = reader.ReadInt32();
             MaxClients = reader.ReadInt32();
             Attributes = reader.Read<MediusWorldAttributesType>();
-            MediusWorldUID = reader.ReadUInt32();
+            MediusWorldUID = reader.ReadInt32();
             ConnectInfo = reader.Read<NetConnectionInfo>();
         }
 

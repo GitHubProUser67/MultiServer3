@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// MediusWorldID to make this Party in
         /// </summary>
-        public uint MediusWorldID;
+        public int MediusWorldID;
 
         public override void Deserialize(MessageReader reader)
         {
@@ -38,7 +38,7 @@ namespace Horizon.RT.Models
 
             // 
             StatusCode = reader.Read<MediusCallbackStatus>();
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
         }
 
         public override void Serialize(MessageWriter writer)

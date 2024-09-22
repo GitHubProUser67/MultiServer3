@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// MediusGameWorldID
         /// </summary>
-        public uint MediusWorldID;
+        public int MediusWorldID;
         /// <summary>
         /// Game Password
         /// </summary>
@@ -89,7 +89,7 @@ namespace Horizon.RT.Models
             
             //
             SupersetID = reader.ReadUInt32();
-            MediusWorldID = reader.ReadUInt32();
+            MediusWorldID = reader.ReadInt32();
             PlayerJoinType = reader.Read<MediusJoinType>();
             MinPlayers = reader.ReadUInt32();
             MaxPlayers = reader.ReadUInt32();
