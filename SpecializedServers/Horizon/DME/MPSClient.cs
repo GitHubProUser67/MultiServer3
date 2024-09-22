@@ -473,14 +473,26 @@ namespace Horizon.DME
                                 }
 
                                 World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, createGameWithAttributesRequest.WorldID, gameOrPartyId);
-                                _worlds.Add(world);
 
-                                Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                                if (world.WorldId == -1)
                                 {
-                                    MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{partyType}"),
-                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                    MediusWorldId = createGameWithAttributesRequest.WorldID,
-                                });
+                                    Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                                    {
+                                        MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{partyType}"),
+                                        Confirmation = MGCL_ERROR_CODE.MGCL_WORLDID_INUSE
+                                    });
+                                }
+                                else
+                                {
+                                    _worlds.Add(world);
+
+                                    Enqueue(new MediusServerCreateGameWithAttributesResponse()
+                                    {
+                                        MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{partyType}"),
+                                        Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                        MediusWorldId = createGameWithAttributesRequest.WorldID,
+                                    });
+                                }
                             }
                         }
                         catch (Exception e)
