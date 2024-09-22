@@ -25,6 +25,12 @@ namespace CyberBackendLibrary.Extension
                 _list.Add(item);
         }
 
+        public ConcurrentList(List<T> collection)
+        {
+            lock (_lock)
+                _list.AddRange(collection);
+        }
+
         public ConcurrentList(IList<T> collection)
         {
             lock (_lock)
@@ -197,6 +203,12 @@ namespace CyberBackendLibrary.Extension
         {
             lock (_lock)
                 _list.Add(item);
+        }
+
+        public void AddRange(List<T> item)
+        {
+            lock (_lock)
+                _list.AddRange(item);
         }
 
         public bool Contains(T checkitem)

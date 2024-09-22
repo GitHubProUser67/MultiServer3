@@ -1,6 +1,6 @@
 using CustomLogger;
 using CyberBackendLibrary.TCP_IP;
-using MultiSocks.DirtySocks;
+using MultiSocks.Aries;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Runtime;
@@ -85,7 +85,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "MultiSocks.json";
-    private static DirtySocksServer? DSServer;
+    private static AriesServer? DSServer;
 
     private static void StartOrUpdateServer()
     {
@@ -97,7 +97,7 @@ class Program
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        DSServer = new DirtySocksServer(new CancellationTokenSource().Token);
+        DSServer = new AriesServer(new CancellationTokenSource().Token);
     }
 
     static void Main()
