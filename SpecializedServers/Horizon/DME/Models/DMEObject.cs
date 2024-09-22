@@ -158,6 +158,8 @@ namespace Horizon.DME.Models
             byte[] tokenBuf = new byte[12];
             RNG.NextBytes(tokenBuf);
             Token = Convert.ToBase64String(tokenBuf);
+			
+            UtcLastMessageReceived = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
         }
 
         public DMEObject(string sessionKey)
