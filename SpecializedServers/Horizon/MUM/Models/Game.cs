@@ -696,6 +696,7 @@ namespace Horizon.MUM.Models
                 GameChannel.GenericField2 = (ulong)report.GenericField2;
                 GameChannel.GenericField3 = (ulong)report.GenericField3;
                 GameChannel.GenericField4 = (ulong)report.GenericField4;
+                GameChannel.WorldStatus = report.WorldStatus;
             }
 
             // Once the world has been closed then we force it closed.
@@ -766,6 +767,7 @@ namespace Horizon.MUM.Models
                 GameChannel.GenericField1 = (ulong)report.GenericField1;
                 GameChannel.GenericField2 = (ulong)report.GenericField2;
                 GameChannel.GenericField3 = (ulong)report.GenericField3;
+                GameChannel.WorldStatus = report.WorldStatus;
             }
 
             // Once the world has been closed then we force it closed.
@@ -843,6 +845,7 @@ namespace Horizon.MUM.Models
                 GameChannel.GenericField2 = (ulong)report.GenericField2;
                 GameChannel.GenericField3 = (ulong)report.GenericField3;
                 GameChannel.GenericField4 = (ulong)report.GenericField4;
+                GameChannel.WorldStatus = report.WorldStatus;
             }
 
             // Once the world has been closed then we force it closed.
