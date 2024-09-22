@@ -22,26 +22,6 @@ namespace Horizon.DME.Models
 
         private static object _lock = new();
 
-        private void TryRegisterNextFreeWorldId()
-        {
-            lock (_idToWorld)
-            {
-                for (int index = 0; index < int.MaxValue; ++index)
-                {
-                    if (!_idToWorld.TryGetValue(index, out _))
-                    {
-                        WorldId = index;
-
-                        _idToWorld.TryAdd(index, this);
-
-                        return;
-                    }
-                }
-            }
-
-            WorldId = -1;
-        }
-
         private void RegisterWorld(int GameChannelWorldId, int WorldId)
         {
             if (_idToWorld.Count > MAX_WORLDS)
@@ -57,9 +37,8 @@ namespace Horizon.DME.Models
                 LoggerAccessor.LogInfo($"[DMEWorld] - Registered world with id {WorldId}");
             else
             {
-                // BEWARE, some rare games will not like a different Id (stupid Wipeout 2048 "security")
-                LoggerAccessor.LogWarn($"[DMEWorld] - Failed to register world with id {WorldId}, trying next available slot");
-                TryRegisterNextFreeWorldId();
+                this.WorldId = -1;
+                LoggerAccessor.LogError($"[DMEWorld] - Failed to register world with id {WorldId}");
             }
         }
 
