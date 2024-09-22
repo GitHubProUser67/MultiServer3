@@ -476,7 +476,16 @@ namespace Horizon.SERVER.Medius
 
                             IPHostEntry host = Dns.GetHostEntry(MediusClass.Settings.NATIp ?? "natservice.pdonline.scea.com");
 
-                            if (partyType == 1 && party != null)
+                            if (!joinGameResponse.IsSuccess)
+                            {
+                                rClient?.Queue(new MediusJoinGameResponse()
+                                {
+                                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
+                                    MessageID = new MessageId(msgId),
+                                    StatusCode = MediusCallbackStatus.MediusFail
+                                });
+                            }
+                            else if (partyType == 1 && party != null)
                             {
                                 rClient?.Queue(new MediusPartyJoinByIndexResponse()
                                 {
@@ -502,15 +511,6 @@ namespace Horizon.SERVER.Medius
                                     },
                                     partyIndex = party.MediusWorldID,
                                     maxPlayers = party.MaxPlayers
-                                });
-                            }
-                            else if (!joinGameResponse.IsSuccess)
-                            {
-                                rClient?.Queue(new MediusJoinGameResponse()
-                                {
-                                    SetMaxPlayers = approvedMaxPlayersAppIds.Contains(data.ClientObject.ApplicationId),
-                                    MessageID = new MessageId(msgId),
-                                    StatusCode = MediusCallbackStatus.MediusFail
                                 });
                             }
                             else

@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Horizon.PluginManager;
 using CyberBackendLibrary.Extension;
+using System;
 
 namespace Horizon.DME.Models
 {
@@ -25,7 +26,7 @@ namespace Horizon.DME.Models
         {
             lock (_idToWorld)
             {
-                for (int index = 1; index < int.MaxValue; ++index)
+                for (int index = 0; index < int.MaxValue; ++index)
                 {
                     if (!_idToWorld.TryGetValue(index, out _))
                     {
@@ -37,9 +38,11 @@ namespace Horizon.DME.Models
                     }
                 }
             }
+
+            WorldId = -1;
         }
 
-        private void RegisterWorld(int MediusWorldId, int WorldId)
+        private void RegisterWorld(int GameChannelWorldId, int WorldId)
         {
             if (_idToWorld.Count > MAX_WORLDS)
             {
@@ -47,7 +50,7 @@ namespace Horizon.DME.Models
                 return;
             }
 
-            this.MediusWorldId = MediusWorldId;
+            this.GameChannelWorldId = GameChannelWorldId;
             this.WorldId = WorldId;
 
             if (_idToWorld.TryAdd(WorldId, this))
@@ -68,9 +71,9 @@ namespace Horizon.DME.Models
                 LoggerAccessor.LogError($"[DMEWorld] - Failed to unregister world with id {WorldId}");
         }
 
-        public World? GetWorldById(int MediusWorldId, int DmeWorldId)
+        public World? GetWorldById(int GameChannelWorldId, int DmeWorldId)
         {
-            return _idToWorld.Values.FirstOrDefault(world => world.MediusWorldId == MediusWorldId && world.WorldId == DmeWorldId);
+            return _idToWorld.Values.FirstOrDefault(world => world.GameChannelWorldId == GameChannelWorldId && world.WorldId == DmeWorldId);
         }
 
         private bool TryRegisterNewClientIndex(out int index)
@@ -103,9 +106,9 @@ namespace Horizon.DME.Models
 
         #endregion
 
-        public int WorldId { get; protected set; } = 0;
+        public int WorldId { get; protected set; } = -1;
 
-        public int MediusWorldId { get; protected set; } = 0;
+        public int GameChannelWorldId { get; protected set; } = -1;
 
         public int ApplicationId { get; protected set; } = 0;
 
@@ -129,7 +132,7 @@ namespace Horizon.DME.Models
 
         public MPSClient? Manager { get; } = null;
         
-        public World(MPSClient manager, int appId, int maxPlayers, int MediusWorldId, int WorldId)
+        public World(MPSClient manager, int appId, int maxPlayers, int GameChannelWorldId, int WorldId)
         {
             MaxPlayers = (DmeClass.Settings.MaxClientsOverride != -1) ? DmeClass.Settings.MaxClientsOverride : maxPlayers;
 
@@ -146,7 +149,7 @@ namespace Horizon.DME.Models
             for (int i = 0; i < MAX_CLIENTS_PER_WORLD; ++i)
                 _pIdIsUsed.TryAdd(i, false);
 
-            RegisterWorld(MediusWorldId, WorldId);
+            RegisterWorld(GameChannelWorldId, WorldId);
         }
 
         public void Dispose()
