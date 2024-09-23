@@ -21,7 +21,7 @@ namespace BlazeCommon
 
         public ProtoFirePacket CreateResponsePacket(int errorCode = 0)
         {
-            return new ProtoFirePacket(Frame.CreateResponseFrame(errorCode), new byte[0]);
+            return new ProtoFirePacket(Frame.CreateResponseFrame(errorCode), Array.Empty<byte>());
         }
         public ProtoFirePacket CreateResponsePacket(byte[] data, int errorCode = 0)
         {

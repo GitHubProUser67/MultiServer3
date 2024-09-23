@@ -158,8 +158,6 @@ namespace Horizon.DME.Models
             while (_requestQueue.TryDequeue(out MediusServerJoinGameRequest? request))
             {
                 Manager?.Enqueue(await OnJoinGameRequest(request));
-
-                await Task.Delay(100);
             }
         }
 
@@ -452,6 +450,8 @@ namespace Horizon.DME.Models
         public async Task<MediusServerJoinGameResponse> OnJoinGameRequest(MediusServerJoinGameRequest request)
         {
             DMEObject newClient;
+
+            await Task.Delay(100);
 
             // find existing client and reuse
             KeyValuePair<int, DMEObject> existingClient = Clients.FirstOrDefault(x => x.Value.SessionKey == request.ConnectInfo.SessionKey);

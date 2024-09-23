@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using CompressionLibrary.Edge;
 using CyberBackendLibrary.Extension;
 using CastleLibrary.Utils;
+using HomeTools.SDAT;
 
 namespace HomeTools.UnBAR
 {
@@ -30,6 +31,7 @@ namespace HomeTools.UnBAR
 
         public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath, ushort version)
         {
+#if MAKE_NP_DATA_MODE
             using (Process process = Process.Start(new ProcessStartInfo()
             {
                 FileName = converterPath + "/make_npdata",
@@ -48,12 +50,26 @@ namespace HomeTools.UnBAR
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
             }
+#else
+            try
+            {
+                int ExitCode = new EDAT().EncryptFile(filePath, sdatfilePath);
+
+                if (ExitCode != 0)
+                    LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
+            }
+            catch (Exception ex) 
+            {
+                LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with assertion : {ex}");
+            }
+#endif
         }
 
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir, ushort cdnMode)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
+#if MAKE_NP_DATA_MODE
             using (Process process = Process.Start(new ProcessStartInfo()
             {
                 FileName = converterPath + "/make_npdata",
@@ -74,6 +90,21 @@ namespace HomeTools.UnBAR
                 else
                     await RunExtract(datfilePath, outDir, cdnMode);
             }
+#else
+            try
+            {
+                int ExitCode = new EDAT().DecryptFile(sdatfilePath, datfilePath);
+
+                if (ExitCode != 0)
+                    LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
+                else
+                    await RunExtract(datfilePath, outDir, cdnMode);
+            }
+            catch (Exception ex) 
+            {
+                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with assertion : {ex}");
+            }
+#endif
         }
 
         private static async Task RunExtract(string filePath, string outDir, ushort cdnMode)

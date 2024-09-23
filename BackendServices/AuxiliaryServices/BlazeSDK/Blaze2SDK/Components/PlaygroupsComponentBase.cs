@@ -239,70 +239,70 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyDestroyPlaygroup)]
             public virtual Task OnNotifyDestroyPlaygroupAsync(NotifyDestroyPlaygroup notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyDestroyPlaygroupAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyDestroyPlaygroupAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyJoinPlaygroup)]
             public virtual Task OnNotifyJoinPlaygroupAsync(NotifyJoinPlaygroup notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyJoinPlaygroupAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyJoinPlaygroupAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyMemberJoinedPlaygroup)]
             public virtual Task OnNotifyMemberJoinedPlaygroupAsync(NotifyMemberJoinedPlaygroup notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyMemberJoinedPlaygroupAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyMemberJoinedPlaygroupAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyMemberRemovedFromPlaygroup)]
             public virtual Task OnNotifyMemberRemovedFromPlaygroupAsync(NotifyMemberRemoveFromPlaygroup notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyMemberRemovedFromPlaygroupAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyMemberRemovedFromPlaygroupAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyPlaygroupAttributesSet)]
             public virtual Task OnNotifyPlaygroupAttributesSetAsync(NotifyPlaygroupAttributesSet notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlaygroupAttributesSetAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyPlaygroupAttributesSetAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyMemberAttributesSet)]
             public virtual Task OnNotifyMemberAttributesSetAsync(NotifyMemberAttributesSet notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyMemberAttributesSetAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyMemberAttributesSetAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyLeaderChange)]
             public virtual Task OnNotifyLeaderChangeAsync(NotifyLeaderChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyLeaderChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyLeaderChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyMemberPermissionsChange)]
             public virtual Task OnNotifyMemberPermissionsChangeAsync(NotifyMemberPermissionsChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyMemberPermissionsChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyMemberPermissionsChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyJoinControlsChange)]
             public virtual Task OnNotifyJoinControlsChangeAsync(NotifyJoinControlsChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyJoinControlsChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyJoinControlsChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)PlaygroupsComponentNotification.NotifyXboxSessionInfo)]
             public virtual Task OnNotifyXboxSessionInfoAsync(NotifyXboxSessionInfo notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyXboxSessionInfoAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyXboxSessionInfoAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

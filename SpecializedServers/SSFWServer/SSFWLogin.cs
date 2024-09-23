@@ -9,7 +9,7 @@ namespace SSFWServer
 {
     public static class SSFWUserSessionManager
     {
-        private static List<(int, UserSession)>? userSessions = new();
+        private static ConcurrentList<(int, UserSession)>? userSessions = new();
 
         public static void RegisterUser(string userName, string sessionid, int realuserNameSize)
         {
@@ -208,7 +208,7 @@ namespace SSFWServer
                 {
                     bool handled = false;
 
-                    Dictionary<string, string> scenemap = ScenelistParser.sceneDictionary;
+                    IDictionary<string, string> scenemap = ScenelistParser.sceneDictionary;
 
                     if (File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/LayoutService/{env}/person/{resultString}/mylayout.json")) // Migrate data.
                     {

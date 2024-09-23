@@ -304,35 +304,35 @@ namespace Blaze3SDK.Components
             [BlazeNotification((ushort)UserSessionsNotification.UserSessionExtendedDataUpdate)]
             public virtual Task OnUserSessionExtendedDataUpdateAsync(UserSessionExtendedDataUpdate notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserSessionExtendedDataUpdateAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnUserSessionExtendedDataUpdateAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)UserSessionsNotification.UserAdded)]
             public virtual Task OnUserAddedAsync(NotifyUserAdded notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserAddedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnUserAddedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)UserSessionsNotification.UserRemoved)]
             public virtual Task OnUserRemovedAsync(NotifyUserRemoved notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserRemovedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnUserRemovedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)UserSessionsNotification.UserSessionDisconnected)]
             public virtual Task OnUserSessionDisconnectedAsync(UserSessionDisconnectReason notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserSessionDisconnectedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnUserSessionDisconnectedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)UserSessionsNotification.UserUpdated)]
             public virtual Task OnUserUpdatedAsync(UserStatus notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserUpdatedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnUserUpdatedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

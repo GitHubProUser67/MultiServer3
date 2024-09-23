@@ -104,7 +104,7 @@ namespace Blaze3SDK.Components
             [BlazeNotification((ushort)CensusDataComponentNotification.NotifyServerCensusData)]
             public virtual Task OnNotifyServerCensusDataAsync(NotifyServerCensusData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyServerCensusDataAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyServerCensusDataAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

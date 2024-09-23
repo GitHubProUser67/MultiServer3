@@ -194,7 +194,7 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)GameReportingComponentNotification.ResultNotification)]
             public virtual Task OnResultNotificationAsync(ResultNotification notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnResultNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnResultNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

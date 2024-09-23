@@ -389,112 +389,112 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)RoomsComponentNotification.RoomViewUpdatedNotification)]
             public virtual Task OnRoomViewUpdatedNotificationAsync(RoomViewData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomViewUpdatedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomViewUpdatedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomViewAddedNotification)]
             public virtual Task OnRoomViewAddedNotificationAsync(RoomViewData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomViewAddedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomViewAddedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomViewRemovedNotification)]
             public virtual Task OnRoomViewRemovedNotificationAsync(RoomViewRemoved notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomViewRemovedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomViewRemovedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomCategoryUpdatedNotification)]
             public virtual Task OnRoomCategoryUpdatedNotificationAsync(RoomCategoryData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomCategoryUpdatedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomCategoryUpdatedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomCategoryAddedNotification)]
             public virtual Task OnRoomCategoryAddedNotificationAsync(RoomCategoryData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomCategoryAddedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomCategoryAddedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomCategoryRemovedNotification)]
             public virtual Task OnRoomCategoryRemovedNotificationAsync(RoomCategoryRemoved notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomCategoryRemovedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomCategoryRemovedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomUpdatedNotification)]
             public virtual Task OnRoomUpdatedNotificationAsync(RoomData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomUpdatedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomUpdatedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomAddedNotification)]
             public virtual Task OnRoomAddedNotificationAsync(RoomData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomAddedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomAddedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomRemovedNotification)]
             public virtual Task OnRoomRemovedNotificationAsync(RoomRemoved notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomRemovedNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomRemovedNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomPopulationUpdated)]
             public virtual Task OnRoomPopulationUpdatedAsync(RoomsPopulationUpdate notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomPopulationUpdatedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomPopulationUpdatedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomMemberJoined)]
             public virtual Task OnRoomMemberJoinedAsync(RoomMemberData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomMemberJoinedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomMemberJoinedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomMemberLeft)]
             public virtual Task OnRoomMemberLeftAsync(RoomMemberRemoved notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomMemberLeftAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomMemberLeftAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomMemberUpdated)]
             public virtual Task OnRoomMemberUpdatedAsync(RoomMemberData notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomMemberUpdatedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomMemberUpdatedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomKick)]
             public virtual Task OnRoomKickAsync(RoomMemberKicked notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomKickAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomKickAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomHostTransfer)]
             public virtual Task OnRoomHostTransferAsync(RoomHostTransfered notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomHostTransferAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomHostTransferAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)RoomsComponentNotification.RoomAttributesSet)]
             public virtual Task OnRoomAttributesSetAsync(RoomAttributesSet notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnRoomAttributesSetAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnRoomAttributesSetAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

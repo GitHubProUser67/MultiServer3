@@ -179,7 +179,7 @@ namespace Blaze3SDK.Components
             [BlazeNotification((ushort)AssociationListsComponentNotification.NotifyUpdateListMembership)]
             public virtual Task OnNotifyUpdateListMembershipAsync(UpdateListWithMembersRequest notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyUpdateListMembershipAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyUpdateListMembershipAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

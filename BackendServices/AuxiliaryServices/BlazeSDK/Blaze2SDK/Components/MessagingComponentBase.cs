@@ -119,7 +119,7 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)MessagingComponentNotification.NotifyMessage)]
             public virtual Task OnNotifyMessageAsync(ServerMessage notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyMessageAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyMessageAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
