@@ -1,4 +1,3 @@
-
 using CustomLogger;
 using CyberBackendLibrary.Extension;
 using MultiSocks.Aries.Messages;
@@ -16,7 +15,7 @@ namespace MultiSocks.Aries
         public string? SKU = null;
         public string listenIP = string.Empty;
         public int SessionID = 1;
-        public ProtoSSLUtils? SSLCache = null;
+        public VulnerableCertificateGenerator? SSLCache = null;
         public List<AriesClient> DirtySocksClients = new();
         public TcpListener? Listener;
 
@@ -37,7 +36,7 @@ namespace MultiSocks.Aries
             this.SKU = SKU;
 
             if (secure)
-                SSLCache = new ProtoSSLUtils();
+                SSLCache = new();
 
             Listener = new TcpListener(IPAddress.Any, port);
             Listener.Start();

@@ -1,6 +1,8 @@
+using BlazeCommon;
 using CustomLogger;
 using CyberBackendLibrary.TCP_IP;
 using MultiSocks.Aries;
+using MultiSocks.Blaze;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Runtime;
@@ -85,19 +87,22 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "MultiSocks.json";
-    private static AriesServer? DSServer;
+    private static AriesServer? DirtySocksServer;
+    private static BlazeClass? BlazeDirtySocksServer;
 
     private static void StartOrUpdateServer()
     {
         Directory.CreateDirectory(MultiSocksServerConfiguration.ProtoSSLCertificateCachePath);
 
-        DSServer?.Dispose();
+        DirtySocksServer?.Dispose();
+        BlazeDirtySocksServer?.Dispose();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        DSServer = new AriesServer(new CancellationTokenSource().Token);
+        DirtySocksServer = new AriesServer(new CancellationTokenSource().Token);
+        BlazeDirtySocksServer = new BlazeClass(new CancellationTokenSource().Token);
     }
 
     static void Main()

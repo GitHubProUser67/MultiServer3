@@ -113,7 +113,8 @@ namespace Blaze2SDK.Components
         
         public class Client : BlazeClientComponent<ArsonComponentCommand, ArsonComponentNotification, Blaze2RpcError>
         {
-            BlazeClientConnection Connection { get; }            
+            BlazeClientConnection Connection { get; }
+            
             public Client(BlazeClientConnection connection) : base(ArsonComponentBase.Id, ArsonComponentBase.Name)
             {
                 Connection = connection;
@@ -252,7 +253,7 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)ArsonComponentNotification.NotifyReconfigureCompleted)]
             public virtual Task OnNotifyReconfigureCompletedAsync()
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyReconfigureCompletedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyReconfigureCompletedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

@@ -125,7 +125,7 @@ namespace SSFWServer
             }
 
             userData.Username = newSessionId;
-            userData.IGA = 0;
+            userData.IGA = 0; // Reset IGA to prevent exploits.
 
             // Write back the updated user profile
             try

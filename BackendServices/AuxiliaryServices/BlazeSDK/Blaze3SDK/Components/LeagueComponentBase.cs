@@ -494,7 +494,7 @@ namespace Blaze3SDK.Components
             [BlazeNotification((ushort)LeagueComponentNotification.FindLeaguesAsyncNotification)]
             public virtual Task OnFindLeaguesAsyncNotificationAsync(FindLeaguesAsyncNotification notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnFindLeaguesAsyncNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnFindLeaguesAsyncNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

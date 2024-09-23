@@ -344,28 +344,28 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)UserSessionsNotification.UserSessionExtendedDataUpdate)]
             public virtual Task OnUserSessionExtendedDataUpdateAsync(UserSessionExtendedDataUpdate notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserSessionExtendedDataUpdateAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnUserSessionExtendedDataUpdateAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)UserSessionsNotification.UserAdded)]
             public virtual Task OnUserAddedAsync(UserIdentification notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserAddedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnUserAddedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)UserSessionsNotification.UserSessionUnsubscribed)]
             public virtual Task OnUserSessionUnsubscribedAsync(UserIdentification notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserSessionUnsubscribedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnUserSessionUnsubscribedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)UserSessionsNotification.UserSessionDisconnected)]
             public virtual Task OnUserSessionDisconnectedAsync(UserSessionDisconnectReason notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnUserSessionDisconnectedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnUserSessionDisconnectedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

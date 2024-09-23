@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -6,10 +6,13 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\HomeTools\HomeTools.csproj" />
     <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
 	<PackageReference Include="NLua" Version="1.7.3" />
 	<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\CyberBackendLibrary\CyberBackendLibrary.csproj" />
   </ItemGroup>
 
 </Project>

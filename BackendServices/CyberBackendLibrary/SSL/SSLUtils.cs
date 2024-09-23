@@ -4,10 +4,8 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using CyberBackendLibrary.Extension;
-using Org.BouncyCastle.OpenSsl;
 using System.Linq;
 #if !NET5_0_OR_GREATER
 using Org.BouncyCastle.Crypto;
@@ -229,12 +227,9 @@ namespace CyberBackendLibrary.SSL
                     // Create a certificate request with the RSA key pair
                     CertificateRequest request = new CertificateRequest($"CN={CN} [{GetRandomInt64(100, 999)}], OU={OU}, O=\"{O}\", L={L}, S={S}, C={C}", rsa, Hashing, RSASignaturePadding.Pkcs1);
 
-                    if (DnsList != null) // Some clients do not allow wildcard domains, so we use SAN attributes as a fallback.
-                    {
-                        DnsList.Select(str => str)
+                    DnsList?.Select(str => str) // Some clients do not allow wildcard domains, so we use SAN attributes as a fallback.
                         .ToList()
                         .ForEach(sanBuilder.AddDnsName);
-                    }
                     if (Wildcard)
                     {
                         tlds.Select(tld => "*" + tld)
@@ -363,18 +358,6 @@ namespace CyberBackendLibrary.SSL
                     return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
                 }
 #endif
-            }
-        }
-
-        public static void WriteObjectToPEM(object obj, string filePath)
-        {
-            if (!File.Exists(filePath))
-            {
-                StringBuilder CertPem = new StringBuilder();
-                PemWriter CSRPemWriter = new PemWriter(new StringWriter(CertPem));
-                CSRPemWriter.WriteObject(obj);
-                CSRPemWriter.Writer.Flush();
-                File.WriteAllText(filePath, CertPem.ToString());
             }
         }
 

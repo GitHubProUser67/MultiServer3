@@ -899,238 +899,238 @@ namespace Blaze3SDK.Components
             [BlazeNotification((ushort)GameManagerNotification.NotifyMatchmakingFailed)]
             public virtual Task OnNotifyMatchmakingFailedAsync(NotifyMatchmakingFailed notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyMatchmakingFailedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyMatchmakingFailedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyMatchmakingAsyncStatus)]
             public virtual Task OnNotifyMatchmakingAsyncStatusAsync(NotifyMatchmakingAsyncStatus notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyMatchmakingAsyncStatusAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyMatchmakingAsyncStatusAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameCreated)]
             public virtual Task OnNotifyGameCreatedAsync(NotifyGameCreated notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameCreatedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameCreatedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameRemoved)]
             public virtual Task OnNotifyGameRemovedAsync(NotifyGameRemoved notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameRemovedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameRemovedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameSetup)]
             public virtual Task OnNotifyGameSetupAsync(NotifyGameSetup notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameSetupAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameSetupAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerJoining)]
             public virtual Task OnNotifyPlayerJoiningAsync(NotifyPlayerJoining notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerJoiningAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerJoiningAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyJoiningPlayerInitiateConnections)]
             public virtual Task OnNotifyJoiningPlayerInitiateConnectionsAsync(NotifyGameSetup notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyJoiningPlayerInitiateConnectionsAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyJoiningPlayerInitiateConnectionsAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerJoiningQueue)]
             public virtual Task OnNotifyPlayerJoiningQueueAsync(NotifyPlayerJoining notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerJoiningQueueAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerJoiningQueueAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerPromotedFromQueue)]
             public virtual Task OnNotifyPlayerPromotedFromQueueAsync(NotifyPlayerJoining notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerPromotedFromQueueAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerPromotedFromQueueAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerClaimingReservation)]
             public virtual Task OnNotifyPlayerClaimingReservationAsync(NotifyPlayerJoining notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerClaimingReservationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerClaimingReservationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerJoinCompleted)]
             public virtual Task OnNotifyPlayerJoinCompletedAsync(NotifyPlayerJoinCompleted notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerJoinCompletedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerJoinCompletedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerRemoved)]
             public virtual Task OnNotifyPlayerRemovedAsync(NotifyPlayerRemoved notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerRemovedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerRemovedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyHostMigrationFinished)]
             public virtual Task OnNotifyHostMigrationFinishedAsync(NotifyHostMigrationFinished notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyHostMigrationFinishedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyHostMigrationFinishedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyHostMigrationStart)]
             public virtual Task OnNotifyHostMigrationStartAsync(NotifyHostMigrationStart notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyHostMigrationStartAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyHostMigrationStartAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlatformHostInitialized)]
             public virtual Task OnNotifyPlatformHostInitializedAsync(NotifyPlatformHostInitialized notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlatformHostInitializedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlatformHostInitializedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameAttribChange)]
             public virtual Task OnNotifyGameAttribChangeAsync(NotifyGameAttribChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameAttribChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameAttribChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerAttribChange)]
             public virtual Task OnNotifyPlayerAttribChangeAsync(NotifyPlayerAttribChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerAttribChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerAttribChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPlayerCustomDataChange)]
             public virtual Task OnNotifyPlayerCustomDataChangeAsync(NotifyPlayerCustomDataChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPlayerCustomDataChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPlayerCustomDataChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameStateChange)]
             public virtual Task OnNotifyGameStateChangeAsync(NotifyGameStateChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameStateChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameStateChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameSettingsChange)]
             public virtual Task OnNotifyGameSettingsChangeAsync(NotifyGameSettingsChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameSettingsChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameSettingsChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameCapacityChange)]
             public virtual Task OnNotifyGameCapacityChangeAsync(NotifyGameCapacityChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameCapacityChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameCapacityChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameReset)]
             public virtual Task OnNotifyGameResetAsync(NotifyGameReset notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameResetAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameResetAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameReportingIdChange)]
             public virtual Task OnNotifyGameReportingIdChangeAsync(NotifyGameReportingIdChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameReportingIdChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameReportingIdChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameSessionUpdated)]
             public virtual Task OnNotifyGameSessionUpdatedAsync(GameSessionUpdatedNotification notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameSessionUpdatedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameSessionUpdatedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGamePlayerStateChange)]
             public virtual Task OnNotifyGamePlayerStateChangeAsync(NotifyGamePlayerStateChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGamePlayerStateChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGamePlayerStateChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGamePlayerTeamChange)]
             public virtual Task OnNotifyGamePlayerTeamChangeAsync(NotifyGamePlayerTeamChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGamePlayerTeamChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGamePlayerTeamChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameTeamIdChange)]
             public virtual Task OnNotifyGameTeamIdChangeAsync(NotifyGameTeamIdChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameTeamIdChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameTeamIdChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyProcessQueue)]
             public virtual Task OnNotifyProcessQueueAsync(NotifyProcessQueue notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyProcessQueueAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyProcessQueueAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyPresenceModeChanged)]
             public virtual Task OnNotifyPresenceModeChangedAsync(NotifyPresenceModeChanged notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyPresenceModeChangedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyPresenceModeChangedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGamePlayerQueuePositionChange)]
             public virtual Task OnNotifyGamePlayerQueuePositionChangeAsync(NotifyGamePlayerQueuePositionChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGamePlayerQueuePositionChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGamePlayerQueuePositionChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameListUpdate)]
             public virtual Task OnNotifyGameListUpdateAsync(NotifyGameListUpdate notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameListUpdateAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameListUpdateAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyAdminListChange)]
             public virtual Task OnNotifyAdminListChangeAsync(NotifyAdminListChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyAdminListChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyAdminListChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyCreateDynamicDedicatedServerGame)]
             public virtual Task OnNotifyCreateDynamicDedicatedServerGameAsync(NotifyCreateDynamicDedicatedServerGame notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyCreateDynamicDedicatedServerGameAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyCreateDynamicDedicatedServerGameAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)GameManagerNotification.NotifyGameNameChange)]
             public virtual Task OnNotifyGameNameChangeAsync(NotifyGameNameChange notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyGameNameChangeAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNotifyGameNameChangeAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

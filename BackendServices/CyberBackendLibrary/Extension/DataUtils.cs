@@ -344,7 +344,6 @@ namespace CyberBackendLibrary.Extension
             return -1;
         }
 
-
         /// <summary>
         /// Prints a sequence of bytes within a byte array when found.
         /// <para>Affiche une séquence de bytes dans un tableau de bytes quand un match est trouvé.</para>

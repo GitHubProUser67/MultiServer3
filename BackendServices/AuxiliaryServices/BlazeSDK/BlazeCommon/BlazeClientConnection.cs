@@ -15,7 +15,7 @@ namespace BlazeCommon
 
         public override void OnClientDisconnected()
         {
-            Console.WriteLine("Disconnected");
+            LoggerAccessor.LogWarn("[BlazeClientConnection] - Client Disconnected.");
         }
 
         public override void OnPacketReceived(ProtoFirePacket packet)

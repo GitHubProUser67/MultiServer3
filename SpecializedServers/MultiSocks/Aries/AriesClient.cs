@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using CastleLibrary.ProtoSSL.Crypto;
 using CustomLogger;
 using MultiSocks.Aries.Messages;
 using MultiSocks.Aries.Model;
@@ -35,7 +37,7 @@ namespace MultiSocks.Aries
         private int TempDatOff;
         private string CommandName = "null";
 
-        private (AsymmetricKeyParameter, Certificate) SecureKeyCert;
+        private (AsymmetricKeyParameter, Certificate, X509Certificate2) SecureKeyCert;
 
         public long PingSendTick;
         public int Ping;
