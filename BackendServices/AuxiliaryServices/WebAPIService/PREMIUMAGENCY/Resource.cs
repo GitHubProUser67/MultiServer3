@@ -2081,6 +2081,8 @@ namespace WebAPIService.PREMIUMAGENCY
                     }
                     break;
 
+                #endregion
+
                 default:
                     {
                         LoggerAccessor.LogError($"[PREMIUMAGENCY] - Resource key {resKey} is unrecognized!\nPlease contact the developers!");
