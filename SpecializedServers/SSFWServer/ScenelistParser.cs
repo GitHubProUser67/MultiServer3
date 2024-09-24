@@ -44,7 +44,7 @@ namespace SSFWServer
                                     {
                                         SIDKeyGenerator.Instance.VerifyNewerKey(sceneKey);
                                         string SceneID = SIDKeyGenerator.Instance.ExtractSceneIDNewerType(sceneKey).ToString("X").PadLeft(4, '0'); // SSFW was introduced in modern Home only, safe to assume only newer type.
-                                        if (!sceneDictionary.ContainsKey(SceneID))
+                                        if (!sceneDictionary.ContainsKey(ID))
                                         {
 #if DEBUG
                                             CustomLogger.LoggerAccessor.LogInfo($"[SSFW] - ScenelistParser: Added entry: ID:{ID}|SceneID:{SceneID}");
