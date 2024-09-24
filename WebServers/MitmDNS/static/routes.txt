@@ -168,17 +168,31 @@ bad.cold.pw,Redirect,IP
 gate1.eu.dnas.playstation.org,Redirect,45.7.228.197
 gate1.us.dnas.playstation.org,Redirect,45.7.228.197
 gate1.jp.dnas.playstation.org,Redirect,45.7.228.197
+ts01.jp.dnas.playstation.org,Redirect,45.7.228.197
+ts01.us.dnas.playstation.org,Redirect,45.7.228.197
+ts01.eu.dnas.playstation.org,Redirect,45.7.228.197
 
 ;PS2 Medius
 amp2003-prod.pdonline.scea.com,Redirect,IP
 arcthelad-prod.muis.pdonline.scea.com,Redirect,IP
-atv2-prod2.pdonline.scea.com,Redirect,IP atv2-prod.pdonline.scea.com,Redirect,IP
+arcgus-muis27c.scej-online.jp,Redirect,IP
+atv2-prod.pdonline.scea.com,Redirect,IP
+atv2-prod2.pdonline.scea.com,Redirect,IP
+atv3-promo.pdonline.scea.com,Redirect,IP
+atv3-qa.pdonline.scea.com,Redirect,IP
 atv4unified.psp.online.scea.com,Redirect,IP
+ddoa-press.muis.pdonline.scea.com,Redirect,IP
 ddoa-prod.muis.pdonline.scea.com,Redirect,IP
+f12005-beta.online.scee.com,Redirect,IP
 f105-prod-muis.online.scee.com,Redirect,IP
 freqnet2002-prod.pdonline.scea.com,Redirect,IP
 gt4-pubeta.muis.pdonline.scea.com,Redirect,IP
+everybodysgolf-beta.online.scee.com,Redirect,IP
+eyetoychat-beta.online.scee.com,Redirect,IP
+hardware-master-muis.online.scee.com,Redirect,IP
 hotshotsgolf-prod.muis.pdonline.scea.com,Redirect,IP
+hotshotsgolf-pubeta.muis.pdonline.scea.com,Redirect,IP
+jakx-palpbtrials.muis.online.scee.com,Redirect,IP
 jakx-palmaster.muis.online.scee.com,Redirect,IP
 jakx-prod.muis.pdonline.scea.com,Redirect,IP
 killzone-prod.muis.pdonline.scea.com,Redirect,IP
@@ -197,6 +211,8 @@ ratchet3-qa.pdonline.scea.com,Redirect,IP
 ratchet3.pdonline.scek.co.kr,Redirect,IP
 ratchetdl-prod.pdonline.scea.com,Redirect,IP
 ratchetdl-test.pdonline.scea.com,Redirect,IP
+rtimeint1.989studios.com,Redirect,IP
+sfos-palbeta2.online.scee.com,Redirect,IP
 sfos-palmaster.online.scee.com,Redirect,IP
 socom2-palmaster-muis.online.scee.com,Redirect,IP
 socom2-prod.muis.pdonline.scea.com,Redirect,IP
@@ -214,6 +230,8 @@ syphonfilter-prod.pdonline.scea.com,Redirect,IP
 tmblack2002-prod.pdonline.scea.com,Redirect,IP
 tmbonline.scea.com,Redirect,IP
 wrc04-master.online.scee.com,Redirect,IP
+wrc05-beta.online.scee.com,Redirect,IP
+wrc-rally-evolved.online.scee.com,Redirect,IP
 
 ;PSP Medius
 atvpsp-prod.pdonline.scea.com,Redirect,IP
@@ -334,17 +352,34 @@ starhawk.telemetry.online.scea.com,Redirect,IP
 singstar.telemetry.online.scea.com,Redirect,IP
 api.singstar.online.scee.com,Redirect,IP
 
+;Eden
+orb.testdriveunlimited.com,Redirect,IP
+
 ;Quazal
 tdulive.quazal.net,Redirect,IP
 ridingclubpclive.quazal.net,Redirect,IP
-orb.testdriveunlimited.com,Redirect,IP
 turoklive.quazal.net,Redirect,IP
 ghostps3live.quazal.net,Redirect,IP
-master10.doublefusion.com,Redirect,IP
 
 ;EA
 ea.com,Redirect,IP
 tso-e.com,Redirect,IP
+ps2bond04.ea.com,Redirect,IP
+ps2burnout05.ea.com,Redirect,IP
+ps2burnout06.ea.com,Redirect,IP
+ps2fifa04east.ea.com,Redirect,IP
+ps2kok05.ea.com,Redirect,IP
+ps2fifa06.ea.com,Redirect,IP
+ps2rotk04.ea.com,Redirect,IP
+ps2marvel06.ea.com,Redirect,IP
+ps2mm06.ea.com,Redirect,IP
+ps2madden06.ea.com,Redirect,IP
+ps2nflstreet05.ea.com,Redirect,IP
+ps2nflstreet04.ea.com,Redirect,IP
+ps2nflstreet07.ea.com,Redirect,IP
+ps2nfs06.ea.com,Redirect,IP
+ps2nascar04.ea.com,Redirect,IP
+ps2ssx04.ea.com,Redirect,IP
 ps2sims04.ea.com,Redirect,IP
 ps2ssx04.ea.com,Redirect,IP
 ps3nascar09.ea.com,Redirect,IP
@@ -397,4 +432,4 @@ gconnect.ubi.com,Redirect,IP
 gsconnect.ubisoft.com,Redirect,IP
 rss.ubi.com,Redirect,IP
 builddatabasepullapi.ubisoft.org,Redirect,IP
-
+master10.doublefusion.com,Redirect,IP

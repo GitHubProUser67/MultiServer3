@@ -68,8 +68,6 @@ namespace TycoonServer.HFProcessors
                     string userDataPath = $"{WorkPath}/TYCOON/User_Data";
                     Directory.CreateDirectory(userDataPath);
 
-                    LoggerAccessor.LogInfo($"Command requested: {Command}");
-
                     switch (Command)
                     {
                         case "VersionCheck":
