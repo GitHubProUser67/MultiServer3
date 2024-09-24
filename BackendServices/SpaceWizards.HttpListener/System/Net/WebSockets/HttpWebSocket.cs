@@ -174,7 +174,7 @@ namespace SpaceWizards.HttpListener.WebSockets
                     context.Request.Headers[HttpKnownHeaderNames.Upgrade]));
             }
 
-            string? secWebSocketVersion = context.Request.Headers[HttpKnownHeaderNames.SecWebSocketVersion];
+            string secWebSocketVersion = context.Request.Headers[HttpKnownHeaderNames.SecWebSocketVersion];
             if (string.IsNullOrEmpty(secWebSocketVersion))
             {
                 throw new WebSocketException(WebSocketError.HeaderError,
@@ -192,7 +192,7 @@ namespace SpaceWizards.HttpListener.WebSockets
                     SupportedVersion));
             }
 
-            string? secWebSocketKey = context.Request.Headers[HttpKnownHeaderNames.SecWebSocketKey];
+            string secWebSocketKey = context.Request.Headers[HttpKnownHeaderNames.SecWebSocketKey];
             bool isSecWebSocketKeyInvalid = string.IsNullOrWhiteSpace(secWebSocketKey);
             if (!isSecWebSocketKeyInvalid)
             {
