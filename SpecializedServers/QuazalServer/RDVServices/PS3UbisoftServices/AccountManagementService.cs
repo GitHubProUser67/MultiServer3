@@ -72,16 +72,6 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         [RMCMethod(9)]
         public RMCResult GetPublicData(uint PID) // Return a bool result, and oData if true.
         {
-            if (Context != null)
-            {
-                switch (Context.Handler.AccessKey)
-                {
-                    case "os4R9pEiy":
-                        AnyData<GhostbustersPS3Data> ghostbuster = new(); // Seems optional.
-                        return Result(new { retVal = true, oData = ghostbuster });
-                }
-            }
-
             return Result(new { retVal = false });
         }
 
