@@ -2,7 +2,6 @@ using System.IO;
 using CustomLogger;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
-using System.Collections.Generic;
 
 namespace Horizon.RT.Models
 {
@@ -19,7 +18,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public NetConnectionInfo ConnectInfo;
         /// <summary>
         /// MaxPlayers
@@ -36,7 +35,7 @@ namespace Horizon.RT.Models
             reader.ReadBytes(3);
 
             StatusCode = reader.Read<MediusCallbackStatus>();
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             ConnectInfo = reader.Read<NetConnectionInfo>();
 
             if (reader.MediusVersion == 113 && SetMaxPlayers)

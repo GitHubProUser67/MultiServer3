@@ -10,7 +10,7 @@ using Horizon.LIBRARY.Common;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.LIBRARY.Pipeline.Attribute;
-using Horizon.MEDIUS;
+using Horizon.SERVER;
 
 namespace Horizon.DME
 {
@@ -32,6 +32,7 @@ namespace Horizon.DME
             HELLO,
             HANDSHAKE,
             CONNECT_TCP,
+            PENDING_TCP_ACK,
             ACK_TCP,
             AUTHENTICATED
         }
@@ -304,9 +305,9 @@ namespace Horizon.DME
                         if (_masChannel != null)
                             await _masChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_CONNECT_TCP()
                             {
+                                TargetWorldId = 1,
                                 AppId = ApplicationId,
-                                Key = DmeClass.GlobalAuthPublic,
-                                TargetWorldId = 1
+                                Key = DmeClass.GlobalAuthPublic
                             });
 
                         _masState = MASConnectionState.CONNECT_TCP;
@@ -316,6 +317,20 @@ namespace Horizon.DME
                     {
                         if (_masState != MASConnectionState.CONNECT_TCP)
                             throw new Exception($"Unexpected RT_MSG_SERVER_CONNECT_ACCEPT_TCP from server. {serverConnectAcceptTcp}");
+
+                        if (_masChannel != null)
+                            await _masChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_CONNECT_READY_TCP()
+                            {
+
+                            });
+
+                        _masState = MASConnectionState.PENDING_TCP_ACK;
+                        break;
+                    }
+                case RT_MSG_SERVER_CONNECT_COMPLETE serverComplete:
+                    {
+                        if (_masState != MASConnectionState.PENDING_TCP_ACK)
+                            throw new Exception($"Unexpected RT_MSG_SERVER_CONNECT_COMPLETE from server. {serverComplete}");
 
                         if (_masChannel != null)
                             await _masChannel.WriteAndFlushAsync(new RT_MSG_CLIENT_APP_TOSERVER()
@@ -343,11 +358,6 @@ namespace Horizon.DME
                             });
                         break;
                     }
-                case RT_MSG_SERVER_CONNECT_COMPLETE serverComplete:
-                    {
-                        // Ignore.
-                        break;
-                    }
                 case RT_MSG_SERVER_ECHO serverEcho:
                     {
                         Enqueue(serverEcho);
@@ -360,19 +370,7 @@ namespace Horizon.DME
                     }
                 case RT_MSG_SERVER_CHEAT_QUERY cheatQuery:
                     {
-                        // We can query Client RAM, isn't that neat ;).
-                        if (_masChannel != null && cheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY)
-                        {
-                            byte[]? CheatQueryData = MemoryQuery.QueryValueFromOffset(cheatQuery.StartAddress, cheatQuery.Length);
-                            await _masChannel.WriteAndFlushAsync(new RT_MSG_SERVER_CHEAT_QUERY()
-                            {
-                                QueryType = CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY,
-                                SequenceId = cheatQuery.SequenceId,
-                                StartAddress = cheatQuery.StartAddress,
-                                Data = CheatQueryData,
-                                Length = (CheatQueryData != null) ? CheatQueryData.Length : 0
-                            });
-                        }
+
                         break;
                     }
                 case RT_MSG_SERVER_APP serverApp:

@@ -28,7 +28,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// PartyHostType
         /// </summary>
-        public MediusGameHostType PartyHostType;
+        public MGCL_GAME_HOST_TYPE PartyHostType;
         /// <summary>
         /// Security Key of this session
         /// </summary>
@@ -55,7 +55,7 @@ namespace Horizon.RT.Models
             //
             MediusWorldID = reader.ReadInt32();
             PartyPassword = reader.ReadString(Constants.PARTYPASSWORD_MAXLEN);
-            PartyHostType = reader.Read<MediusGameHostType>();
+            PartyHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             pubKey = reader.Read<RSA_KEY>();
             addressList = reader.Read<NetAddressList>();
             partyIndex = reader.ReadInt32();

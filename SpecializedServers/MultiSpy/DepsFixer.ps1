@@ -22,7 +22,7 @@ $propertiesToRemove = @(
     "CyberBackendLibrary/1.0.0",
     "EndianTools/1.0.0",
 	"TechnitiumLibrary.Net/5.0.0",
-	"TechnitiumLibrary.Net.Firewall/5.0.0.0"
+	"TechnitiumLibrary.Net.Firewall/5.0.0"
 )
 
 try {

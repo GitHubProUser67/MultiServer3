@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using WebAPIService.LeaderboardsService.NDREAMS;
 using System;
 using CyberBackendLibrary.Extension;
+using CastleLibrary.Utils;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
@@ -36,7 +37,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, func + game, CurrentDate);
+                string ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, func + game, CurrentDate);
 
                 if (key == ExpectedHash)
                 {
@@ -44,7 +45,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                     string PlayerVisitProfilePath = apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/visit_counter.json";
                     string Hash = DataUtils.ByteArrayToHexString(
-                        CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>())); // Seems to not make a difference.
+                        NetHasher.ComputeMD5(Array.Empty<byte>())); // Seems to not make a difference.
 
                     if (File.Exists(PlayerVisitProfilePath))
                     {
@@ -72,7 +73,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     else
                         File.WriteAllText(PlayerVisitProfilePath, $"{{\"{game}\":1}}");
 
-                    return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><game>{game}</game><confirm>{NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, $"{Hash}{game}", CurrentDate)}</confirm></result></xml>";
+                    return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><game>{game}</game><confirm>{NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, $"{Hash}{game}", CurrentDate)}</confirm></result></xml>";
                 }
                 else
                 {
@@ -115,7 +116,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraTheEnd", name, !string.IsNullOrEmpty(doom) ? func + doom : func, CurrentDate);
+                string ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraTheEnd", name, !string.IsNullOrEmpty(doom) ? func + doom : func, CurrentDate);
 
                 if (key == ExpectedHash)
                 {
@@ -177,7 +178,7 @@ namespace WebAPIService.NDREAMS.Aurora
                         File.WriteAllText(DayProfilePath, $"qa={qa},state={state}");
                     }
 
-                    return $"<xml><success>true</success><result><state>{state}</state><message>{message}</message><qa>{qa}</qa><confirm>{NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraTheEnd", name, $"{state}{message}{qa}", CurrentDate)}</confirm></result></xml>";
+                    return $"<xml><success>true</success><result><state>{state}</state><message>{message}</message><qa>{qa}</qa><confirm>{NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraTheEnd", name, $"{state}{message}{qa}", CurrentDate)}</confirm></result></xml>";
                 }
                 else
                 {
@@ -210,7 +211,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsCommiePlexCont", name, func, CurrentDate);
+                string ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsCommiePlexCont", name, func, CurrentDate);
 
                 if (key == ExpectedHash)
                     return $"<xml><success>true</success><result><Success>true</Success></result></xml>";
@@ -264,13 +265,13 @@ namespace WebAPIService.NDREAMS.Aurora
                 switch (func)
                 {
                     case "submit":
-                        string ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, func + score + orbs, CurrentDate);
+                        string ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, func + score + orbs, CurrentDate);
 
                         if (key == ExpectedHash)
                         {
                             int best = 0;
                             string Hash = DataUtils.ByteArrayToHexString(
-                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
+                                NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (int.TryParse(score, out int resscore))
                             {
@@ -286,7 +287,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                             return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><high>{high}</high><best>{best}</best>" +
                                 $"<score>{score}</score><exp>{(File.Exists(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/inventory.json") ? NDREAMSProfilesUtils.ExtractProfileProperties(File.ReadAllText(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/inventory.json")).Item1.ToString() : xp)}" +
-                                $"</exp><confirm>{NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, $"{Hash}{high}", CurrentDate)}</confirm></result></xml>";
+                                $"</exp><confirm>{NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, $"{Hash}{high}", CurrentDate)}</confirm></result></xml>";
                         }
                         else
                         {
@@ -363,12 +364,12 @@ namespace WebAPIService.NDREAMS.Aurora
                 switch (func)
                 {
                     case "update":
-                        ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, func + everything, CurrentDate);
+                        ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, func + everything, CurrentDate);
 
                         if (key == ExpectedHash)
                         {
                             string Hash = DataUtils.ByteArrayToHexString(
-                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
+                                NetHasher.ComputeMD5(Array.Empty<byte>()));
                             if (!string.IsNullOrEmpty(everything))
                             {
                                 string[] parts = everything.Split(',');
@@ -379,7 +380,7 @@ namespace WebAPIService.NDREAMS.Aurora
                                 }
                             }
 
-                            return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><everything>{everything}</everything><confirm>{NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, $"{Hash}{everything}", CurrentDate)}</confirm></result></xml>";
+                            return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><everything>{everything}</everything><confirm>{NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, $"{Hash}{everything}", CurrentDate)}</confirm></result></xml>";
                         }
                         else
                         {
@@ -388,17 +389,17 @@ namespace WebAPIService.NDREAMS.Aurora
                             return $"<xml><success>false</success><error>Signature Mismatch</error><extra>{errMsg}</extra><function>ProcessConsumables</function></xml>";
                         }
                     case "set":
-                        ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, func + count, CurrentDate);
+                        ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, func + count, CurrentDate);
 
                         if (key == ExpectedHash)
                         {
                             string Hash = DataUtils.ByteArrayToHexString(
-                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
+                                NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (!string.IsNullOrEmpty(consumable))
                                 File.WriteAllText(directoryPath + $"/{consumable}", count);
 
-                            return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><count>{count}</count><confirm>{NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, $"{Hash}{count}", CurrentDate)}</confirm></result></xml>";
+                            return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><count>{count}</count><confirm>{NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, $"{Hash}{count}", CurrentDate)}</confirm></result></xml>";
                         }
                         else
                         {
@@ -407,12 +408,12 @@ namespace WebAPIService.NDREAMS.Aurora
                             return $"<xml><success>false</success><error>Signature Mismatch</error><extra>{errMsg}</extra><function>ProcessConsumables</function></xml>";
                         }
                     case "get":
-                        ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, func + consumable, CurrentDate);
+                        ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, func + consumable, CurrentDate);
 
                         if (key == ExpectedHash)
                         {
                             string Hash = DataUtils.ByteArrayToHexString(
-                                CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Array.Empty<byte>()));
+                                NetHasher.ComputeMD5(Array.Empty<byte>()));
                             int rescount = 0;
 
                             if (!string.IsNullOrEmpty(consumable) && File.Exists(directoryPath + $"/{consumable}"))
@@ -427,7 +428,7 @@ namespace WebAPIService.NDREAMS.Aurora
                                 }
                             }
 
-                            return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><count>{rescount}</count><confirm>{NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraCont", name, $"{Hash}{rescount}", CurrentDate)}</confirm></result></xml>";
+                            return $"<xml><success>true</success><result><Success>true</Success><Hash>{Hash}</Hash><count>{rescount}</count><confirm>{NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraCont", name, $"{Hash}{rescount}", CurrentDate)}</confirm></result></xml>";
                         }
                         else
                         {
@@ -500,7 +501,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraWelcome", name, !string.IsNullOrEmpty(version) ? func + version : func, CurrentDate);
+                string ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraWelcome", name, !string.IsNullOrEmpty(version) ? func + version : func, CurrentDate);
 
                 if (key == ExpectedHash)
                 {
@@ -563,7 +564,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string ExpectedHash = NDREAMSServerUtils.DBManager_GenerateSignature("nDreamsAuroraXP", name, !string.IsNullOrEmpty(ticket) ? func + locale + ticket : func + locale, CurrentDate);
+                string ExpectedHash = NDREAMSServerUtils.Server_GetSignatureCustom("nDreamsAuroraXP", name, !string.IsNullOrEmpty(ticket) ? func + locale + ticket : func + locale, CurrentDate);
 
                 if (key == ExpectedHash)
                 {

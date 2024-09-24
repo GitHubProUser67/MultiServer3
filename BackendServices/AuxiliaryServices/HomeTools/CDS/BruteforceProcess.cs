@@ -1,4 +1,5 @@
 using System;
+using CastleLibrary.Utils;
 
 namespace HomeTools.CDS
 {
@@ -26,7 +27,7 @@ namespace HomeTools.CDS
                 DecryptedFileBytes = CTRExploitProcess.ProcessExploit(TempBuffer, EncryptedFileBytes, mode, cdnMode);
 
                 if (DecryptedFileBytes != null)
-                    CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved SHA1: {0}", CastleLibrary.Utils.Hash.NetHasher.ComputeSHA1StringWithCleanup(DecryptedFileBytes));
+                    CustomLogger.LoggerAccessor.LogInfo("[CDS] - BruteforceProcess - Resolved SHA1: {0}", NetHasher.ComputeSHA1String(DecryptedFileBytes));
                 else
                     CustomLogger.LoggerAccessor.LogError("[CDS] - BruteforceProcess - Nothing matched! - Make sure input was correct. - {0}", DateTime.Now.ToString());
 #if DEBUG

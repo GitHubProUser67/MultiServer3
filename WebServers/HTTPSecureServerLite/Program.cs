@@ -16,6 +16,7 @@ using System.Reflection;
 using CyberBackendLibrary.HTTP;
 using System.Collections.Concurrent;
 using CyberBackendLibrary.TCP_IP;
+using CastleLibrary.Utils;
 
 public static class HTTPSServerConfiguration
 {
@@ -445,7 +446,7 @@ class Program
     {
         using FileStream stream = File.OpenRead(filePath);
         // Convert the byte array to a hexadecimal string
-        return CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(stream);
+        return NetHasher.ComputeMD5String(stream);
     }
 
     static void Main()

@@ -27,7 +27,7 @@ namespace CyberBackendLibrary.FileSystem
         public static IEnumerable<FileSystemInfo> AllFilesAndFoldersLinq(this DirectoryInfo dir)
         {
             return dir.EnumerateFileSystemInfos("*", SearchOption.AllDirectories).AsParallel()
-                .AsUnordered().Where(info => (info.Attributes & FileAttributes.Hidden) == 0).ToArray();
+                .AsUnordered().Where(info => (info.Attributes & FileAttributes.Hidden) == 0).AsEnumerable();
         }
 
         public static IEnumerable<string> GetMediaFilesList(string directoryPath)

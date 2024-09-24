@@ -1,9 +1,9 @@
 using System;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
-using CastleLibrary.Utils.Hash;
 using System.Text;
 using System.Collections.Generic;
+using CastleLibrary.Utils;
 
 namespace WebAPIService.VEEMEE
 {
@@ -17,7 +17,7 @@ namespace WebAPIService.VEEMEE
             {
                 string formattedJson = JToken.Parse(jsonData.Replace("\n", string.Empty)).ToString(Newtonsoft.Json.Formatting.None);
 
-                string hash = NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes($"{HashSalt}{formattedJson}"));
+                string hash = NetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes($"{HashSalt}{formattedJson}"));
 
                 JToken token = JToken.Parse(formattedJson);
 
@@ -60,7 +60,7 @@ namespace WebAPIService.VEEMEE
                 }
             }
 
-            return NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes($"{localSalt}hex{hex}"));
+            return NetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes($"{localSalt}hex{hex}"));
         }
     }
 }

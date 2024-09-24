@@ -1,0 +1,22 @@
+﻿<CATALOGUE>
+  <ENTRY>
+    <ICON>ADVERTS/en-GB/DreyVIP_Large.dds</ICON>
+    <DETAILS>ADVERTS/DreyVIP_Text.xml</DETAILS>
+  </ENTRY>
+  <ENTRY>
+    <ICON>ADVERTS/en-GB/Foal_Medium.dds</ICON>
+    <DETAILS>ADVERTS/Foal_Text.xml</DETAILS>
+  </ENTRY>
+  <ENTRY>
+    <ICON>ADVERTS/en-GB/Abbey_Hill_Cottage_Medium.dds</ICON>
+    <DETAILS>ADVERTS/Abbey_Cottage_Text.xml</DETAILS>
+  </ENTRY>
+  <ENTRY>
+    <ICON>ADVERTS/en-GB/Goth_Furniture_Medium.dds</ICON>
+    <DETAILS>ADVERTS/Goth_Furniture_Text.xml</DETAILS>
+  </ENTRY>
+  <ENTRY>
+    <ICON>ADVERTS/en-GB/FAQ_Medium.dds</ICON>
+    <DETAILS>ADVERTS/FAQ_Text.xml</DETAILS>
+  </ENTRY>
+</CATALOGUE>

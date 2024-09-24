@@ -15,7 +15,7 @@ namespace Horizon.RT.Models
 
         public MessageId MessageID { get; set; }
         public int CurrentMediusWorldID;
-        public int NewGameWorldID;
+        public int NewGameMediusWorldID;
         public NetAddressList AddressList;
 
         public override void Deserialize(MessageReader reader)
@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
             MessageID = reader.Read<MessageId>();
             reader.ReadBytes(3);
             CurrentMediusWorldID = reader.ReadInt32();
-            NewGameWorldID = reader.ReadInt32();
+            NewGameMediusWorldID = reader.ReadInt32();
             AddressList = reader.Read<NetAddressList>();
         }
 
@@ -36,7 +36,7 @@ namespace Horizon.RT.Models
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(new byte[3]);
             writer.Write(CurrentMediusWorldID);
-            writer.Write(NewGameWorldID);
+            writer.Write(NewGameMediusWorldID);
             writer.Write(AddressList);
         }
 
@@ -45,7 +45,7 @@ namespace Horizon.RT.Models
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
                 $"CurrentMediusWorldID: {CurrentMediusWorldID} " +
-                $"NewGameWorldID: {NewGameWorldID} " +
+                $"NewGameWorldID: {NewGameMediusWorldID} " +
                 $"AddressList: {AddressList}";
         }
     }

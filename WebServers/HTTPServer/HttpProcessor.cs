@@ -178,15 +178,13 @@ namespace HTTPServer
                             else
                                 request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
 
-                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").ToLower().Contains("bytespider")) // Get Away TikTok.
+                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
                             {
                                 bool EtagCompatible = false;
                                 DateTime CurrentDate = DateTime.UtcNow;
                                 HttpResponse? response = null;
                                 string Method = request.Method;
-                                string Host = request.RetrieveHeaderValue("Host");
-                                if (string.IsNullOrEmpty(Host))
-                                    Host = request.RetrieveHeaderValue("HOST");
+                                string Host = request.RetrieveHeaderValue("host", false);
                                 string Accept = request.RetrieveHeaderValue("Accept");
                                 string SuplementalMessage = string.Empty;
                                 string fullurl = HTTPProcessor.DecodeUrl(request.RawUrlWithQuery);

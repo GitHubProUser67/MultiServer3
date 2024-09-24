@@ -37,5 +37,10 @@ namespace Horizon.MUM.Models
             }
             #endregion
         }
+
+        public override string ToString()
+        {
+            return $"({FieldID}:{FilterField}:{BaselineValue}:{ComparisonOperator}:{Mask})";
+        }
     }
 }

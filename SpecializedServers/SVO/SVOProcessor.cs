@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using CastleLibrary.Utils;
 
 namespace SVO
 {
@@ -11,7 +12,7 @@ namespace SVO
                 return null;
 
             // Get SVOMac from client and combine with speaksId together for new MD5, converting to a byte array for MD5 rehashing
-            return CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes($"{clientSVOMac}sp9ck0348sld00000000000000000000")).ToLower();
+            return NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes($"{clientSVOMac}sp9ck0348sld00000000000000000000")).ToLower();
         }
 
         // HMAC-MD5 as result is 16 in length as shown in eboot.

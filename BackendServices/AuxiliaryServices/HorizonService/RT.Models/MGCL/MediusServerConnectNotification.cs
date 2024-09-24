@@ -20,7 +20,7 @@ namespace Horizon.RT.Models
         /// Medius game world Unique ID that the player
         /// connected or disconnected from.
         /// </summary>
-        public uint MediusWorldUID;
+        public int MediusWorldUID;
         /// <summary>
         /// The player's session key.
         /// </summary>
@@ -31,7 +31,7 @@ namespace Horizon.RT.Models
             base.Deserialize(reader);
 
             ConnectEventType = reader.Read<MGCL_EVENT_TYPE>();
-            MediusWorldUID = reader.ReadUInt32();
+            MediusWorldUID = reader.ReadInt32();
             PlayerSessionKey = reader.ReadString(Constants.MGCL_SESSIONKEY_MAXLEN);
             reader.ReadBytes(3);
         }

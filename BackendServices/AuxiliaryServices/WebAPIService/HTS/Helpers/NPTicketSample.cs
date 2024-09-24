@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 using System;
 using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils.Hash;
+using CastleLibrary.Utils;
 
 namespace WebAPIService.HTS.Helpers
 {
@@ -90,7 +90,7 @@ namespace WebAPIService.HTS.Helpers
                     resultString = Encoding.ASCII.GetString(userOnlineId) + "RPCN";
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
+                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 10);
@@ -106,7 +106,7 @@ namespace WebAPIService.HTS.Helpers
                     resultString = Encoding.ASCII.GetString(userOnlineId);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
+                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 14);

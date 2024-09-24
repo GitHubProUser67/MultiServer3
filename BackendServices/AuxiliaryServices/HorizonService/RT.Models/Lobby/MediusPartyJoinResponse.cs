@@ -25,7 +25,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// PartyHostType
         /// </summary>
-        public MediusGameHostType PartyHostType;
+        public MGCL_GAME_HOST_TYPE PartyHostType;
         /// <summary>
         /// ConnectionInfo of the player to return for this session
         /// </summary>
@@ -45,7 +45,7 @@ namespace Horizon.RT.Models
             reader.ReadBytes(3);
 
             StatusCode = reader.Read<MediusCallbackStatus>();
-            PartyHostType = reader.Read<MediusGameHostType>();
+            PartyHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             ConnectionInfo = reader.Read<NetConnectionInfo>();
             partyIndex = reader.ReadInt32();
             if (SetMaxPlayers)

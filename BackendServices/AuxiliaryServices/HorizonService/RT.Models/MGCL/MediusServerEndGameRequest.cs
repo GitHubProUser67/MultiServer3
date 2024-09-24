@@ -57,7 +57,7 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"MessageID: {MessageID} " +
-                $"WorldID: {MediusWorldID} " +
+                $"MediusWorldID: {MediusWorldID} " +
                 $"BrutalFlag: {BrutalFlag}";
         }
     }

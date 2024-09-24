@@ -1,0 +1,212 @@
+﻿<CATEGORIES>
+  <CAT>
+    <TITLE>Nouveautés Lockwood</TITLE>
+    <ICON>Tab_Icon_LP.dds</ICON>
+    <XML>Version104/front_page.xml</XML>
+    <TYPE>ITEM PER LINE</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Nouveau</TITLE>
+    <ICON>Tab_Icon_New.dds</ICON>
+    <XML>Version104/new_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Abbey Hill Cottage</TITLE>
+    <ICON>Tab_Icon_Abbey_Hill_Cottage.dds</ICON>
+    <XML>Version104/Abbey_Hill_Cottage_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Prehistoric Valley</TITLE>
+    <ICON>Tab_Icon_Prehistoric_Valley.dds</ICON>
+    <XML>Version104/Prehistoric_Valley_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Packs d'animation</TITLE>
+    <ICON>Tab_Icon_Animations.dds</ICON>
+    <XML>Version104/Animations_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>LMOs</TITLE>
+    <ICON>Tab_Icon_LMO.dds</ICON>
+    <XML>Version104/LMO_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Appartements</TITLE>
+    <ICON>Tab_Icon_Apartments.dds</ICON>
+    <XML>Version104/Apartments_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Luxe</TITLE>
+    <ICON>Tab_Icon_Luxury.dds</ICON>
+    <XML>Version104/luxury_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Le Joyau des Cieux</TITLE>
+    <ICON>Tab_Icon_JewelSkies.dds</ICON>
+    <XML>Version104/Jewel_Skies_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Delirious Squid</TITLE>
+    <ICON>Tab_Icon_Delirious_Squid.dds</ICON>
+    <XML>Version104/Delirious_Squid_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Drey (pour Homme)</TITLE>
+    <ICON>Tab_Icon_Drey.dds</ICON>
+    <XML>Version104/Drey_Catalogue_M.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Drey (pour Femme)</TITLE>
+    <ICON>Tab_Icon_Drey.dds</ICON>
+    <XML>Version104/Drey_Catalogue_F.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Chaussures</TITLE>
+    <ICON>Tab_Icon_Shoes.dds</ICON>
+    <XML>Version104/Shoes_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Coiffures</TITLE>
+    <ICON>Tab_Icon_Haircuts.dds</ICON>
+    <XML>Version104/Hairstyles_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Compagnons</TITLE>
+    <ICON>Tab_Icon_Companion.dds</ICON>
+    <XML>Version104/Companions_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Bijoux (pour Homme)</TITLE>
+    <ICON>Tab_Icon_Jewellery_M.dds</ICON>
+    <XML>Version104/Jewellery_Catalogue_M.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Bijoux (pour Femme)</TITLE>
+    <ICON>Tab_Icon_Jewellery_F.dds</ICON>
+    <XML>Version104/Jewellery_Catalogue_F.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Vêtements (pour Homme)</TITLE>
+    <ICON>Tab_Icon_Outfits.dds</ICON>
+    <XML>Version104/clothing_catalogue_M.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Vêtements Supplémentaire! (pour Homme)</TITLE>
+    <ICON>Tab_Icon_Outfits.dds</ICON>
+    <XML>Version104/clothing_catalogue_extra_M.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Vêtements (pour Femme)</TITLE>
+    <ICON>Tab_Icon_Outfits.dds</ICON>
+    <XML>Version104/clothing_catalogue_F.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Vêtements Supplémentaire! (pour Femme)</TITLE>
+    <ICON>Tab_Icon_Outfits.dds</ICON>
+    <XML>Version104/clothing_catalogue_extra_F.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Robes</TITLE>
+    <ICON>Tab_Icon_Outfits.dds</ICON>
+    <XML>Version104/Dresses_Catalogue_F.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Stitchkins</TITLE>
+    <ICON>Tab_Icon_Stitchkins.dds</ICON>
+    <XML>Version104/Stitchkins_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Amour et Romance</TITLE>
+    <ICON>Tab_Icon_LoveNRomance.dds</ICON>
+    <XML>Version104/valentines_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Pour lui</TITLE>
+    <ICON>Tab_Icon_ForHim.dds</ICON>
+    <XML>Version104/for_him_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Pour elle</TITLE>
+    <ICON>Tab_Icon_ForHer.dds</ICON>
+    <XML>Version104/for_her_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Bijoux de sourcil (pour Homme)</TITLE>
+    <ICON>Tab_Icon_Eyebrow_Jewellery_M.dds</ICON>
+    <XML>Version104/Eyebrow_Jewellery_Catalogue_M.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Bijoux de sourcil (pour Femme)</TITLE>
+    <ICON>Tab_Icon_Eyebrow_Jewellery_F.dds</ICON>
+    <XML>Version104/Eyebrow_Jewellery_Catalogue_F.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Noces</TITLE>
+    <ICON>Tab_Icon_Celebrate.dds</ICON>
+    <XML>Version104/wedding_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Délicieux !</TITLE>
+    <ICON>Tab_Icon_Delicious.dds</ICON>
+    <XML>Version104/delicious_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Meubles</TITLE>
+    <ICON>Tab_Icon_Furniture.dds</ICON>
+    <XML>Version104/Furniture_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Ornements</TITLE>
+    <ICON>Tab_Icon_ForTheHome.dds</ICON>
+    <XML>Version104/home_catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Trucs marrants !</TITLE>
+    <ICON>Tab_Icon_FunStuff.dds</ICON>
+    <XML>Version104/Fun_Stuff_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>L'heure de la fête</TITLE>
+    <ICON>Tab_Icon_PartyTime.dds</ICON>
+    <XML>Version104/Party_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+  <CAT>
+    <TITLE>Double Time</TITLE>
+    <ICON>Tab_Icon_DoubleTime.DDS</ICON>
+    <XML>Version104/Doubletime_Catalogue.xml</XML>
+    <TYPE>NORMAL</TYPE>
+  </CAT>
+</CATEGORIES>

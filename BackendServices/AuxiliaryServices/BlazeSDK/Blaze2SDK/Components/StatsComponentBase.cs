@@ -319,14 +319,14 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)StatsComponentNotification.GetStatsAsyncNotification)]
             public virtual Task OnGetStatsAsyncNotificationAsync(KeyScopedStatValues notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnGetStatsAsyncNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnGetStatsAsyncNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)StatsComponentNotification.GetLeaderboardTreeNotification)]
             public virtual Task OnGetLeaderboardTreeNotificationAsync(LeaderboardTreeNode notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnGetLeaderboardTreeNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnGetLeaderboardTreeNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

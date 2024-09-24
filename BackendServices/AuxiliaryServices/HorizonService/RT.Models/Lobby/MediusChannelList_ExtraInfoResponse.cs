@@ -28,7 +28,7 @@ namespace Horizon.RT.Models
         public string LobbyName; // LOBBYNAME_MAXLEN
         public bool EndOfList;
 
-        public List<int> channelList1pre108Response = new List<int>() { 10202, 10304, 10550, 10724, 10683, 10684 };
+        public List<int> channelList1pre108Response = new List<int>() { 10202, 10304, 10550, 10724, 10680, 10681, 10683, 10684 };
 
         public override void Deserialize(MessageReader reader)
         {

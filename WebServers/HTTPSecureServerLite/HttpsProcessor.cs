@@ -273,10 +273,10 @@ namespace HTTPSecureServerLite
 
                                 if (RouteRule.StartsWith("Match "))
                                 {
-#if NET6_0
-                                Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
-#elif NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
                                     Match match = ApacheMatchRegex().Match(RouteRule);
+#else
+                                    Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
 #endif
                                     if (match.Success && match.Groups.Count == 3)
                                     {
@@ -309,10 +309,10 @@ namespace HTTPSecureServerLite
                                     if (parts.Length == 3 && (parts[1] == "/" || parts[1] == absolutepath))
                                     {
                                         // Check if the input string contains an HTTP method
-#if NET6_0
-                                    if (new Regex(@"^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)").Match(parts[0]).Success && request.Method.ToString() == parts[0])
-#elif NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
                                         if (HttpMethodRegex().Match(parts[0]).Success && request.Method.ToString() == parts[0])
+#else
+                                        if (new Regex(@"^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)").Match(parts[0]).Success && request.Method.ToString() == parts[0])
 #endif
                                         {
                                             statusCode = HttpStatusCode.Found;
@@ -321,10 +321,10 @@ namespace HTTPSecureServerLite
                                             sent = await response.Send();
                                         }
                                         // Check if the input string contains a status code
-#if NET6_0
-                                    else if (new Regex(@"\\b\\d{3}\\b").Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
-#elif NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
                                         else if (HttpStatusCodeRegex().Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
+#else
+                                        else if (new Regex(@"\\b\\d{3}\\b").Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
 #endif
                                         {
                                             statusCode = (HttpStatusCode)statuscode;

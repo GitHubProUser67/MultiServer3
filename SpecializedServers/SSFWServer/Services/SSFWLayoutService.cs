@@ -31,7 +31,7 @@ namespace SSFWServer.Services
                 {
                     bool handled = false;
 
-                    Dictionary<string, string> scenemap = ScenelistParser.sceneDictionary;
+                    IDictionary<string, string> scenemap = ScenelistParser.sceneDictionary;
 
                     if (File.Exists(directorypath + "/mylayout.json")) // Migrate data.
                     {

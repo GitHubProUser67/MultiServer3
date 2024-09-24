@@ -3,21 +3,17 @@ using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Database.Models;
-using Horizon.MEDIUS.PluginArgs;
+using Horizon.SERVER.PluginArgs;
 using System.Data;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
-using Horizon.MEDIUS;
-using System.Text.Json.Serialization;
-using Horizon.MUIS;
+using Horizon.SERVER;
 
 namespace Horizon.MUM.Models
 {
     public class Game
     {
-        [JsonIgnore]
-        private static int IdCounter = 1;
-
+        private object _Lock = new();
         public class GameClient
         {
             public ClientObject? Client;
@@ -26,6 +22,7 @@ namespace Horizon.MUM.Models
             public bool InGame;
         }
 
+        public int MediusVersion = 0;
         public int MediusWorldId = 0;
         public int ApplicationId = 0;
         public ChannelType ChannelType = ChannelType.Game;
@@ -34,11 +31,9 @@ namespace Horizon.MUM.Models
         public string? GamePassword;
         public string? SpectatorPassword;
         public byte[] GameStats = new byte[Constants.GAMESTATS_MAXLEN];
-        public MediusGameHostType GameHostType;
-        public MGCL_GAME_HOST_TYPE GAME_HOST_TYPE;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public NetAddressList? netAddressList;
         public RSA_KEY pubKey = new();
-        public int WorldID;
         public int AccountID;
         public int MinPlayers;
         public int MaxPlayers;
@@ -54,6 +49,7 @@ namespace Horizon.MUM.Models
         public int GenericField6;
         public int GenericField7;
         public int GenericField8;
+        public int PlayerCount;
         public byte[]? RequestData;
         public uint GroupMemberListSize;
         public byte[]? GroupMemberList;
@@ -64,7 +60,7 @@ namespace Horizon.MUM.Models
         public MediusWorldAttributesType Attributes;
         public MediusMatchOptions MatchOptions;
         public ClientObject? DMEServer;
-        public Channel? ChatChannel;
+        public Channel? GameChannel;
         public ClientObject? Host;
 
         public string? AccountIdsAtStart => accountIdsAtStart;
@@ -72,30 +68,32 @@ namespace Horizon.MUM.Models
         public MediusWorldStatus _worldStatus = MediusWorldStatus.WorldPendingCreation;
         public bool hasHostJoined = false;
         public DateTime utcTimeCreated;
+        public DateTime utcTimeTick;
         public DateTime? utcLastJoined;
         public DateTime? utcTimeStarted;
         public DateTime? utcTimeEnded;
         public DateTime? utcTimeEmpty;
 
         protected string? accountIdsAtStart;
-        protected bool destroyed = false;
 
         public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
-        public int PlayerCount => LocalClients.Count(x => x != null && x.Client != null && x.Client.IsConnected || x != null && x.InGame);
+        public bool Destroyed = false;
 
-        public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
+        public virtual bool ReadyToDestroy => !Destroyed && WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
-        public Game(ClientObject client, IMediusRequest createGame, Channel? chatChannel, ClientObject? dmeServer, int WorldId = 0)
+        public Game(ClientObject client, IMediusRequest createGame, ClientObject? dmeServer)
         {
+            MediusVersion = client.MediusVersion;
+
             if (createGame is MediusCreateGameRequest r)
-                FromCreateGameRequest(r, WorldId);
+                FromCreateGameRequest(r);
             else if (createGame is MediusCreateGameRequest0 r0)
-                FromCreateGameRequest0(r0, WorldId);
+                FromCreateGameRequest0(r0);
             else if (createGame is MediusCreateGameRequest1 r1)
-                FromCreateGameRequest1(r1, WorldId);
+                FromCreateGameRequest1(r1);
             else if (createGame is MediusMatchCreateGameRequest r2)
-                FromMatchCreateGameRequest(r2, WorldId);
+                FromMatchCreateGameRequest(r2);
             else if (createGame is MediusServerCreateGameOnMeRequest r3)
                 FromCreateGameOnMeRequest(r3);
             else if (createGame is MediusServerCreateGameOnSelfRequest r5)
@@ -103,13 +101,11 @@ namespace Horizon.MUM.Models
             else if (createGame is MediusServerCreateGameOnSelfRequest0 r6)
                 FromCreateGameOnSelfRequest0(r6);
 
-            MediusWorldId = IdCounter++;
-
             utcTimeCreated = Utils.GetHighPrecisionUtcTime();
+            utcTimeTick = Utils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
             DMEServer = dmeServer;
-            ChatChannel = chatChannel;
-            ChatChannel?.RegisterGame(this);
+            GameChannel!.RegisterGame(this);
             Host = client;
             SetWorldStatus(MediusWorldStatus.WorldStaging).Wait();
 
@@ -146,12 +142,29 @@ namespace Horizon.MUM.Models
                 WorldStatus = WorldStatus.ToString(),
                 PlayerListCurrent = GetActivePlayerList(),
                 PlayerListStart = accountIdsAtStart,
-                Destroyed = destroyed
+                Destroyed = Destroyed
             };
         }
 
-        private void FromMatchCreateGameRequest(MediusMatchCreateGameRequest createGame, int WorldId)
+        private void FromMatchCreateGameRequest(MediusMatchCreateGameRequest createGame)
         {
+            Channel gameChannel = new(createGame.ApplicationID, MediusVersion)
+            {
+                Name = createGame.GameName,
+                MinPlayers = createGame.MinPlayers,
+                MaxPlayers = createGame.MaxPlayers,
+                GameLevel = createGame.GameLevel,
+                PlayerSkillLevel = createGame.PlayerSkillLevel,
+                GenericField1 = (ulong)createGame.GenericField1,
+                GenericField2 = (ulong)createGame.GenericField2,
+                GenericField3 = (ulong)createGame.GenericField3,
+                GenericField4 = (ulong)createGame.GenericField4,
+                Password = createGame.GamePassword,
+                SecurityLevel = string.IsNullOrEmpty(createGame.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD,
+                GameHostType = createGame.GameHostType,
+                Type = ChannelType.Game
+            };
+
             ApplicationId = createGame.ApplicationID;
             GameName = createGame.GameName;
             MinPlayers = createGame.MinPlayers;
@@ -172,11 +185,32 @@ namespace Horizon.MUM.Models
             GameHostType = createGame.GameHostType;
             Attributes = createGame.WorldAttributesType;
             MatchOptions = createGame.MatchOptions;
-            WorldID = WorldId;
+            MediusWorldId = gameChannel.Id;
+
+            GameChannel = gameChannel;
+
+            MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
-        private void FromCreateGameRequest(MediusCreateGameRequest createGame, int WorldId)
+        private void FromCreateGameRequest(MediusCreateGameRequest createGame)
         {
+            Channel gameChannel = new(createGame.ApplicationID, MediusVersion)
+            {
+                Name = createGame.GameName,
+                MinPlayers = createGame.MinPlayers,
+                MaxPlayers = createGame.MaxPlayers,
+                GameLevel = createGame.GameLevel,
+                PlayerSkillLevel = createGame.PlayerSkillLevel,
+                GenericField1 = (ulong)createGame.GenericField1,
+                GenericField2 = (ulong)createGame.GenericField2,
+                GenericField3 = (ulong)createGame.GenericField3,
+                GenericField4 = (ulong)createGame.GenericField4,
+                Password = createGame.GamePassword,
+                SecurityLevel = string.IsNullOrEmpty(createGame.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD,
+                GameHostType = createGame.GameHostType,
+                Type = ChannelType.Game
+            };
+
             ApplicationId = createGame.ApplicationID;
             GameName = createGame.GameName;
             MinPlayers = createGame.MinPlayers;
@@ -196,11 +230,31 @@ namespace Horizon.MUM.Models
             SpectatorPassword = createGame.SpectatorPassword;
             GameHostType = createGame.GameHostType;
             Attributes = createGame.Attributes;
-            WorldID = WorldId;
+            MediusWorldId = gameChannel.Id;
+
+            GameChannel = gameChannel;
+
+            MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
-        private void FromCreateGameRequest0(MediusCreateGameRequest0 createGame, int WorldId)
+        private void FromCreateGameRequest0(MediusCreateGameRequest0 createGame)
         {
+            Channel gameChannel = new(createGame.ApplicationID, MediusVersion)
+            {
+                Name = createGame.GameName,
+                MinPlayers = createGame.MinPlayers,
+                MaxPlayers = createGame.MaxPlayers,
+                GameLevel = createGame.GameLevel,
+                PlayerSkillLevel = createGame.PlayerSkillLevel,
+                GenericField1 = (ulong)createGame.GenericField1,
+                GenericField2 = (ulong)createGame.GenericField2,
+                GenericField3 = (ulong)createGame.GenericField3,
+                Password = createGame.GamePassword,
+                SecurityLevel = string.IsNullOrEmpty(createGame.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD,
+                GameHostType = createGame.GameHostType,
+                Type = ChannelType.Game
+            };
+
             ApplicationId = createGame.ApplicationID;
             GameName = createGame.GameName;
             MinPlayers = createGame.MinPlayers;
@@ -213,12 +267,31 @@ namespace Horizon.MUM.Models
             GenericField3 = createGame.GenericField3;
             GamePassword = createGame.GamePassword;
             GameHostType = createGame.GameHostType;
-            WorldID = WorldId;
+            MediusWorldId = gameChannel.Id;
+
+            GameChannel = gameChannel;
+
+            MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
-
-        private void FromCreateGameRequest1(MediusCreateGameRequest1 createGame, int WorldId)
+        private void FromCreateGameRequest1(MediusCreateGameRequest1 createGame)
         {
+            Channel gameChannel = new(createGame.ApplicationID, MediusVersion)
+            {
+                Name = createGame.GameName,
+                MinPlayers = createGame.MinPlayers,
+                MaxPlayers = createGame.MaxPlayers,
+                GameLevel = createGame.GameLevel,
+                PlayerSkillLevel = createGame.PlayerSkillLevel,
+                GenericField1 = (ulong)createGame.GenericField1,
+                GenericField2 = (ulong)createGame.GenericField2,
+                GenericField3 = (ulong)createGame.GenericField3,
+                Password = createGame.GamePassword,
+                SecurityLevel = string.IsNullOrEmpty(createGame.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD,
+                GameHostType = createGame.GameHostType,
+                Type = ChannelType.Game
+            };
+
             ApplicationId = createGame.ApplicationID;
             GameName = createGame.GameName;
             MinPlayers = createGame.MinPlayers;
@@ -232,72 +305,135 @@ namespace Horizon.MUM.Models
             GamePassword = createGame.GamePassword;
             SpectatorPassword = createGame.SpectatorPassword;
             GameHostType = createGame.GameHostType;
-            WorldID = WorldId;
+            MediusWorldId = gameChannel.Id;
+
+            GameChannel = gameChannel;
+
+            MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
-        private void FromCreateGameOnMeRequest(MediusServerCreateGameOnMeRequest serverCreateGameOnMe)
+        private void FromCreateGameOnMeRequest(MediusServerCreateGameOnMeRequest createGame)
         {
-            GameHostType = MediusGameHostType.MediusGameHostPeerToPeer;
+            Channel gameChannel = new(createGame.ApplicationID, MediusVersion)
+            {
+                Name = createGame.GameName,
+                MinPlayers = createGame.MinPlayers,
+                MaxPlayers = createGame.MaxPlayers,
+                GameLevel = createGame.GameLevel,
+                PlayerSkillLevel = createGame.PlayerSkillLevel,
+                GenericField1 = (ulong)createGame.GenericField1,
+                GenericField2 = (ulong)createGame.GenericField2,
+                GenericField3 = (ulong)createGame.GenericField3,
+                GenericField4 = (ulong)createGame.GenericField4,
+                Password = createGame.GamePassword,
+                SecurityLevel = string.IsNullOrEmpty(createGame.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD,
+                GameHostType = createGame.GameHostType,
+                Type = ChannelType.Game
+            };
 
-            GameName = serverCreateGameOnMe.GameName;
-            GameStats = serverCreateGameOnMe.GameStats;
-            GamePassword = serverCreateGameOnMe.GamePassword;
-            ApplicationId = serverCreateGameOnMe.ApplicationID;
-            MaxPlayers = serverCreateGameOnMe.MaxClients;
-            MinPlayers = serverCreateGameOnMe.MinClients;
-            GameLevel = serverCreateGameOnMe.GameLevel;
-            PlayerSkillLevel = serverCreateGameOnMe.PlayerSkillLevel;
-            RulesSet = serverCreateGameOnMe.RulesSet;
-            GenericField1 = serverCreateGameOnMe.GenericField1;
-            GenericField2 = serverCreateGameOnMe.GenericField2;
-            GenericField3 = serverCreateGameOnMe.GenericField3;
-            GenericField4 = serverCreateGameOnMe.GenericField4;
-            GenericField5 = serverCreateGameOnMe.GenericField5;
-            GenericField6 = serverCreateGameOnMe.GenericField6;
-            GenericField7 = serverCreateGameOnMe.GenericField7;
-            GenericField8 = serverCreateGameOnMe.GenericField8;
-            GAME_HOST_TYPE = serverCreateGameOnMe.GameHostType;
-            netAddressList = serverCreateGameOnMe.AddressList;
-            WorldID = serverCreateGameOnMe.MediusWorldID;
+            GameName = createGame.GameName;
+            GameStats = createGame.GameStats;
+            GamePassword = createGame.GamePassword;
+            ApplicationId = createGame.ApplicationID;
+            MaxPlayers = createGame.MaxPlayers;
+            MinPlayers = createGame.MinPlayers;
+            GameLevel = createGame.GameLevel;
+            PlayerSkillLevel = createGame.PlayerSkillLevel;
+            RulesSet = createGame.RulesSet;
+            GenericField1 = createGame.GenericField1;
+            GenericField2 = createGame.GenericField2;
+            GenericField3 = createGame.GenericField3;
+            GenericField4 = createGame.GenericField4;
+            GenericField5 = createGame.GenericField5;
+            GenericField6 = createGame.GenericField6;
+            GenericField7 = createGame.GenericField7;
+            GenericField8 = createGame.GenericField8;
+            GameHostType = createGame.GameHostType;
+            netAddressList = createGame.AddressList;
+            MediusWorldId = gameChannel.Id;
+
+            GameChannel = gameChannel;
+
+            MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
-        private void FromCreateGameOnSelfRequest(MediusServerCreateGameOnSelfRequest serverCreateGameOnSelf)
+        private void FromCreateGameOnSelfRequest(MediusServerCreateGameOnSelfRequest createGame)
         {
-            GameName = serverCreateGameOnSelf.GameName;
-            GameStats = serverCreateGameOnSelf.GameStats;
-            GamePassword = serverCreateGameOnSelf.GamePassword;
-            ApplicationId = serverCreateGameOnSelf.ApplicationID;
-            MaxPlayers = serverCreateGameOnSelf.MaxClients;
-            MinPlayers = serverCreateGameOnSelf.MinClients;
-            GameLevel = serverCreateGameOnSelf.GameLevel;
-            PlayerSkillLevel = serverCreateGameOnSelf.PlayerSkillLevel;
-            RulesSet = serverCreateGameOnSelf.RulesSet;
-            GenericField1 = serverCreateGameOnSelf.GenericField1;
-            GenericField2 = serverCreateGameOnSelf.GenericField2;
-            GenericField3 = serverCreateGameOnSelf.GenericField3;
-            GAME_HOST_TYPE = serverCreateGameOnSelf.GameHostType;
-            netAddressList = serverCreateGameOnSelf.AddressList;
-            WorldID = serverCreateGameOnSelf.MediusWorldID;
-            AccountID = serverCreateGameOnSelf.AccountID;
+            Channel gameChannel = new(createGame.ApplicationID, MediusVersion)
+            {
+                Name = createGame.GameName,
+                MinPlayers = createGame.MinPlayers,
+                MaxPlayers = createGame.MaxPlayers,
+                GameLevel = createGame.GameLevel,
+                PlayerSkillLevel = createGame.PlayerSkillLevel,
+                GenericField1 = (ulong)createGame.GenericField1,
+                GenericField2 = (ulong)createGame.GenericField2,
+                GenericField3 = (ulong)createGame.GenericField3,
+                Password = createGame.GamePassword,
+                SecurityLevel = string.IsNullOrEmpty(createGame.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD,
+                GameHostType = createGame.GameHostType,
+                Type = ChannelType.Game
+            };
+
+            GameName = createGame.GameName;
+            GameStats = createGame.GameStats;
+            GamePassword = createGame.GamePassword;
+            ApplicationId = createGame.ApplicationID;
+            MaxPlayers = createGame.MaxPlayers;
+            MinPlayers = createGame.MinPlayers;
+            GameLevel = createGame.GameLevel;
+            PlayerSkillLevel = createGame.PlayerSkillLevel;
+            RulesSet = createGame.RulesSet;
+            GenericField1 = createGame.GenericField1;
+            GenericField2 = createGame.GenericField2;
+            GenericField3 = createGame.GenericField3;
+            GameHostType = createGame.GameHostType;
+            netAddressList = createGame.AddressList;
+            AccountID = createGame.AccountID;
+            MediusWorldId = gameChannel.Id;
+
+            GameChannel = gameChannel;
+
+            MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
-        private void FromCreateGameOnSelfRequest0(MediusServerCreateGameOnSelfRequest0 serverCreateGameOnSelf0)
+        private void FromCreateGameOnSelfRequest0(MediusServerCreateGameOnSelfRequest0 createGame)
         {
-            GameName = serverCreateGameOnSelf0.GameName;
-            GameStats = serverCreateGameOnSelf0.GameStats;
-            GamePassword = serverCreateGameOnSelf0.GamePassword;
-            ApplicationId = serverCreateGameOnSelf0.ApplicationID;
-            MaxPlayers = serverCreateGameOnSelf0.MaxClients;
-            MinPlayers = serverCreateGameOnSelf0.MinClients;
-            GameLevel = serverCreateGameOnSelf0.GameLevel;
-            PlayerSkillLevel = serverCreateGameOnSelf0.PlayerSkillLevel;
-            RulesSet = serverCreateGameOnSelf0.RulesSet;
-            GenericField1 = serverCreateGameOnSelf0.GenericField1;
-            GenericField2 = serverCreateGameOnSelf0.GenericField2;
-            GenericField3 = serverCreateGameOnSelf0.GenericField3;
-            GAME_HOST_TYPE = serverCreateGameOnSelf0.GameHostType;
-            netAddressList = serverCreateGameOnSelf0.AddressList;
-            WorldID = serverCreateGameOnSelf0.MediusWorldID;
+            Channel gameChannel = new(createGame.ApplicationID, MediusVersion)
+            {
+                Name = createGame.GameName,
+                MinPlayers = createGame.MinPlayers,
+                MaxPlayers = createGame.MaxPlayers,
+                GameLevel = createGame.GameLevel,
+                PlayerSkillLevel = createGame.PlayerSkillLevel,
+                GenericField1 = (ulong)createGame.GenericField1,
+                GenericField2 = (ulong)createGame.GenericField2,
+                GenericField3 = (ulong)createGame.GenericField3,
+                Password = createGame.GamePassword,
+                SecurityLevel = string.IsNullOrEmpty(createGame.GamePassword) ? MediusWorldSecurityLevelType.WORLD_SECURITY_NONE : MediusWorldSecurityLevelType.WORLD_SECURITY_PLAYER_PASSWORD,
+                GameHostType = createGame.GameHostType,
+                Type = ChannelType.Game
+            };
+
+            GameName = createGame.GameName;
+            GameStats = createGame.GameStats;
+            GamePassword = createGame.GamePassword;
+            ApplicationId = createGame.ApplicationID;
+            MaxPlayers = createGame.MaxPlayers;
+            MinPlayers = createGame.MinPlayers;
+            GameLevel = createGame.GameLevel;
+            PlayerSkillLevel = createGame.PlayerSkillLevel;
+            RulesSet = createGame.RulesSet;
+            GenericField1 = createGame.GenericField1;
+            GenericField2 = createGame.GenericField2;
+            GenericField3 = createGame.GenericField3;
+            GameHostType = createGame.GameHostType;
+            netAddressList = createGame.AddressList;
+            MediusWorldId = gameChannel.Id;
+
+            GameChannel = gameChannel;
+
+            MediusClass.Manager.AddChannel(gameChannel).Wait();
         }
 
         public virtual int ReassignGameMediusWorldID(MediusReassignGameMediusWorldID reassignGameMediusWorldID)
@@ -306,14 +442,18 @@ namespace Horizon.MUM.Models
             if (reassignGameMediusWorldID.OldMediusWorldID != MediusWorldId)
                 return 0;
 
-            MediusWorldId = reassignGameMediusWorldID.NewMediusWorldID;
+            MediusWorldId = GameChannel!.Id = reassignGameMediusWorldID.NewMediusWorldID;
 
             return MediusWorldId;
         }
 
         public string GetActivePlayerList()
         {
-            IEnumerable<string?>? playlist = LocalClients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
+            IEnumerable<string?>? playlist;
+
+            lock (LocalClients)
+                playlist = LocalClients?.Select(x => x.Client?.AccountId.ToString()).Where(x => x != null);
+
             if (playlist != null)
                 return string.Join(",", playlist);
 
@@ -323,21 +463,25 @@ namespace Horizon.MUM.Models
         public virtual async Task Tick()
         {
             // Remove timedout clients
-            for (int i = 0; i < LocalClients.Count; ++i)
+            lock (LocalClients)
             {
-                var client = LocalClients[i];
-
-                if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.MediusWorldId != MediusWorldId)
+                for (int i = 0; i < LocalClients.Count; ++i)
                 {
-                    LoggerAccessor.LogWarn($"REMOVING CLIENT: {client}\n IS: {client?.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client?.Client?.IsConnected}\nClient CurrentGame ID: {client?.Client?.CurrentGame?.MediusWorldId}\nGameId: {MediusWorldId}\nMatch?: {client?.Client?.CurrentGame?.MediusWorldId != MediusWorldId}");
-                    lock (LocalClients)
+                    var client = LocalClients[i];
+
+                    if (client == null || client.Client == null || !client.Client.IsConnected || client.Client.CurrentGame?.MediusWorldId != MediusWorldId)
+                    {
+                        LoggerAccessor.LogWarn($"REMOVING CLIENT: {client}\n IS: {client?.Client}\nHasHostJoined: {hasHostJoined}\nIS Connected?: {client?.Client?.IsConnected}\nClient CurrentGame ID: {client?.Client?.CurrentGame?.MediusWorldId}\nGameId: {MediusWorldId}\nMatch?: {client?.Client?.CurrentGame?.MediusWorldId != MediusWorldId}");
                         LocalClients.RemoveAt(i);
-                    --i;
+                        --i;
+                    }
                 }
             }
 
-            // Auto close when everyone leaves or if host fails to connect after timeout time
-            if (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame) && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+            // Auto close when everyone leaves or if host fails to connect after timeout time if not a p2p game.
+            if ((GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer) ? (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame)
+                && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+                : (!utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
             {
                 LoggerAccessor.LogWarn("AUTO CLOSING WORLD");
                 utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
@@ -347,7 +491,10 @@ namespace Horizon.MUM.Models
 
         public virtual async Task OnMediusServerConnectNotification(MediusServerConnectNotification connectNotification)
         {
-            var player = LocalClients.FirstOrDefault(x => x.Client?.SessionKey == connectNotification.PlayerSessionKey);
+            GameClient? player;
+
+            lock (LocalClients)
+                player = LocalClients.FirstOrDefault(x => x.Client?.SessionKey == connectNotification.PlayerSessionKey);
 
             if (player == null)
                 return;
@@ -372,17 +519,11 @@ namespace Horizon.MUM.Models
             if (string.IsNullOrEmpty(Sessionkey))
                 return;
 
-            GameClient? player = LocalClients.FirstOrDefault(x => x.Client?.SessionKey == Sessionkey);
+            GameClient? player;
 
-            if (player == null)
-                return;
+            lock (LocalClients)
+                player = LocalClients.FirstOrDefault(x => x.Client?.SessionKey == Sessionkey);
 
-            await OnPlayerJoined(player);
-        }
-
-        public virtual async Task OnMediusServerCreateGameOnMeRequest(IMediusRequest createGameOnMeRequest)
-        {
-            GameClient? player = LocalClients.FirstOrDefault(x => x != null && x.Client != null && x.Client.IsConnected);
             if (player == null)
                 return;
 
@@ -399,18 +540,18 @@ namespace Horizon.MUM.Models
 
             if (player.Client == Host)
             {
-                LoggerAccessor.LogInfo($"[Game] -> OnHostJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.CurrentGame?.WorldID}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
+                LoggerAccessor.LogInfo($"[Game] -> OnHostJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.CurrentGame?.MediusWorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
                 ishost = true;
                 hasHostJoined = true;
             }
             else
-                LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.CurrentGame?.WorldID}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
+                LoggerAccessor.LogInfo($"[Game] -> OnPlayerJoined -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.CurrentGame?.MediusWorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
 
             try
             {
-                if (player.Client != null)
+                if (player.Client != null && GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
                     RoomManager.UpdateOrCreateRoom(player.Client.ApplicationId.ToString(), player.Client.CurrentGame?.GameName, player.Client.CurrentGame?.MediusWorldId,
-                        player.Client.CurrentChannel?.Id.ToString(), player.Client.AccountName, player.Client.DmeClientId, player.Client.LanguageType.ToString(), ishost);
+                        player.Client.CurrentChannel?.Id.ToString(), player.Client.AccountName, player.Client.DmeId, player.Client.LanguageType.ToString(), ishost);
             }
             catch
             {
@@ -423,18 +564,18 @@ namespace Horizon.MUM.Models
 
         public virtual void AddPlayer(ClientObject client)
         {
-            // Don't add again
-            if (LocalClients.Any(x => x.Client == client))
-                return;
-
-            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} added with sessionkey {client.SessionKey}.");
-
             lock (LocalClients)
             {
+                // Don't add again
+                if (LocalClients.Any(x => x.Client == client))
+                    return;
+
+                LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} added with sessionkey {client.SessionKey}.");
+
                 LocalClients.Add(new GameClient()
                 {
                     Client = client,
-                    DmeId = client.DmeClientId != null ? (int)client.DmeClientId : 0
+                    DmeId = client.DmeId
                 });
             }
 
@@ -444,7 +585,7 @@ namespace Horizon.MUM.Models
 
         protected virtual async Task OnPlayerLeft(GameClient player, MediusServerConnectNotification connectNotification)
         {
-            LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.CurrentGame?.WorldID}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
+            LoggerAccessor.LogInfo($"[Game] -> OnPlayerLeft -> {player.Client?.ApplicationId} - {player.Client?.CurrentGame?.GameName} (id : {player.Client?.CurrentGame?.MediusWorldId}) -> {player.Client?.AccountName} -> {player.Client?.LanguageType}");
 
             player.InGame = false;
 
@@ -455,7 +596,7 @@ namespace Horizon.MUM.Models
 
                 // Remove from collection
                 if (player.Client.CurrentGame != null)
-                    await RemovePlayer(player.Client, player.Client.ApplicationId, player.Client.CurrentGame?.WorldID.ToString());
+                    await RemovePlayer(player.Client, player.Client.ApplicationId, player.Client.CurrentGame?.MediusWorldId.ToString());
             }
         }
 
@@ -465,11 +606,8 @@ namespace Horizon.MUM.Models
 
             try
             {
-                if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !string.IsNullOrEmpty(client.AccountName) && !string.IsNullOrEmpty(WorldId))
+                if (!string.IsNullOrEmpty(client.CurrentGame?.GameName) && !string.IsNullOrEmpty(client.AccountName) && !string.IsNullOrEmpty(WorldId) && GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
                     RoomManager.RemoveUserFromGame(client.ApplicationId.ToString(), client.CurrentGame.GameName, WorldId, client.AccountName);
-
-                if (PlayerCount <= 1)
-                    RoomManager.RemoveGame(client.ApplicationId.ToString(), WorldId, GameName);
             }
             catch
             {
@@ -514,6 +652,10 @@ namespace Horizon.MUM.Models
             if (report.MediusWorldID != MediusWorldId)
                 return;
 
+            utcTimeTick = Utils.GetHighPrecisionUtcTime();
+
+            string? previousGameName = GameName;
+
             if (appId == 24180)
                 report.MaxPlayers = 10;
 
@@ -532,6 +674,30 @@ namespace Horizon.MUM.Models
             GenericField6 = report.GenericField6;
             GenericField7 = report.GenericField7;
             GenericField8 = report.GenericField8;
+            // Some games codding are so poor that they not find useful to feed the player count info, GREAT!
+            if (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+            {
+                lock (LocalClients)
+                    PlayerCount = LocalClients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
+            }
+            else
+                PlayerCount = report.PlayerCount;
+
+            // Update Game channel too
+            if (GameChannel != null)
+            {
+                GameChannel.Name = report.GameName;
+                GameChannel.MinPlayers = report.MinPlayers;
+                GameChannel.MaxPlayers = report.MaxPlayers;
+                GameChannel.GameLevel = report.GameLevel;
+                GameChannel.RulesSet = report.RulesSet;
+                GameChannel.PlayerSkillLevel = report.PlayerSkillLevel;
+                GameChannel.GenericField1 = (ulong)report.GenericField1;
+                GameChannel.GenericField2 = (ulong)report.GenericField2;
+                GameChannel.GenericField3 = (ulong)report.GenericField3;
+                GameChannel.GenericField4 = (ulong)report.GenericField4;
+                GameChannel.WorldStatus = report.WorldStatus;
+            }
 
             // Once the world has been closed then we force it closed.
             // This is because when the host hits 'Play Again' they tell the server the world has closed (EndGameReport)
@@ -546,6 +712,18 @@ namespace Horizon.MUM.Models
                 if (!utcTimeEnded.HasValue)
                     _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
+
+            if (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+            {
+                try
+                {
+                    RoomManager.UpdateGameName(ApplicationId.ToString(), MediusWorldId.ToString(), previousGameName, GameName);
+                }
+                catch
+                {
+                    // Not Important
+                }
+            }
         }
 
         public virtual async Task OnWorldReport0(MediusWorldReport0 report)
@@ -553,6 +731,10 @@ namespace Horizon.MUM.Models
             // Ensure report is for correct game world
             if (report.MediusWorldID != MediusWorldId)
                 return;
+
+            utcTimeTick = Utils.GetHighPrecisionUtcTime();
+
+            string? previousGameName = GameName;
 
             GameName = report.GameName;
             GameStats = report.GameStats;
@@ -564,6 +746,29 @@ namespace Horizon.MUM.Models
             GenericField1 = report.GenericField1;
             GenericField2 = report.GenericField2;
             GenericField3 = report.GenericField3;
+            // Some games codding are so poor that they not find useful to feed the player count info, GREAT!
+            if (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+            {
+                lock (LocalClients)
+                    PlayerCount = LocalClients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
+            }
+            else
+                PlayerCount = report.PlayerCount;
+
+            // Update Game channel too
+            if (GameChannel != null)
+            {
+                GameChannel.Name = report.GameName;
+                GameChannel.MinPlayers = report.MinPlayers;
+                GameChannel.MaxPlayers = report.MaxPlayers;
+                GameChannel.GameLevel = report.GameLevel;
+                GameChannel.RulesSet = report.RulesSet;
+                GameChannel.PlayerSkillLevel = report.PlayerSkillLevel;
+                GameChannel.GenericField1 = (ulong)report.GenericField1;
+                GameChannel.GenericField2 = (ulong)report.GenericField2;
+                GameChannel.GenericField3 = (ulong)report.GenericField3;
+                GameChannel.WorldStatus = report.WorldStatus;
+            }
 
             // Once the world has been closed then we force it closed.
             // This is because when the host hits 'Play Again' they tell the server the world has closed (EndGameReport)
@@ -579,7 +784,17 @@ namespace Horizon.MUM.Models
                     _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
 
-            LoggerAccessor.LogInfo("[Medius Game] - World Updated from World Report");
+            if (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+            {
+                try
+                {
+                    RoomManager.UpdateGameName(ApplicationId.ToString(), MediusWorldId.ToString(), previousGameName, GameName);
+                }
+                catch
+                {
+                    // Not Important
+                }
+            }
         }
 
         public virtual async Task OnWorldReportOnMe(MediusServerWorldReportOnMe report)
@@ -588,12 +803,15 @@ namespace Horizon.MUM.Models
             if (report.MediusWorldID != MediusWorldId)
                 return;
 
+            utcTimeTick = Utils.GetHighPrecisionUtcTime();
+
+            string? previousGameName = GameName;
+
             ApplicationId = report.ApplicationID;
             GameName = report.GameName;
             GameStats = report.GameStats;
-            MinPlayers = report.MinClients;
-            MaxPlayers = report.MaxClients;
-            //PlayerCount = report.PlayerCount; //Not Needed at this moment
+            MinPlayers = report.MinPlayers;
+            MaxPlayers = report.MaxPlayers;
             GameLevel = report.GameLevel;
             PlayerSkillLevel = report.PlayerSkillLevel;
             RulesSet = report.RulesSet;
@@ -605,6 +823,30 @@ namespace Horizon.MUM.Models
             GenericField6 = report.GenericField6;
             GenericField7 = report.GenericField7;
             GenericField8 = report.GenericField8;
+            // Some games codding are so poor that they not find useful to feed the player count info, GREAT!
+            if (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+            {
+                lock (LocalClients)
+                    PlayerCount = LocalClients.Count(x => x != null && x.Client != null && x.Client.IsConnected && x.InGame);
+            }
+            else
+                PlayerCount = report.PlayerCount;
+
+            // Update Game channel too
+            if (GameChannel != null)
+            {
+                GameChannel.Name = report.GameName;
+                GameChannel.MinPlayers = report.MinPlayers;
+                GameChannel.MaxPlayers = report.MaxPlayers;
+                GameChannel.GameLevel = report.GameLevel;
+                GameChannel.RulesSet = report.RulesSet;
+                GameChannel.PlayerSkillLevel = report.PlayerSkillLevel;
+                GameChannel.GenericField1 = (ulong)report.GenericField1;
+                GameChannel.GenericField2 = (ulong)report.GenericField2;
+                GameChannel.GenericField3 = (ulong)report.GenericField3;
+                GameChannel.GenericField4 = (ulong)report.GenericField4;
+                GameChannel.WorldStatus = report.WorldStatus;
+            }
 
             // Once the world has been closed then we force it closed.
             // This is because when the host hits 'Play Again' they tell the server the world has closed (EndGameReport)
@@ -619,6 +861,18 @@ namespace Horizon.MUM.Models
                 if (!utcTimeEnded.HasValue)
                     _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
+
+            if (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+            {
+                try
+                {
+                    RoomManager.UpdateGameName(ApplicationId.ToString(), MediusWorldId.ToString(), previousGameName, GameName);
+                }
+                catch
+                {
+                    // Not Important
+                }
+            }
         }
 
         public virtual Task GameCreated()
@@ -626,105 +880,65 @@ namespace Horizon.MUM.Models
             return Task.CompletedTask;
         }
 
-        public virtual async Task EndGame()
+        public virtual Task EndGame(int appid)
         {
-            // destroy flag
-            destroyed = true;
-
-            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: EndGame() called.");
-
-            // Send to plugins
-            await MuisClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this });
-
-            // Remove players from game world
-            while (LocalClients.Count > 0)
+            lock (_Lock)
             {
-                ClientObject? client = LocalClients[0].Client;
-                if (client == null)
+                if (Destroyed)
+                    return Task.CompletedTask;
+
+                LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: EndGame() called.");
+
+                // Send to plugins
+                MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this }).Wait();
+
+                // Remove players from game world
+                lock (LocalClients)
                 {
-                    lock (LocalClients)
-                        LocalClients.RemoveAt(0);
+                    while (LocalClients.Count > 0)
+                    {
+                        ClientObject? client = LocalClients[0].Client;
+                        if (client == null)
+                            LocalClients.RemoveAt(0);
+                        else
+                            client.LeaveGame(this).Wait();
+                    }
                 }
-                else
-                    await client.LeaveGame(this);
-            }
 
+                // Unregister from channel
+				GameChannel?.UnregisterGame(this);
 
-            // Unregister from channel
-            ChatChannel?.UnregisterGame(this);
-
-            // Send end game
-            DMEServer?.Queue(new MediusServerEndGameRequest()
-            {
-                MediusWorldID = MediusWorldId,
-                BrutalFlag = false
-            });
-
-            try
-            {
-                RoomManager.RemoveGame(ApplicationId.ToString(), WorldID.ToString(), GameName);
-            }
-            catch
-            {
-                // Not Important
-            }
-
-            // Delete db entry if game hasn't started
-            // Otherwise do a final update
-            if (!utcTimeStarted.HasValue)
-                _ = HorizonServerConfiguration.Database.DeleteGame(MediusWorldId);
-            else
-                _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
-        }
-
-        public virtual async Task EndGame(int appid)
-        {
-            // destroy flag
-            destroyed = true;
-
-            LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: EndGame() called.");
-
-            // Send to plugins
-            await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_DESTROYED, new OnGameArgs() { Game = this });
-
-            // Remove players from game world
-            while (LocalClients.Count > 0)
-            {
-                ClientObject? client = LocalClients[0].Client;
-                if (client == null)
+                // Send end game
+                DMEServer?.Queue(new MediusServerEndGameRequest()
                 {
-                    lock (LocalClients)
-                        LocalClients.RemoveAt(0);
+                    MediusWorldID = MediusWorldId,
+                    BrutalFlag = false
+                });
+
+                if (GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+                {
+                    try
+                    {
+                        RoomManager.RemoveGame(appid.ToString(), MediusWorldId.ToString(), GameName);
+                    }
+                    catch
+                    {
+                        // Not Important
+                    }
                 }
+
+                // destroy flag
+                Destroyed = true;
+
+                // Delete db entry if game hasn't started
+                // Otherwise do a final update
+                if (!utcTimeStarted.HasValue)
+                    _ = HorizonServerConfiguration.Database.DeleteGame(MediusWorldId);
                 else
-                    await client.LeaveGame(this);
+                    _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
             }
 
-            // Unregister from channel
-            ChatChannel?.UnregisterGame(this);
-
-            // Send end game
-            DMEServer?.Queue(new MediusServerEndGameRequest()
-            {
-                MediusWorldID = MediusWorldId,
-                BrutalFlag = false
-            });
-
-            try
-            {
-                RoomManager.RemoveGame(appid.ToString(), WorldID.ToString(), GameName);
-            }
-            catch
-            {
-                // Not Important
-            }
-
-            // Delete db entry if game hasn't started
-            // Otherwise do a final update
-            if (!utcTimeStarted.HasValue)
-                _ = HorizonServerConfiguration.Database.DeleteGame(MediusWorldId);
-            else
-                _ = HorizonServerConfiguration.Database.UpdateGame(ToGameDTO());
+            return Task.CompletedTask;
         }
 
         public virtual async Task SetWorldStatus(MediusWorldStatus status)

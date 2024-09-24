@@ -17,7 +17,7 @@ namespace Horizon.RT.Models
         public string SessionKey; // SESSIONKEY_MAXLEN
         public int MediusWorldID;
         public string GamePassword; // GAMEPASSWORD_MAXLEN
-        public MediusGameHostType GameHostType;
+        public MGCL_GAME_HOST_TYPE GameHostType;
         public NetAddressList AddressList;
 
         public override void Deserialize(MessageReader reader)
@@ -30,7 +30,7 @@ namespace Horizon.RT.Models
             reader.ReadBytes(2);
             MediusWorldID = reader.ReadInt32();
             GamePassword = reader.ReadString(Constants.GAMEPASSWORD_MAXLEN);
-            GameHostType = reader.Read<MediusGameHostType>();
+            GameHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
             AddressList = reader.Read<NetAddressList>();
         }
 

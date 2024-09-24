@@ -43,7 +43,7 @@ namespace HTTPServer.Models
             return string.Format("{0} - {1}", Method, RawUrlWithQuery);
         }
 
-        public string RetrieveHeaderValue(string headeruri)
+        public string RetrieveHeaderValue(string headeruri, bool caseSensitive = true)
         {
             // Check if Headers is null or empty first to avoid unnecessary LINQ operations
             if (Headers == null || !Headers.Any())
@@ -51,7 +51,7 @@ namespace HTTPServer.Models
 
             // Try to find the header with the specified key
             KeyValuePair<string, string>? header = Headers
-                .FirstOrDefault(h => h.Key.Equals(headeruri));
+                .FirstOrDefault(h => caseSensitive ? h.Key.Equals(headeruri) : h.Key.Equals(headeruri, StringComparison.InvariantCultureIgnoreCase));
 
             // Check if the header was found and its value is not the default empty string
             if (header.HasValue && !string.IsNullOrEmpty(header.Value.Value))

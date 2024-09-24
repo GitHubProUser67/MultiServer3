@@ -49,7 +49,7 @@ namespace Horizon.RT.Models
         /// <summary>
         /// PartyHostType of this party
         /// </summary>
-        public MediusGameHostType PartyHostType;
+        public MGCL_GAME_HOST_TYPE PartyHostType;
         public string ServerSessionKey; //SESSIONKEY_MAXLEN
 
 
@@ -79,7 +79,7 @@ namespace Horizon.RT.Models
             GenericField6 = reader.ReadInt32();
             GenericField7 = reader.ReadInt32();
             GenericField8 = reader.ReadInt32();
-            PartyHostType = reader.Read<MediusGameHostType>();
+            PartyHostType = reader.Read<MGCL_GAME_HOST_TYPE>();
 
             ServerSessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             //reader.ReadBytes(3);

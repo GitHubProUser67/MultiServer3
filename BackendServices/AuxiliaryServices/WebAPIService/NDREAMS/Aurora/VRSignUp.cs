@@ -1,8 +1,8 @@
 using System.IO;
 using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
-using CastleLibrary.Utils.Hash;
 using System.Text;
+using CastleLibrary.Utils;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
@@ -29,7 +29,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     ms.Flush();
                 }
 
-                string ExpectedHash = NetHasher.ComputeSHA1StringWithCleanup(Encoding.UTF8.GetBytes(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl")).ToLower();
+                string ExpectedHash = NetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes(email + "_" + username + "_" + "V305iSReuFCeRvLpt2mMh83nkeV0p9pl")).ToLower();
 
                 if (hash.Equals(ExpectedHash))
                 {

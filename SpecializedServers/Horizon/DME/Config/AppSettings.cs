@@ -8,9 +8,9 @@ namespace Horizon.DME.Config
         public int AppId { get; }
 
         /// <summary>
-        /// When true, server will encrypt all messages.
+        /// When true, server will encrypt all messages (DISABLED DUE TO UDP NOT SUPPORTED).
         /// </summary>
-        public bool EnableDmeEncryption { get; private set; } = false;
+        // public bool EnableDmeEncryption { get; private set; } = false;
 
         /// <summary>
         /// Default time in milliseconds for the client's world agg time.
@@ -33,6 +33,11 @@ namespace Horizon.DME.Config
         public int ClientTimeoutSeconds { get; private set; } = 25;
 
         /// <summary>
+        /// Time since last echo before timing the client out.
+        /// </summary>
+        public int ClientLongTimeoutSeconds { get; private set; } = 60 * 5;
+
+        /// <summary>
         /// Time since game created and host never connected to close the game world.
         /// </summary>
         public int GameTimeoutSeconds { get; private set; } = 15;
@@ -46,9 +51,9 @@ namespace Horizon.DME.Config
         {
             string? value = null;
 
-            // EnableDmeEncryption
+            /* EnableDmeEncryption
             if (settings.TryGetValue("EnableDmeEncryption", out value) && bool.TryParse(value, out var enableDmeEncryption))
-                EnableDmeEncryption = enableDmeEncryption;
+                EnableDmeEncryption = enableDmeEncryption; */
             // DefaultClientWorldAggTime
             if (settings.TryGetValue("DefaultClientWorldAggTime", out value) && int.TryParse(value, out var defaultClientWorldAggTime))
                 DefaultClientWorldAggTime = defaultClientWorldAggTime;

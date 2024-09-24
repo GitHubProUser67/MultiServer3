@@ -7,7 +7,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobby, MediusLobbyMessageIds.AccountLoginResponse)]
     public class MediusAccountLoginResponse : BaseLobbyMessage, IMediusResponse
     {
-
         public override byte PacketType => (byte)MediusLobbyMessageIds.AccountLoginResponse;
 
         public bool IsSuccess => StatusCode >= 0;
@@ -17,7 +16,7 @@ namespace Horizon.RT.Models
         public MediusCallbackStatus StatusCode;
         public int AccountID;
         public MediusAccountType AccountType;
-        public int MediusWorldID;
+        public int WorldID;
         public NetConnectionInfo ConnectInfo;
 
         public override void Deserialize(MessageReader reader)
@@ -30,7 +29,7 @@ namespace Horizon.RT.Models
             StatusCode = reader.Read<MediusCallbackStatus>();
             AccountID = reader.ReadInt32();
             AccountType = reader.Read<MediusAccountType>();
-            MediusWorldID = reader.ReadInt32();
+            WorldID = reader.ReadInt32();
             ConnectInfo = reader.Read<NetConnectionInfo>();
         }
 
@@ -44,7 +43,7 @@ namespace Horizon.RT.Models
             writer.Write(StatusCode);
             writer.Write(AccountID);
             writer.Write(AccountType);
-            writer.Write(MediusWorldID);
+            writer.Write(WorldID);
             writer.Write(ConnectInfo ?? new NetConnectionInfo());
         }
 
@@ -55,7 +54,7 @@ namespace Horizon.RT.Models
                     $"StatusCode: {StatusCode} " +
                     $"AccountID: {AccountID} " +
                     $"AccountType: {AccountType} " +
-                    $"MediusWorldID: {MediusWorldID} " +
+                    $"MediusWorldID: {WorldID} " +
                     $"ConnectInfo: {ConnectInfo}";
         }
     }

@@ -1,3 +1,4 @@
+using CastleLibrary.Utils;
 using CustomLogger;
 using CyberBackendLibrary.Extension;
 using System.Text;
@@ -8,7 +9,7 @@ namespace SSFWServer
 {
     public static class SSFWUserSessionManager
     {
-        private static List<(int, UserSession)>? userSessions = new();
+        private static ConcurrentList<(int, UserSession)>? userSessions = new();
 
         public static void RegisterUser(string userName, string sessionid, int realuserNameSize)
         {
@@ -128,7 +129,7 @@ namespace SSFWServer
                 else
                     salt = generalsecret + XHomeClientVersion;
 
-                string hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
+                string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
 
                 // Trim the hash to a specific length
                 hash = hash[..14];
@@ -149,7 +150,7 @@ namespace SSFWServer
                     else
                         salt = generalsecret + XHomeClientVersion;
 
-                    hash = CastleLibrary.Utils.Hash.NetHasher.ComputeMD5StringWithCleanup(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
+                    hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
 
                     // Trim the hash to a specific length
                     hash = hash[..10];
@@ -207,7 +208,7 @@ namespace SSFWServer
                 {
                     bool handled = false;
 
-                    Dictionary<string, string> scenemap = ScenelistParser.sceneDictionary;
+                    IDictionary<string, string> scenemap = ScenelistParser.sceneDictionary;
 
                     if (File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/LayoutService/{env}/person/{resultString}/mylayout.json")) // Migrate data.
                     {

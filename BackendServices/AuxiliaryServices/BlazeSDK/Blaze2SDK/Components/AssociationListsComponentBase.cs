@@ -169,14 +169,14 @@ namespace Blaze2SDK.Components
             [BlazeNotification((ushort)AssociationListsComponentNotification.NotifyListMemberUpdated)]
             public virtual Task OnNotifyListMemberUpdatedAsync(MemberInfo notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyListMemberUpdatedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyListMemberUpdatedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)AssociationListsComponentNotification.NotifyListMemberRemoved)]
             public virtual Task OnNotifyListMemberRemovedAsync(AssociationListInfo notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNotifyListMemberRemovedAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze2SDK] - {GetType().FullName}: OnNotifyListMemberRemovedAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

@@ -5,6 +5,9 @@ using DotNetty.Transport.Channels.Sockets;
 using Horizon.LIBRARY.Pipeline.Udp;
 using System.Net;
 using CustomLogger;
+using DotNetty.Buffers;
+using System.Text;
+using CyberBackendLibrary.Extension;
 
 namespace Horizon.NAT
 {
@@ -36,15 +39,51 @@ namespace Horizon.NAT
             // Queue all incoming messages
             _scertHandler.OnChannelMessage += (channel, message) =>
             {
-                // Send ip and port back if the last byte isn't 0xD4
-                if (message.Content.ReadableBytes == 4 && message.Content.GetByte(message.Content.ReaderIndex + 3) != 0xD4 && (ushort?)(message.Sender as IPEndPoint)?.Port != null)
+                if (message.Sender is IPEndPoint sender && sender.Port != 0)
                 {
-                    ushort DestPort = (ushort?)(message.Sender as IPEndPoint)?.Port ?? 0; // Should never ever take 0, as we check earlier.
-                    LoggerAccessor.LogInfo($"Recieved External IP {(message.Sender as IPEndPoint)?.Address.MapToIPv4()} & Port {DestPort} request, sending their IP & Port as response!");
-                    var buffer = channel.Allocator.Buffer(6);
-                    buffer.WriteBytes((message.Sender as IPEndPoint)?.Address.MapToIPv4().GetAddressBytes());
-                    buffer.WriteUnsignedShort(DestPort);
-                    channel.WriteAndFlushAsync(new DatagramPacket(buffer, message.Sender));
+                    IByteBuffer directBuf = message.Content;
+                    if (directBuf.HasArray)
+                    {
+                        byte[] MsgArray = new byte[directBuf.ReadableBytes];
+                        directBuf.GetBytes(directBuf.ReaderIndex, MsgArray);
+
+                        // message has 4 bytes
+                        if (MsgArray.Length == 4)
+                        {
+                            // get last byte in message
+                            switch (MsgArray[3])
+                            {
+                                case 0xD4:
+                                    // Not answear messages ending with 0xD4.
+                                    break;
+                                default:
+                                    // get sender address and port
+                                    byte[] senderAddress;
+                                    ushort DestPort = (ushort)sender.Port;
+
+                                    if (sender.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                                        senderAddress = sender.Address.MapToIPv4().GetAddressBytes();
+                                    else
+                                        senderAddress = sender.Address.GetAddressBytes();
+
+                                    // log to console
+                                    LoggerAccessor.LogInfo($"[NAT] - Received External IP {sender.Address} & Port {DestPort} request, sending their IP & Port as response!");
+
+                                    // write response message
+                                    IByteBuffer buffer = channel.Allocator.Buffer(6);
+                                    buffer.WriteBytes(senderAddress);
+                                    buffer.WriteUnsignedShort(DestPort);
+
+                                    // send response message 3 times.
+                                    DatagramPacket packet = new(buffer, sender);
+                                    for (byte i = 0; i < 3; i++)
+                                    {
+                                        channel.WriteAndFlushAsync(packet);
+                                    }
+                                    break;
+                            }
+                        }
+                    }
                 }
             };
 

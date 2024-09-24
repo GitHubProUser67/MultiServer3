@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -7,7 +6,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.ChannelList_ExtraInfo)]
     public class MediusChannelList_ExtraInfoRequest : BaseLobbyExtMessage, IMediusRequest
     {
-
         public override byte PacketType => (byte)MediusLobbyExtMessageIds.ChannelList_ExtraInfo;
 
         public MessageId MessageID { get; set; }

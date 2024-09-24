@@ -6,12 +6,12 @@ using DotNetty.Transport.Channels.Sockets;
 using Horizon.RT.Common;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Udp;
+using Horizon.DME.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.DME.PluginArgs;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.PluginManager;
-using Horizon.MUM.Models;
 
 namespace Horizon.DME
 {
@@ -23,7 +23,7 @@ namespace Horizon.DME
         protected IChannel? _boundChannel = null;
         protected ScertDatagramHandler? _scertHandler = null;
 
-        protected ClientObject? ClientObject { get; set; } = null;
+        protected DMEObject? ClientObject { get; set; } = null;
         protected EndPoint? AuthenticatedEndPoint { get; set; } = null;
 
         private ConcurrentQueue<ScertDatagramPacket> _recvQueue = new();
@@ -54,7 +54,7 @@ namespace Horizon.DME
 
         #endregion
 
-        public UdpServer(ClientObject clientObject)
+        public UdpServer(DMEObject clientObject)
         {
             ClientObject = clientObject;
             RegisterPort();
@@ -94,6 +94,12 @@ namespace Horizon.DME
 
                 if (!pluginArgs.Ignore)
                     _recvQueue.Enqueue(message);
+
+                ClientObject?.OnRecv(message);
+
+                // Log if id is set
+                if (message.CanLog())
+                    LoggerAccessor.LogInfo($"DME_UDP RECV {channel}: {message}");
             };
 
             var bootstrap = new Bootstrap();
@@ -148,13 +154,13 @@ namespace Horizon.DME
             {
                 case RT_MSG_CLIENT_CONNECT_AUX_UDP connectAuxUdp:
                     {
-                        ClientObject? clientObject = DmeClass.TcpServer.GetClientByScertId(connectAuxUdp.ScertId);
+                        var clientObject = DmeClass.TcpServer.GetClientByScertId(connectAuxUdp.ScertId);
                         if (clientObject != ClientObject && ClientObject?.DmeId != connectAuxUdp.PlayerId)
                             break;
 
                         AuthenticatedEndPoint = packet.Source;
 
-                        if (ClientObject != null && ClientObject.DmeWorld != null)
+                        if (ClientObject != null)
                         {
                             ClientObject.RemoteUdpEndpoint = AuthenticatedEndPoint as IPEndPoint;
                             ClientObject.OnUdpConnected();
@@ -163,7 +169,7 @@ namespace Horizon.DME
                             {
                                 PlayerId = (ushort)ClientObject.DmeId,
                                 ScertId = ClientObject.ScertId,
-                                PlayerCount = (ushort)ClientObject.DmeWorld.Clients.Count,
+                                PlayerCount = (ushort?)ClientObject.DmeWorld?.Clients.Count ?? 0x0001,
                                 EndPoint = ClientObject.RemoteUdpEndpoint
                             };
 
@@ -176,23 +182,19 @@ namespace Horizon.DME
                 case RT_MSG_CLIENT_CONNECT_READY_AUX_UDP readyAuxUdp:
                     {
                         /*
-                        if (ClientObject != null && ClientObject.DmeWorld != null)
+                        ClientObject?.OnConnectionCompleted();
+
+                        var msg = new RT_MSG_SERVER_CONNECT_COMPLETE()
                         {
-                            ClientObject.OnConnectionCompleted();
+                            ClientCountAtConnect = (ushort)ClientObject.DmeWorld.Clients.Count,
+                            SkipEncryption = true,
+                        };
 
-                            RT_MSG_SERVER_CONNECT_COMPLETE msg = new()
-                            {
-                                ClientCountAtConnect = (ushort)ClientObject.DmeWorld.Clients.Count,
-                                SkipEncryption = true,
-                            };
-
-                            // Send it twice in case of packet loss
-                            //_boundChannel.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
-                            _boundChannel?.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
-                        }
+                        _boundChannel.WriteAndFlushAsync(new ScertDatagramPacket(msg, packet.Source));
                         */
                         break;
                     }
+
                 case RT_MSG_SERVER_ECHO serverEchoReply:
                     {
 
@@ -236,8 +238,14 @@ namespace Horizon.DME
                             ProcessMediusMessage(clientAppToServer.Message);
                         break;
                     }
+                case RT_MSG_CLIENT_FLUSH_SINGLE clientFlushSingle:
+                    {
+
+                        break;
+                    }
                 case RT_MSG_CLIENT_FLUSH_ALL flushAll:
                     {
+
                         return;
                     }
                 case RT_MSG_CLIENT_DISCONNECT _:
@@ -370,7 +378,7 @@ namespace Horizon.DME
 
         #endregion
 
-        protected async Task<bool> PassMessageToPlugins(IChannel clientChannel, ClientObject clientObject, BaseScertMessage message, bool isIncoming)
+        protected async Task<bool> PassMessageToPlugins(IChannel clientChannel, DMEObject clientObject, BaseScertMessage message, bool isIncoming)
         {
             OnMessageArgs onMsg = new(isIncoming)
             {

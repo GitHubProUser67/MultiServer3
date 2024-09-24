@@ -789,21 +789,21 @@ namespace Blaze3SDK.Components
             [BlazeNotification((ushort)ClubsComponentNotification.FindClubsAsyncNotification)]
             public virtual Task OnFindClubsAsyncNotificationAsync(FindClubsAsyncResult notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnFindClubsAsyncNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnFindClubsAsyncNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)ClubsComponentNotification.NewClubTickerMessageNotification)]
             public virtual Task OnNewClubTickerMessageNotificationAsync(ClubTickerMessage notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnNewClubTickerMessageNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnNewClubTickerMessageNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             
             [BlazeNotification((ushort)ClubsComponentNotification.GetMembersAsyncNotification)]
             public virtual Task OnGetMembersAsyncNotificationAsync(GetMembersAsyncResult notification)
             {
-                CustomLogger.LoggerAccessor.LogWarn($"{GetType().FullName}: OnGetMembersAsyncNotificationAsync NOT IMPLEMENTED!");
+                CustomLogger.LoggerAccessor.LogWarn($"[Blaze3SDK] - {GetType().FullName}: OnGetMembersAsyncNotificationAsync NOT IMPLEMENTED!");
                 return Task.CompletedTask;
             }
             

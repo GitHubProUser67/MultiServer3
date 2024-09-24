@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using CastleLibrary.Utils;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.OpenSsl;
@@ -103,12 +104,9 @@ namespace XI5
         public bool SignedByOfficialRPCN { 
             get
             {
-                if (IssuerId != 0x33333333) //they are using IssuerId = 0x33333333 as a constant
-                    return false;
-
                 Asn1InputStream decoder = new Asn1InputStream(_signature);
                 if (decoder.ReadObject() is DerSequence seq)
-                    return ECDsaRPCN.VerifySignature(CastleLibrary.Utils.Hash.NetHasher.ComputeSHA224(_fullBodyData), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
+                    return ECDsaRPCN.VerifySignature(NetHasher.ComputeSHA224(_fullBodyData), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
 
                 return false;
             }
@@ -121,7 +119,7 @@ namespace XI5
                 throw new InvalidDataException($"Expected datatype: {expected} | Actual datatype: {dt}");
 
             ushort size = stream.ReadUShort();
-            byte[] data = new byte[size+4]; //with datatype and size included
+            byte[] data = new byte[size + 4]; //with datatype and size included
             stream.Seek(-4, SeekOrigin.Current);
             if (!stream.ReadAll(data, 0, data.Length))
                 throw new EndOfStreamException($"Failed to read {size} bytes from stream");

@@ -11,10 +11,12 @@ using Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUIS.Config;
-using Horizon.MEDIUS;
-using static Horizon.MEDIUS.Medius.BaseMediusComponent;
+using Horizon.SERVER;
+using static Horizon.SERVER.Medius.BaseMediusComponent;
 using Horizon.MUM.Models;
-using Horizon.MEDIUS.Medius;
+using Horizon.SERVER.Medius;
+using CyberBackendLibrary.Extension;
+using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.MUIS
 {
@@ -76,11 +78,18 @@ namespace Horizon.MUIS
                 if (_channelDatas.TryGetValue(key, out var data))
                 {
                     data.RecvQueue.Enqueue(message);
+
+                    if (message is RT_MSG_SERVER_ECHO serverEcho)
+                        data.ClientObject?.OnRecvServerEcho(serverEcho);
+                    else if (message is RT_MSG_CLIENT_ECHO clientEcho)
+                        data.ClientObject?.OnRecvClientEcho(clientEcho);
+
+                    data.ClientObject?.OnRecv(message);
                 }
 
                 // Log if id is set
                 if (message.CanLog())
-                    LoggerAccessor.LogInfo($"TCP RECV {channel}: {message}");
+                    LoggerAccessor.LogInfo($"MUIS RECV {channel}: {message}");
             };
 
             var bootstrap = new ServerBootstrap();
@@ -92,7 +101,7 @@ namespace Horizon.MUIS
                 {
                     IChannelPipeline pipeline = channel.Pipeline;
 
-                    pipeline.AddLast(new WriteTimeoutHandler(120));
+                    pipeline.AddLast(new WriteTimeoutHandler(60 * 15));
                     pipeline.AddLast(new ScertEncoder());
                     pipeline.AddLast(new ScertIEnumerableEncoder());
                     pipeline.AddLast(new ScertTcpFrameDecoder(DotNetty.Buffers.ByteOrder.LittleEndian, 1024, 1, 2, 0, 0, false));
@@ -250,16 +259,18 @@ namespace Horizon.MUIS
                                 break;
                             }
 
+                            List<int> pre108ServerComplete = new() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
+
+                            // No need to apply the connection delay, MUIS is expected to be a One-Shot server.
+
                             data.ApplicationId = clientConnectTcp.AppId;
                             scertClient.ApplicationID = clientConnectTcp.AppId;
-
-                            List<int> pre108ServerComplete = new() { 10130, 10334, 10421, 10442, 10538, 10540, 10550, 10582, 10584, 10724 };
 
                             Channel? targetChannel = MediusClass.Manager.GetChannelByChannelId(clientConnectTcp.TargetWorldId, data.ApplicationId);
 
                             if (targetChannel == null)
                             {
-                                Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId);
+                                Channel DefaultChannel = MediusClass.Manager.GetOrCreateDefaultLobbyChannel(data.ApplicationId, scertClient.MediusVersion ?? 0);
 
                                 if (DefaultChannel.Id == clientConnectTcp.TargetWorldId)
                                     targetChannel = DefaultChannel;
@@ -273,10 +284,9 @@ namespace Horizon.MUIS
 
                             LoggerAccessor.LogInfo($"[MUIS] - Client Connected {clientChannel.RemoteAddress} with new ClientObject!");
 
-                            data.ClientObject = new()
+                            data.ClientObject = new(scertClient.MediusVersion ?? 0)
                             {
                                 MuisIP = MuisClass.SERVER_IP,
-                                MediusVersion = scertClient.MediusVersion ?? 0,
                                 ApplicationId = clientConnectTcp.AppId
                             };
                             data.ClientObject.OnConnected();
@@ -306,6 +316,50 @@ namespace Horizon.MUIS
                                     Queue(new RT_MSG_SERVER_CONNECT_COMPLETE() { ClientCountAtConnect = 0x0001 }, clientChannel);
                             }
 
+                            if (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                CheatQuery(0x00010000, 512000, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, unchecked((int)0xDEADBEEF));
+
+                            break;
+                        }
+                    case RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery:
+                        {
+                            byte[]? QueryData = clientCheatQuery.Data;
+
+                            if (QueryData != null)
+                            {
+                                LoggerAccessor.LogDebug($"[MUIS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+
+                                if (data.ApplicationId == 20371 || data.ApplicationId == 20374)
+                                {
+                                    switch (clientCheatQuery.SequenceId)
+                                    {
+                                        case -559038737:
+                                            switch (clientCheatQuery.StartAddress)
+                                            {
+                                                case 65536:
+                                                    if (data.ClientObject != null)
+                                                    {
+                                                        data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
+                                                        .Equals(DataUtils.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+
+                                                        if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot && data.ClientObject.ClientHomeData == null)
+                                                        {
+                                                            string anticheatMsg = $"[MUIS] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
+
+                                                            _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(x => x != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                            LoggerAccessor.LogError(anticheatMsg);
+
+                                                            data.State = ClientState.DISCONNECTED;
+                                                            await clientChannel.CloseAsync();
+                                                        }
+                                                    }
+                                                    break;
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
                             break;
                         }
                     case RT_MSG_CLIENT_CONNECT_READY_REQUIRE clientConnectReadyRequire:
@@ -366,10 +420,10 @@ namespace Horizon.MUIS
                         }
                     case RT_MSG_CLIENT_DISCONNECT_WITH_REASON clientDisconnectWithReason:
                         {
-                            if (clientDisconnectWithReason.disconnectReason <= RT_MSG_CLIENT_DISCONNECT_REASON.RT_MSG_CLIENT_DISCONNECT_LENGTH_MISMATCH)
-                                LoggerAccessor.LogInfo($"[MUIS] - Disconnected by request with reason of {clientDisconnectWithReason.disconnectReason}\n");
+                            if (clientDisconnectWithReason.Reason <= RT_MSG_CLIENT_DISCONNECT_REASON.RT_MSG_CLIENT_DISCONNECT_LENGTH_MISMATCH)
+                                LoggerAccessor.LogInfo($"[MUIS] - Disconnected by request with reason of {clientDisconnectWithReason.Reason}\n");
                             else
-                                LoggerAccessor.LogInfo($"[MUIS] - Disconnected by request with (application specified) reason of {clientDisconnectWithReason.disconnectReason}\n");
+                                LoggerAccessor.LogInfo($"[MUIS] - Disconnected by request with (application specified) reason of {clientDisconnectWithReason.Reason}\n");
 
                             await clientChannel.CloseAsync();
                             break;
@@ -570,10 +624,8 @@ namespace Horizon.MUIS
                 #region MediusGetUniverseInformationRequest
                 case MediusGetUniverseInformationRequest getUniverseInfo:
                     {
-                        int compAppId = MuisClass.Settings.CompatibleApplicationIds.Find(appId => appId == data.ApplicationId);
-
                         //Check if Client AppId equals the Appid in CompatibleAppId list
-                        if (data.ApplicationId == compAppId)
+                        if (data.ApplicationId == MuisClass.Settings.CompatibleApplicationIds.Find(appId => appId == data.ApplicationId))
                         {
                             if (MuisClass.Settings.Universes.TryGetValue(data.ApplicationId, out var infos))
                             {
@@ -739,7 +791,7 @@ namespace Horizon.MUIS
                         }
                         else
                         {
-                            LoggerAccessor.LogWarn($"ApplicationID not compatible [{data.ApplicationId}]");
+                            LoggerAccessor.LogWarn($"[MUIS] - ApplicationID not compatible [{data.ApplicationId}]");
 
                             if (getUniverseInfo.InfoType.HasFlag(MediusUniverseVariableInformationInfoFilter.INFO_UNIVERSES))
                             {
@@ -777,18 +829,11 @@ namespace Horizon.MUIS
                     {
                         List<MediusChannelList_ExtraInfoResponse> channelResponses = new List<MediusChannelList_ExtraInfoResponse>();
 
-                        // Deadlocked only uses this to connect to a non-game channel (lobby)
-                        // So we'll filter by lobby here
-                        /*
-                        var channels = MUISStarter.Manager.GetChannelList(
+                        foreach (Channel channel in MuisClass.Manager.GetChannelList(
                             data.ApplicationId,
                             channelList_ExtraInfoRequest.PageID,
                             channelList_ExtraInfoRequest.PageSize,
-                            ChannelType.Lobby);
-                        
-
-
-                        foreach (var channel in channels)
+                            ChannelType.Lobby))
                         {
                             channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
                             {
@@ -799,34 +844,15 @@ namespace Horizon.MUIS
                                 GameWorldCount = (ushort)channel.GameCount,
                                 PlayerCount = (ushort)channel.PlayerCount,
                                 MaxPlayers = (ushort)channel.MaxPlayers,
-                                GenericField1 = channel.GenericField1,
-                                GenericField2 = channel.GenericField2,
-                                GenericField3 = channel.GenericField3,
-                                GenericField4 = channel.GenericField4,
+                                GenericField1 = (uint)channel.GenericField1,
+                                GenericField2 = (uint)channel.GenericField2,
+                                GenericField3 = (uint)channel.GenericField3,
+                                GenericField4 = (uint)channel.GenericField4,
                                 GenericFieldLevel = channel.GenericFieldLevel,
                                 SecurityLevel = channel.SecurityLevel,
                                 EndOfList = false
                             });
                         }
-                        */
-
-                        channelResponses.Add(new MediusChannelList_ExtraInfoResponse()
-                        {
-                            MessageID = channelList_ExtraInfoRequest.MessageID,
-                            StatusCode = MediusCallbackStatus.MediusSuccess,
-                            MediusWorldID = 1,
-                            LobbyName = "US",
-                            GameWorldCount = 0,
-                            PlayerCount = 0,
-                            MaxPlayers = 256,
-                            GenericField1 = 0,
-                            GenericField2 = 0,
-                            GenericField3 = 0,
-                            GenericField4 = 0,
-                            GenericFieldLevel = 0,
-                            SecurityLevel = MediusWorldSecurityLevelType.WORLD_SECURITY_NONE,
-                            EndOfList = false
-                        });
 
                         if (channelResponses.Count == 0)
                         {
@@ -843,7 +869,7 @@ namespace Horizon.MUIS
                         else
                         {
                             // Ensure the end of list flag is set
-                            channelResponses[channelResponses.Count - 1].EndOfList = true;
+                            channelResponses[^1].EndOfList = true;
 
                             // Add to responses
                             Queue(channelResponses, clientChannel);
@@ -970,6 +996,31 @@ namespace Horizon.MUIS
                 return Task.FromResult(MediusTimeZone.MediusTimeZone_ISRAELST);
 
             return Task.FromResult(MediusTimeZone.MediusTimeZone_GMT);
+        }
+        #endregion
+
+        #region PokeEngine
+        private bool CheatQuery(uint address, int Length, IChannel? clientChannel, CheatQueryType Type = CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int SequenceId = 1)
+        {
+            // address = 0, don't read
+            if (address == 0)
+                return false;
+
+            // client channel is null, don't read
+            if (clientChannel == null)
+                return false;
+
+            // read client memory
+            Queue(new RT_MSG_SERVER_CHEAT_QUERY()
+            {
+                QueryType = Type,
+                SequenceId = SequenceId,
+                StartAddress = address,
+                Length = Length,
+            }, clientChannel);
+
+            // return read
+            return true;
         }
         #endregion
 

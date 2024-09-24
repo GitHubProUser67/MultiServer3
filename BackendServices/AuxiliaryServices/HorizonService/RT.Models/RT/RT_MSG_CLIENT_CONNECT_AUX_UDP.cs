@@ -10,7 +10,7 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_CONNECT_AUX_UDP;
 
-        public uint WorldId;
+        public int WorldId;
         public int ApplicationId;
         public IPEndPoint EndPoint;
         public ushort PlayerId;
@@ -29,7 +29,7 @@ namespace Horizon.RT.Models
             }
             else
             {
-                WorldId = reader.ReadUInt32();
+                WorldId = reader.ReadInt32();
                 ApplicationId = reader.ReadInt32();
                 EndPoint = new IPEndPoint(reader.ReadIPAddress(), (int)reader.ReadUInt16());
                 PlayerId = reader.ReadUInt16();

@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\WebAPIService\WebAPIService.csproj" />
+    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\HomeTools\HomeTools.csproj" />
   </ItemGroup>
   
   <ItemGroup>

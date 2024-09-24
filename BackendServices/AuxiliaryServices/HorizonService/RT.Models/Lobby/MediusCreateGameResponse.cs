@@ -7,7 +7,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobby, MediusLobbyMessageIds.CreateGameResponse)]
     public class MediusCreateGameResponse : BaseLobbyMessage, IMediusResponse
     {
-
         public override byte PacketType => (byte)MediusLobbyMessageIds.CreateGameResponse;
 
         public bool IsSuccess => StatusCode >= 0;

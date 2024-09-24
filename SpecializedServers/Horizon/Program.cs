@@ -25,6 +25,7 @@ public static class HorizonServerConfiguration
     public static bool EnableBWPS { get; set; } = true;
     public static bool EnableNAT { get; set; } = true;
     public static string? PlayerAPIStaticPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
+    public static string? EBOOTDEFSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ebootdefs.json";
     public static string? DMEConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dme.json";
     public static string? MEDIUSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/medius.json";
     public static string? MUISConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/muis.json";
@@ -74,6 +75,7 @@ public static class HorizonServerConfiguration
                     new JProperty("enabled", EnableBWPS),
                     new JProperty("config", BWPSConfig)
                 )),
+                new JProperty("eboot_defs_config", EBOOTDEFSConfig),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
                 new JProperty("certificate_password", HTTPSCertificatePassword),
@@ -107,6 +109,7 @@ public static class HorizonServerConfiguration
             MUISConfig = GetValueOrDefault(config.muis, "config", MUISConfig);
             NATConfig = GetValueOrDefault(config.nat, "config", NATConfig);
             BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
+            EBOOTDEFSConfig = GetValueOrDefault(config.bwps, "eboot_defs_config", EBOOTDEFSConfig);
             string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
             if (DataUtils.IsBase64String(APIKey))
                 MediusAPIKey = APIKey;
@@ -173,8 +176,8 @@ class Program
             }
         }
 
-        if (HorizonServerConfiguration.EnableMedius && !Horizon.MEDIUS.MediusClass.started)
-            Horizon.MEDIUS.MediusClass.StartServer();
+        if (HorizonServerConfiguration.EnableMedius && !Horizon.SERVER.MediusClass.started)
+            Horizon.SERVER.MediusClass.StartServer();
 
         if (HorizonServerConfiguration.EnableNAT && !Horizon.NAT.NATClass.started)
             Horizon.NAT.NATClass.StartServer();
@@ -205,8 +208,8 @@ class Program
         if (Horizon.NAT.NATClass.started && !HorizonServerConfiguration.EnableNAT)
             Horizon.NAT.NATClass.StopServer();
 
-        if (Horizon.MEDIUS.MediusClass.started && !HorizonServerConfiguration.EnableMedius)
-            Horizon.MEDIUS.MediusClass.StopServer();
+        if (Horizon.SERVER.MediusClass.started && !HorizonServerConfiguration.EnableMedius)
+            Horizon.SERVER.MediusClass.StopServer();
 
         MUMServer?.StopServer();
 

@@ -67,7 +67,7 @@ namespace WebAPIService.PREMIUMAGENCY
                 case "95":
                     string mikuLiveEventFilePathPublic = $"{workpath}/eventController/MikuLiveEvent/Custom";
                     Directory.CreateDirectory(mikuLiveEventFilePathPublic);
-                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData),  $"{mikuLiveEventFilePathPublic}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
+                    PREMIUMAGENCYClass.WriteFormDataToFile(Encoding.UTF8.GetString(PostData), $"{mikuLiveEventFilePathPublic}/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache");
                     if (File.Exists(mikuLiveEventFilePathPublic))
                     {
                         LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - SetUserEventCustom FOUND for PUBLIC MikuLiveEvent {eventId}!");
@@ -427,6 +427,40 @@ namespace WebAPIService.PREMIUMAGENCY
                             $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</xml>";
                     }
+                case "309":
+                    string Christmas2010 = $"{workpath}/eventController/Christmas/2010/getUserEventCustom.xml";
+                    if (File.Exists(Christmas2010))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FOUND for PUBLIC Christmas 2010 {eventId}!");
+                        string res = File.ReadAllText(Christmas2010);
+
+                        return "<xml>\r\n" +
+                             "<result type=\"int\">1</result>\r\n" +
+                             "<description type=\"text\">Success</description>\r\n" +
+                             "<error_no type=\"int\">0</error_no>\r\n" +
+                             "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                             $"{res}" +
+                             "</xml>";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustom FALLBACK sent for PUBLIC Christmas 2010 {eventId}!\nExpected path {Christmas2010}");
+
+                        return "<xml>\r\n" +
+                            "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<!-- entry 1 -->\r\n<field_list type=\"int\">1</field_list>\r\n" +
+                            "<field_name type=\"text\">playrecord</field_name>\r\n" +
+                            "<field_value type=\"int\">0</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</xml>";
+                    }
                 case "86":
                     string rollyMusicSurveyFilePath = $"{workpath}/eventController/MusicSurvey/Rolly/getUserEventCustom.xml";
                     if (File.Exists(rollyMusicSurveyFilePath))
@@ -585,7 +619,9 @@ namespace WebAPIService.PREMIUMAGENCY
             if (method == "GET")
             {
                 nid = HttpUtility.ParseQueryString(fulluripath).Get("nid");
-            } else {
+            }
+            else
+            {
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
                 using (MemoryStream ms = new MemoryStream(PostData))
@@ -641,7 +677,7 @@ namespace WebAPIService.PREMIUMAGENCY
                             "<error_message type=\"text\">None</error_message>\r\n\r\n" +
                             "<field_list>\r\n" +
                             "<field_name type=\"text\">answer_record</field_name>\r\n" +
-                            "<field_value type=\"text\">0</field_value>\r\n" + 
+                            "<field_value type=\"text\">0</field_value>\r\n" +
                             $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
                             $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
                             $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
@@ -717,6 +753,48 @@ namespace WebAPIService.PREMIUMAGENCY
                             $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
                             $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
                             "</field_list>\r\n";
+                    }
+                case "309":
+                    string Christmas2010 = $"{workpath}/eventController/Christmas/2010/{nid}-{DateTime.Now.ToString("yyyyMMdd")}.cache";
+                    // ANSWER FILE EXISTS, SO THEY CAN NOT USE QUESTIONAIRE/VOTE!
+                    if (File.Exists(Christmas2010))
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList FOUND for PUBLIC Christmas 2010 {eventId}!");
+                        List<(string, string)> formData = PREMIUMAGENCYClass.ReadFormDataFromFile(Christmas2010);
+
+                        string votedToday = formData.Find(x => x.Item1 == "cfval").Item2;
+
+                        return "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">total</field_name>\r\n" +
+                            $"<field_value type=\"text\">{votedToday}</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n\r\n";
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogInfo($"[PREMIUMAGENCY] - GetUserEventCustomList FALLBACK sent for PUBLIC Christmas 2010 {eventId}!\nExpected path {Christmas2010}");
+
+                        return "<result type=\"int\">1</result>\r\n" +
+                            "<description type=\"text\">Success</description>\r\n" +
+                            "<error_no type=\"int\">0</error_no>\r\n" +
+                            "<error_message type=\"text\">None</error_message>\r\n\r\n" +
+                            "<field_list>\r\n" +
+                            "<field_name type=\"text\">total</field_name>\r\n" +
+                            "<field_value type=\"text\">0</field_value>\r\n" +
+                            $"<update_year type=\"int\">{DateTime.Now.ToString("yyyy")}</update_year>\r\n" +
+                            $"<update_month type=\"int\">{DateTime.Now.ToString("MM")}</update_month>\r\n" +
+                            $"<update_day type=\"int\">{DateTime.Now.ToString("dd")}</update_day>\r\n" +
+                            $"<update_hour type=\"int\">{DateTime.Now.ToString("hh")}</update_hour>\r\n" +
+                            $"<update_second type=\"int\">{DateTime.Now.ToString("ss")}</update_second>\r\n" +
+                            "</field_list>\r\n\r\n";
                     }
                 case "119":
                     if (File.Exists($"{workpath}/eventController/iDOLMASTERs/qagetUserEventCustomList.xml"))

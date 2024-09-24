@@ -25,5 +25,21 @@ namespace Horizon.LIBRARY.Pipeline.Udp
             Message = message;
         }
 
+        /// <summary>
+        /// Whether or not this message passes the log filter.
+        /// </summary>
+        public virtual bool CanLog()
+        {
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
+        }
+
+        public override string ToString()
+        {
+            return $"Source: {Source} | Destination: {Destination} | Message: {Message}";
+        }
     }
 }

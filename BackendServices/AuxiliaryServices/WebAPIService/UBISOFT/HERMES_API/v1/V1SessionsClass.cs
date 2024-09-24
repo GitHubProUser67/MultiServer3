@@ -1,3 +1,4 @@
+using CastleLibrary.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Security.Cryptography;
@@ -62,7 +63,7 @@ namespace WebAPIService.UBISOFT.HERMES_API.v1
         {
             // Create a GUID from the hash
             byte[] guidBytes = new byte[16];
-            Array.Copy(CastleLibrary.Utils.Hash.NetHasher.ComputeMD5(Encoding.UTF8.GetBytes(id + "Ub1S0ft!!")), guidBytes, 16); // Take the first 16 bytes of the hash
+            Array.Copy(NetHasher.ComputeMD5(Encoding.UTF8.GetBytes(id + "Ub1S0ft!!")), guidBytes, 16); // Take the first 16 bytes of the hash
             return new Guid(guidBytes).ToString();
         }
     }

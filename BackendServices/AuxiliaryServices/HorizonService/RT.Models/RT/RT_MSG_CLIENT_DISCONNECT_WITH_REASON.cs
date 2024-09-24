@@ -9,21 +9,21 @@ namespace Horizon.RT.Models
     {
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_CLIENT_DISCONNECT_WITH_REASON;
 
-        public RT_MSG_CLIENT_DISCONNECT_REASON disconnectReason;
+        public RT_MSG_CLIENT_DISCONNECT_REASON Reason;
 
         public override void Deserialize(MessageReader reader)
         {
-            disconnectReason = reader.Read<RT_MSG_CLIENT_DISCONNECT_REASON>();
+            Reason = reader.Read<RT_MSG_CLIENT_DISCONNECT_REASON>();
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            writer.Write(disconnectReason);
+            writer.Write(Reason);
         }
         public override string ToString()
         {
             return base.ToString() + " " +
-                $"Reason: {disconnectReason}";
+                $"Reason: {Reason}";
         }
     }
 }

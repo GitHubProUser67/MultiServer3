@@ -34,7 +34,7 @@
   </ItemGroup>
   
   <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">
-    <Exec Command="powershell -ExecutionPolicy Bypass -File $(ProjectDir)DepsFixer.ps1 -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
+    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)DepsFixer.ps1&quot; -jsonFilePath $(OutDir)$(ProjectName).deps.json -targetFramework $(TargetFramework)" />
   </Target>
 
 </Project>

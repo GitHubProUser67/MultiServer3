@@ -1,4 +1,3 @@
-using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 
@@ -7,7 +6,6 @@ namespace Horizon.RT.Models
     [MediusMessage(NetMessageClass.MessageClassLobbyReport, MediusMGCLMessageIds.ServerDisconnectPlayerRequest)]
     public class MediusServerDisconnectPlayerRequest : BaseMGCLMessage, IMediusRequest
     {
-
         public override byte PacketType => (byte)MediusMGCLMessageIds.ServerDisconnectPlayerRequest;
 
         public MessageId MessageID { get; set; }

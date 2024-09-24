@@ -125,7 +125,6 @@ namespace SVO
                     if (!threadActive) break;
 
                     Task t = await Task.WhenAny(requests);
-                    requests.Remove(t);
 
                     if (t is Task<HttpListenerContext>)
                     {
@@ -148,9 +147,11 @@ namespace SVO
                             });
                         }
 
-                        requests.Add(Task.Run(() => ProcessContext(ctx)));
-                        requests.Add(listener.GetContextAsync());
+                        _ = Task.Run(() => ProcessContext(ctx));
                     }
+
+                    requests.Remove(t);
+                    requests.Add(listener.GetContextAsync());
                 }
                 catch (HttpListenerException e)
                 {

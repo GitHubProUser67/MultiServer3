@@ -17,7 +17,7 @@ namespace Horizon.HTTPSERVICE
             {
                 KeyValuePair<string, int> newUser = new(accountName, appid);
 
-                foreach (KeyValuePair<string, int> User in rooms.Item1.GetItems())
+                foreach (KeyValuePair<string, int> User in rooms.Item1.ToList())
                 {
                     if (User.Key.Equals(accountName))
                     {
@@ -31,7 +31,7 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Update or Create a Room based on the provided parameters
-        public static void UpdateOrCreateRoom(string appId, string? gameName, int? gameId, string? worldId, string? accountName, int? accountDmeId, string? languageType, bool host)
+        public static void UpdateOrCreateRoom(string appId, string? gameName, int? gameId, string? worldId, string? accountName, int accountDmeId, string? languageType, bool host)
         {
             Room? roomToUpdate = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
 
@@ -61,20 +61,20 @@ namespace Horizon.HTTPSERVICE
 
                 Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
 
-                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType) && accountDmeId.HasValue)
+                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType))
                 {
                     if (gameToUpdate.Name.Contains("AP|"))
                     {
                         Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == XORString(accountName, HorizonServerConfiguration.MediusAPIKey));
                         if (playerToUpdatehashed == null)
                         {
-                            playerToUpdate = new Player { DmeId = accountDmeId.Value, Name = XORString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
+                            playerToUpdate = new Player { DmeId = accountDmeId, Name = XORString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
                     else
                     {
-                        playerToUpdate = new Player { DmeId = accountDmeId.Value, Name = accountName, Languages = languageType, Host = host };
+                        playerToUpdate = new Player { DmeId = accountDmeId, Name = accountName, Languages = languageType, Host = host };
                         gameToUpdate.Clients?.Add(playerToUpdate);
                     }
                 }
@@ -141,6 +141,27 @@ namespace Horizon.HTTPSERVICE
 
                         if (gameToRemove != null)
                             worldToRemove.GameSessions?.RemoveAll(w => w.Name == gameName);
+                    }
+                }
+            }
+        }
+
+        public static void UpdateGameName(string appId, string? worldId, string? previousGameName, string? gameName)
+        {
+            if (!string.IsNullOrEmpty(previousGameName) && !string.IsNullOrEmpty(gameName))
+            {
+                Room? roomToRemove = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
+
+                if (roomToRemove != null)
+                {
+                    World? worldToRemove = roomToRemove.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
+
+                    if (worldToRemove != null)
+                    {
+                        GameList? gameToUpdate = worldToRemove.GameSessions?.FirstOrDefault(w => w.Name == previousGameName);
+
+                        if (gameToUpdate != null)
+                            gameToUpdate.Name = gameName;
                     }
                 }
             }
