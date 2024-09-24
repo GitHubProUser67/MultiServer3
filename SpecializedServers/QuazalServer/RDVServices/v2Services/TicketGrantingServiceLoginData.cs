@@ -159,72 +159,6 @@ namespace QuazalServer.RDVServices.v2Services
 
                     return Result(reply);
                 }
-                else if (Context.Handler.AccessKey == "QusaPha9" || Context.Handler.AccessKey == "cYoqGd4f" 
-                    || Context.Handler.AccessKey == "OLjNg84Gh" || Context.Handler.AccessKey == "ridfebb9" 
-                    || Context.Handler.AccessKey == "q1UFc45UwoyI" || Context.Handler.AccessKey == "h0rszqTw"
-                    || Context.Handler.AccessKey == "os4R9pEiy" || Context.Handler.AccessKey == "lON6yKGp"
-                    || Context.Handler.AccessKey == "4TeVtJ7V" || Context.Handler.AccessKey == "HJb8Ix1M"
-                     || Context.Handler.AccessKey == "uG9Kv3p") // Console login not uses Quazal storage, they use a given account to log-in.
-                {
-                    if (iswii.Success) // WII uses a master account.
-                    {
-                        string wiifc = iswii.Groups[1].Value;
-
-                        Context.Client.WIIFriendCode = wiifc;
-
-                        plInfo.PID = 50; // Arbitrary.
-                        plInfo.AccountId = "Master User";
-                        plInfo.Name = "Master User";
-
-                        return Result(new Login(plInfo.PID)
-                        {
-                            retVal = (int)ErrorCode.Core_NoError,
-                            pConnectionData = new RVConnectionData()
-                            {
-                                m_urlRegularProtocols = new(
-                                            "prudps",
-                                            prudplink,
-                                            new Dictionary<string, int>() {
-                                            { "port", Context.Handler.BackendPort },
-                                            { "CID", 1 },
-                                            { "PID", (int)Context.Client.sPID },
-                                            { "sid", 1 },
-                                            { "stream", 3 },
-                                            { "type", 2 } // Public, not BehindNAT
-                                            })
-                            },
-                            strReturnMsg = string.Empty,
-                            pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey, wiifc)
-                        });
-                    }
-                    else // PS and XBOX in theory.
-                    {
-                        plInfo.PID = NetworkPlayers.GenerateUniqueUint(userName + "a1nPut!");
-                        plInfo.AccountId = userName;
-                        plInfo.Name = userName;
-
-                        return Result(new Login(plInfo.PID)
-                        {
-                            retVal = (int)ErrorCode.Core_NoError,
-                            pConnectionData = new RVConnectionData()
-                            {
-                                m_urlRegularProtocols = new(
-                                            "prudps",
-                                            prudplink,
-                                            new Dictionary<string, int>() {
-                                            { "port", Context.Handler.BackendPort },
-                                            { "CID", 1 },
-                                            { "PID", (int)Context.Client.sPID },
-                                            { "sid", 1 },
-                                            { "stream", 3 },
-                                            { "type", 2 } // Public, not BehindNAT
-                                            })
-                            },
-                            strReturnMsg = string.Empty,
-                            pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey)
-                        });
-                    }
-                }
                 else
                     return Error((int)ErrorCode.RendezVous_InvalidUsername);
             }
@@ -364,11 +298,7 @@ namespace QuazalServer.RDVServices.v2Services
                     retVal = (int)ErrorCode.Core_NoError,
                 };
 
-                if (sourcePID == 0) // Ubisoft tracker account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "JaDe!");
-                else if (sourcePID == 50 && !string.IsNullOrEmpty(Context.Client.WIIFriendCode)) // WII Quazal account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, Context.Client.WIIFriendCode);
-                else if (sourcePID == 100) // Quazal guest account.
+                if (sourcePID == 100) // Quazal guest account.
                     ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
                 {
