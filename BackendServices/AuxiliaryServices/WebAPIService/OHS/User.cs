@@ -496,6 +496,9 @@ namespace WebAPIService.OHS
                                         if (directorypath.Contains("LKWDShowEggs"))
                                             output = "\"999999999999\"";
                                         break;
+                                    case "maxSceaPlazaReward":
+										output = "{ [\"maxSceaPlazaReward\"] = 5 }";
+                                        break;
                                     default:
                                         if (directorypath.Contains("gift_machine"))
                                         {

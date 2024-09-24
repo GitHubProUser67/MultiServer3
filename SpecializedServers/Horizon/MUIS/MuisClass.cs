@@ -727,7 +727,7 @@ namespace Horizon.MUIS
                         UserCount = 1,
                         MaxUsers = 256,
                         Endpoint = iptofile,
-                        SvoURL = null,
+                        SvoURL = "http://twistedmetalx-prod3.svo.online.scea.com:10060/TWISTEDMETALX_XML/uri/URIStore.do",
                         ExtendedInfo = null,
                         UniverseBilling = null,
                         BillingSystemName = null,

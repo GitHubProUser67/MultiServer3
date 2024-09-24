@@ -4,6 +4,7 @@ using WebAPIService.VEEMEE.goalie_sfrgbt;
 using WebAPIService.VEEMEE.gofish;
 using WebAPIService.VEEMEE.nml;
 using WebAPIService.VEEMEE.olm;
+using WebAPIService.VEEMEE.wardrobe_wars;
 
 namespace WebAPIService.VEEMEE
 {
@@ -26,6 +27,13 @@ namespace WebAPIService.VEEMEE
 
             string result = null;
             string resultContentType = null;
+
+            if(absolutepath.Contains("//WardrobeWars/Images") && method == "GET")
+            {
+                byte[] resultImage = Podium.RequestWWImage(contentType, apiPath, absolutepath);
+                resultContentType = "image/jpeg";
+                return (resultImage, resultContentType);
+            }
 
             switch (method)
             {
@@ -160,7 +168,38 @@ namespace WebAPIService.VEEMEE
                             break;
                         case "/audi_tech/getghost.php":
                             return (audi_tech.Ghost.getGhost(postData, contentType, apiPath), null);
+                        case "/WardrobeWars/verify.php":
+                            result = Podium.Verify(postData, contentType, apiPath);
+                            break;
+                        case "/WardrobeWars/podium.php":
+                            result = Podium.CheckPodium(postData, contentType, apiPath);
+                            break;
+                        case "/WardrobeWars/podium_vote.php":
+                            result = Podium.RequestVote(postData, contentType, apiPath);
+                            break;
+                        case "/WardrobeWars/podium_score.php":
+                            result = Podium.RequestScore(postData, contentType, apiPath);
+                            break;
+                        case "/WardrobeWars/reward.php":
+                            result = Podium.RequestRewards(postData, contentType, apiPath);
+                            break;
+                        case "/WardrobeWars/screen.php":
+                            result = Podium.RequestScreens(postData, contentType, apiPath);
+                            break;
+                        //fullsecure endpoint 
+                        case "//WardrobeWars/photo.php":
+                            result = Podium.PostPhotoPart2(postData, contentType, apiPath, true);
+                            break;
+                            //part 1
+                        case "//WardrobeWars/photo-p1.php":
+                            result = Podium.PostPhotoPart1(postData, contentType);
+                            break;
+                            //part 2
+                        case "//WardrobeWars/photo-p2.php":
+                            result = Podium.PostPhotoPart2(postData, contentType, apiPath, false);
+                            break;
                         default:
+
                             break;
                     }
                     break;

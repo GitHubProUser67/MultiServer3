@@ -494,7 +494,11 @@ namespace HTTPSecureServerLite
                             }
 
                             #region VEEMEE API
-                            else if ((Host == "away.veemee.com" || Host == "home.veemee.com") && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
+                            else if ((Host == "away.veemee.com" 
+                                || Host == "home.veemee.com"
+                                || Host == "ww-prod-sec.destinations.scea.com"
+                                || Host == "ww-prod.destinations.scea.com") 
+                                && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 
@@ -669,7 +673,6 @@ namespace HTTPSecureServerLite
                             }
                             #endregion
 
-
                             #region Juggernaut Games API
                             else if (Host == "juggernaut-games.com" && absolutepath.EndsWith(".php"))
                             {
@@ -712,7 +715,8 @@ namespace HTTPSecureServerLite
                                                         Host == "homeec.scej-nbs.jp" ||
                                                         Host == "homeecqa.scej-nbs.jp" ||
                                                         Host == "homect-scej.jp" ||
-                                                        Host == "qa-homect-scej.jp")
+                                                        Host == "qa-homect-scej.jp" ||
+                                                        Host == "home-eas.jp.playstation.com")
                                                         && absolutepath.Contains("/eventController/"))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
@@ -909,7 +913,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
 
-                                string? res = new CAPONEClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                                string? res = new CAPONEClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, true);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
