@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using CyberBackendLibrary.Extension;
 using CyberBackendLibrary.GeoLocalization;
 using MultiSpyService.Data;

@@ -1,4 +1,4 @@
-﻿namespace BlazeCommon
+namespace BlazeCommon
 {
     public abstract class BlazeComponent<CommandEnum, NotificationEnum, ErrorEnum> : IBlazeComponent where CommandEnum : Enum where NotificationEnum : Enum where ErrorEnum : Enum
     {

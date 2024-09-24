@@ -1,4 +1,4 @@
-﻿using BlazeCommon.PacketDisplayAttributes;
+using BlazeCommon.PacketDisplayAttributes;
 using System.Collections;
 using System.Globalization;
 using System.Reflection;

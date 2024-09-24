@@ -1,4 +1,4 @@
-﻿namespace Org.BouncyCastle.Pqc.Crypto.Hqc
+namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal class GFCalculator
     {

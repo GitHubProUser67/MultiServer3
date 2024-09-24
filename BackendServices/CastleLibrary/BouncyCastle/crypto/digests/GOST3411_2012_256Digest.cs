@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests

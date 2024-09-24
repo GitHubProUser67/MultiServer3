@@ -15,7 +15,7 @@ using CyberBackendLibrary.Extension;
 using Ionic.Exploration;
 using System.Threading;
 using System.Buffers;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace CyberBackendLibrary.HTTP
 {

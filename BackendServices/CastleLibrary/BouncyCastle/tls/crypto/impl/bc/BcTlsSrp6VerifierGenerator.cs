@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto.Agreement.Srp;
 using Org.BouncyCastle.Math;

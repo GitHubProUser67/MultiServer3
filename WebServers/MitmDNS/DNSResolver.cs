@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using CyberBackendLibrary.DNS;
 using System;
 using System.Collections.Generic;

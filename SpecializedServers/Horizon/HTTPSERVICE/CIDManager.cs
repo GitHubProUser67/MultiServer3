@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.Extension;
+using CyberBackendLibrary.Extension;
 using Newtonsoft.Json;
 using System.Text;
 

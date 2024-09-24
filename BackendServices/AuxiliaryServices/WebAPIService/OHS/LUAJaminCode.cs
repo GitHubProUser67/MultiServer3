@@ -1,4 +1,4 @@
-﻿namespace WebAPIService.OHS
+namespace WebAPIService.OHS
 {
     public static class LUAJaminCode
     {

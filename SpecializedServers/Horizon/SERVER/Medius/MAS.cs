@@ -19,7 +19,7 @@ using CyberBackendLibrary.Extension;
 using XI5;
 using EndianTools;
 using Horizon.MUM.Models;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace Horizon.SERVER.Medius
 {

@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Operators.Utilities

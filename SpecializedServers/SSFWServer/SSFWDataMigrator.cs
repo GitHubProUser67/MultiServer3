@@ -1,4 +1,4 @@
-﻿namespace SSFWServer
+namespace SSFWServer
 {
     public class SSFWDataMigrator
     {

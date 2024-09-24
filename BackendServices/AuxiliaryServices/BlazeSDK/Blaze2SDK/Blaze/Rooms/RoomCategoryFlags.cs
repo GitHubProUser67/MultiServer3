@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze.Rooms
+namespace Blaze2SDK.Blaze.Rooms
 {
     [Flags]
     public enum RoomCategoryFlags

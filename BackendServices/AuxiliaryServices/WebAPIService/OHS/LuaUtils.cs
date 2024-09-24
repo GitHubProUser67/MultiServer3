@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using Newtonsoft.Json.Linq;
 using NLua;
 using System;

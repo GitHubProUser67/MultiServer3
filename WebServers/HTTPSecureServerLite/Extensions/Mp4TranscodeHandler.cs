@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using SpaceWizards.HttpListener;
 using System;
 using System.Collections.Generic;

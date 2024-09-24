@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze.Playgroups
+namespace Blaze2SDK.Blaze.Playgroups
 {
     [Flags]
     public enum MemberPermissions

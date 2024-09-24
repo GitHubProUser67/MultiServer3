@@ -1,4 +1,4 @@
-﻿namespace BlazeCommon
+namespace BlazeCommon
 {
     public static class StreamExtensions
     {

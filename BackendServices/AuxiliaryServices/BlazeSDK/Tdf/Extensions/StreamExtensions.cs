@@ -1,4 +1,4 @@
-﻿namespace Tdf.Extensions
+namespace Tdf.Extensions
 {
     public static class StreamExtensions
     {

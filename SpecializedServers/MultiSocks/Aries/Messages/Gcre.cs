@@ -1,4 +1,4 @@
-﻿using MultiSocks.Aries.Model;
+using MultiSocks.Aries.Model;
 
 namespace MultiSocks.Aries.Messages
 {

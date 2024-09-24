@@ -1,4 +1,4 @@
-﻿namespace BlazeCommon.PacketDisplayAttributes
+namespace BlazeCommon.PacketDisplayAttributes
 {
     public class DisplayAsDateTime : Attribute
     {

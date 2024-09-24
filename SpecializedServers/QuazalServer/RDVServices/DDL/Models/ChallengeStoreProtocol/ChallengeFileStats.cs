@@ -1,4 +1,4 @@
-﻿namespace QuazalServer.RDVServices.DDL.Models
+namespace QuazalServer.RDVServices.DDL.Models
 {
     public class ChallengeFileStats
     {

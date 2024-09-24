@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.HTTP;
 using HTTPServer;
 using HTTPServer.Models;
 using CyberBackendLibrary.HTTP.PluginManager;

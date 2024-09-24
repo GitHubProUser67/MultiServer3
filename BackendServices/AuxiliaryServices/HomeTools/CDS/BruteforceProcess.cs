@@ -1,5 +1,5 @@
 using System;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace HomeTools.CDS
 {

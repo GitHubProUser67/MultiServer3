@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze.Messaging
+namespace Blaze2SDK.Blaze.Messaging
 {
     [Flags]
     public enum MatchFlags

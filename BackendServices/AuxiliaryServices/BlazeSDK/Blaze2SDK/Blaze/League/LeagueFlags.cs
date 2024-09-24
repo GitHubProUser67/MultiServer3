@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze.League
+namespace Blaze2SDK.Blaze.League
 {
     [Flags]
     public enum LeagueFlags

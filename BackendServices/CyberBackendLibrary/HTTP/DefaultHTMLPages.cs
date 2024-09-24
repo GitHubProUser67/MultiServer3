@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.AIModels;
+using CyberBackendLibrary.AIModels;
 using System.Collections.Concurrent;
 using System;
 using System.Collections.Generic;

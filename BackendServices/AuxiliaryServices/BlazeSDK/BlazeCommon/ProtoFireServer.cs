@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using FixedSsl;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;

@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using System;
 using System.Numerics;
 using System.Security.Cryptography;

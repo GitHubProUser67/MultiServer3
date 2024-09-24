@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.FileSystem;
+using CyberBackendLibrary.FileSystem;
 using System.Text.RegularExpressions;
 using System;
 using System.Linq;

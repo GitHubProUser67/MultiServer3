@@ -1,4 +1,4 @@
-﻿using SpaceWizards.HttpListener;
+using SpaceWizards.HttpListener;
 using System;
 using System.Collections.Specialized;
 using System.Globalization;

@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
 using System.IO;
 using System;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace WebAPIService.NDREAMS.Xi2
 {

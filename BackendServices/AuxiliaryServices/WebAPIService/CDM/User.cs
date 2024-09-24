@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
 using System;

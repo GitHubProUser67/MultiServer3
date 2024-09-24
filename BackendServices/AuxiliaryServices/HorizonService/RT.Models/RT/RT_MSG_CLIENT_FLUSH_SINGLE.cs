@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
 

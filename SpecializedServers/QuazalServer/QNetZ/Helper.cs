@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using EndianTools;
 using Ionic.Zlib;
 using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace QuazalServer.QNetZ
 {

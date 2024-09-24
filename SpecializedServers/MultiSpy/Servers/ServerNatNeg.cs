@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using MultiSpyService.Data;
 using System.Collections.Concurrent;
 using System.Net;
