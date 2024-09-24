@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Raw;

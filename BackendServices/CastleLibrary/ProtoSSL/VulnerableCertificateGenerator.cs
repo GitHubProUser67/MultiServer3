@@ -221,7 +221,7 @@ public class VulnerableCertificateGenerator
 
     /// <summary>
     /// Finds a sequence of bytes within a byte array.
-    /// <para>Trouve une séquence de bytes dans un tableau de bytes.</para>
+    /// <para>Trouve une sï¿½quence de bytes dans un tableau de bytes.</para>
     /// </summary>
     /// <param name="buffer">The Span byte in which we search for the sequence.</param>
     /// <param name="searchPattern">The Span byte sequence to find.</param>

@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using System.Diagnostics;
 
 namespace MultiSpy

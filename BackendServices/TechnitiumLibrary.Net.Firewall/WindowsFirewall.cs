@@ -1,4 +1,4 @@
-﻿/*
+/*
 Technitium Library
 Copyright (C) 2021  Shreyas Zare (shreyas@technitium.com)
 

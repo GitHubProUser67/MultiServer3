@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Numerics;
 using System.Reflection;
 using Tdf.Extensions;

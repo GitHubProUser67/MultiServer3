@@ -1,4 +1,4 @@
-﻿namespace BlazeCommon
+namespace BlazeCommon
 {
     //https://stackoverflow.com/questions/4228864/does-lock-guarantee-acquired-in-order-requested
     //https://stackoverflow.com/questions/961869/is-there-a-synchronization-class-that-guarantee-fifo-order-in-c/961904#961904

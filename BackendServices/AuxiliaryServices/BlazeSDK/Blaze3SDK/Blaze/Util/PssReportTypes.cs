@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK.Blaze.Util
+namespace Blaze3SDK.Blaze.Util
 {
     [Flags]
     public enum PssReportTypes

@@ -457,7 +457,7 @@ public static class MultiSpyServerConfiguration
 		{ "BladeKitten", string.Empty },
 		{ "blade", "Eel1q7" },
 		{ "bodarkness", "Jn33pM" },
-		{ "explomâ�'?", "?°n" },
+		{ "explomâ�'?", "?°n" },
 		{ "explomäntest", "xUX" },
 		{ "blzrdriverds", "n9HLOG" },
 		{ "BA2SecretMissionsW", string.Empty },

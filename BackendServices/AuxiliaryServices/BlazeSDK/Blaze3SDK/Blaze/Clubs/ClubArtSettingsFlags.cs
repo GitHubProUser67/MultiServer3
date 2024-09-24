@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK.Blaze.Clubs
+namespace Blaze3SDK.Blaze.Clubs
 {
     [Flags]
     public enum ClubArtSettingsFlags

@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System;
 using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {

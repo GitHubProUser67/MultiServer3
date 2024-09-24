@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.HTTP;
 using HTTPServer;
 using HTTPServer.Models;
 using CyberBackendLibrary.HTTP.PluginManager;
@@ -14,7 +14,7 @@ using System.IO.Compression;
 using PDFtoImage;
 using SkiaSharp;
 using WebAPIService.Utils;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace PdfToJpeg
 {

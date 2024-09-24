@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {

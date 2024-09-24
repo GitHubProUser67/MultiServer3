@@ -645,22 +645,22 @@ namespace MultiSocks.Aries
                     LoggerAccessor.LogWarn("DirtySocks Servers stopped...");
                 }
 
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
+                // TODO: libï¿½rer les ressources non managï¿½es (objets non managï¿½s) et substituer le finaliseur
                 // TODO: affecter aux grands champs une valeur null
                 disposedValue = true;
             }
         }
 
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
+        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libï¿½rer les ressources non managï¿½es
         // ~DirtySocksServer()
         // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
+        //     // Ne changez pas ce code. Placez le code de nettoyage dans la mï¿½thode 'Dispose(bool disposing)'
         //     Dispose(disposing: false);
         // }
 
         public void Dispose()
         {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
+            // Ne changez pas ce code. Placez le code de nettoyage dans la mï¿½thode 'Dispose(bool disposing)'
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }

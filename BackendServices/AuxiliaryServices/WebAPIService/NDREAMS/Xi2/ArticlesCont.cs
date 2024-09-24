@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.HTTP;
+using CyberBackendLibrary.HTTP;
 using HttpMultipartParser;
 using System.IO;
 using System;

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Cms;
 

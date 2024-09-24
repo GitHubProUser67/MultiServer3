@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using CyberBackendLibrary.GeoLocalization;
 using System.Data;
 using System.Data.SQLite;

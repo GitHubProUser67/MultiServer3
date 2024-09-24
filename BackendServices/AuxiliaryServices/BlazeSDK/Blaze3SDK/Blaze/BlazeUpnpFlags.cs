@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK.Blaze
+namespace Blaze3SDK.Blaze
 {
     [Flags]
     public enum BlazeUpnpFlags

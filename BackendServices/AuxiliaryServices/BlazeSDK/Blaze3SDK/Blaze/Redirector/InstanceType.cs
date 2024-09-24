@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK.Blaze.Redirector
+namespace Blaze3SDK.Blaze.Redirector
 {
     public enum InstanceType : int
     {

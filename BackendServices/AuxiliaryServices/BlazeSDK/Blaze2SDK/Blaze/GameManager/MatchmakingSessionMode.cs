@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze.GameManager
+namespace Blaze2SDK.Blaze.GameManager
 {
     [Flags]
     public enum MatchmakingSessionMode

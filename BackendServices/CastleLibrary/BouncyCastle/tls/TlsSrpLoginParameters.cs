@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Tls.Crypto;

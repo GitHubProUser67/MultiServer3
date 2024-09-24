@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using MultiSpyService.Data;
 using System.Net;
 using System.Net.Sockets;

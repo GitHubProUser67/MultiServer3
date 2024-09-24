@@ -1,4 +1,4 @@
-﻿namespace Org.BouncyCastle.Bcpg
+namespace Org.BouncyCastle.Bcpg
 {
     public interface IUserDataPacket
     {

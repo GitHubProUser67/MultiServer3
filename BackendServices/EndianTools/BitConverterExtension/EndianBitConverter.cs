@@ -1,4 +1,4 @@
-﻿using EndianTools;
+using EndianTools;
 using System;
 using System.Runtime.InteropServices;
 

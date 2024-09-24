@@ -1,4 +1,4 @@
-﻿using Org.Mentalis.Security.Ssl;
+using Org.Mentalis.Security.Ssl;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;

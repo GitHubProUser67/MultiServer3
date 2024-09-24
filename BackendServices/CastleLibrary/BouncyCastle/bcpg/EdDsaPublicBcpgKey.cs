@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 

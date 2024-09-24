@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using Org.BouncyCastle.Utilities;

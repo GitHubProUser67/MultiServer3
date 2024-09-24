@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using CustomLogger;
 using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using HashLib;
 
 
 namespace SSFWServer

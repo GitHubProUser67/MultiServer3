@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
 using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace HomeTools.BARFramework
 {

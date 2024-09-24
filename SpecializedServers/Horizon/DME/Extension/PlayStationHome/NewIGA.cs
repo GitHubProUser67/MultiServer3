@@ -1,4 +1,4 @@
-﻿using Horizon.DME.Models;
+using Horizon.DME.Models;
 
 namespace Horizon.DME.Extension.PlayStationHome
 {

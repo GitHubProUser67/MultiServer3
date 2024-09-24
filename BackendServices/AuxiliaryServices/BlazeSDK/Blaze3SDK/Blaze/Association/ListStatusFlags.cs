@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK.Blaze.Association
+namespace Blaze3SDK.Blaze.Association
 {
     [Flags]
     public enum ListStatusFlags

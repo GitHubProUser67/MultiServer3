@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 
 #if NET6_0_OR_GREATER
 using System.IO.Compression;

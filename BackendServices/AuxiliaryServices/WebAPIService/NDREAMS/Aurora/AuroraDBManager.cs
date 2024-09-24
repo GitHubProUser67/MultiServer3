@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using WebAPIService.LeaderboardsService.NDREAMS;
 using System;
 using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace WebAPIService.NDREAMS.Aurora
 {

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Xml;
 
 namespace WebAPIService.VEEMEE.audi_tech

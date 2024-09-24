@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze.Authentication
+namespace Blaze2SDK.Blaze.Authentication
 {
     [Flags]
     public enum EntitlementSearchFlag

@@ -1,4 +1,4 @@
-﻿namespace Tdf
+namespace Tdf
 {
     public interface ITdfEncoder
     {

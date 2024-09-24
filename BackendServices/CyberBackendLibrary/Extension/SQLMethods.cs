@@ -1,4 +1,4 @@
-﻿/*
+/*
 
 Author: Todd Hubers (http://www.alivate.com.au)
  

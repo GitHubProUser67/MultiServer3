@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;

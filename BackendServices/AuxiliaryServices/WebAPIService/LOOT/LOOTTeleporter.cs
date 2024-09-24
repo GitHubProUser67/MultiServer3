@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using System.IO;
 
 namespace WebAPIService.LOOT

@@ -10,8 +10,8 @@ using System.IO;
 using System.Collections.Generic;
 using CompressionLibrary.Edge;
 using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
 using HomeTools.SDAT;
+using HashLib;
 
 namespace HomeTools.UnBAR
 {

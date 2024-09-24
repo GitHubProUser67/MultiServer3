@@ -1,4 +1,4 @@
-﻿using Blaze3SDK;
+using Blaze3SDK;
 using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Blaze.Redirector;

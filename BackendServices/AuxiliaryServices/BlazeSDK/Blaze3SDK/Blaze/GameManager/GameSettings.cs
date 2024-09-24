@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK.Blaze.GameManager
+namespace Blaze3SDK.Blaze.GameManager
 {
     [Flags]
     public enum GameSettings

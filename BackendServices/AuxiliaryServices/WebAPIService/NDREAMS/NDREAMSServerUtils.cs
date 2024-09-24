@@ -3,7 +3,7 @@ using CustomLogger;
 using NLua;
 using System.Text;
 using System;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace WebAPIService.NDREAMS
 {
