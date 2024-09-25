@@ -778,7 +778,7 @@ namespace Horizon.DME
                             if (data.DMEObject.ApplicationId == 20371 || data.DMEObject.ApplicationId == 20374)
                             {
                                 byte[] HubMessagePayload = clientAppSingle.Payload;
-                                int HubPathernOffset = DataUtils.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00, 0x00 });
+                                int HubPathernOffset = OtherExtensions.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00, 0x00 });
 
                                 if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                 {

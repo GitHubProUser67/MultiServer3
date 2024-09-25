@@ -138,7 +138,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -150,7 +150,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -162,7 +162,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -174,7 +174,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -229,15 +229,15 @@ namespace HomeTools.Crypto
 
                     Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
 
-                    hexStr.Append(MemXOR(DataUtils.ByteArrayToHexString(ivBlk), DataUtils.ByteArrayToHexString(block), blockSize).Substring(0, BytesToFill * 2));
+                    hexStr.Append(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk), OtherExtensions.ByteArrayToHexString(block), blockSize).Substring(0, BytesToFill * 2));
                 }
                 else
-                    hexStr.Append(MemXOR(DataUtils.ByteArrayToHexString(ivBlk), DataUtils.ByteArrayToHexString(block), blockSize));
+                    hexStr.Append(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk), OtherExtensions.ByteArrayToHexString(block), blockSize));
 
                 totalProcessedBytes += blockSize;
             }
 
-            CipheredFileBytes = DataUtils.HexStringToByteArray(hexStr.ToString());
+            CipheredFileBytes = OtherExtensions.HexStringToByteArray(hexStr.ToString());
 
             hexStr = null;
 
@@ -275,8 +275,8 @@ namespace HomeTools.Crypto
                 Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
 
                 Buffer.BlockCopy(CipheredFileBytes, 0, ResultAppendedArray, 0, CipheredFileBytes.Length);
-                Buffer.BlockCopy(DataUtils.HexStringToByteArray(MemXOR(DataUtils.ByteArrayToHexString(ivBlk),
-                    DataUtils.ByteArrayToHexString(block), blockSize)), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
+                Buffer.BlockCopy(OtherExtensions.HexStringToByteArray(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk),
+                    OtherExtensions.ByteArrayToHexString(block), blockSize)), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
                 return ResultAppendedArray;
             }
 

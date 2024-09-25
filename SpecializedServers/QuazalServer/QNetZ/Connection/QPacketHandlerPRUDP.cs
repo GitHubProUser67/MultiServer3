@@ -156,7 +156,7 @@ namespace QuazalServer.QNetZ
                     _ = UDP.SendAsync(data, data.Length, ep);
             }
 
-            LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {DataUtils.ByteArrayToHexString(data)}");
+            LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data: {OtherExtensions.ByteArrayToHexString(data)}");
 		}
 
         public QPacket MakeACK(QPacket p, QClient client)
@@ -245,7 +245,7 @@ namespace QuazalServer.QNetZ
                     foreach (byte b in data)
                         sb.Append(b.ToString("X2") + " ");
 
-                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{DataUtils.ByteArrayToHexString(buff)}");
+                    LoggerAccessor.LogInfo($"[PRUDP Handler] - Packet Data:{OtherExtensions.ByteArrayToHexString(buff)}");
 
                     LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{packetIn.ToStringShort()}");
                     LoggerAccessor.LogInfo($"[PRUDP Handler] - [{SourceName}] received:{sb}");
@@ -309,7 +309,7 @@ namespace QuazalServer.QNetZ
 								{
 									case "ex5LYTJ0":
 										if (packetIn.payload != null)
-											LoggerAccessor.LogInfo($"[QPakcetHandler] - Client requested a HERMES packet: {DataUtils.ByteArrayToHexString(packetIn.payload)} - UTF8:{Encoding.UTF8.GetString(packetIn.payload)}");
+											LoggerAccessor.LogInfo($"[QPakcetHandler] - Client requested a HERMES packet: {OtherExtensions.ByteArrayToHexString(packetIn.payload)} - UTF8:{Encoding.UTF8.GetString(packetIn.payload)}");
 										else
                                             LoggerAccessor.LogWarn($"[QPakcetHandler] - Client requested a HERMES packet with no data!");
                                         break;

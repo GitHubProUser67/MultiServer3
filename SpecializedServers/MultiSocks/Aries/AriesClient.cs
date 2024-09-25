@@ -2,13 +2,13 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using CastleLibrary.ProtoSSL.Crypto;
 using CustomLogger;
 using MultiSocks.Aries.Messages;
 using MultiSocks.Aries.Model;
-using MultiSocks.Tls;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Tls;
+using MultiSocks.ProtoSSL;
+using MultiSocks.ProtoSSL.Crypto;
 
 namespace MultiSocks.Aries
 {

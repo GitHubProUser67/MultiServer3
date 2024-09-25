@@ -3,11 +3,48 @@ using System.IO;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Collections.Generic;
+using System.Net.Sockets;
 
 namespace CyberBackendLibrary.Extension
 {
-    public class DataUtils
+    public static class OtherExtensions
     {
+        #region static
+
+        public static string ToHttpHeaders(this Dictionary<string, string> headers)
+        {
+            return string.Join("\r\n", headers.Select(x => string.Format("{0}: {1}", x.Key, x.Value)));
+        }
+
+        public static string GetString(this Stream stream)
+        {
+            return Encoding.ASCII.GetString(((MemoryStream)stream).ToArray());
+        }
+
+        public static bool IsConnected(this TcpClient tcpClient)
+        {
+            if (tcpClient.Client.Connected && tcpClient.Client.Poll(0, SelectMode.SelectWrite) && !tcpClient.Client.Poll(0, SelectMode.SelectError))
+            {
+                if (tcpClient.Client.Receive(new byte[1], SocketFlags.Peek) == 0)
+                    return false;
+                else
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool RemoveAt<T>(this HashSet<T> hashSet, int index)
+        {
+            if (index < 0 || index >= hashSet.Count)
+                return false;
+
+            return hashSet.Remove(hashSet.Skip(index).First());
+        }
+
+        #endregion
+
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern int memcmp(byte[] b1, byte[] b2, long count);
 

@@ -532,15 +532,15 @@ namespace CyberBackendLibrary.SSL
             const string SHA512id = "300D06092A864886F70D01010D0500";
 
             if (hashAlgorithm == HashAlgorithmName.MD5)
-                return DataUtils.HexStringToByteArray(MD5id);
+                return OtherExtensions.HexStringToByteArray(MD5id);
             if (hashAlgorithm == HashAlgorithmName.SHA1)
-                return DataUtils.HexStringToByteArray(SHA1id);
+                return OtherExtensions.HexStringToByteArray(SHA1id);
             if (hashAlgorithm == HashAlgorithmName.SHA256)
-                return DataUtils.HexStringToByteArray(SHA256id);
+                return OtherExtensions.HexStringToByteArray(SHA256id);
             if (hashAlgorithm == HashAlgorithmName.SHA384)
-                return DataUtils.HexStringToByteArray(SHA384id);
+                return OtherExtensions.HexStringToByteArray(SHA384id);
             if (hashAlgorithm == HashAlgorithmName.SHA512)
-                return DataUtils.HexStringToByteArray(SHA512id);
+                return OtherExtensions.HexStringToByteArray(SHA512id);
 
             LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 

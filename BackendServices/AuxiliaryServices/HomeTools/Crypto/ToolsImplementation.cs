@@ -156,12 +156,12 @@ namespace HomeTools.Crypto
 
         public static byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return DataUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
+            return OtherExtensions.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
         }
 
         public static byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return DataUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
+            return OtherExtensions.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
         }
 
         public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.

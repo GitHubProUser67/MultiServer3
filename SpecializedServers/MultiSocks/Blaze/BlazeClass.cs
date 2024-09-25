@@ -2,7 +2,7 @@ using Blaze3SDK;
 using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Blaze.Redirector;
-using MultiSocks.Tls;
+using MultiSocks.ProtoSSL;
 using System.Net;
 
 namespace MultiSocks.Blaze

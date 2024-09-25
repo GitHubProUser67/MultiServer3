@@ -1,11 +1,9 @@
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using System;
-using System.IO;
 using System.Reflection;
 
-namespace CastleLibrary.ProtoSSL.Crypto;
+namespace MultiSocks.ProtoSSL.Crypto;
 
 /// <summary>
 /// Original code from: https://github.com/zivillian/ism7mqtt

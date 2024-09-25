@@ -221,10 +221,10 @@ namespace Horizon.SERVER.Medius
 
                         if (QueryData != null)
                         {
-                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{OtherExtensions.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
 
                             if (MediusClass.Settings.HttpsSVOCheckPatcher && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 6
-                                && DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }))
+                                && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }))
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
 
                             if (data.ApplicationId == 20371 || data.ApplicationId == 20374)
@@ -269,7 +269,7 @@ namespace Horizon.SERVER.Medius
                                                     {
                                                         case 0x006f59a4:
                                                             // Grant PS Plus for 1.86 retail.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x48, 0x38, 0x87, 0x2d }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x48, 0x38, 0x87, 0x2d }))
                                                             {
                                                                 PokeAddress(0x006f59a4, new byte[] { 0x38, 0x60, 0x00, 0x01 }, clientChannel);
                                                                 PokeAddress(0x0073bda8, new byte[] { 0x38, 0x60, 0x00, 0x01 }, clientChannel);
@@ -277,7 +277,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x002aa960:
                                                             // Disable SSFW Reward check for 1.86 retail.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && DataUtils.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0x65, 0x1b, 0x78 }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0x65, 0x1b, 0x78 }))
                                                                 PokeAddress(0x002aa960, new byte[] { 0x48, 0x40, 0xe2, 0x2c }, clientChannel);
                                                             break;
                                                     }
@@ -298,7 +298,7 @@ namespace Horizon.SERVER.Medius
                                                 if (data.ClientObject != null)
                                                 {
                                                     data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
-                                                    .Equals(DataUtils.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                                                    .Equals(OtherExtensions.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                                                     if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot && data.ClientObject.ClientHomeData == null)
                                                     {
@@ -1750,7 +1750,7 @@ namespace Horizon.SERVER.Medius
                         }
 
                         string accountLoggingMsg = string.Empty;
-                        byte[] XI5TicketData = DataUtils.CombineByteArray(DataUtils.CombineByteArray(BitConverter.GetBytes(
+                        byte[] XI5TicketData = OtherExtensions.CombineByteArray(OtherExtensions.CombineByteArray(BitConverter.GetBytes(
                             BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), BitConverter.GetBytes(
                             BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size)), ticketLoginRequest.TicketData);
 
@@ -1771,7 +1771,7 @@ namespace Horizon.SERVER.Medius
 
                         string UserOnlineId = Encoding.UTF8.GetString(extractedData);
 
-                        if (DataUtils.FindBytePattern(XI5TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                        if (OtherExtensions.FindBytePattern(XI5TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                         {
                             if (MediusClass.Settings.ForceOfficialRPCNSignature && !new XI5Ticket(XI5TicketData).SignedByOfficialRPCN)
                             {

@@ -3,9 +3,8 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl;
-using System;
 
-namespace CastleLibrary.ProtoSSL.Crypto;
+namespace MultiSocks.ProtoSSL.Crypto;
 
 /// <summary>
 /// A generic SSL 3.0 RC4 cipher

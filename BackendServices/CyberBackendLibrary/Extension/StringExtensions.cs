@@ -1,8 +1,10 @@
+using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CyberBackendLibrary.Extension
 {
-    public static class StaticStringExtensions
+    public static class StringExtensions
     {
         public static string ChopOffBefore(this string s, string Before)
         {
@@ -32,6 +34,11 @@ namespace CyberBackendLibrary.Extension
                 Source = Regex.Replace(Source, Pattern, Replacement, RegexOptions.IgnoreCase);
 
             return Source;
+        }
+
+        public static Stream ToStream(this string str)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(str));
         }
     }
 }

@@ -596,7 +596,7 @@ namespace HTTPServer
                                                 {
                                                     // TODO, verify ticket data for every platforms.
 
-                                                    if (Authorization.StartsWith("psn t=") && DataUtils.IsBase64String(Authorization))
+                                                    if (Authorization.StartsWith("psn t=") && OtherExtensions.IsBase64String(Authorization))
                                                     {
                                                         byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
 
@@ -613,7 +613,7 @@ namespace HTTPServer
                                                                 extractedData[i] = 0x48;
                                                         }
 
-                                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                                                        if (OtherExtensions.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                                         else
                                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -1076,10 +1076,10 @@ namespace HTTPServer
                                                             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                             if (ContentType == "application/octet-stream")
                                                             {
-                                                                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                                                                byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                                 {
-                                                                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                    if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                     {
                                                                         ContentType = entry.Key;
                                                                         break;
@@ -1361,10 +1361,10 @@ namespace HTTPServer
                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                         if (ContentType == "application/octet-stream")
                         {
-                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                            byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
@@ -1639,10 +1639,10 @@ namespace HTTPServer
                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                         if (ContentType == "application/octet-stream")
                         {
-                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                            byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
@@ -1700,7 +1700,7 @@ namespace HTTPServer
                         {
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (DataUtils.FindBytePattern(DataUtils.ReadSmallFileChunck(filePath, 10), entry.Value) != -1)
+                                if (OtherExtensions.FindBytePattern(OtherExtensions.ReadSmallFileChunck(filePath, 10), entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
