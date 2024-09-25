@@ -51,7 +51,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                 switch (clientCheatQuery.StartAddress)
                                 {
                                     case 0x101590b0:
-                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataUtils.AreArraysIdentical(QueryData, Ref3)))
+                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !OtherExtensions.AreArraysIdentical(QueryData, Ref3)))
                                         {
                                             string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
 
@@ -97,8 +97,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                 switch (clientCheatQuery.StartAddress)
                                 {
                                     case 268759069U:
-                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (DataUtils.AreArraysIdentical(QueryData, Ref1)
-                                            || DataUtils.AreArraysIdentical(QueryData, Ref2) || DataUtils.AreArraysIdentical(QueryData, Ref4)))
+                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (OtherExtensions.AreArraysIdentical(QueryData, Ref1)
+                                            || OtherExtensions.AreArraysIdentical(QueryData, Ref2) || OtherExtensions.AreArraysIdentical(QueryData, Ref4)))
                                         {
                                             string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
 
@@ -111,7 +111,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         }
                                         break;
                                     case 0x100BA820:
-                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !DataUtils.AreArraysIdentical(QueryData, Ref3)))
+                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !OtherExtensions.AreArraysIdentical(QueryData, Ref3)))
                                         {
                                             string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
 
@@ -151,7 +151,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                     default:
                                         if (client != null)
                                         {
-                                            if (clientCheatQuery.StartAddress == client.HomePointer + 6928U && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && DataUtils.AreArraysIdentical(QueryData, Ref5))
+                                            if (clientCheatQuery.StartAddress == client.HomePointer + 6928U && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && OtherExtensions.AreArraysIdentical(QueryData, Ref5))
                                             {
                                                 string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
 
@@ -162,7 +162,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                                 data.State = ClientState.DISCONNECTED;
                                                 await clientChannel.CloseAsync();
                                             }
-                                            else if (clientCheatQuery.StartAddress == client.HomePointer + 5300U && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && DataUtils.AreArraysIdentical(QueryData, Ref6))
+                                            else if (clientCheatQuery.StartAddress == client.HomePointer + 5300U && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && OtherExtensions.AreArraysIdentical(QueryData, Ref6))
                                             {
                                                 string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
 

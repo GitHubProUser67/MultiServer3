@@ -44,7 +44,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     Directory.CreateDirectory(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}");
 
                     string PlayerVisitProfilePath = apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/visit_counter.json";
-                    string Hash = DataUtils.ByteArrayToHexString(
+                    string Hash = OtherExtensions.ByteArrayToHexString(
                         NetHasher.ComputeMD5(Array.Empty<byte>())); // Seems to not make a difference.
 
                     if (File.Exists(PlayerVisitProfilePath))
@@ -270,7 +270,7 @@ namespace WebAPIService.NDREAMS.Aurora
                         if (key == ExpectedHash)
                         {
                             int best = 0;
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (int.TryParse(score, out int resscore))
@@ -368,7 +368,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
                             if (!string.IsNullOrEmpty(everything))
                             {
@@ -393,7 +393,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (!string.IsNullOrEmpty(consumable))
@@ -412,7 +412,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
                             int rescount = 0;
 
@@ -658,7 +658,7 @@ namespace WebAPIService.NDREAMS.Aurora
                         case "AddTicket":
                             int XPAwarded = 0;
 
-                            if (DataUtils.IsBase64String(ticket))
+                            if (OtherExtensions.IsBase64String(ticket))
                             {
                                 byte[] DecodedTicket = Convert.FromBase64String(ticket);
 

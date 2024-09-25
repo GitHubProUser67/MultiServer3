@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -15,13 +13,13 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 using CustomLogger;
 using Org.BouncyCastle.Asn1;
-using System.IO;
 using System.Text;
 using Org.BouncyCastle.OpenSsl;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
+using CyberBackendLibrary.Extension;
 
-namespace MultiSocks.Tls;
+namespace MultiSocks.ProtoSSL;
 
 /// <summary>
 /// Based on the following article: https://github.com/Aim4kill/Bug_OldProtoSSL
@@ -167,8 +165,8 @@ public class VulnerableCertificateGenerator
         byte[] certDer = DotNetUtilities.ToX509Certificate(cCertificate).GetRawCertData();
 
         // There must be two signatures in the DER encoded certificate
-        int signature1Offset = FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span);
-        int signature2Offset = FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span, signature1Offset + (MD5Mode ? MD5CipherSignature.Length : SHA1CipherSignature.Length));
+        int signature1Offset = OtherExtensions.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span);
+        int signature2Offset = OtherExtensions.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span, signature1Offset + (MD5Mode ? MD5CipherSignature.Length : SHA1CipherSignature.Length));
 
         if (signature1Offset == -1 || signature2Offset == -1)
             throw new Exception("[ProtoSSL] - Failed to find valid signature for patching!");
@@ -217,27 +215,5 @@ public class VulnerableCertificateGenerator
         key.ImportFromPem(PrivKeyPEM);
 
         return coll[0].CopyWithPrivateKey(key);
-    }
-
-    /// <summary>
-    /// Finds a sequence of bytes within a byte array.
-    /// <para>Trouve une s�quence de bytes dans un tableau de bytes.</para>
-    /// </summary>
-    /// <param name="buffer">The Span byte in which we search for the sequence.</param>
-    /// <param name="searchPattern">The Span byte sequence to find.</param>
-    /// <param name="offset">The offset from where we start our research.</param>
-    /// <returns>A int (-1 if not found).</returns>
-    private static int FindBytePattern(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> searchPattern, int offset = 0)
-    {
-        if (searchPattern.IsEmpty || buffer.Length < searchPattern.Length || offset > buffer.Length - searchPattern.Length)
-            return -1;
-
-        for (int i = offset; i < buffer.Length - searchPattern.Length + 1; i++)
-        {
-            if (buffer[i] == searchPattern[0] && buffer.Slice(i, searchPattern.Length).SequenceEqual(searchPattern))
-                return i;
-        }
-
-        return -1;
     }
 }

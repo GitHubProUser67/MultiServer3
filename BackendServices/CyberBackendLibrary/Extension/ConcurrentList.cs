@@ -225,15 +225,15 @@ namespace CyberBackendLibrary.Extension
             _lock.EnterUpgradeableReadLock();
             try
             {
-                int freeIndex = 0;   // the first free slot in items array
-
-                // Find the first item which needs to be removed.
-                while (freeIndex < _size && !match(_items[freeIndex])) freeIndex++;
-                if (freeIndex >= _size) return 0;
-
                 _lock.EnterWriteLock();
                 try
                 {
+                    int freeIndex = 0;   // the first free slot in items array
+
+                    // Find the first item which needs to be removed.
+                    while (freeIndex < _size && !match(_items[freeIndex])) freeIndex++;
+                    if (freeIndex >= _size) return 0;
+
                     int current = freeIndex + 1;
                     while (current < _size)
                     {

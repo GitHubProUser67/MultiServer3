@@ -212,7 +212,7 @@ class Program
 
     static void Main()
     {
-        if (!DataUtils.IsWindows)
+        if (!OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

@@ -111,7 +111,7 @@ public static class HorizonServerConfiguration
             BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
             EBOOTDEFSConfig = GetValueOrDefault(config.bwps, "eboot_defs_config", EBOOTDEFSConfig);
             string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
-            if (DataUtils.IsBase64String(APIKey))
+            if (OtherExtensions.IsBase64String(APIKey))
                 MediusAPIKey = APIKey;
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
@@ -234,7 +234,7 @@ class Program
 
     static void Main()
     {
-        if (!DataUtils.IsWindows)
+        if (!OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

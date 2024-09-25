@@ -1,7 +1,7 @@
 using CustomLogger;
 using CyberBackendLibrary.Extension;
 using MultiSocks.Aries.Messages;
-using MultiSocks.Tls;
+using MultiSocks.ProtoSSL;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -120,7 +120,7 @@ namespace MultiSocks.Aries
             {
                 string body = Encoding.ASCII.GetString(data);
 #if DEBUG
-                LoggerAccessor.LogInfo($"{client.ADDR} Requested Type {name} : {{{DataUtils.ByteArrayToHexString(data).Replace("\n", string.Empty)}}}");
+                LoggerAccessor.LogInfo($"{client.ADDR} Requested Type {name} : {{{OtherExtensions.ByteArrayToHexString(data).Replace("\n", string.Empty)}}}");
 #else
                 LoggerAccessor.LogInfo($"{client.ADDR} Requested Type {name}");
 #endif

@@ -989,7 +989,7 @@ namespace HomeWebTools
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else if (version1 == "on")
-                                    TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV1Key, ToolsImplementation.TicketListV1IV, "CTR"))
+                                    TasksResult.Add((OtherExtensions.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV1Key, ToolsImplementation.TicketListV1IV, "CTR"))
                                             , $"{filename}_Encrypted.lst"));
                                 else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                                     && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
@@ -1001,7 +1001,7 @@ namespace HomeWebTools
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else
-                                    TasksResult.Add((DataUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV0Key, ToolsImplementation.TicketListV0IV, "CTR"))
+                                    TasksResult.Add((OtherExtensions.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV0Key, ToolsImplementation.TicketListV0IV, "CTR"))
                                             , $"{filename}_Encrypted.lst"));
 
                                 i++;

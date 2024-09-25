@@ -437,7 +437,7 @@ namespace QuazalServer.QNetZ
 					sb.Append(b.ToString("X2") + " ");
 			}
 			sb.AppendLine();
-			sb.AppendLine(" Checksum:0x" + DataUtils.ByteArrayToHexString(checkSum ?? Array.Empty<byte>()));
+			sb.AppendLine(" Checksum:0x" + OtherExtensions.ByteArrayToHexString(checkSum ?? Array.Empty<byte>()));
 			sb.AppendLine("}");
 			return sb.ToString();
 		}

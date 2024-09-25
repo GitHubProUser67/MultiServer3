@@ -1,20 +1,17 @@
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Tls;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
-namespace MultiSocks.Tls;
+namespace MultiSocks.ProtoSSL;
 
-public class Ssl3TlsServer : DefaultTlsServer
+public class Ssl3TlsClient : DefaultTlsClient
 {
-    private readonly Certificate _serverCertificate;
-    private readonly AsymmetricKeyParameter _serverPrivateKey;
-    private readonly BcTlsCrypto _crypto;
+    private readonly TlsAuthentication _tlsAuth;
+    public readonly BcTlsCrypto _crypto;
 
-    public Ssl3TlsServer(BcTlsCrypto crypto, Certificate serverCertificate, AsymmetricKeyParameter serverPrivateKey) : base(crypto)
+    public Ssl3TlsClient(BcTlsCrypto crypto, TlsAuthentication auth) : base(crypto)
     {
         _crypto = crypto;
-        _serverCertificate = serverCertificate;
-        _serverPrivateKey = serverPrivateKey;
+        _tlsAuth = auth;
     }
 
     private static readonly int[] _cipherSuites = new int[]
@@ -28,9 +25,9 @@ public class Ssl3TlsServer : DefaultTlsServer
         ProtocolVersion.SSLv3
     };
 
-    public override ProtocolVersion GetServerVersion()
+    public override ProtocolVersion[] GetProtocolVersions()
     {
-        return _supportedVersions[0];
+        return _supportedVersions;
     }
 
     protected override ProtocolVersion[] GetSupportedVersions()
@@ -58,8 +55,8 @@ public class Ssl3TlsServer : DefaultTlsServer
         base.NotifySecureRenegotiation(secureRenegotiation);
     }
 
-    protected override TlsCredentialedDecryptor GetRsaEncryptionCredentials()
+    public override TlsAuthentication GetAuthentication()
     {
-        return new BcDefaultTlsCredentialedDecryptor(_crypto, _serverCertificate, _serverPrivateKey);
+        return _tlsAuth;
     }
 }

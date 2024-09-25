@@ -7,11 +7,11 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 {
     public class HomeRTMTools
     {
-        private static readonly byte[] RexecHubMessageHeader = DataUtils.HexStringToByteArray("6400000FFFFFFFE5FFFFFFFF");
+        private static readonly byte[] RexecHubMessageHeader = OtherExtensions.HexStringToByteArray("6400000FFFFFFFE5FFFFFFFF");
 
         public static Task SendRemoteCommand(ClientObject client, string command)
         {
-            byte[] HubRexecMessage = DataUtils.CombineByteArray(RexecHubMessageHeader, EnsureMultipleOfFour(Encoding.ASCII.GetBytes(command)));
+            byte[] HubRexecMessage = OtherExtensions.CombineByteArray(RexecHubMessageHeader, EnsureMultipleOfFour(Encoding.ASCII.GetBytes(command)));
 
             client.Queue(new MediusBinaryFwdMessage1()
             {

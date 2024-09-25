@@ -48,7 +48,7 @@ namespace Horizon.DME
         private Bootstrap? _bootstrap = null;
         private ScertServerHandler? _scertHandler = null;
 
-        private ConcurrentBag<World> _worlds = new();
+        private ConcurrentList<World> _worlds = new();
         private ConcurrentQueue<World> _removeWorldQueue = new();
 
         private ConcurrentQueue<BaseScertMessage> _mpsRecvQueue { get; } = new();
