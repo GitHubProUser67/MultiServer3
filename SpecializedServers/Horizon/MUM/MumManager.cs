@@ -112,6 +112,15 @@ namespace Horizon.MUM
             return null;
         }
 
+        public List<ClientObject>? GetClientsByIp(string? Ip, int appId)
+        {
+            return _lookupsByAppId
+                   .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                   .SelectMany(x => x.Value.SessionKeyToClient.Select(x => x.Value))
+                   .Where(x => x.IP.ToString().Equals(Ip))
+                   .ToList();
+        }
+
         public void AddClient(ClientObject client)
         {
             _addQueue.Enqueue(client);

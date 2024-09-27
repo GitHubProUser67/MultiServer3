@@ -54,7 +54,7 @@ namespace Horizon.MUM.Models
         /// <summary>
         /// 
         /// </summary>
-        public int DmeId { get; protected set; } = 0;
+        public int DmeId { get; protected set; } = -1;
 
         /// <summary>
         /// 
@@ -695,7 +695,7 @@ namespace Horizon.MUM.Models
                 await CurrentGame.RemovePlayer(this, CurrentGame.ApplicationId, CurrentGame.MediusWorldId.ToString());
                 CurrentGame = null;
             }
-            DmeId = 0;
+            DmeId = -1;
         }
 
         #endregion
@@ -936,7 +936,7 @@ namespace Horizon.MUM.Models
                     }
                 default:
                     {
-                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in DMEObject.SetIp()");
+                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in ClientObject.SetIp()");
                         break;
                     }
             }
@@ -950,7 +950,7 @@ namespace Horizon.MUM.Models
                 Port = ListenServerAddress.Port;
             }
             else
-                LoggerAccessor.LogError($"Unhandled NetAddress {ListenServerAddress} in DMEObject.SetIpPort()");
+                LoggerAccessor.LogError($"Unhandled NetAddress {ListenServerAddress} in ClientObject.SetIpPort()");
         }
         #endregion
 

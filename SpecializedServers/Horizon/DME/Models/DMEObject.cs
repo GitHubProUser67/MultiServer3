@@ -373,11 +373,19 @@ namespace Horizon.DME.Models
         #region SetIP
         public void SetIp(string ip)
         {
+            if (string.IsNullOrEmpty(ip))
+                return;
+
             switch (Uri.CheckHostName(ip))
             {
                 case UriHostNameType.IPv4:
                     {
-                        IP = IPAddress.Parse(ip).MapToIPv4() ?? IPAddress.Any;
+                        IP = IPAddress.Parse(ip);
+                        break;
+                    }
+                case UriHostNameType.IPv6:
+                    {
+                        IP = IPAddress.Parse(ip).MapToIPv4();
                         break;
                     }
                 case UriHostNameType.Dns:
