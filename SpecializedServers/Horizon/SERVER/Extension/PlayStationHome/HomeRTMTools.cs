@@ -1,3 +1,4 @@
+using CustomLogger;
 using CyberBackendLibrary.Extension;
 using Horizon.MUM.Models;
 using Horizon.RT.Models;
@@ -9,20 +10,35 @@ namespace Horizon.SERVER.Extension.PlayStationHome
     {
         private static readonly byte[] RexecHubMessageHeader = OtherExtensions.HexStringToByteArray("6400000FFFFFFFE5FFFFFFFF");
 
-        public static Task SendRemoteCommand(ClientObject client, string command)
+        public static Task<bool> SendRemoteCommand(string targetClientIp, string? AccessToken, string command, bool Retail)
         {
-            byte[] HubRexecMessage = OtherExtensions.CombineByteArray(RexecHubMessageHeader, EnsureMultipleOfFour(Encoding.ASCII.GetBytes(command)));
+            bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
+            ClientObject? client;
 
-            client.Queue(new MediusBinaryFwdMessage1()
+            if (AccessTokenProvided)
+                client = MediusClass.Manager.GetClientByAccessToken(AccessToken, Retail ? 20374 : 20371);
+            else
+                client = MediusClass.Manager.GetClientsByIp(targetClientIp, Retail ? 20374 : 20371)?.FirstOrDefault(client => !client.IsActiveServer /*Ignore DME server if on same IP*/);
+
+            if (client != null)
             {
-                MessageID = new MessageId(),
-                MessageType = RT.Common.MediusBinaryMessageType.TargetBinaryMsg,
-                OriginatorAccountID = client.AccountId,
-                MessageSize = HubRexecMessage.Length,
-                Message = HubRexecMessage
-            });
+                byte[] HubRexecMessage = OtherExtensions.CombineByteArray(RexecHubMessageHeader, EnsureMultipleOfFour(Encoding.ASCII.GetBytes(command)));
 
-            return Task.CompletedTask;
+                client.Queue(new MediusBinaryFwdMessage1()
+                {
+                    MessageID = new MessageId(),
+                    MessageType = RT.Common.MediusBinaryMessageType.TargetBinaryMsg,
+                    OriginatorAccountID = client.AccountId,
+                    MessageSize = HubRexecMessage.Length,
+                    Message = HubRexecMessage
+                });
+
+                return Task.FromResult(true);
+            }
+
+            LoggerAccessor.LogError($"[HomeRTMTools] - {(!AccessTokenProvided ? $"Ip:{targetClientIp}" : $"AccessToken:{AccessToken}")} didn't return any Medius clients!");
+
+            return Task.FromResult(false);
         }
 
         private static byte[] EnsureMultipleOfFour(byte[] input)

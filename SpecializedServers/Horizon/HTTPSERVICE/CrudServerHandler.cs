@@ -3,6 +3,7 @@ using CyberBackendLibrary.GeoLocalization;
 using CyberBackendLibrary.HTTP;
 using Horizon.DME.Extension.PlayStationHome;
 using Horizon.SERVER;
+using Horizon.SERVER.Extension.PlayStationHome;
 using System.Net;
 using System.Text;
 using WatsonWebserver;
@@ -259,6 +260,46 @@ namespace Horizon.HTTPSERVICE
                                 $"    <h1>BEWARE! {$"We know your IP {clientip} and where you live {GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip)) ?? "Earth"}"}</h1>\r\n</body>\r\n" +
                                 "</html>");
                         }
+                    }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/HomeRTM/{command}/", async (HttpContextBase ctx) =>
+                {
+                    string? Command = ctx.Request.Url.Parameters["command"];
+                    string userAgent = ctx.Request.Useragent;
+
+                    if (!string.IsNullOrEmpty(userAgent) && userAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(Command))
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                            ctx.Response.ContentType = "text/plain";
+                            await ctx.Response.Send();
+                            return;
+                        }
+                        else
+                            Command = HTTPProcessor.DecodeUrl(Command);
+
+                        bool Retail = true;
+                        string? AccessToken = null;
+
+                        if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
+                        {
+
+                        }
+
+                        if (ctx.Request.QuerystringExists("AccessToken"))
+                            AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send(await HomeRTMTools.SendRemoteCommand(ctx.Request.Source.IpAddress, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
                     }
                 });
 
