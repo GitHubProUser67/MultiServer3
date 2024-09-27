@@ -896,7 +896,7 @@ namespace HomeWebTools
 
                                 byte[] DecompressedData = LZMA.Decompress(buffer, true);
 
-                                if (DecompressedData != null && DecompressedData[0] != 0x73 && DecompressedData[1] != 0x65 && DecompressedData[2] != 0x67 && DecompressedData[3] != 0x73)
+                                if (DecompressedData != null)
                                     TasksResult.Add((DecompressedData, $"{filename}_Unpacked.sql"));
 
                                 i++;

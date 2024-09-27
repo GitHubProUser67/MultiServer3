@@ -109,7 +109,7 @@ namespace MultiSocks.Aries
                 foreach (AriesClient? user in DirtySocksClients)
                 {
                     user.PingSendTick = DateTime.Now.Ticks;
-                    user.SendMessage(msg.GetData());
+                    user.SendMessage(msg);
                 }
             }
         }
