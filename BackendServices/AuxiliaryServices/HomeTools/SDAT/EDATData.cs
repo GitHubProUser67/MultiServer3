@@ -8,17 +8,17 @@ namespace HomeTools.SDAT
         public long blockSize;
         public BigInteger fileLen;
 
-        public static EDATData createEDATData(byte[] data) => new EDATData()
+        public static EDATData CreateEDATData(byte[] data) => new EDATData()
         {
-            flags = ConversionUtils.be32(data, 0),
-            blockSize = ConversionUtils.be32(data, 4),
-            fileLen = ConversionUtils.be64(data, 8)
+            flags = ConversionUtils.Be32(data, 0),
+            blockSize = ConversionUtils.Be32(data, 4),
+            fileLen = ConversionUtils.Be64(data, 8)
         };
 
-        public long getBlockSize() => blockSize;
+        public long GetBlockSize() => blockSize;
 
-        public BigInteger getFileLen() => fileLen;
+        public BigInteger GetFileLen() => fileLen;
 
-        public long getFlags() => flags;
+        public long GetFlags() => flags;
     }
 }

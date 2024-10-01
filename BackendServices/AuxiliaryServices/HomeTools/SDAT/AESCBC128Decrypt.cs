@@ -7,7 +7,7 @@ namespace HomeTools.SDAT
         private Aes c;
         private ICryptoTransform ct;
 
-        public override void doInit(byte[] key, byte[] iv)
+        public override void DoInit(byte[] key, byte[] iv)
         {
             try
             {
@@ -23,7 +23,7 @@ namespace HomeTools.SDAT
             }
         }
 
-        public override void doUpdate(byte[] i, int inOffset, byte[] o, int outOffset, int len)
+        public override void DoUpdate(byte[] i, int inOffset, byte[] o, int outOffset, int len)
         {
             try
             {

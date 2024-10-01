@@ -181,7 +181,7 @@ namespace HomeTools.Crypto
 
         internal struct ChunkHeader
         {
-            internal byte[] GetBytes()
+            internal readonly byte[] GetBytes()
             {
                 byte[] array = new byte[4];
                 Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.ReverseUshort(SourceSize) : SourceSize), 0, array, 2, 2);

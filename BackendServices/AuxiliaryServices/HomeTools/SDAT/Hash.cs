@@ -2,7 +2,7 @@ namespace HomeTools.SDAT
 {
     internal abstract class Hash
     {
-        public bool compareBytes(byte[] value1, int offset1, byte[] value2, int offset2, int len)
+        public static bool CompareBytes(byte[] value1, int offset1, byte[] value2, int offset2, int len)
         {
             for (int index = 0; index < len; ++index)
             {
@@ -12,20 +12,20 @@ namespace HomeTools.SDAT
             return true;
         }
 
-        public virtual void setHashLen(int len)
+        public virtual void SetHashLen(int len)
         {
         }
 
-        public virtual void doInit(byte[] key)
+        public virtual void DoInit(byte[] key)
         {
         }
 
-        public virtual void doUpdate(byte[] i, int inOffset, int len)
+        public virtual void DoUpdate(byte[] i, int inOffset, int len)
         {
         }
 
-        public virtual bool doFinal(byte[] expectedhash, int hashOffset, bool hashDebug) => false;
+        public virtual bool DoFinal(byte[] expectedhash, int hashOffset, bool hashDebug) => false;
 
-        public virtual bool doFinalButGetHash(byte[] generatedHash) => false;
+        public virtual bool DoFinalButGetHash(byte[] generatedHash) => false;
     }
 }

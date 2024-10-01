@@ -44,10 +44,18 @@ namespace HomeWebTools
                         string encrypt = string.Empty;
                         string version2 = string.Empty;
                         string bigendian = string.Empty;
+                        int TimeStamp = (int)DateTime.Now.ToFileTime();
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         string mode = data.GetParameterValue("mode");
-                        string TimeStamp = data.GetParameterValue("TimeStamp");
                         string options = data.GetParameterValue("options");
+                        try
+                        {
+                            TimeStamp = Convert.ToInt32(data.GetParameterValue("TimeStamp"), 16);
+                        }
+                        catch
+                        {
+                            // Not Important
+                        }
                         try
                         {
                             leanzlib = data.GetParameterValue("leanzlib");
@@ -147,31 +155,31 @@ namespace HomeWebTools
                                 filename = filename.Substring(0, filename.Length - 4).ToUpper();
 
                                 IEnumerable<string> enumerable = Directory.EnumerateFiles(unzipdir, "*.*", SearchOption.AllDirectories);
-                                BARArchive bararchive = null;
-                                if (version2 == "on")
+                                BARArchive? bararchive = null;
+                                if (version2.Equals("on"))
                                 {
-                                    if (bigendian == "on")
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, Convert.ToInt32(TimeStamp, 16), true, true, options);
+                                    if (bigendian.Equals("on"))
+                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, true, options);
                                     else
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, Convert.ToInt32(TimeStamp, 16), true, false, options);
+                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, false, options);
                                 }
                                 else
                                 {
-                                    if (encrypt == "on")
+                                    if (encrypt.Equals("on"))
                                     {
-                                        if (bigendian == "on")
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16), true, true);
+                                        if (bigendian.Equals("on"))
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true, true);
                                         else
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16), true);
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true);
                                     }
                                     else
                                     {
-                                        if (bigendian == "on")
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16), false, true);
+                                        if (bigendian.Equals("on"))
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp, false, true);
                                         else
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, Convert.ToInt32(TimeStamp, 16));
+                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp);
                                     }
-                                    if (leanzlib == "on")
+                                    if (leanzlib.Equals("on"))
                                     {
                                         bararchive.BARHeader.Flags = ArchiveFlags.Bar_Flag_LeanZLib;
                                         bararchive.DefaultCompression = CompressionMethod.ZLib;
@@ -456,7 +464,7 @@ namespace HomeWebTools
 
                                 string barfile = tempdir + $"/{filename}";
 
-                                FilePart mapmultipartfile = data.Files.Where(file => file.FileName.Equals(mapfilepath, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                                FilePart? mapmultipartfile = data.Files.Where(file => file.FileName.Equals(mapfilepath, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                                 Directory.CreateDirectory(unbardir);
 
@@ -516,7 +524,7 @@ namespace HomeWebTools
                                     continue;
                                 }
 
-                                LegacyMapper map = new LegacyMapper();
+                                LegacyMapper? map = new LegacyMapper();
 
                                 if (Directory.Exists(unbardir + $"/{filename}") && (ogfilename.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase) || ogfilename.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase) || ogfilename.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase)))
                                 {
@@ -813,14 +821,14 @@ namespace HomeWebTools
 
                                 filename = multipartfile.FileName;
 
-                                BruteforceProcess proc = new BruteforceProcess(buffer);
+                                BruteforceProcess? proc = new BruteforceProcess(buffer);
 
                                 if (filename.ToLower().Contains(".hcdb"))
-                                    TasksResult.Add((proc.StartBruteForce(cdnMode, 1), $"{filename}_Bruteforced.hcdb"));
+                                    TasksResult.Add((proc.StartBruteForce(cdnMode, 1), filename));
                                 else if (filename.ToLower().Contains(".bar"))
-                                    TasksResult.Add((proc.StartBruteForce(cdnMode, 2), $"{filename}_Bruteforced.bar"));
+                                    TasksResult.Add((proc.StartBruteForce(cdnMode, 2), filename));
                                 else
-                                    TasksResult.Add((proc.StartBruteForce(cdnMode), $"{filename}_Bruteforced.xml"));
+                                    TasksResult.Add((proc.StartBruteForce(cdnMode), filename));
 
                                 proc = null;
 
@@ -1128,9 +1136,9 @@ namespace HomeWebTools
             return output;
         }
 
-        public static string ChannelID(Stream PostData, string ContentType)
+        public static string? ChannelID(Stream PostData, string ContentType)
         {
-            string res = null;
+            string? res = null;
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -1162,13 +1170,13 @@ namespace HomeWebTools
                         }
                         if (newerhome == "on")
                         {
-                            SceneKey sceneKey = SIDKeyGenerator.Instance.GenerateNewerType(Convert.ToUInt16(sceneid));
+                            SceneKey? sceneKey = SIDKeyGenerator.Instance.GenerateNewerType(Convert.ToUInt16(sceneid));
                             res = sceneKey.ToString();
                             sceneKey = null;
                         }
                         else
                         {
-                            SceneKey sceneKey = SIDKeyGenerator.Instance.Generate(Convert.ToUInt16(sceneid));
+                            SceneKey? sceneKey = SIDKeyGenerator.Instance.Generate(Convert.ToUInt16(sceneid));
                             res = sceneKey.ToString();
                             sceneKey = null;
                         }
@@ -1180,9 +1188,9 @@ namespace HomeWebTools
             return res;
         }
 
-        public static string SceneID(Stream PostData, string ContentType)
+        public static string? SceneID(Stream PostData, string ContentType)
         {
-            string res = null;
+            string? res = null;
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
@@ -1206,10 +1214,10 @@ namespace HomeWebTools
                         }
                         if (newerhome == "on")
                         {
-                            SceneKey sceneKey = new SceneKey(channelid);
+                            SceneKey? sceneKey = new SceneKey(channelid);
                             try
                             {
-                                SIDKeyGenerator.Instance.VerifyNewerKey(sceneKey);
+                                SIDKeyGenerator.VerifyNewerKey(sceneKey);
                                 res = SIDKeyGenerator.Instance.ExtractSceneIDNewerType(sceneKey).ToString();
                             }
                             catch (SceneKeyException)
@@ -1224,10 +1232,10 @@ namespace HomeWebTools
                         }
                         else
                         {
-                            SceneKey sceneKey = new SceneKey(channelid);
+                            SceneKey? sceneKey = new SceneKey(channelid);
                             try
                             {
-                                SIDKeyGenerator.Instance.Verify(sceneKey);
+                                SIDKeyGenerator.Verify(sceneKey);
                                 res = SIDKeyGenerator.Instance.ExtractSceneID(sceneKey).ToString();
                             }
                             catch (SceneKeyException)

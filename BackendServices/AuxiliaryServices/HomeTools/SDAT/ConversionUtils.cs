@@ -26,7 +26,7 @@ namespace HomeTools.SDAT
            102
         };
 
-        public static BigInteger be64(byte[] buffer, int initOffset)
+        public static BigInteger Be64(byte[] buffer, int initOffset)
         {
             BigInteger bigInteger = BigInteger.Zero;
             for (int index = initOffset; index < initOffset + 8; ++index)
@@ -34,7 +34,7 @@ namespace HomeTools.SDAT
             return bigInteger;
         }
 
-        public static long be32(byte[] buffer, int initOffset)
+        public static long Be32(byte[] buffer, int initOffset)
         {
             long num = 0;
             for (int index = initOffset; index < initOffset + 4; ++index)
@@ -42,7 +42,7 @@ namespace HomeTools.SDAT
             return num;
         }
 
-        public static int be16(byte[] buffer, int initOffset)
+        public static int Be16(byte[] buffer, int initOffset)
         {
             int num = 0;
             for (int index = initOffset; index < initOffset + 2; ++index)
@@ -50,14 +50,14 @@ namespace HomeTools.SDAT
             return num;
         }
 
-        public static void arraycopy(byte[] src, int srcPos, byte[] dest, long destPos, int length)
+        public static void Arraycopy(byte[] src, int srcPos, byte[] dest, long destPos, int length)
         {
             if (src != null)
                 for (int index = 0; index < length; ++index)
                     dest[destPos + index] = src[srcPos + index];
         }
 
-        public static string getHexString(byte[] raw)
+        public static string GetHexString(byte[] raw)
         {
             byte[] b = new byte[2 * raw.Length];
             int num1 = 0;
@@ -75,10 +75,10 @@ namespace HomeTools.SDAT
                 int num6 = HEX_CHAR_TABLE[(int)num3 & 15];
                 numArray2[index2] = (byte)num6;
             }
-            return new string(bytesToChar(b));
+            return new string(BytesToChar(b));
         }
 
-        public static char[] bytesToChar(byte[] b)
+        public static char[] BytesToChar(byte[] b)
         {
             char[] chArray = new char[b.Length];
             for (int index = 0; index < b.Length; ++index)
@@ -86,7 +86,7 @@ namespace HomeTools.SDAT
             return chArray;
         }
 
-        public static byte[] reverseByteWithSizeFIX(byte[] b)
+        public static byte[] ReverseByteWithSizeFIX(byte[] b)
         {
             byte[] numArray = b[b.Length - 1] != 0 ? new byte[b.Length] : new byte[b.Length - 1];
             for (int index = 0; index < numArray.Length; ++index)
@@ -94,7 +94,7 @@ namespace HomeTools.SDAT
             return numArray;
         }
 
-        public static byte[] charsToByte(char[] b)
+        public static byte[] CharsToByte(char[] b)
         {
             byte[] numArray = new byte[b.Length];
             for (int index = 0; index < b.Length; ++index)
@@ -102,9 +102,9 @@ namespace HomeTools.SDAT
             return numArray;
         }
 
-        public static byte[] getByteArray(string hexString) => decodeHex(hexString.ToCharArray());
+        public static byte[] GetByteArray(string hexString) => DecodeHex(hexString.ToCharArray());
 
-        public static byte[] decodeHex(char[] data)
+        public static byte[] DecodeHex(char[] data)
         {
             int length = data.Length;
             byte[] numArray = (length & 1) == 0 ? new byte[length >> 1] : throw new Exception("Odd number of characters.");
@@ -112,9 +112,9 @@ namespace HomeTools.SDAT
             int index2 = 0;
             while (index2 < length)
             {
-                int num1 = toDigit(data[index2], index2) << 4;
+                int num1 = ToDigit(data[index2], index2) << 4;
                 int index3 = index2 + 1;
-                int num2 = num1 | toDigit(data[index3], index3);
+                int num2 = num1 | ToDigit(data[index3], index3);
                 index2 = index3 + 1;
                 numArray[index1] = (byte)(num2 & byte.MaxValue);
                 ++index1;
@@ -136,7 +136,7 @@ namespace HomeTools.SDAT
             return integerValue;
         }
 
-        protected static int toDigit(char ch, int index)
+        protected static int ToDigit(char ch, int index)
         {
             int integerValue = GetIntegerValue(ch, 16);
             if (integerValue != -1)

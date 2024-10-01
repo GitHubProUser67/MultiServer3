@@ -42,7 +42,7 @@ namespace SSFWServer
                                     SceneKey? sceneKey = new(channelID);
                                     try
                                     {
-                                        SIDKeyGenerator.Instance.VerifyNewerKey(sceneKey);
+                                        SIDKeyGenerator.VerifyNewerKey(sceneKey);
                                         string SceneID = SIDKeyGenerator.Instance.ExtractSceneIDNewerType(sceneKey).ToString("X").PadLeft(4, '0'); // SSFW was introduced in modern Home only, safe to assume only newer type.
                                         if (!sceneDictionary.ContainsKey(ID))
                                         {

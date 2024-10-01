@@ -53,7 +53,7 @@ namespace HomeTools.UnBAR
 #else
             try
             {
-                int ExitCode = new EDAT().EncryptFile(filePath, sdatfilePath);
+                int ExitCode = EDAT.EncryptFile(filePath, sdatfilePath);
 
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
@@ -93,7 +93,7 @@ namespace HomeTools.UnBAR
 #else
             try
             {
-                int ExitCode = new EDAT().DecryptFile(sdatfilePath, datfilePath);
+                int ExitCode = EDAT.DecryptFile(sdatfilePath, datfilePath);
 
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
@@ -401,23 +401,14 @@ namespace HomeTools.UnBAR
                             if (DecryptedSignatureHeader != null)
                             {
                                 string SignatureHeaderHexString = OtherExtensions.ByteArrayToHexString(DecryptedSignatureHeader);
-#if DEBUG
-                                LoggerAccessor.LogInfo($"SignatureHeader - {SignatureHeaderHexString}");
-#endif
+
                                 // Create a new byte array to store the remaining content
                                 byte[] FileBytes = new byte[data.Length - 28];
 
                                 // Copy the content after the first 28 bytes to the new array
                                 Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
-                                StringBuilder sb = new StringBuilder();
-
-                                foreach (byte b in NetHasher.ComputeSHA1(FileBytes))
-                                {
-                                    sb.Append(b.ToString("X2")); // Convert each byte to a hexadecimal string
-                                }
-
-                                string SHA1HexString = sb.ToString();
+                                string SHA1HexString = NetHasher.ComputeSHA1String(FileBytes);
 
                                 if (string.Equals(SHA1HexString, SignatureHeaderHexString.Substring(0, SignatureHeaderHexString.Length - 8))) // We strip the original file Compression size.
                                 {
@@ -484,6 +475,12 @@ namespace HomeTools.UnBAR
                                     fileStream.Write(data, 0, data.Length);
                                     fileStream.Close();
                                 }
+                            }
+                            else
+                            {
+                                LoggerAccessor.LogError("[RunUnBAR] - Encrypted data SignatureHeader Decryption has failed.");
+                                fileStream.Write(data, 0, data.Length);
+                                fileStream.Close();
                             }
                         }
                         else

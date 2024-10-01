@@ -10,7 +10,7 @@ namespace HomeTools.ChannelID
         private static SIDKeyGenerator m_Instance;
         private short m_SIDMin = 0;
         private int m_SIDMax = 65535;
-        private int[,] m_ScatterTable = new int[16, 2]
+        private readonly int[,] m_ScatterTable = new int[16, 2]
         {
           {
             2,
@@ -78,7 +78,7 @@ namespace HomeTools.ChannelID
           }
         };
 
-        private int[,] m_NewerScatterTable = new int[16, 2]
+        private readonly int[,] m_NewerScatterTable = new int[16, 2]
         {
           {
             3,
@@ -219,16 +219,16 @@ namespace HomeTools.ChannelID
             return sceneID;
         }
 
-        public void Verify(SceneKey Key)
+        public static void Verify(SceneKey Key)
         {
-            byte[] data = !(Key.ToString() == "00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
+            byte[] data = !Key.ToString().Equals("00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
             if (CRC.Create(data, 0, 15) != data[15])
                 throw new InvalidSceneIDKeyException(Key);
         }
 
-        public void VerifyNewerKey(SceneKey Key)
+        public static void VerifyNewerKey(SceneKey Key)
         {
-            byte[] data = !(Key.ToString() == "00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
+            byte[] data = !Key.ToString().Equals("00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
             if (CRC16.CalcCcittCRC16(data, 14) != (ushort)(data[14] << 8 | data[15]))
                 throw new InvalidSceneIDKeyException(Key);
         }
