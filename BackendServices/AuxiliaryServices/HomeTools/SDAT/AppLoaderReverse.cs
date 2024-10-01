@@ -7,7 +7,7 @@ namespace HomeTools.SDAT
         private Decryptor dec;
         private HashGenerator hash;
 
-        public bool doAll(
+        public bool DoAll(
           int hashFlag,
           int version,
           int cryptoFlag,
@@ -22,33 +22,33 @@ namespace HomeTools.SDAT
           byte[] generatedHash,
           int hashOffset)
         {
-            doInit(hashFlag, version, cryptoFlag, key, iv, hash);
-            doUpdate(i, inOffset, o, outOffset, len);
-            return doFinal(generatedHash);
+            DoInit(hashFlag, version, cryptoFlag, key, iv, hash);
+            DoUpdate(i, inOffset, o, outOffset, len);
+            return DoFinal(generatedHash);
         }
 
-        public void doInit(int hashFlag, int version, int cryptoFlag, byte[] key, byte[] iv, byte[] hashKey)
+        public void DoInit(int hashFlag, int version, int cryptoFlag, byte[] key, byte[] iv, byte[] hashKey)
         {
             byte[] numArray1 = new byte[key.Length];
             byte[] numArray2 = new byte[iv.Length];
             byte[] numArray3 = new byte[hashKey.Length];
-            getCryptoKeys(cryptoFlag, version, numArray1, numArray2, key, iv);
-            getHashKeys(hashFlag, version, numArray3, hashKey);
-            setDecryptor(cryptoFlag);
-            setHash(hashFlag);
-            dec.doInit(numArray1, numArray2);
-            hash.doInit(numArray3);
+            GetCryptoKeys(cryptoFlag, version, numArray1, numArray2, key, iv);
+            GetHashKeys(hashFlag, version, numArray3, hashKey);
+            SetDecryptor(cryptoFlag);
+            SetHash(hashFlag);
+            dec.DoInit(numArray1, numArray2);
+            hash.DoInit(numArray3);
         }
 
-        public void doUpdate(byte[] i, int inOffset, byte[] o, int outOffset, int len)
+        public void DoUpdate(byte[] i, int inOffset, byte[] o, int outOffset, int len)
         {
-            dec.doUpdate(i, inOffset, o, outOffset, len);
-            hash.doUpdate(o, outOffset, len);
+            dec.DoUpdate(i, inOffset, o, outOffset, len);
+            hash.DoUpdate(o, outOffset, len);
         }
 
-        public bool doFinal(byte[] generatedHash) => hash.doFinal(generatedHash);
+        public bool DoFinal(byte[] generatedHash) => hash.DoFinal(generatedHash);
 
-        private void getCryptoKeys(
+        private static void GetCryptoKeys(
           int cryptoFlag,
           int version,
           byte[] calculatedKey,
@@ -59,53 +59,53 @@ namespace HomeTools.SDAT
             switch ((uint)(cryptoFlag & -268435456))
             {
                 case 0:
-                    ConversionUtils.arraycopy(key, 0, calculatedKey, 0L, calculatedKey.Length);
-                    ConversionUtils.arraycopy(iv, 0, calculatedIV, 0L, calculatedIV.Length);
+                    ConversionUtils.Arraycopy(key, 0, calculatedKey, 0L, calculatedKey.Length);
+                    ConversionUtils.Arraycopy(iv, 0, calculatedIV, 0L, calculatedIV.Length);
                     break;
                 case 268435456:
                     if (version == 4)
-                        CryptUtils.aescbcDecrypt(EDATKeys.EDATKEY1, EDATKeys.EDATIV, key, 0, calculatedKey, 0, calculatedKey.Length);
+                        CryptUtils.AescbcDecrypt(EDATKeys.EDATKEY1, EDATKeys.EDATIV, key, 0, calculatedKey, 0, calculatedKey.Length);
                     else
-                        CryptUtils.aescbcDecrypt(EDATKeys.EDATKEY0, EDATKeys.EDATIV, key, 0, calculatedKey, 0, calculatedKey.Length);
-                    ConversionUtils.arraycopy(iv, 0, calculatedIV, 0L, calculatedIV.Length);
+                        CryptUtils.AescbcDecrypt(EDATKeys.EDATKEY0, EDATKeys.EDATIV, key, 0, calculatedKey, 0, calculatedKey.Length);
+                    ConversionUtils.Arraycopy(iv, 0, calculatedIV, 0L, calculatedIV.Length);
                     break;
                 case 536870912:
                     if (version == 4)
-                        ConversionUtils.arraycopy(EDATKeys.EDATKEY1, 0, calculatedKey, 0L, calculatedKey.Length);
+                        ConversionUtils.Arraycopy(EDATKeys.EDATKEY1, 0, calculatedKey, 0L, calculatedKey.Length);
                     else
-                        ConversionUtils.arraycopy(EDATKeys.EDATKEY0, 0, calculatedKey, 0L, calculatedKey.Length);
-                    ConversionUtils.arraycopy(EDATKeys.EDATIV, 0, calculatedIV, 0L, calculatedIV.Length);
+                        ConversionUtils.Arraycopy(EDATKeys.EDATKEY0, 0, calculatedKey, 0L, calculatedKey.Length);
+                    ConversionUtils.Arraycopy(EDATKeys.EDATIV, 0, calculatedIV, 0L, calculatedIV.Length);
                     break;
                 default:
                     throw new Exception("Crypto mode is not valid: Undefined keys calculator");
             }
         }
 
-        private void getHashKeys(int hashFlag, int version, byte[] calculatedHash, byte[] hash)
+        private static void GetHashKeys(int hashFlag, int version, byte[] calculatedHash, byte[] hash)
         {
             switch ((uint)(hashFlag & -268435456))
             {
                 case 0:
-                    ConversionUtils.arraycopy(hash, 0, calculatedHash, 0L, calculatedHash.Length);
+                    ConversionUtils.Arraycopy(hash, 0, calculatedHash, 0L, calculatedHash.Length);
                     break;
                 case 268435456:
                     if (version == 4)
-                        CryptUtils.aescbcDecrypt(EDATKeys.EDATKEY1, EDATKeys.EDATIV, hash, 0, calculatedHash, 0, calculatedHash.Length);
+                        CryptUtils.AescbcDecrypt(EDATKeys.EDATKEY1, EDATKeys.EDATIV, hash, 0, calculatedHash, 0, calculatedHash.Length);
                     else
-                        CryptUtils.aescbcDecrypt(EDATKeys.EDATKEY0, EDATKeys.EDATIV, hash, 0, calculatedHash, 0, calculatedHash.Length);
+                        CryptUtils.AescbcDecrypt(EDATKeys.EDATKEY0, EDATKeys.EDATIV, hash, 0, calculatedHash, 0, calculatedHash.Length);
                     break;
                 case 536870912:
                     if (version == 4)
-                        ConversionUtils.arraycopy(EDATKeys.EDATHASH1, 0, calculatedHash, 0L, calculatedHash.Length);
+                        ConversionUtils.Arraycopy(EDATKeys.EDATHASH1, 0, calculatedHash, 0L, calculatedHash.Length);
                     else
-                        ConversionUtils.arraycopy(EDATKeys.EDATHASH0, 0, calculatedHash, 0L, calculatedHash.Length);
+                        ConversionUtils.Arraycopy(EDATKeys.EDATHASH0, 0, calculatedHash, 0L, calculatedHash.Length);
                     break;
                 default:
                     throw new Exception("Hash mode is not valid: Undefined keys calculator");
             }
         }
 
-        private void setDecryptor(int cryptoFlag)
+        private void SetDecryptor(int cryptoFlag)
         {
             switch (cryptoFlag & byte.MaxValue)
             {
@@ -120,21 +120,21 @@ namespace HomeTools.SDAT
             }
         }
 
-        private void setHash(int hashFlag)
+        private void SetHash(int hashFlag)
         {
             switch (hashFlag & byte.MaxValue)
             {
                 case 1:
                     hash = new HMACGenerator();
-                    hash.setHashLen(20);
+                    hash.SetHashLen(20);
                     break;
                 case 2:
                     hash = new CMACGenerator();
-                    hash.setHashLen(16);
+                    hash.SetHashLen(16);
                     break;
                 case 4:
                     hash = new HMACGenerator();
-                    hash.setHashLen(16);
+                    hash.SetHashLen(16);
                     break;
                 default:
                     throw new Exception("Hash mode is not valid: Undefined hash algorithm");
