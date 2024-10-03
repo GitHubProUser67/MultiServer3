@@ -108,11 +108,11 @@ namespace Horizon.DME
 
             _ = Task.Run(async () =>
             {
-                Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(10)); // Set timeout to 10 seconds
+                Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(30)); // Set timeout to 30 seconds
 
                 if (await Task.WhenAny(_masConnectionTaskCompletionSource.Task, timeoutTask) == timeoutTask)
                 {
-                    LoggerAccessor.LogError("[DMEMediusManager] - Start() - Failed to authenticate with the MAS server within 10 seconds, aborting client...");
+                    LoggerAccessor.LogError("[DMEMediusManager] - Start() - Failed to authenticate with the MAS server within 30 seconds, aborting client...");
                     await Stop(); // Status already as false.
                 }
                 else
