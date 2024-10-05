@@ -28,10 +28,9 @@ namespace HomeTools.UnBAR
             GC.WaitForPendingFinalizers();
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
-
+#if MAKE_NP_DATA_MODE
         public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath, ushort version)
         {
-#if MAKE_NP_DATA_MODE
             using (Process process = Process.Start(new ProcessStartInfo()
             {
                 FileName = converterPath + "/make_npdata",
@@ -50,7 +49,10 @@ namespace HomeTools.UnBAR
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
             }
+        }
 #else
+        public static void RunEncrypt(string filePath, string sdatfilePath)
+        {
             try
             {
                 int ExitCode = EDAT.EncryptFile(filePath, sdatfilePath);
@@ -58,13 +60,12 @@ namespace HomeTools.UnBAR
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with assertion : {ex}");
             }
-#endif
         }
-
+#endif
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir, ushort cdnMode)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
@@ -116,6 +117,8 @@ namespace HomeTools.UnBAR
 
             if (File.Exists(filePath))
             {
+                string barDirectoryPath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath));
+
                 try
                 {
                     RawBarData = File.ReadAllBytes(filePath);
@@ -246,7 +249,7 @@ namespace HomeTools.UnBAR
                                             });
                                         }
 
-                                        Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                                        Directory.CreateDirectory(barDirectoryPath);
 
                                         File.WriteAllBytes(filePath, FileBytes);
 
@@ -262,7 +265,7 @@ namespace HomeTools.UnBAR
                     }
                     else
                     {
-                        Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                        Directory.CreateDirectory(barDirectoryPath);
 
                         LoggerAccessor.LogInfo("Loading BAR/dat: {0}", filePath);
                     }
@@ -271,73 +274,73 @@ namespace HomeTools.UnBAR
                 {
                     LoggerAccessor.LogError($"[RunUnBAR] - Initial archive loading failed with error - {ex}");
                 }
-            }
 
-            if (Directory.Exists(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath))))
-            {
-                try
+                if (Directory.Exists(barDirectoryPath))
                 {
-                    BARArchive archive = new BARArchive(filePath, outDir);
-                    archive.Load();
-                    archive.WriteMap(filePath);
-                    File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
-
-                    // Create a list to hold the tasks
-                    List<Task> TOCTasks = new List<Task>();
-
-                    foreach (TOCEntry tableOfContent in archive.TableOfContents)
+                    try
                     {
-                        byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
+                        BARArchive archive = new BARArchive(filePath, outDir);
+                        archive.Load();
+                        archive.WriteMap(filePath);
+                        File.WriteAllText(barDirectoryPath + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
 
-                        if (FileData != null)
+                        // Create a list to hold the tasks
+                        List<Task> TOCTasks = new List<Task>();
+
+                        foreach (TOCEntry tableOfContent in archive.TableOfContents)
                         {
-                            // Create a task for each iteration
-                            Task task = Task.Run(() =>
+                            byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
+
+                            if (FileData != null)
                             {
-                                try
+                                // Create a task for each iteration
+                                Task task = Task.Run(() =>
                                 {
-                                    if (archive.GetHeader().Version == 512)
-                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
-                                    else
+                                    try
                                     {
-                                        using (MemoryStream memoryStream = new MemoryStream(FileData))
+                                        if (archive.GetHeader().Version == 512)
+                                            ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
+                                        else
                                         {
-                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
-                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)), cdnMode);
-                                            memoryStream.Flush();
+                                            using (MemoryStream memoryStream = new MemoryStream(FileData))
+                                            {
+                                                ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath,
+                                                    FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)), cdnMode);
+                                                memoryStream.Flush();
+                                            }
                                         }
                                     }
-                                }
-                                catch (Exception ex)
-                                {
-                                    LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} or failed to scan for extension - {ex}");
+                                    catch (Exception ex)
+                                    {
+                                        LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} or failed to scan for extension - {ex}");
 
-                                    if (archive.GetHeader().Version == 512)
-                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
-                                    else
-                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), ".unknown", cdnMode);
-                                }
-                            });
+                                        if (archive.GetHeader().Version == 512)
+                                            ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
+                                        else
+                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath, ".unknown", cdnMode);
+                                    }
+                                });
 
-                            TOCTasks.Add(task);
+                                TOCTasks.Add(task);
+                            }
                         }
+
+                        // Wait for all tasks to complete
+                        await Task.WhenAll(TOCTasks);
+
+                        TOCTasks = null;
+
+                        if (File.Exists(filePath + ".map"))
+                            File.Move(filePath + ".map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
+                        else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".sharc.map"))
+                            File.Move(filePath.Substring(0, filePath.Length - 4) + ".sharc.map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
+                        else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".bar.map"))
+                            File.Move(filePath.Substring(0, filePath.Length - 4) + ".bar.map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
                     }
-
-                    // Wait for all tasks to complete
-                    await Task.WhenAll(TOCTasks);
-
-                    TOCTasks = null;
-
-                    if (File.Exists(filePath + ".map"))
-                        File.Move(filePath + ".map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                    else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".sharc.map"))
-                        File.Move(filePath.Substring(0, filePath.Length - 4) + ".sharc.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                    else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".bar.map"))
-                        File.Move(filePath.Substring(0, filePath.Length - 4) + ".bar.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
+                    }
                 }
             }
         }
