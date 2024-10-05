@@ -5,7 +5,7 @@ using Horizon.DME.PluginArgs;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Horizon.PluginManager;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using System;
 
 namespace Horizon.DME.Models

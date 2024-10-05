@@ -1,5 +1,5 @@
 using CastleLibrary.SSC2;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using System.Text;
 
 namespace MultiSocks.Utils

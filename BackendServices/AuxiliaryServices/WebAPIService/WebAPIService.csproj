@@ -13,7 +13,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\CyberBackendLibrary\CyberBackendLibrary.csproj" />
+    <ProjectReference Include="..\..\NetworkLibrary\NetworkLibrary.csproj" />
   </ItemGroup>
 
 </Project>

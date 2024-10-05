@@ -2,17 +2,17 @@ using HTTPServer;
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
-using CyberBackendLibrary.GeoLocalization;
+using NetworkLibrary.GeoLocalization;
 using System.IO;
 using System.Collections.Generic;
 using System;
 using System.Threading;
-using CyberBackendLibrary.AIModels;
-using CyberBackendLibrary.HTTP.PluginManager;
+using NetworkLibrary.AIModels;
+using NetworkLibrary.HTTP.PluginManager;
 using System.Reflection;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using System.Threading.Tasks;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.TCP_IP;
 using System.Collections.Concurrent;
 using System.Linq;
 
@@ -282,7 +282,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

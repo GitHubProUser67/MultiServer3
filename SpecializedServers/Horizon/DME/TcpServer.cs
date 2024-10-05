@@ -15,7 +15,7 @@ using DotNetty.Handlers.Timeout;
 using Horizon.DME.PluginArgs;
 using Horizon.PluginManager;
 using EndianTools;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using Horizon.SERVER;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Medius;

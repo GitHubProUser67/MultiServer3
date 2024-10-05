@@ -1,6 +1,6 @@
 using BlazeCommon;
 using CustomLogger;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.TCP_IP;
 using MultiSocks.Aries;
 using MultiSocks.Blaze;
 using Newtonsoft.Json.Linq;
@@ -107,7 +107,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

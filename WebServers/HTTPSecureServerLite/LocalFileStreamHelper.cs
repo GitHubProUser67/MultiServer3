@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using System.IO;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace HTTPSecureServerLite
 {

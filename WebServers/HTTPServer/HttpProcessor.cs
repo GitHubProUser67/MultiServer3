@@ -14,8 +14,8 @@ using WebAPIService.CDM;
 using WebAPIService.MultiMedia;
 using WebAPIService.UBISOFT.gsconnect;
 using WebAPIService.HELLFIRE;
-using CyberBackendLibrary.GeoLocalization;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.GeoLocalization;
+using NetworkLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using HTTPServer.Extensions;
@@ -33,8 +33,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
-using CyberBackendLibrary.HTTP.PluginManager;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.HTTP.PluginManager;
+using NetworkLibrary.Extension;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
 using Newtonsoft.Json;
@@ -115,7 +115,7 @@ namespace HTTPServer
         public Task TryGetServerIP(ushort Port)
         {
             // We want to check if the router allows external IPs first.
-            string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
+            string ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
             try
             {
                 using TcpClient client = new(ServerIP, Port);
@@ -123,7 +123,7 @@ namespace HTTPServer
             }
             catch // Failed to connect to public ip, so we fallback to local IP.
             {
-                ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
+                ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
 
                 try
                 {
@@ -132,7 +132,7 @@ namespace HTTPServer
                 }
                 catch // Failed to connect to local ip, trying IPV4 only as a last resort.
                 {
-                    ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
+                    ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
                 }
             }
 

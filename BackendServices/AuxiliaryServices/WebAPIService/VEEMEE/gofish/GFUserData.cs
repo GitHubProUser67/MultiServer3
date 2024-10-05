@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Xml;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using WebAPIService.LeaderboardsService.VEEMEE;
 
 namespace WebAPIService.VEEMEE.gofish

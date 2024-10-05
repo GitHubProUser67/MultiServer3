@@ -12,7 +12,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.SERVER;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace Horizon.DME
 {

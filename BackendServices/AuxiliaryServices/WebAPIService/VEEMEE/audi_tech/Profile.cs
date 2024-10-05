@@ -1,4 +1,4 @@
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HttpMultipartParser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

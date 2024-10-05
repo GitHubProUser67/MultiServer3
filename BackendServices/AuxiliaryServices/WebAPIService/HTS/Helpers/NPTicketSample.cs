@@ -3,7 +3,7 @@ using HttpMultipartParser;
 using System.Text;
 using System.IO;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using HashLib;
 
 namespace WebAPIService.HTS.Helpers

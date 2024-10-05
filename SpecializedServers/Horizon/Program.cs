@@ -2,15 +2,15 @@ using CustomLogger;
 using Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
-using CyberBackendLibrary.GeoLocalization;
+using NetworkLibrary.GeoLocalization;
 using System.Runtime;
 using System.Security.Cryptography;
 using System.Collections.Concurrent;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
 using System.Reflection;
-using CyberBackendLibrary.TCP_IP;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.TCP_IP;
+using NetworkLibrary.Extension;
 
 public static class HorizonServerConfiguration
 {
@@ -226,7 +226,7 @@ class Program
         GC.Collect();
 
         if (HorizonServerConfiguration.EnableMedius)
-            CyberBackendLibrary.SSL.SSLUtils.InitializeSSLCertificates(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
+            NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
                     HorizonServerConfiguration.HTTPSDNSList, HorizonServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         HorizonStarter().Wait();

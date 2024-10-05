@@ -1,6 +1,6 @@
 using CustomLogger;
-using CyberBackendLibrary.GeoLocalization;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.GeoLocalization;
+using NetworkLibrary.HTTP;
 using Horizon.DME.Extension.PlayStationHome;
 using Horizon.SERVER;
 using Horizon.SERVER.Extension.PlayStationHome;

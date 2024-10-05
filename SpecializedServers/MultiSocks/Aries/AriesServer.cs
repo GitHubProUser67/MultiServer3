@@ -59,7 +59,7 @@ namespace MultiSocks.Aries
 
         public AriesServer(CancellationToken cancellationToken)
         {
-            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
             Database = new DirtySocksJSONDatabase();
 

@@ -1,6 +1,6 @@
 using EndianTools;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace HomeTools.Crypto
 {

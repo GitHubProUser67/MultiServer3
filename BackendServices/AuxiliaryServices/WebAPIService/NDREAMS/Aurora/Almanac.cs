@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HttpMultipartParser;
 using Newtonsoft.Json;
 

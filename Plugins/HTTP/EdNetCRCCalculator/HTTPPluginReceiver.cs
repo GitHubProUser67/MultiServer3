@@ -1,7 +1,7 @@
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HTTPServer;
 using HTTPServer.Models;
-using CyberBackendLibrary.HTTP.PluginManager;
+using NetworkLibrary.HTTP.PluginManager;
 using System;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;

@@ -39,7 +39,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// IP of the DME.
         /// </summary>
-        public string DMEIp { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+        public string DMEIp { get; set; } = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
         #endregion
 
         #region PublicIp
@@ -115,7 +115,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Authentication Server.
         /// </summary>
-        public string Ip { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.
@@ -137,7 +137,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Proxy Server.
         /// </summary>
-        public string Ip { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.

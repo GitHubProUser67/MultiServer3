@@ -1,6 +1,6 @@
 using CustomLogger;
-using CyberBackendLibrary.Extension;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.Extension;
+using NetworkLibrary.TCP_IP;
 using Newtonsoft.Json.Linq;
 using QuazalServer.ServerProcessors;
 using System.Reflection;

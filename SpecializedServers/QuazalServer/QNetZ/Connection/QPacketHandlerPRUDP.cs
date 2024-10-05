@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using QuazalServer.RDVServices.RMC;
 using QuazalServer.RDVServices;
 using QuazalServer.QNetZ.Factory;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace QuazalServer.QNetZ
 {

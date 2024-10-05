@@ -1,5 +1,5 @@
 using CustomLogger;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using MultiSocks.Aries.Messages;
 using MultiSocks.ProtoSSL;
 using System.Net;

@@ -673,7 +673,7 @@ namespace Horizon.SERVER
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }

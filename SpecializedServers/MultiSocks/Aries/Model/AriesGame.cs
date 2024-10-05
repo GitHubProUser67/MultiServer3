@@ -1,4 +1,4 @@
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using MultiSocks.Aries.Messages;
 
 namespace MultiSocks.Aries.Model

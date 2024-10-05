@@ -33,7 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\BlazeSDK\Blaze2SDK\Blaze2SDK.csproj" />
     <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\BlazeSDK\Blaze3SDK\Blaze3SDK.csproj" />
-    <ProjectReference Include="..\..\BackendServices\CyberBackendLibrary\CyberBackendLibrary.csproj" />
+    <ProjectReference Include="..\..\BackendServices\NetworkLibrary\NetworkLibrary.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
   

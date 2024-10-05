@@ -1,7 +1,7 @@
 // Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
-using CyberBackendLibrary.Extension;
-using CyberBackendLibrary.FileSystem;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.Extension;
+using NetworkLibrary.FileSystem;
+using NetworkLibrary.HTTP;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using System.IO;

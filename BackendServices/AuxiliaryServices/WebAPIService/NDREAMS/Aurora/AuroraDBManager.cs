@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using WebAPIService.LeaderboardsService.NDREAMS;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using HashLib;
 
 namespace WebAPIService.NDREAMS.Aurora

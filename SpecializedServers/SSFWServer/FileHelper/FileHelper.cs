@@ -1,6 +1,6 @@
 using CompressionLibrary.Edge;
 using CustomLogger;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using System.Text;
 
 namespace SSFWServer

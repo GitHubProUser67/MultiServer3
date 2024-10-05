@@ -241,13 +241,13 @@ namespace MitmDNS
                         }
                         catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
+                            IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
                         }
                         break;
                     }
                 default:
                     {
-                        IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
+                        IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
