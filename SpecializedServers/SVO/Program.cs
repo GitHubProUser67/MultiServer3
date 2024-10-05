@@ -8,7 +8,7 @@ using System.Net;
 using System.Security.Principal;
 using System.Security.Cryptography;
 using System.Reflection;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.TCP_IP;
 
 public static class SVOServerConfiguration
 {
@@ -162,7 +162,7 @@ class Program
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        CyberBackendLibrary.SSL.SSLUtils.InitializeSSLCertificates(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
+        NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
             SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         MediusDatabaseLoop ??= Task.Run(SVOManager.StartTickPooling);
@@ -177,7 +177,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

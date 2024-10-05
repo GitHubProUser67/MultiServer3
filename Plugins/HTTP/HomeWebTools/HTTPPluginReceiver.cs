@@ -1,8 +1,8 @@
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HomeTools.AFS;
 using HTTPServer;
 using HTTPServer.Models;
-using CyberBackendLibrary.HTTP.PluginManager;
+using NetworkLibrary.HTTP.PluginManager;
 using HTTPServer.RouteHandlers;
 using System;
 using System.IO;

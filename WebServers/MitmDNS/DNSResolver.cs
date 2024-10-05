@@ -1,5 +1,5 @@
 using CustomLogger;
-using CyberBackendLibrary.DNS;
+using NetworkLibrary.DNS;
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -71,7 +71,7 @@ namespace MitmDNS
                 }
 
                 if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                    url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
 
                 IPAddress ip = IPAddress.None; // NXDOMAIN
                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")

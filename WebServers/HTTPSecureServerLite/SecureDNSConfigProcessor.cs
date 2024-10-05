@@ -206,13 +206,13 @@ namespace HTTPSecureServerLite
                         }
                         catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
+                            IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         }
                         break;
                     }
                 default:
                     {
-                        IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
+                        IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }

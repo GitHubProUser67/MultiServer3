@@ -3,7 +3,7 @@ using HomeTools.BARFramework;
 using HomeTools.ChannelID;
 using HomeTools.Crypto;
 using HomeTools.UnBAR;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HomeTools.CDS;
 using HttpMultipartParser;
 using System.IO.Compression;
@@ -13,7 +13,7 @@ using System;
 using System.Threading.Tasks;
 using System.Linq;
 using CompressionLibrary.Edge;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using WebAPIService.Utils;
 using HashLib;
 

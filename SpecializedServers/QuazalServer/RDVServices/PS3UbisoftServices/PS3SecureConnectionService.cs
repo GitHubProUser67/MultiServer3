@@ -6,7 +6,7 @@ using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
 using System.Text;
 using QuazalServer.RDVServices.RMC;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace QuazalServer.RDVServices.PS3UbisoftServices
 {

@@ -4,7 +4,7 @@ using lzo.net;
 using System.Text.RegularExpressions;
 using EndianTools;
 using Ionic.Zlib;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using HashLib;
 
 namespace QuazalServer.QNetZ

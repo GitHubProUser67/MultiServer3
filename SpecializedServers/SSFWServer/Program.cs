@@ -1,5 +1,5 @@
 using CustomLogger;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.TCP_IP;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
 using System.Reflection;
@@ -150,7 +150,7 @@ class Program
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        CyberBackendLibrary.SSL.SSLUtils.InitializeSSLCertificates(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword,
+        NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword,
             SSFWServerConfiguration.HTTPSDNSList, SSFWServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         Server = new SSFWClass(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword, SSFWServerConfiguration.SSFWLegacyKey);
@@ -160,7 +160,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

@@ -18,7 +18,7 @@ namespace Horizon.BWPS.Config
         /// <summary>
         /// IP of the BWPS.
         /// </summary>
-        public string BWPSIp { get; set; } = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+        public string BWPSIp { get; set; } = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
         #endregion
 
         /// <summary>

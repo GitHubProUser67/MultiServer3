@@ -1,6 +1,6 @@
 using HashLib;
 using CustomLogger;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.TCP_IP;
 using MitmDNS;
 using Newtonsoft.Json.Linq;
 using System;
@@ -192,7 +192,7 @@ class Program
         dnswatcher.NotifyFilter = NotifyFilters.LastWrite;
         dnswatcher.Changed += OnDNSChanged;
 
-        if (!CyberBackendLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

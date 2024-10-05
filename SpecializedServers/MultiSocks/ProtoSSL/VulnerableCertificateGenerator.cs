@@ -17,7 +17,7 @@ using System.Text;
 using Org.BouncyCastle.OpenSsl;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace MultiSocks.ProtoSSL;
 

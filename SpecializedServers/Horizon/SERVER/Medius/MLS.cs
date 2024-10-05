@@ -18,7 +18,7 @@ using Horizon.RT.Cryptography.RSA;
 using System.Text;
 using EndianTools;
 using Horizon.LIBRARY.Pipeline.Attribute;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Extension.PlayStationHome;
 using HashLib;

@@ -5,7 +5,7 @@ using Org.BouncyCastle.Security;
 using EndianTools;
 using System.Text;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace HomeTools.Crypto
 {

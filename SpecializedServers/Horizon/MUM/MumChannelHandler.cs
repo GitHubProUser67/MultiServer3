@@ -4,8 +4,8 @@ using Horizon.SERVER;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
-using CyberBackendLibrary.HTTP;
-using CyberBackendLibrary.Crypto;
+using NetworkLibrary.HTTP;
+using NetworkLibrary.Crypto;
 using Horizon.MUM.Models;
 
 namespace Horizon.MUM

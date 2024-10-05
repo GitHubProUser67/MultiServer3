@@ -1,5 +1,5 @@
 // Copyright (C) 2016 by Barend Erasmus and donated to the public domain
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using HTTPServer.Extensions;
 using Newtonsoft.Json;
 using System;
