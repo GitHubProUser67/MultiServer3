@@ -98,8 +98,11 @@ namespace Horizon.MUM
             return null;
         }
 
-        public ClientObject? GetClientBySessionKey(string sessionKey, int appId)
+        public ClientObject? GetClientBySessionKey(string? sessionKey, int appId)
         {
+            if (string.IsNullOrEmpty(sessionKey))
+                return null;
+
             foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
                 if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))

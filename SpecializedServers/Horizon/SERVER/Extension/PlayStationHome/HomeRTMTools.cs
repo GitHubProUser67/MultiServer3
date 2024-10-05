@@ -8,10 +8,13 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 {
     public class HomeRTMTools
     {
-        private static readonly byte[] RexecHubMessageHeader = OtherExtensions.HexStringToByteArray("6400000FFFFFFFE5FFFFFFFF");
+        private static readonly byte[] RexecHubMessageHeader = new byte[] { 0x64, 0x00 };
 
         public static Task<bool> SendRemoteCommand(string targetClientIp, string? AccessToken, string command, bool Retail)
         {
+            if (command.Length > ushort.MaxValue)
+                return Task.FromResult(false);
+
             bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
             ClientObject? client;
 
@@ -22,7 +25,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 
             if (client != null)
             {
-                byte[] HubRexecMessage = OtherExtensions.CombineByteArray(RexecHubMessageHeader, EnsureMultipleOfFour(Encoding.ASCII.GetBytes(command)));
+                byte[] HubRexecMessage = OtherExtensions.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
+                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight(Encoding.ASCII.GetBytes(command)) });
 
                 client.Queue(new MediusBinaryFwdMessage1()
                 {
@@ -41,15 +45,15 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             return Task.FromResult(false);
         }
 
-        private static byte[] EnsureMultipleOfFour(byte[] input)
+        private static byte[] EnsureMultipleOfEight(byte[] input)
         {
             int length = input.Length;
-            int remainder = length % 4;
+            int remainder = length % 8;
 
             if (remainder == 0)
-                return input; // Already a multiple of 4
+                return input; // Already a multiple of 8
 
-            byte[] paddedArray = new byte[length + (4 - remainder)];
+            byte[] paddedArray = new byte[length + (8 - remainder)];
 
             Array.Copy(input, paddedArray, length);
 
