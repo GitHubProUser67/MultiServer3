@@ -1,0 +1,2390 @@
+﻿<Window x:Class="NautilusXP2024.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Nautilus Toolset v1.02 Beta 3" Height="850" Width="1480" MaxHeight="850" MaxWidth="1480"
+        ResizeMode="NoResize" WindowStyle="None" Background="#242424"
+        BorderBrush="#000000"
+                BorderThickness="1">
+    <Window.Resources>
+        <!-- ... Other styles ... -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="3"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style x:Key="RoundThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Background" Value="#FF555555"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="GridTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Style" Value="{StaticResource SmallTextBoxStyle2}"/>
+        </Style>
+        <Style x:Key="DarkModeComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#181818"/>
+            <Setter Property="BorderBrush" Value="#242424"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Name="ToggleButton" Grid.Column="2" ClickMode="Press" Focusable="False" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition Width="20" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border x:Name="Border" Grid.ColumnSpan="2" CornerRadius="3" Background="#181818" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                                            <Border Grid.Column="0" CornerRadius="3,0,0,3" Background="#181818" Margin="1"/>
+                                            <Path x:Name="Arrow" Grid.Column="1" Fill="white" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="3" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder" Background="#181818" BorderThickness="1" BorderBrush="#242424"/>
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Background" Value="#181818"/>
+                        <Setter Property="Padding" Value="10,5"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="#242424"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SmallTextBoxStyle2" TargetType="TextBox">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        <Style x:Key="SmallTextBoxStyle3" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+
+        <Style x:Key="DarkModeButtonStyle2" TargetType="Button">
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="MaxWidth" Value="150"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="white"/>
+            <Setter Property="Background" Value="#181818"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Margin" Value="5,0,5,0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <!-- Border for the shadow effect -->
+                            <Border x:Name="ShadowBorder" CornerRadius="5" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#151515" BlurRadius="5" Opacity="0.5" ShadowDepth="3" Direction="315"/>
+                                </Border.Effect>
+                            </Border>
+                            <!-- ContentPresenter for the content, including the border -->
+                            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                                <ContentPresenter x:Name="contentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  Margin="8,4,8,4" RenderTransformOrigin="0.5,0.5">
+                                    <ContentPresenter.RenderTransform>
+                                        <TranslateTransform x:Name="TranslateTransform"/>
+                                    </ContentPresenter.RenderTransform>
+                                </ContentPresenter>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#222222"/>
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                                <!-- Move the content and border down by 2 pixels when pressed -->
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="1" X="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <!-- Adjust the shadow effect when pressed -->
+                                <Setter TargetName="ShadowBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#151515" BlurRadius="2" Opacity="0.5" ShadowDepth="1" Direction="315"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#101010"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DarkModeButtonStyle2_NoPadding" TargetType="Button">
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="MaxWidth" Value="150"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="white"/>
+            <Setter Property="Background" Value="#181818"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="5,0,5,0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <!-- Border for the shadow effect -->
+                            <Border x:Name="ShadowBorder" CornerRadius="5" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#151515" BlurRadius="5" Opacity="0.5" ShadowDepth="3" Direction="315"/>
+                                </Border.Effect>
+                            </Border>
+                            <!-- ContentPresenter for the content, including the border -->
+                            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                                <ContentPresenter x:Name="contentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Margin="0" RenderTransformOrigin="0.5,0.5">
+                                    <ContentPresenter.RenderTransform>
+                                        <TranslateTransform x:Name="TranslateTransform"/>
+                                    </ContentPresenter.RenderTransform>
+                                </ContentPresenter>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#222222"/>
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                                <!-- Move the content and border down by 2 pixels when pressed -->
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="1" X="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <!-- Adjust the shadow effect when pressed -->
+                                <Setter TargetName="ShadowBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#151515" BlurRadius="2" Opacity="0.5" ShadowDepth="1" Direction="315"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#101010"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="NoFocusChangeTextBoxStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="BorderBrush" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DarkModeButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="Auto"/>
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="MaxWidth" Value="150"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+            <Setter Property="Background" Value="#181818"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5,10,5,10"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <!-- Border for the shadow effect -->
+                            <Border x:Name="ShadowBorder" CornerRadius="5" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#151515" BlurRadius="5" Opacity="0.5" ShadowDepth="3" Direction="315"/>
+                                </Border.Effect>
+                            </Border>
+                            <!-- ContentPresenter for the content, including the border -->
+                            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                                <ContentPresenter x:Name="contentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Margin="8,4,8,4" RenderTransformOrigin="0.5,0.5">
+                                    <ContentPresenter.RenderTransform>
+                                        <TranslateTransform x:Name="TranslateTransform"/>
+                                    </ContentPresenter.RenderTransform>
+                                </ContentPresenter>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#101010"/>
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                                <!-- Move the content and border down by 2 pixels when pressed -->
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="1" X="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <!-- Adjust the shadow effect when pressed -->
+                                <Setter TargetName="ShadowBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#151515" BlurRadius="2" Opacity="0.5" ShadowDepth="1" Direction="315"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkModeButtonSmallStyle" TargetType="Button">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+            <Setter Property="Background" Value="#181818"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <!-- Border for the shadow effect -->
+                            <Border x:Name="ShadowBorder" CornerRadius="5" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#151515" BlurRadius="5" Opacity="0.5" ShadowDepth="3" Direction="315"/>
+                                </Border.Effect>
+                            </Border>
+                            <!-- ContentPresenter for the content, including the border -->
+                            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                                <ContentPresenter x:Name="contentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           RenderTransformOrigin="0.5,0.5">
+                                    <ContentPresenter.RenderTransform>
+                                        <TranslateTransform x:Name="TranslateTransform"/>
+                                    </ContentPresenter.RenderTransform>
+                                </ContentPresenter>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#101010"/>
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                                <!-- Move the content and border down by 2 pixels when pressed -->
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="1" X="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <!-- Adjust the shadow effect when pressed -->
+                                <Setter TargetName="ShadowBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#151515" BlurRadius="2" Opacity="0.5" ShadowDepth="1" Direction="315"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernRadioButtonStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Margin" Value="-10,0,5,0"/>
+            <Setter Property="Background" Value="#383838"/>
+            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid HorizontalAlignment="{TemplateBinding HorizontalAlignment}" 
+                      VerticalAlignment="{TemplateBinding VerticalAlignment}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="45"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="RadioButtonBorder" Width="26" Height="26" CornerRadius="13" 
+                            Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            Margin="4" VerticalAlignment="Center">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#FF444444" BlurRadius="5" Opacity="0.9" ShadowDepth="2" Direction="315"/>
+                                </Border.Effect>
+                                <Ellipse x:Name="CheckMark" Fill="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                 Width="13" Height="13" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0"/>
+                            </Border>
+                            <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      RecognizesAccessKey="True"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Opacity" Value="1"/>
+                                <Setter Property="Background" Value="#101010"/>
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                                <Setter TargetName="RadioButtonBorder" Property="Opacity" Value="1"/>
+                                <Setter TargetName="RadioButtonBorder" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="1" Y="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="RadioButtonBorder" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                <Setter TargetName="RadioButtonBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#101010" BlurRadius="2" Opacity="0" ShadowDepth="0" Direction="315"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="RadioButtonBorder" Property="BorderThickness" Value="3"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#FF888888"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderBrush" Value="#FF444444"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style x:Key="ModernToggleSwitchStyle" TargetType="{x:Type CheckBox}">
+            <Setter Property="Width" Value="43"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="5,0,15,0"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Background" Value="#101010"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <Border x:Name="toggleBorder" Width="{TemplateBinding Width}" 
+                        Height="{TemplateBinding Height}" 
+                        CornerRadius="2" 
+                        Background="Transparent">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#FF444444" BlurRadius="2" Opacity="0.5" ShadowDepth="2" Direction="315"/>
+                            </Border.Effect>
+                            <Grid>
+                                <!-- Adjusted Rectangle with a Stroke for the border -->
+                                <Rectangle x:Name="toggleRectangle" Fill="#101010" RadiusX="12" RadiusY="13" Stroke="#000000" StrokeThickness="1"/>
+                                <Ellipse x:Name="SwitchThumb" Fill="#444444" 
+                                 Width="18" Height="18" 
+                                 HorizontalAlignment="Left" 
+                                 Margin="2.5"
+                                 VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="SwitchThumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="SwitchThumb" Property="Margin" Value="0,2.5,2.5,2.5"/>
+                                <Setter TargetName="SwitchThumb" Property="Opacity" Value="0.9"/>
+                                <Setter TargetName="toggleRectangle" Property="StrokeThickness" Value="2.5"/>
+                                <Setter TargetName="toggleRectangle" Property="Stroke" Value="#101010"/>
+                                <Setter TargetName="toggleRectangle" Property="Fill" Value="#101010"/>
+                                <Setter Property="Background" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                                <Setter TargetName="SwitchThumb" Property="Fill" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                               
+                                <Setter TargetName="toggleBorder" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="0" Y="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="toggleBorder" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                <Setter TargetName="toggleBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#FF444444" BlurRadius="1" Opacity="0.5" ShadowDepth="1" Direction="315"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#242424"/>
+                                <Setter TargetName="SwitchThumb" Property="Fill" Value="#FF888888"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                               
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernToggleSwitchStyleGrey" TargetType="{x:Type CheckBox}">
+            <Setter Property="Opacity" Value="0.60"/>
+            <Setter Property="Width" Value="43"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="5,0,15,0"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Background" Value="#101010"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <Border x:Name="toggleBorder" Width="{TemplateBinding Width}" 
+                Height="{TemplateBinding Height}" 
+                CornerRadius="2" 
+                Background="Transparent">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#FF444444" BlurRadius="2" Opacity="0.5" ShadowDepth="2" Direction="315"/>
+                            </Border.Effect>
+                            <Grid>
+                                <!-- Adjusted Rectangle with a Stroke for the border -->
+                                <Rectangle x:Name="toggleRectangle" Fill="#101010" RadiusX="12" RadiusY="13" Stroke="#000000" StrokeThickness="1"/>
+                                <Ellipse x:Name="SwitchThumb" Fill="#444444" 
+                         Width="18" Height="18" 
+                         HorizontalAlignment="Left" 
+                         Margin="2.5"
+                         VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="SwitchThumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="SwitchThumb" Property="Margin" Value="0,2.5,2.5,2.5"/>
+                                <Setter TargetName="SwitchThumb" Property="Opacity" Value="0.9"/>
+                                <Setter TargetName="toggleRectangle" Property="StrokeThickness" Value="2.5"/>
+                                <Setter TargetName="toggleRectangle" Property="Stroke" Value="#101010"/>
+                                <Setter TargetName="toggleRectangle" Property="Fill" Value="#101010"/>
+                                <Setter Property="Background" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                                <Setter TargetName="SwitchThumb" Property="Fill" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                                <!-- Apply transform and drop shadow effect changes to the entire Border -->
+                                <Setter TargetName="toggleBorder" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="0" Y="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="toggleBorder" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                <Setter TargetName="toggleBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#FF444444" BlurRadius="1" Opacity="0.5" ShadowDepth="1" Direction="315"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#242424"/>
+                                <Setter TargetName="SwitchThumb" Property="Fill" Value="#FF888888"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                              
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style for the ScrollBar itself -->
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Background" Value="#FF333333"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Track Name="PART_Track" IsDirectionReversed="true">
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource RoundThumbStyle}" />
+                            </Track.Thumb>
+                        </Track>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="Width" Value="Auto"/>
+                    <!-- Ensure the Thumb has appropriate width for horizontal scrollbar -->
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Track Name="PART_Track" IsDirectionReversed="False" Orientation="Horizontal">
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource RoundThumbStyle}" Width="Auto" Height="10"/>
+                                    </Track.Thumb>
+                                </Track>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="8"/>
+                    <Setter Property="Height" Value="Auto"/>
+                    <!-- Ensure the Thumb has appropriate height for vertical scrollbar -->
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Track Name="PART_Track" IsDirectionReversed="true" Orientation="Vertical">
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource RoundThumbStyle}" Width="10" Height="Auto"/>
+                                    </Track.Thumb>
+                                </Track>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Grid>
+                            <Border x:Name="TabItemBorder" Background="{TemplateBinding Background}" BorderBrush="#242424" BorderThickness="1.5">
+                                <Grid>
+                                    <ContentPresenter x:Name="ContentSite"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"
+                                      ContentSource="Header"
+                                      Margin="14,2,16,6"
+                                      
+                                      TextBlock.FontWeight="Normal"
+                                      Opacity="1"/>
+                                    <ContentPresenter x:Name="ContentSiteBold"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"
+                                      ContentSource="Header"
+                                      Margin="14,0,16,6"
+                                      
+                                      TextBlock.FontWeight="bold"
+                                      Opacity="0"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ContentSite" Property="Opacity" Value="0"/>
+                                <Setter TargetName="ContentSiteBold" Property="Opacity" Value="1"/>
+                                <Setter Property="Foreground" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                                <Setter TargetName="TabItemBorder" Property="BorderBrush" Value="#000000"/>
+                                <Setter TargetName="TabItemBorder" Property="Background" Value="#161616"/>
+                                <!-- Move text down and to the right -->
+                                <Setter TargetName="ContentSiteBold" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="2" Y="2"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="ContentSiteBold" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <!-- Your existing setters for IsMouseOver -->
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ToolTitleTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="SmallTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+       
+        <Style x:Key="ReadOnlyTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="Auto"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+        </Style>
+        
+        <Style x:Key="TransparentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SmallTextBlockStyleScenelist" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,5,2,0"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style x:Key="SmallTextBoxStyleScenelist" TargetType="TextBox">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,5,2"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        <Style x:Key="SmallTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        
+        <Style x:Key="FileListTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+            <Setter Property="BorderThickness" Value="0.0"/>
+            <Setter Property="BorderBrush" Value="white"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="AllowDrop" Value="True"/>
+            <Setter Property="Height" Value="495"/>
+            <Setter Property="Width" Value="650"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+        </Style>
+        <Style x:Key="FileList2TextBoxStyle" TargetType="TextBox">
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+            <Setter Property="BorderThickness" Value="0.0"/>
+            <Setter Property="BorderBrush" Value="white"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="IsReadOnly" Value="False"/>
+            <Setter Property="Height" Value="290"/>
+            <Setter Property="Width" Value="540"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+        </Style>
+        <Style x:Key="TitleBarButtonHoverStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <!-- Set to your preferred hover background color -->
+                    <Setter Property="Background" Value="Transparent"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="Sha1TextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,10,0,10"/>
+            <Setter Property="Padding" Value="0,3,0,0"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style x:Key="ArchiveFormatTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Margin" Value="0,10,5,10"/>
+            <Setter Property="Padding" Value="0,3,0,0"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style x:Key="Toggle1TextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="5,10,5,10"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style x:Key="SceneIdTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="white"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="SceneIdInputTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0.0"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        <Style x:Key="SceneIdTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0.0"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+        </Style>
+        <Style x:Key="Sha1TextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="7"/>
+            <Setter Property="Padding" Value="0,3,0,0"/>
+            <Setter Property="BorderThickness" Value="0.0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        <Style x:Key="SettingsTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="BorderThickness" Value="0.0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#C0BFBF"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        <Style x:Key="DragAreaStyle" TargetType="Border">
+            <Setter Property="AllowDrop" Value="True"/>
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Margin" Value="5,5,5,5"/>
+            <Setter Property="Padding" Value="5,5,5,5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        <Style x:Key="DragAreaStyle2" TargetType="Border">
+            <Setter Property="AllowDrop" Value="True"/>
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Width" Value="480"/>
+            <Setter Property="Height" Value="100"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="5,5,5,10"/>
+            <Setter Property="Padding" Value="5,5,5,5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background" Value="#101010"/>
+        </Style>
+        <Style x:Key="DragAreaTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="gray"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="ToolTip" x:Key="CustomToolTipStyle">
+            <Setter Property="Background" Value="#101010"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="MaxWidth" Value="550"/>
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock TextWrapping="Wrap" Text="{Binding}"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Storyboard x:Key="FadeOutStoryboard">
+            <DoubleAnimation Duration="0:0:0.2" To="0" Storyboard.TargetProperty="Opacity" />
+        </Storyboard>
+
+        <Storyboard x:Key="FadeInStoryboard">
+            <DoubleAnimation Duration="0:0:0.2" To="1" Storyboard.TargetProperty="Opacity" />
+        </Storyboard>
+        <Storyboard x:Key="InitialFadeInStoryboard">
+            <DoubleAnimation Duration="0:0:0.2" To="1" Storyboard.TargetProperty="Opacity" />
+        </Storyboard>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Custom Title Bar -->
+        <Grid Background="Transparent" Height="33" VerticalAlignment="Top" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Icon Image -->
+            <Image Grid.Column="0" Source="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=Icon}" Height="20" Width="20" Margin="5,0,0,0" VerticalAlignment="Center"/>
+
+            <!-- Window Title -->
+            <TextBlock Grid.Column="1" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=Title}" VerticalAlignment="Center" HorizontalAlignment="Left" 
+                   Foreground="White" FontWeight="Bold" FontSize="12" Margin="10,0,0,0"/>
+
+            <!-- Custom Window Control Buttons -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <!-- Minimize Button -->
+                <Button FontFamily="Segoe MDL2 Assets" Content="&#xE921;" Click="Minimize_Click" 
+                Width="24" Height="24" FontSize="10" BorderBrush="Transparent" Margin="0,0,10,0" Background="Transparent" Foreground="White"/>
+                <!-- Maximize Button -->
+                <Button FontFamily="Segoe MDL2 Assets" Content="&#xE922;" Click="Maximize_Click" 
+                Width="24" Height="24" FontSize="10" BorderBrush="Transparent" Margin="0,0,10,0" Background="Transparent" Foreground="#555555"/>
+                <!-- Close Button -->
+                <Button FontFamily="Segoe MDL2 Assets" Content="&#xE8BB;" Click="Close_Click" 
+                Width="24" Height="24" FontSize="10" BorderBrush="Transparent" Margin="0,0,7,0" Background="Transparent" Foreground="White"/>
+            </StackPanel>
+        </Grid>
+        <!-- Main Content -->
+        <DockPanel Margin="0,35,0,0" >
+            <TabControl Name="MainTabControl" SelectionChanged="TabControl_SelectionChanged">
+
+                <!-- TAB 1 BAR SHARC SDAT Archive packer unpacker-->
+                <TabItem Header="BAR / SDAT / SHARC" Tag="ArchiveTool">
+                    <StackPanel Background="#242424" HorizontalAlignment="Center"  >
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="700"/>
+                                <ColumnDefinition Width="700"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left Side: Home Archive Creator -->
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="Home Archive Creator" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="ArchiveCreatorDragArea" Style="{StaticResource DragAreaStyle2}" Height="100" Drop="ArchiveCreatorDragDropHandler" MouseLeftButtonUp="ClickToBrowseArchiveCreatorHandler">
+                                    <TextBlock x:Name="ArchiveCreatorDragAreaText" Text="Drag Folders or ZIP Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="Timestamp:" Style="{StaticResource Sha1TextBlockStyle}"/>
+                                    <TextBox x:Name="ArchiveCreatorTimestampTextBox" Text="00000000" Style="{StaticResource Sha1TextBoxStyle}" MaxLength="8" Width="70"/>
+                                   
+                                </StackPanel>
+                                <!-- Radio Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,7,0,5">
+                                    <TextBlock Text="BAR:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="RadioButtonArchiveCreatorBAR" GroupName="ArchiveType" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorBAR_Checked"/>
+                                    <TextBlock Text="BAR (Secure):" Style="{StaticResource ArchiveFormatTextBlockStyle}" Margin="5,5,5,5" Foreground="White" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="RadioButtonArchiveCreatorBAR_S" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorBAR_S_Checked"/>
+                                    <TextBlock Text="SDAT:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="5,5,5,5" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="RadioButtonArchiveCreatorSDAT" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorSDAT_Checked"/>
+                                    <TextBlock Text="SDAT SHARC:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="5,5,5,5" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="RadioButtonArchiveCreatorSDAT_SHARC" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorSDAT_SHARC_Checked"/>
+                                    <TextBlock Text="CORE SHARC:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="5,5,5,5" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="RadioButtonArchiveCreatorCORE_SHARC" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorCORE_SHARC_Checked"/>
+                                    <TextBlock Text="Config SHARC:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="5,5,5,5" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="RadioButtonArchiveCreatorCONFIG_SHARC" GroupName="ArchiveType" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonArchiveCreatorCONFIG_SHARC_Checked"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,7,0,5" Width="461">
+                                    <TextBlock Text="Rename for CDN:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="0,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveCreatorRenameCDN" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxArchiveCreatorRenameCDN_Checked" Unchecked="CheckBoxArchiveCreatorRenameCDN_Unchecked"/>
+                                    <TextBlock Text="Rename For Local:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="10,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveCreatorRenameLocal" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxArchiveCreatorRenameLocal_Checked" Unchecked="CheckBoxArchiveCreatorRenameLocal_Unchecked"/>
+                                    <TextBlock Text="Ignore timestamp.txt:"  Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="10,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveCreatorDeleteTimestamp" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                </StackPanel>
+                                <!-- Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Create Archive" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ArchiveCreatorExecuteButtonClick"/>
+                                    <Button x:Name="ArchiveCreatorClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearListHandler"/>
+                                </StackPanel>
+
+                                <!-- Text Area -->
+                                <Border BorderBrush="Transparent"
+                BorderThickness="1"
+                AllowDrop="True"
+                Drop="ArchiveCreatorDragDropHandler">
+                                    <TextBox x:Name="ArchiveCreatorTextBox"
+                                             Width="650"
+                     Height="420"
+                     Style="{StaticResource FileListTextBoxStyle}"
+                     AllowDrop="False"
+                     MouseDoubleClick="ArchiveCreatorTextBox_MouseDoubleClick"/>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Right Side: Home Archive Unpacker -->
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="Home Archive Unpacker" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="ArchiveUnpackerDragArea" Style="{StaticResource DragAreaStyle2}" Height="100" Drop="ArchiveUnpackerDragDropHandler" MouseLeftButtonUp="ClickToBrowseArchiveUnpackerHandler">
+                                    <TextBlock x:Name="ArchiveUnpackerDragAreaText" Text="Drag Folders, BAR, SDAT, or SHARC Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="UUID or Path Prefix:" Style="{StaticResource Sha1TextBlockStyle}"/>
+                                    <TextBox x:Name="ArchiveUnpackerPathTextBox" Style="{StaticResource Sha1TextBoxStyle}" MaxLength="500" Width="331"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,7,0,5" Width="740">
+                                    <TextBlock Text="AFS Mapper:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Width="0" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperFAST" Style="{StaticResource ModernToggleSwitchStyle}"  Width="0"  Unchecked="CheckBoxArchiveMapperFAST_Unchecked" Checked="CheckBoxArchiveMapperFAST_Checked"/>
+                                    <TextBlock Text="ExperiMENTAL Mapper:" Style="{StaticResource ArchiveFormatTextBlockStyle}"  Width="0" Foreground="White" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperEXP" Style="{StaticResource ModernToggleSwitchStyle}"  Width="0" Unchecked="CheckBoxArchiveMapperEXP_Unchecked" Checked="CheckBoxArchiveMapperEXP_Checked"/>
+                                    <TextBlock Text="Validate Output:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="0,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperVerify" Style="{StaticResource ModernToggleSwitchStyle}" IsChecked="True" />
+                                    <TextBlock Text="Coredata Mode:"  Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="10,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperCoredata" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxArchiveMapperCoredata_Checked"/>
+                                    <TextBlock Text="Raw Cache / Guess UUID Mode:"  Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="10,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperUUIDGuesser" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                    <TextBlock Text="Extract for Offline:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="10,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperOfflineMode" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxArchiveMapperOfflineMode_Checked"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,7,0,5" Width="465">
+                                    <TextBlock Text="Compatibility Patches:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="0,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperPatchMDLs" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                    <TextBlock Text="Delete Files.txt/Manifest:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="10,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperDeleteFilestxt" IsChecked="True" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                    <TextBlock Text="Repack All:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="10,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxArchiveMapperRepackAll" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxArchiveMapperRepackAll_Checked" />
+                                </StackPanel>
+                                <!-- Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Unpack and Map" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ArchiveUnpackerExecuteButtonClick"/>
+                                    <Button x:Name="ArchiveUnpackerClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearListHandler"/>
+                                </StackPanel>
+                                <!-- Text Area -->
+                                <TextBox x:Name="ArchiveUnpackerTextBox" Width="650" Height="420" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" Drop="ArchiveUnpackerDragDropHandler" MouseDoubleClick="ArchiveUnpackerTextBox_MouseDoubleClick"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+
+
+                <!-- Tab 2: CDS Tool -->
+                <TabItem Header="CDS Tool" Tag="CDSTool" >
+                    <StackPanel Background="#242424" >
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left Side: CDS Encrypter -->
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="CDS Encrypter" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="CDSEncrypterDragArea" Style="{StaticResource DragAreaStyle2}" Drop="CDSEncrypterDragDropHandler" MouseLeftButtonUp="ClickToBrowseCDSEncryptHandler">
+                                    <TextBlock x:Name="CDSEncrypterDragAreaText" Text="Drag Folders or SDC/ODC/XML Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal" Margin="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="Append SHA1 to Filenames:" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                                    <CheckBox x:Name="CDSAddSHA1CheckBox" Style="{StaticResource ModernToggleSwitchStyle}"/>
+                                    <TextBlock Text="Rename for CDN:" Style="{StaticResource ArchiveFormatTextBlockStyle}" Foreground="White" Margin="0,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CDSRenameForCDNCheckBox" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                </StackPanel>
+
+                                <!-- Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Encrypt" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="CDSEncrypterExecuteButtonClick"/>
+                                    <Button x:Name="CDSEncrypterClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearListHandler"/>
+                                </StackPanel>
+
+                                <!-- Text Area -->
+                                <TextBox x:Name="CDSEncrypterTextBox" Margin="0,15,0,0" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" Drop="CDSEncrypterDragDropHandler" MouseDoubleClick="CDSEncrypterTextBox_MouseDoubleClick"/>
+                            </StackPanel>
+
+                            <!-- Right Side: CDS Decrypter -->
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="CDS Decrypter" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="CDSDecrypterDragArea" Style="{StaticResource DragAreaStyle2}" Drop="CDSDecrypterDragDropHandler" MouseLeftButtonUp="ClickToBrowseCDSDecryptHandler">
+                                    <TextBlock x:Name="CDSDecrypterDragAreaText" Text="Drag Folders or SDC/ODC/XML Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+
+                                <!-- SHA1 TextBox -->
+                                <StackPanel Orientation="Horizontal" Margin="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="Original SHA1 (Optional):" Style="{StaticResource Sha1TextBlockStyle}"/>
+                                    <TextBox x:Name="CDSDecrypterSha1TextBox" Style="{StaticResource Sha1TextBoxStyle}" Width="330" MaxLength="40"/>
+                                </StackPanel>
+
+                                <!-- Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Decrypt" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="CDSDecrypterExecuteButtonClick"/>
+                                    <Button x:Name="CDSDecrypterClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearListHandler"/>
+                                </StackPanel>
+
+                                <!-- Text Area -->
+                                <TextBox x:Name="CDSDecrypterTextBox" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" Drop="CDSDecrypterDragDropHandler" MouseDoubleClick="CDSDecrypterTextBox_MouseDoubleClick"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+
+
+
+                <!-- Tab 3: HCDB Unpacker -->
+                <TabItem Header="HCDB / SQL" Tag="HCDBTool">
+                    <StackPanel Background="#242424">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left Side: HCDB Encrypter -->
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="HCDB Packer"  Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="HCDBEncrypterDragArea" Style="{StaticResource DragAreaStyle2}" Drop="HCDBEncrypterDragDropHandler" MouseLeftButtonUp="ClickToBrowseHCDBEncryptHandler">
+                                    <TextBlock x:Name="HCDBEncrypterDragAreaText" Text="Drag Folders or SQL Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal" Margin="5"  HorizontalAlignment="Center">
+                                    <TextBlock Text="Append segs SHA1 to HCDB Filenames:" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                                    <CheckBox x:Name="HCDBAddSHA1CheckBox" Style="{StaticResource ModernToggleSwitchStyle}"/>
+                                </StackPanel>
+
+                                <!-- Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Encrypt" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="HCDBEncrypterExecuteButtonClick"/>
+                                    <Button x:Name="HCDBEncrypterClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearListHandler"/>
+                                </StackPanel>
+
+
+                                <!-- Text Area -->
+                                <TextBox x:Name="HCDBEncrypterTextBox" Margin="0,16,0,0" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" Drop="HCDBEncrypterDragDropHandler" MouseDoubleClick="HCDBEncrypterTextBox_MouseDoubleClick"/>
+                            </StackPanel>
+
+                            <!-- Right Side: HCDB Decrypter -->
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="HCDB UnPacker" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="HCDBDecrypterDragArea" Style="{StaticResource DragAreaStyle2}" Drop="HCDBDecrypterDragDropHandler" MouseLeftButtonUp="ClickToBrowseHCDBDecryptHandler">
+                                    <TextBlock x:Name="HCDBDecrypterDragAreaText" Text="Drag Folders or HCDB Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+
+                                <!-- SHA1 TextBox -->
+                                <StackPanel Orientation="Horizontal"  Margin="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="Segs SHA1 (HCDB Decryption key):" Style="{StaticResource Sha1TextBlockStyle}"/>
+                                    <TextBox x:Name="HCDBDecrypterSha1TextBox" Style="{StaticResource Sha1TextBoxStyle}" Width="330" MaxLength="40"/>
+                                </StackPanel>
+
+                                <!-- Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                                    <Button Content="Decrypt" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="HCDBDecrypterExecuteButtonClick"/>
+                                    <Button x:Name="HCDBDecrypterClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearListHandler"/>
+                                </StackPanel>
+
+                                <!-- Text Area -->
+                                <TextBox x:Name="HCDBDecrypterTextBox" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" Drop="HCDBDecrypterDragDropHandler" MouseDoubleClick="HCDBDecrypterTextBox_MouseDoubleClick"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+
+
+
+                <TabItem Header="DB Editor" Tag="SQLTool">
+                    <StackPanel>
+                        <Border BorderBrush="White" BorderThickness="1" CornerRadius="3,3,0,0" Padding="5" Margin="0">
+                            <StackPanel Margin="0,0,0,5">
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel>
+                                        <TextBlock Text="Index:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtObjectIndex" Width="55" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="1"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Object UUID:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtObjectId" Width="300" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="" MouseDoubleClick="txtObjectId_MouseDoubleClick"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Version:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtVersion" Width="50" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="31"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Location:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtLocation" Width="60" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="1"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Entry Type:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtEntryType" Width="55" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="NULL"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="TimeStamp:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtArchiveTimeStampHex" Width="70" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="FFFFFFFF"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="ODC SHA1 digest:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtOdcSha1Digest" Width="335" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text=""/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Entitlement Index:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtEntitlementIndex" Width="80" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="NULL"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Reward Index:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtRewardIndex" Width="70" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="NULL"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="User Location:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtUserLocation" Width="80" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="0"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Last Used Date:" FontSize="10" Margin="3,0" Foreground="White"/>
+                                        <TextBox x:Name="txtLastUsed" Width="80" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="NULL"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="5,6,5,2">
+                                    <!-- KeyName 1 and Value 1 -->
+                                    <TextBlock Text="KeyName 1:" FontSize="10" Margin="5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtKeyName1" MaxDropDownHeight="420" Height="20" Padding="2" Width="115" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtKeyName1_SelectionChanged" >
+                                        <ComboBoxItem Content="CLOTHING"/>
+                                        <ComboBoxItem Content="FURNITURE"/>
+                                        <ComboBoxItem Content="PORTABLE"/>
+                                        <ComboBoxItem Content="MINI_GAME"/>
+                                        <ComboBoxItem Content="ARCADE_GAME"/>
+                                        <ComboBoxItem Content="WORLD_MAP"/>
+                                        <ComboBoxItem Content="SCENE_ENTITLEMENT"/>
+                                        <ComboBoxItem Content="COMMUNICATION_ID"/>
+                                        <ComboBoxItem Content="EMBEDDED_OBJECT"/>
+                                        <ComboBoxItem Content="ENTITLEMENT_ID"/>
+                                        <ComboBoxItem Content="ACTIVE"/>
+                                        <ComboBoxItem Content="LPID"/>
+                                        <ComboBoxItem Content=""/>
+                                        <ComboBoxItem Content="CUSTOM"/>
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomKeyName1" Height="20" Width="115" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="Value 1:" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtValue1" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtValue_SelectionChanged">
+
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomValue1" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+
+                                    <!-- KeyName 4 and Value 4 -->
+                                    <TextBlock Text="KeyName 4:" FontSize="10" Margin="20,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtKeyName4" Height="20" Padding="2" Width="115" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtKeyName4_SelectionChanged">
+                                        <ComboBoxItem Content=""/>
+                                        <ComboBoxItem Content="CUSTOM"/>
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomKeyName4" Height="20" Width="115" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="Value 4:" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtValue4" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtValue_SelectionChanged">
+
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomValue4" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="Add HEAT:" Width="55" FontSize="10" Margin="30,0,5,0" Foreground="White"/>
+                                    <CheckBox x:Name="chkBox1" Width="20" Padding="5" Margin="1,0" Checked="chkBox1_Checked" Unchecked="chkBox1_Unchecked"/>
+                                    <TextBlock Text="HOST_HEAT:" Width="55" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <TextBox x:Name="txtBox4" Width="20" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" IsReadOnly="True"/>
+                                    <Button Content="Reset" Width="60" Height="20" Padding="0" FontSize="9" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Click="ClearSQLButton_Click" Margin="15,0,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="5,2">
+                                    <!-- KeyName 2 and Value 2 -->
+                                    <TextBlock Text="KeyName 2:" FontSize="10" Margin="5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtKeyName2" Height="20" MaxDropDownHeight="400" Padding="2" Width="115" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtKeyName2_SelectionChanged">
+                                        <ComboBoxItem Content="ENTITLEMENT_ID"/>
+                                        <ComboBoxItem Content="RIGS"/>
+                                        <ComboBoxItem Content="TARGETABLE"/>
+                                        <ComboBoxItem Content="TITLE_ID"/>
+                                        <ComboBoxItem Content="SCENE_TYPE"/>
+                                        <ComboBoxItem Content="LPID"/>
+                                        <ComboBoxItem Content="ACTIVE"/>
+                                        <ComboBoxItem Content="PORTABLE"/>
+                                        <ComboBoxItem Content="MINI_GAME"/>
+                                        <ComboBoxItem Content="EMBEDDED_OBJECT"/>
+                                        <ComboBoxItem Content=""/>
+                                        <ComboBoxItem Content="CUSTOM"/>
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomKeyName2" Height="20" Width="115" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="Value 2:" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtValue2" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtValue_SelectionChanged">
+
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomValue2" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+
+                                    <!-- KeyName 5 and Value 5 -->
+                                    <TextBlock Text="KeyName 5:" FontSize="10" Margin="20,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtKeyName5" Height="20" Padding="2" Width="115" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtKeyName5_SelectionChanged">
+                                        <ComboBoxItem Content=""/>
+                                        <ComboBoxItem Content="CUSTOM"/>
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomKeyName5" Height="20" Width="115" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="Value 5:" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtValue5" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtValue_SelectionChanged">
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomValue5" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="MAIN_HEAT:" Width="55" FontSize="10" Margin="30,0,5,0" Foreground="White"/>
+                                    <TextBox x:Name="txtBox1" Width="20" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" IsReadOnly="True"/>
+                                    <TextBlock Text="NET_HEAT:" Width="55" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <TextBox x:Name="txtBox5" Width="20" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" IsReadOnly="True"/>
+                                    <Button Content="Bulk Edit" Width="60" Height="20" Padding="0" FontSize="9" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Click="BulkEditSQLButton_Click" Margin="15,0,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="5,2">
+                                    <!-- KeyName 3 and Value 3 -->
+                                    <TextBlock Text="KeyName 3:" FontSize="10" Margin="5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtKeyName3" Height="20" Padding="2" Width="115" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtKeyName3_SelectionChanged">
+                                        <ComboBoxItem Content="ENTITLEMENT_ID"/>
+                                        <ComboBoxItem Content="TARGETABLE"/>
+                                        <ComboBoxItem Content="RIGS"/>
+                                        <ComboBoxItem Content="TITLE_ID"/>
+                                        <ComboBoxItem Content="TAGS"/>
+                                        <ComboBoxItem Content="LPID"/>
+                                        <ComboBoxItem Content="ACTIVE"/>
+                                        <ComboBoxItem Content="PORTABLE"/>
+                                        <ComboBoxItem Content="MINI_GAME"/>
+                                        <ComboBoxItem Content="EMBEDDED_OBJECT"/>
+                                        <ComboBoxItem Content=""/>
+                                        <ComboBoxItem Content="CUSTOM"/>
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomKeyName3" Height="20" Width="115" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="Value 3:" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtValue3" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtValue_SelectionChanged">
+
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomValue3" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+
+                                    <!-- KeyName 6 and Value 6 -->
+                                    <TextBlock Text="KeyName 6:" FontSize="10" Margin="20,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtKeyName6" Height="20" Padding="2" Width="115" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtKeyName6_SelectionChanged">
+                                        <ComboBoxItem Content=""/>
+                                        <ComboBoxItem Content="CUSTOM"/>
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomKeyName6" Height="20" Width="115" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="Value 6:" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <ComboBox x:Name="txtValue6" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtValue_SelectionChanged">
+
+                                    </ComboBox>
+                                    <TextBox x:Name="txtCustomValue6" Height="20" Width="250" Padding="2" FontSize="10" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" Visibility="Collapsed"/>
+                                    <TextBlock Text="PPU_HEAT:" Width="55" FontSize="10" Margin="30,0,5,0" Foreground="White"/>
+                                    <TextBox x:Name="txtBox2" Width="20" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" IsReadOnly="True"/>
+                                    <TextBlock Text="VRAM_HEAT:" Width="55" FontSize="10" Margin="10,0,5,0" Foreground="White"/>
+                                    <TextBox x:Name="txtBox6" Width="20" Margin="1,0" Style="{StaticResource SmallTextBoxStyle2}" IsReadOnly="True"/>
+                                    <Button Content="Add Item" Width="60" Height="20" Padding="0" FontSize="9" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Margin="15,0,0,0" VerticalAlignment="Center" Click="AddNewSQLItem_Button_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Canvas>
+                            <Border 
+    Style="{StaticResource DragAreaStyle}"
+    Width="85"
+    Margin="0"
+    Height="105"  
+    Canvas.Right="10" 
+    Canvas.Top="-115"
+    AllowDrop="True"
+    DragEnter="Border_DragEnter"
+    Drop="Border_Drop"
+    MouseLeftButtonUp="Border_ODCMouseLeftButtonUp">
+                                <TextBlock Text="Drag ODC" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                            </Border>
+
+                        </Canvas>
+                        <Canvas>
+                            <Border 
+    Style="{StaticResource DragAreaStyle}"
+    Width="85"
+    Margin="0"
+    Height="105"  
+    Canvas.Right="105" 
+    Canvas.Top="-115"
+    AllowDrop="True"
+    DragEnter="Border_DragSQLEnter"
+    Drop="Border_SQLDrop"
+    MouseLeftButtonUp="Border_SQLMouseLeftButtonUp">
+                                <TextBlock Text="Drag SQL" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                            </Border>
+
+                        </Canvas>
+
+                        <Border BorderBrush="White" BorderThickness="1" Margin="0,-1,0,0" CornerRadius="0,0,3,3">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,5">
+                                <TextBlock Text="Index/Range:" FontSize="14" Foreground="White" VerticalAlignment="Center" Margin="5"/>
+                                <TextBox x:Name="txtGoToIndex" Width="110" Margin="5" Style="{StaticResource SmallTextBoxStyle}" />
+                                <Button Content="Load Index" Width="85" Height="26" FontSize="12" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Margin="5" Click="GoToIndexButton_Click"/>
+                                <Button Content="Delete Index" Width="90" Height="26" FontSize="12" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Margin="5" Click="DeleteSQLIndexButton_Click"/>
+                                <TextBlock Text="UUID:" FontSize="14" Foreground="White" VerticalAlignment="Center" Margin="20,5,5,5"/>
+                                <TextBox x:Name="txtSearch" Width="320" Margin="1,0" Style="{StaticResource SmallTextBoxStyle}" Text=""/>
+                                <Button Content="Search" Width="60" Height="26" FontSize="12" FontWeight="Bold" Margin="5,0,20,0" Style="{StaticResource DarkModeButtonStyle}" Click="SearchButton_Click"/>
+                                <TextBlock x:Name="UnsavedChanges" Width="250" Text="Unsaved Changes - Press Enter!" Visibility="Hidden" FontSize="14" Foreground="yellow" VerticalAlignment="Center" Margin="5"/>
+                                <Button Name="BrowseSQLButton" Content="Open SQL" FontSize="12" Style="{StaticResource DarkModeButtonStyle}" Click="BrowseSQLButton_Click" Width="80" Height="26" Margin="5,0"/>
+                                <Button Content="Export XML/CSV" Width="115" Height="26" Padding="0" FontSize="12" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Click="ExportToXMLButton_Click" Margin="5,0,5,0"/>
+                                <Button Content="Export HCDB" Width="100" Height="26" FontSize="12" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Margin="5,0" VerticalAlignment="Center" Click="ExportToHCDBButton_Click"/>
+                            </StackPanel>
+                        </Border>
+                        <Grid>
+                            <Grid Name="HeaderGrid" Background="Transparent" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="245"/>
+                                    <ColumnDefinition Width="48"/>
+                                    <ColumnDefinition Width="57"/>
+                                    <ColumnDefinition Width="43"/>
+                                    <ColumnDefinition Width="72"/>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="54"/>
+                                    <ColumnDefinition Width="59"/>
+                                    <ColumnDefinition Width="55"/>
+                                    <ColumnDefinition Width="48"/>
+                                    <ColumnDefinition Width="135"/>
+                                    <ColumnDefinition Width="310"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="Index" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0"/>
+                                <Label Content="Object UUID" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="1"/>
+                                <Label Content="Version" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="2"/>
+                                <Label Content="Location" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="3"/>
+                                <Label Content="Type" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="4"/>
+                                <Label Content="Timestamp" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="5"/>
+                                <Label Content="ODC SHA1 Digest" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="6"/>
+                                <Label Content="Ent.Index" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="7"/>
+                                <Label Content="Rew.Index" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="8"/>
+                                <Label Content="User Lo." FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="9"/>
+                                <Label Content="L.U.Date" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="10"/>
+                                <Label Content="Key Name" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="11"/>
+                                <Label Content="Value" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="12"/>
+                            </Grid>
+                            <ScrollViewer x:Name="sqlItemsScrollViewer" Height="547" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,25,0,0">
+                                <Grid Name="SQLItemsGrid" Margin="0"/>
+                            </ScrollViewer>
+
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="2">
+
+                            <Button Content="- 25" Width="40" Height="22" FontSize="10" Margin="15,0,15,0" Style="{StaticResource DarkModeButtonStyle}" Click="BackButton_Click"/>
+                            <Button Content="+ 25" Width="40" Height="22" FontSize="10" Margin="15,0,15,0" Style="{StaticResource DarkModeButtonStyle}" Click="ForwardButton_Click"/>
+
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem>
+
+                <TabItem Header="SceneList" Tag="SceneList">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="20"/>
+                           
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Border around the StackPanel -->
+                        <Border BorderBrush="white" BorderThickness="1" CornerRadius="3,3,0,0" Margin="0" Grid.Row="0" Padding="10">
+                            <StackPanel Orientation="Vertical" Margin="0">
+                                <!-- Existing content in the first row -->
+                                <StackPanel Orientation="Horizontal" Margin="0">
+                                    <TextBlock Text="Name (ID):" Width="70" FontSize="14" Margin="0,3,0,5" Foreground="White"/>
+                                    <TextBox x:Name="txtSdcName" Width="265" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="" MouseDoubleClick="txtObjectId_MouseDoubleClick"/>
+                                    <TextBlock Text="Config:" Width="50" FontSize="14" Margin="10,3,0,5" Foreground="White"/>
+                                    <TextBox x:Name="txtsceneconfig" Width="400" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text=""/>
+                                    <TextBlock Text="Scene Type:" Width="72" FontSize="14" Margin="10,3,5,5" Foreground="White"/>
+                                    <ComboBox x:Name="txtSceneType" Height="22" Padding="2" Width="105" FontSize="12" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}" SelectionChanged="txtSceneType_SelectionChanged">
+                                        <ComboBoxItem Content="GlobalSpace"/>
+                                        <ComboBoxItem Content="Home"/>
+                                        <ComboBoxItem Content="PublicLobby"/>
+                                        <ComboBoxItem Content="Game16Space"/>
+                                        <ComboBoxItem Content="Game32Space"/>
+                                        <ComboBoxItem Content="Game60Space"/>
+                                        <ComboBoxItem Content="PublicNoVideo"/>
+                                        <ComboBoxItem Content="PrivateNoVideo"/>
+                                        <ComboBoxItem Content="ArcadeSpace"/>
+                                    </ComboBox>
+
+                                    <TextBlock Text="Host:" FontSize="14" Margin="10,3,5,5" Foreground="White"/>
+                                    <ComboBox x:Name="txtdHost" Height="22" Padding="2" Width="55" FontSize="12" Margin="1,0" Style="{StaticResource DarkModeComboBoxStyle}">
+                                        <ComboBoxItem Content="en-US"/>
+                                        <ComboBoxItem Content="en-GB"/>
+                                        <ComboBoxItem Content="ja-JP"/>
+                                        <ComboBoxItem Content=""/>
+                                    </ComboBox>
+                                   
+                                    <TextBlock Text="HOMEUID:" FontSize="14" Margin="10,3,5,5" Foreground="White"/>
+                                    <TextBox x:Name="txthomeuuid" Width="35" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text=""/>
+                                    <TextBlock Text="Vers:" FontSize="14" Margin="10,3,5,5" Foreground="White"/>
+                                    <TextBox x:Name="txtSDCversion" Width="30" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text="1"/>
+                                    <Button Content="Reset" Width="60" Height="20" Padding="0" FontSize="9" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Margin="6,0,0,0" VerticalAlignment="Center" Click="ResetSDCInfo_Click"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0">
+                                    <TextBlock Text="ChannelID:" Width="70" FontSize="14" Margin="0,3,0,5" Foreground="White"/>
+                                    <TextBox x:Name="txtChannelID" Width="265" Margin="1,3" Style="{StaticResource SmallTextBoxStyle3}" Text="" MouseDoubleClick="txtChannelID_MouseDoubleClick"/>
+                                    <TextBlock Text="Desc:" Width="50" FontSize="14" Margin="10,3,0,5" Foreground="White"/>
+                                    <TextBox x:Name="txtSdcPath" Width="400" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text=""/>
+                                    <TextBlock Text="SDC SHA1:" Width="72" FontSize="14" Margin="10,3,5,5" Foreground="White"/>
+                                    <TextBox x:Name="txtSdcsha1Digest" Width="325" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text=""/>
+                                    <TextBlock Text="Flags:" FontSize="14" Margin="10,3,5,5" Foreground="White"/>
+                                    <TextBox x:Name="txtflags" Width="25" Margin="1,0" Style="{StaticResource SmallTextBoxStyle3}" Text=""/>
+                                    <Button Content="Add Item" Width="60" Height="20" Padding="0" FontSize="9" FontWeight="Bold" Style="{StaticResource DarkModeButtonStyle}" Margin="8,0,0,0" VerticalAlignment="Center" Click="AddNewScenelistItem_Button_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- New border and row for the specified StackPanel -->
+                        <Border BorderBrush="white" BorderThickness="1" CornerRadius="0,0,3,3" Margin="0,-21,0,21" Grid.Row="2" Padding="10">
+                            <StackPanel Orientation="Horizontal" Margin="0">
+                                <TextBlock Text="SceneList (Path/URL):" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Foreground="White"/>
+                                <TextBox x:Name="SceneListPathURLtextbox2" Style="{StaticResource ResourceKey=SmallTextBoxStyle}" 
+                    Text="" 
+                    IsReadOnly="False" Width="395" Margin="5,0,5,0" TextChanged="SceneListPathURLtextbox2_TextChanged" MouseDoubleClick="SceneListPathURLtextbox2_MouseDoubleClick"/>
+                                <Button Content="Load" Width="45" FontSize="12" VerticalAlignment="Center" 
+                    Style="{StaticResource ResourceKey=DarkModeButtonStyle}" 
+                    Click="LoadSceneListXMLv2intoEditorButton_Click" Margin="5,0,15,0" />
+                                <TextBlock Text="Save to:" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Foreground="White"/>
+                                <TextBox x:Name="SceneListSavePathtextbox" Style="{StaticResource ResourceKey=SmallTextBoxStyle}" 
+                    Text="" 
+                    IsReadOnly="False" Width="355" Margin="5,0,5,0" TextChanged="SceneListSavePathtextbox_TextChanged" MouseDoubleClick="SceneListSavePathtextbox_MouseDoubleClick"/>
+                                <TextBlock Text="Encrypt:" Foreground="White" FontSize="11" Margin="5,5,0,5" VerticalAlignment="Center"/>
+                                <CheckBox x:Name="CheckBoxEncryptSceneList" IsChecked="True" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                <Button Content="Save SceneList"  FontSize="12" Width="100" VerticalAlignment="Center"
+                    Style="{StaticResource ResourceKey=DarkModeButtonStyle}"
+                    Click="SaveSceneListXmlButton_Click" Margin="0,0,0,0" />
+                                <TextBlock x:Name="UnsavedSceneListChanges" Width="190" Text="Warning: Unsaved Changes!" Visibility="Hidden" FontSize="15" Foreground="yellow" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Name="SceneListHeaderGrid" Grid.Row="3" Background="Transparent" Margin="0,-16,0,0" VerticalAlignment="Top" HorizontalAlignment="Left">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="208"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="260"/>
+                                <ColumnDefinition Width="260"/>
+                                <ColumnDefinition Width="29"/>
+                                <ColumnDefinition Width="259"/>
+                                <ColumnDefinition Width="309"/>
+                                <ColumnDefinition Width="52"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Name (ID)" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="0"/>
+                            <Label Content="Scene Type" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="1"/>
+                            <Label Content="SDC Path on CDN (Desc)" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="2"/>
+                            <Label Content="Scene File Path in Archive (Config)" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="3"/>
+                            <Label Content="Ver" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="4"/>
+                            <Label Content="SceneID / ChannelID" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="5"/>
+                            <Label Content="SDC SHA1 Digest" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="6"/>
+                            <Label Content="Delete" FontSize="12" Foreground="White" Background="#484848" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="2,0" Margin="1,0" Grid.Column="7"/>
+                        </Grid>
+
+                        <Canvas>
+                            <Border 
+    Style="{StaticResource DragAreaStyle}"
+    Width="85"
+    Margin="0"
+    Height="50"  
+    Canvas.Right="10" 
+    Canvas.Top="13"
+    AllowDrop="True"
+    DragEnter="Border_DragSDCEnter"
+    Drop="Border_SDCDrop"
+    MouseLeftButtonUp="Border_SDCMouseLeftButtonUp">
+                                <TextBlock Text="Drag SDC" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                            </Border>
+
+                        </Canvas>
+
+                        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="scenesList" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="0">
+                                            <TextBox Text="{Binding ID}" Width="206" Margin="1,0" Style="{StaticResource SmallTextBoxStyleScenelist}" Foreground="White" TextChanged="TextBox_TextChanged"/>
+                                            <TextBox Text="{Binding Type}" Width="98" Margin="1,0" Style="{StaticResource SmallTextBoxStyleScenelist}" Foreground="White" TextChanged="TextBox_TextChanged"/>
+                                            <TextBox Text="{Binding Description}" Width="258" Margin="1,0" Style="{StaticResource SmallTextBoxStyleScenelist}" Foreground="White" TextChanged="TextBox_TextChanged"/>
+                                            <TextBox Text="{Binding Config}" Width="258" Margin="1,0" Style="{StaticResource SmallTextBoxStyleScenelist}" Foreground="White" TextChanged="TextBox_TextChanged"/>
+                                            <TextBox Text="{Binding Version}" Width="27" Margin="1,0" Style="{StaticResource SmallTextBoxStyleScenelist}" Foreground="White" TextChanged="TextBox_TextChanged"/>
+                                            <TextBox Text="{Binding SceneID}" Width="257" Margin="1,0" Style="{StaticResource SmallTextBoxStyleScenelist}" Foreground="White" TextChanged="TextBox_TextChanged"/>
+                                            <TextBox Text="{Binding SHA1}" Width="307" Margin="1,0" Style="{StaticResource SmallTextBoxStyleScenelist}" Foreground="White" TextChanged="TextBox_TextChanged"/>
+                                            <Button Content="Del" Width="25" FontSize="9" Foreground="red" Height="20" Padding="0" Margin="1,0" Style="{StaticResource ResourceKey=DarkModeButtonStyle2_NoPadding}"
+                                Click="DeleteSceneListXMLLineButton_Click"
+                                DataContext="{Binding}"
+                                Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+
+
+                <TabItem Header="TSS" Tag="TSS" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <!-- Row for URL and buttons -->
+                            <RowDefinition Height="*"/>
+                            <!-- Row for content display -->
+                        </Grid.RowDefinitions>
+
+                        <!-- Border around the first two StackPanels -->
+                        <Border Grid.Row="0" Grid.RowSpan="2" BorderBrush="White" CornerRadius="3" BorderThickness="1" Margin="0,0,0,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="10,10,0,5">
+                                    <TextBlock Text="TSS (Path/URL):" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Foreground="white"/>
+                                    <TextBox x:Name="TSSURLtextbox" Style="{StaticResource ResourceKey=SmallTextBoxStyle}" 
+                     Text="" 
+                     IsReadOnly="False" Width="400" Margin="5,0,5,0" TextChanged="TSSURLtextbox_TextChanged" MouseDoubleClick="TSSURLtextbox_MouseDoubleClick"/>
+                                    <Button Content="Load" Width="45" FontSize="12" Height="24" VerticalAlignment="Center" 
+                    Style="{StaticResource ResourceKey=DarkModeButtonStyle}" 
+                    Click="LoadTSSXMLButton_Click" Margin="5,0,30,0" />
+                                    <TextBlock Text="Deploy to:" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Foreground="White"/>
+                                    <TextBox x:Name="TSSeditorSavePathtextbox" Style="{StaticResource ResourceKey=SmallTextBoxStyle}" 
+                     Text="" 
+                     IsReadOnly="False" Width="240" Margin="5,0,5,0" TextChanged="TSSeditorSavePathtextbox_TextChanged" MouseDoubleClick="TSSeditorSavePathtextbox_MouseDoubleClick"/>
+                                    <TextBlock Text="Create for 258 Regions:" Foreground="White" FontSize="11" Margin="15,5,0,5" VerticalAlignment="Center"/>
+                                    <CheckBox x:Name="CheckBoxTSSAllregions" IsChecked="True" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                    <Button Content="Save TSS and Deploy" FontSize="12" Width="170" Height="24" VerticalAlignment="Center" 
+                    Style="{StaticResource ResourceKey=DarkModeButtonStyle}" 
+                    Click="SaveNewTSSXMLButton_Click" Margin="5,0,0,0" />
+                                    <TextBlock  x:Name="TSSsaveWarningTextblock"  Text="Warning: Unsaved Changes!" Foreground="Yellow" FontSize="14" Margin="15,0,0,2" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="2,0,0,5" >
+                                    <StackPanel x:Name="LatestSceneListSHA1panel" Orientation="Horizontal" Margin="2,0,0,5" Visibility="Collapsed">
+                                        <TextBlock Text="New SceneList Ready to Deploy:" FontWeight="Bold" Margin="2,0,2,0" FontSize="14" VerticalAlignment="Center" Foreground="yellow"/>
+                                        <TextBox x:Name="LatestSceneListSHA1textbox" Style="{StaticResource ResourceKey=SmallTextBoxStyle}" 
+ Text="You must Export a SceneList in SceneList Tab First" 
+ IsReadOnly="False" Width="370" Margin="5,0,5,0" />
+                                        <Button Content="Apply SHA1" Width="80" Height="24" Foreground="yellow" VerticalAlignment="Center" 
+Style="{StaticResource ResourceKey=DarkModeButtonStyle2}" 
+Click="ApplyNewSceneListSHA1Button_Click" Margin="5,0,15,0" />
+                                    </StackPanel>
+                                    <StackPanel x:Name="LatestHCDBSHA1panel" Orientation="Horizontal" Margin="2,0,0,5" Visibility="Collapsed">
+                                        <TextBlock Text="New HCDB Ready to Deploy:" FontWeight="Bold" Margin="5,0,0,0" FontSize="14" VerticalAlignment="Center" Foreground="yellow"/>
+                                        <TextBox x:Name="LatestHCDBSHA1textbox" Style="{StaticResource ResourceKey=SmallTextBoxStyle}" 
+     Text="You must Export a HCDB in DB Editor Tab First" 
+     IsReadOnly="False" Width="370" Margin="5,0,5,0"/>
+                                        <Button Content="Apply SHA1" Width="80" Height="24" Foreground="yellow" VerticalAlignment="Center" 
+    Style="{StaticResource ResourceKey=DarkModeButtonStyle2}" 
+    Click="ApplyNewHCDBSHA1Button_Click" Margin="5,0,35,0"/>
+                                    </StackPanel>
+
+
+                                    
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" 
+              Grid.Row="2" Margin="2">
+                            <StackPanel x:Name="TSSXMLControlsPanel" Margin="2"/>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+
+
+                <!-- Tab 5 Scene IDs -->
+                <TabItem Header="SceneIDs" Tag="SceneIDTool" AllowDrop="True" Drop="SceneIDTabItem_Drop">
+                    <Grid Background="#242424"  >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left Side: SceneID Encrypter -->
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                            <TextBlock Text="SceneID Generator" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                            <TextBlock Text="Enter a Number or a range eg. 1-5000:" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                            <TextBox x:Name="SceneIDnumberInputTextBox" MaxLength="11" Height="24" Width="60" Padding="0,2,0,0" Style="{StaticResource SceneIdInputTextBoxStyle}"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="Legacy Mode:" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                                <CheckBox x:Name="legacyModeCheckBox" Style="{StaticResource ModernToggleSwitchStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Encrypt" Width="90" Style="{StaticResource DarkModeButtonStyle}" Click="SceneIDEncrypt_Click"/>
+                                <Button x:Name="encryptedSceneIDClearButton" Width="80" Content="Clear" Style="{StaticResource DarkModeButtonStyle}" Click="ClearListHandler"/>
+                            </StackPanel>
+                            <TextBlock Text="Encrypted SceneIDs:" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                            <TextBox x:Name="encryptedSceneIDTextBox" Height="530" Width="600" Style="{StaticResource SceneIdTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <!-- Right Side: SceneID Decrypter -->
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                            <TextBlock Text="SceneID Decrypter" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                            <TextBlock Text="Enter SceneIDs / ChannelIDs (Or drag SceneList HERE):" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                            <TextBox x:Name="SceneIDDecryptInputTextBox" AcceptsReturn="True" TextWrapping="Wrap" Padding="0,2,0,0" Height="24" Width="290" Style="{StaticResource SceneIdInputTextBoxStyle}"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="Legacy Mode:" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                                <CheckBox x:Name="decrypterLegacyModeCheckBox" Style="{StaticResource ModernToggleSwitchStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Decrypt" Width="90" Style="{StaticResource DarkModeButtonStyle}" Click="SceneIDDecrypt_Click"/>
+                                <Button x:Name="DecryptedSceneIDClearButton" Width="80" Content="Clear" Style="{StaticResource DarkModeButtonStyle}" Click="ClearSceneIDTextHandler"/>
+                            </StackPanel>
+                            <TextBlock Text="Decrypted SceneIDs:" Style="{StaticResource SceneIdTextBlockStyle}"/>
+                            <TextBox x:Name="DecryptedSceneIDTextBox" Height="530" Width="600" Style="{StaticResource SceneIdTextBoxStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+
+                <!-- Tab 6: LUAC -->
+                <TabItem Header="LUA / LUAC" Tag="LUACTool" >
+                    <StackPanel Background="#242424"  >
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left Side: LUA Compiler -->
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="LUA Compiler" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="LUACompilerDragArea" Style="{StaticResource DragAreaStyle2}" Drop="LuaDragDropHandler" MouseLeftButtonUp="ClickToBrowseHandlerLUACompiler">
+                                    <TextBlock x:Name="LUACompilerDragAreaText" Text="Drag Folders or LUA Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+
+                                <!-- Toggle and Button -->
+                                <StackPanel Orientation="Horizontal"  Margin="5" HorizontalAlignment="Center">
+                                    <TextBlock Text="Parse Only:" Style="{StaticResource Sha1TextBlockStyle}" />
+                                    <CheckBox x:Name="CheckBoxParseOnly" Style="{StaticResource ModernToggleSwitchStyle}" Background="Gray" Unchecked="CheckBoxLUACParseOnly_Unchecked" Checked="CheckBoxLUACParseOnly_Checked"/>
+                                    <TextBlock Text="Strip Debug Info:" Style="{StaticResource Sha1TextBlockStyle}" />
+                                    <CheckBox x:Name="CheckBoxStripDebug" Style="{StaticResource ModernToggleSwitchStyle}" Background="Gray" Unchecked="CheckBoxLUACStripDebug_Unchecked" Checked="CheckBoxLUACStripDebug_Checked"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Compile" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="LUACompilerExecuteButtonClick"/>
+                                    <Button x:Name="LUACompilerClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="StopandClearLUAListHandler"/>
+                                </StackPanel>
+
+                                <!-- Text Area -->
+                                <TextBox x:Name="LUACompilerTextBox" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" Drop="LuaDragDropHandler" MouseDoubleClick="LUACompilerTextBox_MouseDoubleClick"/>
+                            </StackPanel>
+
+                            <!-- Right Side: LUAC Decompiler -->
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="LUAC Decompiler" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                                <Border x:Name="LUACDecompilerDragArea" Style="{StaticResource DragAreaStyle2}" Drop="LuacDragDropHandler" MouseLeftButtonUp="ClickToBrowseHandlerLUACDecompiler">
+                                    <TextBlock x:Name="LUACDecompilerDragAreaText" Text="Drag Folders or LUAC Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                                </Border>
+
+
+                                <!-- Radio Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="25,5,0,5" Width="461">
+                                    <TextBlock Text="Unluac.NET (Best):" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" IsEnabled="True" Margin="7,10" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="LUACDecompilerRadioButtonUnluacNET" GroupName="UnluacVersion" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="LUACDecompilerRadioButtonUnluacNET_Checked" />
+                                    <TextBlock Text="Unluac JAR v1.22:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" IsEnabled="True" Margin="7,10" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="LUACDecompilerRadioButtonUnluac122" GroupName="UnluacVersion" Style="{StaticResource ModernRadioButtonStyle}" Checked="LUACDecompilerRadioButtonUnluac122_Checked" />
+                                    <TextBlock Text="Unluac Dec 2023 JAR:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" Margin="7,10" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="LUACDecompilerRadioButtonUnluac2023" GroupName="UnluacVersion" Style="{StaticResource ModernRadioButtonStyle}" Checked="LUACDecompilerRadioButtonUnluac2023_Checked" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Decompile" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="LUACDecompilerExecuteButtonClick"/>
+                                    <Button x:Name="LUACDecompilerClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearListHandler"/>
+                                </StackPanel>
+
+                                <!-- Text Area -->
+                                <TextBox x:Name="LUACDecompilerTextBox" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" MouseDoubleClick="LUACDecompilerTextBox_MouseDoubleClick" Drop="LuacDragDropHandler"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+
+
+
+                <!-- Tab 8 SDC ODC Creator -->
+                <TabItem Header="SDC / ODC" Tag="SDCODCTool">
+                    <Grid Background="#242424"
+                          DragEnter="Grid_DragEnter" 
+                        Drop="Grid_Drop" 
+                        AllowDrop="True" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left Form for SDC File Creation -->
+                        <StackPanel DragEnter="Grid_DragEnter" 
+                        Drop="Grid_Drop" 
+                        AllowDrop="True" Grid.Column="0" Margin="10">
+                            <TextBlock Text="SDC Creation" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Name:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="sdcNameTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="435" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal"  Width="570">
+                                <Label Content="Description:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="sdcDescriptionTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="435" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Maker:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="sdcMakerTextBox" Text="Sony Computer Entertainment" Style="{StaticResource SmallTextBoxStyle}" Width="435" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="HDK Version:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="sdcHDKVersionTextBox" Text="1.86.0.17.PUB" Style="{StaticResource SmallTextBoxStyle}" Width="435" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Txxx Version:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="sdcThumbnailSuffixTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="435"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Archive Path:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="sdcServerArchivePathTextBox" Text="Scenes/" Style="{StaticResource SmallTextBoxStyle}"  Width="435"/>
+
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Timestamp:" Foreground="White"  FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="sdcTimestampTextBox" Style="{StaticResource SmallTextBoxStyle}" Text="FFFFFFFF" Width="90" />
+                                <Label Content="Archive Size:" Foreground="White" FontSize="14" Margin="15,0,0,0" VerticalAlignment="Center" Width="90"/>
+                                <TextBox x:Name="sdcArchiveSizeTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="110" />
+                                <TextBlock Text="Offline SDC:" Style="{StaticResource Toggle1TextBlockStyle}" Margin="15,0,0,0" VerticalAlignment="Center" Width="65"/>
+                                <CheckBox x:Name="offlineSDCCheckBox" Checked="CheckBoxOfflineSDC_Checked" Style="{StaticResource ModernToggleSwitchStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570" Margin="0,10,0,0">
+                                <Label Content="SHA1 Digest:" Foreground="White" FontSize="14" VerticalAlignment="Center"  Width="105"/>
+                                <TextBox x:Name="Createdsdcsha1TextBox" Style="{StaticResource SmallTextBoxStyle}" Background="#181818" IsReadOnly="True" Width="375"/>
+                                <Button Content="Copy" Margin="10,0,0,0" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" FontSize="12" Height="25" Click="SDCCopySHA1Button_Click" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"  Margin="0,10,0,0">
+                                <Label Content="Create SHA1 Encrypted SDC:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="190"/>
+                                <CheckBox x:Name="EncryptSDCCheckBox" IsChecked="True" Style="{StaticResource ModernToggleSwitchStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Create SDC" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="CreateSdcButton_Click"/>
+                                <Button Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="CreateSdcClearButton_Click"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <TextBlock Text="SDC Content" Style="{StaticResource SceneIdTextBlockStyle}" Margin="0,10,0,-7"/>
+                                <TextBox x:Name="SDCCreatorTextbox" Width="600" Height="350" Style="{StaticResource FileListTextBoxStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <!-- Right Form for ODC File Creation -->
+                        <StackPanel DragEnter="Grid_DragEnter" 
+                        Drop="Grid_Drop" 
+                        AllowDrop="True" Grid.Column="1" Margin="10">
+                            <TextBlock Text="ODC Creation" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Name:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="odcNameTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="435" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Description:" Foreground="White" FontSize="14" VerticalAlignment="Center"  Width="105"/>
+                                <TextBox x:Name="odcDescriptionTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="435"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Maker:" Foreground="White" FontSize="14" VerticalAlignment="Center"  Width="105"/>
+                                <TextBox x:Name="odcMakerTextBox" Style="{StaticResource SmallTextBoxStyle}" Text="Sony Computer Entertainment" Width="435"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="HDK Version:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="odcHDKVersionTextBox" Style="{StaticResource SmallTextBoxStyle}" Text="1.86.0.17.PUB" Width="435" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Txxx Version:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                                <TextBox x:Name="odcThumbnailSuffixTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="434"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="565">
+                                <Label Content="UUID:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="104"/>
+                                <TextBox x:Name="odcUUIDTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="320"/>
+                                <Button Content="Generate UUID" Margin="10,0,0,0" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" FontSize="12" Height="25" Click="ODCGenerateUUIDButton_Click" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Width="570">
+                                <Label Content="Timestamp:" Foreground="White" FontSize="14" VerticalAlignment="Center"  Width="105"/>
+                                <TextBox x:Name="odcTimestampTextBox" Style="{StaticResource SmallTextBoxStyle}" Text="FFFFFFFF" Width="435"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0" Width="570">
+                                <Label Content="SHA1 Digest:" Foreground="White" FontSize="14" VerticalAlignment="Center"  Width="105"/>
+                                <TextBox x:Name="Createdodcsha1TextBox" Style="{StaticResource SmallTextBoxStyle}" Background="#181818" IsReadOnly="True" Width="375"/>
+                                <Button Content="Copy" Margin="10,0,0,0" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" FontSize="12" Height="25" Click="ODCCopySHA1Button_Click" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                                <Label Content="Create SHA1 Encrypted ODC:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="190"/>
+                                <CheckBox x:Name="EncryptODCCheckBox" IsChecked="True" Style="{StaticResource ModernToggleSwitchStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Create ODC" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ODCCreateODC_Click"/>
+                                <Button Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="CreateOdcClearButton_Click"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <TextBlock Text="ODC Content" Style="{StaticResource SceneIdTextBlockStyle}" Margin="0,10,0,-7"/>
+                                <TextBox x:Name="ODCCreatorTextbox" Width="600" Height="350" Style="{StaticResource FileListTextBoxStyle}"/>
+                            </StackPanel>
+                            
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+
+
+               
+
+
+
+                <!-- Tab 10: Path2Hash -->
+                <TabItem Header="Path2Hash" Tag="Path2Hash" AllowDrop="True" Drop="Path2HashTabItem_Drop" >
+                    <StackPanel>
+                        <TextBlock Text="Path to Hash Tool" Margin="10" Style="{StaticResource ToolTitleTextBlockStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" />
+                        <Border x:Name="Path2HashPatcherDragArea" Style="{StaticResource DragAreaStyle}" Drop="Path2HashTabItem_Drop" Height="81" Margin="0,0,0,5" Width="713">
+                            <TextBlock x:Name="Path2HashDragAreaText" Text="Drag a folder or TXT/XML here to hash all paths" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                        </Border>
+                        <Border Background="#242424" Padding="10" AllowDrop="True" Drop="Path2HashTabItem_Drop">
+                            <Grid>
+                                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
+                                    <!-- Title -->
+                                    <TextBlock Text="Single Path:" Foreground="White" FontSize="14" Height="20" Margin="0,5,0,5" Width="74"/>
+                                    <!-- Long Text Entry Box -->
+                                    <TextBox x:Name="Path2HashInputTextBox" Style="{StaticResource SmallTextBoxStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" Width="650" />
+                                    <!-- Hash Button -->
+                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" Width="260">
+                                        <Button Content="Hash" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" Click="Path2HashButton_Click"/>
+                                        <Button x:Name="Path2HashClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="Path2HashClearListHandler"/>
+                                        <Button Content="Add to Mapper" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" AllowDrop="True" Drop="Path2HashTabItem_Drop" Click="AddToMapperButton_Click" Width="124"/>
+                                    </StackPanel>
+                                    <!-- Short Text Output Box -->
+                                    <TextBox x:Name="Path2HashOutputTextBox" Style="{StaticResource SmallTextBoxStyle}" Width="90" />
+                                </StackPanel>
+                                <StackPanel AllowDrop="True" Drop="Path2HashTabItem_Drop">
+                                    <TextBox x:Name="Path2HashOutputExtraTextBox" Style="{StaticResource FileList2TextBoxStyle}" Margin="0,130,0,0" Height="480" Width="1350" />
+                                </StackPanel>
+                            </Grid>
+
+                        </Border>
+
+                    </StackPanel>
+                </TabItem>
+
+                
+               
+                <TabItem Header="EBOOT" Tag="EbootPatcher" >
+                    <StackPanel Background="#242424" HorizontalAlignment="Center" Width="1140">
+                        <TextBlock Text="Home EBOOT Patcher" Foreground="White" FontWeight="Bold" FontSize="16" Height="18" Margin="0,10,0,15" Width="174"/>
+                        <Border x:Name="EBOOTPatcherDragArea" Style="{StaticResource DragAreaStyle}" Drop="EbootPatcherDragDropHandler" MouseLeftButtonUp="ClickToBrowseHandlerEbootPatcher" Height="81" Margin="0,0,0,15" Width="713">
+                            <TextBlock x:Name="EbootPatcherDragAreaText" Text="Drag an EBOOT.BIN, .elf or .self here / Click to browse" Style="{StaticResource DragAreaTextBlockStyle}"/>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="Title ID:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <TextBox x:Name="LoadedEbootTitleID" MaxLength="9" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="App ID:" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,0,0" Width="105"/>
+                            <TextBox x:Name="LoadedEbootAppID"  MaxLength="5" Style="{StaticResource SettingsTextBoxStyle}"  Width="200"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="MUIS / SSFW:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <TextBox x:Name="LoadedEbootMuisVersion"  MaxLength="8" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="Service ID:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <TextBox x:Name="LoadedEbootServiceID"  MaxLength="19" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="NP Comm ID:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <TextBox x:Name="LoadedEbootNPCommID"  MaxLength="15" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="TSS URL:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <TextBox x:Name="LoadedEbootTSSURL" MaxLength="72" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="Offline Name:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <TextBox x:Name="LoadedEbootOfflineName" MaxLength="15" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="320">
+                            <Label Content="Full File Path:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="105"/>
+                            <TextBox x:Name="LoadedEbootFilePath" IsReadOnly="True" Style="{StaticResource SettingsTextBoxStyle}" Width="200"/>
+                        </StackPanel>
+                        <!-- First Row -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0" Width="931">
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Enable Dev Debug Menu on Retail:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxCMDConsole" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxCMDConsole_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Retail EBOOTS block the Dev Debug sub menu from showing when you press Select. This patch removes that block, allowing for a limited developer command console to work on retail." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Disable Local Profanity Filter:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxBlockProfanity" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxBlockProfanity_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Disables the game's built-in profanity filter to allow prohibited text in user communication. This only applies to the user with the patched EBOOT so does not affect what other other players see." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Avatar Draw Distance Mod:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxDrawDistanceHack" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxDrawDistanceHack_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Forces Avatars to always use the games highest quality LOD1 models, This removes the 'pop in' effect seen when moving closer to other player as the models are swapped." MaxWidth="400" Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Enable PS+ Content (For PS3):" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxPSPLUS" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxPSPLUS_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Enables most of the PS Homes PS+ content on accounts without PS+. Note: Newer RPCS3 has these features enabled by default so this is only needed for PS3." MaxWidth="340" Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Second Row - Work in progress - not enabled yet-->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"  IsEnabled="False" Visibility="Collapsed" Margin="2" Width="709">
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Disable MLAA (For RPCS3):" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxMLAA" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxMLAA_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Disables Morphological Anti-Aliasing (MLAA), which fixes major graphic glitches when using the RPCS3 emulator. It's not recommended to use this patch on PS3 as it lowers the graphics quailty." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Disable TTY Spam (For RPCS3):" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxTTYSpam" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxTTYSpam_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="For Dev versions, This prevents excessive NPMatching2 TTY (teletypewriter) messages from cluttering the RPCS3 console, which improves log readability and may increase stability." Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBlock Text="Patch app_home to dev_hdd0:" Style="{StaticResource Toggle1TextBlockStyle}"/>
+                                <CheckBox x:Name="CheckBoxCMDConsolfe" Style="{StaticResource ModernToggleSwitchStyle}" Checked="CheckBoxCMDConsole_Checked">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="For Dev versions only. Patches app_home paths so they point to dev_hdd0, this allows Dev commands such as dumpbar, loadnav etc to work without DEX or Target Manager" MaxWidth="340" Style="{StaticResource CustomToolTipStyle}" ToolTipService.InitialShowDelay="3000"/>
+                                    </ToolTipService.ToolTip>
+                                </CheckBox>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="Output as:" Margin="0,20,0,0" Style="{StaticResource Toggle1TextBlockStyle}" HorizontalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <!-- Radio Buttons -->
+                            <StackPanel Orientation="Horizontal" Margin="2">
+                                <TextBlock Text="EBOOT.BIN:" Foreground="White" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <RadioButton x:Name="RadioButtonEBOOTBINitem" GroupName="EBOOTOutputFormat" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonEBOOTBIN"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="2">
+                                <TextBlock Text="EBOOT.ELF:" Foreground="White" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <RadioButton x:Name="RadioButtonEBOOTELFitem" GroupName="EBOOTOutputFormat" Style="{StaticResource ModernRadioButtonStyle}" Checked="RadioButtonEBOOTELF"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0" VerticalAlignment="Center" >
+                            <Button x:Name="PatchButton" Content="Patch" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="PatchButton_Click"/>
+                            <Button x:Name="ClearebootButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem>
+
+                <!-- Tab 10 SHA1 Checker -->
+                <TabItem Header="Checker" Tag="SHAChecker" >
+                    <StackPanel Background="#242424" >
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <!-- Title TextBlock -->
+                            <TextBlock Margin="15,10,15,10" Width="500" Text="SHA1 Checker" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                            <TextBlock Margin="15,10,15,10" Width="500" Text="Validate Mapped Content" Style="{StaticResource ToolTitleTextBlockStyle}"/>
+                            <!--<TextBlock Margin="15,10,15,10" Width="350" Text="Get File Details" Style="{StaticResource ToolTitleTextBlockStyle}"/> -->
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <!-- Drag-and-Drop Area -->
+                            <Border x:Name="Sha1DragArea" Height="100" Width="500" Margin="15,0,15,0" Style="{StaticResource DragAreaStyle2}" AllowDrop="True" Drop="Sha1DragArea_Drop" MouseLeftButtonUp="SHA1BrowseButton_Click">
+                                <TextBlock x:Name="SHA1DragAreaText" Text="Drag Folders or Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}" />
+                            </Border>
+                            <Border x:Name="VerifyDragArea" Height="100" Width="500" Margin="15,0,15,0"  Style="{StaticResource DragAreaStyle2}" AllowDrop="True" Drop="VerifyDragArea_Drop"  MouseLeftButtonUp="ArchiveUnpackerVerifyTestButtonClick">
+                                <TextBlock x:Name="VerifyDragAreaText" Text="Drag Folders Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}" />
+                            </Border>
+                         <!--   <Border x:Name="GetInfoDragArea" Height="100" Width="350" Margin="15,0,15,0" Style="{StaticResource DragAreaStyle2}" MouseLeftButtonUp="SHA1BrowseButton_Click"> -->
+                         <!--   <TextBlock x:Name="GetInfoDragAreaText" Text="Drag Folders or Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}" /> 
+                            </Border>-->
+                        </StackPanel>
+
+                        <!-- Buttons Row -->
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0" HorizontalAlignment="Center">
+                            <Button x:Name="CopyButton" Content="Copy" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="CopySHA1Button_Click"/>
+                            <Button x:Name="ClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearSHA1Button_Click"/>
+                        </StackPanel>
+
+                        <!-- File List Box -->
+                        <TextBox x:Name="Sha1TextBox" Height="540" Width="1350" AllowDrop="True" Style="{StaticResource FileListTextBoxStyle}" VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </TabItem>
+
+                
+                <TabItem Header="CDN Audit" Tag="CDNaudit" Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="CDN Audit" Margin="5" Style="{StaticResource ToolTitleTextBlockStyle}" AllowDrop="True" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
+                            <Label Content="TSS URL:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="70"/>
+                            <TextBox x:Name="TSSUrlTextBox" Width="400" Style="{StaticResource SmallTextBoxStyle}" Text="http://64.20.35.146/tss/coreHztFmpQrx0002_en-US.xml" Margin="0,0,10,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
+                            <Label Content="Territory:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="70"/>
+                            <ComboBox x:Name="TerritoryComboBox" Width="100" Style="{StaticResource DarkModeComboBoxStyle}" SelectedIndex="0">
+                                <ComboBoxItem Content="SCEE" />
+                                <ComboBoxItem Content="SCEA" />
+                                <ComboBoxItem Content="SCEJ" />
+                                <ComboBoxItem Content="SCEAsia" />
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
+                            <Label Content="Skip SDC Verification:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="150"/>
+                            <CheckBox x:Name="SkipSDCVerificationToggle" Style="{StaticResource ModernToggleSwitchStyle}" />
+                            <Label Content="Skip ODC Verification:" Foreground="White" FontSize="14" VerticalAlignment="Center" Width="150"/>
+                            <CheckBox x:Name="SkipODCVerificationToggle" Style="{StaticResource ModernToggleSwitchStyle}" />
+                        </StackPanel>
+                        <Border Background="#242424" Padding="10" AllowDrop="True">
+                            <Grid>
+                                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
+                                        <Button Content="Start" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="StartButton_Click" Margin="5,0,5,10"/>
+                                        <Button x:Name="XMLClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="XMLClearListHandler" Margin="5,0,5,10"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="XMLOutputTextBox" Style="{StaticResource FileList2TextBoxStyle}" Margin="0,0,0,0" Height="515" Width="1150" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </TabItem>
+
+
+                <TabItem Header="Catalogue" Tag="Catalogue">
+                    <Grid>
+                        <wv2:WebView2 x:Name="WebView2Control" Margin="0,0,0,7"/>
+
+                        <!-- Notification Popup -->
+                        <Popup x:Name="NotificationPopup" Placement="RelativePoint" HorizontalOffset="1330" VerticalOffset="10" AllowsTransparency="True" PopupAnimation="Fade" StaysOpen="False">
+                            <Border Background="Black" Width="140" Height="30" Opacity="0.5" CornerRadius="5">
+                                <TextBlock x:Name="NotificationTextBlock" FontWeight="Bold" Foreground="White" Opacity="1" VerticalAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap" Text="Notification" />
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </TabItem>
+                <!-- Combined Tab for Media Tools -->
+                <TabItem Header="Media" Tag="MediaTool">
+                    <StackPanel Background="#242424">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left Side: Video Tool -->
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="Video Converter for Home" Style="{StaticResource ToolTitleTextBlockStyle}" />
+
+                                <Border x:Name="VideoDragArea" Style="{StaticResource DragAreaStyle2}" MouseLeftButtonUp="VideoBrowseButton_Click">
+                                    <TextBlock x:Name="VideoDragAreaText" Text="Drag Videos here / Click to browse" Style="{StaticResource DragAreaTextBlockStyle}" />
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="YouTube URLs:" Style="{StaticResource Sha1TextBlockStyle}" />
+                                    <TextBox x:Name="VideoYoutubeURLTextBox" Style="{StaticResource Sha1TextBoxStyle}" Width="300" />
+                                </StackPanel>
+
+
+
+                                <!-- Video Settings: Radio Button Panel -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Width="568">
+                                    <TextBlock Text="360p:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Video360pRadioButton" Margin="-5,0,25,0" Style="{StaticResource ModernRadioButtonStyle}" GroupName="VideoResolution" />
+                                    <TextBlock Text="480p:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Video480pRadioButton" Margin="-5,0,25,0" Style="{StaticResource ModernRadioButtonStyle}" GroupName="VideoResolution" />
+                                    <TextBlock Text="576p:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Video576pRadioButton" Margin="-5,0,25,0" Style="{StaticResource ModernRadioButtonStyle}" IsChecked="True" GroupName="VideoResolution" />
+                                    <TextBlock Text="720p:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Video720pRadioButton" Margin="-5,0,25,0" Style="{StaticResource ModernRadioButtonStyle}" GroupName="VideoResolution" />
+                                    <TextBlock Text="1080p:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Video1080pRadioButton" Margin="-5,0,20,0" Style="{StaticResource ModernRadioButtonStyle}" GroupName="VideoResolution" />
+                                    <TextBlock Text="4:3 AR:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" Margin="5,0,0,0" />
+                                    <CheckBox x:Name="AspectRatioFourThreeCheckBox" Margin="5,0,20,0" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                </StackPanel>
+
+
+
+                                <!-- Audio Settings: Radio Button Panel -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" Width="528">
+                                    <TextBlock Text="160Kbps:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Audio160kRadioButton" Margin="-5,0,20,0" Style="{StaticResource ModernRadioButtonStyle}" GroupName="AudioResolution" />
+                                    <TextBlock Text="256Kbps:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Audio256kRadioButton" Margin="-5,0,20,0" Style="{StaticResource ModernRadioButtonStyle}" IsChecked="True" GroupName="AudioResolution" />
+                                    <TextBlock Text="320Kbps:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="Audio320kRadioButton" Margin="-5,0,20,0" Style="{StaticResource ModernRadioButtonStyle}" GroupName="AudioResolution" />
+
+                                    <TextBlock Text="+3dB:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" Margin="0,0,0,0" />
+                                    <CheckBox x:Name="VideoAudioBoost3CheckBox" Margin="5,0,20,0" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                    <TextBlock Text="+6dB:" Style="{StaticResource Sha1TextBlockStyle}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                    <CheckBox x:Name="VideoAudioBoost6CheckBox" Margin="5,0,20,0" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                </StackPanel>
+
+                                <!-- Buttons Row -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="videoConvertButton" Content="Convert" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ConvertVideoButton_Click" />
+                                    <Button x:Name="videoClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearVideoButton_Click" />
+                                </StackPanel>
+
+                                <!-- File List Box -->
+                                <TextBox x:Name="VideoTextBox" Height="420" AllowDrop="True" Style="{StaticResource FileListTextBoxStyle}" VerticalScrollBarVisibility="Auto" />
+                            </StackPanel>
+
+                            <!-- Right Side: BNK Unpacker -->
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="BNK Audio UnPacker" Style="{StaticResource ToolTitleTextBlockStyle}" />
+                                <Border x:Name="BNKUnpackerDragArea" Style="{StaticResource DragAreaStyle2}" Drop="BNKUnpackerDragDropHandler" MouseLeftButtonUp="ClickToBrowseHandlerBNKUnpacker">
+                                    <TextBlock x:Name="BNKUnpackerDragAreaText" Text="Drag Folders or BNK Files Here / Click to Browse" Style="{StaticResource DragAreaTextBlockStyle}" />
+                                </Border>
+
+                                <!-- Radio Buttons -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="25,45,0,0" Width="168" RenderTransformOrigin="0.5,0.5">
+                                    <StackPanel.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform />
+                                            <SkewTransform />
+                                            <RotateTransform Angle="0.429" />
+                                            <TranslateTransform />
+                                        </TransformGroup>
+                                    </StackPanel.RenderTransform>
+
+
+                                    <TextBlock Text="WAV:" Style="{StaticResource Sha1TextBlockStyle}" Foreground="White" IsEnabled="True" Margin="7,10" VerticalAlignment="Center" />
+                                    <RadioButton x:Name="BNKRadioButtonWAV" GroupName="BNKOutputFormat" IsChecked="True" Style="{StaticResource ModernRadioButtonStyle}" />
+
+                                </StackPanel>
+
+                                <!-- Buttons Row -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="Unpack and Map" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="BNKUnpackerExecuteButtonClick" />
+                                    <Button x:Name="BNKUnpackerClearButton" Content="Clear" Style="{StaticResource ResourceKey=DarkModeButtonStyle}" Click="ClearBNKUnpackerListHandler" />
+                                </StackPanel>
+                                <TextBox x:Name="BNKUnpackerTextBox" Height="420" Margin="0,55,0,0" Style="{StaticResource FileListTextBoxStyle}" AllowDrop="True" MouseDoubleClick="BNKUnpackerTextBox_MouseDoubleClick" Drop="BNKUnpackerDragDropHandler" />
+
+                                <!-- Text Area -->
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+
+                <TabItem Header="Settings" Tag="SettngsTab" VerticalAlignment="Top">
+
+                    <TabItem.Resources>
+                        <!-- Define styles that only apply to content within this TabItem -->
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                            <Setter Property="FontSize" Value="12"/>
+                            <!-- Smaller font size for text blocks -->
+                        </Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                            <Setter Property="FontSize" Value="12"/>
+                            <!-- Smaller font size for text boxes -->
+                        </Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource DarkModeButtonStyle}">
+                            <Setter Property="FontSize" Value="12"/>
+                            <!-- Smaller font size for buttons -->
+                        </Style>
+                    </TabItem.Resources>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Background="#242424">
+                            <!-- CDS Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="CDS Encrypt Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="CdsEncryptOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\CDSEncrypt" TextChanged="CdsEncryptOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="CdsEncryptBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="CdsEncryptOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- CDS Decrypt Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="CDS Decrypt Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="CdsDecryptOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\CDSDecrypt" TextChanged="CdsDecryptOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="CdsDecryptBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="CdsDecryptOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- BAR / SDAT / SHARC Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Archive Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0" RenderTransformOrigin="0.5,0.5"></TextBlock>
+                                <TextBox x:Name="BarSdatSharcOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\Archive" TextChanged="BarSdatSharcOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="BarSdatSharcBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="BarSdatSharcOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- Mapped Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Mapped Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0" RenderTransformOrigin="0.5,0.5"></TextBlock>
+                                <TextBox x:Name="MappedOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\Mapped" TextChanged="MappedOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="MappedBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="MappedOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- HCDB Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="HCDB Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="HcdbOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\HCDB" TextChanged="HcdbOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="HcdbBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="HcdbOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- SQL Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="SQL Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="SqlOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\SQL" TextChanged="SqlOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="SqlBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="SqlOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- TicketList Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="TicketList Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="TicketListOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\LST" TextChanged="TicketListOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="TicketListBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="TicketListOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- LUAC Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="LUAC Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="LuacOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\LUAC" TextChanged="LuacOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="LuacBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="LuacOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- LUA Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="LUA Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="LuaOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\LUA" TextChanged="LuaOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="LuaBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="LuaOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- Video Tool Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Video Tool Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="VideoOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\Video" TextChanged="VideoOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="VideoBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="VideoOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- Audio Tool Output Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Audio Tool Output Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="AudioOutputDirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\Audio" TextChanged="AudioOutputDirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="AudioBrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="AudioOpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- Postinstall Direct to RPCS3 Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="RPCS3 dev_hdd0 Directory:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="Rpcs3Dev_hdd0_DirectoryTextBox" Width="450" Style="{StaticResource SettingsTextBoxStyle}" Text="C:\Nautilus\Output\RPCS3\dev_hdd0" TextChanged="Rpcs3Dev_hdd0_DirectoryTextBox_TextChanged"/>
+                                <Button Content="Change" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="RPCS3BrowseButton_Click"/>
+                                <Button Content="Open" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="10,0,0,0" Width="60" Click="RPCS3OpenButton_Click"/>
+                            </StackPanel>
+
+                            <!-- Postinstall Direct to PS3 Directory -->
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="PS3 IP for Catalogue:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <TextBox x:Name="PS3IPforFTPTextBox" Width="120" Style="{StaticResource SettingsTextBoxStyle}" Text="192.168.199.113" TextChanged="PS3IPforFTPTextBox_TextChanged"/>
+                                <TextBlock Text="Title ID:" Foreground="White" VerticalAlignment="Center" Width="0" Margin="0,0,5,0"/>
+                                <TextBox x:Name="PS3TitleIDTextBox" Width="100" Style="{StaticResource SettingsTextBoxStyle}" Text="PSHLQA186" TextChanged="PS3TitleIDTextBox_TextChanged"/>
+                                <Button Content="Check" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="70" Click="PS3PingButton_Click"/>
+                                <TextBlock x:Name="PingResultTextBlock" FontSize="14" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal"  Height="0" VerticalAlignment="Bottom">
+                                <TextBlock Text="Choose a theme color:" Foreground="White" Margin="5" Width="160"/>
+                                <xctk:ColorPicker x:Name="ThemeColorPicker" Cursor="Hand" Width="67" Height="29"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,5,8">
+                                <TextBlock Text="Enable Debug Logs:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <CheckBox x:Name="ToggleSwitchDebugLogEnable" Unchecked="CheckBoxDebugLogsEnable_UnChecked" Checked="CheckBoxDebugLogsEnable_Checked" Style="{StaticResource ModernToggleSwitchStyle}" />
+                                <Button Content="View Log" Cursor="Hand" Style="{StaticResource DarkModeButtonSmallStyle}" FontSize="14" Margin="5,0,0,0" Width="90" Click="ViewLogButton_Click"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,0,5,8">
+                                <TextBlock Text="Use Online Catalogue:" Foreground="White" VerticalAlignment="Center" Width="160" Margin="0,0,5,0"/>
+                                <CheckBox x:Name="ToggleSwitchOfflinePshome" Checked="ToggleSwitchOfflineCheckedChanged" Unchecked="ToggleSwitchOfflineCheckedChanged" Style="{StaticResource ModernToggleSwitchStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Height="0" Margin="5,5,5,8">
+                                <TextBlock Text="Show ALL Items:" Foreground="White" VerticalAlignment="Center" Width="163" Margin="0,0,2,0"/>
+                                <CheckBox x:Name="ToggleSwitchLiteCatalogue" Style="{StaticResource ModernToggleSwitchStyle}" Checked="ToggleSwitchLiteCatalogue_Checked" Unchecked="ToggleSwitchLiteCatalogue_Checked"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" >
+                                <TextBlock Text="Choose a theme color:" Foreground="White" Margin="5" Width="160"/>
+                                <ComboBox x:Name="ThemeColorDropdown" Width="60" Height="26" Background="{Binding SelectedThemeColor, Mode=TwoWay}">
+                                    <ComboBox.Template>
+                                        <ControlTemplate TargetType="ComboBox">
+                                            <Grid>
+                                                <ToggleButton Name="DropDownToggle" Background="{TemplateBinding Background}" Width="60" Height="22">
+                                                    <ToggleButton.Template>
+                                                        <ControlTemplate TargetType="ToggleButton">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="50"/>
+                                                                    <!-- Adjusted width here -->
+                                                                    <ColumnDefinition Width="20"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border x:Name="ColorDisplay" Grid.Column="0" Background="{TemplateBinding Background}"
+                                            BorderBrush="#101010" BorderThickness="1">
+                                                                    <Border.Effect>
+                                                                        <DropShadowEffect Color="#101010" Opacity="0.5" BlurRadius="5" ShadowDepth="2"/>
+                                                                    </Border.Effect>
+                                                                </Border>
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </ToggleButton.Template>
+                                                </ToggleButton>
+                                                <Popup Name="Popup" IsOpen="{Binding IsChecked, ElementName=DropDownToggle, Mode=TwoWay}" Placement="Right" VerticalOffset="-110" HorizontalOffset="30" PlacementTarget="{Binding ElementName=DropDownToggle}"  StaysOpen="False">
+                                                    <Border Name="DropDownBorder" BorderBrush="{Binding SelectedThemeColor, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" 
+                                BorderThickness="1"  Background="#242424" MaxHeight="200" Margin="0" MaxWidth="200" >
+                                                        <colorpicker:StandardColorPicker x:Name="NewColorPicker" SelectedColor="{Binding ThemeColor, Mode=TwoWay}" Width="200" Height="380" ColorChanged="NewColorPicker_ColorChanged"/>
+                                                    </Border>
+                                                </Popup>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </ComboBox.Template>
+                                </ComboBox>
+                            </StackPanel>
+
+
+                            <TextBlock  FontSize="14" Foreground="White" Margin="0,175,0,0" Width="511" Padding="0 " Height="22"><Run Text="For Support and Information Visit the Home Laboratory Discord Community "/><Hyperlink NavigateUri="https://discord.gg/VZgTgX5yM7" RequestNavigate="Hyperlink_RequestNavigate"><Run Text="HERE"/></Hyperlink></TextBlock>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+    </Grid>
+</Window>
+

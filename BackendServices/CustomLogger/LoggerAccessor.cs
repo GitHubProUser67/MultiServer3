@@ -21,13 +21,13 @@ namespace CustomLogger
             {
                 Console.Title = project;
                 Console.CursorVisible = false;
+
+                Console.Clear();
             }
             catch // If a background or windows service, will assert.
             {
 
             }
-
-            Console.Clear();
 
             Console.WriteLine(FiggleFonts.Ogre.Render(project));
 

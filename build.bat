@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer build script 07/06/2024
+@echo MultiServer build script 05/10/2024
 @echo.
 
 @echo Cleaning up directories:
@@ -23,31 +23,31 @@ xcopy /E /Y /I "SpecializedServers/MultiSpy/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "WebServers/HTTPServer/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "WebServers/MitmDNS/bin" "~BuildOutput/MultiServer"
-if exist "Plugins/HomeWebTools/bin/Debug/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HomeWebTools/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+if exist "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" (
+    xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
 )
-if exist "Plugins/HomeWebTools/bin/Release/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HomeWebTools/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+if exist "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" (
+    xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
 )
-if exist "Plugins/EdNetCRCCalculator/bin/Debug/net6.0/static" (
-    xcopy /E /Y /I "Plugins/EdNetCRCCalculator/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+if exist "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" (
+    xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
 )
-if exist "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" (
-    xcopy /E /Y /I "Plugins/EdNetCRCCalculator/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+if exist "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" (
+    xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
 )
-if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/static" (
-    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+if exist "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" (
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
 )
-if exist "Plugins/PdfToJpeg/bin/Release/net6.0/static" (
-    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" (
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
 )
-if exist "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" (
-    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Debug/net6.0/runtimes" "~BuildOutput/MultiServer/Debug/net6.0/runtimes"
+if exist "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" (
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" "~BuildOutput/MultiServer/Debug/net6.0/runtimes"
 )
-if exist "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" (
-    xcopy /E /Y /I "Plugins/PdfToJpeg/bin/Release/net6.0/runtimes" "~BuildOutput/MultiServer/Release/net6.0/runtimes"
+if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" (
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~BuildOutput/MultiServer/Release/net6.0/runtimes"
 )
-xcopy /E /Y /I "Plugins/NautilusXP2024/bin" "~BuildOutput/Nautilus"
+xcopy /E /Y /I "Tools/Home/NautilusXP2024/bin" "~BuildOutput/Nautilus"
 
 @echo Crafting final output:
 if exist "~BuildOutput/MultiServer/Debug/net6.0" (
