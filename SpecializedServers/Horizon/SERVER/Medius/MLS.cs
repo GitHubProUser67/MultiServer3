@@ -9379,10 +9379,11 @@ namespace Horizon.SERVER.Medius
                             if (binaryMessage.MessageSize > 8)
                             {
                                 byte[] HubMessagePayload = binaryMessage.Message;
+                                int HubPathernOffset = OtherExtensions.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00 });
 
-                                if (HubMessagePayload[0] == 0x64 && HubMessagePayload[1] == 0x00 && HubMessagePayload[2] == 0x00) // Hub command.
+                                if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                 {
-                                    switch (BitConverter.ToInt32(BitConverter.IsLittleEndian ? EndianUtils.EndianSwap(HubMessagePayload) : HubMessagePayload, 4))
+                                    switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
                                     {
                                         case -85: // IGA
                                         case -27: // REXEC
