@@ -33,7 +33,7 @@ namespace WebAPIService.HTS
                         case "/NPTicketing/get_ticket_data.json":
                         case "/NPTicketing/get_ticket_data_base64.xml":
                         case "/NPTicketing/get_ticket_data_base64.json":
-                            return MyResistanceEula.RequestNPTicket(PostData, HTTPProcessor.ExtractBoundary(ContentType));
+                            return NPTicketSample.RequestNPTicket(PostData, HTTPProcessor.ExtractBoundary(ContentType));
                         #endregion
 
                         default:    
