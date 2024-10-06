@@ -16,6 +16,7 @@ using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
 using WebAPIService.Utils;
 using HashLib;
+using EndianTools;
 
 namespace HomeWebTools
 {
@@ -1130,6 +1131,82 @@ namespace HomeWebTools
                     memoryStream.Position = 0;
 
                     output = (memoryStream.ToArray(), $"INF_Results.zip");
+                }
+            }
+
+            return output;
+        }
+
+        public static (byte[], string)? ProcessProfanity(Stream PostData, string ContentType)
+        {
+            (byte[], string)? output = null;
+            List<(byte[], string)?> TasksResult = new List<(byte[], string)?>();
+
+            if (PostData != null && !string.IsNullOrEmpty(ContentType))
+            {
+                string boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                if (!string.IsNullOrEmpty(boundary))
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        PostData.CopyTo(ms);
+                        ms.Position = 0;
+                        int i = 0;
+                        foreach (FilePart multipartfile in MultipartFormDataParser.Parse(ms, boundary).Files)
+                        {
+                            using (Stream filedata = multipartfile.Data)
+                            {
+                                filedata.Position = 0;
+
+                                // Find the number of bytes in the stream
+                                int contentLength = (int)filedata.Length;
+
+                                // Create a byte array
+                                byte[] buffer = new byte[contentLength];
+
+                                // Read the contents of the memory stream into the byte array
+                                filedata.Read(buffer, 0, contentLength);
+
+                                try
+                                {
+                                    TasksResult.Add((EndianUtils.EndianSwap(ProfanitySecurity.PF_DeCipher(buffer)), multipartfile.FileName));
+                                }
+                                catch (Exception ex)
+                                {
+                                    CustomLogger.LoggerAccessor.LogError($"[HomeToolsInterface] - ProcessProfanity - thrown an exception: {ex}");
+                                }
+
+                                i++;
+                                filedata.Flush();
+                            }
+                        }
+                        ms.Flush();
+                    }
+                }
+            }
+
+            if (TasksResult.Count > 0)
+            {
+                // Create a memory stream to hold the zip file content
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    // Create a ZipArchive in memory
+                    using (ZipArchive archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var item in TasksResult)
+                        {
+                            if (item.HasValue)
+                            {
+                                // Add files or content to the zip archive
+                                if (item.Value.Item1 != null)
+                                    WebAPIsUtils.AddFileToZip(archive, item.Value.Item2, new MemoryStream(item.Value.Item1));
+                            }
+                        }
+                    }
+
+                    memoryStream.Position = 0;
+
+                    output = (memoryStream.ToArray(), $"Profanity_Results.zip");
                 }
             }
 

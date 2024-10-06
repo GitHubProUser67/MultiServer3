@@ -89,12 +89,30 @@ namespace HomeTools.Crypto
             0x98, 0x6C, 0xC, 0x3E, 0x4D, 0x5D, 0x1C, 0x4B,
             0x32, 2, 0xB1, 0xE5, 0x2F, 0x81, 0x35, 0x44
         };
+        public static readonly byte[] ProfanityFilterCacheKey = new byte[]
+        {
+            0xb7, 0x71, 0x29, 0x23, 0x24, 0xa9, 0xc0, 0xa3,
+            0x86, 0x02, 0x01, 0xa2, 0x06, 0x6c, 0xce, 0x77,
+            0x1d, 0x34, 0x62, 0xfb, 0xc2, 0x97, 0x52, 0x67,
+            0xc5, 0x23, 0x08, 0x3c, 0xfb, 0x0d, 0x9b, 0x34
+        };
+        public static readonly byte[] MQDiskCacheKey = new byte[]
+        {
+            0x42, 0x01, 0xc8, 0xcc, 0xf4, 0xb7, 0x35, 0x4b,
+            0xca, 0x72, 0x2d, 0xac, 0x0a, 0x50, 0xe6, 0x56,
+            0x5d, 0xb1, 0xd9, 0x05, 0x9f, 0x22, 0xb6, 0x9c,
+            0xd1, 0x0b, 0xb2, 0x7e, 0x0d, 0xad, 0x0e, 0x37
+        };
 
         public static readonly byte[] MetaDataV1IV = new byte[] { 0x2a, 0xa7, 0xcb, 0x49, 0x9f, 0xa1, 0xbd, 0x81 };
 
         public static readonly byte[] TicketListV0IV = new byte[] { 0x30, 0x4B, 0x10, 0x3D, 0x46, 0x77, 0xAD, 0x84 };
 
         public static readonly byte[] TicketListV1IV = new byte[] { 0xc7, 0x96, 0x79, 0xe5, 0x79, 0x99, 0x9f, 0xbf };
+
+        public static readonly byte[] ProfanityFilterCacheIV = new byte[] { 0xcc, 0x1b, 0x4f, 0x6a, 0x54, 0xa2, 0xab, 0x8c };
+
+        public static readonly byte[] MQDiskCacheIV = new byte[] { 0x64, 0xbc, 0x9f, 0xe2, 0x2a, 0xe4, 0x04, 0xd8 };
 
         public static ulong BuildSignatureIv(int fileSize, int compressedSize, int dataStart, int userData)
         {
@@ -113,7 +131,7 @@ namespace HomeTools.Crypto
             }
         }
 
-        public static byte[] ProcessXTEAProxyBlocks(byte[] inputArray, byte[] Key, byte[] IV)
+        public static byte[] ProcessXTEAProxyBlocks(byte[] inputArray, byte[] KeyBytes, byte[] IV)
         {
             int inputIndex = 0;
             int inputLength = inputArray.Length;
@@ -129,7 +147,7 @@ namespace HomeTools.Crypto
                     Buffer.BlockCopy(new byte[difference], 0, block, block.Length - difference, difference);
                 }
                 Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[] taskResult = LIBSECURE.InitiateXTEABuffer(block, Key, IV, "CTR");
+                byte[] taskResult = LIBSECURE.InitiateXTEABuffer(block, KeyBytes, IV, "CTR");
                 if (taskResult == null) // We failed so we send original file back.
                     return inputArray;
                 if (taskResult.Length < blockSize)

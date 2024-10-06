@@ -167,6 +167,23 @@ namespace HomeWebTools
                                         sent = response.Send().Result;
                                     }
                                     break;
+                                case "/!HomeTools/ProcessProfanity/":
+                                    (byte[]?, string)? profres = HomeToolsInterface.ProcessProfanity(new MemoryStream(request.DataAsBytes), request.ContentType);
+                                    if (profres != null)
+                                    {
+                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        response.Headers.Add("Content-disposition", $"attachment; filename={profres.Value.Item2}");
+                                        response.StatusCode = (int)HttpStatusCode.OK;
+                                        response.ContentType = "text/plain";
+                                        sent = response.Send(profres.Value.Item1).Result;
+                                    }
+                                    else
+                                    {
+                                        response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                                        response.ContentType = "text/plain";
+                                        sent = response.Send().Result;
+                                    }
+                                    break;
                                 case "/!HomeTools/ChannelID/":
                                     string? channelres = HomeToolsInterface.ChannelID(new MemoryStream(request.DataAsBytes), request.ContentType);
                                     if (!string.IsNullOrEmpty(channelres))
@@ -267,6 +284,13 @@ namespace HomeWebTools
                                     (byte[]?, string)? infres = HomeToolsInterface.INF(request.GetDataStream, request.GetContentType());
                                     if (infres != null)
                                         response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, infres.Value.Item1, infres.Value.Item2);
+                                    else
+                                        response = HttpBuilder.InternalServerError();
+                                    break;
+                                case "/!HomeTools/ProcessProfanity/":
+                                    (byte[]?, string)? profres = HomeToolsInterface.ProcessProfanity(request.GetDataStream, request.GetContentType());
+                                    if (profres != null)
+                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, profres.Value.Item1, profres.Value.Item2);
                                     else
                                         response = HttpBuilder.InternalServerError();
                                     break;
