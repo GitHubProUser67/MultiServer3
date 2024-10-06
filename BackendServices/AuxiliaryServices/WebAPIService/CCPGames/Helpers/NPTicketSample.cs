@@ -8,7 +8,7 @@ using HashLib;
 
 namespace WebAPIService.HTS.Helpers
 {
-    public class NPTicketSample
+    public class MyResistanceEula
     {
         public static string RequestNPTicket(byte[] PostData, string boundary)
         {

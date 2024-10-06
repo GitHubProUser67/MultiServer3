@@ -38,6 +38,7 @@ using NetworkLibrary.Extension;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
 using Newtonsoft.Json;
+using WebAPIService.CCPGames;
 
 namespace HTTPServer
 {
@@ -84,6 +85,11 @@ namespace HTTPServer
                                     "samples.hdk.scee.net",
                                 };
 
+
+        private readonly static List<string> CCPGamesDomains = new() {
+                                    //"dust.ccpgamescdn.com",
+                                    "dust514.online"
+                                };
         private readonly static List<string> ILoveSonyDomains = new() {
                                     "www.myresistance.net",
                                 };
@@ -317,8 +323,31 @@ namespace HTTPServer
                                     {
                                         default:
 
+                                            #region Dust 514 dcrest
+                                            //CCPGamesDomains.Contains(Host) || 
+                                            if (Host.Contains("26004") //Check for Dust514 specific Port!!
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a Dust514  method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new Dust514Class(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), request.Headers, false);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/plain");
+                                            }
+
+                                            #endregion
+
                                             #region Outso OHS API
-                                            if ((Host == "stats.outso-srv1.com"
+                                            else if ((Host == "stats.outso-srv1.com"
                                                 || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 (absolutepath.Contains("/ohs_") ||

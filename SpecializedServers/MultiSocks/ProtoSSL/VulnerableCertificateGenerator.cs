@@ -56,9 +56,9 @@ public class VulnerableCertificateGenerator
         return creds;
     }
 
-    public (AsymmetricKeyParameter, Certificate, X509Certificate2) GetVulnerableCustomEaCert(string CN, string email)
+    public (AsymmetricKeyParameter, Certificate, X509Certificate2) GetVulnerableCustomEaCert(string CN, string email, string OU = "Online Technology Group")
     {
-        string SubjectDN = $"C=US, ST=California, O=\"Electronic Arts, Inc.\", OU=Online Technology Group, CN={CN}, emailAddress={email}";
+        string SubjectDN = $"C=US, ST=California, O=\"Electronic Arts, Inc.\", OU={OU}, CN={CN}, emailAddress={email}";
 
         if (_certCache.TryGetValue(CN, out (AsymmetricKeyParameter, Certificate, X509Certificate2) cacheHit))
             // !TODO: New connections will break after running 10 years without a restart 
