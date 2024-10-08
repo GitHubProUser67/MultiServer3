@@ -267,12 +267,13 @@ namespace Horizon.SERVER.Medius
                                                 case "01.86.09":
                                                     switch (clientCheatQuery.StartAddress)
                                                     {
-                                                        case 0x006f59a4:
+                                                        case 0x006f59b8:
                                                             // Grant PS Plus for 1.86 retail.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x48, 0x38, 0x87, 0x2d }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x54, 0x63, 0xd9, 0x7e }))
                                                             {
-                                                                PokeAddress(0x006f59a4, new byte[] { 0x38, 0x60, 0x00, 0x01 }, clientChannel);
-                                                                PokeAddress(0x0073bda8, new byte[] { 0x38, 0x60, 0x00, 0x01 }, clientChannel);
+                                                                byte[] liPatch = new byte[] { 0x38, 0x60, 0x00, 0x01 };
+                                                                PokeAddress(0x006f59b8, liPatch, clientChannel);
+                                                                PokeAddress(0x0073bdb0, liPatch, clientChannel);
                                                             }
                                                             break;
                                                         case 0x002aa960:
@@ -2665,7 +2666,7 @@ namespace Horizon.SERVER.Medius
                             case "01.86.09":
                                 if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
                                 {
-                                    CheatQuery(0x006f59a4, 4, clientChannel);
+                                    CheatQuery(0x006f59b8, 4, clientChannel);
                                     CheatQuery(0x002aa960, 4, clientChannel);
                                 }
                                 break;
