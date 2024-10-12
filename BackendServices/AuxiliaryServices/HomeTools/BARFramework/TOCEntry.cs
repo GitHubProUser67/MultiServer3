@@ -188,7 +188,7 @@ namespace HomeTools.BARFramework
                 else
                     array2 = array;
             }
-            catch (Exception)
+            catch
             {
                 // Coredata.sharc file was not done right, so some entries are pure non-sense
                 // (EdgeZlib while plaintext...)

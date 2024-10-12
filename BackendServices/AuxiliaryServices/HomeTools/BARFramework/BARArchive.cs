@@ -650,7 +650,7 @@ namespace HomeTools.BARFramework
             return tocentry;
         }
 
-        private void CompressAndAddFile(bool compress, Stream inStream, TOCEntry tocEntry)
+        private async void CompressAndAddFile(bool compress, Stream inStream, TOCEntry tocEntry)
         {
             if (m_header.Version == 512)
             {
@@ -663,7 +663,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[] array2 = null;
                 if (isvalid)
-                    array2 = Zlib.ComponentAceEdgeZlibCompress(array);
+                    array2 = await Zlib.EdgeZlibCompress(array).ConfigureAwait(false);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length;
@@ -705,7 +705,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[] array2 = null;
                 if (isvalid)
-                    array2 = Zlib.ComponentAceEdgeZlibCompress(array);
+                    array2 = await Zlib.EdgeZlibCompress(array).ConfigureAwait(false);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length + 28;

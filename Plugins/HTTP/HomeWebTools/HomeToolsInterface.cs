@@ -157,30 +157,30 @@ namespace HomeWebTools
 
                                 IEnumerable<string> enumerable = Directory.EnumerateFiles(unzipdir, "*.*", SearchOption.AllDirectories);
                                 BARArchive? bararchive = null;
-                                if (version2.Equals("on"))
+                                if (version2 == "on")
                                 {
-                                    if (bigendian.Equals("on"))
+                                    if (bigendian == "on")
                                         bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, true, options);
                                     else
                                         bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, false, options);
                                 }
                                 else
                                 {
-                                    if (encrypt.Equals("on"))
+                                    if (encrypt == "on")
                                     {
-                                        if (bigendian.Equals("on"))
+                                        if (bigendian == "on")
                                             bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true, true);
                                         else
                                             bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true);
                                     }
                                     else
                                     {
-                                        if (bigendian.Equals("on"))
+                                        if (bigendian == "on")
                                             bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp, false, true);
                                         else
                                             bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp);
                                     }
-                                    if (leanzlib.Equals("on"))
+                                    if (leanzlib == "on")
                                     {
                                         bararchive.BARHeader.Flags = ArchiveFlags.Bar_Flag_LeanZLib;
                                         bararchive.DefaultCompression = CompressionMethod.ZLib;
