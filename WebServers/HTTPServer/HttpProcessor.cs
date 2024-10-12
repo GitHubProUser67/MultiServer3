@@ -1540,10 +1540,10 @@ namespace HTTPServer
                         ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                         ms.Write(Separator);
                         ms.Position = 0;
-                        response = new()
-                            {
-                                HttpStatusCode = HttpStatusCode.PartialContent
-                            };
+                        response = new("1.0") // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                        {
+                            HttpStatusCode = HttpStatusCode.PartialContent
+                        };
                         response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
@@ -1736,7 +1736,7 @@ namespace HTTPServer
                                 }
                             }
                         }
-                        response = new()
+                        response = new("1.0") // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
