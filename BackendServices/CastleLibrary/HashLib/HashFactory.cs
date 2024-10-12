@@ -244,14 +244,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateJH(HashLib.HashSize a_hash_size)
+                public static IHash CreateJH(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateJH224();
-                        case HashLib.HashSize.HashSize256: return CreateJH256();
-                        case HashLib.HashSize.HashSize384: return CreateJH384();
-                        case HashLib.HashSize.HashSize512: return CreateJH512();
+                        case HashSize.HashSize224: return CreateJH224();
+                        case HashSize.HashSize256: return CreateJH256();
+                        case HashSize.HashSize384: return CreateJH384();
+                        case HashSize.HashSize512: return CreateJH512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -281,14 +281,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateBlake(HashLib.HashSize a_hash_size)
+                public static IHash CreateBlake(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateBlake224();
-                        case HashLib.HashSize.HashSize256: return CreateBlake256();
-                        case HashLib.HashSize.HashSize384: return CreateBlake384();
-                        case HashLib.HashSize.HashSize512: return CreateBlake512();
+                        case HashSize.HashSize224: return CreateBlake224();
+                        case HashSize.HashSize256: return CreateBlake256();
+                        case HashSize.HashSize384: return CreateBlake384();
+                        case HashSize.HashSize512: return CreateBlake512();
                         default: throw new ArgumentException();
                     }
                     
@@ -319,14 +319,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateBlueMidnightWish(HashLib.HashSize a_hash_size)
+                public static IHash CreateBlueMidnightWish(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateBlueMidnightWish224();
-                        case HashLib.HashSize.HashSize256: return CreateBlueMidnightWish256();
-                        case HashLib.HashSize.HashSize384: return CreateBlueMidnightWish384();
-                        case HashLib.HashSize.HashSize512: return CreateBlueMidnightWish512();
+                        case HashSize.HashSize224: return CreateBlueMidnightWish224();
+                        case HashSize.HashSize256: return CreateBlueMidnightWish256();
+                        case HashSize.HashSize384: return CreateBlueMidnightWish384();
+                        case HashSize.HashSize512: return CreateBlueMidnightWish512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -356,14 +356,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateCubeHash(HashLib.HashSize a_hash_size)
+                public static IHash CreateCubeHash(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateCubeHash224();
-                        case HashLib.HashSize.HashSize256: return CreateCubeHash256();
-                        case HashLib.HashSize.HashSize384: return CreateCubeHash384();
-                        case HashLib.HashSize.HashSize512: return CreateCubeHash512();
+                        case HashSize.HashSize224: return CreateCubeHash224();
+                        case HashSize.HashSize256: return CreateCubeHash256();
+                        case HashSize.HashSize384: return CreateCubeHash384();
+                        case HashSize.HashSize512: return CreateCubeHash512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -393,14 +393,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateEcho(HashLib.HashSize a_hash_size)
+                public static IHash CreateEcho(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateEcho224();
-                        case HashLib.HashSize.HashSize256: return CreateEcho256();
-                        case HashLib.HashSize.HashSize384: return CreateEcho384();
-                        case HashLib.HashSize.HashSize512: return CreateEcho512();
+                        case HashSize.HashSize224: return CreateEcho224();
+                        case HashSize.HashSize256: return CreateEcho256();
+                        case HashSize.HashSize384: return CreateEcho384();
+                        case HashSize.HashSize512: return CreateEcho512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -430,14 +430,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateFugue(HashLib.HashSize a_hash_size)
+                public static IHash CreateFugue(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateFugue224();
-                        case HashLib.HashSize.HashSize256: return CreateFugue256();
-                        case HashLib.HashSize.HashSize384: return CreateFugue384();
-                        case HashLib.HashSize.HashSize512: return CreateFugue512();
+                        case HashSize.HashSize224: return CreateFugue224();
+                        case HashSize.HashSize256: return CreateFugue256();
+                        case HashSize.HashSize384: return CreateFugue384();
+                        case HashSize.HashSize512: return CreateFugue512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -467,14 +467,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateGroestl(HashLib.HashSize a_hash_size)
+                public static IHash CreateGroestl(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateGroestl224();
-                        case HashLib.HashSize.HashSize256: return CreateGroestl256();
-                        case HashLib.HashSize.HashSize384: return CreateGroestl384();
-                        case HashLib.HashSize.HashSize512: return CreateGroestl512();
+                        case HashSize.HashSize224: return CreateGroestl224();
+                        case HashSize.HashSize256: return CreateGroestl256();
+                        case HashSize.HashSize384: return CreateGroestl384();
+                        case HashSize.HashSize512: return CreateGroestl512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -504,14 +504,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateHamsi(HashLib.HashSize a_hash_size)
+                public static IHash CreateHamsi(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateHamsi224();
-                        case HashLib.HashSize.HashSize256: return CreateHamsi256();
-                        case HashLib.HashSize.HashSize384: return CreateHamsi384();
-                        case HashLib.HashSize.HashSize512: return CreateHamsi512();
+                        case HashSize.HashSize224: return CreateHamsi224();
+                        case HashSize.HashSize256: return CreateHamsi256();
+                        case HashSize.HashSize384: return CreateHamsi384();
+                        case HashSize.HashSize512: return CreateHamsi512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -541,14 +541,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateKeccak(HashLib.HashSize a_hash_size)
+                public static IHash CreateKeccak(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateKeccak224();
-                        case HashLib.HashSize.HashSize256: return CreateKeccak256();
-                        case HashLib.HashSize.HashSize384: return CreateKeccak384();
-                        case HashLib.HashSize.HashSize512: return CreateKeccak512();
+                        case HashSize.HashSize224: return CreateKeccak224();
+                        case HashSize.HashSize256: return CreateKeccak256();
+                        case HashSize.HashSize384: return CreateKeccak384();
+                        case HashSize.HashSize512: return CreateKeccak512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -578,14 +578,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateLuffa(HashLib.HashSize a_hash_size)
+                public static IHash CreateLuffa(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateLuffa224();
-                        case HashLib.HashSize.HashSize256: return CreateLuffa256();
-                        case HashLib.HashSize.HashSize384: return CreateLuffa384();
-                        case HashLib.HashSize.HashSize512: return CreateLuffa512();
+                        case HashSize.HashSize224: return CreateLuffa224();
+                        case HashSize.HashSize256: return CreateLuffa256();
+                        case HashSize.HashSize384: return CreateLuffa384();
+                        case HashSize.HashSize512: return CreateLuffa512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -615,14 +615,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateShabal(HashLib.HashSize a_hash_size)
+                public static IHash CreateShabal(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateShabal224();
-                        case HashLib.HashSize.HashSize256: return CreateShabal256();
-                        case HashLib.HashSize.HashSize384: return CreateShabal384();
-                        case HashLib.HashSize.HashSize512: return CreateShabal512();
+                        case HashSize.HashSize224: return CreateShabal224();
+                        case HashSize.HashSize256: return CreateShabal256();
+                        case HashSize.HashSize384: return CreateShabal384();
+                        case HashSize.HashSize512: return CreateShabal512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -652,14 +652,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateSHAvite3(HashLib.HashSize a_hash_size)
+                public static IHash CreateSHAvite3(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateSHAvite3_224();
-                        case HashLib.HashSize.HashSize256: return CreateSHAvite3_256();
-                        case HashLib.HashSize.HashSize384: return CreateSHAvite3_384();
-                        case HashLib.HashSize.HashSize512: return CreateSHAvite3_512();
+                        case HashSize.HashSize224: return CreateSHAvite3_224();
+                        case HashSize.HashSize256: return CreateSHAvite3_256();
+                        case HashSize.HashSize384: return CreateSHAvite3_384();
+                        case HashSize.HashSize512: return CreateSHAvite3_512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -689,14 +689,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateSIMD(HashLib.HashSize a_hash_size)
+                public static IHash CreateSIMD(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateSIMD224();
-                        case HashLib.HashSize.HashSize256: return CreateSIMD256();
-                        case HashLib.HashSize.HashSize384: return CreateSIMD384();
-                        case HashLib.HashSize.HashSize512: return CreateSIMD512();
+                        case HashSize.HashSize224: return CreateSIMD224();
+                        case HashSize.HashSize256: return CreateSIMD256();
+                        case HashSize.HashSize384: return CreateSIMD384();
+                        case HashSize.HashSize512: return CreateSIMD512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -726,14 +726,14 @@ namespace HashLib
                 /// </summary>
                 /// <param name="a_hash_size">224, 256, 384, 512</param>
                 /// <returns></returns>
-                public static IHash CreateSkein(HashLib.HashSize a_hash_size)
+                public static IHash CreateSkein(HashSize a_hash_size)
                 {
                     switch (a_hash_size)
                     {
-                        case HashLib.HashSize.HashSize224: return CreateSkein224();
-                        case HashLib.HashSize.HashSize256: return CreateSkein256();
-                        case HashLib.HashSize.HashSize384: return CreateSkein384();
-                        case HashLib.HashSize.HashSize512: return CreateSkein512();
+                        case HashSize.HashSize224: return CreateSkein224();
+                        case HashSize.HashSize256: return CreateSkein256();
+                        case HashSize.HashSize384: return CreateSkein384();
+                        case HashSize.HashSize512: return CreateSkein512();
                         default: throw new ArgumentException();
                     }
                 }
@@ -894,7 +894,7 @@ namespace HashLib
             /// <param name="a_rounds">3, 4, 5</param>
             /// <param name="a_hash_size">128, 160, 192, 224, 256</param>
             /// <returns></returns>
-            public static IHash CreateHaval(HashRounds a_rounds, HashLib.HashSize a_hash_size)
+            public static IHash CreateHaval(HashRounds a_rounds, HashSize a_hash_size)
             {
                 switch (a_rounds)
                 {
@@ -902,11 +902,11 @@ namespace HashLib
 
                         switch (a_hash_size)
                         {
-                            case HashLib.HashSize.HashSize128: return CreateHaval_3_128();
-                            case HashLib.HashSize.HashSize160: return CreateHaval_3_160();
-                            case HashLib.HashSize.HashSize192: return CreateHaval_3_192();
-                            case HashLib.HashSize.HashSize224: return CreateHaval_3_224();
-                            case HashLib.HashSize.HashSize256: return CreateHaval_3_256();
+                            case HashSize.HashSize128: return CreateHaval_3_128();
+                            case HashSize.HashSize160: return CreateHaval_3_160();
+                            case HashSize.HashSize192: return CreateHaval_3_192();
+                            case HashSize.HashSize224: return CreateHaval_3_224();
+                            case HashSize.HashSize256: return CreateHaval_3_256();
                             default: throw new ArgumentException();
                         }
 
@@ -914,11 +914,11 @@ namespace HashLib
 
                         switch (a_hash_size)
                         {
-                            case HashLib.HashSize.HashSize128: return CreateHaval_4_128();
-                            case HashLib.HashSize.HashSize160: return CreateHaval_4_160();
-                            case HashLib.HashSize.HashSize192: return CreateHaval_4_192();
-                            case HashLib.HashSize.HashSize224: return CreateHaval_4_224();
-                            case HashLib.HashSize.HashSize256: return CreateHaval_4_256();
+                            case HashSize.HashSize128: return CreateHaval_4_128();
+                            case HashSize.HashSize160: return CreateHaval_4_160();
+                            case HashSize.HashSize192: return CreateHaval_4_192();
+                            case HashSize.HashSize224: return CreateHaval_4_224();
+                            case HashSize.HashSize256: return CreateHaval_4_256();
                             default: throw new ArgumentException();
                         }
 
@@ -926,11 +926,11 @@ namespace HashLib
 
                         switch (a_hash_size)
                         {
-                            case HashLib.HashSize.HashSize128: return CreateHaval_5_128();
-                            case HashLib.HashSize.HashSize160: return CreateHaval_5_160();
-                            case HashLib.HashSize.HashSize192: return CreateHaval_5_192();
-                            case HashLib.HashSize.HashSize224: return CreateHaval_5_224();
-                            case HashLib.HashSize.HashSize256: return CreateHaval_5_256();
+                            case HashSize.HashSize128: return CreateHaval_5_128();
+                            case HashSize.HashSize160: return CreateHaval_5_160();
+                            case HashSize.HashSize192: return CreateHaval_5_192();
+                            case HashSize.HashSize224: return CreateHaval_5_224();
+                            case HashSize.HashSize256: return CreateHaval_5_256();
                             default: throw new ArgumentException();
                         }
 
@@ -1049,7 +1049,7 @@ namespace HashLib
             /// <param name="a_rounds">4, 8</param>
             /// <param name="a_hash_size">128, 256</param>
             /// <returns></returns>
-            public static IHash CreateSnefru(HashRounds a_rounds, HashLib.HashSize a_hash_size)
+            public static IHash CreateSnefru(HashRounds a_rounds, HashSize a_hash_size)
             {
                 switch (a_rounds)
                 {
@@ -1057,8 +1057,8 @@ namespace HashLib
 
                         switch (a_hash_size)
                         {
-                            case HashLib.HashSize.HashSize128: return CreateSnefru_4_128();
-                            case HashLib.HashSize.HashSize256: return CreateSnefru_4_256();
+                            case HashSize.HashSize128: return CreateSnefru_4_128();
+                            case HashSize.HashSize256: return CreateSnefru_4_256();
                             default: throw new ArgumentException();
                         }
 
@@ -1066,8 +1066,8 @@ namespace HashLib
 
                         switch (a_hash_size)
                         {
-                            case HashLib.HashSize.HashSize128: return CreateSnefru_8_128();
-                            case HashLib.HashSize.HashSize256: return CreateSnefru_8_256();
+                            case HashSize.HashSize128: return CreateSnefru_8_128();
+                            case HashSize.HashSize256: return CreateSnefru_8_256();
                             default: throw new ArgumentException();
                         }
 
