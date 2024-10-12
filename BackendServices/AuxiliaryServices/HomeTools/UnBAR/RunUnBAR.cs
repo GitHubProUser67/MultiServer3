@@ -345,7 +345,7 @@ namespace HomeTools.UnBAR
             }
         }
 
-        private static void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, int cdnMode)
+        private static async void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, int cdnMode)
         {
             TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
@@ -441,7 +441,7 @@ namespace HomeTools.UnBAR
                                         {
                                             try
                                             {
-                                                FileBytes = Zlib.ComponentAceEdgeZlibDecompress(FileBytes);
+                                                FileBytes = await Zlib.EdgeZlibDecompress(FileBytes).ConfigureAwait(false);
                                             }
                                             catch
                                             {
@@ -451,7 +451,7 @@ namespace HomeTools.UnBAR
 
                                                 try
                                                 {
-                                                    FileBytes = Zlib.ICSharpEdgeZlibDecompress(FileBytes);
+                                                    FileBytes = await Zlib.EdgeZlibDecompress(FileBytes, true).ConfigureAwait(false);
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -510,7 +510,7 @@ namespace HomeTools.UnBAR
             tableOfContent = null;
         }
 
-        private static void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
+        private static async void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
         {
             TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
@@ -529,7 +529,7 @@ namespace HomeTools.UnBAR
 
                 try
                 {
-                    FileBytes = Zlib.ComponentAceEdgeZlibDecompress(FileBytes);
+                    FileBytes = await Zlib.EdgeZlibDecompress(FileBytes).ConfigureAwait(false);
                 }
                 catch
                 {
@@ -539,7 +539,7 @@ namespace HomeTools.UnBAR
 
                     try
                     {
-                        FileBytes = Zlib.ICSharpEdgeZlibDecompress(FileBytes);
+                        FileBytes = await Zlib.EdgeZlibDecompress(FileBytes, true).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

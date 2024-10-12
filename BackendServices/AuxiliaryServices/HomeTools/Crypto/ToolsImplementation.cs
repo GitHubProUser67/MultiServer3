@@ -1,4 +1,3 @@
-using EndianTools;
 using System;
 using NetworkLibrary.Extension;
 
@@ -195,47 +194,6 @@ namespace HomeTools.Crypto
             }
             else
                 return fileBytes;
-        }
-
-        internal struct ChunkHeader
-        {
-            internal readonly byte[] GetBytes()
-            {
-                byte[] array = new byte[4];
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.ReverseUshort(SourceSize) : SourceSize), 0, array, 2, 2);
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.ReverseUshort(CompressedSize): CompressedSize), 0, array, 0, 2);
-                return array;
-            }
-
-            internal static int SizeOf
-            {
-                get
-                {
-                    return 4;
-                }
-            }
-
-            internal static ChunkHeader FromBytes(byte[] inData)
-            {
-                ChunkHeader result = default;
-                byte[] array = inData;
-                if (inData.Length > SizeOf)
-                {
-                    array = new byte[4];
-                    Array.Copy(inData, array, 4);
-                }
-
-                if (!BitConverter.IsLittleEndian)
-                    Array.Reverse(array);
-
-                result.SourceSize = BitConverter.ToUInt16(array, 2);
-                result.CompressedSize = BitConverter.ToUInt16(array, 0);
-                return result;
-            }
-
-            internal ushort SourceSize;
-
-            internal ushort CompressedSize;
         }
     }
 }

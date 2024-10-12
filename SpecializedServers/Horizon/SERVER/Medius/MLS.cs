@@ -9434,7 +9434,12 @@ namespace Horizon.SERVER.Medius
                                 }
                             case MediusBinaryMessageType.TargetBinaryMsg:
                                 {
-                                    ClientObject? target = MediusClass.Manager.GetClientByAccountId(binaryMessage.TargetAccountID, data.ClientObject!.ApplicationId);
+                                    ClientObject? target;
+
+                                    if (binaryMessage.TargetAccountID == 0) // Home allows AccountID 0 and seems to expect a self-response.
+                                        target = data.ClientObject;
+                                    else
+                                        target = MediusClass.Manager.GetClientByAccountId(binaryMessage.TargetAccountID, data.ClientObject!.ApplicationId);
 
                                     if (target != null)
                                     {
@@ -9457,8 +9462,15 @@ namespace Horizon.SERVER.Medius
 
                             case MediusBinaryMessageType.BroadcastBinaryMsgAcrossEntireUniverse:
                                 {
+                                    LoggerAccessor.LogInfo($"Sending BroadcastBinaryMsgAcrossEntireUniverse({binaryMessage.Message}) binary message ");
 
-                                    //MUMBinaryFwdFromLobby
+                                    var channels = MediusClass.Manager.GetChannelListUnfiltered(data.ClientObject.ApplicationId, 1, 50);
+
+                                    foreach (var channel in channels)
+                                    {
+                                        _ = channel.BroadcastBinaryMessage(data.ClientObject, binaryMessage);
+                                    }
+
                                     //MUMBinaryFwdFromLobby() Error %d MID %s, Orig AID %d, Whisper Target AID %d
                                     LoggerAccessor.LogInfo($"Sending BroadcastBinaryMsgAcrossEntireUniverse(%d) binary message (%d)");
                                     break;

@@ -10,32 +10,43 @@ namespace Horizon.SERVER.Extension.PlayStationHome
     {
         private static readonly byte[] RexecHubMessageHeader = new byte[] { 0x64, 0x00 };
 
+        private static List<string> ForbiddenWords = new() { "rexec", "ping" };
+
         public static Task<bool> SendRemoteCommand(string targetClientIp, string? AccessToken, string command, bool Retail)
         {
-            if (command.Length > ushort.MaxValue)
+            if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) && ForbiddenWords.Any(x => x.Contains(command, StringComparison.InvariantCultureIgnoreCase))))
                 return Task.FromResult(false);
 
             bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
-            ClientObject? client;
+            List<ClientObject>? clients = null;
 
             if (AccessTokenProvided)
-                client = MediusClass.Manager.GetClientByAccessToken(AccessToken, Retail ? 20374 : 20371);
+            {
+                ClientObject? client = MediusClass.Manager.GetClientByAccessToken(AccessToken, Retail ? 20374 : 20371);
+                if (client != null)
+                {
+                    clients = new()
+                    {
+                        client
+                    };
+                }
+            }
             else
-                client = MediusClass.Manager.GetClientsByIp(targetClientIp, Retail ? 20374 : 20371)?.FirstOrDefault(client => !client.IsActiveServer /*Ignore DME server if on same IP*/);
+                clients = MediusClass.Manager.GetClientsByIp(targetClientIp, Retail ? 20374 : 20371);
 
-            if (client != null)
+            if (clients != null)
             {
                 byte[] HubRexecMessage = OtherExtensions.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
-                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight(Encoding.ASCII.GetBytes(command)) });
+                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight( OtherExtensions.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
 
-                client.Queue(new MediusBinaryFwdMessage1()
+                clients.ForEach(x => x.Queue(new MediusBinaryFwdMessage1()
                 {
-                    MessageID = new MessageId(),
+                    MessageID = new MessageId("o"),
                     MessageType = RT.Common.MediusBinaryMessageType.TargetBinaryMsg,
-                    OriginatorAccountID = client.AccountId,
+                    OriginatorAccountID = x.AccountId,
                     MessageSize = HubRexecMessage.Length,
                     Message = HubRexecMessage
-                });
+                }));
 
                 return Task.FromResult(true);
             }
