@@ -144,7 +144,8 @@ namespace HTTPSecureServerLite
                     ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                     ms.Write(Separator);
                     ms.Position = 0;
-                    ctx.Response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
+                    ctx.Response.ProtocolVersion = "1.0"; // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                    ctx.Response.ContentType = "multipart/byteranges; boundary=multiserver_separator";
                     ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                     ctx.Response.Headers.Add("Content-Length", ms.Length.ToString());
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -233,6 +234,7 @@ namespace HTTPSecureServerLite
                 {
                     long TotalBytes = endByte - startByte;
                     fs.Position = startByte;
+                    ctx.Response.ProtocolVersion = "1.0"; // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
                     ctx.Response.ContentType = ContentType;
                     ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                     ctx.Response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
