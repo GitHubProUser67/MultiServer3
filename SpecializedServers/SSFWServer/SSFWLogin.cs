@@ -7,11 +7,11 @@ using XI5;
 
 namespace SSFWServer
 {
-    public static class SSFWUserSessionManager
+    public class SSFWUserSessionManager
     {
         private static ConcurrentList<(int, UserSession)>? userSessions = new();
 
-        public static void RegisterUser(string userName, string sessionid, int realuserNameSize)
+        public static void RegisterUser(string userName, string sessionid, string id, int realuserNameSize)
         {
             if (userSessions != null)
             {
@@ -21,7 +21,7 @@ namespace SSFWServer
                 }
                 else
                 {
-                    userSessions.Add((realuserNameSize, new UserSession { Username = userName, SessionId = sessionid }));
+                    userSessions.Add((realuserNameSize, new UserSession { Username = userName, SessionId = sessionid, Id = id }));
                     LoggerAccessor.LogInfo($"[UserSessionManager] - User '{userName}' successfully registered with SessionId '{sessionid}'.");
                 }
             }
@@ -54,12 +54,21 @@ namespace SSFWServer
 
             return null;
         }
+
+        public static string? GetIdBySessionId(string sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+                return null;
+
+            return userSessions?.FirstOrDefault(u => u.Item2.SessionId == sessionId).Item2.Id;
+        }
     }
 
     public class UserSession
     {
         public string? Username { get; set; }
         public string? SessionId { get; set; }
+        public string? Id { get; set; }
     }
 
     public class SSFWLogin : IDisposable
@@ -161,23 +170,18 @@ namespace SSFWServer
                     SessionIDs.Item1 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1);
                 }
 
-                if (!string.IsNullOrEmpty(UserNames.Item1) && !string.IsNullOrEmpty(SessionIDs.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
+                if (!string.IsNullOrEmpty(UserNames.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
                 {
-                    SSFWUserSessionManager.RegisterUser(UserNames.Item1, SessionIDs.Item1, ticket.OnlineId.Length);
+                    SSFWUserSessionManager.RegisterUser(UserNames.Item1, SessionIDs.Item1!, ResultStrings.Item1!, ticket.OnlineId.Length);
 
                     if (SSFWAccountManagement.AccountExists(UserNames.Item2, SessionIDs.Item2))
-                        SSFWAccountManagement.CopyAccountProfile(UserNames.Item2, UserNames.Item1, SessionIDs.Item2, SessionIDs.Item1, key);
-                }
-                else if (!string.IsNullOrEmpty(UserNames.Item2) && !string.IsNullOrEmpty(SessionIDs.Item2))
-                {
-                    IsRPCN = false;
-
-                    SSFWUserSessionManager.RegisterUser(UserNames.Item2, SessionIDs.Item2, ticket.OnlineId.Length);
+                        SSFWAccountManagement.CopyAccountProfile(UserNames.Item2, UserNames.Item1, SessionIDs.Item2, SessionIDs.Item1!, key);
                 }
                 else
                 {
-                    LoggerAccessor.LogError("[SSFWLogin] - Invalid UserNames Passed to Login, aborting!");
-                    return null;
+                    IsRPCN = false;
+
+                    SSFWUserSessionManager.RegisterUser(UserNames.Item2, SessionIDs.Item2, ResultStrings.Item2, ticket.OnlineId.Length);
                 }
 
                 int logoncount = SSFWAccountManagement.ReadOrMigrateAccount(extractedData, IsRPCN ? UserNames.Item1 : UserNames.Item2, IsRPCN ? SessionIDs.Item1 : SessionIDs.Item2, key);
