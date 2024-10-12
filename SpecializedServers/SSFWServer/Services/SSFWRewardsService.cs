@@ -32,7 +32,7 @@ namespace SSFWServer.Services
 
             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", buffer);
 
-            SSFWTrunkServiceProcess(filepath.Replace("/setpartial", "") + ".json", Encoding.UTF8.GetString(buffer));
+            SSFWTrunkServiceProcess(filepath.Replace("/setpartial", string.Empty) + ".json", Encoding.UTF8.GetString(buffer));
         }
 
         public void HandleRewardServiceTrunksEmergencyPOST(byte[] buffer, string directorypath, string absolutepath)
@@ -173,6 +173,15 @@ namespace SSFWServer.Services
             {
                 LoggerAccessor.LogError($"[SSFW] - SSFWTrunkServiceProcess errored out with this exception - {ex}");
             }
+        }
+
+        public static void AddMiniEntry(List<Dictionary<string, byte>> rewardsList, string uuid, byte value)
+        {
+            if (!rewardsList.Any(x => x.ContainsKey(uuid)))
+                rewardsList.Add(new Dictionary<string, byte>
+                {
+                    { uuid, value }
+                });
         }
 
         protected virtual void Dispose(bool disposing)

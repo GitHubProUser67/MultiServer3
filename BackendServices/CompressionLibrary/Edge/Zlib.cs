@@ -78,7 +78,7 @@ namespace CompressionLibrary.Edge
                 {
                     try
                     {
-                        // Await each decompression task
+                        // Await each compression task
                         byte[] compressedChunk = await result.Value.ConfigureAwait(false);
                         memoryStream.Write(compressedChunk, 0, compressedChunk.Length);
                     }
