@@ -1,7 +1,8 @@
 /*
  *   Mentalis.org Security Library
+ *     [BETA SOFTWARE]
  * 
- *     Copyright � 2002-2005, The Mentalis.org Team
+ *     Copyright � 2002-2003, The KPD-Team
  *     All rights reserved.
  *     http://www.mentalis.org/
  *
@@ -13,7 +14,7 @@
  *     - Redistributions of source code must retain the above copyright
  *        notice, this list of conditions and the following disclaimer. 
  *
- *     - Neither the name of the Mentalis.org Team, nor the names of its contributors
+ *     - Neither the name of the KPD-Team, nor the names of its contributors
  *        may be used to endorse or promote products derived from this
  *        software without specific prior written permission. 
  *
@@ -34,14 +35,12 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
-using Org.Mentalis.Security.Ssl.Shared;
 
-namespace Org.Mentalis.Security.Ssl
-{
-    /// <summary>
-    /// Provides the underlying stream of data for secure network access.
-    /// </summary>
-    public class SecureNetworkStream : Stream {
+namespace Org.Mentalis.LegacySecurity.Ssl {
+	/// <summary>
+	/// Provides the underlying stream of data for secure network access.
+	/// </summary>
+	public class SecureNetworkStream : Stream {
 		/// <summary>
 		/// Creates a new instance of the SecureNetworkStream class for the specified <see cref="SecureSocket"/>.
 		/// </summary>
@@ -192,8 +191,8 @@ namespace Org.Mentalis.Security.Ssl
 				throw new IOException();
 			try {
 				return Socket.Receive(buffer, offset, size, SocketFlags.None);
-			} catch (Exception e) {
-				throw new IOException("An I/O exception occurred.", e);
+			} catch {
+				throw new IOException();
 			}
 		}
 		/// <summary>
@@ -214,20 +213,9 @@ namespace Org.Mentalis.Security.Ssl
 				throw new IOException();
 			try {
 				Socket.Send(buffer, offset, size, SocketFlags.None);
-			} catch (Exception e) {
-				throw new IOException("An I/O exception occurred.", e);
+			} catch {
+				throw new IOException();
 			}
-		}
-		/// <summary>
-		/// Changes the security protocol. This method can only be used to 'upgrade' a connection from no-security to either SSL or TLS.
-		/// </summary>
-		/// <param name="options">The new <see cref="SecurityOptions"/> parameters.</param>
-		/// <exception cref="SecurityException">An error occurs while changing the security protocol.</exception>
-		/// <remarks>
-		/// Programs should only call this method if there is no active <see cref="Read"/> or <see cref="Write"/>!
-		/// </remarks>
-		public void ChangeSecurityProtocol(SecurityOptions options) {
-			Socket.ChangeSecurityProtocol(options);
 		}
 		/// <summary>
 		/// Closes the stream and optionally closes the underlying <see cref="SecureSocket"/>.
@@ -238,6 +226,7 @@ namespace Org.Mentalis.Security.Ssl
 		public override void Close() {
 			if (m_OwnsSocket) {
 				try {
+					Socket.SecureShutdown();
 					Socket.Shutdown(SocketShutdown.Both);
 				} catch {
 				} finally {
@@ -266,8 +255,8 @@ namespace Org.Mentalis.Security.Ssl
 				throw new IOException();
 			try {
 				return Socket.BeginReceive(buffer, offset, size, SocketFlags.None, callback, state);
-			} catch (Exception e) {
-				throw new IOException("An I/O exception occurred.", e);
+			} catch {
+				throw new IOException();
 			}
 		}
 		/// <summary>
@@ -284,10 +273,8 @@ namespace Org.Mentalis.Security.Ssl
 				throw new IOException();
 			try {
 				return Socket.EndReceive(asyncResult);
-			} catch (Exception e) {
-				if (e.InnerException is SocketException)
-					return 0;
-                throw new IOException("An I/O exception occurred.", e);
+			} catch {
+				throw new IOException();
 			}
 		}
 		/// <summary>
@@ -302,7 +289,6 @@ namespace Org.Mentalis.Security.Ssl
 		/// <exception cref="ArgumentNullException"><paramref name="buffer"/> is a null reference (<b>Nothing</b> in Visual Basic).</exception>
 		/// <exception cref="ArgumentOutOfRangeException">The specified <paramref name="offset"/> or <paramref name="size"/> exceeds the size of <paramref name="buffer"/>.</exception>
 		/// <exception cref="IOException">There is a failure while writing to the network.</exception>
-		// Thanks go out to Martin Plante for notifying us about a bug in this method.
 		public override IAsyncResult BeginWrite(byte[] buffer, int offset, int size, AsyncCallback callback, object state) {
 			if (buffer == null)
 				throw new ArgumentNullException();
@@ -312,13 +298,13 @@ namespace Org.Mentalis.Security.Ssl
 				throw new IOException();
 			if (WriteResult != null)
 				throw new IOException();
-			TransferItem localResult = new TransferItem(new byte[size], 0, size, new AsyncResult(callback, state, null), DataType.ApplicationData);
-			WriteResult = localResult;
-			Array.Copy(buffer, offset, localResult.Buffer, 0, size);
+			WriteResult = new AsyncSecureResult(this, callback, state);
+			WriteResult.Buffer = new byte[size];
+			Array.Copy(buffer, offset, WriteResult.Buffer, 0, size);
 			try {
-				Socket.BeginSend(localResult.Buffer, 0, size, SocketFlags.None, new AsyncCallback(OnBytesSent), (int)0);
-				return localResult.AsyncResult;
-			} catch (Exception e) {
+				Socket.BeginSend(WriteResult.Buffer, 0, size, SocketFlags.None, new AsyncCallback(OnBytesSent), (int)0);
+				return WriteResult;
+			} catch {
 				throw new IOException();
 			}
 		}
@@ -344,10 +330,8 @@ namespace Org.Mentalis.Security.Ssl
 		/// </summary>
 		/// <param name="e">The error that occurred.</param>
 		private void OnWriteComplete(Exception e) {
-			if (WriteResult.AsyncResult != null) {
-				WriteResult.AsyncResult.AsyncException = e;
-				WriteResult.AsyncResult.Notify();
-			}
+			WriteResult.AsyncException = e;
+			WriteResult.Notify();
 		}
 		/// <summary>
 		/// Handles the end of an asynchronous write.
@@ -359,19 +343,19 @@ namespace Org.Mentalis.Security.Ssl
 		public override void EndWrite(IAsyncResult asyncResult) {
 			if (asyncResult == null)
 				throw new ArgumentNullException();
-			if (asyncResult != WriteResult.AsyncResult)
+			if (asyncResult != WriteResult)
 				throw new ArgumentException();
 			if (Socket == null)
 				throw new IOException();
 			WriteResult = null;
-			if (((AsyncResult)asyncResult).AsyncException != null)
+			if (((AsyncSecureResult)asyncResult).AsyncException != null)
 				throw new IOException();
 		}
 		/// <summary>
-		/// Holds the <see cref="TransferItem"/> object returned by BeginWrite.
+		/// Holds the <see cref="IAsyncResult"/> object returned by BeginWrite.
 		/// </summary>
-		/// <value>A <see cref="TransferItem"/> object.</value>
-		internal TransferItem WriteResult {
+		/// <value>An <see cref="AsyncSecureResult"/> object.</value>
+		internal AsyncSecureResult WriteResult {
 			get {
 				return m_WriteResult;
 			}
@@ -379,23 +363,8 @@ namespace Org.Mentalis.Security.Ssl
 				m_WriteResult = value;
 			}
 		}
-		/// <summary>
-		/// Gets a value indicating whether data is available on the stream to be read.
-		/// </summary>
-		/// <value><b>true</b> if data is available on the stream to be read; otherwise, <b>false</b>.</value>
-		public virtual bool DataAvailable {
-			get {
-				if (Socket == null)
-					return false;
-				try {
-					return Socket.Available > 0;
-				} catch {
-					return false;
-				}
-			}
-		}
 		/// <summary>Holds the value of the <see cref="WriteResult"/> property</summary>
-		private TransferItem m_WriteResult = null;
+		private AsyncSecureResult m_WriteResult = null;
 		/// <summary><b>true</b> if the SecureNetworkStream owns the SecureSocket, <b>false</b> otherwise.</summary>
 		private bool m_OwnsSocket;
 		/// <summary>Holds the value of the <see cref="CanRead"/> property</summary>
