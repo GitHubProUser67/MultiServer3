@@ -90,6 +90,7 @@ namespace MultiSocks.Aries
 
                     ClientStream?.Dispose();
                     ClientTcp.Dispose();
+                    timerDequeue.Dispose();
                     LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 
