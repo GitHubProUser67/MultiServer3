@@ -292,6 +292,10 @@ namespace Horizon.SERVER.Medius
 
                                 switch (clientCheatQuery.SequenceId)
                                 {
+                                    case int.MinValue:
+                                        if (data.ClientObject != null)
+                                            data.ClientObject.SSFWid = Encoding.ASCII.GetString(clientCheatQuery.Data);
+                                        break;
                                     case -559038737:
                                         switch (clientCheatQuery.StartAddress)
                                         {
@@ -301,7 +305,66 @@ namespace Horizon.SERVER.Medius
                                                     data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
                                                     .Equals(OtherExtensions.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
-                                                    if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot && data.ClientObject.ClientHomeData == null)
+                                                    if (data.ClientObject.ClientHomeData != null)
+                                                    {
+                                                        switch (data.ClientObject.ClientHomeData.Type)
+                                                        {
+                                                            case "HDK With Offline":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    case "01.86.09":
+                                                                        CheatQuery(0x10244430, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "HDK Online Only":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "HDK Online Only (Dbg Symbols)":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "Online Debug":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    case "01.83.12":
+                                                                        CheatQuery(0x10244439, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    case "01.86.09":
+                                                                        CheatQuery(0x10244428, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "Retail":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    case "01.86.09":
+                                                                        CheatQuery(0x101555f0, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+
+                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                        {
+                                                                            CheatQuery(0x006f59b8, 4, clientChannel);
+                                                                            CheatQuery(0x002aa960, 4, clientChannel);
+                                                                        }
+                                                                        break;
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                        }
+                                                    }
+                                                    else if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot)
                                                     {
                                                         string anticheatMsg = $"[MAS] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
 
@@ -2626,58 +2689,7 @@ namespace Horizon.SERVER.Medius
             if (data.ClientObject!.IP == IPAddress.Any)
                 data.ClientObject!.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
 
-            bool isHome = data.ApplicationId == 20371 || data.ApplicationId == 20374;
-
-            if (isHome && data.ClientObject.ClientHomeData != null)
-            {
-                switch (data.ClientObject.ClientHomeData.Type)
-                {
-                    case "HDK With Offline":
-                        switch (data.ClientObject.ClientHomeData.Version)
-                        {
-                            default:
-                                break;
-                        }
-                        break;
-                    case "HDK Online Only":
-                        switch (data.ClientObject.ClientHomeData.Version)
-                        {
-                            default:
-                                break;
-                        }
-                        break;
-                    case "HDK Online Only (Dbg Symbols)":
-                        switch (data.ClientObject.ClientHomeData.Version)
-                        {
-                            default:
-                                break;
-                        }
-                        break;
-                    case "Online Debug":
-                        switch (data.ClientObject.ClientHomeData.Version)
-                        {
-                            default:
-                                break;
-                        }
-                        break;
-                    case "Retail":
-                        switch (data.ClientObject.ClientHomeData.Version)
-                        {
-                            case "01.86.09":
-                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
-                                {
-                                    CheatQuery(0x006f59b8, 4, clientChannel);
-                                    CheatQuery(0x002aa960, 4, clientChannel);
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                        break;
-                }
-            }
-
-            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && isHome && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName + ":" + data.ClientObject.IP)))
+            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374) && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName + ":" + data.ClientObject.IP)))
             {
                 data.State = ClientState.DISCONNECTED;
                 await clientChannel.CloseAsync();
