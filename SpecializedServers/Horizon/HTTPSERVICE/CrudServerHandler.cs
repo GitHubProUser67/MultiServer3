@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using WatsonWebserver;
 using WatsonWebserver.Core;
+using Horizon.MUM.Models;
 
 namespace Horizon.HTTPSERVICE
 {
@@ -300,6 +301,96 @@ namespace Horizon.HTTPSERVICE
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         ctx.Response.ContentType = "text/plain";
                         await ctx.Response.Send(await HomeRTMTools.SendRemoteCommand(ctx.Request.Source.IpAddress, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                    }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/HomeSSFW/{command}/", async (HttpContextBase ctx) =>
+                {
+                    string? Command = ctx.Request.Url.Parameters["command"];
+                    string userAgent = ctx.Request.Useragent;
+
+                    if (!string.IsNullOrEmpty(userAgent) && userAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(Command))
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                            ctx.Response.ContentType = "text/plain";
+                            await ctx.Response.Send();
+                            return;
+                        }
+                        else
+                            Command = HTTPProcessor.DecodeUrl(Command);
+
+                        bool Retail = true;
+                        string? AccessToken = null;
+
+                        if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
+                        {
+
+                        }
+
+                        if (ctx.Request.QuerystringExists("AccessToken"))
+                            AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                        switch (Command)
+                        {
+                            case "GetUserIds":
+                                bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
+                                StringBuilder sb = new("[");
+                                List<string> userIds = new();
+                                List<ClientObject>? clients = null;
+
+                                if (AccessTokenProvided)
+                                {
+                                    ClientObject? client = MediusClass.Manager.GetClientByAccessToken(AccessToken, Retail ? 20374 : 20371);
+                                    if (client != null)
+                                    {
+                                        clients = new()
+                                        {
+                                            client
+                                        };
+                                    }
+                                }
+                                else
+                                    clients = MediusClass.Manager.GetClientsByIp(ctx.Request.Source.IpAddress, Retail ? 20374 : 20371);
+
+                                if (clients != null)
+                                {
+                                    foreach (ClientObject client in clients)
+                                    {
+                                        string? userId = client.SSFWid;
+
+                                        if (!string.IsNullOrEmpty(userId) && !userIds.Contains(userId))
+                                            userIds.Add(userId);
+                                    }
+                                }
+
+                                foreach (string userId in userIds)
+                                {
+                                    if (sb.Length > 1)
+                                        sb.Append($",\"{userId}\"");
+                                    else
+                                        sb.Append($"\"{userId}\"");
+                                }
+
+                                sb.Append(']');
+
+                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                ctx.Response.ContentType = "application/json; charset=utf-8";
+                                await ctx.Response.Send(sb.ToString());
+                                break;
+                            default:
+                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                ctx.Response.ContentType = "text/plain";
+                                await ctx.Response.Send();
+                                return;
+                        }
                     }
                 });
 
