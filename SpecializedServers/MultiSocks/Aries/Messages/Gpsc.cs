@@ -55,8 +55,8 @@ namespace MultiSocks.Aries.Messages
                 {
                     if (game.MinSize > 1) // Could it be more than 2?
                     {
-                        if (game.Users.GetUserByName("@brobot24") == null)
-                            game.AddHost(mc.Users.GetUserByName("@brobot24"));
+                        if (game.Users.GetUserByName("brobot24") == null)
+                            game.AddHost(mc.Users.GetUserByName("brobot24"));
 
                         if (game.Users.GetUserByName(user.Username) == null)
                             game.AddGPSHost(user);
