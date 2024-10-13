@@ -43,13 +43,16 @@ namespace HTTPServer.Models
             return string.Format("{0} {1}", (int)HttpStatusCode, HttpStatusCode.ToString());
         }
 
-        public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, bool lowerCaseContentType = false)
         {
             HttpResponse response = new()
             {
                 HttpStatusCode = statuscode
             };
-            response.Headers["Content-Type"] = mimetype;
+            if (lowerCaseContentType)
+                response.Headers["content-type"] = mimetype;
+            else
+                response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (string[] innerArray in HeaderInput)
@@ -72,13 +75,16 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, bool lowerCaseContentType = false)
         {
             HttpResponse response = new()
             {
                 HttpStatusCode = statuscode
             };
-            response.Headers["Content-Type"] = mimetype;
+            if (lowerCaseContentType)
+                response.Headers["content-type"] = mimetype;
+            else
+                response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (var innerArray in HeaderInput)
@@ -101,13 +107,16 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, bool lowerCaseContentType = false)
         {
             HttpResponse response = new()
             {
                 HttpStatusCode = statuscode
             };
-            response.Headers["Content-Type"] = mimetype;
+            if (lowerCaseContentType)
+                response.Headers["content-type"] = mimetype;
+            else
+                response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (string[]? innerArray in HeaderInput)
