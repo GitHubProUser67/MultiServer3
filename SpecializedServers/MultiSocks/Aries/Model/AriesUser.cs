@@ -11,7 +11,7 @@ namespace MultiSocks.Aries.Model
         public AriesClient? Connection;
         public string LADDR = "127.0.0.1";
         public string ADDR = "127.0.0.1";
-        public string Username = "@brobot24";
+        public string Username = "brobot24";
         public string LOC = "frFR";
         public string MAC = string.Empty;
         public string?[] Personas = new string[4];
