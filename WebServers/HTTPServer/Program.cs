@@ -42,7 +42,7 @@ public static class HTTPServerConfiguration
     public static bool EnableImageUpscale { get; set; } = false;
     public static Dictionary<string, string>? MimeTypes { get; set; } = HTTPProcessor._mimeTypes;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
-    public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 9090, 10010, 26004, 33000 };
+    public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 3658, 9090, 10010, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
 

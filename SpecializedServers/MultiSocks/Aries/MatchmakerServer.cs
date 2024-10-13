@@ -82,7 +82,7 @@ namespace MultiSocks.Aries
             Rooms.Server = this;
 
             lock (Users)
-                Users.AddUser(new AriesUser() { ID = 24 }); // Admin player.
+                Users.AddUser(new AriesUser() { ID = 1 }); // Admin player.
 
             PingThread = new Thread(PingLoop);
             PingThread.Start();

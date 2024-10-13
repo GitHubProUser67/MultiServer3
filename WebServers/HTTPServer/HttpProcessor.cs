@@ -38,7 +38,7 @@ using NetworkLibrary.Extension;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
 using Newtonsoft.Json;
-using WebAPIService.CCPGames;
+using WebAPIService.DEMANGLER;
 
 namespace HTTPServer
 {
@@ -85,11 +85,6 @@ namespace HTTPServer
                                     "samples.hdk.scee.net",
                                 };
 
-
-        private readonly static List<string> CCPGamesDomains = new() {
-                                    //"dust.ccpgamescdn.com",
-                                    "dust514.online"
-                                };
         private readonly static List<string> ILoveSonyDomains = new() {
                                     "www.myresistance.net",
                                 };
@@ -323,31 +318,8 @@ namespace HTTPServer
                                     {
                                         default:
 
-                                            #region Dust 514 dcrest
-                                            //CCPGamesDomains.Contains(Host) || 
-                                            if (Host.Contains("26004") //Check for Dust514 specific Port!!
-                                                && !string.IsNullOrEmpty(Method))
-                                            {
-                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a Dust514  method : {absolutepath}");
-
-                                                string? res = null;
-                                                if (request.GetDataStream != null)
-                                                {
-                                                    using MemoryStream postdata = new();
-                                                    request.GetDataStream.CopyTo(postdata);
-                                                    res = new Dust514Class(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), request.Headers, false);
-                                                    postdata.Flush();
-                                                }
-                                                if (string.IsNullOrEmpty(res))
-                                                    response = HttpBuilder.InternalServerError();
-                                                else
-                                                    response = HttpResponse.Send(res, "text/plain");
-                                            }
-
-                                            #endregion
-
                                             #region Outso OHS API
-                                            else if ((Host == "stats.outso-srv1.com"
+                                            if ((Host == "stats.outso-srv1.com"
                                                 || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 (absolutepath.Contains("/ohs_") ||
@@ -839,6 +811,28 @@ namespace HTTPServer
                                             }
                                             #endregion
 
+                                            #region EA Demangler
+                                            else if (Host.Contains("demangler.ea.com")
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a EA Demangler method : {absolutepath}");
+
+                                                (string?, string?)? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = DemanglerClass.ProcessDemanglerRequest(request.QueryParameters, absolutepath, clientip, postdata.ToArray());
+                                                    postdata.Flush();
+                                                }
+                                                if (res == null)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res.Value.Item1, res.Value.Item2!, new string[][] { new string[] { "x-envoy-upstream-service-time", "0" }, new string[] { "server", "istio-envoy" }
+                                                    , new string[] { "content-length", res.Value.Item1!.Length.ToString() } }, HttpStatusCode.OK, true);
+                                            }
+                                            #endregion
+
                                             else
                                             {
                                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -1223,7 +1217,8 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
                         {
@@ -1252,7 +1247,8 @@ namespace HTTPServer
                         long bytesLeft = totalBytes;
                         string? encoding = null;
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
                         {
@@ -1271,7 +1267,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type"))
+                        if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
                             response.Headers.Add("Content-Type", "text/plain");
 
                         if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1320,7 +1316,8 @@ namespace HTTPServer
                 {
                     response.Headers.Clear();
 
-                    response.Headers.Add("Server", "Apache");
+                    if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
                     response.Headers.Add("Connection", "close");
 
                     response.HttpStatusCode = HttpStatusCode.InternalServerError;
@@ -1811,7 +1808,8 @@ namespace HTTPServer
                         {
                             response.Headers.Clear();
 
-                            response.Headers.Add("Server", "Apache");
+                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                                response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
                             {
@@ -1840,7 +1838,8 @@ namespace HTTPServer
                             long bytesLeft = totalBytes;
                             string? encoding = null;
 
-                            response.Headers.Add("Server", "Apache");
+                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                                response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
                             {
@@ -1852,7 +1851,7 @@ namespace HTTPServer
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
 
-                            if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type"))
+                            if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
                                 response.Headers.Add("Content-Type", "text/plain");
 
                             if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1901,7 +1900,8 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Connection", "close");
 
                         response.HttpStatusCode = HttpStatusCode.InternalServerError;

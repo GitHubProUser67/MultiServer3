@@ -362,6 +362,7 @@ turoklive.quazal.net,Redirect,IP
 ghostps3live.quazal.net,Redirect,IP
 
 ;EA
+demangler.ea.com,Redirect,IP
 ea.com,Redirect,IP
 tso-e.com,Redirect,IP
 ps2bond04.ea.com,Redirect,IP
