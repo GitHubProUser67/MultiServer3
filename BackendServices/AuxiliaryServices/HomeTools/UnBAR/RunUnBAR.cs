@@ -525,7 +525,7 @@ namespace HomeTools.UnBAR
                 LoggerAccessor.LogInfo($"IV - {OtherExtensions.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
-                byte[] FileBytes = ToolsImplementation.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);
+                byte[] FileBytes = await ToolsImplementation.ProcessXTEAProxyAsync(data, Key, tableOfContent.IV).ConfigureAwait(false);
 
                 try
                 {

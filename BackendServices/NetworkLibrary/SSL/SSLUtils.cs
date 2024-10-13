@@ -368,7 +368,7 @@ namespace NetworkLibrary.SSL
         /// <param name="minValue">The min value.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>A long.</returns>
-        private static long GetRandomInt64(long minValue, long maxValue)
+        public static long GetRandomInt64(long minValue, long maxValue)
         {
 #if NET6_0_OR_GREATER
             return new Random().NextInt64(minValue, maxValue);

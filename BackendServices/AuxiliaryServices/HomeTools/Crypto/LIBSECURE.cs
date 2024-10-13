@@ -6,12 +6,13 @@ using EndianTools;
 using System.Text;
 using System;
 using NetworkLibrary.Extension;
+using System.Threading.Tasks;
 
 namespace HomeTools.Crypto
 {
     public class LIBSECURE
     {
-        public static byte[] InitiateXTEABuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, string mode, bool memxor = true, bool encrypt = false)
+        public static Task<byte[]> InitiateXTEABufferAsync(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, string mode, bool memxor = true, bool encrypt = false)
         {
             if (KeyBytes.Length == 16)
             {
@@ -40,12 +41,12 @@ namespace HomeTools.Crypto
 
                 cipher = null;
 
-                return memxor ? Crypt_Decrypt(FileBytes, EndianUtils.EndianSwap(ciphertextBytes), 8) : EndianUtils.EndianSwap(ciphertextBytes);
+                return Task.FromResult(memxor ? Crypt_Decrypt(FileBytes, EndianUtils.EndianSwap(ciphertextBytes), 8) : EndianUtils.EndianSwap(ciphertextBytes));
             }
             else
                 LoggerAccessor.LogError("[LIBSECURE] - InitiateXTEABuffer - Invalid KeyByes!");
 
-            return null;
+            return Task.FromResult<byte[]>(null);
         }
 
         public static byte[] InitiateBlowfishBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, string mode, bool memxor = true, bool encrypt = false)

@@ -677,7 +677,7 @@ namespace HomeTools.BARFramework
                     tocEntry.Index = count;
                     byte[] IV = new byte[8];
                     Buffer.BlockCopy(tocEntry.IV, 0, IV, 0, tocEntry.IV.Length);
-                    tocEntry.RawData = ToolsImplementation.ProcessXTEAProxyBlocks(array2, m_header.Key, IV);
+                    tocEntry.RawData = await ToolsImplementation.ProcessXTEAProxyAsync(array2, m_header.Key, IV).ConfigureAwait(false);
                 }
                 else
                 {
