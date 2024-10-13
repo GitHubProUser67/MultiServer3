@@ -1,5 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using System.Linq;
 using NetworkLibrary.Extension;
+using HashLib;
 
 namespace HomeTools.Crypto
 {
@@ -130,34 +135,55 @@ namespace HomeTools.Crypto
             }
         }
 
-        public static byte[] ProcessXTEAProxyBlocks(byte[] inputArray, byte[] KeyBytes, byte[] IV)
+        public static async Task<byte[]> ProcessXTEAProxyAsync(byte[] inData, byte[] KeyBytes, byte[] IV)
         {
-            int inputIndex = 0;
-            int inputLength = inputArray.Length;
-            byte[] block = new byte[8];
-            byte[] output = new byte[inputLength];
+            const byte xteaBlockSize = 8;
+            int chunkIndex = 0;
+            int inputLength = inData.Length;
+            List<KeyValuePair<(int, int), Task<byte[]>>> xteaTasks = new List<KeyValuePair<(int, int), Task<byte[]>>>();
 
-            while (inputIndex < inputLength)
+            using (MemoryStream memoryStream = new MemoryStream(inData))
             {
-                int blockSize = Math.Min(8, inputLength - inputIndex);
-                if (blockSize < 8)
+                while (memoryStream.Position < memoryStream.Length)
                 {
-                    int difference = 8 - blockSize;
-                    Buffer.BlockCopy(new byte[difference], 0, block, block.Length - difference, difference);
+                    byte[] block = new byte[xteaBlockSize];
+                    byte[] blockIV = (byte[])IV.Clone();
+                    int blockSize = Math.Min(xteaBlockSize, inputLength - chunkIndex);
+                    if (blockSize < xteaBlockSize)
+                    {
+                        int difference = xteaBlockSize - blockSize;
+                        Buffer.BlockCopy(new byte[difference], 0, block, block.Length - difference, difference);
+                    }
+                    memoryStream.Read(block, 0, blockSize);
+                    xteaTasks.Add(new KeyValuePair<(int, int), Task<byte[]>>((chunkIndex, blockSize), LIBSECURE.InitiateXTEABufferAsync(block, KeyBytes, blockIV, "CTR")));
+                    IncrementIVBytes(IV, 1);
+                    chunkIndex += blockSize;
                 }
-                Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[] taskResult = LIBSECURE.InitiateXTEABuffer(block, KeyBytes, IV, "CTR");
-                if (taskResult == null) // We failed so we send original file back.
-                    return inputArray;
-                if (taskResult.Length < blockSize)
-                    Buffer.BlockCopy(taskResult, 0, output, inputIndex, taskResult.Length);
-                else
-                    Buffer.BlockCopy(taskResult, 0, output, inputIndex, blockSize);
-                IncrementIVBytes(IV, 1);
-                inputIndex += blockSize;
             }
 
-            return output;
+            using (MemoryStream memoryStream = new MemoryStream(inData.Length))
+            {
+                foreach (var result in xteaTasks.OrderBy(kv => kv.Key.Item1))
+                {
+                    try
+                    {
+                        // Await each decryption task
+                        byte[] decryptedChunk = await result.Value.ConfigureAwait(false);
+                        if (decryptedChunk == null) // We failed so we send original file back.
+                            return inData;
+                        if (decryptedChunk.Length < result.Key.Item2)
+                            memoryStream.Write(decryptedChunk, 0, decryptedChunk.Length);
+                        else
+                            memoryStream.Write(decryptedChunk, 0, result.Key.Item2);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"[ToolsImplementation] - ProcessXTEAProxyAsync: Error during decryption at chunk {result.Key}", ex);
+                    }
+                }
+
+                return memoryStream.ToArray();
+            }
         }
 
         public static ulong Sha1toNonce(byte[] digest)
