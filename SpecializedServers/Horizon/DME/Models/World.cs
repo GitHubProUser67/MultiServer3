@@ -509,7 +509,7 @@ namespace Horizon.DME.Models
             // Add client to manager
             Manager.AddClient(newClient);
 
-            if (true /*!DmeClass.GetAppSettingsOrDefault(ApplicationId).EnableDmeEncryption*/)
+            if (!DmeClass.GetAppSettingsOrDefault(ApplicationId).EnableDmeEncryption)
                 return new MediusServerJoinGameResponse()
                 {
                     MessageID = request.MessageID,

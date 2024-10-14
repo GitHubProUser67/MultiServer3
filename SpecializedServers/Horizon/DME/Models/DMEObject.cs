@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using CustomLogger;
 using Microsoft.Extensions.Logging;
+using Horizon.RT.Cryptography;
 
 namespace Horizon.DME.Models
 {
@@ -176,12 +177,12 @@ namespace Horizon.DME.Models
             UtcLastMessageReceived = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
         }
 
-        public void BeginUdp()
+        public void BeginUdp(CipherService? cipher)
         {
             if (Udp != null)
                 return;
 
-            Udp = new UdpServer(this);
+            Udp = new UdpServer(this, cipher);
             _ = Udp.Start();
         }
 
