@@ -209,7 +209,8 @@ namespace HomeTools.Crypto
 
         public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
         {
-            if (fileBytes[0] == 0x00 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x01)
+            if (fileBytes.Length > 4 && ((fileBytes[0] == 0x00 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x01)
+               || (fileBytes[0] == 0x01 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x00)))
             {
                 byte[] destinationArray = new byte[fileBytes.Length - 4]; // New array size after removing 4 elements
 
