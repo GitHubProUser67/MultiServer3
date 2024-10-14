@@ -327,7 +327,7 @@ namespace Horizon.DME
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            bool enableEncryption = false /*DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption*/;
+            bool enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -456,7 +456,7 @@ namespace Horizon.DME
                         }
 
                         // start udp server
-                        data.DMEObject.BeginUdp();
+                        data.DMEObject.BeginUdp(scertClient.CipherService);
 
                         #region if PS3
                         if (scertClient.IsPS3Client)
