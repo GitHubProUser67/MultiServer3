@@ -1169,7 +1169,7 @@ namespace HomeWebTools
 
                                 try
                                 {
-                                    TasksResult.Add((EndianUtils.EndianSwap(ProfanitySecurity.PF_DeCipher(buffer)), multipartfile.FileName));
+                                    TasksResult.Add((EndianUtils.EndianSwap(ProfanityFilterSecurity.PF_DeCipher(buffer)), multipartfile.FileName));
                                 }
                                 catch (Exception ex)
                                 {
