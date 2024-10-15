@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<STATS>
+	<TRACKING active="false">
+		<TIMING>10</TIMING>
+		<SIZE>30</SIZE>
+		<URL>http://50.56.66.121/xi/track.php</URL>
+	</TRACKING>
+	<PURCHASE active="false">
+		<ITEMS>
+
+		</ITEMS>
+		<ZONES>
+			<ZONE x="0" y="0" z="0" radius = "3"/>
+		</ZONES>
+		<URL>https://www.ndreamshs.com/xi/purchase.php</URL>
+	</PURCHASE>
+	<VISIT active="false">
+		<URL>https://www.ndreamshs.com/xi/visit.php</URL>
+	</VISIT>
+</STATS>
