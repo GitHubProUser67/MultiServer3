@@ -49,7 +49,7 @@ namespace HomeTools.AFS
                             if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
                                 Directory.CreateDirectory(destinationDirectory.ToUpper());
 
-                            if (!File.Exists(NewfilePath))
+                            if (File.Exists(filePath) && !File.Exists(NewfilePath))
                                 File.Move(filePath, NewfilePath.ToUpper());
 
                             if (File.Exists(NewfilePath) && (NewfilePath.ToLower().EndsWith(".mdl") || NewfilePath.ToLower().EndsWith(".atmos")
