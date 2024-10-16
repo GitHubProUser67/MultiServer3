@@ -16,6 +16,8 @@ namespace SSFWServer
 {
     public class SSFWClass
     {
+        private const string LoginGUID = "bb88aea9-6bf8-4201-a6ff-5d1f8da0dd37";
+
         private static string? legacykey;
         private static SSFWServer? _Server;
         private static HttpSSFWServer? _HttpServer;
@@ -29,7 +31,7 @@ namespace SSFWServer
             legacykey = locallegacykey;
         }
 
-        public static (string HeaderIndex, string HeaderItem)[] CollectHeaders(HttpRequest request)
+        private static (string HeaderIndex, string HeaderItem)[] CollectHeaders(HttpRequest request)
         {
             int headerindex = (int)request.Headers; // There is a slight mistake in netcoreserver, where the index is long, and the parser is int
                                                     // So we accomodate that with a cast.
@@ -44,7 +46,7 @@ namespace SSFWServer
             return CollectHeader;
         }
 
-        public static string GetHeaderValue((string HeaderIndex, string HeaderItem)[] headers, string requestedHeaderIndex, bool caseSensitive = true)
+        private static string GetHeaderValue((string HeaderIndex, string HeaderItem)[] headers, string requestedHeaderIndex, bool caseSensitive = true)
         {
             if (headers.Length > 0)
             {
@@ -76,7 +78,7 @@ namespace SSFWServer
                                  // from doing extensive checks everytime we want to display the User-Agent in particular.
         }
 
-        public static string? ExtractBeforeFirstDot(string input)
+        private static string? ExtractBeforeFirstDot(string input)
         {
             if (string.IsNullOrEmpty(input))
                 return null;
@@ -86,6 +88,14 @@ namespace SSFWServer
                 return null;
 
             return input[..dotIndex];
+        }
+
+        private static bool IsSSFWRegistered(string? sessionid)
+        {
+            if (string.IsNullOrEmpty(sessionid))
+                return false;
+
+            return !string.IsNullOrEmpty(SSFWUserSessionManager.GetIdBySessionId(sessionid));
         }
 
         public void StartSSFW()
@@ -150,7 +160,7 @@ namespace SSFWServer
                             case "GET":
 
                                 #region LayoutService
-                                if (absolutepath.Contains($"/LayoutService/{env}/person/") && !string.IsNullOrEmpty(sessionid))
+                                if (absolutepath.Contains($"/LayoutService/{env}/person/") && IsSSFWRegistered(sessionid))
                                 {
                                     SSFWLayoutService layout = new(legacykey);
                                     string? res = layout.HandleLayoutServiceGET(directoryPath, filePath);
@@ -173,7 +183,7 @@ namespace SSFWServer
                                 #endregion
 
                                 #region AdminObjectService
-                                else if (absolutepath.Contains("/AdminObjectService/start") && !string.IsNullOrEmpty(sessionid))
+                                else if (absolutepath.Contains("/AdminObjectService/start") && IsSSFWRegistered(sessionid))
                                 {
                                     SSFWAdminObjectService iga = new(sessionid, legacykey);
                                     Response.Clear();
@@ -187,7 +197,7 @@ namespace SSFWServer
                                 #endregion
 
                                 #region SaveDataService
-                                else if (absolutepath.Contains($"/SaveDataService/{env}/{segments.LastOrDefault()}") && !string.IsNullOrEmpty(sessionid))
+                                else if (absolutepath.Contains($"/SaveDataService/{env}/{segments.LastOrDefault()}") && IsSSFWRegistered(sessionid))
                                 {
                                     SSFWGetFileList filelist = new();
                                     string? res = filelist.SSFWSaveDataDebugGetFileList(directoryPath, segments.LastOrDefault());
@@ -199,7 +209,7 @@ namespace SSFWServer
                                 }
                                 #endregion
 
-                                else if (!string.IsNullOrEmpty(sessionid))
+                                else if (IsSSFWRegistered(sessionid))
                                 {
                                     if (File.Exists(filePath + ".json"))
                                     {
@@ -269,27 +279,115 @@ namespace SSFWServer
                             case "POST":
 
                                 #region SSFW Login
-                                // Create a byte array
-                                byte[] postbuffer = request.BodyBytes;
-                                if (absolutepath == "/bb88aea9-6bf8-4201-a6ff-5d1f8da0dd37/login/token/psn")
-                                {
-                                    string? XHomeClientVersion = GetHeaderValue(Headers, "X-HomeClientVersion");
-                                    string? generalsecret = GetHeaderValue(Headers, "general-secret");
 
-                                    if (!string.IsNullOrEmpty(XHomeClientVersion) && !string.IsNullOrEmpty(generalsecret))
+                                if (request.BodyLength <= Array.MaxLength)
+                                {
+                                    byte[] postbuffer = request.BodyBytes;
+                                    if (absolutepath == $"/{LoginGUID}/login/token/psn")
                                     {
-                                        SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
-                                        string? result = login.HandleLogin(request.BodyBytes, env);
-                                        if (!string.IsNullOrEmpty(result))
+                                        string? XHomeClientVersion = GetHeaderValue(Headers, "X-HomeClientVersion");
+                                        string? generalsecret = GetHeaderValue(Headers, "general-secret");
+
+                                        if (!string.IsNullOrEmpty(XHomeClientVersion) && !string.IsNullOrEmpty(generalsecret))
                                         {
-                                            Response.Clear();
-                                            Response.SetBegin(201);
-                                            Response.SetContentType("application/json");
-                                            Response.SetBody(result);
+                                            SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
+                                            string? result = login.HandleLogin(postbuffer, env);
+                                            if (!string.IsNullOrEmpty(result))
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(201);
+                                                Response.SetContentType("application/json");
+                                                Response.SetBody(result);
+                                            }
+                                            else
+                                                Response.MakeErrorResponse();
+                                            login.Dispose();
                                         }
                                         else
-                                            Response.MakeErrorResponse();
-                                        login.Dispose();
+                                        {
+                                            Response.Clear();
+                                            Response.SetBegin(403);
+                                            Response.SetBody();
+                                        }
+                                    }
+                                    #endregion
+
+                                    #region PING
+                                    else if (absolutepath.Contains("/morelife") && !string.IsNullOrEmpty(GetHeaderValue(Headers, "x-signature")))
+                                        Response.MakeGetResponse("{}", "application/json");
+                                    #endregion
+
+                                    #region AvatarLayoutService
+                                    else if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && IsSSFWRegistered(sessionid))
+                                    {
+                                        SSFWAvatarLayoutService layout = new(sessionid, legacykey);
+                                        Response.Clear();
+                                        if (layout.HandleAvatarLayout(postbuffer, directoryPath, filePath, absolutepath, false))
+                                            Response.SetBegin(200);
+                                        else
+                                            Response.SetBegin(403);
+                                        Response.SetBody();
+                                        layout.Dispose();
+                                    }
+                                    #endregion
+
+                                    #region LayoutService
+                                    else if (absolutepath.Contains($"/LayoutService/{env}/person/") && IsSSFWRegistered(sessionid))
+                                    {
+                                        SSFWLayoutService layout = new(legacykey);
+                                        Response.Clear();
+                                        if (layout.HandleLayoutServicePOST(postbuffer, directoryPath, absolutepath))
+                                            Response.SetBegin(200);
+                                        else
+                                            Response.SetBegin(403);
+                                        Response.SetBody();
+                                        layout.Dispose();
+                                    }
+                                    #endregion
+
+                                    #region RewardsService
+                                    else if (absolutepath.Contains($"/RewardsService/{env}/rewards/") && IsSSFWRegistered(sessionid))
+                                    {
+                                        SSFWRewardsService reward = new(legacykey);
+                                        Response.MakeGetResponse(reward.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
+                                        reward.Dispose();
+                                    }
+                                    else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && IsSSFWRegistered(sessionid))
+                                    {
+                                        SSFWRewardsService reward = new(legacykey);
+                                        reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
+                                        Response.MakeOkResponse();
+                                        reward.Dispose();
+                                    }
+                                    else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/set") && IsSSFWRegistered(sessionid))
+                                    {
+                                        SSFWRewardsService reward = new(legacykey);
+                                        reward.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
+                                        Response.MakeOkResponse();
+                                        reward.Dispose();
+                                    }
+                                    #endregion
+
+                                    else if (IsSSFWRegistered(sessionid))
+                                    {
+                                        LoggerAccessor.LogWarn($"[SSFW] : Host requested a POST method I don't know about! - Report it to GITHUB with the request : {absolutepath}");
+                                        if (postbuffer != null)
+                                        {
+                                            Directory.CreateDirectory(directoryPath);
+                                            switch (GetHeaderValue(Headers, "Content-type", false))
+                                            {
+                                                case "image/jpeg":
+                                                    File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", postbuffer);
+                                                    break;
+                                                case "application/json":
+                                                    File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", postbuffer);
+                                                    break;
+                                                default:
+                                                    File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.bin", postbuffer);
+                                                    break;
+                                            }
+                                        }
+                                        Response.MakeOkResponse();
                                     }
                                     else
                                     {
@@ -298,132 +396,62 @@ namespace SSFWServer
                                         Response.SetBody();
                                     }
                                 }
-                                #endregion
-
-                                #region PING
-                                else if (absolutepath.Contains("/morelife") && !string.IsNullOrEmpty(GetHeaderValue(Headers, "x-signature")))
-                                    Response.MakeGetResponse("{}", "application/json");
-                                #endregion
-
-                                #region AvatarLayoutService
-                                else if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && !string.IsNullOrEmpty(sessionid))
-                                {
-                                    SSFWAvatarLayoutService layout = new(sessionid, legacykey);
-                                    Response.Clear();
-                                    if (layout.HandleAvatarLayout(postbuffer, directoryPath, filePath, absolutepath, false))
-                                        Response.SetBegin(200);
-                                    else
-                                        Response.SetBegin(403);
-                                    Response.SetBody();
-                                    layout.Dispose();
-                                }
-                                #endregion
-
-                                #region LayoutService
-                                else if (absolutepath.Contains($"/LayoutService/{env}/person/") && !string.IsNullOrEmpty(sessionid))
-                                {
-                                    SSFWLayoutService layout = new(legacykey);
-                                    Response.Clear();
-                                    if (layout.HandleLayoutServicePOST(postbuffer, directoryPath, absolutepath))
-                                        Response.SetBegin(200);
-                                    else
-                                        Response.SetBegin(403);
-                                    Response.SetBody();
-                                    layout.Dispose();
-                                }
-                                #endregion
-
-                                #region RewardsService
-                                else if (absolutepath.Contains($"/RewardsService/{env}/rewards/") && !string.IsNullOrEmpty(sessionid))
-                                {
-                                    SSFWRewardsService reward = new(legacykey);
-                                    Response.MakeGetResponse(reward.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
-                                    reward.Dispose();
-                                }
-                                else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && !string.IsNullOrEmpty(sessionid))
-                                {
-                                    SSFWRewardsService reward = new(legacykey);
-                                    reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
-                                    Response.MakeOkResponse();
-                                    reward.Dispose();
-                                }
-                                else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/set") && !string.IsNullOrEmpty(sessionid))
-                                {
-                                    SSFWRewardsService reward = new(legacykey);
-                                    reward.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
-                                    Response.MakeOkResponse();
-                                    reward.Dispose();
-                                }
-                                #endregion
-
-                                else if (!string.IsNullOrEmpty(sessionid))
-                                {
-                                    LoggerAccessor.LogWarn($"[SSFW] : Host requested a POST method I don't know about! - Report it to GITHUB with the request : {absolutepath}");
-                                    if (postbuffer != null)
-                                    {
-                                        Directory.CreateDirectory(directoryPath);
-                                        switch (GetHeaderValue(Headers, "Content-type", false))
-                                        {
-                                            case "image/jpeg":
-                                                File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", postbuffer);
-                                                break;
-                                            case "application/json":
-                                                File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", postbuffer);
-                                                break;
-                                            default:
-                                                File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.bin", postbuffer);
-                                                break;
-                                        }
-                                    }
-                                    Response.MakeOkResponse();
-                                }
                                 else
                                 {
                                     Response.Clear();
-                                    Response.SetBegin(403);
+                                    Response.SetBegin(400);
                                     Response.SetBody();
                                 }
+
                                 break;
                             case "PUT":
-                                if (!string.IsNullOrEmpty(sessionid))
+                                if (IsSSFWRegistered(sessionid))
                                 {
-                                    // Create a byte array
-                                    byte[] putbuffer = request.BodyBytes;
-                                    if (putbuffer != null)
+                                    if (request.BodyLength <= Array.MaxLength)
                                     {
-                                        Directory.CreateDirectory(directoryPath);
-                                        switch (GetHeaderValue(Headers, "Content-type", false))
+                                        byte[] putbuffer = request.BodyBytes;
+                                        if (putbuffer != null)
                                         {
-                                            case "image/jpeg":
-                                                string savaDataAvatarFilePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"SaveDataService/avatar/{env}/");
+                                            Directory.CreateDirectory(directoryPath);
+                                            switch (GetHeaderValue(Headers, "Content-type", false))
+                                            {
+                                                case "image/jpeg":
+                                                    string savaDataAvatarFilePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"SaveDataService/avatar/{env}/");
 
-                                                Directory.CreateDirectory(savaDataAvatarFilePath);
+                                                    Directory.CreateDirectory(savaDataAvatarFilePath);
 
-                                                string? userName = SSFWUserSessionManager.GetFormatedUsernameBySessionId(sessionid);
+                                                    string? userName = SSFWUserSessionManager.GetFormatedUsernameBySessionId(sessionid);
 
-                                                if (!string.IsNullOrEmpty(userName))
-                                                {
-                                                    Task.WhenAll(File.WriteAllBytesAsync($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer),
-                                                        File.WriteAllBytesAsync($"{savaDataAvatarFilePath}{userName}.jpg", putbuffer)).Wait();
+                                                    if (!string.IsNullOrEmpty(userName))
+                                                    {
+                                                        Task.WhenAll(File.WriteAllBytesAsync($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer),
+                                                            File.WriteAllBytesAsync($"{savaDataAvatarFilePath}{userName}.jpg", putbuffer)).Wait();
+                                                        Response.MakeOkResponse();
+                                                    }
+                                                    else
+                                                        Response.MakeErrorResponse();
+                                                    break;
+                                                case "application/json":
+                                                    File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", putbuffer);
                                                     Response.MakeOkResponse();
-                                                }
-                                                else
-                                                    Response.MakeErrorResponse();
-                                                break;
-                                            case "application/json":
-                                                File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", putbuffer);
-                                                Response.MakeOkResponse();
-                                                break;
-                                            default:
-                                                File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.bin", putbuffer);
-                                                Response.MakeOkResponse();
-                                                break;
+                                                    break;
+                                                default:
+                                                    File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.bin", putbuffer);
+                                                    Response.MakeOkResponse();
+                                                    break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Response.Clear();
+                                            Response.SetBegin(403);
+                                            Response.SetBody();
                                         }
                                     }
                                     else
                                     {
                                         Response.Clear();
-                                        Response.SetBegin(403);
+                                        Response.SetBegin(400);
                                         Response.SetBody();
                                     }
                                 }
@@ -437,20 +465,29 @@ namespace SSFWServer
                             case "DELETE":
 
                                 #region AvatarLayoutService
-                                if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && !string.IsNullOrEmpty(sessionid))
+                                if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && IsSSFWRegistered(sessionid))
                                 {
-                                    SSFWAvatarLayoutService layout = new(sessionid, legacykey);
-                                    Response.Clear();
-                                    if (layout.HandleAvatarLayout(request.BodyBytes, directoryPath, filePath, absolutepath, true))
-                                        Response.SetBegin(200);
+                                    if (request.BodyLength <= Array.MaxLength)
+                                    {
+                                        SSFWAvatarLayoutService layout = new(sessionid, legacykey);
+                                        Response.Clear();
+                                        if (layout.HandleAvatarLayout(request.BodyBytes, directoryPath, filePath, absolutepath, true))
+                                            Response.SetBegin(200);
+                                        else
+                                            Response.SetBegin(403);
+                                        Response.SetBody();
+                                        layout.Dispose();
+                                    }
                                     else
-                                        Response.SetBegin(403);
-                                    Response.SetBody();
-                                    layout.Dispose();
+                                    {
+                                        Response.Clear();
+                                        Response.SetBegin(400);
+                                        Response.SetBody();
+                                    }
                                 }
                                 #endregion
 
-                                else if (!string.IsNullOrEmpty(sessionid))
+                                else if (IsSSFWRegistered(sessionid))
                                 {
                                     if (File.Exists(filePath + ".json"))
                                     {
