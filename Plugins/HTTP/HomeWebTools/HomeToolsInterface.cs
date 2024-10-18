@@ -440,7 +440,7 @@ namespace HomeWebTools
                         }
                         foreach (FilePart multipartfile in data.Files.Where(file => file.FileName.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase)
                         || file.FileName.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase) || file.FileName.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase)
-                        || file.FileName.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)))
+                        || file.FileName.EndsWith(".dat", StringComparison.InvariantCultureIgnoreCase) || file.FileName.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)))
                         {
                             using (Stream filedata = multipartfile.Data)
                             {
