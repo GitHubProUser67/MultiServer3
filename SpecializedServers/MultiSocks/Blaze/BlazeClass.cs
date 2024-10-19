@@ -1,10 +1,7 @@
 using Blaze3SDK;
-using Blaze3SDK.Blaze;
 using BlazeCommon;
 using CustomLogger;
-using MultiSocks.Blaze.Components.Redirector;
-using MultiSocks.Blaze.Components.Util;
-using MultiSocks.Blaze.Util;
+using MultiSocks.Blaze.Redirector;
 using MultiSocks.ProtoSSL;
 using System.Net;
 
@@ -15,7 +12,6 @@ namespace MultiSocks.Blaze
         private bool disposedValue;
 
         private BlazeServer redirector;
-        private BlazeServer mainBlaze;
         private VulnerableCertificateGenerator? SSLCache = new();
 
         public BlazeClass(CancellationToken cancellationToken)
@@ -24,29 +20,18 @@ namespace MultiSocks.Blaze
             string domain = "gosredirector.ea.com";
 
             // Create Blaze Redirector server
-            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com", "Global Online Studio").Item3);
-            // Create  Main Blaze server
-            mainBlaze = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 33152), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com").Item3, false);
+            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com", true).Item3);
             redirector.AddComponent<RedirectorComponent>();
-            mainBlaze.AddComponent<UtilComponent>();
-            mainBlaze.AddComponent<AuthComponent>();
 
-            _ = StartRedirectorServer();
-            _ = StartMainBlazeServer();
+            _ = StartServer();
 
             LoggerAccessor.LogInfo("Blaze Servers initiated...");
         }
 
-        private async Task StartRedirectorServer()
+        private async Task StartServer()
         {
             //Start it!
             await redirector.Start(-1).ConfigureAwait(false);
-        }
-
-        private async Task StartMainBlazeServer()
-        {
-            //Start it!
-            await mainBlaze.Start(-1).ConfigureAwait(false);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -56,7 +41,6 @@ namespace MultiSocks.Blaze
                 if (disposing)
                 {
                     redirector.Stop();
-                    mainBlaze.Stop();
 
                     LoggerAccessor.LogWarn("Blaze Servers stopped...");
                 }

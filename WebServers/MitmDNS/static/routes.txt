@@ -391,6 +391,7 @@ gosredirector.ea.com,Redirect,IP
 ll-100.ea.com,Redirect,IP
 ll-999.ea.com,Redirect,IP
 easo.ea.com,Redirect,IP
+takedown-ps3.fesl.ea.com,Redirect,IP
 
 ;GameSpy
 bstormps3.available.gamespy.com,Redirect,IP

@@ -31,6 +31,7 @@ namespace MultiSocks.Aries
         private readonly AbstractAriesServer? RedirectorNASCAR08_PS3;
         private readonly AbstractAriesServer? RedirectorNASCAR09_PS3;
         private readonly AbstractAriesServer? RedirectorHASBROFAMILYGAMENIGHT_PS3;
+        private readonly AbstractAriesServer? RedirectorMIRRORSEDGE_PS3;
 
         private readonly AbstractAriesServer? Burnout3Takedown_NTSCMatchmaker;
         private readonly AbstractAriesServer? BurnoutRevenge_NTSCMatchmaker;
@@ -245,6 +246,18 @@ namespace MultiSocks.Aries
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[Redirector] HASBROFAMILYGAMENIGHT PS3 Failed to start! Exception: {ex}");
+            }
+            #endregion
+
+            #region Mirror's Edge PS3
+            try
+            {
+                RedirectorMIRRORSEDGE_PS3 = new RedirectorServer(18700, ListenIP, 18701, "MIRRORS_EDGE", "PS3", true, "takedown-ps3.fesl.ea.com", "fesl@ea.com");
+                LoggerAccessor.LogInfo($"[Redirector] MIRRORSEDGE PS3 Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] MIRRORSEDGE PS3 Failed to start! Exception: {ex}");
             }
             #endregion
 

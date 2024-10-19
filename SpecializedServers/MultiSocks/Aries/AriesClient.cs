@@ -28,13 +28,13 @@ namespace MultiSocks.Aries
 
         private int ExpectedBytes = -1;
         private bool InHeader;
-        private bool secure;
+        private readonly bool secure;
         private bool isDequeueRunning = false;
-        private Timer timerDequeue;
-        private TcpClient ClientTcp;
+        private readonly Timer timerDequeue;
+        private readonly TcpClient ClientTcp;
         private Stream? ClientStream;
-        private Thread RecvThread;
-        private ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
+        private readonly Thread RecvThread;
+        private readonly ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
         private byte[]? TempData = null;
         private int TempDatOff;
         private string CommandName = "null";
@@ -56,7 +56,7 @@ namespace MultiSocks.Aries
             LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
             if (secure && context.SSLCache != null)
-                SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
+                SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey, true);
 
             RecvThread = new Thread(RunLoop);
             RecvThread.Start();
