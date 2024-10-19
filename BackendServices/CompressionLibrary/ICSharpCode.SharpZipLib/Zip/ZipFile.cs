@@ -428,14 +428,22 @@ namespace ICSharpCode.SharpZipLib.Zip
 				_stringCodec = stringCodec;
 			}
 
-			try
+			if (baseStream_.Length > 0)
 			{
-				ReadEntries();
+				try
+				{
+					ReadEntries();
+				}
+				catch
+				{
+					DisposeInternal(true);
+					throw;
+				}
 			}
-			catch
+			else
 			{
-				DisposeInternal(true);
-				throw;
+				entries_ = Empty.Array<ZipEntry>();
+				isNewArchive_ = true;
 			}
 		}
 
@@ -484,14 +492,22 @@ namespace ICSharpCode.SharpZipLib.Zip
 			name_ = file.Name;
 			isStreamOwner = !leaveOpen;
 
-			try
+			if (baseStream_.Length > 0)
 			{
-				ReadEntries();
+				try
+				{
+					ReadEntries();
+				}
+				catch
+				{
+					DisposeInternal(true);
+					throw;
+				}
 			}
-			catch
+			else
 			{
-				DisposeInternal(true);
-				throw;
+				entries_ = Empty.Array<ZipEntry>();
+				isNewArchive_ = true;
 			}
 		}
 
