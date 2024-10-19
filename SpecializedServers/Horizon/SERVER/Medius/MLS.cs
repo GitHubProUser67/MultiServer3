@@ -239,6 +239,16 @@ namespace Horizon.SERVER.Medius
                                         case "HDK Online Only (Dbg Symbols)":
                                             switch (data.ClientObject.ClientHomeData.Version)
                                             {
+                                                case "01.82.09":
+                                                    switch (clientCheatQuery.StartAddress)
+                                                    {
+                                                        case 0x00530770:
+                                                            // 0x7f0 rights on every commands.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
+                                                                PokeAddress(0x00530770, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
+                                                            break;
+                                                    }
+                                                    break;
                                                 default:
                                                     break;
                                             }
@@ -246,6 +256,26 @@ namespace Horizon.SERVER.Medius
                                         case "Online Debug":
                                             switch (data.ClientObject.ClientHomeData.Version)
                                             {
+                                                case "01.83.12":
+                                                    switch (clientCheatQuery.StartAddress)
+                                                    {
+                                                        case 0x0054ac80:
+                                                            // 0x7f0 rights on every commands.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
+                                                                PokeAddress(0x0054ac80, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
+                                                            break;
+                                                    }
+                                                    break;
+                                                case "01.86.09":
+                                                    switch (clientCheatQuery.StartAddress)
+                                                    {
+                                                        case 0x00557d8c:
+                                                            // 0x7f0 rights on every commands.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
+                                                                PokeAddress(0x00557d8c, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
+                                                            break;
+                                                    }
+                                                    break;
                                                 default:
                                                     break;
                                             }
@@ -269,6 +299,11 @@ namespace Horizon.SERVER.Medius
                                                             // Disable SSFW Reward check for 1.86 retail.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0x65, 0x1b, 0x78 }))
                                                                 PokeAddress(0x002aa960, new byte[] { 0x48, 0x40, 0xe2, 0x2c }, clientChannel);
+                                                            break;
+                                                        case 0x000861e8:
+                                                            // 0x7f0 rights on every commands.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
+                                                                PokeAddress(0x000861e8, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
                                                             break;
                                                     }
                                                     break;
@@ -318,6 +353,12 @@ namespace Horizon.SERVER.Medius
                                                             case "HDK Online Only (Dbg Symbols)":
                                                                 switch (data.ClientObject.ClientHomeData.Version)
                                                                 {
+                                                                    case "01.82.09":
+                                                                        CheatQuery(0x10234440, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+
+                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                            CheatQuery(0x00530770, 4, clientChannel);
+                                                                        break;
                                                                     default:
                                                                         break;
                                                                 }
@@ -327,9 +368,15 @@ namespace Horizon.SERVER.Medius
                                                                 {
                                                                     case "01.83.12":
                                                                         CheatQuery(0x10244439, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+
+                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                            CheatQuery(0x0054ac80, 4, clientChannel);
                                                                         break;
                                                                     case "01.86.09":
                                                                         CheatQuery(0x10244428, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+
+                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                            CheatQuery(0x00557d8c, 4, clientChannel);
                                                                         break;
                                                                     default:
                                                                         break;
@@ -345,6 +392,8 @@ namespace Horizon.SERVER.Medius
                                                                         {
                                                                             CheatQuery(0x006f59b8, 4, clientChannel);
                                                                             CheatQuery(0x002aa960, 4, clientChannel);
+
+                                                                            CheatQuery(0x000861e8, 4, clientChannel);
                                                                         }
                                                                         break;
                                                                     default:
