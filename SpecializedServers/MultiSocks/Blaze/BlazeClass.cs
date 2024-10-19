@@ -20,7 +20,7 @@ namespace MultiSocks.Blaze
             string domain = "gosredirector.ea.com";
 
             // Create Blaze Redirector server
-            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com").Item3);
+            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com", true).Item3);
             redirector.AddComponent<RedirectorComponent>();
 
             _ = StartServer();
