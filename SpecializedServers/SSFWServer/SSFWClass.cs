@@ -557,15 +557,22 @@ namespace SSFWServer
                                 }
                                 break;
                             case "POST":
+                                byte InventoryEntryType = 0;
+                                string? userId = null;
+                                string uuid = string.Empty;
+                                string sessionId = string.Empty;
+                                string env = string.Empty;
+                                string[]? uuids = null;
+
                                 switch (absolutepath)
                                 {
                                     case "/WebService/AddMiniItem/":
-                                        string sessionId = GetHeaderValue(Headers, "sessionid", false);
-                                        string uuid = GetHeaderValue(Headers, "uuid", false);
-                                        string env = GetHeaderValue(Headers, "env", false);
-                                        string? userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
+                                        uuid = GetHeaderValue(Headers, "uuid", false);
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+                                        env = GetHeaderValue(Headers, "env", false);
+                                        userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
 
-                                        if (!string.IsNullOrEmpty(userId) && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out byte InventoryEntryType))
+                                        if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(uuid) && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
                                         {
                                             string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
 
@@ -583,6 +590,171 @@ namespace SSFWServer
                                                         Response.Clear();
                                                         Response.SetBegin(200);
                                                         Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.");
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                        Response.MakeErrorResponse(errMsg);
+                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
+                                                    Response.MakeErrorResponse(errMsg);
+                                                    LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(403);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Response.Clear();
+                                            Response.SetBegin(403);
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!");
+                                        }
+                                        break;
+                                    case "/WebService/AddMiniItems/":
+                                        uuids = GetHeaderValue(Headers, "uuids", false).Split(',');
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+                                        env = GetHeaderValue(Headers, "env", false);
+                                        userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
+
+                                        if (!string.IsNullOrEmpty(userId) && uuids != null && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
+                                        {
+                                            string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
+
+                                            if (File.Exists(miniPath))
+                                            {
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(File.ReadAllText(miniPath));
+
+                                                if (rewardsList != null)
+                                                {
+                                                    foreach (string iteruuid in uuids)
+                                                    {
+                                                        SSFWRewardsService.AddMiniEntry(rewardsList, iteruuid, InventoryEntryType);
+                                                    }
+
+                                                    try
+                                                    {
+                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
+                                                        Response.Clear();
+                                                        Response.SetBegin(200);
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.");
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                        Response.MakeErrorResponse(errMsg);
+                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
+                                                    Response.MakeErrorResponse(errMsg);
+                                                    LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(403);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Response.Clear();
+                                            Response.SetBegin(403);
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!");
+                                        }
+                                        break;
+                                    case "/WebService/RemoveMiniItem/":
+                                        uuid = GetHeaderValue(Headers, "uuid", false);
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+                                        env = GetHeaderValue(Headers, "env", false);
+                                        userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
+
+                                        if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(uuid) && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
+                                        {
+                                            string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
+
+                                            if (File.Exists(miniPath))
+                                            {
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(File.ReadAllText(miniPath));
+
+                                                if (rewardsList != null)
+                                                {
+                                                    SSFWRewardsService.RemoveMiniEntry(rewardsList, uuid, InventoryEntryType);
+
+                                                    try
+                                                    {
+                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
+                                                        Response.Clear();
+                                                        Response.SetBegin(200);
+                                                        Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.");
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                        Response.MakeErrorResponse(errMsg);
+                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
+                                                    Response.MakeErrorResponse(errMsg);
+                                                    LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(403);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Response.Clear();
+                                            Response.SetBegin(403);
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!");
+                                        }
+                                        break;
+                                    case "/WebService/RemoveMiniItems/":
+                                        uuids = GetHeaderValue(Headers, "uuids", false).Split(',');
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+                                        env = GetHeaderValue(Headers, "env", false);
+                                        userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
+
+                                        if (!string.IsNullOrEmpty(userId) && uuids != null && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
+                                        {
+                                            string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
+
+                                            if (File.Exists(miniPath))
+                                            {
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(File.ReadAllText(miniPath));
+
+                                                if (rewardsList != null)
+                                                {
+                                                    foreach (string iteruuid in uuids)
+                                                    {
+                                                        SSFWRewardsService.RemoveMiniEntry(rewardsList, iteruuid, InventoryEntryType);
+                                                    }
+
+                                                    try
+                                                    {
+                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
+                                                        Response.Clear();
+                                                        Response.SetBegin(200);
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.");
                                                     }
                                                     catch (Exception ex)
                                                     {

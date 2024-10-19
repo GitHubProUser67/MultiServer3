@@ -175,13 +175,25 @@ namespace SSFWServer.Services
             }
         }
 
-        public static void AddMiniEntry(List<Dictionary<string, byte>> rewardsList, string uuid, byte value)
+        public static void AddMiniEntry(List<Dictionary<string, byte>> rewardsList, string uuid, byte invtype)
         {
             if (!rewardsList.Any(x => x.ContainsKey(uuid)))
                 rewardsList.Add(new Dictionary<string, byte>
                 {
-                    { uuid, value }
+                    { uuid, invtype }
                 });
+        }
+
+        public static void RemoveMiniEntry(List<Dictionary<string, byte>> rewardsList, string uuid, byte invtype)
+        {
+            foreach (Dictionary<string, byte> dict in rewardsList)
+            {
+                if (dict.ContainsKey(uuid) && dict[uuid] == invtype)
+                {
+                    dict.Remove(uuid);
+                    break;
+                }
+            }
         }
 
         protected virtual void Dispose(bool disposing)
