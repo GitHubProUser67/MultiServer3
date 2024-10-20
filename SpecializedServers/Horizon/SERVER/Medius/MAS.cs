@@ -389,7 +389,63 @@ namespace Horizon.SERVER.Medius
                                                         data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
                                                         .Equals(OtherExtensions.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
-                                                    if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot && data.ClientObject.ClientHomeData == null)
+                                                    if (data.ClientObject.ClientHomeData != null)
+                                                    {
+                                                        switch (data.ClientObject.ClientHomeData.Type)
+                                                        {
+                                                            case "HDK With Offline":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    case "01.86.09":
+                                                                        CheatQuery(0x10244430, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "HDK Online Only":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "HDK Online Only (Dbg Symbols)":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    case "01.82.09":
+                                                                        CheatQuery(0x10234440, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "Online Debug":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    case "01.83.12":
+                                                                        CheatQuery(0x10244439, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    case "01.86.09":
+                                                                        CheatQuery(0x10244428, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                            case "Retail":
+                                                                switch (data.ClientObject.ClientHomeData.Version)
+                                                                {
+                                                                    case "01.86.09":
+                                                                        CheatQuery(0x101555f0, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
+                                                                        break;
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                                break;
+                                                        }
+                                                    }
+                                                    else if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot)
                                                     {
                                                         string anticheatMsg = $"[MAS] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
 
@@ -2736,8 +2792,6 @@ namespace Horizon.SERVER.Medius
                             switch (data.ClientObject.ClientHomeData.Version)
                             {
                                 case "01.86.09":
-                                    CheatQuery(0x10244430, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
-
                                     if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
                                     {
                                         CheatQuery(0x00546cf4, 4, clientChannel);
@@ -2760,8 +2814,6 @@ namespace Horizon.SERVER.Medius
                             switch (data.ClientObject.ClientHomeData.Version)
                             {
                                 case "01.82.09":
-                                    CheatQuery(0x10234440, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
-
                                     if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
                                     {
                                         CheatQuery(0x00530770, 4, clientChannel);
@@ -2777,8 +2829,6 @@ namespace Horizon.SERVER.Medius
                             switch (data.ClientObject.ClientHomeData.Version)
                             {
                                 case "01.83.12":
-                                    CheatQuery(0x10244439, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
-
                                     if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
                                     {
                                         CheatQuery(0x0054ac80, 4, clientChannel);
@@ -2787,8 +2837,6 @@ namespace Horizon.SERVER.Medius
                                     }
                                     break;
                                 case "01.86.09":
-                                    CheatQuery(0x10244428, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
-
                                     if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
                                     {
                                         CheatQuery(0x00557d8c, 4, clientChannel);
@@ -2804,8 +2852,6 @@ namespace Horizon.SERVER.Medius
                             switch (data.ClientObject.ClientHomeData.Version)
                             {
                                 case "01.86.09":
-                                    CheatQuery(0x101555f0, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
-
                                     if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
                                     {
                                         CheatQuery(0x006f59b8, 4, clientChannel);
