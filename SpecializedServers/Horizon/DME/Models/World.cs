@@ -491,10 +491,13 @@ namespace Horizon.DME.Models
                     };
                 }
                 else
+                {
+                    newClient.ApplicationId = this.ApplicationId;
                     newClient.OnDestroyed = (client) => {
                         UnregisterClientIndex(client.DmeId);
                         LoggerAccessor.LogWarn($"[DMEWorld] - Player:{client} left world {this}, {client.DmeId} Freed.");
                     };
+                }
             }
             else
             {
