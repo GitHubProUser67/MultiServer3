@@ -1237,6 +1237,24 @@ namespace Horizon.MUM
             return channels;
         }
 
+        public List<Channel> GetAllChannels(int appId)
+        {
+            List<Channel> channels = new();
+
+            if (_lookupsByAppId.TryGetValue(appId, out QuickLookup? quickLookup))
+            {
+                lock (quickLookup.AppIdToChannel)
+                {
+                    channels.AddRange(quickLookup.AppIdToChannel
+                        .Where(pair => pair.Key == appId)
+                        .SelectMany(pair => pair.Value)
+                        .ToList());
+                }
+            }
+
+            return channels;
+        }
+
         public Channel? GetChannelByChannelId(int channelId, int appId)
         {
             foreach (int appIdInGroup in GetAppIdsInGroup(appId))

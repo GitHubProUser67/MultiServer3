@@ -288,19 +288,31 @@ namespace Horizon.HTTPSERVICE
                             Command = HTTPProcessor.DecodeUrl(Command);
 
                         bool Retail = true;
+                        bool Admin = false;
                         string? AccessToken = null;
+                        string clientip = ctx.Request.Source.IpAddress;
+
+                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
+                        || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
+                            Admin = true;
 
                         if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
                         {
 
                         }
 
-                        if (ctx.Request.QuerystringExists("AccessToken"))
-                            AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
-
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         ctx.Response.ContentType = "text/plain";
-                        await ctx.Response.Send(await HomeRTMTools.SendRemoteCommand(ctx.Request.Source.IpAddress, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+
+                        if (Admin && ctx.Request.QuerystringExists("BroadcastAcrossEntireUniverse") && bool.TryParse(ctx.Request.RetrieveQueryValue("BroadcastAcrossEntireUniverse"), out bool Broadcast) && Broadcast)
+                            await ctx.Response.Send(await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                        else
+                        {
+                            if (ctx.Request.QuerystringExists("AccessToken"))
+                                AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                            await ctx.Response.Send(await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                        }
                     }
                 });
 

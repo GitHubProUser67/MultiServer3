@@ -422,6 +422,26 @@ namespace Horizon.MUM.Models
             return Task.CompletedTask;
         }
 
+        public Task BroadcastDirectBinaryMessage(MediusBinaryFwdMessage msg)
+        {
+            foreach (var client in LocalClients)
+            {
+                client?.Queue(msg);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task BroadcastDirectBinaryMessage(MediusBinaryFwdMessage1 msg)
+        {
+            foreach (var client in LocalClients)
+            {
+                client?.Queue(msg);
+            }
+
+            return Task.CompletedTask;
+        }
+
         #region GenericChatMessages
         public Task BroadcastChatMessage(IEnumerable<ClientObject> targets, ClientObject source, string message)
         {
