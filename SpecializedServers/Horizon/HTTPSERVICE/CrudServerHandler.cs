@@ -302,12 +302,65 @@ namespace Horizon.HTTPSERVICE
                         }
 
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                        ctx.Response.ContentType = "text/plain";
 
                         if (Admin && ctx.Request.QuerystringExists("BroadcastAcrossEntireUniverse") && bool.TryParse(ctx.Request.RetrieveQueryValue("BroadcastAcrossEntireUniverse"), out bool Broadcast) && Broadcast)
-                            await ctx.Response.Send(await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                        {
+                            if (ctx.Request.QuerystringExists("SupplementalCommands") && !string.IsNullOrEmpty(ctx.Request.RetrieveQueryValue("SupplementalCommands")))
+                            {
+                                StringBuilder st = new("[");
+
+                                ctx.Response.ContentType = "application/json; charset=utf-8";
+
+                                foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split(','))
+                                {
+                                    if (st.Length > 1)
+                                        st.Append($",\"{tmpCommand}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                    else
+                                        st.Append($"\"{tmpCommand}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                }
+
+                                if (st.Length > 1)
+                                    st.Append($",\"{Command}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                else
+                                    st.Append($"\"{Command}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+
+                                await ctx.Response.Send(st.ToString() + ']');
+                            }
+                            else
+                            {
+                                ctx.Response.ContentType = "text/plain; charset=utf-8";
+
+                                await ctx.Response.Send(await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                            }
+                        }
+                        else if (ctx.Request.QuerystringExists("SupplementalCommands") && !string.IsNullOrEmpty(ctx.Request.RetrieveQueryValue("SupplementalCommands")))
+                        {
+                            StringBuilder st = new("[");
+
+                            ctx.Response.ContentType = "application/json; charset=utf-8";
+
+                            if (ctx.Request.QuerystringExists("AccessToken"))
+                                AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                            foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split(','))
+                            {
+                                if (st.Length > 1)
+                                    st.Append($",\"{tmpCommand}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                else
+                                    st.Append($"\"{tmpCommand}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                            }
+
+                            if (st.Length > 1)
+                                st.Append($",\"{Command}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                            else
+                                st.Append($"\"{Command}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+
+                            await ctx.Response.Send(st.ToString() + ']');
+                        }
                         else
                         {
+                            ctx.Response.ContentType = "text/plain; charset=utf-8";
+
                             if (ctx.Request.QuerystringExists("AccessToken"))
                                 AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
 

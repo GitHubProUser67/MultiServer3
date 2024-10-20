@@ -120,7 +120,7 @@ namespace Horizon.MUM
             return _lookupsByAppId
                    .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
                    .SelectMany(x => x.Value.SessionKeyToClient.Select(x => x.Value))
-                   .Where(x => x.IP.ToString().Equals(Ip))
+                   .Where(x => x.ApplicationId == appId && x.IP.ToString().Equals(Ip))
                    .ToList();
         }
 
