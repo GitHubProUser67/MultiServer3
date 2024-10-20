@@ -46,7 +46,7 @@ namespace MultiSocks.Aries
 
         private static int MAX_SIZE = 1024 * 1024 * 2;
 
-        public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, string email, bool WeakChainSignedRSAKey)
+        public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, bool WeakChainSignedRSAKey)
         {
             this.secure = secure;
             Context = context;
@@ -56,7 +56,12 @@ namespace MultiSocks.Aries
             LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
             if (secure && context.SSLCache != null)
-                SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey, true);
+            {
+                if (CN == "fesl.ea.com")
+                    SecureKeyCert = context.SSLCache.GetVulnerableFeslEaCert(true);
+                else
+                    SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, WeakChainSignedRSAKey, true);
+            }
 
             RecvThread = new Thread(RunLoop);
             RecvThread.Start();

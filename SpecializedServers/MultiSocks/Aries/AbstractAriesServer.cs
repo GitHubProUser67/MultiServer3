@@ -22,16 +22,14 @@ namespace MultiSocks.Aries
         private bool secure = false;
         private bool WeakChainSignedRSAKey = false;
         private string CN = string.Empty;
-        private string email = string.Empty;
         private Thread ListenerThread;
 
-        public AbstractAriesServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false)
+        public AbstractAriesServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", bool WeakChainSignedRSAKey = false)
         {
             this.listenIP = listenIP;
             this.secure = secure;
             this.WeakChainSignedRSAKey = WeakChainSignedRSAKey;
             this.CN = CN;
-            this.email = email;
             this.Project = Project;
             this.SKU = SKU;
 
@@ -56,13 +54,13 @@ namespace MultiSocks.Aries
                     if (client != null && client.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
                     {
                         if (remoteEndPoint.AddressFamily == AddressFamily.InterNetworkV6)
-                            AddClient(new AriesClient(this, client, secure, CN, email, WeakChainSignedRSAKey)
+                            AddClient(new AriesClient(this, client, secure, CN, WeakChainSignedRSAKey)
                             {
                                 ADDR = remoteEndPoint.Address.MapToIPv4().ToString(),
                                 SessionID = SessionID++
                             });
                         else
-                            AddClient(new AriesClient(this, client, secure, CN, email, WeakChainSignedRSAKey)
+                            AddClient(new AriesClient(this, client, secure, CN, WeakChainSignedRSAKey)
                             {
                                 ADDR = remoteEndPoint.Address.ToString(),
                                 SessionID = SessionID++

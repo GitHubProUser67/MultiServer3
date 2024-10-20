@@ -20,7 +20,7 @@ namespace FixedSsl
         private const int SSLv3 = 0x0300;
         private const int TLSv1 = 0x0301;
         private static SecureProtocol legacyProtocols = SecureProtocol.Ssl3 | SecureProtocol.Tls1;
-        public static async Task<Stream> AuthenticateAsServerAsync(Socket socket, X509Certificate certificate, bool forceSsl)
+        public static async Task<Stream> AuthenticateAsServerAsync(Socket socket, X509Certificate2 certificate, bool forceSsl)
         {
             //no certificate, no ssl
             if (certificate == null)
@@ -57,7 +57,8 @@ namespace FixedSsl
 
             int maxSslVersion = buffer[9] << 8 | buffer[10];
 
-            if (maxSslVersion == SSLv3 || maxSslVersion == TLSv1)
+            // Microsoft doesn't like our FESL exploit, so we fallback to a older crypto supported by Mentalis if that's the case.
+            if (!certificate.Verify() || maxSslVersion == SSLv3 || maxSslVersion == TLSv1)
             {
                 SecurityOptions options = new SecurityOptions(legacyProtocols, new Certificate(certificate), ConnectionEnd.Server);
                 SecureSocket ss = new SecureSocket(socket, options);
@@ -68,7 +69,7 @@ namespace FixedSsl
             return sslStream;
         }
 
-        public static Stream AuthenticateAsServer(Socket socket, X509Certificate certificate, bool forceSsl)
+        public static Stream AuthenticateAsServer(Socket socket, X509Certificate2 certificate, bool forceSsl)
         {
             //no certificate, no ssl
             if (certificate == null)
@@ -101,7 +102,8 @@ namespace FixedSsl
 
             int maxSslVersion = buffer[9] << 8 | buffer[10];
 
-            if (maxSslVersion == SSLv3 || maxSslVersion == TLSv1)
+            // Microsoft doesn't like our FESL exploit, so we fallback to a older crypto supported by Mentalis if that's the case.
+            if (!certificate.Verify() || maxSslVersion == SSLv3 || maxSslVersion == TLSv1)
             {
                 SecurityOptions options = new SecurityOptions(legacyProtocols, new Certificate(certificate), ConnectionEnd.Server);
                 SecureSocket ss = new SecureSocket(socket, options);
@@ -113,7 +115,7 @@ namespace FixedSsl
             return sslStream;
         }
 
-        public static IAsyncResult BeginAuthenticateAsServer(Socket socket, X509Certificate certificate, bool forceSsl, AsyncCallback callback, object state)
+        public static IAsyncResult BeginAuthenticateAsServer(Socket socket, X509Certificate2 certificate, bool forceSsl, AsyncCallback callback, object state)
         {
             return AuthenticateAsServerAsync(socket, certificate, forceSsl).AsApm(callback, state);
         }

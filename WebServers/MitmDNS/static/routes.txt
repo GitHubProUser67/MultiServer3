@@ -387,11 +387,14 @@ ps3nascar09.ea.com,Redirect,IP
 ps3burnout08.ea.com,Redirect,IP
 ps3dpr09.ea.com,Redirect,IP
 gos.ea.com,Redirect,IP
+bf4.gos.ea.com,Redirect,IP
 gosredirector.ea.com,Redirect,IP
 ll-100.ea.com,Redirect,IP
 ll-999.ea.com,Redirect,IP
 easo.ea.com,Redirect,IP
 takedown-ps3.fesl.ea.com,Redirect,IP
+ao3-ps3.fesl.ea.com,Redirect,IP
+eaassets-a.akamaihd.net,Redirect,IP
 
 ;GameSpy
 bstormps3.available.gamespy.com,Redirect,IP
