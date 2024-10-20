@@ -56,6 +56,29 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             return Task.FromResult(false);
         }
 
+        public static Task<bool> BroadcastRemoteCommand(string command, bool Retail)
+        {
+            if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) && ForbiddenWords.Any(x => x.Contains(command, StringComparison.InvariantCultureIgnoreCase))))
+                return Task.FromResult(false);
+
+            byte[] HubRexecMessage = OtherExtensions.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
+                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight( OtherExtensions.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
+
+            foreach (Channel channel in MediusClass.Manager.GetAllChannels(Retail ? 20374 : 20371))
+            {
+                _ = channel.BroadcastDirectBinaryMessage(new MediusBinaryFwdMessage1()
+                {
+                    MessageID = new MessageId("o"),
+                    MessageType = RT.Common.MediusBinaryMessageType.TargetBinaryMsg,
+                    OriginatorAccountID = 95481,
+                    MessageSize = HubRexecMessage.Length,
+                    Message = HubRexecMessage
+                });
+            }
+
+            return Task.FromResult(false);
+        }
+
         private static byte[] EnsureMultipleOfEight(byte[] input)
         {
             int length = input.Length;
