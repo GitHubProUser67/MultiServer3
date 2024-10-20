@@ -773,7 +773,7 @@ namespace Horizon.DME
                     {
                         if (data.DMEObject != null)
                         {
-                            bool InvalidRequest = false;
+                            bool InvalidatedRequest = false;
 
                             if (data.DMEObject.ApplicationId == 20371 || data.DMEObject.ApplicationId == 20374)
                             {
@@ -801,7 +801,7 @@ namespace Horizon.DME
                                                         case "IGA":
                                                             break;
                                                         default:
-                                                            InvalidRequest = true;
+                                                            InvalidatedRequest = true;
                                                             string SupplementalMessage = "Unknown";
 
                                                             switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
@@ -819,7 +819,7 @@ namespace Horizon.DME
                                                 }
                                                 else
                                                 {
-                                                    InvalidRequest = true;
+                                                    InvalidatedRequest = true;
                                                     string SupplementalMessage = "Unknown";
 
                                                     switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
@@ -839,7 +839,7 @@ namespace Horizon.DME
                                 }
                             }
 
-                            if (!InvalidRequest)
+                            if (!InvalidatedRequest)
                                 data.DMEObject.DmeWorld?.SendTcpAppSingle(data.DMEObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
                         }
                         break;

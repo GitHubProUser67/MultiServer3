@@ -339,8 +339,9 @@ namespace Horizon.MUIS
                                                 case 65536:
                                                     if (data.ClientObject != null)
                                                     {
-                                                        data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
-                                                        .Equals(OtherExtensions.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+														if (data.ClientObject.ClientHomeData == null)
+															data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
+															.Equals(OtherExtensions.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                                                         if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot && data.ClientObject.ClientHomeData == null)
                                                         {
