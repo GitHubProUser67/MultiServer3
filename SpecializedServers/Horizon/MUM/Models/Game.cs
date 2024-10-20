@@ -917,7 +917,7 @@ namespace Horizon.MUM.Models
                             Thread.Sleep(4500);
                         }
 
-                        HomeRTMTools.SendRemoteCommand(Host, $"lc Debug.System( 'say {LobbyName}->{(crc.Crc32Result ^ MediusWorldId).ToString("X4").Replace("0X", string.Empty)}' )");
+                        HomeRTMTools.SendRemoteCommand(Host, $"lc Debug.System( 'say {LobbyName}->{(~(crc.Crc32Result ^ uint.MaxValue ^ MediusWorldId ^ utcTimeCreated.ToUnixTime() ^ 0xFFFF)).ToString("X4").Replace("0X", string.Empty)}' )");
 
                         crc = null;
                     }));
