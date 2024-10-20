@@ -19,7 +19,6 @@ public class Ssl3TlsServer : DefaultTlsServer
 
     private static readonly int[] _cipherSuites = new int[]
     {
-        CipherSuite.TLS_RSA_WITH_RC4_128_SHA,
         CipherSuite.TLS_RSA_WITH_RC4_128_MD5
     };
 
