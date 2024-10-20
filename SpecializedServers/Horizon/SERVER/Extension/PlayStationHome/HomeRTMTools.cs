@@ -56,6 +56,26 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             return Task.FromResult(false);
         }
 
+        public static Task<bool> SendRemoteCommand(ClientObject client, string command)
+        {
+            if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) && ForbiddenWords.Any(x => x.Contains(command, StringComparison.InvariantCultureIgnoreCase))))
+                return Task.FromResult(false);
+
+            byte[] HubRexecMessage = OtherExtensions.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
+                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight( OtherExtensions.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
+
+            client.Queue(new MediusBinaryFwdMessage1()
+            {
+                MessageID = new MessageId("o"),
+                MessageType = RT.Common.MediusBinaryMessageType.TargetBinaryMsg,
+                OriginatorAccountID = client.AccountId,
+                MessageSize = HubRexecMessage.Length,
+                Message = HubRexecMessage
+            });
+
+            return Task.FromResult(true);
+        }
+
         public static Task<bool> BroadcastRemoteCommand(string command, bool Retail)
         {
             if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) && ForbiddenWords.Any(x => x.Contains(command, StringComparison.InvariantCultureIgnoreCase))))

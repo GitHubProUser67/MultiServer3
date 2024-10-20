@@ -132,7 +132,6 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 
                                                 client.Tasks.TryAdd("1.86 Retail ANTI FREEZE", Task.Run(() =>
                                                 {
-
                                                     while (true)
                                                     {
                                                         if (client.IsInGame)

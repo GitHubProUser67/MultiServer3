@@ -20,6 +20,7 @@ using XI5;
 using EndianTools;
 using Horizon.MUM.Models;
 using HashLib;
+using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.SERVER.Medius
 {
@@ -2724,6 +2725,11 @@ namespace Horizon.SERVER.Medius
             {
                 if (isHome && data.ClientObject.ClientHomeData != null)
                 {
+                    if (data.ClientObject.IsOnRPCN)
+                        _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
+                    else // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
+                        _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");
+
                     switch (data.ClientObject.ClientHomeData.Type)
                     {
                         case "HDK With Offline":
