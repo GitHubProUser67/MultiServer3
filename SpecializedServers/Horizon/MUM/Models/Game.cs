@@ -880,7 +880,7 @@ namespace Horizon.MUM.Models
 
         public virtual Task GameCreated()
         {
-            if (ApplicationId == 20371 || ApplicationId == 20374 && !string.IsNullOrEmpty(GameName) && GameName.StartsWith("AP|") && GameName.Split('|').Length >= 5)
+            /*if (ApplicationId == 20371 || ApplicationId == 20374 && !string.IsNullOrEmpty(GameName) && GameName.StartsWith("AP|") && GameName.Split('|').Length >= 5)
             {
                 if (Host != null)
                 {
@@ -922,7 +922,7 @@ namespace Horizon.MUM.Models
                         crc = null;
                     }));
                 }
-            }
+            }*/
 
             return Task.CompletedTask;
         }
