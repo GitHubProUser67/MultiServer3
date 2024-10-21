@@ -396,19 +396,28 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
 		/// </exception>
 		private bool DecodeChksum()
 		{
+			int numOfChksumBits = 0;
+
 			while (neededBits > 0)
 			{
-				int chkByte = input.PeekBits(8);
+				// Some Adobe files has an encoding error that screw up their Checksum : https://github.com/icsharpcode/SharpZipLib/issues/837
+				if (input.AvailableBits < 8)
+					numOfChksumBits = input.AvailableBits;
+				else
+					numOfChksumBits = 8;
+
+				int chkByte = input.PeekBits(numOfChksumBits);
 				if (chkByte < 0)
 				{
 					return false;
 				}
-				input.DropBits(8);
-				readAdler = (readAdler << 8) | chkByte;
+				input.DropBits(numOfChksumBits);
+				readAdler = (readAdler << numOfChksumBits) | chkByte;
 				neededBits -= 8;
 			}
 
-			if ((int)adler?.Value != readAdler)
+			// Skips Checkum check for invalid data
+			if (numOfChksumBits == 8 && (int)adler?.Value != readAdler)
 			{
 				throw new SharpZipBaseException("Adler chksum doesn't match: " + (int)adler?.Value + " vs. " + readAdler);
 			}
