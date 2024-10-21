@@ -132,7 +132,7 @@ namespace HomeWebTools
                                 // Read the contents of the memory stream into the byte array
                                 filedata.Read(buffer, 0, contentLength);
 
-                                filename = multipartfile.FileName;
+                                filename = multipartfile.FileName.TrimBeforeExtension();
 
                                 string guid = WebAPIsUtils.GenerateDynamicCacheGuid(filename);
 
@@ -455,7 +455,7 @@ namespace HomeWebTools
                                 // Read the contents of the memory stream into the byte array
                                 filedata.Read(buffer, 0, contentLength);
 
-                                filename = multipartfile.FileName;
+                                filename = multipartfile.FileName.TrimBeforeExtension();
 
                                 string mapfilepath = filename + ".map";
 
