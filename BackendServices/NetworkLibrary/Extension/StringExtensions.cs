@@ -36,6 +36,11 @@ namespace NetworkLibrary.Extension
             return Source;
         }
 
+        public static string TrimBeforeExtension(this string fileName)
+        {
+            return Path.GetFileNameWithoutExtension(fileName).Trim() + Path.GetExtension(fileName);
+        }
+
         public static Stream ToStream(this string str)
         {
             return new MemoryStream(Encoding.UTF8.GetBytes(str));
