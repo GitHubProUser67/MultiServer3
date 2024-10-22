@@ -11,6 +11,8 @@ namespace EmotionEngine.Emulator
 		public const uint MIN_FLOATING_POINT_VALUE = 0xFFFFFFFF;
 		public const uint POSITIVE_INFINITY_VALUE = 0x7F800000;
 		public const uint NEGATIVE_INFINITY_VALUE = 0xFF800000;
+		public const uint ONE = 0x3F800000;
+		public const uint MIN_ONE = 0xBF800000;
 		public const int IMPLICIT_LEADING_BIT_POS = 23;
 
 		public Ps2Float(uint value)
@@ -35,6 +37,16 @@ namespace EmotionEngine.Emulator
 		public static Ps2Float Min()
 		{
 			return new Ps2Float(MIN_FLOATING_POINT_VALUE);
+		}
+
+		public static Ps2Float One()
+		{
+			return new Ps2Float(ONE);
+		}
+
+		public static Ps2Float MinOne()
+		{
+			return new Ps2Float(MIN_ONE);
 		}
 
 		public uint AsUInt32()
@@ -187,7 +199,7 @@ namespace EmotionEngine.Emulator
 			if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
 				return add ? Min() : new Ps2Float(0);
 
-			throw new InvalidOperationException("Unhandled abnormal floating point operation");
+			throw new InvalidOperationException("Unhandled abnormal add/sub floating point operation");
 		}
 
 		private static Ps2Float SolveAbnormalMultiplicationOrDivisionOperation(Ps2Float a, Ps2Float b, bool mul)
@@ -209,22 +221,42 @@ namespace EmotionEngine.Emulator
 					return Min();
 				}
 
-				if ((aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE) ||
-					(aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE))
+				if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
 				{
 					return Max();
 				}
 
-				if ((aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE) ||
-					(aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE))
+				if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
 				{
 					return Min();
 				}
 			}
 			else
-				throw new NotImplementedException();
+			{
+				if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
+					(aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
+				{
+					return One();
+				}
 
-			throw new InvalidOperationException("Unhandled abnormal floating point operation");
+				if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
+					(aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
+				{
+					return MinOne();
+				}
+
+				if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+				{
+					return One();
+				}
+
+				if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+				{
+					return MinOne();
+				}
+			}
+
+			throw new InvalidOperationException("Unhandled abnormal mul/div floating point operation");
 		}
 
 		private static Ps2Float SolveAddSubDenormalizedOperation(Ps2Float a, Ps2Float b, bool add)
