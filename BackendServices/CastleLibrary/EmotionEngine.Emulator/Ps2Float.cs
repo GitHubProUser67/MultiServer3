@@ -1,3 +1,5 @@
+using System;
+
 namespace EmotionEngine.Emulator
 {
 	// Adapted from: https://github.com/gregorygaines/ps2-floating-point-rs
@@ -91,7 +93,7 @@ namespace EmotionEngine.Emulator
 			return DoAddOrSub(subtrahend, false);
 		}
 
-		public Ps2Float Mul(Ps2Float mulend)
+		public Ps2Float Mul(Ps2Float mulend, bool aproximate)
 		{
 			if (IsDenormalized() || mulend.IsDenormalized())
 				return SolveMultiplicationDenormalizedOperation(this, mulend);
@@ -107,12 +109,26 @@ namespace EmotionEngine.Emulator
 				};
 			}
 
-			return DoMul(mulend);
+			return DoMul(mulend, aproximate);
 		}
 
-		private Ps2Float DoMul(Ps2Float other)
+		private Ps2Float DoMul(Ps2Float other, bool aproximate)
 		{
-			throw new NotImplementedException();
+            // Uses Double instead of float for the multiplying, it is faster but potentially inaccurate (From: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67).
+            if (aproximate)
+            {
+				uint Mask = 0xFF800000;
+
+                uint fval = AsUInt32();
+                uint tval = other.AsUInt32();
+
+                double fdoubleval = BitConverter.ToSingle(BitConverter.GetBytes(fval), 0);
+                double tdoubleval = BitConverter.ToSingle(BitConverter.GetBytes(tval), 0);
+
+                return new Ps2Float(MulMantissa(fval, tval) & ~Mask | (BitConverter.ToUInt32(BitConverter.GetBytes((float)(fdoubleval * tdoubleval)), 0) & Mask));
+            }
+
+            throw new NotImplementedException();
 		}
 
 		private Ps2Float DoAddOrSub(Ps2Float other, bool add)
@@ -173,150 +189,6 @@ namespace EmotionEngine.Emulator
 			return result.RoundTowardsZero();
 		}
 
-		private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add)
-		{
-			uint aval = a.AsUInt32();
-			uint bval = b.AsUInt32();
-
-			if (aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-				return add ? Max() : new Ps2Float(0);
-
-			if (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-				return add ? Min() : new Ps2Float(0);
-
-			if (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-				return add ? Max() : Min();
-
-			if (aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-				return add ? new Ps2Float(0) : Max();
-
-			if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-				return add ? Max() : new Ps2Float(0);
-
-			if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-				return add ? new Ps2Float(0) : Min();
-
-			if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-				return add ? Min() : new Ps2Float(0);
-
-			throw new InvalidOperationException("Unhandled abnormal add/sub floating point operation");
-		}
-
-		private static Ps2Float SolveAbnormalMultiplicationOrDivisionOperation(Ps2Float a, Ps2Float b, bool mul)
-		{
-			uint aval = a.AsUInt32();
-			uint bval = b.AsUInt32();
-
-			if (mul)
-			{
-				if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
-					(aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
-				{
-					return Max();
-				}
-
-				if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
-					(aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
-				{
-					return Min();
-				}
-
-				if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-				{
-					return Max();
-				}
-
-				if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-				{
-					return Min();
-				}
-			}
-			else
-			{
-				if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
-					(aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
-				{
-					return One();
-				}
-
-				if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
-					(aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
-				{
-					return MinOne();
-				}
-
-				if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-				{
-					return One();
-				}
-
-				if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-				{
-					return MinOne();
-				}
-			}
-
-			throw new InvalidOperationException("Unhandled abnormal mul/div floating point operation");
-		}
-
-		private static Ps2Float SolveAddSubDenormalizedOperation(Ps2Float a, Ps2Float b, bool add)
-		{
-			Ps2Float result;
-
-			if (a.IsDenormalized() && !b.IsDenormalized())
-				result = b;
-			else if (!a.IsDenormalized() && b.IsDenormalized())
-				result = a;
-			else if (a.IsDenormalized() && b.IsDenormalized())
-				result = new Ps2Float(0);
-			else
-				throw new InvalidOperationException("Both numbers are not denormalized");
-
-			result.Sign = add ? DetermineAdditionOperationSign(a, b) : DetermineSubtractionOperationSign(a, b);
-			return result;
-		}
-
-		private static Ps2Float SolveMultiplicationDenormalizedOperation(Ps2Float a, Ps2Float b)
-		{
-			return new Ps2Float(0)
-			{ 
-				Sign = DetermineMultiplicationDivisionOperationSign(a, b)
-			};
-		}
-
-		private static bool DetermineMultiplicationDivisionOperationSign(Ps2Float a, Ps2Float b)
-		{
-			return a.Sign ^ b.Sign;
-		}
-
-		private static bool DetermineAdditionOperationSign(Ps2Float a, Ps2Float b)
-		{
-			if (a.IsZero() && b.IsZero())
-			{
-				if (!a.Sign || !b.Sign)
-					return false;
-				else if (a.Sign && b.Sign)
-					return true;
-				else
-					throw new InvalidOperationException("Unhandled addition operation flags");
-			}
-			return a.Sign;
-		}
-
-		private static bool DetermineSubtractionOperationSign(Ps2Float a, Ps2Float b)
-		{
-			if (a.IsZero() && b.IsZero())
-			{
-				if (!a.Sign || b.Sign)
-					return false;
-				else if (a.Sign && !b.Sign)
-					return true;
-				else
-					throw new InvalidOperationException("Unhandled subtraction operation flags");
-			}
-			return a.CompareTo(b) >= 0 ? a.Sign : !b.Sign;
-		}
-
 		public bool IsDenormalized()
 		{
 			return Exponent == 0;
@@ -339,16 +211,6 @@ namespace EmotionEngine.Emulator
 			return new Ps2Float((uint)Math.Truncate((double)AsUInt32()));
 		}
 
-		private static int GetMostSignificantBitPosition(uint value)
-		{
-			for (int i = 31; i >= 0; i--)
-			{
-				if (((value >> i) & 1) != 0)
-					return i;
-			}
-			return -1;
-		}
-
 		public int CompareTo(Ps2Float other)
 		{
 			int selfTwoComplementVal = (int)(AsUInt32() & MAX_FLOATING_POINT_VALUE);
@@ -360,7 +222,214 @@ namespace EmotionEngine.Emulator
 			return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
 		}
 
-		public override string ToString()
+
+        private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add)
+        {
+            uint aval = a.AsUInt32();
+            uint bval = b.AsUInt32();
+
+            if (aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
+                return add ? Max() : new Ps2Float(0);
+
+            if (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
+                return add ? Min() : new Ps2Float(0);
+
+            if (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
+                return add ? Max() : Min();
+
+            if (aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
+                return add ? new Ps2Float(0) : Max();
+
+            if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                return add ? Max() : new Ps2Float(0);
+
+            if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                return add ? new Ps2Float(0) : Min();
+
+            if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                return add ? Min() : new Ps2Float(0);
+
+            throw new InvalidOperationException("Unhandled abnormal add/sub floating point operation");
+        }
+
+        private static Ps2Float SolveAbnormalMultiplicationOrDivisionOperation(Ps2Float a, Ps2Float b, bool mul)
+        {
+            uint aval = a.AsUInt32();
+            uint bval = b.AsUInt32();
+
+            if (mul)
+            {
+                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
+                    (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
+                {
+                    return Max();
+                }
+
+                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
+                    (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
+                {
+                    return Min();
+                }
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                {
+                    return Max();
+                }
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                {
+                    return Min();
+                }
+            }
+            else
+            {
+                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
+                    (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
+                {
+                    return One();
+                }
+
+                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
+                    (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
+                {
+                    return MinOne();
+                }
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                {
+                    return One();
+                }
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                {
+                    return MinOne();
+                }
+            }
+
+            throw new InvalidOperationException("Unhandled abnormal mul/div floating point operation");
+        }
+
+        private static Ps2Float SolveAddSubDenormalizedOperation(Ps2Float a, Ps2Float b, bool add)
+        {
+            Ps2Float result;
+
+            if (a.IsDenormalized() && !b.IsDenormalized())
+                result = b;
+            else if (!a.IsDenormalized() && b.IsDenormalized())
+                result = a;
+            else if (a.IsDenormalized() && b.IsDenormalized())
+                result = new Ps2Float(0);
+            else
+                throw new InvalidOperationException("Both numbers are not denormalized");
+
+            result.Sign = add ? DetermineAdditionOperationSign(a, b) : DetermineSubtractionOperationSign(a, b);
+            return result;
+        }
+
+        private static Ps2Float SolveMultiplicationDenormalizedOperation(Ps2Float a, Ps2Float b)
+        {
+            return new Ps2Float(0)
+            {
+                Sign = DetermineMultiplicationDivisionOperationSign(a, b)
+            };
+        }
+
+        private static bool DetermineMultiplicationDivisionOperationSign(Ps2Float a, Ps2Float b)
+        {
+            return a.Sign ^ b.Sign;
+        }
+
+        private static bool DetermineAdditionOperationSign(Ps2Float a, Ps2Float b)
+        {
+            if (a.IsZero() && b.IsZero())
+            {
+                if (!a.Sign || !b.Sign)
+                    return false;
+                else if (a.Sign && b.Sign)
+                    return true;
+                else
+                    throw new InvalidOperationException("Unhandled addition operation flags");
+            }
+            return a.Sign;
+        }
+
+        private static bool DetermineSubtractionOperationSign(Ps2Float a, Ps2Float b)
+        {
+            if (a.IsZero() && b.IsZero())
+            {
+                if (!a.Sign || b.Sign)
+                    return false;
+                else if (a.Sign && !b.Sign)
+                    return true;
+                else
+                    throw new InvalidOperationException("Unhandled subtraction operation flags");
+            }
+            return a.CompareTo(b) >= 0 ? a.Sign : !b.Sign;
+        }
+
+        private static int GetMostSignificantBitPosition(uint value)
+        {
+            for (int i = 31; i >= 0; i--)
+            {
+                if (((value >> i) & 1) != 0)
+                    return i;
+            }
+            return -1;
+        }
+
+		private static uint MulMantissa(uint s, uint t)
+		{
+            s = (s & 0x7fffff) | 0x800000;
+            t = (t & 0x7fffff) | 0x800000;
+            t <<= 1;
+            uint[] part = new uint[13]; //partial products
+            uint[] bit = new uint[13]; //more partial products. 0 or 1.
+            for (int i = 0; i <= 12; i++, t >>= 2)
+            {
+                uint test = t & 7;
+                if (test == 0 || test == 7)
+                {
+                    part[i] = 0;
+                    bit[i] = 0;
+                }
+                else if (test == 3)
+                {
+                    part[i] = (s << 1);
+                    bit[i] = 0;
+                }
+                else if (test == 4)
+                {
+                    part[i] = ~(s << 1);
+                    bit[i] = 1;
+                }
+                else if (test < 4)
+                {
+                    part[i] = s;
+                    bit[i] = 0;
+                }
+                else
+                {
+                    part[i] = ~s;
+                    bit[i] = 1;
+                }
+            }
+            long res = 0;
+            ulong mask = 0;
+            mask = (~mask) << 12; //mask
+            for (int i = 0; i <= 12; i++)
+            {
+                res += (long)(int)part[i] << (i * 2);
+                res &= (long)mask;
+                res += bit[i] << (i * 2);
+            }
+            uint man_res = (uint)(res >> 23);
+            if ((man_res & (1 << 24)) != 0)
+                man_res >>= 1;
+            man_res &= 0x7fffff;
+            return man_res;
+        }
+
+        public override string ToString()
 		{
 			double res = (Mantissa / Math.Pow(2, 23) + 1.0) * Math.Pow(2, Exponent - 127.0);
 			if (Sign)
