@@ -125,7 +125,7 @@ namespace EmotionEngine.Emulator
                 double fdoubleval = BitConverter.ToSingle(BitConverter.GetBytes(fval), 0);
                 double tdoubleval = BitConverter.ToSingle(BitConverter.GetBytes(tval), 0);
 
-                return new Ps2Float(MulMantissa(fval, tval) & ~Mask | (BitConverter.ToUInt32(BitConverter.GetBytes((float)(fdoubleval * tdoubleval)), 0) & Mask));
+                return new Ps2Float(MulMantissa(fval, tval) & ~Mask | (BitConverter.ToUInt32(BitConverter.GetBytes((float)(fdoubleval * tdoubleval)), 0) & Mask)).RoundTowardsZero();
             }
 
             throw new NotImplementedException();
@@ -261,49 +261,45 @@ namespace EmotionEngine.Emulator
             {
                 if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
                     (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
-                {
                     return Max();
-                }
 
                 if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
                     (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
-                {
                     return Min();
-                }
 
                 if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                {
                     return Max();
-                }
 
                 if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                {
                     return Min();
-                }
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return Min();
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return Max();
             }
             else
             {
                 if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
                     (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
-                {
                     return One();
-                }
 
                 if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
                     (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
-                {
                     return MinOne();
-                }
 
                 if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                {
                     return One();
-                }
 
                 if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                {
                     return MinOne();
-                }
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return MinOne();
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return One();
             }
 
             throw new InvalidOperationException("Unhandled abnormal mul/div floating point operation");
