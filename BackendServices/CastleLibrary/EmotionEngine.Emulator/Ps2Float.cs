@@ -1,4 +1,6 @@
+using EndianTools;
 using System;
+using System.Collections.Specialized;
 
 namespace EmotionEngine.Emulator
 {
@@ -172,8 +174,32 @@ namespace EmotionEngine.Emulator
                 res &= (long)mask;
                 res += bit[i] << (i * 2);
             }
+			
+            // Why doing this? $ony tried to mitigate the -1 precision defficit, but this method not supports overflow. (Test case: 3F800100 * 3F8000008)
+            byte[] byteRes = BitConverter.GetBytes(res);
 
-            result.Mantissa = (uint)(res >> 23);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(byteRes);
+
+            ushort roundingValue = BitConverter.ToUInt16(byteRes, 4);
+
+            if (BitConverter.IsLittleEndian)
+                roundingValue = EndianUtils.ReverseUshort(roundingValue);
+
+            if (roundingValue != ushort.MaxValue)
+                roundingValue++;
+
+            byte[] roundingBytes = BitConverter.GetBytes(roundingValue);
+
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(roundingBytes);
+
+            Buffer.BlockCopy(roundingBytes, 0, byteRes, 4, roundingBytes.Length);
+
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(byteRes);
+
+            result.Mantissa = (uint)(BitConverter.ToInt64(byteRes) >> 23);
 
             if (result.Mantissa > 0)
             {
@@ -294,8 +320,6 @@ namespace EmotionEngine.Emulator
 
 			return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
 		}
-
-
         private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add)
         {
             uint aval = a.AsUInt32();
