@@ -93,7 +93,7 @@ namespace EmotionEngine.Emulator
 			return DoAddOrSub(subtrahend, false);
 		}
 
-		public Ps2Float Mul(Ps2Float mulend, bool aproximate)
+		public Ps2Float Mul(Ps2Float mulend)
 		{
 			if (IsDenormalized() || mulend.IsDenormalized())
 				return SolveMultiplicationDenormalizedOperation(this, mulend);
@@ -109,42 +109,33 @@ namespace EmotionEngine.Emulator
 				};
 			}
 
-			return DoMul(mulend, aproximate);
+			return DoMul(mulend);
 		}
 
-        // Doesn't handle the -1 bug yet: https://fobes.dev/ps2/detecting-emu-vu-floats
-        private Ps2Float DoMul(Ps2Float other, bool aproximate)
+        private Ps2Float DoMul(Ps2Float other)
 		{
-            // Uses Double instead of float for the multiplying, it is faster but potentially inaccurate (From: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67).
-            if (aproximate)
-            {
-				uint Mask = 0xFF800000;
-
-                uint fval = AsUInt32();
-                uint tval = other.AsUInt32();
-
-                double fdoubleval = BitConverter.ToSingle(BitConverter.GetBytes(fval), 0);
-                double tdoubleval = BitConverter.ToSingle(BitConverter.GetBytes(tval), 0);
-
-                return new Ps2Float(MulMantissa(fval, tval) & ~Mask | (BitConverter.ToUInt32(BitConverter.GetBytes((float)(fdoubleval * tdoubleval)), 0) & Mask)).RoundTowardsZero();
-            }
-
             uint selfMantissa = Mantissa | 0x800000;
             uint otherMantissa = other.Mantissa | 0x800000;
-            Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
-
             int resExponent = Exponent + other.Exponent - 127;
+
+            Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
 
             if (resExponent >= 255)
                 return result.Sign ? Min() : Max();
             else if (resExponent <= 0)
                 return new Ps2Float(result.Sign, 0, 0);
 
+            long res = 0;
+            // PS2 hardware has a mask of 0xFFFFFFFFFFFF0000 (https://fobes.dev/ps2/detecting-emu-vu-floats)
+            ulong mask = ulong.MaxValue << 16;
+
             result.Exponent = (byte)resExponent;
 
             otherMantissa <<= 1;
+
             uint[] part = new uint[13]; //partial products
             uint[] bit = new uint[13]; //more partial products. 0 or 1.
+
             for (int i = 0; i <= 12; i++, otherMantissa >>= 2)
             {
                 uint test = otherMantissa & 7;
@@ -174,9 +165,7 @@ namespace EmotionEngine.Emulator
                     bit[i] = 1;
                 }
             }
-            long res = 0;
-            ulong mask = 0;
-            mask = (~mask) << 12; //mask
+
             for (int i = 0; i <= 12; i++)
             {
                 res += (long)(int)part[i] << (i * 2);
@@ -456,59 +445,6 @@ namespace EmotionEngine.Emulator
             }
             return -1;
         }
-
-		private static uint MulMantissa(uint s, uint t)
-		{
-            s = (s & 0x7fffff) | 0x800000;
-            t = (t & 0x7fffff) | 0x800000;
-            t <<= 1;
-            uint[] part = new uint[13]; //partial products
-            uint[] bit = new uint[13]; //more partial products. 0 or 1.
-            for (int i = 0; i <= 12; i++, t >>= 2)
-            {
-                uint test = t & 7;
-                if (test == 0 || test == 7)
-                {
-                    part[i] = 0;
-                    bit[i] = 0;
-                }
-                else if (test == 3)
-                {
-                    part[i] = (s << 1);
-                    bit[i] = 0;
-                }
-                else if (test == 4)
-                {
-                    part[i] = ~(s << 1);
-                    bit[i] = 1;
-                }
-                else if (test < 4)
-                {
-                    part[i] = s;
-                    bit[i] = 0;
-                }
-                else
-                {
-                    part[i] = ~s;
-                    bit[i] = 1;
-                }
-            }
-            long res = 0;
-            ulong mask = 0;
-            mask = (~mask) << 12; //mask
-            for (int i = 0; i <= 12; i++)
-            {
-                res += (long)(int)part[i] << (i * 2);
-                res &= (long)mask;
-                res += bit[i] << (i * 2);
-            }
-            uint man_res = (uint)(res >> 23);
-            if ((man_res & (1 << 24)) != 0)
-                man_res >>= 1;
-            man_res &= 0x7fffff;
-            return man_res;
-        }
-
         public override string ToString()
 		{
 			double res = (Mantissa / Math.Pow(2, 23) + 1.0) * Math.Pow(2, Exponent - 127.0);
