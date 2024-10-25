@@ -287,9 +287,9 @@ namespace Horizon.SERVER.Medius
                 #region MediusServerCreateGameWithAttributesResponse
                 case MediusServerCreateGameWithAttributesResponse createGameWithAttrResponse:
                     {
-                        if (createGameWithAttrResponse.MessageID.Value.Contains("-") && data.ClientObject != null)
+                        if (!string.IsNullOrEmpty(createGameWithAttrResponse.MessageID.Value) && createGameWithAttrResponse.MessageID.Value.Contains("-") && data.ClientObject != null)
                         {
-                            bool offseted = false;
+                            bool handled = false;
                             int partyType = 0;
                             int gameOrPartyId = 0;
                             int accountId = 0;
@@ -297,17 +297,51 @@ namespace Horizon.SERVER.Medius
 
                             string[] messageParts = createGameWithAttrResponse.MessageID.Value.Split('-');
 
-                            if (messageParts.Length == 5) // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser.
+                            // This is an ugly hack, anonymous accounts can have a negative ID which messes up the traditional parser, also handles worldid negative (in case of a fail).
+                            try
                             {
-                                offseted = true;
-                                gameOrPartyId = int.Parse(messageParts[0]);
-                                accountId = -int.Parse(messageParts[2]);
-                                msgId = messageParts[3];
+                                if (messageParts.Length == 6)
+                                {
+                                    gameOrPartyId = -int.Parse(messageParts[1]);
+                                    accountId = -int.Parse(messageParts[3]);
+                                    msgId = messageParts[4];
+                                    partyType = int.Parse(messageParts[5]);
+
+                                    handled = true;
+                                }
+                                else if (messageParts.Length == 5)
+                                {
+                                    if (string.IsNullOrEmpty(messageParts[0]))
+                                    {
+                                        gameOrPartyId = -int.Parse(messageParts[1]);
+                                        accountId = int.Parse(messageParts[2]);
+                                        msgId = messageParts[3];
+                                    }
+                                    else
+                                    {
+                                        gameOrPartyId = int.Parse(messageParts[0]);
+                                        accountId = -int.Parse(messageParts[2]);
+                                        msgId = messageParts[3];
+                                    }
+
+                                    partyType = int.Parse(messageParts[4]);
+
+                                    handled = true;
+                                }
+                                else if (int.TryParse(messageParts[0], out gameOrPartyId) &&
+                                    int.TryParse(messageParts[1], out accountId))
+                                {
+                                    msgId = messageParts[2];
+                                    partyType = int.Parse(messageParts[3]);
+                                    handled = true;
+                                }
                             }
-                            else if (int.TryParse(messageParts[0], out gameOrPartyId) &&
-                                int.TryParse(messageParts[1], out accountId))
-                                msgId = messageParts[2];
-                            else
+                            catch (Exception ex)
+                            {
+                                LoggerAccessor.LogError($"[MPS] - An assertion was thrown while parsing createGameWithAttrResponse MessageID: {ex}");
+                            }
+
+                            if (!handled)
                             {
                                 LoggerAccessor.LogWarn("[MPS] - createGameWithAttrResponse received an invalid MessageID, ignoring request...");
                                 break;
@@ -316,17 +350,6 @@ namespace Horizon.SERVER.Medius
                             Game? game = MediusClass.Manager.GetGameByGameId(gameOrPartyId);
                             Party? party = MediusClass.Manager.GetPartyByPartyId(gameOrPartyId);
                             ClientObject? rClient = MediusClass.Manager.GetClientByAccountId(accountId, data.ClientObject.ApplicationId);
-                            try
-                            {
-                                if (offseted)
-                                    partyType = int.Parse(messageParts[4]);
-                                else
-                                    partyType = int.Parse(messageParts[3]);
-                            }
-                            catch
-                            {
-                                // Not Important.
-                            }
 
                             if (rClient == null)
                             {
