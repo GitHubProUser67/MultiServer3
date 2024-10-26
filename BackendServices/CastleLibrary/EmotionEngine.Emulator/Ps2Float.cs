@@ -114,6 +114,7 @@ namespace EmotionEngine.Emulator
 			return DoMul(mulend);
 		}
 
+        // Doesn't handle the -1 bug yet: https://fobes.dev/ps2/detecting-emu-vu-floats
         private Ps2Float DoMul(Ps2Float other)
 		{
             uint selfMantissa = Mantissa | 0x800000;
@@ -128,8 +129,8 @@ namespace EmotionEngine.Emulator
                 return new Ps2Float(result.Sign, 0, 0);
 
             long res = 0;
-            // PS2 hardware has a mask of 0xFFFFFFFFFFFF0000 (https://fobes.dev/ps2/detecting-emu-vu-floats)
-            ulong mask = ulong.MaxValue << 16;
+            ulong mask = 0;
+            mask = (~mask) << 12; //mask
 
             result.Exponent = (byte)resExponent;
 
@@ -175,31 +176,7 @@ namespace EmotionEngine.Emulator
                 res += bit[i] << (i * 2);
             }
 			
-            // Why doing this? $ony tried to mitigate the -1 precision defficit, but this method not supports overflow. (Test case: 3F800100 * 3F8000008)
-            byte[] byteRes = BitConverter.GetBytes(res);
-
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(byteRes);
-
-            ushort roundingValue = BitConverter.ToUInt16(byteRes, 4);
-
-            if (BitConverter.IsLittleEndian)
-                roundingValue = EndianUtils.ReverseUshort(roundingValue);
-
-            if (roundingValue != ushort.MaxValue)
-                roundingValue++;
-
-            byte[] roundingBytes = BitConverter.GetBytes(roundingValue);
-
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(roundingBytes);
-
-            Buffer.BlockCopy(roundingBytes, 0, byteRes, 4, roundingBytes.Length);
-
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(byteRes);
-
-            result.Mantissa = (uint)(BitConverter.ToInt64(byteRes) >> 23);
+            result.Mantissa = (uint)(res >> 23);
 
             if (result.Mantissa > 0)
             {
