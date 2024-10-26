@@ -1,4 +1,3 @@
-using EndianTools;
 using System;
 using System.Collections.Specialized;
 
@@ -113,99 +112,27 @@ namespace EmotionEngine.Emulator
 
 			return DoMul(mulend);
 		}
-
-        // Doesn't handle the -1 bug yet: https://fobes.dev/ps2/detecting-emu-vu-floats
-        private Ps2Float DoMul(Ps2Float other)
+		
+		public Ps2Float Div(Ps2Float mulend)
 		{
-            uint selfMantissa = Mantissa | 0x800000;
-            uint otherMantissa = other.Mantissa | 0x800000;
-            int resExponent = Exponent + other.Exponent - 127;
+			if (IsDenormalized() || mulend.IsDenormalized())
+				return SolveDivisionDenormalizedOperation(this, mulend);
 
-            Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
+			if (IsAbnormal() && mulend.IsAbnormal())
+				return SolveAbnormalMultiplicationOrDivisionOperation(this, mulend, false);
 
-            if (resExponent >= 255)
-                return result.Sign ? Min() : Max();
-            else if (resExponent <= 0)
-                return new Ps2Float(result.Sign, 0, 0);
+			if (IsZero())
+			{
+				return new Ps2Float(0)
+				{
+					Sign = DetermineSubtractionOperationSign(this, mulend)
+				};
+			}
+			else if (mulend.IsZero())
+				return DetermineSubtractionOperationSign(this, mulend) ? Min() : Max();
 
-            long res = 0;
-            ulong mask = 0;
-            mask = (~mask) << 12; //mask
-
-            result.Exponent = (byte)resExponent;
-
-            otherMantissa <<= 1;
-
-            uint[] part = new uint[13]; //partial products
-            uint[] bit = new uint[13]; //more partial products. 0 or 1.
-
-            for (int i = 0; i <= 12; i++, otherMantissa >>= 2)
-            {
-                uint test = otherMantissa & 7;
-                if (test == 0 || test == 7)
-                {
-                    part[i] = 0;
-                    bit[i] = 0;
-                }
-                else if (test == 3)
-                {
-                    part[i] = (selfMantissa << 1);
-                    bit[i] = 0;
-                }
-                else if (test == 4)
-                {
-                    part[i] = ~(selfMantissa << 1);
-                    bit[i] = 1;
-                }
-                else if (test < 4)
-                {
-                    part[i] = selfMantissa;
-                    bit[i] = 0;
-                }
-                else
-                {
-                    part[i] = ~selfMantissa;
-                    bit[i] = 1;
-                }
-            }
-
-            for (int i = 0; i <= 12; i++)
-            {
-                res += (long)(int)part[i] << (i * 2);
-                res &= (long)mask;
-                res += bit[i] << (i * 2);
-            }
-			
-            result.Mantissa = (uint)(res >> 23);
-
-            if (result.Mantissa > 0)
-            {
-                int leadingBitPosition = GetMostSignificantBitPosition(result.Mantissa);
-
-                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
-                {
-                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa >>= 1;
-                        result.Exponent++;
-                        if (result.Exponent == 0)
-                            return result.Sign ? Min() : Max();
-                        leadingBitPosition--;
-                    }
-                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa <<= 1;
-                        result.Exponent--;
-                        if (result.Exponent == 0)
-                            return new Ps2Float(result.Sign, 0, 0);
-                        leadingBitPosition++;
-                    }
-                }
-            }
-
-            result.Mantissa &= 0x7FFFFF;
-            return result.RoundTowardsZero();
-        }
+			return DoDiv(mulend);
+		}
 
 		private Ps2Float DoAddOrSub(Ps2Float other, bool add)
 		{
@@ -265,6 +192,146 @@ namespace EmotionEngine.Emulator
 			return result.RoundTowardsZero();
 		}
 
+        // Doesn't handle the -1 bug yet: https://fobes.dev/ps2/detecting-emu-vu-floats
+        private Ps2Float DoMul(Ps2Float other)
+		{
+            uint selfMantissa = Mantissa | 0x800000;
+            uint otherMantissa = other.Mantissa | 0x800000;
+            int resExponent = Exponent + other.Exponent - 127;
+
+            Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
+
+            if (resExponent >= 255)
+                return result.Sign ? Min() : Max();
+            else if (resExponent <= 0)
+                return new Ps2Float(result.Sign, 0, 0);
+
+            long res = 0;
+            long mask = Convert.ToInt64("0xFFFFFFFFFFFFF000", 16); // Alter the precision of the multiplication slightly: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67
+
+            result.Exponent = (byte)resExponent;
+
+            otherMantissa <<= 1;
+
+            uint[] part = new uint[13]; // Partial products
+            uint[] bit = new uint[13]; // More partial products. 0 or 1.
+
+            for (int i = 0; i <= 12; i++, otherMantissa >>= 2)
+            {
+                uint test = otherMantissa & 7;
+                if (test == 0 || test == 7)
+                {
+                    part[i] = 0;
+                    bit[i] = 0;
+                }
+                else if (test == 3)
+                {
+                    part[i] = (selfMantissa << 1);
+                    bit[i] = 0;
+                }
+                else if (test == 4)
+                {
+                    part[i] = ~(selfMantissa << 1);
+                    bit[i] = 1;
+                }
+                else if (test < 4)
+                {
+                    part[i] = selfMantissa;
+                    bit[i] = 0;
+                }
+                else
+                {
+                    part[i] = ~selfMantissa;
+                    bit[i] = 1;
+                }
+            }
+
+            for (int i = 0; i <= 12; i++)
+            {
+                res += (long)(int)part[i] << (i * 2);
+                res &= mask;
+                res += bit[i] << (i * 2);
+            }
+			
+            result.Mantissa = (uint)(res >> 23);
+
+            if (result.Mantissa > 0)
+            {
+                int leadingBitPosition = GetMostSignificantBitPosition(result.Mantissa);
+
+                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
+                {
+                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
+                    {
+                        result.Mantissa >>= 1;
+                        result.Exponent++;
+                        if (result.Exponent == 0)
+                            return result.Sign ? Min() : Max();
+                        leadingBitPosition--;
+                    }
+                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
+                    {
+                        result.Mantissa <<= 1;
+                        result.Exponent--;
+                        if (result.Exponent == 0)
+                            return new Ps2Float(result.Sign, 0, 0);
+                        leadingBitPosition++;
+                    }
+                }
+            }
+
+            result.Mantissa &= 0x7FFFFF;
+            return result.RoundTowardsZero();
+        }
+
+        // WARNING, rounding might be slightly off (untested behaviour from: https://gist.github.com/phy1um/00d431692c63e5b99b0c3c3703aa6c04)
+        private Ps2Float DoDiv(Ps2Float other)
+        {
+            uint selfMantissa = Mantissa | 0x800000;
+            uint otherMantissa = other.Mantissa | 0x800000;
+            int resExponent = Exponent - other.Exponent + 127;
+
+            Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
+
+            if (resExponent >= 255)
+                return result.Sign ? Min() : Max();
+            else if (resExponent <= 0)
+                return new Ps2Float(result.Sign, 0, 0);
+
+            long longMan = ((long)selfMantissa << 23) / (long)otherMantissa;
+
+            result.Exponent = (byte)resExponent;
+            result.Mantissa = (uint)longMan;
+
+            if (result.Mantissa > 0)
+            {
+                int leadingBitPosition = GetMostSignificantBitPosition(result.Mantissa);
+
+                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
+                {
+                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
+                    {
+                        result.Mantissa >>= 1;
+                        result.Exponent++;
+                        if (result.Exponent == 0)
+                            return result.Sign ? Min() : Max();
+                        leadingBitPosition--;
+                    }
+                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
+                    {
+                        result.Mantissa <<= 1;
+                        result.Exponent--;
+                        if (result.Exponent == 0)
+                            return new Ps2Float(result.Sign, 0, 0);
+                        leadingBitPosition++;
+                    }
+                }
+            }
+
+            result.Mantissa &= 0x7FFFFF;
+            return result.RoundTowardsZero();
+        }
+
 		public bool IsDenormalized()
 		{
 			return Exponent == 0;
@@ -297,6 +364,7 @@ namespace EmotionEngine.Emulator
 
 			return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
 		}
+
         private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add)
         {
             uint aval = a.AsUInt32();
@@ -402,6 +470,24 @@ namespace EmotionEngine.Emulator
             {
                 Sign = DetermineMultiplicationDivisionOperationSign(a, b)
             };
+        }
+
+        private static Ps2Float SolveDivisionDenormalizedOperation(Ps2Float a, Ps2Float b)
+        {
+            bool sign = DetermineMultiplicationDivisionOperationSign(a, b);
+            Ps2Float result;
+
+            if (a.IsDenormalized() && !b.IsDenormalized())
+                result = new Ps2Float(0);
+            else if (!a.IsDenormalized() && b.IsDenormalized())
+                return sign ? Min() : Max();
+            else if (a.IsDenormalized() && b.IsDenormalized())
+                return sign ? Min() : Max();
+            else
+                throw new InvalidOperationException("Both numbers are not denormalized");
+
+            result.Sign = sign;
+            return result;
         }
 
         private static bool DetermineMultiplicationDivisionOperationSign(Ps2Float a, Ps2Float b)
