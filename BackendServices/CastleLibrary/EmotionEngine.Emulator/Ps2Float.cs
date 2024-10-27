@@ -10,6 +10,7 @@ namespace EmotionEngine.Emulator
 		public byte Exponent { get; private set; }
 		public uint Mantissa { get; private set; }
 
+        public const byte BIAS = 127;
 		public const uint MAX_FLOATING_POINT_VALUE = 0x7FFFFFFF;
 		public const uint MIN_FLOATING_POINT_VALUE = 0xFFFFFFFF;
 		public const uint POSITIVE_INFINITY_VALUE = 0x7F800000;
@@ -197,7 +198,7 @@ namespace EmotionEngine.Emulator
 		{
             uint selfMantissa = Mantissa | 0x800000;
             uint otherMantissa = other.Mantissa | 0x800000;
-            int resExponent = Exponent + other.Exponent - 127;
+            int resExponent = Exponent + other.Exponent - BIAS;
 
             Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
 
@@ -289,7 +290,7 @@ namespace EmotionEngine.Emulator
         {
             uint selfMantissa = Mantissa | 0x800000;
             uint otherMantissa = other.Mantissa | 0x800000;
-            int resExponent = Exponent - other.Exponent + 127;
+            int resExponent = Exponent - other.Exponent + BIAS;
 
             Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
 
@@ -331,6 +332,63 @@ namespace EmotionEngine.Emulator
             result.Mantissa &= 0x7FFFFF;
             return result.RoundTowardsZero();
         }
+		
+		/// <summary>
+		/// Returns the square root of x
+		/// </summary>
+		public Ps2Float Sqrt()
+		{
+			int t;
+			int s = 0;
+			int q = 0;
+			uint r = 0x01000000; /* r = moving bit from right to left */
+
+			if (IsDenormalized())
+				return new Ps2Float(0);
+
+			// PS2 only takes positive numbers for SQRT, and convert if necessary.
+			int ix = (int)new Ps2Float(false, Exponent, Mantissa).AsUInt32();
+
+			/* extract mantissa and unbias exponent */
+			int m = (ix >> 23) - BIAS;
+
+			ix = (ix & 0x007fffff) | 0x00800000;
+			if ((m & 1) == 1)
+			{
+				/* odd m, double x to make it even */
+				ix += ix;
+			}
+
+			m >>= 1; /* m = [m/2] */
+
+			/* generate sqrt(x) bit by bit */
+			ix += ix;
+
+			while (r != 0)
+			{
+				t = s + (int)r;
+				if (t <= ix)
+				{
+					s = t + (int)r;
+					ix -= t;
+					q += (int)r;
+				}
+
+				ix += ix;
+				r >>= 1;
+			}
+
+			/* use floating add to find out rounding direction */
+			if (ix != 0)
+			{
+				q += q & 1;
+			}
+
+			ix = (q >> 1) + 0x3f000000;
+			ix += m << 23;
+
+			return new Ps2Float((uint)ix);
+		}
 
 		public bool IsDenormalized()
 		{
