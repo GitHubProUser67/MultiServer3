@@ -10,6 +10,7 @@ public static class SSFWServerConfiguration
 {
     public static bool ForceOfficialRPCNSignature { get; set; } = false;
     public static bool SSFWCrossSave { get; set; } = true;
+    public static int SSFWTTL { get; set; } = 80;
     public static string SSFWMinibase { get; set; } = "[]";
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
@@ -62,6 +63,7 @@ public static class SSFWServerConfiguration
                 new JProperty("force_official_rpcn_signature", ForceOfficialRPCNSignature),
                 new JProperty("minibase", SSFWMinibase),
                 new JProperty("legacyKey", SSFWLegacyKey),
+                new JProperty("time_to_leave", SSFWTTL),
                 new JProperty("cross_save", SSFWCrossSave),
                 new JProperty("static_folder", SSFWStaticFolder),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
@@ -82,6 +84,7 @@ public static class SSFWServerConfiguration
 
             ForceOfficialRPCNSignature = GetValueOrDefault(config, "force_official_rpcn_signature", ForceOfficialRPCNSignature);
             SSFWMinibase = GetValueOrDefault(config, "minibase", SSFWMinibase);
+            SSFWTTL = GetValueOrDefault(config, "time_to_leave", SSFWTTL);
             SSFWLegacyKey = GetValueOrDefault(config, "legacyKey", SSFWLegacyKey);
             SSFWCrossSave = GetValueOrDefault(config, "cross_save", SSFWCrossSave);
             SSFWStaticFolder = GetValueOrDefault(config, "static_folder", SSFWStaticFolder);
@@ -142,10 +145,12 @@ class Program
     private static string configPath = configDir + "ssfw.json";
     private static SSFWClass? Server;
     private static Timer? SceneListTimer;
+    private static Timer? SessionTimer;
 
     private static void StartOrUpdateServer()
     {
         SceneListTimer?.Dispose();
+        SessionTimer?.Dispose();
         Server?.StopSSFW();
 
         GC.Collect();
@@ -153,6 +158,7 @@ class Program
         GC.Collect();
 
         SceneListTimer = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
+        SessionTimer = new Timer(SSFWUserSessionManager.SessionCleanupLoop, null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
 
         NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword,
             SSFWServerConfiguration.HTTPSDNSList, SSFWServerConfiguration.HTTPSCertificateHashingAlgorithm);
