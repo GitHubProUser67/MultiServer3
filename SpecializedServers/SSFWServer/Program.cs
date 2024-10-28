@@ -141,14 +141,18 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "ssfw.json";
     private static SSFWClass? Server;
+    private static Timer? SceneListTimer;
 
     private static void StartOrUpdateServer()
     {
+        SceneListTimer?.Dispose();
         Server?.StopSSFW();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+
+        SceneListTimer = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
         NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(SSFWServerConfiguration.HTTPSCertificateFile, SSFWServerConfiguration.HTTPSCertificatePassword,
             SSFWServerConfiguration.HTTPSDNSList, SSFWServerConfiguration.HTTPSCertificateHashingAlgorithm);
@@ -185,8 +189,6 @@ class Program
 #endif
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
-
-        _ = new Timer(ScenelistParser.UpdateSceneDictionary, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
         StartOrUpdateServer();
 
