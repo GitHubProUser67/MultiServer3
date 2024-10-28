@@ -314,7 +314,31 @@ namespace SSFWServer
 
                                     #region PING
                                     else if (absolutepath.Contains("/morelife") && !string.IsNullOrEmpty(GetHeaderValue(Headers, "x-signature")))
-                                        Response.MakeGetResponse("{}", "application/json");
+                                    {
+                                        const byte GuidLength = 36;
+                                        int index = absolutepath.IndexOf("/morelife");
+
+                                        if (index != -1 && index > GuidLength) // Makes sure we have at least 36 chars available beforehand.
+                                        {
+                                            // Extract the substring between the last '/' and the morelife separator.
+                                            string resultSessionId = absolutepath.Substring(index - GuidLength, GuidLength);
+
+                                            if (Regex.IsMatch(resultSessionId, @"^[{(]?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[)}]?$") && IsSSFWRegistered(resultSessionId))
+                                            {
+                                                SSFWUserSessionManager.UpdateKeepAliveTime(resultSessionId);
+                                                Response.MakeGetResponse("{}", "application/json");
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(403);
+                                                Response.SetBody();
+                                            }
+                                        }
+                                        else
+                                            Response.MakeErrorResponse();
+                                    }
                                     #endregion
 
                                     #region AvatarLayoutService

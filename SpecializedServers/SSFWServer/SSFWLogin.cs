@@ -9,45 +9,46 @@ namespace SSFWServer
 {
     public class SSFWUserSessionManager
     {
-        private static ConcurrentList<(int, UserSession)>? userSessions = new();
+        private static ConcurrentList<(int, UserSession, DateTime)> userSessions = new();
 
         public static void RegisterUser(string userName, string sessionid, string id, int realuserNameSize)
         {
-            if (userSessions != null)
+            if (userSessions.Any(u => u.Item2.SessionId == sessionid))
+                UpdateKeepAliveTime(sessionid);
+            else
             {
-                if (userSessions.Any(u => u.Item2.SessionId == sessionid))
-                {
-                    // Do nothing.
-                }
-                else
-                {
-                    userSessions.Add((realuserNameSize, new UserSession { Username = userName, SessionId = sessionid, Id = id }));
-                    LoggerAccessor.LogInfo($"[UserSessionManager] - User '{userName}' successfully registered with SessionId '{sessionid}'.");
-                }
+                userSessions.Add((realuserNameSize, new UserSession { Username = userName, SessionId = sessionid, Id = id }, DateTime.Now.AddMinutes(SSFWServerConfiguration.SSFWTTL)));
+                LoggerAccessor.LogInfo($"[UserSessionManager] - User '{userName}' successfully registered with SessionId '{sessionid}'.");
             }
         }
 
-        public static string? GetUsernameBySessionId(string sessionId)
+        public static string? GetUsernameBySessionId(string? sessionId)
         {
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            return userSessions?.FirstOrDefault(u => u.Item2.SessionId == sessionId).Item2.Username;
+            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
+
+            if (session != default)
+                return session.Item2.Username;
+
+            return null;
+
         }
 
-        public static string? GetFormatedUsernameBySessionId(string sessionId)
+        public static string? GetFormatedUsernameBySessionId(string? sessionId)
         {
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            (int, UserSession)? userSession = userSessions?.FirstOrDefault(u => u.Item2.SessionId == sessionId);
+            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
 
-            if (userSession.HasValue)
+            if (session != default)
             {
-                string? userName = userSession.Value.Item2.Username;
+                string? userName = session.Item2.Username;
 
-                if (!string.IsNullOrEmpty(userName) && userName.Length > userSession.Value.Item1)
-                    userName = userName.Substring(0, userSession.Value.Item1);
+                if (!string.IsNullOrEmpty(userName) && userName.Length > session.Item1)
+                    userName = userName.Substring(0, session.Item1);
 
                 return userName;
             }
@@ -55,12 +56,85 @@ namespace SSFWServer
             return null;
         }
 
-        public static string? GetIdBySessionId(string sessionId)
+        public static string? GetIdBySessionId(string? sessionId)
         {
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            return userSessions?.FirstOrDefault(u => u.Item2.SessionId == sessionId).Item2.Id;
+            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
+
+            if (session != default && IsSessionValid(sessionId, false))
+                return session.Item2.Id;
+
+            return null;
+        }
+
+        public static bool UpdateKeepAliveTime(string? sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+                return false;
+
+            int sessionIndex = -1; // Default value if not found
+
+            for (int i = 0; i < userSessions.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(userSessions[i].Item2.SessionId) && userSessions[i].Item2.SessionId == sessionId)
+                {
+                    sessionIndex = i;
+                    break;
+                }
+            }
+
+            // If the session is not found, return false
+            if (sessionIndex < 0)
+                return false;
+
+            (int, UserSession, DateTime) session = userSessions[sessionIndex];
+
+            DateTime KeepAliveTime = DateTime.Now.AddMinutes(SSFWServerConfiguration.SSFWTTL);
+            userSessions[sessionIndex] = (session.Item1, session.Item2, KeepAliveTime);
+
+#if DEBUG
+            LoggerAccessor.LogInfo($"[SSFWUserSessionManager] - Updating: {session.Item2.Username} session with id: {session.Item2.Id} keep-alive time to:{KeepAliveTime}...");
+#endif
+
+            return true;
+        }
+
+        public static bool IsSessionValid(string? sessionId, bool cleanup)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+                return false;
+
+            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
+
+            if (session != default)
+            {
+                if (session.Item3 > DateTime.Now)
+                    return true;
+                else if (cleanup)
+                {
+                    LoggerAccessor.LogWarn($"[SSFWUserSessionManager] - Cleaning: {session.Item2.Username} session with id: {session.Item2.Id}...");
+
+                    // Clean up expired entry.
+                    userSessions?.Remove(session);
+                }
+            }
+
+            return false;
+        }
+
+        public static void SessionCleanupLoop(object? state)
+        {
+            lock (userSessions)
+            {
+                Parallel.ForEach(userSessions, new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 2
+                }, session => {
+                    IsSessionValid(session.Item2.SessionId, true);
+                });
+            }
         }
     }
 
