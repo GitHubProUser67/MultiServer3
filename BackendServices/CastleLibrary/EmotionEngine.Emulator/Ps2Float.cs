@@ -173,17 +173,27 @@ namespace EmotionEngine.Emulator
 					if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
 					{
 						result.Mantissa >>= 1;
-						result.Exponent++;
-						if (result.Exponent == 0)
+						try
+						{
+							result.Exponent = checked((byte)(result.Exponent + 1));
+						}
+						catch (OverflowException)
+						{
 							return result.Sign ? Min() : Max();
+						}
 						leadingBitPosition--;
 					}
 					else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
 					{
 						result.Mantissa <<= 1;
-						result.Exponent--;
-						if (result.Exponent == 0)
+						try
+						{
+							result.Exponent = checked((byte)(result.Exponent - 1));
+						}
+						catch (OverflowException)
+						{
 							return new Ps2Float(result.Sign, 0, 0);
+						}
 						leadingBitPosition++;
 					}
 				}
@@ -262,22 +272,32 @@ namespace EmotionEngine.Emulator
 
                 while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
                 {
-                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa >>= 1;
-                        result.Exponent++;
-                        if (result.Exponent == 0)
-                            return result.Sign ? Min() : Max();
-                        leadingBitPosition--;
-                    }
-                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa <<= 1;
-                        result.Exponent--;
-                        if (result.Exponent == 0)
-                            return new Ps2Float(result.Sign, 0, 0);
-                        leadingBitPosition++;
-                    }
+					if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
+					{
+						result.Mantissa >>= 1;
+						try
+						{
+							result.Exponent = checked((byte)(result.Exponent + 1));
+						}
+						catch (OverflowException)
+						{
+							return result.Sign ? Min() : Max();
+						}
+						leadingBitPosition--;
+					}
+					else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
+					{
+						result.Mantissa <<= 1;
+						try
+						{
+							result.Exponent = checked((byte)(result.Exponent - 1));
+						}
+						catch (OverflowException)
+						{
+							return new Ps2Float(result.Sign, 0, 0);
+						}
+						leadingBitPosition++;
+					}
                 }
             }
 
@@ -310,22 +330,32 @@ namespace EmotionEngine.Emulator
 
                 while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
                 {
-                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa >>= 1;
-                        result.Exponent++;
-                        if (result.Exponent == 0)
-                            return result.Sign ? Min() : Max();
-                        leadingBitPosition--;
-                    }
-                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa <<= 1;
-                        result.Exponent--;
-                        if (result.Exponent == 0)
-                            return new Ps2Float(result.Sign, 0, 0);
-                        leadingBitPosition++;
-                    }
+					if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
+					{
+						result.Mantissa >>= 1;
+						try
+						{
+							result.Exponent = checked((byte)(result.Exponent + 1));
+						}
+						catch (OverflowException)
+						{
+							return result.Sign ? Min() : Max();
+						}
+						leadingBitPosition--;
+					}
+					else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
+					{
+						result.Mantissa <<= 1;
+						try
+						{
+							result.Exponent = checked((byte)(result.Exponent - 1));
+						}
+						catch (OverflowException)
+						{
+							return new Ps2Float(result.Sign, 0, 0);
+						}
+						leadingBitPosition++;
+					}
                 }
             }
 
