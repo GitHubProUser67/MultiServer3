@@ -366,7 +366,16 @@ namespace EmotionEngine.Emulator
             result.Mantissa &= 0x7FFFFF;
 
             if (remainder != 0)
-                result.Mantissa++;
+			{
+				try
+				{
+					result.Mantissa = checked(result.Mantissa + 1);
+				}
+				catch (OverflowException)
+				{
+					return result.Sign ? Min() : Max();
+				}
+			}
 
             return result.RoundTowardsZero();
         }
