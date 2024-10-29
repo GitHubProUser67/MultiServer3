@@ -56,8 +56,10 @@ namespace SSFWServer
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            if (IsSessionValid(sessionId, false) && userSessions.TryGetValue(sessionId, out (int, UserSession, DateTime) sessionEntry))
-                return sessionEntry.Item2.Id;
+            (bool, string?) sessionTuple = IsSessionValid(sessionId, false);
+
+            if (sessionTuple.Item1)
+                return sessionTuple.Item2;
 
             return null;
         }
@@ -85,16 +87,16 @@ namespace SSFWServer
             return false;
         }
 
-        public static bool IsSessionValid(string? sessionId, bool cleanup)
+        public static (bool, string?) IsSessionValid(string? sessionId, bool cleanupDeadSessions)
         {
             if (string.IsNullOrEmpty(sessionId))
-                return false;
+                return (false, null);
 
             if (userSessions.TryGetValue(sessionId, out (int, UserSession, DateTime) sessionEntry))
             {
                 if (sessionEntry.Item3 > DateTime.Now)
-                    return true;
-                else if (cleanup)
+                    return (true, sessionEntry.Item2.Id);
+                else if (cleanupDeadSessions)
                 {
                     // Clean up expired entry.
                     if (userSessions.TryRemove(sessionId, out sessionEntry))
@@ -104,7 +106,7 @@ namespace SSFWServer
                 }
             }
 
-            return false;
+            return (false, null);
         }
 
         public static void SessionCleanupLoop(object? state)
