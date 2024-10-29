@@ -29,7 +29,7 @@ namespace SSFWServer
 
             (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
 
-            if (session != default)
+            if (session != default((int, UserSession, DateTime)))
                 return session.Item2.Username;
 
             return null;
@@ -43,7 +43,7 @@ namespace SSFWServer
 
             (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
 
-            if (session != default)
+            if (session != default((int, UserSession, DateTime)))
             {
                 string? userName = session.Item2.Username;
 
@@ -63,7 +63,7 @@ namespace SSFWServer
 
             (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
 
-            if (session != default && IsSessionValid(sessionId, false))
+            if (session != default((int, UserSession, DateTime)) && IsSessionValid(sessionId, false))
                 return session.Item2.Id;
 
             return null;
@@ -108,7 +108,7 @@ namespace SSFWServer
 
             (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
 
-            if (session != default)
+            if (session != default((int, UserSession, DateTime)))
             {
                 if (session.Item3 > DateTime.Now)
                     return true;
