@@ -203,7 +203,7 @@ namespace EmotionEngine.Emulator
 			return result.RoundTowardsZero();
 		}
 
-        // Doesn't handle the -1 bug yet: https://fobes.dev/ps2/detecting-emu-vu-floats
+        // Rounding can be slightly off: https://fobes.dev/ps2/detecting-emu-vu-floats.
         private Ps2Float DoMul(Ps2Float other)
 		{
             uint selfMantissa = Mantissa | 0x800000;
@@ -305,7 +305,7 @@ namespace EmotionEngine.Emulator
             return result.RoundTowardsZero();
         }
 
-        // WARNING, rounding might be slightly off (untested behaviour from: https://gist.github.com/phy1um/00d431692c63e5b99b0c3c3703aa6c04)
+        // Rounding can be slightly off: https://github.com/PSI-Rockin/DobieStation/issues/453.
         private Ps2Float DoDiv(Ps2Float other)
         {
             uint selfMantissa = Mantissa | 0x800000;
@@ -319,10 +319,14 @@ namespace EmotionEngine.Emulator
             else if (resExponent <= 0)
                 return new Ps2Float(result.Sign, 0, 0);
 
-            long longMan = ((long)selfMantissa << 23) / (long)otherMantissa;
+            // Perform division and calculate remainder
+            long dividend = (long)selfMantissa << 23;
+            long divisor = (long)otherMantissa;
+            long quotient = dividend / divisor;
+            long remainder = dividend % divisor; // Detect remainder
 
             result.Exponent = (byte)resExponent;
-            result.Mantissa = (uint)longMan;
+            result.Mantissa = (uint)quotient;
 
             if (result.Mantissa > 0)
             {
@@ -360,13 +364,18 @@ namespace EmotionEngine.Emulator
             }
 
             result.Mantissa &= 0x7FFFFF;
+
+            if (remainder != 0)
+                result.Mantissa++;
+
             return result.RoundTowardsZero();
         }
-		
-		/// <summary>
-		/// Returns the square root of x
-		/// </summary>
-		public Ps2Float Sqrt()
+
+        // Rounding can be slightly off: rsqrt(0x7FFFFFF0) -> 0x5FB504ED.
+        /// <summary>
+        /// Returns the square root of x
+        /// </summary>
+        public Ps2Float Sqrt()
 		{
 			int t;
 			int s = 0;
@@ -420,7 +429,12 @@ namespace EmotionEngine.Emulator
 			return new Ps2Float((uint)ix);
 		}
 
-		public bool IsDenormalized()
+        public Ps2Float Rsqrt(Ps2Float other)
+        {
+            return Div(other.Sqrt());
+        }
+
+        public bool IsDenormalized()
 		{
 			return Exponent == 0;
 		}
@@ -620,6 +634,7 @@ namespace EmotionEngine.Emulator
             }
             return -1;
         }
+
         public override string ToString()
 		{
 			double res = (Mantissa / Math.Pow(2, 23) + 1.0) * Math.Pow(2, Exponent - 127.0);
