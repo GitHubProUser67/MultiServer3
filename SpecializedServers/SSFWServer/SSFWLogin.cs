@@ -2,6 +2,7 @@ using HashLib;
 using CustomLogger;
 using NetworkLibrary.Extension;
 using System.Text;
+using System.Collections.Concurrent;
 using WebAPIService.SSFW;
 using XI5;
 
@@ -9,17 +10,16 @@ namespace SSFWServer
 {
     public class SSFWUserSessionManager
     {
-        private static ConcurrentList<(int, UserSession, DateTime)> userSessions = new();
+        private static ConcurrentDictionary<string, (int, UserSession, DateTime)> userSessions = new();
 
         public static void RegisterUser(string userName, string sessionid, string id, int realuserNameSize)
         {
-            if (userSessions.Any(u => u.Item2.SessionId == sessionid))
-                UpdateKeepAliveTime(sessionid);
-            else
-            {
-                userSessions.Add((realuserNameSize, new UserSession { Username = userName, SessionId = sessionid, Id = id }, DateTime.Now.AddMinutes(SSFWServerConfiguration.SSFWTTL)));
+            if (userSessions.TryGetValue(sessionid, out (int, UserSession, DateTime) sessionEntry))
+                UpdateKeepAliveTime(sessionid, sessionEntry);
+            else if (userSessions.TryAdd(sessionid, (realuserNameSize, new UserSession { Username = userName, Id = id }, DateTime.Now.AddMinutes(SSFWServerConfiguration.SSFWTTL))))
                 LoggerAccessor.LogInfo($"[UserSessionManager] - User '{userName}' successfully registered with SessionId '{sessionid}'.");
-            }
+            else
+                LoggerAccessor.LogError($"[UserSessionManager] - Failed to register User '{userName}' with SessionId '{sessionid}'.");
         }
 
         public static string? GetUsernameBySessionId(string? sessionId)
@@ -27,13 +27,10 @@ namespace SSFWServer
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
-
-            if (session != default((int, UserSession, DateTime)))
-                return session.Item2.Username;
+            if (userSessions.TryGetValue(sessionId, out (int, UserSession, DateTime) sessionEntry))
+                return sessionEntry.Item2.Username;
 
             return null;
-
         }
 
         public static string? GetFormatedUsernameBySessionId(string? sessionId)
@@ -41,14 +38,12 @@ namespace SSFWServer
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
-
-            if (session != default((int, UserSession, DateTime)))
+            if (userSessions.TryGetValue(sessionId, out (int, UserSession, DateTime) sessionEntry))
             {
-                string? userName = session.Item2.Username;
+                string? userName = sessionEntry.Item2.Username;
 
-                if (!string.IsNullOrEmpty(userName) && userName.Length > session.Item1)
-                    userName = userName.Substring(0, session.Item1);
+                if (!string.IsNullOrEmpty(userName) && userName.Length > sessionEntry.Item1)
+                    userName = userName.Substring(0, sessionEntry.Item1);
 
                 return userName;
             }
@@ -61,44 +56,33 @@ namespace SSFWServer
             if (string.IsNullOrEmpty(sessionId))
                 return null;
 
-            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
-
-            if (session != default((int, UserSession, DateTime)) && IsSessionValid(sessionId, false))
-                return session.Item2.Id;
+            if (IsSessionValid(sessionId, false) && userSessions.TryGetValue(sessionId, out (int, UserSession, DateTime) sessionEntry))
+                return sessionEntry.Item2.Id;
 
             return null;
         }
 
-        public static bool UpdateKeepAliveTime(string? sessionId)
+        public static bool UpdateKeepAliveTime(string sessionid, (int, UserSession, DateTime) sessionEntry = default)
         {
-            if (string.IsNullOrEmpty(sessionId))
-                return false;
-
-            int sessionIndex = -1; // Default value if not found
-
-            for (int i = 0; i < userSessions.Count; i++)
+            if (sessionEntry == default)
             {
-                if (!string.IsNullOrEmpty(userSessions[i].Item2.SessionId) && userSessions[i].Item2.SessionId == sessionId)
-                {
-                    sessionIndex = i;
-                    break;
-                }
+                if (!userSessions.TryGetValue(sessionid, out sessionEntry))
+                    return false;
             }
 
-            // If the session is not found, return false
-            if (sessionIndex < 0)
-                return false;
-
-            (int, UserSession, DateTime) session = userSessions[sessionIndex];
-
             DateTime KeepAliveTime = DateTime.Now.AddMinutes(SSFWServerConfiguration.SSFWTTL);
-            userSessions[sessionIndex] = (session.Item1, session.Item2, KeepAliveTime);
 
-#if DEBUG
-            LoggerAccessor.LogInfo($"[SSFWUserSessionManager] - Updating: {session.Item2.Username} session with id: {session.Item2.Id} keep-alive time to:{KeepAliveTime}...");
-#endif
+            sessionEntry.Item3 = KeepAliveTime;
 
-            return true;
+            if (userSessions.ContainsKey(sessionid))
+            {
+                LoggerAccessor.LogInfo($"[SSFWUserSessionManager] - Updating: {sessionEntry.Item2?.Username} session with id: {sessionEntry.Item2?.Id} keep-alive time to:{KeepAliveTime}.");
+                userSessions[sessionid] = sessionEntry;
+                return true;
+            }
+
+            LoggerAccessor.LogError($"[SSFWUserSessionManager] - Failed to update: {sessionEntry.Item2?.Username} session with id: {sessionEntry.Item2?.Id} keep-alive time.");
+            return false;
         }
 
         public static bool IsSessionValid(string? sessionId, bool cleanup)
@@ -106,18 +90,17 @@ namespace SSFWServer
             if (string.IsNullOrEmpty(sessionId))
                 return false;
 
-            (int, UserSession, DateTime) session = userSessions.FirstOrDefault(u => u.Item2.SessionId == sessionId);
-
-            if (session != default((int, UserSession, DateTime)))
+            if (userSessions.TryGetValue(sessionId, out (int, UserSession, DateTime) sessionEntry))
             {
-                if (session.Item3 > DateTime.Now)
+                if (sessionEntry.Item3 > DateTime.Now)
                     return true;
                 else if (cleanup)
                 {
-                    LoggerAccessor.LogWarn($"[SSFWUserSessionManager] - Cleaning: {session.Item2.Username} session with id: {session.Item2.Id}...");
-
                     // Clean up expired entry.
-                    userSessions?.Remove(session);
+                    if (userSessions.TryRemove(sessionId, out sessionEntry))
+                        LoggerAccessor.LogWarn($"[SSFWUserSessionManager] - Cleaned: {sessionEntry.Item2.Username} session with id: {sessionEntry.Item2.Id}...");
+                    else
+                        LoggerAccessor.LogError($"[SSFWUserSessionManager] - Failed to clean: {sessionEntry.Item2.Username} session with id: {sessionEntry.Item2.Id}...");
                 }
             }
 
@@ -128,12 +111,10 @@ namespace SSFWServer
         {
             lock (userSessions)
             {
-                Parallel.ForEach(userSessions, new ParallelOptions
+                foreach (var sessionId in userSessions.Keys)
                 {
-                    MaxDegreeOfParallelism = 2
-                }, session => {
-                    IsSessionValid(session.Item2.SessionId, true);
-                });
+                    IsSessionValid(sessionId, true);
+                }
             }
         }
     }
@@ -141,7 +122,6 @@ namespace SSFWServer
     public class UserSession
     {
         public string? Username { get; set; }
-        public string? SessionId { get; set; }
         public string? Id { get; set; }
     }
 
