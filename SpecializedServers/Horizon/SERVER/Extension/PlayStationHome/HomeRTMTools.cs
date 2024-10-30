@@ -14,7 +14,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 
         public static Task<bool> SendRemoteCommand(string targetClientIp, string? AccessToken, string command, bool Retail)
         {
-            if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) && ForbiddenWords.Any(x => x.Contains(command, StringComparison.InvariantCultureIgnoreCase))))
+            if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) &&
+                 ForbiddenWords.Any(x => command.Contains(x, StringComparison.InvariantCultureIgnoreCase))))
                 return Task.FromResult(false);
 
             bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
