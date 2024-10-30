@@ -314,7 +314,7 @@ namespace EmotionEngine.Emulator
 
             Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
 
-            if (resExponent >= 255)
+            if (resExponent > 255)
                 return result.Sign ? Min() : Max();
             else if (resExponent <= 0)
                 return new Ps2Float(result.Sign, 0, 0);
