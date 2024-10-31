@@ -1,3 +1,4 @@
+using CustomLogger;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,7 +45,25 @@ namespace HomeTools.AFS
                             File.Move(filePath, NewfilePath.ToUpper());
 
                         if (File.Exists(NewfilePath))
-                            await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath));
+                        {
+                            const byte maxRetries = 3;
+
+                            for (byte attempt = 0; attempt <= maxRetries; attempt++)
+                            {
+                                try
+                                {
+                                    await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
+                                    break;
+                                }
+                                catch (IOException ex)
+                                {
+                                    if (attempt == maxRetries)
+                                        LoggerAccessor.LogError($"[AFSClass] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
+                                    else
+                                        await Task.Delay(100).ConfigureAwait(false);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -87,7 +106,25 @@ namespace HomeTools.AFS
                                             File.Move(filePath, NewfilePath.ToUpper());
 
                                         if (File.Exists(NewfilePath))
-                                            await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath));
+                                        {
+                                            const byte maxRetries = 3;
+
+                                            for (byte attempt = 0; attempt <= maxRetries; attempt++)
+                                            {
+                                                try
+                                                {
+                                                    await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
+                                                    break;
+                                                }
+                                                catch (IOException ex)
+                                                {
+                                                    if (attempt == maxRetries)
+                                                        LoggerAccessor.LogError($"[AFSClass] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
+                                                    else
+                                                        await Task.Delay(100).ConfigureAwait(false);
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -118,7 +155,25 @@ namespace HomeTools.AFS
                                 File.Move(filePath, NewfilePath.ToUpper());
 
                             if (File.Exists(NewfilePath))
-                                await AFSMap.SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath));
+                            {
+                                const byte maxRetries = 3;
+
+                                for (byte attempt = 0; attempt <= maxRetries; attempt++)
+                                {
+                                    try
+                                    {
+                                        await AFSMap.SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
+                                        break;
+                                    }
+                                    catch (IOException ex)
+                                    {
+                                        if (attempt == maxRetries)
+                                            LoggerAccessor.LogError($"[AFSClass] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
+                                        else
+                                            await Task.Delay(100).ConfigureAwait(false);
+                                    }
+                                }
+                            }
                         }
                     }));
                 }
