@@ -1373,6 +1373,7 @@ namespace HTTPServer
                     const int rangebuffersize = 32768;
 
                     string? acceptencoding = request.RetrieveHeaderValue("Accept-Encoding");
+                    string userAgent = request.RetrieveHeaderValue("User-Agent");
 
                     using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     long startByte = -1;
@@ -1537,7 +1538,7 @@ namespace HTTPServer
                         ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                         ms.Write(Separator);
                         ms.Position = 0;
-                        response = new("1.0") // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
                         {
                             HttpStatusCode = HttpStatusCode.PartialContent
                         };
@@ -1733,7 +1734,7 @@ namespace HTTPServer
                                 }
                             }
                         }
-                        response = new("1.0") // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };

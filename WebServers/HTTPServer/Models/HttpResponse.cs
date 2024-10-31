@@ -59,12 +59,8 @@ namespace HTTPServer.Models
                 {
                     // Ensure the inner array has at least two elements
                     if (innerArray.Length >= 2)
-                    {
                         // Extract two values from the inner array
-                        string value1 = innerArray[0];
-                        string value2 = innerArray[1];
-                        response.Headers.Add(value1, value2);
-                    }
+                        response.Headers.Add(innerArray[0], innerArray[1]);
                 }
             }
             if (!string.IsNullOrEmpty(stringtosend))
@@ -93,9 +89,9 @@ namespace HTTPServer.Models
                     if (innerArray.Length >= 2)
                     {
                         // Extract two values from the inner array
-                        string value1 = innerArray[0];
-                        if (!response.Headers.ContainsKey(value1))
-                            response.Headers.Add(value1, innerArray[1]);
+                        string keyValue = innerArray[0];
+                        if (!response.Headers.ContainsKey(keyValue))
+                            response.Headers.Add(keyValue, innerArray[1]);
                     }
                 }
             }
