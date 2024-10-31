@@ -305,9 +305,10 @@ namespace EmotionEngine.Emulator
             return result.RoundTowardsZero();
         }
 
-        // Rounding can be slightly off: https://github.com/PSI-Rockin/DobieStation/issues/453.
+        // Rounding can be slightly off: (PS2: 3F800000 / 3F800001 = 3F7FFFFF | SoftFloat/IEEE754: 3F800000 / 3F800001 = 3F7FFFFE).
         private Ps2Float DoDiv(Ps2Float other)
         {
+            ulong selfMantissa64;
             uint selfMantissa = Mantissa | 0x800000;
             uint otherMantissa = other.Mantissa | 0x800000;
             int resExponent = Exponent - other.Exponent + BIAS;
@@ -319,10 +320,65 @@ namespace EmotionEngine.Emulator
             else if (resExponent <= 0)
                 return new Ps2Float(result.Sign, 0, 0);
 
-            throw new NotImplementedException();
+            if (selfMantissa < otherMantissa)
+            {
+                --resExponent;
+                if (resExponent == 0)
+                    return new Ps2Float(result.Sign, 0, 0);
+                selfMantissa64 = (ulong)selfMantissa << 31;
+            }
+            else
+            {
+                selfMantissa64 = (ulong)selfMantissa << 30;
+            }
+
+            uint resMantissa = (uint)(selfMantissa64 / otherMantissa);
+            if ((resMantissa & 0x3F) == 0)
+                resMantissa |= ((ulong)otherMantissa * resMantissa != selfMantissa64) ? 1U : 0;
+
+            result.Exponent = (byte)resExponent;
+            result.Mantissa = (resMantissa + 0x39U /* Non-standard value, 40U in IEEE754 (PS2: rsqrt(40400000, 40400000) = 3FDDB3D7 -> IEEE754: rsqrt(40400000, 40400000) = 3FDDB3D8 */) >> 7;
+
+            if (result.Mantissa > 0)
+            {
+                int leadingBitPosition = GetMostSignificantBitPosition(result.Mantissa);
+
+                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
+                {
+                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
+                    {
+                        result.Mantissa >>= 1;
+                        try
+                        {
+                            result.Exponent = checked((byte)(result.Exponent + 1));
+                        }
+                        catch (OverflowException)
+                        {
+                            return result.Sign ? Min() : Max();
+                        }
+                        leadingBitPosition--;
+                    }
+                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
+                    {
+                        result.Mantissa <<= 1;
+                        try
+                        {
+                            result.Exponent = checked((byte)(result.Exponent - 1));
+                        }
+                        catch (OverflowException)
+                        {
+                            return new Ps2Float(result.Sign, 0, 0);
+                        }
+                        leadingBitPosition++;
+                    }
+                }
+            }
+
+            result.Mantissa &= 0x7FFFFF;
+            return result.RoundTowardsZero();
         }
 
-        // Rounding can be slightly off: rsqrt(0x7FFFFFF0) -> 0x5FB504ED.
+        // Rounding can be slightly off: (PS2: rsqrt(0x7FFFFFF0) -> 0x5FB504ED | SoftFloat/IEEE754 rsqrt(0x7FFFFFF0) -> 0x5FB504EE).
         /// <summary>
         /// Returns the square root of x
         /// </summary>
