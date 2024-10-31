@@ -326,7 +326,7 @@ namespace HomeTools.UnBAR
                         }
 
                         // Wait for all tasks to complete
-                        await Task.WhenAll(TOCTasks);
+                        await Task.WhenAll(TOCTasks).ConfigureAwait(false);
 
                         TOCTasks = null;
 
