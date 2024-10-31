@@ -319,65 +319,7 @@ namespace EmotionEngine.Emulator
             else if (resExponent <= 0)
                 return new Ps2Float(result.Sign, 0, 0);
 
-            // Perform division and calculate remainder
-            long dividend = (long)selfMantissa << 23;
-            long divisor = (long)otherMantissa;
-            long quotient = dividend / divisor;
-            long remainder = dividend % divisor; // Detect remainder
-
-            result.Exponent = (byte)resExponent;
-            result.Mantissa = (uint)quotient;
-
-            if (result.Mantissa > 0)
-            {
-                int leadingBitPosition = GetMostSignificantBitPosition(result.Mantissa);
-
-                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
-                {
-					if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
-					{
-						result.Mantissa >>= 1;
-						try
-						{
-							result.Exponent = checked((byte)(result.Exponent + 1));
-						}
-						catch (OverflowException)
-						{
-							return result.Sign ? Min() : Max();
-						}
-						leadingBitPosition--;
-					}
-					else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
-					{
-						result.Mantissa <<= 1;
-						try
-						{
-							result.Exponent = checked((byte)(result.Exponent - 1));
-						}
-						catch (OverflowException)
-						{
-							return new Ps2Float(result.Sign, 0, 0);
-						}
-						leadingBitPosition++;
-					}
-                }
-            }
-
-            result.Mantissa &= 0x7FFFFF;
-
-            if (remainder != 0)
-			{
-				try
-				{
-					result.Mantissa = checked(result.Mantissa + 1);
-				}
-				catch (OverflowException)
-				{
-					return result.Sign ? Min() : Max();
-				}
-			}
-
-            return result.RoundTowardsZero();
+            throw new NotImplementedException();
         }
 
         // Rounding can be slightly off: rsqrt(0x7FFFFFF0) -> 0x5FB504ED.
