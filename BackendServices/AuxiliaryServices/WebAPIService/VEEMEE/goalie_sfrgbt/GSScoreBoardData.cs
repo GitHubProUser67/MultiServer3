@@ -4,7 +4,7 @@ using System.Xml.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace WebAPIService.LeaderboardsService.VEEMEE
+namespace WebAPIService.VEEMEE.goalie_sfrgbt
 {
     public class GSScoreBoardData
     {
@@ -64,20 +64,20 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
             return xmlScoreboard.ToString();
         }
 
-        public static void UpdateAllTimeScoreboardXml(bool global)
+        public static void UpdateAllTimeScoreboardXml(string apiPath, bool global)
         {
             string directoryPath = string.Empty;
             string filePath = string.Empty;
 
             if (global)
             {
-                directoryPath = $"{LeaderboardClass.APIPath}/VEEMEE/goalie";
-                filePath = $"{LeaderboardClass.APIPath}/VEEMEE/goalie/leaderboard_alltime.xml";
+                directoryPath = $"{apiPath}/VEEMEE/goalie";
+                filePath = $"{apiPath}/VEEMEE/goalie/leaderboard_alltime.xml";
             }
             else
             {
-                directoryPath = $"{LeaderboardClass.APIPath}/VEEMEE/sfrgbt";
-                filePath = $"{LeaderboardClass.APIPath}/VEEMEE/sfrgbt/leaderboard_alltime.xml";
+                directoryPath = $"{apiPath}/VEEMEE/sfrgbt";
+                filePath = $"{apiPath}/VEEMEE/sfrgbt/leaderboard_alltime.xml";
             }
 
             lock (_Lock)
@@ -88,20 +88,20 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
             }
         }
 
-        public static void UpdateTodayScoreboardXml(bool global, string date)
+        public static void UpdateTodayScoreboardXml(string apiPath, bool global, string date)
         {
             string directoryPath = string.Empty;
             string filePath = string.Empty;
 
             if (global)
             {
-                directoryPath = $"{LeaderboardClass.APIPath}/VEEMEE/goalie";
-                filePath = $"{LeaderboardClass.APIPath}/VEEMEE/goalie/leaderboard_{date}.xml";
+                directoryPath = $"{apiPath}/VEEMEE/goalie";
+                filePath = $"{apiPath}/VEEMEE/goalie/leaderboard_{date}.xml";
             }
             else
             {
-                directoryPath = $"{LeaderboardClass.APIPath}/VEEMEE/sfrgbt";
-                filePath = $"{LeaderboardClass.APIPath}/VEEMEE/sfrgbt/leaderboard_{date}.xml";
+                directoryPath = $"{apiPath}/VEEMEE/sfrgbt";
+                filePath = $"{apiPath}/VEEMEE/sfrgbt/leaderboard_{date}.xml";
             }
 
             lock (_Lock)
@@ -109,53 +109,6 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
                 Directory.CreateDirectory(directoryPath);
                 File.WriteAllText(filePath, ConvertScoreboardToXml());
                 CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - goalie_sfrgbt - scoreboard {date} XML updated.");
-            }
-        }
-
-        public static void SanityCheckLeaderboards(string directoryPath, DateTime thresholdDate)
-        {
-            if (Directory.Exists(directoryPath))
-            {
-                try
-                {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-
-                    foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.xml"))
-                    {
-                        try
-                        {
-                            // Extract date from the file name
-                            if (DateTime.TryParseExact(
-                                    file.Name.Replace("leaderboard_", string.Empty).Replace(".xml", string.Empty),
-                                    "yyyy_MM_dd",
-                                    CultureInfo.InvariantCulture,
-                                    DateTimeStyles.None,
-                                    out DateTime leaderboardDate)
-                                && leaderboardDate < thresholdDate)
-                            {
-                                // If the leaderboard date is older than the threshold, delete the file
-                                try
-                                {
-                                    file.Delete();
-
-                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - goalie_sfrgbt - Removed outdated leaderboard: {file.Name}.");
-                                }
-                                catch (Exception e)
-                                {
-                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - goalie_sfrgbt - Error while removing leaderboard: {file.Name} (Exception: {e}).");
-                                }
-                            }
-                        }
-                        catch (ArgumentException e)
-                        {
-                            CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - goalie_sfrgbt - Error while parsing leaderboard name: {file.Name} (ArgumentException: {e}).");
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - goalie_sfrgbt - Error while creating directoryInfo of path: {directoryPath} (Exception: {e}).");
-                }
             }
         }
     }

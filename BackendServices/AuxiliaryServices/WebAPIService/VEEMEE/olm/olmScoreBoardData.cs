@@ -5,7 +5,7 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using System;
 
-namespace WebAPIService.LeaderboardsService.VEEMEE
+namespace WebAPIService.VEEMEE.olm
 {
     public class olmScoreBoardData
     {
@@ -79,21 +79,21 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
             return xmlScoreboard.ToString();
         }
 
-        public static void UpdateAllTimeScoreboardXml()
+        public static void UpdateAllTimeScoreboardXml(string apiPath)
         {
-            Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/olm");
-            File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/olm/leaderboard_alltime.xml", ConvertScoreboardToXml());
+            Directory.CreateDirectory($"{apiPath}/VEEMEE/olm");
+            File.WriteAllText($"{apiPath}/VEEMEE/olm/leaderboard_alltime.xml", ConvertScoreboardToXml());
             CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - scoreboard alltime XML updated.");
         }
 
-        public static void UpdateWeeklyScoreboardXml(string date)
+        public static void UpdateWeeklyScoreboardXml(string apiPath, string date)
         {
             lock (_Lock)
             {
-                Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/olm");
+                Directory.CreateDirectory($"{apiPath}/VEEMEE/olm");
 
                 // Get all XML files in the scoreboard folder
-                foreach (string file in Directory.GetFiles($"{LeaderboardClass.APIPath}/VEEMEE/olm", "leaderboard_*.xml"))
+                foreach (string file in Directory.GetFiles($"{apiPath}/VEEMEE/olm", "leaderboard_*.xml"))
                 {
                     // Extract date from the filename
                     Match match = Regex.Match(file, @"leaderboard_(\d{4}_\d{2}_\d{2}).xml");
@@ -116,55 +116,8 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
                     }
                 }
 
-                File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/olm/leaderboard_{date}.xml", ConvertScoreboardToXml());
+                File.WriteAllText($"{apiPath}/VEEMEE/olm/leaderboard_{date}.xml", ConvertScoreboardToXml());
                 CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - scoreboard {date} XML updated.");
-            }
-        }
-
-        public static void SanityCheckLeaderboards(string directoryPath, DateTime thresholdDate)
-        {
-            if (Directory.Exists(directoryPath))
-            {
-                try
-                {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-
-                    foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.xml"))
-                    {
-                        try
-                        {
-                            // Extract date from the file name
-                            if (DateTime.TryParseExact(
-                                    file.Name.Replace("leaderboard_", string.Empty).Replace(".xml", string.Empty),
-                                    "yyyy_MM_dd",
-                                    CultureInfo.InvariantCulture,
-                                    DateTimeStyles.None,
-                                    out DateTime leaderboardDate)
-                                && leaderboardDate < thresholdDate)
-                            {
-                                // If the leaderboard date is older than the threshold, delete the file
-                                try
-                                {
-                                    file.Delete();
-
-                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - olm - Removed outdated leaderboard: {file.Name}.");
-                                }
-                                catch (Exception e)
-                                {
-                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - olm - Error while removing leaderboard: {file.Name} (Exception: {e}).");
-                                }
-                            }
-                        }
-                        catch (ArgumentException e)
-                        {
-                            CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - olm - Error while parsing leaderboard name: {file.Name} (ArgumentException: {e}).");
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - olm - Error while creating directoryInfo of path: {directoryPath} (Exception: {e}).");
-                }
             }
         }
     }
