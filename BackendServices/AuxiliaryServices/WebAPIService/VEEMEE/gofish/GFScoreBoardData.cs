@@ -4,7 +4,7 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using System;
 
-namespace WebAPIService.LeaderboardsService.VEEMEE
+namespace WebAPIService.VEEMEE.gofish
 {
     public class GFScoreBoardData
     {
@@ -86,70 +86,23 @@ namespace WebAPIService.LeaderboardsService.VEEMEE
             return xmlScoreboard.ToString();
         }
 
-        public static void UpdateAllTimeScoreboardXml()
+        public static void UpdateAllTimeScoreboardXml(string apiPath)
         {
             lock (_Lock)
             {
-                Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/gofish");
-                File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/gofish/leaderboard_alltime.xml", ConvertScoreboardToXml());
+                Directory.CreateDirectory($"{apiPath}/VEEMEE/gofish");
+                File.WriteAllText($"{apiPath}/VEEMEE/gofish/leaderboard_alltime.xml", ConvertScoreboardToXml());
                 CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard alltime XML updated.");
             }
         }
 
-        public static void UpdateTodayScoreboardXml(string date)
+        public static void UpdateTodayScoreboardXml(string apiPath, string date)
         {
             lock (_Lock)
             {
-                Directory.CreateDirectory($"{LeaderboardClass.APIPath}/VEEMEE/gofish");
-                File.WriteAllText($"{LeaderboardClass.APIPath}/VEEMEE/gofish/leaderboard_{date}.xml", ConvertScoreboardToXml());
+                Directory.CreateDirectory($"{apiPath}/VEEMEE/gofish");
+                File.WriteAllText($"{apiPath}/VEEMEE/gofish/leaderboard_{date}.xml", ConvertScoreboardToXml());
                 CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - scoreboard {date} XML updated.");
-            }
-        }
-
-        public static void SanityCheckLeaderboards(string directoryPath, DateTime thresholdDate)
-        {
-            if (Directory.Exists(directoryPath))
-            {
-                try
-                {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-
-                    foreach (FileInfo file in directoryInfo.GetFiles("leaderboard_*.xml"))
-                    {
-                        try
-                        {
-                            // Extract date from the file name
-                            if (DateTime.TryParseExact(
-                                    file.Name.Replace("leaderboard_", string.Empty).Replace(".xml", string.Empty),
-                                    "yyyy_MM_dd",
-                                    CultureInfo.InvariantCulture,
-                                    DateTimeStyles.None,
-                                    out DateTime leaderboardDate)
-                                && leaderboardDate < thresholdDate)
-                            {
-                                // If the leaderboard date is older than the threshold, delete the file
-                                try
-                                {
-                                    file.Delete();
-
-                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Removed outdated leaderboard: {file.Name}.");
-                                }
-                                catch (Exception e)
-                                {
-                                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Error while removing leaderboard: {file.Name} (Exception: {e}).");
-                                }
-                            }
-                        }
-                        catch (ArgumentException e)
-                        {
-                            CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Error while parsing leaderboard name: {file.Name} (ArgumentException: {e}).");
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    CustomLogger.LoggerAccessor.LogInfo($"[VEEMEE] - gofish - Error while creating directoryInfo of path: {directoryPath} (Exception: {e}).");
-                }
             }
         }
     }

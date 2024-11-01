@@ -4,7 +4,6 @@ using NetworkLibrary.HTTP;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
-using WebAPIService.LeaderboardsService.NDREAMS;
 using System;
 using NetworkLibrary.Extension;
 using HashLib;
@@ -276,7 +275,7 @@ namespace WebAPIService.NDREAMS.Aurora
                             if (int.TryParse(score, out int resscore))
                             {
                                 OrbrunnerScoreBoardData.UpdateScoreBoard(name, resscore);
-                                OrbrunnerScoreBoardData.UpdateTodayScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd"));
+                                OrbrunnerScoreBoardData.UpdateTodayScoreboardXml(apipath, DateTime.Now.ToString("yyyy_MM_dd"));
                                 HighestScore = OrbrunnerScoreBoardData.GetHighestScore();
                                 if (HighestScore != null && !string.IsNullOrEmpty(HighestScore.Value.Item1))
                                 {
