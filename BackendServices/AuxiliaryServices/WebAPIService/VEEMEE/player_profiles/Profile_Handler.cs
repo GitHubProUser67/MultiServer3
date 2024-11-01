@@ -153,14 +153,13 @@ namespace WebAPIService.VEEMEE.player_profiles
                                         new XAttribute("type", listType));
                                     gameElement.Add(existingList);
                                 }
-                                else
-                                    // Clear existing values from the list
-                                    existingList.RemoveAll();
 
-                                // Add all values from the new list
+                                // Add missing values to the list in order
+                                HashSet<string> existingValues = existingList.Elements("value").Select(v => v.Value).ToHashSet();
                                 foreach (var value in listValues)
                                 {
-                                    existingList.Add(new XElement("value", value));
+                                    if (!existingValues.Contains(value))
+                                        existingList.Add(new XElement("value", value));
                                 }
                             }
                         }
