@@ -9630,11 +9630,12 @@ namespace Horizon.SERVER.Medius
 
                                 if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                 {
+                                    string? value;
+
                                     switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
                                     {
                                         case -85: // IGA
-                                        case -27: // REXEC
-                                            if (MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out string? value) && !string.IsNullOrEmpty(value))
+                                            if (MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
                                             {
                                                 switch (value)
                                                 {
@@ -9642,7 +9643,16 @@ namespace Horizon.SERVER.Medius
                                                     case "IGA":
                                                         break;
                                                     default:
-                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED HUB COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                        string SupplementalMessage = "Unknown";
+
+                                                        switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
+                                                        {
+                                                            case 0x0B:
+                                                                SupplementalMessage = "Kick";
+                                                                break;
+                                                        }
+
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                         _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
@@ -9655,7 +9665,47 @@ namespace Horizon.SERVER.Medius
                                             }
                                             else
                                             {
-                                                string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED HUB COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                string SupplementalMessage = "Unknown";
+
+                                                switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
+                                                {
+                                                    case 0x0B:
+                                                        SupplementalMessage = "Kick";
+                                                        break;
+                                                }
+
+                                                string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - User:{HomeUserEntry} CID:{data.MachineId}";
+
+                                                _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                LoggerAccessor.LogError(anticheatMsg);
+
+                                                data.State = ClientState.DISCONNECTED;
+                                                await clientChannel.CloseAsync();
+                                            }
+                                            break;
+                                        case -27: // REXEC
+                                            if (MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
+                                            {
+                                                switch (value)
+                                                {
+                                                    case "ADMIN":
+                                                        break;
+                                                    default:
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
+
+                                                        _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
+
+                                                        LoggerAccessor.LogError(anticheatMsg);
+
+                                                        data.State = ClientState.DISCONNECTED;
+                                                        await clientChannel.CloseAsync();
+                                                        break;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                 _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
