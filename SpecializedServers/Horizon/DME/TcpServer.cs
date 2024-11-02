@@ -790,10 +790,12 @@ namespace Horizon.DME
 
                                     if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                     {
+                                        string? value;
+
                                         switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
                                         {
                                             case -85: // IGA
-                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out string? value) && !string.IsNullOrEmpty(value))
+                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
                                                 {
                                                     switch (value)
                                                     {
@@ -830,6 +832,27 @@ namespace Horizon.DME
                                                     }
 
                                                     LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
+
+                                                    await clientChannel.CloseAsync();
+                                                }
+                                                break;
+                                            case -27: // REXEC
+                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
+                                                {
+                                                    switch (value)
+                                                    {
+                                                        case "ADMIN":
+                                                            break;
+                                                        default:
+                                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
+
+                                                            await clientChannel.CloseAsync();
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
 
                                                     await clientChannel.CloseAsync();
                                                 }

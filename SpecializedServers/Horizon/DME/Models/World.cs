@@ -5,6 +5,7 @@ using Horizon.DME.PluginArgs;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Horizon.PluginManager;
+using Horizon.LIBRARY.Common;
 using NetworkLibrary.Extension;
 using System;
 
@@ -102,6 +103,8 @@ namespace Horizon.DME.Models
         public bool Destroy => ((WorldTimer.Elapsed.TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) || SelfDestructFlag) && Clients.IsEmpty;
 
         public bool Destroyed { get; protected set; } = false;
+
+        public DateTime? UtcLastJoined { get; protected set; }
 
         public Stopwatch WorldTimer { get; protected set; } = Stopwatch.StartNew();
 
@@ -339,51 +342,52 @@ namespace Horizon.DME.Models
             }
 
             player.HasJoined = true;
+            UtcLastJoined = Utils.GetHighPrecisionUtcTime();
 
-                // Plugin
-                DmeClass.Plugins.OnEvent(PluginEvent.DME_PLAYER_ON_JOINED, new OnPlayerArgs()
+            // Plugin
+            DmeClass.Plugins.OnEvent(PluginEvent.DME_PLAYER_ON_JOINED, new OnPlayerArgs()
+            {
+                Player = player,
+                Game = this
+            }).Wait();
+
+            // Tell other clients
+            foreach (var client in Clients)
+            {
+                if (!client.Value.HasJoined || client.Value == player || !client.Value.HasRecvFlag(RT_RECV_FLAG.RECV_NOTIFICATION))
+                    continue;
+
+                client.Value.EnqueueTcp(new RT_MSG_SERVER_CONNECT_NOTIFY()
                 {
-                    Player = player,
-                    Game = this
-                }).Wait();
+                    PlayerIndex = (short)player.DmeId,
+                    ScertId = (short)player.ScertId,
+                    IP = player.RemoteUdpEndpoint.Address
+                });
+            }
 
-                // Tell other clients
-                foreach (var client in Clients)
+            _ = Task.Run(() => {
+                ConcurrentBag<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> tokenList = new();
+
+                Parallel.ForEach(clientTokens.Keys, (ushort token) =>
                 {
-                    if (!client.Value.HasJoined || client.Value == player || !client.Value.HasRecvFlag(RT_RECV_FLAG.RECV_NOTIFICATION))
-                        continue;
-
-                    client.Value.EnqueueTcp(new RT_MSG_SERVER_CONNECT_NOTIFY()
-                    {
-                        PlayerIndex = (short)player.DmeId,
-                        ScertId = (short)player.ScertId,
-                        IP = player.RemoteUdpEndpoint.Address
-                    });
-                }
-
-                _ = Task.Run(() => {
-                    ConcurrentBag<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> tokenList = new();
-
-                    Parallel.ForEach(clientTokens.Keys, (ushort token) =>
-                    {
-                        if (clientTokens.TryGetValue(token, out ConcurrentList<int>? value) && value != null && value.Count > 0)
-                            tokenList.Add((RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED, token, (ushort)value[0]));
-                    });
-
-                    if (!tokenList.IsEmpty) // We need to actualize client with every owned tokens.
-                        player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE()
-                        {
-                            TokenList = tokenList.ToList()
-                        });
+                    if (clientTokens.TryGetValue(token, out ConcurrentList<int>? value) && value != null && value.Count > 0)
+                        tokenList.Add((RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED, token, (ushort)value[0]));
                 });
 
-                // Tell server
-                Manager?.Enqueue(new MediusServerConnectNotification()
-                {
-                    MediusWorldUID = WorldId,
-                    PlayerSessionKey = player.SessionKey ?? string.Empty,
-                    ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT
-                });
+                if (!tokenList.IsEmpty) // We need to actualize client with every owned tokens.
+                    player.EnqueueTcp(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                    {
+                        TokenList = tokenList.ToList()
+                    });
+            });
+
+            // Tell server
+            Manager?.Enqueue(new MediusServerConnectNotification()
+            {
+                MediusWorldUID = WorldId,
+                PlayerSessionKey = player.SessionKey ?? string.Empty,
+                ConnectEventType = MGCL_EVENT_TYPE.MGCL_EVENT_CLIENT_CONNECT
+            });
 
             return Task.CompletedTask;
         }
