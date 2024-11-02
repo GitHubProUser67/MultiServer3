@@ -19,6 +19,18 @@ namespace EmotionEngine.Emulator
         public const uint MIN_ONE = 0xBF800000;
         public const int IMPLICIT_LEADING_BIT_POS = 23;
 
+        private static readonly sbyte[] msb = new sbyte[256]
+        {
+            -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+            7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+            7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+            7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+            7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+        };
+
         public Ps2Float(uint value)
         {
             Sign = ((value >> 31) & 1) != 0;
@@ -62,27 +74,27 @@ namespace EmotionEngine.Emulator
             return result;
         }
 
-        public Ps2Float Add(Ps2Float addend)
+        public Ps2Float Add(Ps2Float addend, bool COP1)
         {
             if (IsDenormalized() || addend.IsDenormalized())
                 return SolveAddSubDenormalizedOperation(this, addend, true);
 
             if (IsAbnormal() && addend.IsAbnormal())
-                return SolveAbnormalAdditionOrSubtractionOperation(this, addend, true);
+                return SolveAbnormalAdditionOrSubtractionOperation(this, addend, true, COP1);
 
             if (Sign != addend.Sign)
-                return Sub(addend);
+                return Sub(addend, COP1);
 
             return DoAddOrSub(addend, true);
         }
 
-        public Ps2Float Sub(Ps2Float subtrahend)
+        public Ps2Float Sub(Ps2Float subtrahend, bool COP1)
         {
             if (IsDenormalized() || subtrahend.IsDenormalized())
                 return SolveAddSubDenormalizedOperation(this, subtrahend, false);
 
             if (IsAbnormal() && subtrahend.IsAbnormal())
-                return SolveAbnormalAdditionOrSubtractionOperation(this, subtrahend, false);
+                return SolveAbnormalAdditionOrSubtractionOperation(this, subtrahend, false, COP1);
 
             if (CompareTo(subtrahend) == 0)
             {
@@ -481,7 +493,7 @@ namespace EmotionEngine.Emulator
             return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
         }
 
-        private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add)
+        private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add, bool COP1)
         {
             uint aval = a.AsUInt32();
             uint bval = b.AsUInt32();
@@ -493,16 +505,19 @@ namespace EmotionEngine.Emulator
                 return add ? Min() : new Ps2Float(0);
 
             if (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                return add ? Max() : Min();
+                return COP1 ? Min() : (add ? new Ps2Float(0) : Min());
 
             if (aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                return add ? new Ps2Float(0) : Max();
+                return COP1 ? Max() : (add ? new Ps2Float(0) : Max());
 
             if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
                 return add ? Max() : new Ps2Float(0);
 
             if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                return add ? new Ps2Float(0) : Min();
+                return COP1 ? Min() : (add ? new Ps2Float(0) : Min());
+
+            if (aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                return COP1 ? Max() : (add ? new Ps2Float(0) : Max());
 
             if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
                 return add ? Min() : new Ps2Float(0);
@@ -641,12 +656,17 @@ namespace EmotionEngine.Emulator
 
         private static int GetMostSignificantBitPosition(uint value)
         {
-            for (int i = 31; i >= 0; i--)
-            {
-                if (((value >> i) & 1) != 0)
-                    return i;
-            }
-            return -1;
+            // Check each byte in the 32-bit integer from the most significant byte to the least
+            if ((value & 0xFF000000) != 0)
+                return msb[(value >> 24) & 0xFF] + 24;
+            if ((value & 0x00FF0000) != 0)
+                return msb[(value >> 16) & 0xFF] + 16;
+            if ((value & 0x0000FF00) != 0)
+                return msb[(value >> 8) & 0xFF] + 8;
+            if ((value & 0x000000FF) != 0)
+                return msb[value & 0xFF];
+
+            return msb[0]; // No bits are set
         }
 
         public override string ToString()
