@@ -844,6 +844,8 @@ namespace Horizon.DME
                                                         case "ADMIN":
                                                             break;
                                                         default:
+                                                            InvalidatedRequest = true;
+
                                                             LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
 
                                                             await clientChannel.CloseAsync();
@@ -852,6 +854,8 @@ namespace Horizon.DME
                                                 }
                                                 else
                                                 {
+                                                    InvalidatedRequest = true;
+
                                                     LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
 
                                                     await clientChannel.CloseAsync();
