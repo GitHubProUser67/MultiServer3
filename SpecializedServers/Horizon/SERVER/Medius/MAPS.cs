@@ -6,6 +6,7 @@ using Horizon.RT.Models.ServerPlugins;
 using System.Net;
 using Horizon.MUM.Models;
 using Horizon.LIBRARY.Pipeline.Attribute;
+using EndianTools;
 
 namespace Horizon.SERVER.Medius
 {
@@ -17,6 +18,10 @@ namespace Horizon.SERVER.Medius
         public MAPS()
         {
 
+        }
+        public static void ReserveClient(ClientObject client)
+        {
+            MediusClass.Manager.AddClient(client);
         }
 
         protected override async Task ProcessMessage(BaseScertMessage message, IChannel clientChannel, ChannelData data)
@@ -86,9 +91,15 @@ namespace Horizon.SERVER.Medius
                             LoggerAccessor.LogInfo($"[MAPS] - Client Connected {clientChannel.RemoteAddress}!");
                         else
                         {
-                            data.Ignore = true;
-                            LoggerAccessor.LogError($"[MAPS] - ClientObject could not be granted for {clientChannel.RemoteAddress}: {clientConnectTcp}");
-                            break;
+                            LoggerAccessor.LogInfo($"[MAS] - Client Connected {clientChannel.RemoteAddress} with new ClientObject!");
+
+                            data.ClientObject = new(scertClient.MediusVersion ?? 0)
+                            {
+                                ApplicationId = clientConnectTcp.AppId
+                            };
+                            data.ClientObject.OnConnected();
+
+                            ReserveClient(data.ClientObject); // We reserve a client on MAPS as MAG/SOCOM 4 call this before MAS Login!
                         }
 
                         data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
@@ -176,23 +187,22 @@ namespace Horizon.SERVER.Medius
 
                 case NetMessageHello netMessageHello:
                     {
+                        /*
                         data.ClientObject?.Queue(new NetMAPSHelloMessage()
                         {
                             m_success = false,
                             m_isOnline = false,
                             m_availableFactions = new byte[3] { 1, 2, 3 }
                         });
+                        */
 
-                        /*
-                        var ProtoBytesReversed = ReverseBytesUInt(1725);
-                        var BuildNumber = ReverseBytesUInt(0);
                         data.ClientObject.Queue(new NetMessageTypeProtocolInfo()
                         {
-                            protocolInfo = ProtoBytesReversed, //1725 //1958
+                            protocolInfo = EndianUtils.ReverseUint(1725), //1725 //1958
                             //protocolInfo = 1958,
-                            buildNumber = BuildNumber
+                            buildNumber = EndianUtils.ReverseUint(0)
                         });
-                        */
+                        
 
                         break;
                     }
