@@ -198,7 +198,7 @@ namespace Horizon.SERVER
                     if (Settings.EnableMAPS == true)
                     {
                         LoggerAccessor.LogInfo($"MAPS Version: {Settings.MAPSVersion}");
-                        LoggerAccessor.LogInfo($"Enabling MAPS on Server IP = {SERVER_IP} TCP Port = {AuthenticationServer.TCPPort} UDP Port = {AuthenticationServer.UDPPort}.");
+                        LoggerAccessor.LogInfo($"Enabling MAPS on Server IP = {SERVER_IP} TCP Port = {ProfileServer.TCPPort} UDP Port = {ProfileServer.UDPPort}.");
 
                         ProfileServer.Start();
                         LoggerAccessor.LogInfo("Medius Profile Server Intialized and Now Accepting Clients");
