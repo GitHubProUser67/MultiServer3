@@ -119,32 +119,32 @@ namespace EmotionEngine.Emulator
             {
                 return new Ps2Float(0)
                 {
-                    Sign = DetermineSubtractionOperationSign(this, mulend)
+                    Sign = DetermineMultiplicationDivisionOperationSign(this, mulend)
                 };
             }
 
             return DoMul(mulend);
         }
 
-        public Ps2Float Div(Ps2Float mulend)
+        public Ps2Float Div(Ps2Float divend)
         {
-            if (IsDenormalized() || mulend.IsDenormalized())
-                return SolveDivisionDenormalizedOperation(this, mulend);
+            if (IsDenormalized() || divend.IsDenormalized())
+                return SolveDivisionDenormalizedOperation(this, divend);
 
-            if (IsAbnormal() && mulend.IsAbnormal())
-                return SolveAbnormalMultiplicationOrDivisionOperation(this, mulend, false);
+            if (IsAbnormal() && divend.IsAbnormal())
+                return SolveAbnormalMultiplicationOrDivisionOperation(this, divend, false);
 
             if (IsZero())
             {
                 return new Ps2Float(0)
                 {
-                    Sign = DetermineSubtractionOperationSign(this, mulend)
+                    Sign = DetermineMultiplicationDivisionOperationSign(this, divend)
                 };
             }
-            else if (mulend.IsZero())
-                return DetermineSubtractionOperationSign(this, mulend) ? Min() : Max();
+            else if (divend.IsZero())
+                return DetermineMultiplicationDivisionOperationSign(this, divend) ? Min() : Max();
 
-            return DoDiv(mulend);
+            return DoDiv(divend);
         }
 
         private Ps2Float DoAddOrSub(Ps2Float other, bool add)
