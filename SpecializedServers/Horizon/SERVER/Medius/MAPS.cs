@@ -91,7 +91,7 @@ namespace Horizon.SERVER.Medius
                             LoggerAccessor.LogInfo($"[MAPS] - Client Connected {clientChannel.RemoteAddress}!");
                         else
                         {
-                            LoggerAccessor.LogInfo($"[MAS] - Client Connected {clientChannel.RemoteAddress} with new ClientObject!");
+                            LoggerAccessor.LogInfo($"[MAPS] - Client Connected {clientChannel.RemoteAddress} with new ClientObject!");
 
                             data.ClientObject = new(scertClient.MediusVersion ?? 0)
                             {
