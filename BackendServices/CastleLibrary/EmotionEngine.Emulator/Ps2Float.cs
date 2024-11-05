@@ -153,6 +153,8 @@ namespace EmotionEngine.Emulator
         // Rounding can be slightly off: (PS2/IEEE754: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F31 | SoftFloat: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F30).
         private Ps2Float DoAdd(Ps2Float other)
         {
+            const byte roundingMultiplier = 1;
+
             byte selfExponent = Exponent;
             int resExponent = selfExponent - other.Exponent;
 
@@ -167,12 +169,14 @@ namespace EmotionEngine.Emulator
             uint sign2 = (uint)((int)other.AsUInt32() >> 31);
             int otherMantissa = (int)(((other.Mantissa | 0x800000) ^ sign2) - sign2);
 
-            int man = (selfMantissa << 6) + ((otherMantissa << 6) >> resExponent);
+            // PS2 multiply by 2 before doing the Math here.
+            int man = (selfMantissa << roundingMultiplier) + ((otherMantissa << roundingMultiplier) >> resExponent);
             int absMan = Math.Abs(man);
             if (absMan == 0)
                 return new Ps2Float(0);
 
-            int rawExp = selfExponent - 6;
+            // Remove from exponent the PS2 Multiplier value.
+            int rawExp = selfExponent - roundingMultiplier;
 
             int amount = normalizeAmounts[clz(absMan)];
             rawExp -= amount;
@@ -181,18 +185,13 @@ namespace EmotionEngine.Emulator
             int msbIndex = BitScanReverse8(absMan >> 23);
             rawExp += msbIndex;
             absMan >>= msbIndex;
-            if ((uint)(rawExp - 1) < 254)
-                return new Ps2Float((uint)man & 0x80000000 | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
-            else
-            {
-                if (rawExp >= 255)
-                    return man >= 0 ? Max() : Min();
 
-                if (rawExp >= -24)
-                    return new Ps2Float((uint)man & 0x80000000 | (uint)(absMan >> (-rawExp + 1))).RoundTowardsZero();
+            if (rawExp > 255)
+                return man < 0 ? Min() : Max();
+            else if (rawExp <= 0)
+                return new Ps2Float(man < 0, 0, 0);
 
-                return new Ps2Float(0);
-            }
+            return new Ps2Float((uint)man & 0x80000000 | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
         }
 
         // Rounding can be slightly off: https://fobes.dev/ps2/detecting-emu-vu-floats (example in the article handled).
@@ -274,27 +273,27 @@ namespace EmotionEngine.Emulator
                     if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
                     {
                         result.Mantissa >>= 1;
-                        try
-                        {
-                            result.Exponent = checked((byte)(result.Exponent + 1));
-                        }
-                        catch (OverflowException)
-                        {
+
+                        int increasedExponent = result.Exponent + 1;
+
+                        if (increasedExponent > 255)
                             return result.Sign ? Min() : Max();
-                        }
+
+                        result.Exponent = (byte)increasedExponent;
+
                         leadingBitPosition--;
                     }
                     else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
                     {
                         result.Mantissa <<= 1;
-                        try
-                        {
-                            result.Exponent = checked((byte)(result.Exponent - 1));
-                        }
-                        catch (OverflowException)
-                        {
+
+                        int decreasedExponent = result.Exponent - 1;
+
+                        if (decreasedExponent <= 0)
                             return new Ps2Float(result.Sign, 0, 0);
-                        }
+
+                        result.Exponent = (byte)decreasedExponent;
+
                         leadingBitPosition++;
                     }
                 }
@@ -327,9 +326,7 @@ namespace EmotionEngine.Emulator
                 selfMantissa64 = (ulong)selfMantissa << 31;
             }
             else
-            {
                 selfMantissa64 = (ulong)selfMantissa << 30;
-            }
 
             uint resMantissa = (uint)(selfMantissa64 / otherMantissa);
             if ((resMantissa & 0x3F) == 0)
@@ -347,27 +344,27 @@ namespace EmotionEngine.Emulator
                     if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
                     {
                         result.Mantissa >>= 1;
-                        try
-                        {
-                            result.Exponent = checked((byte)(result.Exponent + 1));
-                        }
-                        catch (OverflowException)
-                        {
+
+                        int increasedExponent = result.Exponent + 1;
+
+                        if (increasedExponent > 255)
                             return result.Sign ? Min() : Max();
-                        }
+
+                        result.Exponent = (byte)increasedExponent;
+
                         leadingBitPosition--;
                     }
                     else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
                     {
                         result.Mantissa <<= 1;
-                        try
-                        {
-                            result.Exponent = checked((byte)(result.Exponent - 1));
-                        }
-                        catch (OverflowException)
-                        {
+
+                        int decreasedExponent = result.Exponent - 1;
+
+                        if (decreasedExponent <= 0)
                             return new Ps2Float(result.Sign, 0, 0);
-                        }
+
+                        result.Exponent = (byte)decreasedExponent;
+
                         leadingBitPosition++;
                     }
                 }
