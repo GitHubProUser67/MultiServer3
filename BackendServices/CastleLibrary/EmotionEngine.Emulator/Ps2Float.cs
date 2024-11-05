@@ -96,7 +96,7 @@ namespace EmotionEngine.Emulator
             if (IsAbnormal() && addend.IsAbnormal())
                 return SolveAbnormalAdditionOrSubtractionOperation(this, addend, true, COP1);
 
-            return DoAdd(addend);
+            return DoAdd(addend, false);
         }
 
         public Ps2Float Sub(Ps2Float subtrahend, bool COP1)
@@ -107,7 +107,7 @@ namespace EmotionEngine.Emulator
             if (IsAbnormal() && subtrahend.IsAbnormal())
                 return SolveAbnormalAdditionOrSubtractionOperation(this, subtrahend, false, COP1);
 
-            return DoAdd(Neg(subtrahend));
+            return DoAdd(Neg(subtrahend), true);
         }
 
         public Ps2Float Mul(Ps2Float mulend)
@@ -151,7 +151,7 @@ namespace EmotionEngine.Emulator
         }
 
         // Rounding can be slightly off: (PS2/IEEE754: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F31 | SoftFloat: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F30).
-        private Ps2Float DoAdd(Ps2Float other)
+        private Ps2Float DoAdd(Ps2Float other, bool sub)
         {
             const byte roundingMultiplier = 1;
 
@@ -159,7 +159,7 @@ namespace EmotionEngine.Emulator
             int resExponent = selfExponent - other.Exponent;
 
             if (resExponent < 0)
-                return other.DoAdd(this);
+                return other.DoAdd(this, sub);
             else if (resExponent >= 25)
                 return this;
 
