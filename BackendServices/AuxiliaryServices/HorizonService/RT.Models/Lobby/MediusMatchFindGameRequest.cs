@@ -69,25 +69,18 @@ namespace Horizon.RT.Models
         /// <summary>
         /// GroupMemberAccountIDList
         /// </summary>
-        public char[] GroupMemberAccountIDList;
+        public byte[] GroupMemberAccountIDList;
         /// <summary>
         /// ApplicationData
         /// </summary>
-        public char[] ApplicationData;
+        public byte[] ApplicationData;
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
-
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
-            //reader.ReadBytes(2);
-            
-            //
             SupersetID = reader.ReadUInt32();
             MediusWorldID = reader.ReadInt32();
             PlayerJoinType = reader.Read<MediusJoinType>();
@@ -97,26 +90,18 @@ namespace Horizon.RT.Models
             MatchOptions = reader.Read<MediusMatchOptions>();
             ServerSessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             RequestData = reader.ReadString(Constants.REQUESTDATA_MAXLEN);
-            //reader.ReadBytes(3);
-
-            //
             GroupMemberListSize = reader.ReadUInt32();
             ApplicationDataSize = reader.ReadUInt32();
-            GroupMemberAccountIDList = reader.ReadChars((int)GroupMemberListSize);
-            ApplicationData = reader.ReadChars((int)ApplicationDataSize);
+            GroupMemberAccountIDList = reader.ReadBytes((int)GroupMemberListSize);
+            ApplicationData = reader.ReadBytes((int)ApplicationDataSize);
         }
 
         public override void Serialize(MessageWriter writer)
-        {
-            // 
+        {            
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
-            //writer.Write(new byte[2]);
-
-            //
             writer.Write(SupersetID);
             writer.Write(MediusWorldID);
             writer.Write(PlayerJoinType);
@@ -126,9 +111,6 @@ namespace Horizon.RT.Models
             writer.Write(MatchOptions);
             writer.Write(ServerSessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(RequestData, Constants.REQUESTDATA_MAXLEN);
-            //writer.Write(new byte[3]);
-
-            //
             writer.Write(GroupMemberListSize);
             writer.Write(ApplicationDataSize);
             writer.Write(GroupMemberAccountIDList);
@@ -152,8 +134,8 @@ namespace Horizon.RT.Models
                 $"RequestData: {RequestData} " +
                 $"GroupMemberListSize: {GroupMemberListSize} " +
                 $"ApplicationDataSize: {ApplicationDataSize} " +
-                $"GroupMemberAccountIDList: {GroupMemberAccountIDList} " +
-                $"ApplicationData: {ApplicationData} ";
+                $"GroupMemberAccountIDList: {string.Join(string.Empty, GroupMemberAccountIDList)} " +
+                $"ApplicationData: {string.Join(string.Empty, ApplicationData)} ";
         }
     }
 }

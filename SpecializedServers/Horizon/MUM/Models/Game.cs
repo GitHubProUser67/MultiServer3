@@ -57,7 +57,7 @@ namespace Horizon.MUM.Models
         public uint GroupMemberListSize;
         public byte[]? GroupMemberList;
         public uint AppDataSize;
-        public string? AppData;
+        public byte[]? AppData;
 
         public MediusWorldStatus WorldStatus => _worldStatus;
         public MediusWorldAttributesType Attributes;

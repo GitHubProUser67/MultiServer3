@@ -1327,7 +1327,7 @@ namespace Horizon.SERVER.Medius
                         */
                         break;
                     }
-                /*
+                
             case MediusMatchSetGameStateRequest mediusMatchSetGameStateRequest:
                 {
                         if (data.ClientObject == null)
@@ -1356,7 +1356,7 @@ namespace Horizon.SERVER.Medius
 
                     break;
                 }
-                */
+                
                 #endregion
 
                 #region Version Server
@@ -10624,20 +10624,21 @@ namespace Horizon.SERVER.Medius
 
         public void AssignGameToJoin(ClientObject clientObject, MediusMatchFindGameRequest matchFindGameRequest)
         {
-            //We Sleep for a bit so we return another packet for the matchmaked game we may have found!
-
             uint gameCount = MediusClass.Manager.GetGameCount(clientObject.ApplicationId);
+
+
+            //If no games exist, we return no result
             if (gameCount == 0)
             {
+                // Tell the client their new assigned game
                 clientObject.Queue(new MediusAssignedGameToJoinMessage()
                 {
                     AssignedGameMessageRequestData = new byte[Constants.REQUESTDATA_MAXLEN],
-                    AssignedGameMessageID = 0,
+                    AssignedGameMessageID = matchFindGameRequest.MessageID,
                     AssignedGameType = MediusAssignedGameType.AssignedGameTypeMMS,
                     StatusCode = MediusCallbackStatus.MediusNoResult,
                     SystemSpecificStatusCode = 0,
-
-                    GameWorldID = 0, //TEMP
+                    GameWorldID = 0,
                     TeamID = 0,
                     PlayerCount = 0,
                     GameName = string.Empty,
@@ -10667,182 +10668,113 @@ namespace Horizon.SERVER.Medius
                          }
                     },
                     AppDataSize = 0,
-                    AppData = string.Empty
-                    /*
-                        mediusAssignedGameToJoin = new MediusAssignedGameToJoin()
-                        {
-
-                            GameWorldID = 0, //TEMP
-                            TeamID = 0,
-                            PlayerCount = 0,
-                            GameName = "",
-                            GameStats = new byte[Constants.GAMESTATS_MAXLEN],
-                            MinPlayers = 0,
-                            MaxPlayers = 0,
-                            GameLevel = 0,
-                            PlayerSkillLevel = 0,
-                            GenericField1 = 0,
-                            GenericField2 = 0,
-                            GenericField3 = 0,
-                            GenericField4 = 0,
-                            GenericField5 = 0,
-                            GenericField6 = 0,
-                            GenericField7 = 0,
-                            GenericField8 = 0,
-                            WorldStatus = MediusWorldStatus.WorldInactive,
-                            JoinType = MediusJoinType.MediusJoinAsPlayer,
-                            GamePassword = "",
-                            GameHostType = MediusGameHostType.MediusGameHostClientServer,
-                            AddressList = new NetAddressList()
-                            {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                            {
-                                new NetAddress() { AddressType = NetAddressType.NetAddressNone },
-                                new NetAddress() { AddressType = NetAddressType.NetAddressNone }
-                             }
-                            },
-                            AppDataSize = 0,
-                            AppData = new byte[0]
-                        }
-                        */
-                        });
+                    AppData = new byte[0],
+                });
             }
             else
             {
-                if (matchFindGameRequest.MediusWorldID != 0)
-                {
-                    var gameInfo = MediusClass.Manager.GetGameByGameId(matchFindGameRequest.MediusWorldID);
 
-                    var dmeServer = gameInfo.DMEServer;
+                ClientObject dmeServer;
+                //Quick Match 
+                if (matchFindGameRequest.MediusWorldID == 0)
+                {
+                    var gameInfoRandomPick = MediusClass.Manager.GetGameListAppId(clientObject.ApplicationId, 1, 10).FirstOrDefault();
+                    dmeServer = gameInfoRandomPick.DMEServer;
 
                     // Tell the client their new assigned game
                     clientObject.Queue(new MediusAssignedGameToJoinMessage()
                     {
-                        AssignedGameMessageRequestData = gameInfo.RequestData,
-                        AssignedGameMessageID = 0,
+                        AssignedGameMessageRequestData = gameInfoRandomPick.RequestData,
+                        AssignedGameMessageID = matchFindGameRequest.MessageID,
                         AssignedGameType = MediusAssignedGameType.AssignedGameTypeMMS,
                         StatusCode = MediusCallbackStatus.MediusJoinAssignedGame,
                         SystemSpecificStatusCode = 0,
-                        /*
-                        Unk1 = 0,
-                        GameWorldID = (uint)gameInfo.Id, //TEMP
-                        TeamID = 1,
-                        PlayerCount = 0,
-                        GameName = string.Empty,
-                        GameStats = new byte[Constants.GAMESTATS_MAXLEN],
-                        MinPlayers = 0,
-                        MaxPlayers = 0,
-                        GameLevel = 0,
-                        PlayerSkillLevel = 0,
-                        GenericField1 = 0,
-                        GenericField2 = 0,
-                        GenericField3 = 0,
-                        GenericField4 = 0,
-                        GenericField5 = 0,
-                        GenericField6 = 0,
-                        GenericField7 = 0,
-                        GenericField8 = 0,
-                        WorldStatus = gameInfo.WorldStatus,
-                        JoinType = MediusJoinType.MediusJoinAsPlayer,
-                        GamePassword = string.Empty,
-                        GameHostType = gameInfo.GameHostType,
-                        AddressList = new NetAddressList()
-                        {
-                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                            {
-                                //new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                new NetAddress() { AddressType = NetAddressType.NetAddressNone },
-                                new NetAddress() { AddressType = NetAddressType.NetAddressNone } 
-                                //new NetAddress() { Address = MediusClass.Settings.NATIp, Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService },
-                            }
-                        },
-                        AppDataSize = 0,
-                        AppData = new char[0]
-                        */
-
-                        GameWorldID = 0,//(uint)gameInfo.Id, //TEMP
+                        GameWorldID = (uint)gameInfoRandomPick.MediusWorldId,
                         TeamID = 0,
-                        PlayerCount = gameInfo.PlayerCount,
-                        GameName = gameInfo.GameName,
-                        GameStats = gameInfo.GameStats,
-                        MinPlayers = gameInfo.MinPlayers,
-                        MaxPlayers = gameInfo.MaxPlayers,
-                        GameLevel = gameInfo.GameLevel,
-                        PlayerSkillLevel = gameInfo.PlayerSkillLevel,
-                        GenericField1 = gameInfo.GenericField1,
-                        GenericField2 = gameInfo.GenericField2,
-                        GenericField3 = gameInfo.GenericField3,
-                        GenericField4 = gameInfo.GenericField4,
-                        GenericField5 = gameInfo.GenericField5,
-                        GenericField6 = gameInfo.GenericField6,
-                        GenericField7 = gameInfo.GenericField7,
-                        GenericField8 = gameInfo.GenericField8,
-                        WorldStatus = gameInfo.WorldStatus,
+                        PlayerCount = gameInfoRandomPick.PlayerCount,
+                        GameName = gameInfoRandomPick.GameName,
+                        GameStats = gameInfoRandomPick.GameStats,
+                        MinPlayers = gameInfoRandomPick.MinPlayers,
+                        MaxPlayers = gameInfoRandomPick.MaxPlayers,
+                        GameLevel = gameInfoRandomPick.GameLevel,
+                        PlayerSkillLevel = gameInfoRandomPick.PlayerSkillLevel,
+                        GenericField1 = gameInfoRandomPick.GenericField1,
+                        GenericField2 = gameInfoRandomPick.GenericField2,
+                        GenericField3 = gameInfoRandomPick.GenericField3,
+                        GenericField4 = gameInfoRandomPick.GenericField4,
+                        GenericField5 = gameInfoRandomPick.GenericField5,
+                        GenericField6 = gameInfoRandomPick.GenericField6,
+                        GenericField7 = gameInfoRandomPick.GenericField7,
+                        GenericField8 = gameInfoRandomPick.GenericField8,
+                        WorldStatus = gameInfoRandomPick.WorldStatus,
                         JoinType = MediusJoinType.MediusJoinAsPlayer,
-                        GamePassword = gameInfo.GamePassword,
-                        GameHostType = gameInfo.GameHostType,
+                        GamePassword = gameInfoRandomPick.GamePassword,
+                        GameHostType = gameInfoRandomPick.GameHostType,
                         AddressList = new NetAddressList()
                         {
                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() { AddressType = NetAddressType.NetAddressNone }
+                                        new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone }
                                 }
                         },
-                        AppDataSize = gameInfo.AppDataSize,
-                        AppData = gameInfo.AppData
+                        AppDataSize = gameInfoRandomPick.AppDataSize,
+                        AppData = gameInfoRandomPick.AppData
+
                     });
                 }
+                //Game List
                 else
                 {
-                    var gameMatchFound = MediusClass.Manager.GetGameListAppId(clientObject.ApplicationId, 1, 100).First();
-
-                    var dmeServer = gameMatchFound.DMEServer;
+                    var gameInfoByGameWorldID = MediusClass.Manager.GetGameByGameId((int)matchFindGameRequest.MediusWorldID);
+                    dmeServer = gameInfoByGameWorldID.DMEServer;
 
                     // Tell the client their new assigned game
                     clientObject.Queue(new MediusAssignedGameToJoinMessage()
                     {
-                        AssignedGameMessageRequestData = gameMatchFound.RequestData,
-                        AssignedGameMessageID = 2,
+                        AssignedGameMessageRequestData = gameInfoByGameWorldID.RequestData,
+                        AssignedGameMessageID = matchFindGameRequest.MessageID,
                         AssignedGameType = MediusAssignedGameType.AssignedGameTypeMMS,
                         StatusCode = MediusCallbackStatus.MediusJoinAssignedGame,
                         SystemSpecificStatusCode = 0,
-
-                        GameWorldID = (ushort)gameMatchFound.MediusWorldId, // TEMP
-
+                        GameWorldID = (uint)gameInfoByGameWorldID.MediusWorldId,
                         TeamID = 0,
-                        PlayerCount = gameMatchFound.PlayerCount,
-                        GameName = gameMatchFound.GameName,
-                        GameStats = gameMatchFound.GameStats,
-                        MinPlayers = gameMatchFound.MinPlayers,
-                        MaxPlayers = gameMatchFound.MaxPlayers,
-                        GameLevel = gameMatchFound.GameLevel,
-                        PlayerSkillLevel = gameMatchFound.PlayerSkillLevel,
-                        GenericField1 = gameMatchFound.GenericField1,
-                        GenericField2 = gameMatchFound.GenericField2,
-                        GenericField3 = gameMatchFound.GenericField3,
-                        GenericField4 = gameMatchFound.GenericField4,
-                        GenericField5 = gameMatchFound.GenericField5,
-                        GenericField6 = gameMatchFound.GenericField6,
-                        GenericField7 = gameMatchFound.GenericField7,
-                        GenericField8 = gameMatchFound.GenericField8,
-                        WorldStatus = gameMatchFound.WorldStatus,
+                        PlayerCount = gameInfoByGameWorldID.PlayerCount,
+                        GameName = gameInfoByGameWorldID.GameName,
+                        GameStats = gameInfoByGameWorldID.GameStats,
+                        MinPlayers = gameInfoByGameWorldID.MinPlayers,
+                        MaxPlayers = gameInfoByGameWorldID.MaxPlayers,
+                        GameLevel = gameInfoByGameWorldID.GameLevel,
+                        PlayerSkillLevel = gameInfoByGameWorldID.PlayerSkillLevel,
+                        GenericField1 = gameInfoByGameWorldID.GenericField1,
+                        GenericField2 = gameInfoByGameWorldID.GenericField2,
+                        GenericField3 = gameInfoByGameWorldID.GenericField3,
+                        GenericField4 = gameInfoByGameWorldID.GenericField4,
+                        GenericField5 = gameInfoByGameWorldID.GenericField5,
+                        GenericField6 = gameInfoByGameWorldID.GenericField6,
+                        GenericField7 = gameInfoByGameWorldID.GenericField7,
+                        GenericField8 = gameInfoByGameWorldID.GenericField8,
+                        WorldStatus = gameInfoByGameWorldID.WorldStatus,
                         JoinType = MediusJoinType.MediusJoinAsPlayer,
-                        GamePassword = gameMatchFound.GamePassword,
-                        GameHostType = gameMatchFound.GameHostType,
+                        GamePassword = gameInfoByGameWorldID.GamePassword,
+                        GameHostType = gameInfoByGameWorldID.GameHostType,
                         AddressList = new NetAddressList()
                         {
                             AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                            {
-                                new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
-                                new NetAddress() { AddressType = NetAddressType.NetAddressNone } 
-                            }
+                                {
+                                        new NetAddress() { Address = dmeServer.IP.MapToIPv4().ToString(), Port = dmeServer.Port, AddressType = NetAddressType.NetAddressTypeExternal},
+                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone }
+                                }
                         },
-                        AppDataSize = gameMatchFound.AppDataSize,
-                        AppData = gameMatchFound.AppData
+                        AppDataSize = gameInfoByGameWorldID.AppDataSize,
+                        AppData = gameInfoByGameWorldID.AppData
+
                     });
                 }
+
+
             }
+
         }
 
         public Task<ONLINE_STATUS_TYPE> MediusChatStatusToOnlineStatus(MediusChatStatus status)

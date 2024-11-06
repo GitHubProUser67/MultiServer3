@@ -1,11 +1,12 @@
-using System.IO;
+using Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
+
 namespace Horizon.RT.Models
 {
-    /*
-    [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.MatchSetGameStateRequest)] // Set GameState
+    [MediusMessage(NetMessageClass.MessageClassLobbyExt, MediusLobbyExtMessageIds.MatchSetGameStateRequest)]
     public class MediusMatchSetGameStateRequest : BaseLobbyExtMessage, IMediusRequest
     {
-        public override byte PacketType => (byte)MediusLobbyExtMessageIds.MatchSetGameStateRequest; // Set GameState
+        public override byte PacketType => (byte)MediusLobbyExtMessageIds.MatchSetGameStateRequest;
 
         public MessageId MessageID { get; set; }
         public string SessionKey; // SESSIONKEY_MAXLEN
@@ -13,26 +14,18 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            //
             MessageID = reader.Read<MessageId>();
-
-            // 
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             MatchGameState = reader.Read<MediusMatchGameState>();
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            //
             writer.Write(MessageID ?? MessageId.Empty);
-
-            // 
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(MatchGameState);
         }
@@ -45,5 +38,4 @@ namespace Horizon.RT.Models
                 $"GameState: {MatchGameState}";
         }
     }
-    */
 }

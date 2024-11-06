@@ -1,6 +1,5 @@
-using System.IO;
-using Horizon.RT.Common;
 using Horizon.LIBRARY.Common.Stream;
+using Horizon.RT.Common;
 
 namespace Horizon.RT.Models
 {
@@ -37,17 +36,14 @@ namespace Horizon.RT.Models
         public uint GroupMemberListSize;
         public uint ApplicationDataSize;
         public byte[] GroupMemberAccountIDList;
-        public string ApplicationData;
+        public byte[] ApplicationData;
 
         public override void Deserialize(MessageReader reader)
         {
             base.Deserialize(reader);
 
             MessageID = reader.Read<MessageId>();
-
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
-            //reader.ReadBytes(2);
-
             SupersetID = reader.ReadInt32();
             ApplicationID = reader.ReadInt32();
             MinPlayers = reader.ReadInt32();
@@ -71,12 +67,11 @@ namespace Horizon.RT.Models
             MatchOptions = reader.Read<MediusMatchOptions>();
             ServerSessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             RequestData = reader.ReadBytes(Constants.REQUESTDATA_MAXLEN);
-            //reader.ReadBytes(3);
-
             GroupMemberListSize = reader.ReadUInt32();
             ApplicationDataSize = reader.ReadUInt32();
             GroupMemberAccountIDList = reader.ReadBytes((int)GroupMemberListSize);
-            ApplicationData = reader.ReadString((int)GroupMemberListSize);
+            ApplicationData = reader.ReadBytes((int)GroupMemberListSize);
+
         }
 
         public override void Serialize(MessageWriter writer)
@@ -84,10 +79,7 @@ namespace Horizon.RT.Models
             base.Serialize(writer);
 
             writer.Write(MessageID ?? MessageId.Empty);
-
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
-            //writer.Write(new byte[2]);
-
             writer.Write(SupersetID);
             writer.Write(ApplicationID);
             writer.Write(MinPlayers);
@@ -111,12 +103,10 @@ namespace Horizon.RT.Models
             writer.Write(MatchOptions);
             writer.Write(ServerSessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(RequestData);
-            //writer.Write(new byte[3]);
-
             writer.Write(GroupMemberListSize);
             writer.Write(ApplicationDataSize);
             writer.Write(GroupMemberAccountIDList);
-            writer.Write(ApplicationData, (int)ApplicationDataSize);
+            writer.Write(ApplicationData);
         }
 
         public override string ToString()
@@ -146,10 +136,10 @@ namespace Horizon.RT.Models
                 $"WorldAttributesType: {WorldAttributesType} " +
                 $"MatchOptions: {MatchOptions} " +
                 $"ServerSessionKey: {ServerSessionKey} " +
-                $"RequestData: {RequestData} " +
+                $"RequestData: {string.Join(string.Empty, RequestData)} " +
                 $"GroupMemberListSize: {GroupMemberListSize} " +
                 $"ApplicationDataSize: {ApplicationDataSize} " +
-                $"GroupMemberAccountIDList: {GroupMemberAccountIDList} " +
+                $"GroupMemberAccountIDList: {string.Join(string.Empty, GroupMemberAccountIDList)} " +
                 $"ApplicationData: {string.Join(string.Empty, ApplicationData)}";
         }
     }
