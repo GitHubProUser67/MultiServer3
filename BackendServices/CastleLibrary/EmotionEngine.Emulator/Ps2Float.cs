@@ -96,7 +96,40 @@ namespace EmotionEngine.Emulator
             if (IsAbnormal() && addend.IsAbnormal())
                 return SolveAbnormalAdditionOrSubtractionOperation(this, addend, true, COP1);
 
-            return DoAdd(addend, false);
+            uint a = AsUInt32();
+            uint b = addend.AsUInt32();
+            int temp = 0;
+
+            // Exponent difference
+            int expDiff = ((int)(a >> 23) & 0xff) - ((int)(b >> 23) & 0xff);
+
+            // diff = 25 .. 255 , expt < expd
+            if (expDiff >= 25)
+            {
+                b = b & 0x80000000;
+            }
+            // diff = 1 .. 24, expt < expd
+            else if (expDiff > 0)
+            {
+                expDiff = expDiff - 1;
+                temp = unchecked((int)0xffffffff) << expDiff;
+                b = (uint)(temp & b);
+            }
+            // diff = -255 .. -25, expd < expt
+            else if (expDiff <= -25)
+            {
+                a = a & 0x80000000;
+            }
+            // diff = -24 .. -1 , expd < expt
+            else if (expDiff < 0)
+            {
+                expDiff = -expDiff;
+                expDiff = expDiff - 1;
+                temp = unchecked((int)0xffffffff) << expDiff;
+                a = (uint)(a & temp);
+            }
+
+            return new Ps2Float(a).DoAdd(new Ps2Float(b), false);
         }
 
         public Ps2Float Sub(Ps2Float subtrahend, bool COP1)
@@ -107,7 +140,40 @@ namespace EmotionEngine.Emulator
             if (IsAbnormal() && subtrahend.IsAbnormal())
                 return SolveAbnormalAdditionOrSubtractionOperation(this, subtrahend, false, COP1);
 
-            return DoAdd(Neg(subtrahend), true);
+            uint a = AsUInt32();
+            uint b = subtrahend.AsUInt32();
+            int temp = 0;
+
+            // Exponent difference
+            int expDiff = ((int)(a >> 23) & 0xff) - ((int)(b >> 23) & 0xff);
+
+            // diff = 25 .. 255 , expt < expd
+            if (expDiff >= 25)
+            {
+                b = b & 0x80000000;
+            }
+            // diff = 1 .. 24, expt < expd
+            else if (expDiff > 0)
+            {
+                expDiff = expDiff - 1;
+                temp = unchecked((int)0xffffffff) << expDiff;
+                b = (uint)(temp & b);
+            }
+            // diff = -255 .. -25, expd < expt
+            else if (expDiff <= -25)
+            {
+                a = a & 0x80000000;
+            }
+            // diff = -24 .. -1 , expd < expt
+            else if (expDiff < 0)
+            {
+                expDiff = -expDiff;
+                expDiff = expDiff - 1;
+                temp = unchecked((int)0xffffffff) << expDiff;
+                a = (uint)(a & temp);
+            }
+
+            return new Ps2Float(a).DoAdd(Neg(new Ps2Float(b)), true);
         }
 
         public Ps2Float Mul(Ps2Float mulend)
@@ -153,7 +219,7 @@ namespace EmotionEngine.Emulator
         // Rounding can be slightly off: (PS2/IEEE754: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F31 | SoftFloat: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F30).
         private Ps2Float DoAdd(Ps2Float other, bool sub)
         {
-            const byte roundingMultiplier = 1;
+            const byte roundingMultiplier = 6;
 
             byte selfExponent = Exponent;
             int resExponent = selfExponent - other.Exponent;
@@ -169,13 +235,11 @@ namespace EmotionEngine.Emulator
             uint sign2 = (uint)((int)other.AsUInt32() >> 31);
             int otherMantissa = (int)(((other.Mantissa | 0x800000) ^ sign2) - sign2);
 
-            // PS2 multiply by 2 before doing the Math here.
             int man = (selfMantissa << roundingMultiplier) + ((otherMantissa << roundingMultiplier) >> resExponent);
             int absMan = Math.Abs(man);
             if (absMan == 0)
                 return new Ps2Float(0);
 
-            // Remove from exponent the PS2 Multiplier value.
             int rawExp = selfExponent - roundingMultiplier;
 
             int amount = normalizeAmounts[clz(absMan)];
