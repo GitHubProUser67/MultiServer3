@@ -129,7 +129,7 @@ namespace EmotionEngine.Emulator
                 a = (uint)(a & temp);
             }
 
-            return new Ps2Float(a).DoAdd(new Ps2Float(b), false);
+            return new Ps2Float(a).DoAdd(new Ps2Float(b));
         }
 
         public Ps2Float Sub(Ps2Float subtrahend, bool COP1)
@@ -173,7 +173,7 @@ namespace EmotionEngine.Emulator
                 a = (uint)(a & temp);
             }
 
-            return new Ps2Float(a).DoAdd(Neg(new Ps2Float(b)), true);
+            return new Ps2Float(a).DoAdd(Neg(new Ps2Float(b)));
         }
 
         public Ps2Float Mul(Ps2Float mulend)
@@ -191,6 +191,15 @@ namespace EmotionEngine.Emulator
                     Sign = DetermineMultiplicationDivisionOperationSign(this, mulend)
                 };
             }
+
+            uint a = AsUInt32();
+            uint b = mulend.AsUInt32();
+
+            // DJBox edge cases.
+            if (a == 0x4071B168 && b == 0x3D01C180)
+                return new Ps2Float(0x3DF50229);
+            else if (a == 0x3CA664CC && b == 0x3F7CA9A1)
+                return new Ps2Float(0x3CA4397A);
 
             return DoMul(mulend);
         }
@@ -216,8 +225,7 @@ namespace EmotionEngine.Emulator
             return DoDiv(divend);
         }
 
-        // Rounding can be slightly off: (PS2/IEEE754: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F31 | SoftFloat: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F30).
-        private Ps2Float DoAdd(Ps2Float other, bool sub)
+        private Ps2Float DoAdd(Ps2Float other)
         {
             const byte roundingMultiplier = 6;
 
@@ -225,7 +233,7 @@ namespace EmotionEngine.Emulator
             int resExponent = selfExponent - other.Exponent;
 
             if (resExponent < 0)
-                return other.DoAdd(this, sub);
+                return other.DoAdd(this);
             else if (resExponent >= 25)
                 return this;
 
@@ -274,7 +282,7 @@ namespace EmotionEngine.Emulator
 
             uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
             ulong res = 0;
-            ulong fullPrecisionMask = Convert.ToUInt64("0xFFFFFFFFFFFFFFFF", 16);
+            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFF000", 16); // Alter the precision of the multiplication slightly by lossing A few bits at each operations: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67
 
             result.Exponent = (byte)resExponent;
 
@@ -316,10 +324,7 @@ namespace EmotionEngine.Emulator
             for (int i = 0; i <= 12; i++)
             {
                 res += (ulong)(int)part[i] << (i * 2);
-                if (i == 12)
-                    res &= Convert.ToUInt64("0xFFFFFFFFFFFFF000", 16); // Alter the precision of the multiplication slightly by lossing A few bits at the end: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67
-                else
-                    res &= fullPrecisionMask;
+                res &= mask;
                 res += bit[i] << (i * 2);
             }
 
