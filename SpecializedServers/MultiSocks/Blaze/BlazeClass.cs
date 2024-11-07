@@ -26,7 +26,7 @@ namespace MultiSocks.Blaze
             // Create Blaze Redirector servers
             redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", true, true).Item3);
             // Create  Main Blaze server
-            mainBlaze = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 33152), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio").Item3, false);
+            mainBlaze = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 33152), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", false, false).Item3, false);
 
 
             redirector.AddComponent<RedirectorComponent>();

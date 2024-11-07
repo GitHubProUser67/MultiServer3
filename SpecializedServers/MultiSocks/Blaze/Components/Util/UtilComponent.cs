@@ -209,18 +209,23 @@ namespace MultiSocks.Blaze.Components.Util
             LoggerAccessor.LogInfo($"[Blaze] - Util: mConfigSection    : {request.mConfigSection}");
 
             string ME3ClientConfig = Directory.GetCurrentDirectory() + "/static/EA/ME3_CONFIG/";
+            string BF4OBClientConfig = Directory.GetCurrentDirectory() + "/static/EA/BF4_OB/";
             Directory.CreateDirectory(ME3ClientConfig);
-            string filePathFull = ME3ClientConfig + request.mConfigSection + ".txt";
+            Directory.CreateDirectory(BF4OBClientConfig);
+
+            string fileBF4PathFull = BF4OBClientConfig + request.mConfigSection + ".txt";
+            string fileME3PathFull = ME3ClientConfig + request.mConfigSection + ".txt";
 
             var fileClientConfigDictionary = new SortedDictionary<string, string>();
 
 
             switch(request.mConfigSection)
             {
-                case "ME3_DATA":
-                    if (File.Exists(filePathFull))
+
+                case "IdentityParams":
+                    if (File.Exists(fileBF4PathFull))
                     {
-                        string[] fileConfig = File.ReadAllLines(filePathFull);
+                        string[] fileConfig = File.ReadAllLines(fileBF4PathFull);
 
                         for (int i = 0; i < fileConfig.Length; i++)
                         {
@@ -231,14 +236,31 @@ namespace MultiSocks.Blaze.Components.Util
                     }
                     else
                     {
-                        LoggerAccessor.LogWarn($"File not found! Path expected: {filePathFull}");
+                        LoggerAccessor.LogWarn($"File not found! Path expected: {fileME3PathFull}");
+                    }
+                    break;
+                case "ME3_DATA":
+                    if (File.Exists(fileME3PathFull))
+                    {
+                        string[] fileConfig = File.ReadAllLines(fileME3PathFull);
+
+                        for (int i = 0; i < fileConfig.Length; i++)
+                        {
+                            string[] parts = fileConfig[i].Split(';');
+
+                            fileClientConfigDictionary.Add(parts[0].Trim(), parts[1].Trim());
+                        }
+                    }
+                    else
+                    {
+                        LoggerAccessor.LogWarn($"File not found! Path expected: {fileME3PathFull}");
                     }
 
                     break;
                 case "ME3_MSG":
-                    if (File.Exists(filePathFull))
+                    if (File.Exists(fileME3PathFull))
                     {
-                        string[] fileConfig = File.ReadAllLines(filePathFull);
+                        string[] fileConfig = File.ReadAllLines(fileME3PathFull);
 
                         for (int i = 0; i < fileConfig.Length; i++)
                         {
@@ -249,14 +271,14 @@ namespace MultiSocks.Blaze.Components.Util
                     }
                     else
                     {
-                        LoggerAccessor.LogWarn($"File not found! Path expected: {filePathFull}");
+                        LoggerAccessor.LogWarn($"File not found! Path expected: {fileME3PathFull}");
                     }
 
                     break;
                 case "ME3_ENT":
-                    if (File.Exists(filePathFull))
+                    if (File.Exists(fileME3PathFull))
                     {
-                        string[] fileConfig = File.ReadAllLines(filePathFull);
+                        string[] fileConfig = File.ReadAllLines(fileME3PathFull);
 
                         for (int i = 0; i < fileConfig.Length; i++)
                         {
@@ -271,21 +293,21 @@ namespace MultiSocks.Blaze.Components.Util
                     }
                     else
                     {
-                        LoggerAccessor.LogWarn($"File not found! Path expected: {filePathFull}");
+                        LoggerAccessor.LogWarn($"File not found! Path expected: {fileME3PathFull}");
                     }
 
                     break;
                 case "ME3_DIME":
-                    if (File.Exists(filePathFull))
+                    if (File.Exists(fileME3PathFull))
                     {
-                        string fileConfig = File.ReadAllText(filePathFull);
+                        string fileConfig = File.ReadAllText(fileME3PathFull);
 
 
                         fileClientConfigDictionary.Add("Config", fileConfig);
                     }
                     else
                     {
-                        LoggerAccessor.LogWarn($"File not found! Path expected: {filePathFull}");
+                        LoggerAccessor.LogWarn($"File not found! Path expected: {fileME3PathFull}");
                     }
 
                     break;
