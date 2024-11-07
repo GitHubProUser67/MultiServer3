@@ -39,6 +39,7 @@ using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
 using Newtonsoft.Json;
 using WebAPIService.DEMANGLER;
+using WebAPIService.UBISOFT.BuildAPI;
 
 namespace HTTPServer
 {
@@ -375,6 +376,28 @@ namespace HTTPServer
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
                                                     res = new OuWFClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region Ubisoft Build API
+                                            else if (Host == "builddatabasepullapi"
+                                                && request.GetDataStream != null
+                                                && !string.IsNullOrEmpty(Method)
+                                                && request.GetContentType().StartsWith("application/soap+xml"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a Ubisoft Build API method : {absolutepath}");
+
+                                                string? res = null;
+                                                using (MemoryStream postdata = new())
+                                                {
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new SoapBuildAPIClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
