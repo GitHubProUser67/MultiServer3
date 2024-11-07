@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<IsTrimmable>true</IsTrimmable>
 	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
     <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
 

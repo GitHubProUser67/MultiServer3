@@ -1,6 +1,10 @@
-using EndianTools;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using System.Linq;
 using NetworkLibrary.Extension;
+using HashLib;
 
 namespace HomeTools.Crypto
 {
@@ -89,12 +93,30 @@ namespace HomeTools.Crypto
             0x98, 0x6C, 0xC, 0x3E, 0x4D, 0x5D, 0x1C, 0x4B,
             0x32, 2, 0xB1, 0xE5, 0x2F, 0x81, 0x35, 0x44
         };
+        public static readonly byte[] ProfanityFilterCacheKey = new byte[]
+        {
+            0xb7, 0x71, 0x29, 0x23, 0x24, 0xa9, 0xc0, 0xa3,
+            0x86, 0x02, 0x01, 0xa2, 0x06, 0x6c, 0xce, 0x77,
+            0x1d, 0x34, 0x62, 0xfb, 0xc2, 0x97, 0x52, 0x67,
+            0xc5, 0x23, 0x08, 0x3c, 0xfb, 0x0d, 0x9b, 0x34
+        };
+        public static readonly byte[] MQDiskCacheKey = new byte[]
+        {
+            0x42, 0x01, 0xc8, 0xcc, 0xf4, 0xb7, 0x35, 0x4b,
+            0xca, 0x72, 0x2d, 0xac, 0x0a, 0x50, 0xe6, 0x56,
+            0x5d, 0xb1, 0xd9, 0x05, 0x9f, 0x22, 0xb6, 0x9c,
+            0xd1, 0x0b, 0xb2, 0x7e, 0x0d, 0xad, 0x0e, 0x37
+        };
 
         public static readonly byte[] MetaDataV1IV = new byte[] { 0x2a, 0xa7, 0xcb, 0x49, 0x9f, 0xa1, 0xbd, 0x81 };
 
         public static readonly byte[] TicketListV0IV = new byte[] { 0x30, 0x4B, 0x10, 0x3D, 0x46, 0x77, 0xAD, 0x84 };
 
         public static readonly byte[] TicketListV1IV = new byte[] { 0xc7, 0x96, 0x79, 0xe5, 0x79, 0x99, 0x9f, 0xbf };
+
+        public static readonly byte[] ProfanityFilterCacheIV = new byte[] { 0xcc, 0x1b, 0x4f, 0x6a, 0x54, 0xa2, 0xab, 0x8c };
+
+        public static readonly byte[] MQDiskCacheIV = new byte[] { 0x64, 0xbc, 0x9f, 0xe2, 0x2a, 0xe4, 0x04, 0xd8 };
 
         public static ulong BuildSignatureIv(int fileSize, int compressedSize, int dataStart, int userData)
         {
@@ -113,34 +135,55 @@ namespace HomeTools.Crypto
             }
         }
 
-        public static byte[] ProcessXTEAProxyBlocks(byte[] inputArray, byte[] Key, byte[] IV)
+        public static async Task<byte[]> ProcessXTEAProxyAsync(byte[] inData, byte[] KeyBytes, byte[] IV)
         {
-            int inputIndex = 0;
-            int inputLength = inputArray.Length;
-            byte[] block = new byte[8];
-            byte[] output = new byte[inputLength];
+            const byte xteaBlockSize = 8;
+            int chunkIndex = 0;
+            int inputLength = inData.Length;
+            List<KeyValuePair<(int, int), Task<byte[]>>> xteaTasks = new List<KeyValuePair<(int, int), Task<byte[]>>>();
 
-            while (inputIndex < inputLength)
+            using (MemoryStream memoryStream = new MemoryStream(inData))
             {
-                int blockSize = Math.Min(8, inputLength - inputIndex);
-                if (blockSize < 8)
+                while (memoryStream.Position < memoryStream.Length)
                 {
-                    int difference = 8 - blockSize;
-                    Buffer.BlockCopy(new byte[difference], 0, block, block.Length - difference, difference);
+                    byte[] block = new byte[xteaBlockSize];
+                    byte[] blockIV = (byte[])IV.Clone();
+                    int blockSize = Math.Min(xteaBlockSize, inputLength - chunkIndex);
+                    if (blockSize < xteaBlockSize)
+                    {
+                        int difference = xteaBlockSize - blockSize;
+                        Buffer.BlockCopy(new byte[difference], 0, block, block.Length - difference, difference);
+                    }
+                    memoryStream.Read(block, 0, blockSize);
+                    xteaTasks.Add(new KeyValuePair<(int, int), Task<byte[]>>((chunkIndex, blockSize), LIBSECURE.InitiateXTEABufferAsync(block, KeyBytes, blockIV, "CTR")));
+                    IncrementIVBytes(IV, 1);
+                    chunkIndex += blockSize;
                 }
-                Buffer.BlockCopy(inputArray, inputIndex, block, 0, blockSize);
-                byte[] taskResult = LIBSECURE.InitiateXTEABuffer(block, Key, IV, "CTR");
-                if (taskResult == null) // We failed so we send original file back.
-                    return inputArray;
-                if (taskResult.Length < blockSize)
-                    Buffer.BlockCopy(taskResult, 0, output, inputIndex, taskResult.Length);
-                else
-                    Buffer.BlockCopy(taskResult, 0, output, inputIndex, blockSize);
-                IncrementIVBytes(IV, 1);
-                inputIndex += blockSize;
             }
 
-            return output;
+            using (MemoryStream memoryStream = new MemoryStream(inData.Length))
+            {
+                foreach (var result in xteaTasks.OrderBy(kv => kv.Key.Item1))
+                {
+                    try
+                    {
+                        // Await each decryption task
+                        byte[] decryptedChunk = await result.Value.ConfigureAwait(false);
+                        if (decryptedChunk == null) // We failed so we send original file back.
+                            return inData;
+                        if (decryptedChunk.Length < result.Key.Item2)
+                            memoryStream.Write(decryptedChunk, 0, decryptedChunk.Length);
+                        else
+                            memoryStream.Write(decryptedChunk, 0, result.Key.Item2);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"[ToolsImplementation] - ProcessXTEAProxyAsync: Error during decryption at chunk {result.Key}", ex);
+                    }
+                }
+
+                return memoryStream.ToArray();
+            }
         }
 
         public static ulong Sha1toNonce(byte[] digest)
@@ -166,7 +209,8 @@ namespace HomeTools.Crypto
 
         public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
         {
-            if (fileBytes[0] == 0x00 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x01)
+            if (fileBytes.Length > 4 && ((fileBytes[0] == 0x00 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x01)
+               || (fileBytes[0] == 0x01 && fileBytes[1] == 0x00 && fileBytes[2] == 0x00 && fileBytes[3] == 0x00)))
             {
                 byte[] destinationArray = new byte[fileBytes.Length - 4]; // New array size after removing 4 elements
 
@@ -177,47 +221,6 @@ namespace HomeTools.Crypto
             }
             else
                 return fileBytes;
-        }
-
-        internal struct ChunkHeader
-        {
-            internal readonly byte[] GetBytes()
-            {
-                byte[] array = new byte[4];
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.ReverseUshort(SourceSize) : SourceSize), 0, array, 2, 2);
-                Array.Copy(BitConverter.GetBytes((!BitConverter.IsLittleEndian) ? EndianUtils.ReverseUshort(CompressedSize): CompressedSize), 0, array, 0, 2);
-                return array;
-            }
-
-            internal static int SizeOf
-            {
-                get
-                {
-                    return 4;
-                }
-            }
-
-            internal static ChunkHeader FromBytes(byte[] inData)
-            {
-                ChunkHeader result = default;
-                byte[] array = inData;
-                if (inData.Length > SizeOf)
-                {
-                    array = new byte[4];
-                    Array.Copy(inData, array, 4);
-                }
-
-                if (!BitConverter.IsLittleEndian)
-                    Array.Reverse(array);
-
-                result.SourceSize = BitConverter.ToUInt16(array, 2);
-                result.CompressedSize = BitConverter.ToUInt16(array, 0);
-                return result;
-            }
-
-            internal ushort SourceSize;
-
-            internal ushort CompressedSize;
         }
     }
 }

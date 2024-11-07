@@ -43,25 +43,24 @@ namespace HTTPServer.Models
             return string.Format("{0} {1}", (int)HttpStatusCode, HttpStatusCode.ToString());
         }
 
-        public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(string? stringtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, bool lowerCaseContentType = false)
         {
             HttpResponse response = new()
             {
                 HttpStatusCode = statuscode
             };
-            response.Headers["Content-Type"] = mimetype;
+            if (lowerCaseContentType)
+                response.Headers["content-type"] = mimetype;
+            else
+                response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (string[] innerArray in HeaderInput)
                 {
                     // Ensure the inner array has at least two elements
                     if (innerArray.Length >= 2)
-                    {
                         // Extract two values from the inner array
-                        string value1 = innerArray[0];
-                        string value2 = innerArray[1];
-                        response.Headers.Add(value1, value2);
-                    }
+                        response.Headers.Add(innerArray[0], innerArray[1]);
                 }
             }
             if (!string.IsNullOrEmpty(stringtosend))
@@ -72,13 +71,16 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(byte[]? bytearraytosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, bool lowerCaseContentType = false)
         {
             HttpResponse response = new()
             {
                 HttpStatusCode = statuscode
             };
-            response.Headers["Content-Type"] = mimetype;
+            if (lowerCaseContentType)
+                response.Headers["content-type"] = mimetype;
+            else
+                response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (var innerArray in HeaderInput)
@@ -87,9 +89,9 @@ namespace HTTPServer.Models
                     if (innerArray.Length >= 2)
                     {
                         // Extract two values from the inner array
-                        string value1 = innerArray[0];
-                        if (!response.Headers.ContainsKey(value1))
-                            response.Headers.Add(value1, innerArray[1]);
+                        string keyValue = innerArray[0];
+                        if (!response.Headers.ContainsKey(keyValue))
+                            response.Headers.Add(keyValue, innerArray[1]);
                     }
                 }
             }
@@ -101,13 +103,16 @@ namespace HTTPServer.Models
             return response;
         }
 
-        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK)
+        public static HttpResponse Send(Stream? streamtosend, string mimetype = "text/plain", string[][]? HeaderInput = null, HttpStatusCode statuscode = HttpStatusCode.OK, bool lowerCaseContentType = false)
         {
             HttpResponse response = new()
             {
                 HttpStatusCode = statuscode
             };
-            response.Headers["Content-Type"] = mimetype;
+            if (lowerCaseContentType)
+                response.Headers["content-type"] = mimetype;
+            else
+                response.Headers["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (string[]? innerArray in HeaderInput)

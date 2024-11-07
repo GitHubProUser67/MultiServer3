@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Text;
 using HTTPSecureServerLite.Extensions;
 using NetworkLibrary.HTTP;
@@ -10,16 +9,22 @@ using WebAPIService.OHS;
 using WebAPIService.PREMIUMAGENCY;
 using WebAPIService.HELLFIRE;
 using WebAPIService.VEEMEE;
+using WebAPIService.UBISOFT.HERMES_API;
+using WebAPIService.CAPONE;
+using WebAPIService.CDM;
+using WebAPIService.MultiMedia;
+using WebAPIService.OUWF;
+using WebAPIService.JUGGERNAUT;
+using WebAPIService.FROMSOFTWARE;
+using WebAPIService.UBISOFT.gsconnect;
+using WebAPIService.HTS;
+using WebAPIService.ILoveSony;
 using CustomLogger;
 using HttpMultipartParser;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
-using WebAPIService.UBISOFT.HERMES_API;
-using WebAPIService.CAPONE;
-using WebAPIService.CDM;
-using WebAPIService.MultiMedia;
 using System.Threading.Tasks;
 using System;
 using System.IO;
@@ -31,12 +36,6 @@ using WatsonWebserver;
 using NetworkLibrary.Extension;
 using WebAPIService.WebArchive;
 using Newtonsoft.Json;
-using WebAPIService.OUWF;
-using WebAPIService.JUGGERNAUT;
-using WebAPIService.FROMSOFTWARE;
-using WebAPIService.UBISOFT.gsconnect;
-using WebAPIService.HTS;
-using WebAPIService.ILoveSony;
 
 namespace HTTPSecureServerLite
 {
@@ -1403,7 +1402,7 @@ namespace HTTPSecureServerLite
                                                             || ContentType.Contains("audio")) && !ContentType.Contains("mpeg")
                                                             && !string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox")
                                                             || UserAgent.Contains("chrome") || UserAgent.Contains("trident")))
-                                                            sent = await new Extensions.Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
+                                                            sent = await new Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
                                                         else if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
                                                             sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType);
                                                         else

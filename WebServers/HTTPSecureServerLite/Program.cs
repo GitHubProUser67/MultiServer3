@@ -2,7 +2,6 @@ using CustomLogger;
 using Newtonsoft.Json.Linq;
 using HTTPSecureServerLite;
 using System.Runtime;
-using WebAPIService.LeaderboardsService;
 using NetworkLibrary.GeoLocalization;
 using System.IO;
 using System.Collections.Generic;
@@ -304,7 +303,6 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "https.json";
     private static string DNSconfigMD5 = string.Empty;
-    private static Timer? Leaderboard = null;
     private static Timer? FilesystemTree = null;
     private static Task? DNSThread = null;
     private static Task? DNSRefreshThread = null;
@@ -360,10 +358,6 @@ class Program
 
         NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
             HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);
-
-        LeaderboardClass.APIPath = HTTPSServerConfiguration.APIStaticFolder;
-
-        Leaderboard ??= new Timer(LeaderboardClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
         if (HTTPSServerConfiguration.DNSOverEthernetEnabled)
         {

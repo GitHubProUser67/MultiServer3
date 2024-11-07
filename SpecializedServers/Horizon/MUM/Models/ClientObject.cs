@@ -36,6 +36,7 @@ namespace Horizon.MUM.Models
         /// </summary>
         public int Port { get; set; } = 0;
 
+        #region HOME
         /// <summary>
         /// 
         /// </summary>
@@ -45,6 +46,12 @@ namespace Horizon.MUM.Models
         /// 
         /// </summary>
         public uint HomePointer = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string? SSFWid = null;
+        #endregion
 
         /// <summary>
         /// 

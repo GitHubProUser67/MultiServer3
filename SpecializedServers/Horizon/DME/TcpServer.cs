@@ -327,7 +327,7 @@ namespace Horizon.DME
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            bool enableEncryption = false /*DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption*/;
+            bool enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -456,7 +456,7 @@ namespace Horizon.DME
                         }
 
                         // start udp server
-                        data.DMEObject.BeginUdp();
+                        data.DMEObject.BeginUdp(scertClient.CipherService);
 
                         #region if PS3
                         if (scertClient.IsPS3Client)
@@ -773,7 +773,7 @@ namespace Horizon.DME
                     {
                         if (data.DMEObject != null)
                         {
-                            bool InvalidRequest = false;
+                            bool InvalidatedRequest = false;
 
                             if (data.DMEObject.ApplicationId == 20371 || data.DMEObject.ApplicationId == 20374)
                             {
@@ -790,10 +790,12 @@ namespace Horizon.DME
 
                                     if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                     {
+                                        string? value;
+
                                         switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
                                         {
                                             case -85: // IGA
-                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out string? value) && !string.IsNullOrEmpty(value))
+                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
                                                 {
                                                     switch (value)
                                                     {
@@ -801,7 +803,7 @@ namespace Horizon.DME
                                                         case "IGA":
                                                             break;
                                                         default:
-                                                            InvalidRequest = true;
+                                                            InvalidatedRequest = true;
                                                             string SupplementalMessage = "Unknown";
 
                                                             switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
@@ -819,7 +821,7 @@ namespace Horizon.DME
                                                 }
                                                 else
                                                 {
-                                                    InvalidRequest = true;
+                                                    InvalidatedRequest = true;
                                                     string SupplementalMessage = "Unknown";
 
                                                     switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
@@ -834,12 +836,37 @@ namespace Horizon.DME
                                                     await clientChannel.CloseAsync();
                                                 }
                                                 break;
+                                            case -27: // REXEC
+                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
+                                                {
+                                                    switch (value)
+                                                    {
+                                                        case "ADMIN":
+                                                            break;
+                                                        default:
+                                                            InvalidatedRequest = true;
+
+                                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
+
+                                                            await clientChannel.CloseAsync();
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    InvalidatedRequest = true;
+
+                                                    LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
+
+                                                    await clientChannel.CloseAsync();
+                                                }
+                                                break;
                                         }
                                     }
                                 }
                             }
 
-                            if (!InvalidRequest)
+                            if (!InvalidatedRequest)
                                 data.DMEObject.DmeWorld?.SendTcpAppSingle(data.DMEObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
                         }
                         break;

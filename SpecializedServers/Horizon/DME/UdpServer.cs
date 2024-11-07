@@ -12,6 +12,7 @@ using System.Net;
 using Horizon.DME.PluginArgs;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.PluginManager;
+using Horizon.RT.Cryptography;
 
 namespace Horizon.DME
 {
@@ -22,6 +23,7 @@ namespace Horizon.DME
         protected IEventLoopGroup? _workerGroup = null;
         protected IChannel? _boundChannel = null;
         protected ScertDatagramHandler? _scertHandler = null;
+        protected CipherService? _cipher = null;
 
         protected DMEObject? ClientObject { get; set; } = null;
         protected EndPoint? AuthenticatedEndPoint { get; set; } = null;
@@ -54,8 +56,9 @@ namespace Horizon.DME
 
         #endregion
 
-        public UdpServer(DMEObject clientObject)
+        public UdpServer(DMEObject clientObject, CipherService? cipher)
         {
+            _cipher = cipher;
             ClientObject = clientObject;
             RegisterPort();
         }
@@ -74,7 +77,7 @@ namespace Horizon.DME
                     if (!channel.HasAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT))
                         channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Set(new ScertClientAttribute());
                     var scertClient = channel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-
+                    scertClient.CipherService = _cipher;
                     // pass medius version
                     scertClient.MediusVersion = ClientObject?.MediusVersion;
                 }

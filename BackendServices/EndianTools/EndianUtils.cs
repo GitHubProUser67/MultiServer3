@@ -16,18 +16,18 @@ namespace EndianTools
         public static byte[] EndianSwap(byte[] dataIn)
         {
             int inputLength = dataIn.Length;
-            byte[] array = new byte[inputLength];
-            Array.Copy(dataIn, array, inputLength);
-            int numofBytes = 0;
+            byte[] reversedArray = new byte[inputLength];
+            Array.Copy(dataIn, reversedArray, inputLength);
+            int numofBytes;
             for (int i = 0; i < inputLength; i += numofBytes)
             {
                 numofBytes = 4;
                 int remainingBytes = inputLength - i;
                 if (remainingBytes < 4)
                     numofBytes = remainingBytes;
-                Array.Reverse(array, i, numofBytes);
+                Array.Reverse(reversedArray, i, numofBytes);
             }
-            return array;
+            return reversedArray;
         }
 
         /// <summary>

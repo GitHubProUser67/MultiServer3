@@ -120,7 +120,7 @@ namespace Horizon.MUM
             return _lookupsByAppId
                    .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
                    .SelectMany(x => x.Value.SessionKeyToClient.Select(x => x.Value))
-                   .Where(x => x.IP.ToString().Equals(Ip))
+                   .Where(x => x.ApplicationId == appId && x.IP.ToString().Equals(Ip))
                    .ToList();
         }
 
@@ -1231,6 +1231,24 @@ namespace Horizon.MUM
                                 .ToList());
                         }
                     }
+                }
+            }
+
+            return channels;
+        }
+
+        public List<Channel> GetAllChannels(int appId)
+        {
+            List<Channel> channels = new();
+
+            if (_lookupsByAppId.TryGetValue(appId, out QuickLookup? quickLookup))
+            {
+                lock (quickLookup.AppIdToChannel)
+                {
+                    channels.AddRange(quickLookup.AppIdToChannel
+                        .Where(pair => pair.Key == appId)
+                        .SelectMany(pair => pair.Value)
+                        .ToList());
                 }
             }
 

@@ -22,7 +22,7 @@ public class Rc4TlsCrypto : BcTlsCrypto
     {
         if (_writeSslKeyLog)
         {
-            byte[] secret = ReflectMasterSecretFromBCTls(cryptoParams.SecurityParameters.MasterSecret) ?? throw new Exception("[MultiSocks Rc4TlsCrypto] - Failed to reflect master secret");
+            byte[] secret = ReflectMasterSecretFromBCTls(cryptoParams.SecurityParameters.MasterSecret) ?? throw new Exception("[Rc4TlsCrypto] - Failed to reflect master secret");
 
             using StreamWriter sw = File.AppendText("sslkeylog.log");
             sw.WriteLine("CLIENT_RANDOM " + Convert.ToHexString(cryptoParams.SecurityParameters.ClientRandom) + " " + Convert.ToHexString(secret));

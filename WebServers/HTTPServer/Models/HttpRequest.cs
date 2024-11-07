@@ -43,55 +43,24 @@ namespace HTTPServer.Models
             return string.Format("{0} - {1}", Method, RawUrlWithQuery);
         }
 
-        public string RetrieveHeaderValue(string headeruri, bool caseSensitive = true)
+        public string RetrieveHeaderValue(string headerUri, bool caseSensitive = true)
         {
-            // Check if Headers is null or empty first to avoid unnecessary LINQ operations
-            if (Headers == null || !Headers.Any())
-                return string.Empty;
-
-            // Try to find the header with the specified key
-            KeyValuePair<string, string>? header = Headers
-                .FirstOrDefault(h => caseSensitive ? h.Key.Equals(headeruri) : h.Key.Equals(headeruri, StringComparison.InvariantCultureIgnoreCase));
-
-            // Check if the header was found and its value is not the default empty string
-            if (header.HasValue && !string.IsNullOrEmpty(header.Value.Value))
-                return header.Value.Value;
-
-            return string.Empty;
+            return Headers?.FirstOrDefault(h => caseSensitive ?
+                h.Key.Equals(headerUri) :
+                h.Key.Equals(headerUri, StringComparison.InvariantCultureIgnoreCase))
+                .Value ?? string.Empty;
         }
 
         public string GetContentType()
         {
-            // Check if Headers is null or empty first to avoid unnecessary LINQ operations
-            if (Headers == null || !Headers.Any())
-                return string.Empty;
-
-            // Try to find the header with the specified key
-            KeyValuePair<string, string>? header = Headers
-                .FirstOrDefault(h => h.Key.Equals("content-type", StringComparison.InvariantCultureIgnoreCase));
-
-            // Check if the header was found and its value is not the default empty string
-            if (header.HasValue && !string.IsNullOrEmpty(header.Value.Value))
-                return header.Value.Value;
-
-            return string.Empty;
+            return Headers?.FirstOrDefault(h => h.Key.Equals("content-type", StringComparison.InvariantCultureIgnoreCase))
+                .Value ?? string.Empty;
         }
 
         public string GetContentLength()
         {
-            // Check if Headers is null or empty first to avoid unnecessary LINQ operations
-            if (Headers == null || !Headers.Any())
-                return string.Empty;
-
-            // Try to find the header with the specified key
-            KeyValuePair<string, string>? header = Headers
-                .FirstOrDefault(h => h.Key.Equals("content-length", StringComparison.InvariantCultureIgnoreCase));
-
-            // Check if the header was found and its value is not the default empty string
-            if (header.HasValue && !string.IsNullOrEmpty(header.Value.Value))
-                return header.Value.Value;
-
-            return string.Empty;
+            return Headers?.FirstOrDefault(h => h.Key.Equals("content-length", StringComparison.InvariantCultureIgnoreCase))
+                .Value ?? string.Empty;
         }
 
         public string? GetPath()

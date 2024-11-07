@@ -23,10 +23,12 @@ namespace MultiSocks.Blaze
             string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
             string domain = "gosredirector.ea.com";
 
-            // Create Blaze Redirector server
-            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com", "Global Online Studio").Item3);
+            // Create Blaze Redirector servers
+            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", true, true).Item3);
             // Create  Main Blaze server
-            mainBlaze = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 33152), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com").Item3, false);
+            mainBlaze = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 33152), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio").Item3, false);
+
+
             redirector.AddComponent<RedirectorComponent>();
             mainBlaze.AddComponent<UtilComponent>();
             mainBlaze.AddComponent<AuthComponent>();

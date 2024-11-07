@@ -33,7 +33,7 @@ namespace WebAPIService.OHS
                     if (!string.IsNullOrEmpty(dataforohs))
                     {
 #if DEBUG
-                        LoggerAccessor.LogInfo($"[OHS] - JaminDeFormatWithWriteKey Assembled Data : {dataforohs}");
+                        LoggerAccessor.LogInfo($"[OHS] - JaminDeFormatWithWriteKey{(hashed ? " Hashed" : string.Empty)} Assembled Data : {dataforohs}");
 #endif
                         if (hashed)
                         {
@@ -89,7 +89,7 @@ namespace WebAPIService.OHS
                     if (!string.IsNullOrEmpty(dataforohs))
                     {
 #if DEBUG
-                        LoggerAccessor.LogInfo($"[OHS] - JaminDeFormat Assembled Data : {dataforohs}");
+                        LoggerAccessor.LogInfo($"[OHS] - JaminDeFormat Assembled{(hashed ? " Hashed" : string.Empty)} Data : {dataforohs}");
 #endif
                         if (hashed)
                         {

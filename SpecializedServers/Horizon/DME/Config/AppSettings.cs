@@ -8,9 +8,9 @@ namespace Horizon.DME.Config
         public int AppId { get; }
 
         /// <summary>
-        /// When true, server will encrypt all messages (DISABLED DUE TO UDP NOT SUPPORTED).
+        /// When true, server will encrypt all messages (DISABLED DUE TO CLIENT-CLIENT COMMUNICATION NOT SUPPORTED YET).
         /// </summary>
-        // public bool EnableDmeEncryption { get; private set; } = false;
+        public bool EnableDmeEncryption { get; private set; } = false;
 
         /// <summary>
         /// Default time in milliseconds for the client's world agg time.

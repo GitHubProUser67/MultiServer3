@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using WatsonWebserver;
 using WatsonWebserver.Core;
+using Horizon.MUM.Models;
 
 namespace Horizon.HTTPSERVICE
 {
@@ -287,6 +288,111 @@ namespace Horizon.HTTPSERVICE
                             Command = HTTPProcessor.DecodeUrl(Command);
 
                         bool Retail = true;
+                        bool Admin = false;
+                        string? AccessToken = null;
+                        string clientip = ctx.Request.Source.IpAddress;
+
+                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
+                        || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
+                            Admin = true;
+
+                        if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
+                        {
+
+                        }
+
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+
+                        if (Admin && ctx.Request.QuerystringExists("BroadcastAcrossEntireUniverse") && bool.TryParse(ctx.Request.RetrieveQueryValue("BroadcastAcrossEntireUniverse"), out bool Broadcast) && Broadcast)
+                        {
+                            if (ctx.Request.QuerystringExists("SupplementalCommands") && !string.IsNullOrEmpty(ctx.Request.RetrieveQueryValue("SupplementalCommands")))
+                            {
+                                StringBuilder st = new("[");
+
+                                ctx.Response.ContentType = "application/json; charset=utf-8";
+
+                                foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split(','))
+                                {
+                                    if (st.Length > 1)
+                                        st.Append($",\"{tmpCommand}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                    else
+                                        st.Append($"\"{tmpCommand}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                }
+
+                                if (st.Length > 1)
+                                    st.Append($",\"{Command}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                else
+                                    st.Append($"\"{Command}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+
+                                await ctx.Response.Send(st.ToString() + ']');
+                            }
+                            else
+                            {
+                                ctx.Response.ContentType = "text/plain; charset=utf-8";
+
+                                await ctx.Response.Send(await HomeRTMTools.BroadcastRemoteCommand(Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                            }
+                        }
+                        else if (ctx.Request.QuerystringExists("SupplementalCommands") && !string.IsNullOrEmpty(ctx.Request.RetrieveQueryValue("SupplementalCommands")))
+                        {
+                            StringBuilder st = new("[");
+
+                            ctx.Response.ContentType = "application/json; charset=utf-8";
+
+                            if (ctx.Request.QuerystringExists("AccessToken"))
+                                AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                            foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split(','))
+                            {
+                                if (st.Length > 1)
+                                    st.Append($",\"{tmpCommand}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                                else
+                                    st.Append($"\"{tmpCommand}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                            }
+
+                            if (st.Length > 1)
+                                st.Append($",\"{Command}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+                            else
+                                st.Append($"\"{Command}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
+
+                            await ctx.Response.Send(st.ToString() + ']');
+                        }
+                        else
+                        {
+                            ctx.Response.ContentType = "text/plain; charset=utf-8";
+
+                            if (ctx.Request.QuerystringExists("AccessToken"))
+                                AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                            await ctx.Response.Send(await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                        }
+                    }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/HomeSSFW/{command}/", async (HttpContextBase ctx) =>
+                {
+                    string? Command = ctx.Request.Url.Parameters["command"];
+                    string userAgent = ctx.Request.Useragent;
+
+                    if (!string.IsNullOrEmpty(userAgent) && userAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(Command))
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                            ctx.Response.ContentType = "text/plain";
+                            await ctx.Response.Send();
+                            return;
+                        }
+                        else
+                            Command = HTTPProcessor.DecodeUrl(Command);
+
+                        bool Retail = true;
                         string? AccessToken = null;
 
                         if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
@@ -297,9 +403,59 @@ namespace Horizon.HTTPSERVICE
                         if (ctx.Request.QuerystringExists("AccessToken"))
                             AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
 
-                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                        ctx.Response.ContentType = "text/plain";
-                        await ctx.Response.Send(await HomeRTMTools.SendRemoteCommand(ctx.Request.Source.IpAddress, AccessToken, Command, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!");
+                        switch (Command)
+                        {
+                            case "GetUserIds":
+                                bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
+                                StringBuilder sb = new("[");
+                                List<string> userIds = new();
+                                List<ClientObject>? clients = null;
+
+                                if (AccessTokenProvided)
+                                {
+                                    ClientObject? client = MediusClass.Manager.GetClientByAccessToken(AccessToken, Retail ? 20374 : 20371);
+                                    if (client != null)
+                                    {
+                                        clients = new()
+                                        {
+                                            client
+                                        };
+                                    }
+                                }
+                                else
+                                    clients = MediusClass.Manager.GetClientsByIp(ctx.Request.Source.IpAddress, Retail ? 20374 : 20371);
+
+                                if (clients != null)
+                                {
+                                    foreach (ClientObject client in clients)
+                                    {
+                                        string? userId = client.SSFWid;
+
+                                        if (!string.IsNullOrEmpty(userId) && !userIds.Contains(userId))
+                                            userIds.Add(userId);
+                                    }
+                                }
+
+                                foreach (string userId in userIds)
+                                {
+                                    if (sb.Length > 1)
+                                        sb.Append($",\"{userId}\"");
+                                    else
+                                        sb.Append($"\"{userId}\"");
+                                }
+
+                                sb.Append(']');
+
+                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                ctx.Response.ContentType = "application/json; charset=utf-8";
+                                await ctx.Response.Send(sb.ToString());
+                                break;
+                            default:
+                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                ctx.Response.ContentType = "text/plain";
+                                await ctx.Response.Send();
+                                return;
+                        }
                     }
                 });
 

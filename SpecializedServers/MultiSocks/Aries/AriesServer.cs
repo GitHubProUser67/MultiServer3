@@ -6,6 +6,7 @@ namespace MultiSocks.Aries
     public class AriesServer : IDisposable
     {
         public static IDatabase? Database = null;
+        private readonly AbstractAriesServer? RedirectorARMYOFTWO2010_PS3;
         private readonly AbstractAriesServer? RedirectorSSX3_NTSC_A;
         private readonly AbstractAriesServer? RedirectorSSX3_PAL;
         private readonly AbstractAriesServer? RedirectorTSBO_NTSC_A;
@@ -31,6 +32,7 @@ namespace MultiSocks.Aries
         private readonly AbstractAriesServer? RedirectorNASCAR08_PS3;
         private readonly AbstractAriesServer? RedirectorNASCAR09_PS3;
         private readonly AbstractAriesServer? RedirectorHASBROFAMILYGAMENIGHT_PS3;
+        private readonly AbstractAriesServer? RedirectorMIRRORSEDGE_PS3;
 
         private readonly AbstractAriesServer? Burnout3Takedown_NTSCMatchmaker;
         private readonly AbstractAriesServer? BurnoutRevenge_NTSCMatchmaker;
@@ -64,6 +66,18 @@ namespace MultiSocks.Aries
             Database = new DirtySocksJSONDatabase();
 
             #region Redirector
+            try
+            {
+                RedirectorARMYOFTWO2010_PS3 = new RedirectorServer(18141, ListenIP, 18142, "ARMYOFTWO_2010", "PS3", true, "fesl.ea.com");
+                LoggerAccessor.LogInfo($"[Redirector] ARMYOFTWO2010_PS3 Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] ARMYOFTWO2010_PS3 Failed to start! Exception: {ex}");
+            }
+            #region Army Of Two The 40th Day
+
+            #endregion
 
             #region SSX3 PS2
             try
@@ -112,8 +126,8 @@ namespace MultiSocks.Aries
             #region Fight Night 
             try
             {
-                RedirectorFightNight_NTSC = new RedirectorServer(11500, ListenIP, 11501, "KKING-PS2-2004", "PS2", false, "ps2kok04.ea.com", "ps2kok04@ea.com");
-                RedirectorFightNightR2_NTSC = new RedirectorServer(21500, ListenIP, 21501, "KKING-PS2-2005", "PS2", false, "ps2kok05.ea.com", "ps2kok05@ea.com");
+                RedirectorFightNight_NTSC = new RedirectorServer(11500, ListenIP, 11501, "KKING-PS2-2004", "PS2", false, "ps2kok04.ea.com");
+                RedirectorFightNightR2_NTSC = new RedirectorServer(21500, ListenIP, 21501, "KKING-PS2-2005", "PS2", false, "ps2kok05.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Fight Night NTSC Started!");
             }
@@ -159,7 +173,7 @@ namespace MultiSocks.Aries
             #region Lord Of the Rings: The Return of the King
             try
             {
-                RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC = new RedirectorServer(11200, ListenIP, 11201, "LOTR", "PS2", false, "ps2rotk04.ea.com", "ps2rotk04@ea.com");
+                RedirectorLordOfTheRingsTheReturnOfTheKing_NTSC = new RedirectorServer(11200, ListenIP, 11201, "LOTR", "PS2", false, "ps2rotk04.ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] LOTR:TROTK PS2 NTSC Started!");
             }
             catch (Exception ex)
@@ -171,7 +185,7 @@ namespace MultiSocks.Aries
             #region Burnout Paradise PS3
             try
             {
-                RedirectorBOP_PS3 = new RedirectorServer(21850, ListenIP, 21851, "BURNOUT5", "PS3", false, "ps3burnout08.ea.com", "ps3burnout08@ea.com");
+                RedirectorBOP_PS3 = new RedirectorServer(21850, ListenIP, 21851, "BURNOUT5", "PS3", false, "ps3burnout08.ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] BOP PS3 Started!");
             }
             catch (Exception ex)
@@ -181,7 +195,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, ListenIP, 21871, "BURNOUT5", "PS3", false, "ps3burnout08.ea.com", "ps3burnout08@ea.com");
+                RedirectorBOPULTIMATEBOX_PS3 = new RedirectorServer(21870, ListenIP, 21871, "BURNOUT5", "PS3", false, "ps3burnout08.ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] BOPULTIMATEBOX PS3 Started!");
             }
             catch (Exception ex)
@@ -194,7 +208,7 @@ namespace MultiSocks.Aries
             #region Burnout Paradise PC
             try
             {
-                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21842, "BURNOUT5", "PC", true, "pcburnout08.ea.com", "pcburnout08@ea.com");
+                RedirectorBOPULTIMATEBOX_PC = new RedirectorServer(21841, ListenIP, 21842, "BURNOUT5", "PC", true, "pcburnout08.ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] BOPULTIMATEBOX PC Started!");
             }
             catch (Exception ex)
@@ -207,7 +221,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorNascarThunder04_NTSC = new RedirectorServer(10600, ListenIP, 10601, "NASCAR-PS2-2004", "PS2", false, "ps2nascar04.ea.com", "ps2nascar04@ea.com");
+                RedirectorNascarThunder04_NTSC = new RedirectorServer(10600, ListenIP, 10601, "NASCAR-PS2-2004", "PS2", false, "ps2nascar04.ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] NASCAR Thunder 04 Started!");
             }
             catch (Exception ex)
@@ -217,7 +231,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorNASCAR08_PS3 = new RedirectorServer(20651, ListenIP, 20652, "NASCAR08", "PS3", true, "ps3nascar08.ea.com", "ps3nascar08@ea.com");
+                RedirectorNASCAR08_PS3 = new RedirectorServer(20651, ListenIP, 20652, "NASCAR08", "PS3", true, "ps3nascar08.ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] NASCAR08 PS3 Started!");
             }
             catch (Exception ex)
@@ -227,7 +241,7 @@ namespace MultiSocks.Aries
 
             try
             {
-                RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, "NASCAR09", "PS3", true, "ps3nascar09.ea.com", "ps3nascar09@ea.com");
+                RedirectorNASCAR09_PS3 = new RedirectorServer(30671, ListenIP, 30672, "NASCAR09", "PS3", true, "ps3nascar09.ea.com");
                 LoggerAccessor.LogInfo($"[Redirector] NASCAR09 PS3 Started!");
             }
             catch (Exception ex)
@@ -248,10 +262,22 @@ namespace MultiSocks.Aries
             }
             #endregion
 
+            #region Mirror's Edge PS3
+            try
+            {
+                RedirectorMIRRORSEDGE_PS3 = new RedirectorServer(18700, ListenIP, 18701, "MIRRORS_EDGE", "PS3", true, "fesl.ea.com");
+                LoggerAccessor.LogInfo($"[Redirector] MIRRORSEDGE PS3 Started!");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Redirector] MIRRORSEDGE PS3 Failed to start! Exception: {ex}");
+            }
+            #endregion
+
             #region NCAA March Madness 06
             try
             {
-                RedirectorNCAAMM06_NTSC = new RedirectorServer(30700, ListenIP, 30701, "PS2-MM-2006", "PS2", false, "ps2mm06.ea.com", "ps2mm06@ea.com");
+                RedirectorNCAAMM06_NTSC = new RedirectorServer(30700, ListenIP, 30701, "PS2-MM-2006", "PS2", false, "ps2mm06.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] NCAA March Madness 06 NTSC Started!");
             }
@@ -264,7 +290,7 @@ namespace MultiSocks.Aries
             #region Madden NFL 06
             try
             {
-                RedirectorMaddenNFL06_NTSC = new RedirectorServer(30000, ListenIP, 30001, "PS2-MM-2006", "PS2", false, "ps2madden06.ea.com", "ps2madden06@ea.com");
+                RedirectorMaddenNFL06_NTSC = new RedirectorServer(30000, ListenIP, 30001, "PS2-MM-2006", "PS2", false, "ps2madden06.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Madden NFL 06 NTSC Started!");
             }
@@ -277,7 +303,7 @@ namespace MultiSocks.Aries
             #region Fifa 06
             try
             {
-                RedirectorFifa06_NTSC = new RedirectorServer(30400, ListenIP, 30401, "PS2-MM-2006", "PS2", false, "ps2fifa06.ea.com", "ps2fifa06@ea.com");
+                RedirectorFifa06_NTSC = new RedirectorServer(30400, ListenIP, 30401, "PS2-MM-2006", "PS2", false, "ps2fifa06.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Fifa 06 NTSC Started!");
             }
@@ -303,7 +329,7 @@ namespace MultiSocks.Aries
             #region Burnout 3 Takedown
             try
             {
-                RedirectorBurnoutRevenge_NTSC = new RedirectorServer(21800, ListenIP, 21801, "BR-PS2-2004", "PS2", false, "ps2burnout05.ea.com", "ps2burnout05@ea.com");
+                RedirectorBurnoutRevenge_NTSC = new RedirectorServer(21800, ListenIP, 21801, "BR-PS2-2004", "PS2", false, "ps2burnout05.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Burnout 3 Takedown NTSC Started!");
             }
@@ -316,7 +342,7 @@ namespace MultiSocks.Aries
             #region Burnout Revenge
             try
             {
-                RedirectorBurnoutRevenge_NTSC = new RedirectorServer(31800, ListenIP, 31801, "BR-PS2-2004", "PS2", false, "ps2burnout06.ea.com", "ps2burnout06@ea.com");
+                RedirectorBurnoutRevenge_NTSC = new RedirectorServer(31800, ListenIP, 31801, "BR-PS2-2004", "PS2", false, "ps2burnout06.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Burnout Revenge NTSC Started!");
             }
@@ -329,7 +355,7 @@ namespace MultiSocks.Aries
             #region 007: Everything or Nothing
             try
             {
-                Redirector007EverythingOrNothing_NTSC = new RedirectorServer(11600, ListenIP, 11601, "PS2-BOND-2004", "PS2", false, "ps2bond04.ea.com", "ps2bond04@ea.com");
+                Redirector007EverythingOrNothing_NTSC = new RedirectorServer(11600, ListenIP, 11601, "PS2-BOND-2004", "PS2", false, "ps2bond04.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] 007 Everything Or Nothing NTSC Started!");
             }
@@ -342,7 +368,7 @@ namespace MultiSocks.Aries
             #region NFS:MW A124
             try
             {
-                RedirectoNFSMWA124_PAL = new RedirectorServer(30900, ListenIP, 30901, "nfs-ps2-2006", "PS2", false, "ps2nfs06.ea.com", "ps2nfs06@ea.com");
+                RedirectoNFSMWA124_PAL = new RedirectorServer(30900, ListenIP, 30901, "nfs-ps2-2006", "PS2", false, "ps2nfs06.ea.com");
 
                 LoggerAccessor.LogInfo($"[Redirector] Need for Speed: Most Wanted Alpha 124 PAL Started!");
             }

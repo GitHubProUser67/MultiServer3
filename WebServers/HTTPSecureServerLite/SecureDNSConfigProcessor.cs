@@ -69,52 +69,72 @@ namespace HTTPSecureServerLite
                     else
                     {
                         string[] split = s.Split(',');
-                        DnsSettings dns = new();
-                        switch (split[1].Trim().ToLower())
-                        {
-                            case "deny":
-                                dns.Mode = HandleMode.Deny;
-                                break;
-                            case "allow":
-                                dns.Mode = HandleMode.Allow;
-                                break;
-                            case "redirect":
-                                dns.Mode = HandleMode.Redirect;
-                                dns.Address = GetIp(split[2].Trim());
-                                break;
-                            default:
-                                LoggerAccessor.LogWarn($"[HTTPS_DNS] - Rule : {s} is not a formated properly, skipping...");
-                                break;
-                        }
 
-                        string domain = split[0].Trim();
-
-                        // Check if the domain has been processed before
-                        if (domain.Contains('*'))
+                        if (split.Length == 3)
                         {
-                            // Escape all possible URI characters conflicting with Regex
-                            domain = domain.Replace(".", "\\.");
-                            domain = domain.Replace("$", "\\$");
-                            domain = domain.Replace("[", "\\[");
-                            domain = domain.Replace("]", "\\]");
-                            domain = domain.Replace("(", "\\(");
-                            domain = domain.Replace(")", "\\)");
-                            domain = domain.Replace("+", "\\+");
-                            domain = domain.Replace("?", "\\?");
-                            // Replace "*" characters with ".*" which means any number of any character for Regexp
-                            domain = domain.Replace("*", ".*");
-
-                            lock (StarRules)
-                                StarRules.TryAdd(domain, dns);
-                        }
-                        else
-                        {
-                            lock (DicRules)
+                            DnsSettings dns = new();
+                            switch (split[1].Trim().ToLower())
                             {
-                                DicRules.TryAdd(domain, dns);
-                                DicRules.TryAdd("www." + domain, dns);
+                                case "deny":
+                                    dns.Mode = HandleMode.Deny;
+                                    break;
+                                case "allow":
+                                    dns.Mode = HandleMode.Allow;
+                                    break;
+                                case "redirect":
+                                    dns.Mode = HandleMode.Redirect;
+                                    dns.Address = GetIp(split[2].Trim());
+                                    break;
+                                default:
+                                    LoggerAccessor.LogWarn($"[HTTPS_DNS] - Rule : {s} is not a formated properly, skipping...");
+                                    break;
+                            }
+
+                            string domain = split[0].Trim();
+
+                            // Check if the domain has been processed before
+                            if (domain.Contains('*'))
+                            {
+                                // Escape all possible URI characters conflicting with Regex
+                                domain = domain.Replace(".", "\\.");
+                                domain = domain.Replace("$", "\\$");
+                                domain = domain.Replace("[", "\\[");
+                                domain = domain.Replace("]", "\\]");
+                                domain = domain.Replace("(", "\\(");
+                                domain = domain.Replace(")", "\\)");
+                                domain = domain.Replace("+", "\\+");
+                                domain = domain.Replace("?", "\\?");
+                                // Replace "*" characters with ".*" which means any number of any character for Regexp
+                                domain = domain.Replace("*", ".*");
+
+                                lock (StarRules)
+#if NETCOREAPP2_0_OR_GREATER
+                                    StarRules.TryAdd(domain, dns);
+#else
+                                {
+                                    if (!StarRules.ContainsKey(domain))
+                                        StarRules.Add(domain, dns);
+                                }
+#endif
+                            }
+                            else
+                            {
+                                lock (DicRules)
+                                {
+#if NETCOREAPP2_0_OR_GREATER
+                                    DicRules.TryAdd(domain, dns);
+                                    DicRules.TryAdd("www." + domain, dns);
+#else
+                                    if (!DicRules.ContainsKey(domain))
+                                        DicRules.Add(domain, dns);
+                                    if (!DicRules.ContainsKey("www." + domain))
+                                        DicRules.Add("www." + domain, dns);
+#endif
+                                }
                             }
                         }
+                        else
+                            LoggerAccessor.LogWarn($"[HTTPS_DNS] - Rule : {s} is not a formated properly, skipping...");
                     }
                 });
             }

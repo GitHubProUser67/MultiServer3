@@ -303,15 +303,15 @@ resistance.ps3.online.scea.com,Redirect,IP
 resistancegs.ps3.online.scea.com,Redirect,IP
 resistance-prod.svo.online.scea.com,Redirect,IP
 resistance2-prod.ps3.online.scea.com,Redirect,IP
-resistance2-pubeta.ps3.online.scea.com
-resistance2-pubeta.igloo.online.scea.com
+resistance2-pubeta.ps3.online.scea.com,Redirect,IP
+resistance2-pubeta.igloo.online.scea.com,Redirect,IP
 twistedmetalx-prod3.svo.online.scea.com,Redirect,IP
 twistedmetalxdemo.ps3.online.scea.com,Redirect,IP
 twistedmetalx.ps3.online.scea.com,Redirect,IP
 twistedmetalx.bwps.online.scea.com,Redirect,IP
-sing2.online.scee.com,Redirect,IP,Redirect,IP
-sing3.online.scee.com,Redirect,IP,Redirect,IP
-sing4.online.scee.com,Redirect,IP,Redirect,IP
+sing2.online.scee.com,Redirect,IP
+sing3.online.scee.com,Redirect,IP
+sing4.online.scee.com,Redirect,IP
 singstar.svo.online.com,Redirect,IP
 shirokishius.ps3.online.scea.com,Redirect,IP
 socom4.ps3.online.scea.com,Redirect,IP
@@ -362,6 +362,7 @@ turoklive.quazal.net,Redirect,IP
 ghostps3live.quazal.net,Redirect,IP
 
 ;EA
+demangler.ea.com,Redirect,IP
 ea.com,Redirect,IP
 tso-e.com,Redirect,IP
 ps2bond04.ea.com,Redirect,IP
@@ -386,10 +387,14 @@ ps3nascar09.ea.com,Redirect,IP
 ps3burnout08.ea.com,Redirect,IP
 ps3dpr09.ea.com,Redirect,IP
 gos.ea.com,Redirect,IP
+bf4.gos.ea.com,Redirect,IP
 gosredirector.ea.com,Redirect,IP
 ll-100.ea.com,Redirect,IP
 ll-999.ea.com,Redirect,IP
 easo.ea.com,Redirect,IP
+takedown-ps3.fesl.ea.com,Redirect,IP
+ao3-ps3.fesl.ea.com,Redirect,IP
+eaassets-a.akamaihd.net,Redirect,IP
 
 ;GameSpy
 bstormps3.available.gamespy.com,Redirect,IP

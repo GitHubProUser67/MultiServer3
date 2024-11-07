@@ -28,13 +28,13 @@ namespace MultiSocks.Aries
 
         private int ExpectedBytes = -1;
         private bool InHeader;
-        private bool secure;
+        private readonly bool secure;
         private bool isDequeueRunning = false;
-        private Timer timerDequeue;
-        private TcpClient ClientTcp;
+        private readonly Timer timerDequeue;
+        private readonly TcpClient ClientTcp;
         private Stream? ClientStream;
-        private Thread RecvThread;
-        private ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
+        private readonly Thread RecvThread;
+        private readonly ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
         private byte[]? TempData = null;
         private int TempDatOff;
         private string CommandName = "null";
@@ -46,7 +46,7 @@ namespace MultiSocks.Aries
 
         private static int MAX_SIZE = 1024 * 1024 * 2;
 
-        public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, string email, bool WeakChainSignedRSAKey)
+        public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, bool WeakChainSignedRSAKey)
         {
             this.secure = secure;
             Context = context;
@@ -56,7 +56,12 @@ namespace MultiSocks.Aries
             LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
             if (secure && context.SSLCache != null)
-                SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
+            {
+                if (CN == "fesl.ea.com")
+                    SecureKeyCert = context.SSLCache.GetVulnerableFeslEaCert(true);
+                else
+                    SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, WeakChainSignedRSAKey, true);
+            }
 
             RecvThread = new Thread(RunLoop);
             RecvThread.Start();
@@ -90,6 +95,7 @@ namespace MultiSocks.Aries
 
                     ClientStream?.Dispose();
                     ClientTcp.Dispose();
+                    timerDequeue.Dispose();
                     LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 

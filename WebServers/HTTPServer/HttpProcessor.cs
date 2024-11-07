@@ -35,10 +35,11 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using NetworkLibrary.HTTP.PluginManager;
 using NetworkLibrary.Extension;
+using Newtonsoft.Json;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
-using Newtonsoft.Json;
 using WebAPIService.CCPGames;
+using WebAPIService.DEMANGLER;
 
 namespace HTTPServer
 {
@@ -839,6 +840,28 @@ namespace HTTPServer
                                             }
                                             #endregion
 
+                                            #region EA Demangler
+                                            else if (Host.Contains("demangler.ea.com")
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a EA Demangler method : {absolutepath}");
+
+                                                (string?, string?)? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = DemanglerClass.ProcessDemanglerRequest(request.QueryParameters, absolutepath, clientip, postdata.ToArray());
+                                                    postdata.Flush();
+                                                }
+                                                if (res == null)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res.Value.Item1, res.Value.Item2!, new string[][] { new string[] { "x-envoy-upstream-service-time", "0" }, new string[] { "server", "istio-envoy" }
+                                                    , new string[] { "content-length", res.Value.Item1!.Length.ToString() } }, HttpStatusCode.OK, true);
+                                            }
+                                            #endregion
+
                                             else
                                             {
                                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -1223,7 +1246,8 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
                         {
@@ -1252,7 +1276,8 @@ namespace HTTPServer
                         long bytesLeft = totalBytes;
                         string? encoding = null;
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
                         {
@@ -1271,7 +1296,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type"))
+                        if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
                             response.Headers.Add("Content-Type", "text/plain");
 
                         if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1320,7 +1345,8 @@ namespace HTTPServer
                 {
                     response.Headers.Clear();
 
-                    response.Headers.Add("Server", "Apache");
+                    if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
                     response.Headers.Add("Connection", "close");
 
                     response.HttpStatusCode = HttpStatusCode.InternalServerError;
@@ -1376,6 +1402,7 @@ namespace HTTPServer
                     const int rangebuffersize = 32768;
 
                     string? acceptencoding = request.RetrieveHeaderValue("Accept-Encoding");
+                    string userAgent = request.RetrieveHeaderValue("User-Agent");
 
                     using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     long startByte = -1;
@@ -1540,10 +1567,10 @@ namespace HTTPServer
                         ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                         ms.Write(Separator);
                         ms.Position = 0;
-                        response = new()
-                            {
-                                HttpStatusCode = HttpStatusCode.PartialContent
-                            };
+                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                        {
+                            HttpStatusCode = HttpStatusCode.PartialContent
+                        };
                         response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
@@ -1736,7 +1763,7 @@ namespace HTTPServer
                                 }
                             }
                         }
-                        response = new()
+                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
@@ -1811,7 +1838,8 @@ namespace HTTPServer
                         {
                             response.Headers.Clear();
 
-                            response.Headers.Add("Server", "Apache");
+                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                                response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
                             {
@@ -1840,7 +1868,8 @@ namespace HTTPServer
                             long bytesLeft = totalBytes;
                             string? encoding = null;
 
-                            response.Headers.Add("Server", "Apache");
+                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                                response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
                             {
@@ -1852,7 +1881,7 @@ namespace HTTPServer
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
 
-                            if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type"))
+                            if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
                                 response.Headers.Add("Content-Type", "text/plain");
 
                             if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1901,7 +1930,8 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Connection", "close");
 
                         response.HttpStatusCode = HttpStatusCode.InternalServerError;

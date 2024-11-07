@@ -18,10 +18,10 @@ namespace MultiSocks.Aries
 
         private readonly Thread PingThread;
 
-        public EAMessengerServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false) : base(port, listenIP, Project, SKU, secure, CN, email, WeakChainSignedRSAKey)
+        public EAMessengerServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", bool WeakChainSignedRSAKey = false) : base(port, listenIP, Project, SKU, secure, CN, WeakChainSignedRSAKey)
         {
             lock (Users)
-                Users.AddUser(new AriesUser() { ID = 24 }); // Admin player.
+                Users.AddUser(new AriesUser() { ID = 1 }); // Admin player.
 
             PingThread = new Thread(PingLoop);
             PingThread.Start();

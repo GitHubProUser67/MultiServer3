@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Xml;
 using NetworkLibrary.HTTP;
-using WebAPIService.LeaderboardsService.VEEMEE;
 
 namespace WebAPIService.VEEMEE.goalie_sfrgbt
 {
@@ -51,8 +50,8 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                     try
                     {
                         GSScoreBoardData.UpdateScoreBoard(psnid, duration, int.Parse(goals));
-                        GSScoreBoardData.UpdateAllTimeScoreboardXml(global); // We finalized edit, so we issue a write.
-                        GSScoreBoardData.UpdateTodayScoreboardXml(global, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
+                        GSScoreBoardData.UpdateAllTimeScoreboardXml(apiPath, global); // We finalized edit, so we issue a write.
+                        GSScoreBoardData.UpdateTodayScoreboardXml(apiPath, global, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
                     catch (Exception)
                     {

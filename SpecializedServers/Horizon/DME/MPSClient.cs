@@ -475,13 +475,11 @@ namespace Horizon.DME
                                 World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, createGameWithAttributesRequest.WorldID, gameOrPartyId);
 
                                 if (world.WorldId == -1)
-                                {
                                     Enqueue(new MediusServerCreateGameWithAttributesResponse()
                                     {
                                         MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{partyType}"),
                                         Confirmation = MGCL_ERROR_CODE.MGCL_WORLDID_INUSE
                                     });
-                                }
                                 else
                                 {
                                     _worlds.Add(world);
