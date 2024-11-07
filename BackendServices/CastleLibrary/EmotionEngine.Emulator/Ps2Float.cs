@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Specialized;
 
 namespace EmotionEngine.Emulator
@@ -129,7 +129,7 @@ namespace EmotionEngine.Emulator
                 a = (uint)(a & temp);
             }
 
-            return new Ps2Float(a).DoAdd(new Ps2Float(b), false);
+            return new Ps2Float(a).DoAdd(new Ps2Float(b));
         }
 
         public Ps2Float Sub(Ps2Float subtrahend, bool COP1)
@@ -173,7 +173,7 @@ namespace EmotionEngine.Emulator
                 a = (uint)(a & temp);
             }
 
-            return new Ps2Float(a).DoAdd(Neg(new Ps2Float(b)), true);
+            return new Ps2Float(a).DoAdd(Neg(new Ps2Float(b)));
         }
 
         public Ps2Float Mul(Ps2Float mulend)
@@ -216,8 +216,7 @@ namespace EmotionEngine.Emulator
             return DoDiv(divend);
         }
 
-        // Rounding can be slightly off: (PS2/IEEE754: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F31 | SoftFloat: 0x27D7A2F2 + 0xB2D72F34 = 0xB2D72F30).
-        private Ps2Float DoAdd(Ps2Float other, bool sub)
+        private Ps2Float DoAdd(Ps2Float other)
         {
             const byte roundingMultiplier = 6;
 
@@ -225,7 +224,7 @@ namespace EmotionEngine.Emulator
             int resExponent = selfExponent - other.Exponent;
 
             if (resExponent < 0)
-                return other.DoAdd(this, sub);
+                return other.DoAdd(this);
             else if (resExponent >= 25)
                 return this;
 
@@ -258,7 +257,7 @@ namespace EmotionEngine.Emulator
             return new Ps2Float((uint)man & 0x80000000 | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
         }
 
-        // Rounding can be slightly off: https://fobes.dev/ps2/detecting-emu-vu-floats (example in the article handled).
+        // Rounding can be slightly off: (PS2/IEEE754: 0x3F800040 * 0x3F800020 = 0x3F800060 | SoftFloat: 0x3F800040 * 0x3F800020 = 0x3F80005F).
         private Ps2Float DoMul(Ps2Float other)
         {
             uint selfMantissa = Mantissa | 0x800000;
@@ -273,8 +272,9 @@ namespace EmotionEngine.Emulator
                 return new Ps2Float(result.Sign, 0, 0);
 
             uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
+            uint roundingTest = testImprecision & 0x000aaa;
             ulong res = 0;
-            ulong fullPrecisionMask = Convert.ToUInt64("0xFFFFFFFFFFFFFFFF", 16);
+            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFF000", 16); // Alter the precision of the multiplication slightly by lossing A few bits at each operations: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67
 
             result.Exponent = (byte)resExponent;
 
@@ -316,17 +316,19 @@ namespace EmotionEngine.Emulator
             for (int i = 0; i <= 12; i++)
             {
                 res += (ulong)(int)part[i] << (i * 2);
-                if (i == 12)
-                    res &= Convert.ToUInt64("0xFFFFFFFFFFFFF000", 16); // Alter the precision of the multiplication slightly by lossing A few bits at the end: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67
-                else
-                    res &= fullPrecisionMask;
+                res &= mask;
                 res += bit[i] << (i * 2);
             }
 
             result.Mantissa = (uint)(res >> 23);
 
-            if ((testImprecision & 0x000aaa) != 0 && (res & 0x7fffff) == 0)
+            ulong endOfRes = res & 0x7FFFFF;
+
+            // Some case (DJBox and https://fobes.dev/ps2/detecting-emu-vu-floats ) requires some extensive rounding.
+            if ((roundingTest != 0 && endOfRes == 0) || (roundingTest == 2176 && endOfRes == 4096 /* 0x4071B168 * 0x3D01C180 = 0x3DF50229 */))
                 result.Mantissa -= 1;
+            else if (roundingTest == 160 && endOfRes == 8380416 /* 0x3CA664CC * 0x3F7CA9A1 = 0x3CA4397A */)
+                result.Mantissa += 1;
 
             if (result.Mantissa > 0)
             {
