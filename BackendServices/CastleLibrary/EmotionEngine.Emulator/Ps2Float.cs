@@ -281,9 +281,8 @@ namespace EmotionEngine.Emulator
                 return new Ps2Float(result.Sign, 0, 0);
 
             uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
-            uint roundingTest = testImprecision & 0x000aaa;
             ulong res = 0;
-            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFF000", 16); // Alter the precision of the multiplication slightly by lossing A few bits at each operations: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67
+            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFFFFF", 16); // Uses a booth and wallace tree approach to Multiplication.
 
             result.Exponent = (byte)resExponent;
 
@@ -331,13 +330,8 @@ namespace EmotionEngine.Emulator
 
             result.Mantissa = (uint)(res >> 23);
 
-            ulong endOfRes = res & 0x7FFFFF;
-
-            // Some case (DJBox and https://fobes.dev/ps2/detecting-emu-vu-floats ) requires some extensive rounding.
-            if ((roundingTest != 0 && endOfRes == 0) || (roundingTest == 2176 && endOfRes == 4096 /* 0x4071B168 * 0x3D01C180 = 0x3DF50229 */))
+            if ((testImprecision & 0x000aaa) != 0 && (res & 0x7FFFFF) == 0)
                 result.Mantissa -= 1;
-            else if (roundingTest == 160 && endOfRes == 8380416 /* 0x3CA664CC * 0x3F7CA9A1 = 0x3CA4397A */)
-                result.Mantissa += 1;
 
             if (result.Mantissa > 0)
             {
