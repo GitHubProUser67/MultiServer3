@@ -3,8 +3,8 @@ using HttpMultipartParser;
 using System.Text;
 using System.IO;
 using System;
-using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using NetworkLibrary.Extension;
+using HashLib;
 
 namespace WebAPIService.HTS.Helpers
 {
@@ -82,7 +82,7 @@ namespace WebAPIService.HTS.Helpers
                         userOnlineId[i] = 0x20;
                 }
 
-                if (DataUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (OtherExtensions.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HTS] : User {Encoding.ASCII.GetString(userOnlineId).Replace("H", string.Empty)} logged in and is on RPCN");
 

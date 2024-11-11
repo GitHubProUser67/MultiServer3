@@ -1,5 +1,5 @@
-﻿using CustomLogger;
-using CyberBackendLibrary.GeoLocalization;
+using CustomLogger;
+using NetworkLibrary.GeoLocalization;
 using System.Data;
 using System.Data.SQLite;
 using System.Net;

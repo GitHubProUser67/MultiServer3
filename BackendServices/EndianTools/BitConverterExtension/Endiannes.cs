@@ -1,4 +1,4 @@
-﻿namespace BitConverterExtension
+namespace BitConverterExtension
 {
     /// <summary>
     /// Endianness of a converter

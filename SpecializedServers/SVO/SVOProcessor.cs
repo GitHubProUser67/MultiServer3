@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using CastleLibrary.Utils;
+using HashLib;
 
 namespace SVO
 {

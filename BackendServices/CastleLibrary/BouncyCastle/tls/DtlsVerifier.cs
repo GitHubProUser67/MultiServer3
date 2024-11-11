@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto;

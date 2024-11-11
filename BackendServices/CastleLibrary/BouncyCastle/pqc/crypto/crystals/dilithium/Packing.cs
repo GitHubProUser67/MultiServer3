@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities;
 using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium

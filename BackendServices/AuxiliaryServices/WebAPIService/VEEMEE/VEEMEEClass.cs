@@ -4,6 +4,7 @@ using WebAPIService.VEEMEE.goalie_sfrgbt;
 using WebAPIService.VEEMEE.gofish;
 using WebAPIService.VEEMEE.nml;
 using WebAPIService.VEEMEE.olm;
+using WebAPIService.VEEMEE.player_profiles;
 using WebAPIService.VEEMEE.wardrobe_wars;
 
 namespace WebAPIService.VEEMEE
@@ -40,6 +41,14 @@ namespace WebAPIService.VEEMEE
                 case "POST":
                     switch (absolutepath)
                     {
+                        case "/player_profiles/setPlayerProfile.php":
+                            result = Profile_Handler.SetPOST(postData, contentType, apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/player_profiles/getPlayerProfile.php":
+                            result = Profile_Handler.GetPOST(postData, contentType, apiPath);
+                            resultContentType = "text/xml";
+                            break;
                         case "/goalie/goalieHSSetUserData.php":
                             result = UserData.SetUserDataPOST(postData, contentType, true, apiPath);
                             resultContentType = "text/xml";

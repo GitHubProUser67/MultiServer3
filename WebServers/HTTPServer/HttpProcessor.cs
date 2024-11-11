@@ -14,8 +14,8 @@ using WebAPIService.CDM;
 using WebAPIService.MultiMedia;
 using WebAPIService.UBISOFT.gsconnect;
 using WebAPIService.HELLFIRE;
-using CyberBackendLibrary.GeoLocalization;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.GeoLocalization;
+using NetworkLibrary.HTTP;
 using CustomLogger;
 using HttpMultipartParser;
 using HTTPServer.Extensions;
@@ -33,11 +33,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
-using CyberBackendLibrary.HTTP.PluginManager;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.HTTP.PluginManager;
+using NetworkLibrary.Extension;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
 using Newtonsoft.Json;
+using WebAPIService.DEMANGLER;
 
 namespace HTTPServer
 {
@@ -115,7 +116,7 @@ namespace HTTPServer
         public Task TryGetServerIP(ushort Port)
         {
             // We want to check if the router allows external IPs first.
-            string ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
+            string ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
             try
             {
                 using TcpClient client = new(ServerIP, Port);
@@ -123,7 +124,7 @@ namespace HTTPServer
             }
             catch // Failed to connect to public ip, so we fallback to local IP.
             {
-                ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
+                ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
 
                 try
                 {
@@ -132,7 +133,7 @@ namespace HTTPServer
                 }
                 catch // Failed to connect to local ip, trying IPV4 only as a last resort.
                 {
-                    ServerIP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
+                    ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
                 }
             }
 
@@ -596,7 +597,7 @@ namespace HTTPServer
                                                 {
                                                     // TODO, verify ticket data for every platforms.
 
-                                                    if (Authorization.StartsWith("psn t=") && DataUtils.IsBase64String(Authorization))
+                                                    if (Authorization.StartsWith("psn t=") && OtherExtensions.IsBase64String(Authorization))
                                                     {
                                                         byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
 
@@ -613,7 +614,7 @@ namespace HTTPServer
                                                                 extractedData[i] = 0x48;
                                                         }
 
-                                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                                                        if (OtherExtensions.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                                         else
                                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -807,6 +808,28 @@ namespace HTTPServer
                                                     response = HttpBuilder.InternalServerError();
                                                 else
                                                     response = HttpResponse.Send(res, "text/plain");
+                                            }
+                                            #endregion
+
+                                            #region EA Demangler
+                                            else if (Host.Contains("demangler.ea.com")
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a EA Demangler method : {absolutepath}");
+
+                                                (string?, string?)? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = DemanglerClass.ProcessDemanglerRequest(request.QueryParameters, absolutepath, clientip, postdata.ToArray());
+                                                    postdata.Flush();
+                                                }
+                                                if (res == null)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res.Value.Item1, res.Value.Item2!, new string[][] { new string[] { "x-envoy-upstream-service-time", "0" }, new string[] { "server", "istio-envoy" }
+                                                    , new string[] { "content-length", res.Value.Item1!.Length.ToString() } }, HttpStatusCode.OK, true);
                                             }
                                             #endregion
 
@@ -1076,10 +1099,10 @@ namespace HTTPServer
                                                             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                             if (ContentType == "application/octet-stream")
                                                             {
-                                                                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                                                                byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                                 {
-                                                                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                    if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                     {
                                                                         ContentType = entry.Key;
                                                                         break;
@@ -1194,7 +1217,8 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
                         {
@@ -1223,7 +1247,8 @@ namespace HTTPServer
                         long bytesLeft = totalBytes;
                         string? encoding = null;
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
                         {
@@ -1242,7 +1267,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type"))
+                        if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
                             response.Headers.Add("Content-Type", "text/plain");
 
                         if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1291,7 +1316,8 @@ namespace HTTPServer
                 {
                     response.Headers.Clear();
 
-                    response.Headers.Add("Server", "Apache");
+                    if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
                     response.Headers.Add("Connection", "close");
 
                     response.HttpStatusCode = HttpStatusCode.InternalServerError;
@@ -1347,6 +1373,7 @@ namespace HTTPServer
                     const int rangebuffersize = 32768;
 
                     string? acceptencoding = request.RetrieveHeaderValue("Accept-Encoding");
+                    string userAgent = request.RetrieveHeaderValue("User-Agent");
 
                     using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     long startByte = -1;
@@ -1361,10 +1388,10 @@ namespace HTTPServer
                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                         if (ContentType == "application/octet-stream")
                         {
-                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                            byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
@@ -1511,10 +1538,10 @@ namespace HTTPServer
                         ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                         ms.Write(Separator);
                         ms.Position = 0;
-                        response = new()
-                            {
-                                HttpStatusCode = HttpStatusCode.PartialContent
-                            };
+                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                        {
+                            HttpStatusCode = HttpStatusCode.PartialContent
+                        };
                         response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
@@ -1639,10 +1666,10 @@ namespace HTTPServer
                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                         if (ContentType == "application/octet-stream")
                         {
-                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                            byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
@@ -1700,14 +1727,14 @@ namespace HTTPServer
                         {
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (DataUtils.FindBytePattern(DataUtils.ReadSmallFileChunck(filePath, 10), entry.Value) != -1)
+                                if (OtherExtensions.FindBytePattern(OtherExtensions.ReadSmallFileChunck(filePath, 10), entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
                                 }
                             }
                         }
-                        response = new()
+                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
@@ -1782,7 +1809,8 @@ namespace HTTPServer
                         {
                             response.Headers.Clear();
 
-                            response.Headers.Add("Server", "Apache");
+                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                                response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
                             {
@@ -1811,7 +1839,8 @@ namespace HTTPServer
                             long bytesLeft = totalBytes;
                             string? encoding = null;
 
-                            response.Headers.Add("Server", "Apache");
+                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                                response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
                             {
@@ -1823,7 +1852,7 @@ namespace HTTPServer
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
 
-                            if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type"))
+                            if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
                                 response.Headers.Add("Content-Type", "text/plain");
 
                             if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1872,7 +1901,8 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
-                        response.Headers.Add("Server", "Apache");
+                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Connection", "close");
 
                         response.HttpStatusCode = HttpStatusCode.InternalServerError;

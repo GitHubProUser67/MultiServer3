@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using FixedSsl;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +13,7 @@ namespace BlazeCommon
         public string Name { get; private set; }
         public IPEndPoint LocalEP { get; private set; }
         public bool IsRunning { get; private set; }
-        public X509Certificate? Certificate { get; private set; }
+        public X509Certificate2? Certificate { get; private set; }
         public bool ForceSsl { get; private set; }
 
         [MemberNotNullWhen(true, nameof(Certificate))]
@@ -24,7 +24,7 @@ namespace BlazeCommon
         private ConcurrentDictionary<long, ProtoFireConnection> _connections;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public ProtoFireServer(string name, IPEndPoint localEP, X509Certificate? cert, bool forceSsl)
+        public ProtoFireServer(string name, IPEndPoint localEP, X509Certificate2? cert, bool forceSsl)
         {
             Name = name;
             LocalEP = localEP;

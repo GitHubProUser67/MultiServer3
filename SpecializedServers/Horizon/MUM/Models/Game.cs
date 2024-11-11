@@ -8,6 +8,9 @@ using System.Data;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.SERVER;
+using Horizon.SERVER.Extension.PlayStationHome;
+using System.Threading.Tasks;
+using System.Text;
 
 namespace Horizon.MUM.Models
 {
@@ -877,6 +880,50 @@ namespace Horizon.MUM.Models
 
         public virtual Task GameCreated()
         {
+            /*if (ApplicationId == 20371 || ApplicationId == 20374 && !string.IsNullOrEmpty(GameName) && GameName.StartsWith("AP|") && GameName.Split('|').Length >= 5)
+            {
+                if (Host != null)
+                {
+                    string funcName = "Tell AP PassCode";
+
+                    if (Host.Tasks.ContainsKey(funcName))
+                    {
+#if DEBUG
+                        LoggerAccessor.LogWarn($"[Game] - Disposing Home AP Passcode Task for client: {Host}");
+#endif
+                        try
+                        {
+                            Host.Tasks[funcName].Dispose();
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+#if DEBUG
+                    LoggerAccessor.LogInfo($"[Game] - Adding Home AP Passcode Task for client: {Host}");
+#endif
+                    Host.Tasks.TryAdd(funcName, Task.Run(() =>
+                    {
+                        string LobbyName = GameName!.Split('|')[5];
+                        Ionic.Crc.CRC32? crc = new();
+
+                        byte[] APPassCode = Encoding.UTF8.GetBytes(Host.AccountName + LobbyName + "H3m0");
+
+                        crc.SlurpBlock(APPassCode, 0, APPassCode.Length);
+
+                        while (!Host.IsInGame)
+                        {
+                            Thread.Sleep(4500);
+                        }
+
+                        HomeRTMTools.SendRemoteCommand(Host, $"lc Debug.System( 'say {LobbyName}->{(~(crc.Crc32Result ^ uint.MaxValue ^ MediusWorldId ^ utcTimeCreated.ToUnixTime() ^ 0xFFFF)).ToString("X4").Replace("0X", string.Empty)}' )");
+
+                        crc = null;
+                    }));
+                }
+            }*/
+
             return Task.CompletedTask;
         }
 

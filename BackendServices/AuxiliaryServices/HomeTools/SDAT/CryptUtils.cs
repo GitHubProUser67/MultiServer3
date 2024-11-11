@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using System;
 using System.Numerics;
 using System.Security.Cryptography;
@@ -15,33 +15,33 @@ namespace HomeTools.SDAT
             LoggerAccessor.LogError($"[CryptUtils] - Failed with error {a}");
         }
 
-        private static void calculateSubkey(byte[] key, byte[] K1, byte[] K2)
+        private static void CalculateSubkey(byte[] key, byte[] K1, byte[] K2)
         {
             byte[] numArray1 = new byte[16];
             byte[] numArray2 = new byte[16];
-            aesecbEncrypt(key, numArray1, 0, numArray2, 0, numArray1.Length);
-            BigInteger bigInteger1 = new(ConversionUtils.reverseByteWithSizeFIX(numArray2));
+            AesecbEncrypt(key, numArray1, 0, numArray2, 0, numArray1.Length);
+            BigInteger bigInteger1 = new(ConversionUtils.ReverseByteWithSizeFIX(numArray2));
             BigInteger bigInteger2 = (numArray2[0] & 128) == 0 ? bigInteger1 << 1 : bigInteger1 << 1 ^ new BigInteger(135);
-            byte[] src1 = ConversionUtils.reverseByteWithSizeFIX(bigInteger2.ToByteArray());
+            byte[] src1 = ConversionUtils.ReverseByteWithSizeFIX(bigInteger2.ToByteArray());
             if (src1.Length >= 16)
-                ConversionUtils.arraycopy(src1, src1.Length - 16, K1, 0L, 16);
+                ConversionUtils.Arraycopy(src1, src1.Length - 16, K1, 0L, 16);
             else
             {
-                ConversionUtils.arraycopy(numArray1, 0, K1, 0L, numArray1.Length);
-                ConversionUtils.arraycopy(src1, 0, K1, 16 - src1.Length, src1.Length);
+                ConversionUtils.Arraycopy(numArray1, 0, K1, 0L, numArray1.Length);
+                ConversionUtils.Arraycopy(src1, 0, K1, 16 - src1.Length, src1.Length);
             }
-            bigInteger2 = new BigInteger(ConversionUtils.reverseByteWithSizeFIX(K1));
-            byte[] src2 = ConversionUtils.reverseByteWithSizeFIX(((K1[0] & 128) == 0 ? bigInteger2 << 1 : bigInteger2 << 1 ^ new BigInteger(135)).ToByteArray());
+            bigInteger2 = new BigInteger(ConversionUtils.ReverseByteWithSizeFIX(K1));
+            byte[] src2 = ConversionUtils.ReverseByteWithSizeFIX(((K1[0] & 128) == 0 ? bigInteger2 << 1 : bigInteger2 << 1 ^ new BigInteger(135)).ToByteArray());
             if (src2.Length >= 16)
-                ConversionUtils.arraycopy(src2, src2.Length - 16, K2, 0L, 16);
+                ConversionUtils.Arraycopy(src2, src2.Length - 16, K2, 0L, 16);
             else
             {
-                ConversionUtils.arraycopy(numArray1, 0, K2, 0L, numArray1.Length);
-                ConversionUtils.arraycopy(src2, 0, K2, 16 - src2.Length, src2.Length);
+                ConversionUtils.Arraycopy(numArray1, 0, K2, 0L, numArray1.Length);
+                ConversionUtils.Arraycopy(src2, 0, K2, 16 - src2.Length, src2.Length);
             }
         }
 
-        public static void aesecbDecrypt(
+        public static void AesecbDecrypt(
           byte[] key,
           byte[] i,
           int inOffset,
@@ -52,10 +52,10 @@ namespace HomeTools.SDAT
             CipherMode mode = CipherMode.ECB;
             PaddingMode padding = PaddingMode.None;
             int decryptMode = DECRYPT_MODE;
-            crypto(key, mode, padding, null, decryptMode, i, inOffset, len, o, outOffset);
+            Crypto(key, mode, padding, null, decryptMode, i, inOffset, len, o, outOffset);
         }
 
-        public static void aesecbEncrypt(
+        public static void AesecbEncrypt(
           byte[] key,
           byte[] i,
           int inOffset,
@@ -66,10 +66,10 @@ namespace HomeTools.SDAT
             CipherMode mode = CipherMode.ECB;
             PaddingMode padding = PaddingMode.None;
             int encryptMode = ENCRYPT_MODE;
-            crypto(key, mode, padding, null, encryptMode, i, inOffset, len, o, outOffset);
+            Crypto(key, mode, padding, null, encryptMode, i, inOffset, len, o, outOffset);
         }
 
-        public static void aescbcDecrypt(
+        public static void AescbcDecrypt(
           byte[] key,
           byte[] iv,
           byte[] i,
@@ -81,10 +81,10 @@ namespace HomeTools.SDAT
             CipherMode mode = CipherMode.CBC;
             PaddingMode padding = PaddingMode.None;
             int decryptMode = DECRYPT_MODE;
-            crypto(key, mode, padding, iv, decryptMode, i, inOffset, len, o, outOffset);
+            Crypto(key, mode, padding, iv, decryptMode, i, inOffset, len, o, outOffset);
         }
 
-        private static void crypto(
+        private static void Crypto(
           byte[] key,
           CipherMode mode,
           PaddingMode padding,
@@ -113,7 +113,7 @@ namespace HomeTools.SDAT
                     src = rijndaelManaged.CreateEncryptor().TransformFinalBlock(i, inOffset, len);
                 else
                     Fail("NOT SUPPORTED OPMODE");
-                ConversionUtils.arraycopy(src, 0, o, outOffset, len);
+                ConversionUtils.Arraycopy(src, 0, o, outOffset, len);
             }
             catch (Exception ex)
             {
@@ -125,20 +125,20 @@ namespace HomeTools.SDAT
         {
             byte[] numArray1 = new byte[16];
             byte[] numArray2 = new byte[16];
-            calculateSubkey(key, numArray1, numArray2);
+            CalculateSubkey(key, numArray1, numArray2);
             byte[] numArray3 = new byte[16];
             byte[] numArray4 = new byte[16];
             int srcPos = inOffset;
             int length;
             for (length = len; length > 16; length -= 16)
             {
-                ConversionUtils.arraycopy(i, srcPos, numArray3, 0L, 16);
+                ConversionUtils.Arraycopy(i, srcPos, numArray3, 0L, 16);
                 XOR(numArray3, numArray3, numArray4);
-                aesecbEncrypt(key, numArray3, 0, numArray4, 0, numArray3.Length);
+                AesecbEncrypt(key, numArray3, 0, numArray4, 0, numArray3.Length);
                 srcPos += 16;
             }
             byte[] numArray5 = new byte[16];
-            ConversionUtils.arraycopy(i, srcPos, numArray5, 0L, length);
+            ConversionUtils.Arraycopy(i, srcPos, numArray5, 0L, length);
             if (length == 16)
             {
                 XOR(numArray5, numArray5, numArray4);
@@ -150,7 +150,7 @@ namespace HomeTools.SDAT
                 XOR(numArray5, numArray5, numArray4);
                 XOR(numArray5, numArray5, numArray2);
             }
-            aesecbEncrypt(key, numArray5, 0, numArray4, 0, numArray5.Length);
+            AesecbEncrypt(key, numArray5, 0, numArray4, 0, numArray5.Length);
             return numArray4;
         }
 

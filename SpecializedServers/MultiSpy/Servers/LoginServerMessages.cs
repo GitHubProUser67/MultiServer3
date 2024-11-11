@@ -1,4 +1,4 @@
-﻿using MultiSpy.Data;
+using MultiSpy.Data;
 using MultiSpyService.Utils;
 using System.Net;
 using System.Text;

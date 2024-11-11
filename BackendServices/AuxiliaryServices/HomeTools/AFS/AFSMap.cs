@@ -1,3 +1,4 @@
+using CustomLogger;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,14 +50,32 @@ namespace HomeTools.AFS
                             if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
                                 Directory.CreateDirectory(destinationDirectory.ToUpper());
 
-                            if (!File.Exists(NewfilePath))
+                            if (File.Exists(filePath) && !File.Exists(NewfilePath))
                                 File.Move(filePath, NewfilePath.ToUpper());
 
                             if (File.Exists(NewfilePath) && (NewfilePath.ToLower().EndsWith(".mdl") || NewfilePath.ToLower().EndsWith(".atmos")
                             || NewfilePath.ToLower().EndsWith(".efx") || NewfilePath.ToLower().EndsWith(".xml") || NewfilePath.ToLower().EndsWith(".scene")
                             || NewfilePath.ToLower().EndsWith(".map") || NewfilePath.ToLower().EndsWith(".lua") || NewfilePath.ToLower().EndsWith(".luac")
                             || NewfilePath.ToLower().EndsWith(".unknown") || NewfilePath.ToLower().EndsWith(".txt")))
-                                await SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath));
+                            {
+                                const byte maxRetries = 3;
+
+                                for (byte attempt = 0; attempt <= maxRetries; attempt++)
+                                {
+                                    try
+                                    {
+                                        await SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
+                                        break;
+                                    }
+                                    catch (IOException ex)
+                                    {
+                                        if (attempt == maxRetries)
+                                            LoggerAccessor.LogError($"[AFSMap] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
+                                        else
+                                            await Task.Delay(100).ConfigureAwait(false);
+                                    }
+                                }
+                            }
                         }
                     }
                 }

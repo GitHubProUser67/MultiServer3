@@ -98,8 +98,11 @@ namespace Horizon.MUM
             return null;
         }
 
-        public ClientObject? GetClientBySessionKey(string sessionKey, int appId)
+        public ClientObject? GetClientBySessionKey(string? sessionKey, int appId)
         {
+            if (string.IsNullOrEmpty(sessionKey))
+                return null;
+
             foreach (int appIdInGroup in GetAppIdsInGroup(appId))
             {
                 if (_lookupsByAppId.TryGetValue(appIdInGroup, out QuickLookup? quickLookup))
@@ -110,6 +113,15 @@ namespace Horizon.MUM
             }
 
             return null;
+        }
+
+        public List<ClientObject>? GetClientsByIp(string? Ip, int appId)
+        {
+            return _lookupsByAppId
+                   .Where(x => GetAppIdsInGroup(appId).Contains(x.Key))
+                   .SelectMany(x => x.Value.SessionKeyToClient.Select(x => x.Value))
+                   .Where(x => x.ApplicationId == appId && x.IP.ToString().Equals(Ip))
+                   .ToList();
         }
 
         public void AddClient(ClientObject client)
@@ -1219,6 +1231,24 @@ namespace Horizon.MUM
                                 .ToList());
                         }
                     }
+                }
+            }
+
+            return channels;
+        }
+
+        public List<Channel> GetAllChannels(int appId)
+        {
+            List<Channel> channels = new();
+
+            if (_lookupsByAppId.TryGetValue(appId, out QuickLookup? quickLookup))
+            {
+                lock (quickLookup.AppIdToChannel)
+                {
+                    channels.AddRange(quickLookup.AppIdToChannel
+                        .Where(pair => pair.Key == appId)
+                        .SelectMany(pair => pair.Value)
+                        .ToList());
                 }
             }
 

@@ -4,8 +4,8 @@ using lzo.net;
 using System.Text.RegularExpressions;
 using EndianTools;
 using Ionic.Zlib;
-using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using NetworkLibrary.Extension;
+using HashLib;
 
 namespace QuazalServer.QNetZ
 {
@@ -318,7 +318,7 @@ namespace QuazalServer.QNetZ
             if (input.Length == 32 && Regex.IsMatch(input, @"\b[a-fA-F0-9]{32}\b")) // Might maybe conflict if user type in a md5 like pass, which is a very bad idea ^^.
 			{
                 count = pid % 1024;
-                buff = DataUtils.HexStringToByteArray(input);
+                buff = OtherExtensions.HexStringToByteArray(input);
             }
             else
             {

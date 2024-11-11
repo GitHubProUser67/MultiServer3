@@ -1,7 +1,7 @@
 // Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
-using CyberBackendLibrary.Extension;
-using CyberBackendLibrary.FileSystem;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.Extension;
+using NetworkLibrary.FileSystem;
+using NetworkLibrary.HTTP;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using System.IO;
@@ -44,10 +44,10 @@ namespace HTTPServer.RouteHandlers
                 if (ContentType == "application/octet-stream")
                 {
                     bool matched = false;
-                    byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                    byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                     foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
-                        if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                        if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                         {
                             matched = true;
                             response.Headers["Content-Type"] = entry.Key;
@@ -80,10 +80,10 @@ namespace HTTPServer.RouteHandlers
             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
             if (ContentType == "application/octet-stream")
             {
-                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
                 foreach (var entry in HTTPProcessor._PathernDictionary)
                 {
-                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                    if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                     {
                         ContentType = entry.Key;
                         break;

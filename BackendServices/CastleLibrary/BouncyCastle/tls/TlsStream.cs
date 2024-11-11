@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
 using System.Threading;

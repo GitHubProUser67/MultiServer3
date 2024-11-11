@@ -1,4 +1,4 @@
-﻿namespace Tdf
+namespace Tdf
 {
     [AttributeUsage(AttributeTargets.Struct, Inherited = true, AllowMultiple = true)]
     public class TdfStruct : Attribute

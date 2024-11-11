@@ -2,15 +2,15 @@ using CustomLogger;
 using Horizon.LIBRARY.Database;
 using Horizon.PluginManager;
 using Newtonsoft.Json.Linq;
-using CyberBackendLibrary.GeoLocalization;
+using NetworkLibrary.GeoLocalization;
 using System.Runtime;
 using System.Security.Cryptography;
 using System.Collections.Concurrent;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
 using System.Reflection;
-using CyberBackendLibrary.TCP_IP;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.TCP_IP;
+using NetworkLibrary.Extension;
 
 public static class HorizonServerConfiguration
 {
@@ -111,7 +111,7 @@ public static class HorizonServerConfiguration
             BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
             EBOOTDEFSConfig = GetValueOrDefault(config.bwps, "eboot_defs_config", EBOOTDEFSConfig);
             string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
-            if (DataUtils.IsBase64String(APIKey))
+            if (OtherExtensions.IsBase64String(APIKey))
                 MediusAPIKey = APIKey;
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
@@ -226,7 +226,7 @@ class Program
         GC.Collect();
 
         if (HorizonServerConfiguration.EnableMedius)
-            CyberBackendLibrary.SSL.SSLUtils.InitializeSSLCertificates(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
+            NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(HorizonServerConfiguration.HTTPSCertificateFile, HorizonServerConfiguration.HTTPSCertificatePassword,
                     HorizonServerConfiguration.HTTPSDNSList, HorizonServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         HorizonStarter().Wait();
@@ -234,7 +234,7 @@ class Program
 
     static void Main()
     {
-        if (!DataUtils.IsWindows)
+        if (!OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

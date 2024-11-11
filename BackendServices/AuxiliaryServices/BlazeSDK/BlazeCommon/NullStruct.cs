@@ -1,4 +1,4 @@
-﻿using Tdf;
+using Tdf;
 
 namespace BlazeCommon
 {

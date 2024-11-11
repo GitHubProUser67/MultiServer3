@@ -1,42 +1,41 @@
-using System.Collections.Specialized;
 using System.Text;
 using HTTPSecureServerLite.Extensions;
-using CyberBackendLibrary.HTTP;
-using CyberBackendLibrary.DNS;
-using CyberBackendLibrary.GeoLocalization;
+using NetworkLibrary.HTTP;
+using NetworkLibrary.DNS;
+using NetworkLibrary.GeoLocalization;
 using WebAPIService.LOOT;
 using WebAPIService.NDREAMS;
 using WebAPIService.OHS;
 using WebAPIService.PREMIUMAGENCY;
 using WebAPIService.HELLFIRE;
 using WebAPIService.VEEMEE;
-using CustomLogger;
-using HttpMultipartParser;
-using System.Net;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
-using WatsonWebserver.Core;
 using WebAPIService.UBISOFT.HERMES_API;
 using WebAPIService.CAPONE;
 using WebAPIService.CDM;
 using WebAPIService.MultiMedia;
-using System.Threading.Tasks;
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
-using CyberBackendLibrary.FileSystem;
-using CyberBackendLibrary.HTTP.PluginManager;
-using WatsonWebserver;
-using CyberBackendLibrary.Extension;
-using WebAPIService.WebArchive;
-using Newtonsoft.Json;
 using WebAPIService.OUWF;
 using WebAPIService.JUGGERNAUT;
 using WebAPIService.FROMSOFTWARE;
 using WebAPIService.UBISOFT.gsconnect;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
+using CustomLogger;
+using HttpMultipartParser;
+using System.Net;
+using System.Net.Sockets;
+using System.Text.RegularExpressions;
+using WatsonWebserver.Core;
+using System.Threading.Tasks;
+using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using NetworkLibrary.FileSystem;
+using NetworkLibrary.HTTP.PluginManager;
+using WatsonWebserver;
+using NetworkLibrary.Extension;
+using WebAPIService.WebArchive;
+using Newtonsoft.Json;
 
 namespace HTTPSecureServerLite
 {
@@ -783,7 +782,7 @@ namespace HTTPSecureServerLite
                                 {
                                     // TODO, verify ticket data for every platforms.
 
-                                    if (Authorization.StartsWith("psn t=") && DataUtils.IsBase64String(Authorization))
+                                    if (Authorization.StartsWith("psn t=") && NetworkLibrary.Extension.OtherExtensions.IsBase64String(Authorization))
                                     {
                                         byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
 
@@ -800,7 +799,7 @@ namespace HTTPSecureServerLite
                                                 extractedData[i] = 0x48;
                                         }
 
-                                        if (DataUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                                        if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                                             LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                                         else
                                             LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
@@ -1128,7 +1127,7 @@ namespace HTTPSecureServerLite
                                                             }
 
                                                             if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
 
                                                             IPAddress ip = IPAddress.None; // NXDOMAIN
                                                             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -1382,10 +1381,10 @@ namespace HTTPSecureServerLite
                                                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                         if (ContentType == "application/octet-stream")
                                                         {
-                                                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                                                            byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1403,7 +1402,7 @@ namespace HTTPSecureServerLite
                                                             || ContentType.Contains("audio")) && !ContentType.Contains("mpeg")
                                                             && !string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox")
                                                             || UserAgent.Contains("chrome") || UserAgent.Contains("trident")))
-                                                            sent = await new Extensions.Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
+                                                            sent = await new Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
                                                         else if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
                                                             sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType);
                                                         else
@@ -1546,7 +1545,7 @@ namespace HTTPSecureServerLite
                                                         }
 
                                                         if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                            url = CyberBackendLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
 
                                                         IPAddress ip = IPAddress.None; // NXDOMAIN
                                                         if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -1652,10 +1651,10 @@ namespace HTTPSecureServerLite
 
                                                         if (ContentType == "application/octet-stream")
                                                         {
-                                                            byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                                                            byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1774,10 +1773,10 @@ namespace HTTPSecureServerLite
                                             if (ContentType == "application/octet-stream")
                                             {
                                                 bool matched = false;
-                                                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                                                byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                    if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         matched = true;
                                                         response.ContentType = entry.Key;
@@ -1825,10 +1824,10 @@ namespace HTTPSecureServerLite
                                             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                             if (ContentType == "application/octet-stream")
                                             {
-                                                byte[] VerificationChunck = DataUtils.ReadSmallFileChunck(filePath, 10);
+                                                byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (DataUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                    if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         ContentType = entry.Key;
                                                         break;

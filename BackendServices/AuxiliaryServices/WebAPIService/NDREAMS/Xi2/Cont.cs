@@ -1,4 +1,4 @@
-﻿using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HttpMultipartParser;
 using System.IO;
 using System;
@@ -13,8 +13,9 @@ namespace WebAPIService.NDREAMS.Xi2
     {
         public const string ContSignature = "nDreamsXi2Cont";
 
-        private static readonly Dictionary<byte, string> dayDictionary = new Dictionary<byte, string>
+        private static readonly Dictionary<int, string> dayDictionary = new Dictionary<int, string>
         {
+            { -1, "debug" },
             { 0, "day 0" },
             { 1, "day 1" },
             { 2, "day 2" },
@@ -62,7 +63,8 @@ namespace WebAPIService.NDREAMS.Xi2
             { 44, "day 44" },
             { 45, "day 45" },
             { 46, "day 46" },
-            { 47, "day 47" }
+            { 47, "day 47" },
+            { 48, "Well Done!" }
         };
 
         private static string FormatDayDictionary()
@@ -78,13 +80,13 @@ namespace WebAPIService.NDREAMS.Xi2
         }
 
         // Function to retrieve the index by day value
-        private static byte? GetDayIndexByValue(string dayValue)
+        private static int? GetDayIndexByValue(string dayValue)
         {
             return dayDictionary.FirstOrDefault(x => x.Value == dayValue).Key;
         }
 
         // Function to retrieve the day value by index
-        private static string GetDayValueByIndex(byte index)
+        private static string GetDayValueByIndex(int index)
         {
             return dayDictionary.TryGetValue(index, out string value) ? value : string.Empty;
         }
@@ -216,7 +218,7 @@ namespace WebAPIService.NDREAMS.Xi2
 
                                     if (File.Exists(profilePath))
                                     {
-                                        byte? dayIdx = GetDayIndexByValue(day);
+                                        int? dayIdx = GetDayIndexByValue(day);
 
                                         if (dayIdx.HasValue)
                                         {
@@ -224,7 +226,7 @@ namespace WebAPIService.NDREAMS.Xi2
                                             profileData.GameDay = day;
                                             profileData.GameDayProgress = string.Empty;
                                             profileData.DayIdx = dayIdx.Value;
-                                            profileData.NextDay = GetDayValueByIndex((byte)(dayIdx.Value + 1));
+                                            profileData.NextDay = GetDayValueByIndex(dayIdx.Value + 1);
 
                                             profileData.SerializeProfileData(profilePath);
 
@@ -255,11 +257,11 @@ namespace WebAPIService.NDREAMS.Xi2
 
                                 if (ExpectedHash.Equals(key))
                                 {
-                                    byte? dayIdx = GetDayIndexByValue(day);
+                                    int? dayIdx = GetDayIndexByValue(day);
 
                                     if (dayIdx.HasValue)
-                                        return $"<xml><success>true</success><result><Success>true</Success><Available>true</Available><TooLong>false</TooLong><Mins>00</Mins><Hours>00</Hours><Days>00</Days><Next>{GetDayValueByIndex((byte)(dayIdx.Value + 1))}</Next>" +
-                                                $"<confirm>{NDREAMSServerUtils.Server_GetSignatureCustom(ContSignature, name, $"{GetDayValueByIndex((byte)(dayIdx.Value + 1))}00", CurrentDate)}</confirm></result></xml>";
+                                        return $"<xml><success>true</success><result><Success>true</Success><Available>true</Available><TooLong>false</TooLong><Mins>00</Mins><Hours>00</Hours><Days>00</Days><Next>{GetDayValueByIndex(dayIdx.Value + 1)}</Next>" +
+                                                $"<confirm>{NDREAMSServerUtils.Server_GetSignatureCustom(ContSignature, name, $"{GetDayValueByIndex(dayIdx.Value + 1)}00", CurrentDate)}</confirm></result></xml>";
                                     else
                                     {
                                         string errMsg = $"[Xi2] - Cont: Requested day is invalid!";
@@ -284,7 +286,7 @@ namespace WebAPIService.NDREAMS.Xi2
 
                                     if (File.Exists(profilePath))
                                     {
-                                        byte? dayIdx = GetDayIndexByValue(day);
+                                        int? dayIdx = GetDayIndexByValue(day);
 
                                         if (dayIdx.HasValue)
                                         {
@@ -292,7 +294,7 @@ namespace WebAPIService.NDREAMS.Xi2
                                             profileData.GameDay = day;
                                             profileData.GameDayProgress = string.Empty;
                                             profileData.DayIdx = dayIdx.Value;
-                                            profileData.NextDay = GetDayValueByIndex((byte)(dayIdx.Value + 1));
+                                            profileData.NextDay = GetDayValueByIndex(dayIdx.Value + 1);
 
                                             profileData.SerializeProfileData(profilePath);
 

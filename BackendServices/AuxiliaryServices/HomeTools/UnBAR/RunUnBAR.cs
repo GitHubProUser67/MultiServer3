@@ -9,9 +9,9 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using CompressionLibrary.Edge;
-using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using NetworkLibrary.Extension;
 using HomeTools.SDAT;
+using HashLib;
 
 namespace HomeTools.UnBAR
 {
@@ -28,10 +28,9 @@ namespace HomeTools.UnBAR
             GC.WaitForPendingFinalizers();
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
-
+#if MAKE_NP_DATA_MODE
         public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath, ushort version)
         {
-#if MAKE_NP_DATA_MODE
             using (Process process = Process.Start(new ProcessStartInfo()
             {
                 FileName = converterPath + "/make_npdata",
@@ -50,21 +49,23 @@ namespace HomeTools.UnBAR
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
             }
+        }
 #else
+        public static void RunEncrypt(string filePath, string sdatfilePath)
+        {
             try
             {
-                int ExitCode = new EDAT().EncryptFile(filePath, sdatfilePath);
+                int ExitCode = EDAT.EncryptFile(filePath, sdatfilePath);
 
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with assertion : {ex}");
             }
-#endif
         }
-
+#endif
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir, ushort cdnMode)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
@@ -93,7 +94,7 @@ namespace HomeTools.UnBAR
 #else
             try
             {
-                int ExitCode = new EDAT().DecryptFile(sdatfilePath, datfilePath);
+                int ExitCode = EDAT.DecryptFile(sdatfilePath, datfilePath);
 
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
@@ -116,6 +117,8 @@ namespace HomeTools.UnBAR
 
             if (File.Exists(filePath))
             {
+                string barDirectoryPath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath));
+
                 try
                 {
                     RawBarData = File.ReadAllBytes(filePath);
@@ -166,7 +169,7 @@ namespace HomeTools.UnBAR
 
                                 if (SharcHeader == null)
                                     return; // Sharc Header failed to decrypt.
-                                else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
+                                else if (!OtherExtensions.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
                                 {
                                     options = ToolsImplementation.base64CDNKey1;
 
@@ -177,7 +180,7 @@ namespace HomeTools.UnBAR
 
                                     if (SharcHeader == null)
                                         return; // Sharc Header failed to decrypt.
-                                    else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
+                                    else if (!OtherExtensions.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
                                     {
                                         options = ToolsImplementation.base64DefaultSharcKey;
 
@@ -188,7 +191,7 @@ namespace HomeTools.UnBAR
 
                                         if (SharcHeader == null)
                                             return; // Sharc Header failed to decrypt.
-                                        else if (!DataUtils.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
+                                        else if (!OtherExtensions.AreArraysIdentical(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }, EmptyArray))
                                             return; // All keys failed to decrypt.
                                     }
                                 }
@@ -227,7 +230,7 @@ namespace HomeTools.UnBAR
 
                                         if (isLittleEndian)
                                         {
-                                            FileBytes = DataUtils.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
+                                            FileBytes = OtherExtensions.CombineByteArrays(new byte[] { 0xE1, 0x17, 0xEF, 0xAD, 0x00, 0x00, 0x00, 0x02 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -237,7 +240,7 @@ namespace HomeTools.UnBAR
                                         }
                                         else
                                         {
-                                            FileBytes = DataUtils.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
+                                            FileBytes = OtherExtensions.CombineByteArrays(new byte[] { 0xAD, 0xEF, 0x17, 0xE1, 0x02, 0x00, 0x00, 0x00 }, new byte[][]
                                             {
                                                     OriginalIV,
                                                     SharcHeader,
@@ -246,7 +249,7 @@ namespace HomeTools.UnBAR
                                             });
                                         }
 
-                                        Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                                        Directory.CreateDirectory(barDirectoryPath);
 
                                         File.WriteAllBytes(filePath, FileBytes);
 
@@ -262,7 +265,7 @@ namespace HomeTools.UnBAR
                     }
                     else
                     {
-                        Directory.CreateDirectory(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
+                        Directory.CreateDirectory(barDirectoryPath);
 
                         LoggerAccessor.LogInfo("Loading BAR/dat: {0}", filePath);
                     }
@@ -271,78 +274,78 @@ namespace HomeTools.UnBAR
                 {
                     LoggerAccessor.LogError($"[RunUnBAR] - Initial archive loading failed with error - {ex}");
                 }
-            }
 
-            if (Directory.Exists(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath))))
-            {
-                try
+                if (Directory.Exists(barDirectoryPath))
                 {
-                    BARArchive archive = new BARArchive(filePath, outDir);
-                    archive.Load();
-                    archive.WriteMap(filePath);
-                    File.WriteAllText(Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)) + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
-
-                    // Create a list to hold the tasks
-                    List<Task> TOCTasks = new List<Task>();
-
-                    foreach (TOCEntry tableOfContent in archive.TableOfContents)
+                    try
                     {
-                        byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
+                        BARArchive archive = new BARArchive(filePath, outDir);
+                        archive.Load();
+                        archive.WriteMap(filePath);
+                        File.WriteAllText(barDirectoryPath + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
 
-                        if (FileData != null)
+                        // Create a list to hold the tasks
+                        List<Task> TOCTasks = new List<Task>();
+
+                        foreach (TOCEntry tableOfContent in archive.TableOfContents)
                         {
-                            // Create a task for each iteration
-                            Task task = Task.Run(() =>
+                            byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
+
+                            if (FileData != null)
                             {
-                                try
+                                // Create a task for each iteration
+                                Task task = Task.Run(() =>
                                 {
-                                    if (archive.GetHeader().Version == 512)
-                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
-                                    else
+                                    try
                                     {
-                                        using (MemoryStream memoryStream = new MemoryStream(FileData))
+                                        if (archive.GetHeader().Version == 512)
+                                            ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
+                                        else
                                         {
-                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)),
-                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)), cdnMode);
-                                            memoryStream.Flush();
+                                            using (MemoryStream memoryStream = new MemoryStream(FileData))
+                                            {
+                                                ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath,
+                                                    FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)), cdnMode);
+                                                memoryStream.Flush();
+                                            }
                                         }
                                     }
-                                }
-                                catch (Exception ex)
-                                {
-                                    LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} or failed to scan for extension - {ex}");
+                                    catch (Exception ex)
+                                    {
+                                        LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} or failed to scan for extension - {ex}");
 
-                                    if (archive.GetHeader().Version == 512)
-                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)));
-                                    else
-                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath)), ".unknown", cdnMode);
-                                }
-                            });
+                                        if (archive.GetHeader().Version == 512)
+                                            ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
+                                        else
+                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath, ".unknown", cdnMode);
+                                    }
+                                });
 
-                            TOCTasks.Add(task);
+                                TOCTasks.Add(task);
+                            }
                         }
+
+                        // Wait for all tasks to complete
+                        await Task.WhenAll(TOCTasks).ConfigureAwait(false);
+
+                        TOCTasks = null;
+
+                        if (File.Exists(filePath + ".map"))
+                            File.Move(filePath + ".map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
+                        else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".sharc.map"))
+                            File.Move(filePath.Substring(0, filePath.Length - 4) + ".sharc.map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
+                        else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".bar.map"))
+                            File.Move(filePath.Substring(0, filePath.Length - 4) + ".bar.map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
                     }
-
-                    // Wait for all tasks to complete
-                    await Task.WhenAll(TOCTasks);
-
-                    TOCTasks = null;
-
-                    if (File.Exists(filePath + ".map"))
-                        File.Move(filePath + ".map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                    else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".sharc.map"))
-                        File.Move(filePath.Substring(0, filePath.Length - 4) + ".sharc.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                    else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".bar.map"))
-                        File.Move(filePath.Substring(0, filePath.Length - 4) + ".bar.map", Path.Combine(outDir, Path.GetFileNameWithoutExtension(filePath) + $"/{Path.GetFileName(filePath)}.map"));
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[RunUnBAR] - RunExtract Errored out - {ex}");
+                    }
                 }
             }
         }
 
-        private static void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, int cdnMode)
+        private static async void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, int cdnMode)
         {
             TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
@@ -400,24 +403,15 @@ namespace HomeTools.UnBAR
 
                             if (DecryptedSignatureHeader != null)
                             {
-                                string SignatureHeaderHexString = DataUtils.ByteArrayToHexString(DecryptedSignatureHeader);
-#if DEBUG
-                                LoggerAccessor.LogInfo($"SignatureHeader - {SignatureHeaderHexString}");
-#endif
+                                string SignatureHeaderHexString = OtherExtensions.ByteArrayToHexString(DecryptedSignatureHeader);
+
                                 // Create a new byte array to store the remaining content
                                 byte[] FileBytes = new byte[data.Length - 28];
 
                                 // Copy the content after the first 28 bytes to the new array
                                 Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
-                                StringBuilder sb = new StringBuilder();
-
-                                foreach (byte b in NetHasher.ComputeSHA1(FileBytes))
-                                {
-                                    sb.Append(b.ToString("X2")); // Convert each byte to a hexadecimal string
-                                }
-
-                                string SHA1HexString = sb.ToString();
+                                string SHA1HexString = NetHasher.ComputeSHA1String(FileBytes);
 
                                 if (string.Equals(SHA1HexString, SignatureHeaderHexString.Substring(0, SignatureHeaderHexString.Length - 8))) // We strip the original file Compression size.
                                 {
@@ -447,7 +441,7 @@ namespace HomeTools.UnBAR
                                         {
                                             try
                                             {
-                                                FileBytes = Zlib.ComponentAceEdgeZlibDecompress(FileBytes);
+                                                FileBytes = await Zlib.EdgeZlibDecompress(FileBytes).ConfigureAwait(false);
                                             }
                                             catch
                                             {
@@ -457,7 +451,7 @@ namespace HomeTools.UnBAR
 
                                                 try
                                                 {
-                                                    FileBytes = Zlib.ICSharpEdgeZlibDecompress(FileBytes);
+                                                    FileBytes = await Zlib.EdgeZlibDecompress(FileBytes, true).ConfigureAwait(false);
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -485,6 +479,12 @@ namespace HomeTools.UnBAR
                                     fileStream.Close();
                                 }
                             }
+                            else
+                            {
+                                LoggerAccessor.LogError("[RunUnBAR] - Encrypted data SignatureHeader Decryption has failed.");
+                                fileStream.Write(data, 0, data.Length);
+                                fileStream.Close();
+                            }
                         }
                         else
                         {
@@ -510,7 +510,7 @@ namespace HomeTools.UnBAR
             tableOfContent = null;
         }
 
-        private static void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
+        private static async void ExtractToFileBarVersion2(byte[] Key, BARArchive archive, HashedFileName FileName, string outDir)
         {
             TOCEntry tableOfContent = archive.TableOfContents[FileName];
             string path = string.Empty;
@@ -521,15 +521,15 @@ namespace HomeTools.UnBAR
             {
 #if DEBUG
                 LoggerAccessor.LogInfo("[RunUnBAR] - Encrypted Content Detected!, Running Decryption.");
-                LoggerAccessor.LogInfo($"Key - {DataUtils.ByteArrayToHexString(Key)}");
-                LoggerAccessor.LogInfo($"IV - {DataUtils.ByteArrayToHexString(tableOfContent.IV)}");
+                LoggerAccessor.LogInfo($"Key - {OtherExtensions.ByteArrayToHexString(Key)}");
+                LoggerAccessor.LogInfo($"IV - {OtherExtensions.ByteArrayToHexString(tableOfContent.IV)}");
 #endif
 
-                byte[] FileBytes = ToolsImplementation.ProcessXTEAProxyBlocks(data, Key, tableOfContent.IV);
+                byte[] FileBytes = await ToolsImplementation.ProcessXTEAProxyAsync(data, Key, tableOfContent.IV).ConfigureAwait(false);
 
                 try
                 {
-                    FileBytes = Zlib.ComponentAceEdgeZlibDecompress(FileBytes);
+                    FileBytes = await Zlib.EdgeZlibDecompress(FileBytes).ConfigureAwait(false);
                 }
                 catch
                 {
@@ -539,7 +539,7 @@ namespace HomeTools.UnBAR
 
                     try
                     {
-                        FileBytes = Zlib.ICSharpEdgeZlibDecompress(FileBytes);
+                        FileBytes = await Zlib.EdgeZlibDecompress(FileBytes, true).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

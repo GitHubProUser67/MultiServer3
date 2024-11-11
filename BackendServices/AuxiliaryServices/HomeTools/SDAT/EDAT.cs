@@ -24,9 +24,9 @@ namespace HomeTools.SDAT
         public static long FLAG_0x20 = 32;
         public static long FLAG_SDAT = 16777216;
         public static long FLAG_DEBUG = 2147483648;
-        private static int HEADER_MAX_BLOCKSIZE = 15360;
+        private static readonly int HEADER_MAX_BLOCKSIZE = 15360;
 
-        public int EncryptFile(string inFile, string outFile, string sdatnpdcopyfile = "")
+        public static int EncryptFile(string inFile, string outFile, string sdatnpdcopyfile = "")
         {
             if (string.IsNullOrEmpty(inFile))
                 return STATUS_ERROR_INPUTFILE_IO;
@@ -82,9 +82,9 @@ namespace HomeTools.SDAT
             EncryptData(fileStream, o1, npdPtr[0], data, key1);
             o1.Seek(144L, 0);
             AppLoader appLoader = new();
-            appLoader.doInit(hashFlag1, 0, 1, new byte[16], new byte[16], key1);
-            int num1 = (data.getFlags() & FLAG_SDAT) != 0L ? 32 : 16;
-            int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)1) / (BigInteger)data.getBlockSize());
+            appLoader.DoInit(hashFlag1, 0, 1, new byte[16], new byte[16], key1);
+            int num1 = (data.GetFlags() & FLAG_SDAT) != 0L ? 32 : 16;
+            int num2 = (int)((data.GetFileLen() + (BigInteger)data.GetBlockSize() - (BigInteger)1) / (BigInteger)data.GetBlockSize());
             long num3 = 0;
             int num4 = 256;
             int num5 = num2;
@@ -96,11 +96,11 @@ namespace HomeTools.SDAT
                 byte[] i = new byte[len];
                 byte[] o2 = new byte[len];
                 o1.Read(i, 0, i.Length);
-                appLoader.doUpdate(i, 0, o2, 0, len);
+                appLoader.DoUpdate(i, 0, o2, 0, len);
                 num3 += len;
             }
             byte[] generatedHash1 = new byte[16];
-            appLoader.doFinalButGetHash(generatedHash1);
+            appLoader.DoFinalButGetHash(generatedHash1);
             o1.Seek(144L, 0);
             o1.Write(generatedHash1, 0, generatedHash1.Length);
             o1.Seek(0L, 0);
@@ -117,7 +117,7 @@ namespace HomeTools.SDAT
             byte[] iv = new byte[16];
             byte[] hash = key1;
             byte[] generatedHash2 = numArray6;
-            appLoaderReverse.doAll(hashFlag2, 0, 1, i1, 0, o3, 0, length2, key2, iv, hash, generatedHash2, 0);
+            appLoaderReverse.DoAll(hashFlag2, 0, 1, i1, 0, o3, 0, length2, key2, iv, hash, generatedHash2, 0);
             o1.Seek(160L, 0);
             o1.Write(numArray6, 0, numArray6.Length);
             while (o1.Length < 256L)
@@ -127,14 +127,14 @@ namespace HomeTools.SDAT
             return STATUS_OK;
         }
 
-        private byte[] CreateNPDHash2(byte[] klicensee)
+        private static byte[] CreateNPDHash2(byte[] klicensee)
         {
             byte[] output = new byte[16];
             CryptUtils.XOR(output, klicensee, EDATKeys.SDATKEY);
             return output;
         }
 
-        private byte[] WriteValidNPD(NPD[] npdPtr, FileStream fin, string sdatFile) // The sdatFile argument allows to copy the NPD of a SDAT to an other, very handy.
+        private static byte[] WriteValidNPD(NPD[] npdPtr, FileStream fin, string sdatFile) // The sdatFile argument allows to copy the NPD of a SDAT to an other, very handy.
         {
             byte[] numArray = new byte[128];
             numArray[0] = 78;
@@ -173,20 +173,20 @@ namespace HomeTools.SDAT
             }
             else
             {
-                src1 = ConversionUtils.getByteArray("B207996ECD0BB1BD5038D8938401885F");
-                src2 = ConversionUtils.getByteArray("D313D4EA5E6416C7ACEFB0CDF50F9280");
-                klicensee1 = ConversionUtils.getByteArray("CEF7F4089F5451EA1BCFF509A4A71E2E");
+                src1 = ConversionUtils.GetByteArray("B207996ECD0BB1BD5038D8938401885F");
+                src2 = ConversionUtils.GetByteArray("D313D4EA5E6416C7ACEFB0CDF50F9280");
+                klicensee1 = ConversionUtils.GetByteArray("CEF7F4089F5451EA1BCFF509A4A71E2E");
             }
-            ConversionUtils.arraycopy(src1, 0, numArray, 64L, 16);
-            ConversionUtils.arraycopy(src2, 0, numArray, 80L, 16);
-            ConversionUtils.arraycopy(CreateNPDHash2(klicensee1), 0, numArray, 96L, 16);
+            ConversionUtils.Arraycopy(src1, 0, numArray, 64L, 16);
+            ConversionUtils.Arraycopy(src2, 0, numArray, 80L, 16);
+            ConversionUtils.Arraycopy(CreateNPDHash2(klicensee1), 0, numArray, 96L, 16);
             for (int index = 0; index < 16; ++index)
                 numArray[112 + index] = 0;
-            npdPtr[0] = NPD.createNPD(numArray);
+            npdPtr[0] = NPD.CreateNPD(numArray);
             return numArray;
         }
 
-        public int DecryptFile(string inFile, string outFile)
+        public static int DecryptFile(string inFile, string outFile)
         {
             FileStream fileStream = File.Open(inFile, (FileMode)3);
             NPD[] npdPtr = new NPD[1];
@@ -211,13 +211,13 @@ namespace HomeTools.SDAT
                 return num2;
             }
             int version = 0;
-            if (npd.getVersion() == 1L)
+            if (npd.GetVersion() == 1L)
                 version = 1;
-            else if (npd.getVersion() == 2L)
+            else if (npd.GetVersion() == 2L)
                 version = 2;
-            else if (npd.getVersion() == 3L)
+            else if (npd.GetVersion() == 3L)
                 version = 3;
-            else if (npd.getVersion() == 4L)
+            else if (npd.GetVersion() == 4L)
                 version = 4;
             FileStream o = File.Open(outFile, (FileMode)2);
             int num3 = DecryptData(fileStream, version, o, npd, edatData, key);
@@ -231,37 +231,37 @@ namespace HomeTools.SDAT
             return STATUS_OK;
         }
 
-        private int CheckHeader(byte[] rifKey, EDATData data, NPD npd, FileStream i)
+        private static int CheckHeader(byte[] rifKey, EDATData data, NPD npd, FileStream i)
         {
             i.Seek(0L, 0);
             byte[] numArray = new byte[160];
             byte[] o1 = new byte[160];
             byte[] expectedHash = new byte[16];
             int version = 0;
-            switch (npd.getVersion())
+            switch (npd.GetVersion())
             {
                 case 0L:
-                    if ((data.getFlags() & 2147483646L) != 0L)
+                    if ((data.GetFlags() & 2147483646L) != 0L)
                         return STATUS_ERROR_INCORRECT_FLAGS;
                     break;
                 case 1L:
                     version = 1;
-                    if ((data.getFlags() & 2147483646L) != 0L)
+                    if ((data.GetFlags() & 2147483646L) != 0L)
                         return STATUS_ERROR_INCORRECT_FLAGS;
                     break;
                 case 2L:
                     version = 2;
-                    if ((data.getFlags() & 2130706400L) != 0L)
+                    if ((data.GetFlags() & 2130706400L) != 0L)
                         return STATUS_ERROR_INCORRECT_FLAGS;
                     break;
                 case 3L:
                     version = 3;
-                    if ((data.getFlags() & 2130706368L) != 0L)
+                    if ((data.GetFlags() & 2130706368L) != 0L)
                         return STATUS_ERROR_INCORRECT_FLAGS;
                     break;
                 case 4L:
                     version = 4;
-                    if ((data.getFlags() & 2130706368L) != 0L)
+                    if ((data.GetFlags() & 2130706368L) != 0L)
                         return STATUS_ERROR_INCORRECT_FLAGS;
                     break;
                 default:
@@ -270,17 +270,17 @@ namespace HomeTools.SDAT
             i.Read(numArray, 0, numArray.Length);
             i.Read(expectedHash, 0, expectedHash.Length);
             AppLoader appLoader1 = new();
-            int hashFlag = (data.getFlags() & FLAG_KEYENCRYPTED) == 0L ? 2 : 268435458;
-            if ((data.getFlags() & FLAG_DEBUG) != 0L)
+            int hashFlag = (data.GetFlags() & FLAG_KEYENCRYPTED) == 0L ? 2 : 268435458;
+            if ((data.GetFlags() & FLAG_DEBUG) != 0L)
                 hashFlag |= 16777216;
-            if (!appLoader1.doAll(hashFlag, version, 1, numArray, 0, o1, 0, numArray.Length, new byte[16], new byte[16], rifKey, expectedHash, 0))
+            if (!appLoader1.DoAll(hashFlag, version, 1, numArray, 0, o1, 0, numArray.Length, new byte[16], new byte[16], rifKey, expectedHash, 0))
                 return STATUS_ERROR_HEADERCHECK;
-            if ((data.getFlags() & FLAG_0x20) == 0L)
+            if ((data.GetFlags() & FLAG_0x20) == 0L)
             {
                 AppLoader appLoader2 = new();
-                appLoader2.doInit(hashFlag, version, 1, new byte[16], new byte[16], rifKey);
-                int num1 = (data.getFlags() & FLAG_COMPRESSED) != 0L ? 32 : 16;
-                int num2 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)11) / (BigInteger)data.getBlockSize());
+                appLoader2.DoInit(hashFlag, version, 1, new byte[16], new byte[16], rifKey);
+                int num1 = (data.GetFlags() & FLAG_COMPRESSED) != 0L ? 32 : 16;
+                int num2 = (int)((data.GetFileLen() + (BigInteger)data.GetBlockSize() - (BigInteger)11) / (BigInteger)data.GetBlockSize());
                 int num3 = 0;
                 int num4 = 256;
                 int num5 = num2;
@@ -292,16 +292,16 @@ namespace HomeTools.SDAT
                     byte[] i1 = new byte[len];
                     byte[] o2 = new byte[len];
                     i.Read(i1, 0, i1.Length);
-                    appLoader2.doUpdate(i1, 0, o2, 0, len);
+                    appLoader2.DoUpdate(i1, 0, o2, 0, len);
                     num3 += len;
                 }
-                if (!appLoader2.doFinal(numArray, 144))
+                if (!appLoader2.DoFinal(numArray, 144))
                     return STATUS_ERROR_HEADERCHECK;
             }
             return STATUS_OK;
         }
 
-        private byte[] DecryptMetadataSection(byte[] metadata) => new byte[16]
+        private static byte[] DecryptMetadataSection(byte[] metadata) => new byte[16]
         {
           (byte) ( metadata[12] ^ (uint) metadata[8] ^  metadata[16]),
           (byte) ( metadata[13] ^ (uint) metadata[9] ^  metadata[17]),
@@ -321,51 +321,51 @@ namespace HomeTools.SDAT
           (byte) ( metadata[7] ^ (uint) metadata[3] ^  metadata[31])
         };
 
-        private EDATData GetEDATData(FileStream i)
+        private static EDATData GetEDATData(FileStream i)
         {
             i.Seek(128L, 0);
             byte[] data = new byte[16];
             i.Read(data, 0, data.Length);
-            return EDATData.createEDATData(data);
+            return EDATData.CreateEDATData(data);
         }
 
-        private int ValidateNPD(NPD[] npdPtr, FileStream i)
+        private static int ValidateNPD(NPD[] npdPtr, FileStream i)
         {
             i.Seek(0L, 0);
             byte[] npd = new byte[128];
             i.Read(npd, 0, npd.Length);
             byte[] buffer = new byte[4];
             i.Read(buffer, 0, buffer.Length);
-            if ((ConversionUtils.be32(buffer, 0) & FLAG_SDAT) == 0L)
+            if ((ConversionUtils.Be32(buffer, 0) & FLAG_SDAT) == 0L)
                 return STATUS_ERROR_NOT_A_SDAT;
-            npdPtr[0] = NPD.createNPD(npd);
+            npdPtr[0] = NPD.CreateNPD(npd);
             return STATUS_OK;
         }
 
-        private byte[] GetKey(NPD npd, EDATData data)
+        private static byte[] GetKey(NPD npd, EDATData data)
         {
             byte[] output = new byte[16];
-            CryptUtils.XOR(output, npd.getDevHash(), EDATKeys.SDATKEY);
+            CryptUtils.XOR(output, npd.GetDevHash(), EDATKeys.SDATKEY);
             return output;
         }
 
-        private int EncryptData(FileStream ii, FileStream o, NPD npd, EDATData data, byte[] rifkey)
+        private static int EncryptData(FileStream ii, FileStream o, NPD npd, EDATData data, byte[] rifkey)
         {
-            int num1 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)1) / (BigInteger)data.getBlockSize());
-            int num2 = (data.getFlags() & FLAG_COMPRESSED) != 0L || (data.getFlags() & FLAG_0x20) != 0L ? 32 : 16;
+            int num1 = (int)((data.GetFileLen() + (BigInteger)data.GetBlockSize() - (BigInteger)1) / (BigInteger)data.GetBlockSize());
+            int num2 = (data.GetFlags() & FLAG_COMPRESSED) != 0L || (data.GetFlags() & FLAG_0x20) != 0L ? 32 : 16;
             int num3 = 256;
             for (int blk = 0; blk < num1; ++blk)
             {
-                if (blk > 4043309056L / data.getBlockSize())
+                if (blk > 4043309056L / data.GetBlockSize())
                     blk = blk + 1 - 1;
-                long num4 = blk * data.getBlockSize();
+                long num4 = blk * data.GetBlockSize();
                 ii.Seek(num4, 0);
-                int num5 = (int)data.getBlockSize();
+                int num5 = (int)data.GetBlockSize();
                 if (blk == num1 - 1)
                 {
-                    num5 = (int)(data.getFileLen() % new BigInteger(data.getBlockSize()));
+                    num5 = (int)(data.GetFileLen() % new BigInteger(data.GetBlockSize()));
                     if (num5 == 0)
-                        num5 = (int)data.getBlockSize();
+                        num5 = (int)data.GetBlockSize();
                 }
                 int num6 = num5;
                 int length1 = num5 + 15 & -16;
@@ -379,15 +379,15 @@ namespace HomeTools.SDAT
                 byte[] numArray3 = new byte[16];
                 byte[] numArray4 = new byte[16];
                 byte[] blockKey = CalculateBlockKey(blk, npd);
-                CryptUtils.aesecbEncrypt(rifkey, blockKey, 0, numArray3, 0, blockKey.Length);
-                if ((data.getFlags() & FLAG_0x10) != 0L)
-                    CryptUtils.aesecbEncrypt(rifkey, numArray3, 0, numArray4, 0, numArray3.Length);
+                CryptUtils.AesecbEncrypt(rifkey, blockKey, 0, numArray3, 0, blockKey.Length);
+                if ((data.GetFlags() & FLAG_0x10) != 0L)
+                    CryptUtils.AesecbEncrypt(rifkey, numArray3, 0, numArray4, 0, numArray3.Length);
                 else
-                    ConversionUtils.arraycopy(numArray3, 0, numArray4, 0L, numArray3.Length);
+                    ConversionUtils.Arraycopy(numArray3, 0, numArray4, 0L, numArray3.Length);
                 int num8 = 268435458;
                 int num9 = 268435457;
                 AppLoaderReverse appLoaderReverse = new();
-                byte[] digest = npd.getDigest();
+                byte[] digest = npd.GetDigest();
                 byte[] numArray5 = new byte[20];
                 int hashFlag = num9;
                 int cryptoFlag = num8;
@@ -398,27 +398,27 @@ namespace HomeTools.SDAT
                 byte[] iv = digest;
                 byte[] hash = numArray4;
                 byte[] generatedHash = numArray5;
-                appLoaderReverse.doAll(hashFlag, 3, cryptoFlag, i, 0, o1, 0, length2, key, iv, hash, generatedHash, 0);
-                o.Seek(num3 + blk * (num2 + data.getBlockSize()), 0);
-                byte[] byteArray = ConversionUtils.getByteArray("555555555555555555555555");
+                appLoaderReverse.DoAll(hashFlag, 3, cryptoFlag, i, 0, o1, 0, length2, key, iv, hash, generatedHash, 0);
+                o.Seek(num3 + blk * (num2 + data.GetBlockSize()), 0);
+                byte[] byteArray = ConversionUtils.GetByteArray("555555555555555555555555");
                 byte[] output = new byte[16];
                 byte[] numArray6 = new byte[16];
-                ConversionUtils.arraycopy(numArray5, 16, numArray6, 0L, 4);
-                ConversionUtils.arraycopy(byteArray, 0, numArray6, 4L, byteArray.Length);
+                ConversionUtils.Arraycopy(numArray5, 16, numArray6, 0L, 4);
+                ConversionUtils.Arraycopy(byteArray, 0, numArray6, 4L, byteArray.Length);
                 CryptUtils.XOR(output, numArray6, numArray5);
                 o.Write(output, 0, output.Length);
                 o.Write(numArray6, 0, numArray6.Length);
                 o.Write(numArray1, 0, numArray1.Length);
             }
-            byte[] byteArray1 = ConversionUtils.getByteArray("534441544120332E332E302E57000000");
+            byte[] byteArray1 = ConversionUtils.GetByteArray("534441544120332E332E302E57000000");
             o.Write(byteArray1, 0, byteArray1.Length);
             return STATUS_OK;
         }
 
-        private int DecryptData(FileStream ii, int version, FileStream o, NPD npd, EDATData data, byte[] rifkey)
+        private static int DecryptData(FileStream ii, int version, FileStream o, NPD npd, EDATData data, byte[] rifkey)
         {
-            int num1 = (int)((data.getFileLen() + (BigInteger)data.getBlockSize() - (BigInteger)1) / (BigInteger)data.getBlockSize());
-            int num2 = (data.getFlags() & FLAG_COMPRESSED) != 0L || (data.getFlags() & FLAG_0x20) != 0L ? 32 : 16;
+            int num1 = (int)((data.GetFileLen() + (BigInteger)data.GetBlockSize() - (BigInteger)1) / (BigInteger)data.GetBlockSize());
+            int num2 = (data.GetFlags() & FLAG_COMPRESSED) != 0L || (data.GetFlags() & FLAG_0x20) != 0L ? 32 : 16;
             int num3 = 256;
             for (int blk = 0; blk < num1; ++blk)
             {
@@ -427,43 +427,43 @@ namespace HomeTools.SDAT
                 long offset;
                 int compressionEnd = 0;
                 int length;
-                if ((data.getFlags() & FLAG_COMPRESSED) != 0L)
+                if ((data.GetFlags() & FLAG_COMPRESSED) != 0L)
                 {
                     byte[] buffer = new byte[32];
                     byte[] numArray = new byte[32];
                     ii.Read(numArray, 0, numArray.Length);
-                    if (npd.getVersion() <= 1L)
+                    if (npd.GetVersion() <= 1L)
                         Array.Copy(numArray, buffer, numArray.Length);
                     else
                         buffer = DecryptMetadataSection(numArray);
-                    offset = (int)ConversionUtils.be64(buffer, 0);
-                    length = (int)ConversionUtils.be32(buffer, 8);
-                    compressionEnd = (int)ConversionUtils.be32(buffer, 12);
-                    ConversionUtils.arraycopy(numArray, 0, dest, 0L, 16);
+                    offset = (int)ConversionUtils.Be64(buffer, 0);
+                    length = (int)ConversionUtils.Be32(buffer, 8);
+                    compressionEnd = (int)ConversionUtils.Be32(buffer, 12);
+                    ConversionUtils.Arraycopy(numArray, 0, dest, 0L, 16);
                 }
-                else if ((data.getFlags() & FLAG_0x20) != 0L)
+                else if ((data.GetFlags() & FLAG_0x20) != 0L)
                 {
                     byte[] src = new byte[32];
-                    ii.Seek(num3 + blk * (num2 + data.getBlockSize()), 0);
+                    ii.Seek(num3 + blk * (num2 + data.GetBlockSize()), 0);
                     ii.Read(src, 0, src.Length);
                     for (int index = 0; index < 16; ++index)
                         dest[index] = (byte)(src[index] ^ (uint)src[index + 16]);
-                    ConversionUtils.arraycopy(src, 16, dest, 16L, 4);
-                    offset = num3 + blk * (num2 + data.getBlockSize()) + num2;
-                    length = (int)data.getBlockSize();
+                    ConversionUtils.Arraycopy(src, 16, dest, 16L, 4);
+                    offset = num3 + blk * (num2 + data.GetBlockSize()) + num2;
+                    length = (int)data.GetBlockSize();
                     if (blk == num1 - 1)
                     {
-                        int num6 = (int)(data.getFileLen() % new BigInteger(data.getBlockSize()));
+                        int num6 = (int)(data.GetFileLen() % new BigInteger(data.GetBlockSize()));
                         length = num6 > 0 ? num6 : length;
                     }
                 }
                 else
                 {
                     ii.Read(dest, 0, dest.Length);
-                    offset = num3 + blk * data.getBlockSize() + num1 * num2;
-                    length = (int)data.getBlockSize();
+                    offset = num3 + blk * data.GetBlockSize() + num1 * num2;
+                    length = (int)data.GetBlockSize();
                     if (blk == num1 - 1)
-                        length = (int)(data.getFileLen() % new BigInteger(data.getBlockSize()));
+                        length = (int)(data.GetFileLen() % new BigInteger(data.GetBlockSize()));
                 }
                 int length1 = length + 15 & -16;
                 ii.Seek(offset, 0);
@@ -473,27 +473,30 @@ namespace HomeTools.SDAT
                 byte[] numArray3 = new byte[16];
                 byte[] numArray4 = new byte[16];
                 byte[] blockKey = CalculateBlockKey(blk, npd);
-                CryptUtils.aesecbEncrypt(rifkey, blockKey, 0, numArray3, 0, blockKey.Length);
-                if ((data.getFlags() & FLAG_0x10) != 0L)
-                    CryptUtils.aesecbEncrypt(rifkey, numArray3, 0, numArray4, 0, numArray3.Length);
+                CryptUtils.AesecbEncrypt(rifkey, blockKey, 0, numArray3, 0, blockKey.Length);
+                if ((data.GetFlags() & FLAG_0x10) != 0L)
+                    CryptUtils.AesecbEncrypt(rifkey, numArray3, 0, numArray4, 0, numArray3.Length);
                 else
-                    ConversionUtils.arraycopy(numArray3, 0, numArray4, 0L, numArray3.Length);
-                int num8 = (data.getFlags() & FLAG_0x02) == 0L ? 2 : 1;
-                int num9 = (data.getFlags() & FLAG_0x10) != 0L ? (data.getFlags() & FLAG_0x20) != 0L ? 1 : 4 : 2;
-                if ((data.getFlags() & FLAG_KEYENCRYPTED) != 0L)
+                    ConversionUtils.Arraycopy(numArray3, 0, numArray4, 0L, numArray3.Length);
+                int num8 = (data.GetFlags() & FLAG_0x02) == 0L ? 2 : 1;
+                int num9 = (data.GetFlags() & FLAG_0x10) != 0L ? (data.GetFlags() & FLAG_0x20) != 0L ? 1 : 4 : 2;
+                if ((data.GetFlags() & FLAG_KEYENCRYPTED) != 0L)
                 {
                     num8 |= 268435456;
                     num9 |= 268435456;
                 }
-                if ((data.getFlags() & FLAG_DEBUG) != 0L)
+                if ((data.GetFlags() & FLAG_DEBUG) != 0L)
                 {
                     num8 |= 16777216;
                     num9 |= 16777216;
-                    o.Write(numArray1, 0, length);
+                    if ((data.GetFlags() & FLAG_COMPRESSED) != 0L && compressionEnd != 0)
+                        throw new Exception("LZMA Compressed EDAT data is not supported yet!");
+                    else
+                        o.Write(numArray1, 0, length);
                 }
                 else
                 {
-                    byte[] iv = npd.getVersion() <= 1L ? new byte[16] : npd.getDigest();
+                    byte[] iv = npd.GetVersion() <= 1L ? new byte[16] : npd.GetDigest();
                     int hashFlag = num9;
                     int cryptoFlag = num8;
                     byte[] i = numArray1;
@@ -501,9 +504,9 @@ namespace HomeTools.SDAT
                     byte[] key = numArray3;
                     byte[] hash = numArray4;
                     byte[] expectedHash = dest;
-                    new AppLoader().doAll(hashFlag, version, cryptoFlag, i, 0, o1, 0, i.Length, key, iv, hash, expectedHash, 0);
-                    if ((data.getFlags() & FLAG_COMPRESSED) != 0L && compressionEnd != 0)
-                        throw new Exception("LZ Compressed EDAT data is not supported yet! Please report the issue on GITHUB with the file.");
+                    new AppLoader().DoAll(hashFlag, version, cryptoFlag, i, 0, o1, 0, i.Length, key, iv, hash, expectedHash, 0);
+                    if ((data.GetFlags() & FLAG_COMPRESSED) != 0L && compressionEnd != 0)
+                        throw new Exception("LZMA Compressed EDAT data is not supported yet!");
                     else
                         o.Write(numArray2, 0, length);
                 }
@@ -511,12 +514,12 @@ namespace HomeTools.SDAT
             return STATUS_OK;
         }
 
-        private byte[] CalculateBlockKey(int blk, NPD npd)
+        private static byte[] CalculateBlockKey(int blk, NPD npd)
         {
-            byte[] src = npd.getVersion() <= 1L ? new byte[16] : npd.getDevHash();
+            byte[] src = npd.GetVersion() <= 1L ? new byte[16] : npd.GetDevHash();
             byte[] blockKey = new byte[16];
             byte[] dest = blockKey;
-            ConversionUtils.arraycopy(src, 0, dest, 0L, 12);
+            ConversionUtils.Arraycopy(src, 0, dest, 0L, 12);
             blockKey[12] = (byte)(blk >> 24 & byte.MaxValue);
             blockKey[13] = (byte)(blk >> 16 & byte.MaxValue);
             blockKey[14] = (byte)(blk >> 8 & byte.MaxValue);

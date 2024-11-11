@@ -1,5 +1,5 @@
-﻿using CastleLibrary.Utils.SSC2;
-using CyberBackendLibrary.Extension;
+using CastleLibrary.SSC2;
+using NetworkLibrary.Extension;
 using System.Text;
 
 namespace MultiSocks.Utils
@@ -12,7 +12,7 @@ namespace MultiSocks.Utils
 
             if (!string.IsNullOrEmpty(encodedPassword))
             {
-                byte[] decodeHexKey = DataUtils.HexStringToByteArray(ssc2Key);
+                byte[] decodeHexKey = OtherExtensions.HexStringToByteArray(ssc2Key);
                 byte[] decodeBuffer = new byte[32];
                 CryptSSC2.cryptSSC2StringDecrypt(decodeBuffer, decodeBuffer.Length, Encoding.UTF8.GetBytes(encodedPassword), decodeHexKey, decodeHexKey.Length, decodeHexKey.Length);
                 return TruncateAtNull(Encoding.UTF8.GetString(decodeBuffer));
@@ -40,7 +40,7 @@ namespace MultiSocks.Utils
             if (input[0] == 0x7E)
                 input = input[1..];
 
-            return DataUtils.HexStringToString(LobbyTagField.decodeString(DataUtils.StringToHexString(input)));
+            return OtherExtensions.HexStringToString(LobbyTagField.decodeString(OtherExtensions.StringToHexString(input)));
         }
     }
 }

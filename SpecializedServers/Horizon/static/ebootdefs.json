@@ -1028,7 +1028,38 @@
       "DrawDistOffset8": "0x0",
       "NPMatchingTTYSpamOffset": "0x0"
     }
+  },
+  "C21129FFB497B43BBDC0CDE96BF55B923A24F5B3": {
+    "Version": "01.86.09",
+    "Type": "Online Debug (QA)",
+    "Offsets": {
+      "TitleIdOffset": "0x0",
+      "TitleIdOffset2": "0x0",
+      "TitleIdOffset3": "0x0",
+      "TitleIdOffset4": "0x0",
+      "TitleIdOffset5": "0x0",
+	  "TitleIdOffset5": "0x0",
+      "AppIdOffset": "0x0",
+      "NPCommIDOffset": "0x0",
+      "ServiceIdOffset": "0x0",
+      "MuisVersionOffset1": "0x0",
+	  "MuisVersionOffset2": "0x0",
+	  "TssUrlOffset": "0x0",
+      "PSplusOffset": "0x0",
+      "CMDConsoleOffset": "0x0",
+      "ProfFilterOffset": "0x0",
+      "MlaaOffset": "0x0",
+      "EulaOffset": "0x0",
+      "DrawDistOffset": "0x0",
+      "DrawDistOffset2": "0x0",
+      "DrawDistOffset3": "0x0",
+      "DrawDistOffset4": "0x0",
+      "DrawDistOffset5": "0x0",
+      "DrawDistOffset6": "0x0",
+      "DrawDistOffset7": "0x0",
+      "DrawDistOffset8": "0x0",
+      "NPMatchingTTYSpamOffset": "0x0"
+    }
   }
-  
 }
  

@@ -1,6 +1,6 @@
 using System.IO;
 using System.Text.RegularExpressions;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 
 namespace WebAPIService.JUGGERNAUT.farm.furniture
 {

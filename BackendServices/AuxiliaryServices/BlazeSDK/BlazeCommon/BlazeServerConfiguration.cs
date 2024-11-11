@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using Tdf;
 
@@ -11,7 +11,7 @@ namespace BlazeCommon
     {
         public string Name { get; }
         public IPEndPoint LocalEP { get; }
-        public X509Certificate? Certificate { get; set; }
+        public X509Certificate2? Certificate { get; set; }
         public bool ForceSsl { get; set; }
         public ITdfEncoder Encoder { get; }
         public ITdfDecoder Decoder { get; }

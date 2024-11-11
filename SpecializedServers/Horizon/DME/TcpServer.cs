@@ -15,7 +15,7 @@ using DotNetty.Handlers.Timeout;
 using Horizon.DME.PluginArgs;
 using Horizon.PluginManager;
 using EndianTools;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using Horizon.SERVER;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Medius;
@@ -327,7 +327,7 @@ namespace Horizon.DME
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            bool enableEncryption = false /*DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption*/;
+            bool enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -456,7 +456,7 @@ namespace Horizon.DME
                         }
 
                         // start udp server
-                        data.DMEObject.BeginUdp();
+                        data.DMEObject.BeginUdp(scertClient.CipherService);
 
                         #region if PS3
                         if (scertClient.IsPS3Client)
@@ -773,35 +773,100 @@ namespace Horizon.DME
                     {
                         if (data.DMEObject != null)
                         {
-                            bool InvalidRequest = false;
+                            bool InvalidatedRequest = false;
 
                             if (data.DMEObject.ApplicationId == 20371 || data.DMEObject.ApplicationId == 20374)
                             {
-                                byte[] HubMessagePayload = clientAppSingle.Payload;
-                                int HubPathernOffset = DataUtils.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00, 0x00 });
+                                string? HomeUserEntry = null;
+                                ClientObject? mumClient = MediusClass.Manager.GetClientBySessionKey(data.DMEObject.SessionKey, data.DMEObject.ApplicationId);
 
-                                if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
+                                if (mumClient != null)
+                                    HomeUserEntry = mumClient.AccountName + ":" + mumClient.IP;
+
+                                if (clientAppSingle.Payload.Length > 8)
                                 {
-                                    switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
+                                    byte[] HubMessagePayload = clientAppSingle.Payload;
+                                    int HubPathernOffset = OtherExtensions.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00 });
+
+                                    if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                     {
-                                        case -85: // IGA
-                                            InvalidRequest = true;
-                                            string SupplementalMessage = "Unknown";
+                                        string? value;
 
-                                            switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
-                                            {
-                                                case 0x0B:
-                                                    SupplementalMessage = "Kick";
-                                                    break;
-                                            }
+                                        switch (BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4)) : BitConverter.ToInt32(HubMessagePayload, HubPathernOffset + 4))
+                                        {
+                                            case -85: // IGA
+                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
+                                                {
+                                                    switch (value)
+                                                    {
+                                                        case "ADMIN":
+                                                        case "IGA":
+                                                            break;
+                                                        default:
+                                                            InvalidatedRequest = true;
+                                                            string SupplementalMessage = "Unknown";
 
-                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
-                                            break;
+                                                            switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
+                                                            {
+                                                                case 0x0B:
+                                                                    SupplementalMessage = "Kick";
+                                                                    break;
+                                                            }
+
+                                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
+
+                                                            await clientChannel.CloseAsync();
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    InvalidatedRequest = true;
+                                                    string SupplementalMessage = "Unknown";
+
+                                                    switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
+                                                    {
+                                                        case 0x0B:
+                                                            SupplementalMessage = "Kick";
+                                                            break;
+                                                    }
+
+                                                    LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
+
+                                                    await clientChannel.CloseAsync();
+                                                }
+                                                break;
+                                            case -27: // REXEC
+                                                if (!string.IsNullOrEmpty(HomeUserEntry) && MediusClass.Settings.PlaystationHomeUsersServersAccessList.TryGetValue(HomeUserEntry, out value) && !string.IsNullOrEmpty(value))
+                                                {
+                                                    switch (value)
+                                                    {
+                                                        case "ADMIN":
+                                                            break;
+                                                        default:
+                                                            InvalidatedRequest = true;
+
+                                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
+
+                                                            await clientChannel.CloseAsync();
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    InvalidatedRequest = true;
+
+                                                    LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - DmeId:{data.DMEObject.DmeId}");
+
+                                                    await clientChannel.CloseAsync();
+                                                }
+                                                break;
+                                        }
                                     }
                                 }
                             }
 
-                            if (!InvalidRequest)
+                            if (!InvalidatedRequest)
                                 data.DMEObject.DmeWorld?.SendTcpAppSingle(data.DMEObject, clientAppSingle.TargetOrSource, clientAppSingle.Payload ?? Array.Empty<byte>());
                         }
                         break;

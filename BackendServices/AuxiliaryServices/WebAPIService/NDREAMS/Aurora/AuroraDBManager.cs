@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
-using WebAPIService.LeaderboardsService.NDREAMS;
 using System;
-using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using NetworkLibrary.Extension;
+using HashLib;
 
 namespace WebAPIService.NDREAMS.Aurora
 {
@@ -44,7 +43,7 @@ namespace WebAPIService.NDREAMS.Aurora
                     Directory.CreateDirectory(apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}");
 
                     string PlayerVisitProfilePath = apipath + $"/NDREAMS/Aurora/PlayersInventory/{name}/visit_counter.json";
-                    string Hash = DataUtils.ByteArrayToHexString(
+                    string Hash = OtherExtensions.ByteArrayToHexString(
                         NetHasher.ComputeMD5(Array.Empty<byte>())); // Seems to not make a difference.
 
                     if (File.Exists(PlayerVisitProfilePath))
@@ -270,13 +269,13 @@ namespace WebAPIService.NDREAMS.Aurora
                         if (key == ExpectedHash)
                         {
                             int best = 0;
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (int.TryParse(score, out int resscore))
                             {
                                 OrbrunnerScoreBoardData.UpdateScoreBoard(name, resscore);
-                                OrbrunnerScoreBoardData.UpdateTodayScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd"));
+                                OrbrunnerScoreBoardData.UpdateTodayScoreboardXml(apipath, DateTime.Now.ToString("yyyy_MM_dd"));
                                 HighestScore = OrbrunnerScoreBoardData.GetHighestScore();
                                 if (HighestScore != null && !string.IsNullOrEmpty(HighestScore.Value.Item1))
                                 {
@@ -368,7 +367,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
                             if (!string.IsNullOrEmpty(everything))
                             {
@@ -393,7 +392,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
 
                             if (!string.IsNullOrEmpty(consumable))
@@ -412,7 +411,7 @@ namespace WebAPIService.NDREAMS.Aurora
 
                         if (key == ExpectedHash)
                         {
-                            string Hash = DataUtils.ByteArrayToHexString(
+                            string Hash = OtherExtensions.ByteArrayToHexString(
                                 NetHasher.ComputeMD5(Array.Empty<byte>()));
                             int rescount = 0;
 
@@ -658,7 +657,7 @@ namespace WebAPIService.NDREAMS.Aurora
                         case "AddTicket":
                             int XPAwarded = 0;
 
-                            if (DataUtils.IsBase64String(ticket))
+                            if (OtherExtensions.IsBase64String(ticket))
                             {
                                 byte[] DecodedTicket = Convert.FromBase64String(ticket);
 

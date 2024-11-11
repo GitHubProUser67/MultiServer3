@@ -1,8 +1,8 @@
-﻿using Blaze3SDK;
+using Blaze3SDK;
 using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Blaze.Redirector;
-using MultiSocks.Tls;
+using MultiSocks.ProtoSSL;
 using System.Net;
 
 namespace MultiSocks.Blaze
@@ -16,11 +16,11 @@ namespace MultiSocks.Blaze
 
         public BlazeClass(CancellationToken cancellationToken)
         {
-            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? CyberBackendLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
             string domain = "gosredirector.ea.com";
 
             // Create Blaze Redirector server
-            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "fesl@ea.com").Item3);
+            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", true, true).Item3);
             redirector.AddComponent<RedirectorComponent>();
 
             _ = StartServer();

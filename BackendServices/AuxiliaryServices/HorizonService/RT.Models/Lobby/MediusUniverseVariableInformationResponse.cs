@@ -133,7 +133,7 @@ namespace Horizon.RT.Models
                         string betafirstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
                         {
-                            if (ExtendedInfo[0] == '*')
+                            if (ExtendedInfo.StartsWith("*"))
                             {
                                 LoggerAccessor.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
                                 if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
@@ -170,7 +170,18 @@ namespace Horizon.RT.Models
                         double homeretailver = 0;
                         string firstFiveElements = null;
                         if (!string.IsNullOrEmpty(ExtendedInfo))
-                            firstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
+                        {
+                            if (ExtendedInfo.StartsWith("*"))
+                            {
+                                LoggerAccessor.LogInfo("[MediusUniverseVariableInformationResponse] - Setting SVOURL");
+                                if (InfoFilter.IsSet(MediusUniverseVariableInformationInfoFilter.INFO_SVO_URL))
+                                    writer.Write(SvoURL, Constants.UNIVERSE_SVO_URL_MAXLEN);
+
+                                break;
+                            }
+                            else
+                                firstFiveElements = ExtendedInfo.Substring(0, Math.Min(5, ExtendedInfo.Length));
+                        }
 
                         if (!string.IsNullOrEmpty(firstFiveElements))
                         {

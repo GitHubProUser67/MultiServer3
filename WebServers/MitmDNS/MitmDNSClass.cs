@@ -83,66 +83,72 @@ namespace MitmDNS
                     else
                     {
                         string[] split = s.Split(',');
-                        DnsSettings dns = new DnsSettings();
-                        switch (split[1].Trim().ToLower())
+
+                        if (split.Length == 3)
                         {
-                            case "deny":
-                                dns.Mode = HandleMode.Deny;
-                                break;
-                            case "allow":
-                                dns.Mode = HandleMode.Allow;
-                                break;
-                            case "redirect":
-                                dns.Mode = HandleMode.Redirect;
-                                dns.Address = GetIp(split[2].Trim());
-                                break;
-                            default:
-                                LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
-                                break;
-                        }
-
-                        string domain = split[0].Trim();
-
-                        // Check if the domain has been processed before
-                        if (domain.Contains('*'))
-                        {
-                            // Escape all possible URI characters conflicting with Regex
-                            domain = domain.Replace(".", "\\.");
-                            domain = domain.Replace("$", "\\$");
-                            domain = domain.Replace("[", "\\[");
-                            domain = domain.Replace("]", "\\]");
-                            domain = domain.Replace("(", "\\(");
-                            domain = domain.Replace(")", "\\)");
-                            domain = domain.Replace("+", "\\+");
-                            domain = domain.Replace("?", "\\?");
-                            // Replace "*" characters with ".*" which means any number of any character for Regexp
-                            domain = domain.Replace("*", ".*");
-
-                            lock (StarRules)
-#if NETCOREAPP2_0_OR_GREATER
-                                StarRules.TryAdd(domain, dns);
-#else
+                            DnsSettings dns = new DnsSettings();
+                            switch (split[1].Trim().ToLower())
                             {
-                                if (!StarRules.ContainsKey(domain))
-                                    StarRules.Add(domain, dns);
+                                case "deny":
+                                    dns.Mode = HandleMode.Deny;
+                                    break;
+                                case "allow":
+                                    dns.Mode = HandleMode.Allow;
+                                    break;
+                                case "redirect":
+                                    dns.Mode = HandleMode.Redirect;
+                                    dns.Address = GetIp(split[2].Trim());
+                                    break;
+                                default:
+                                    LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
+                                    break;
                             }
+
+                            string domain = split[0].Trim();
+
+                            // Check if the domain has been processed before
+                            if (domain.Contains('*'))
+                            {
+                                // Escape all possible URI characters conflicting with Regex
+                                domain = domain.Replace(".", "\\.");
+                                domain = domain.Replace("$", "\\$");
+                                domain = domain.Replace("[", "\\[");
+                                domain = domain.Replace("]", "\\]");
+                                domain = domain.Replace("(", "\\(");
+                                domain = domain.Replace(")", "\\)");
+                                domain = domain.Replace("+", "\\+");
+                                domain = domain.Replace("?", "\\?");
+                                // Replace "*" characters with ".*" which means any number of any character for Regexp
+                                domain = domain.Replace("*", ".*");
+
+                                lock (StarRules)
+#if NETCOREAPP2_0_OR_GREATER
+                                    StarRules.TryAdd(domain, dns);
+#else
+                                {
+                                    if (!StarRules.ContainsKey(domain))
+                                        StarRules.Add(domain, dns);
+                                }
 #endif
+                            }
+                            else
+                            {
+                                lock (DicRules)
+                                {
+#if NETCOREAPP2_0_OR_GREATER
+                                    DicRules.TryAdd(domain, dns);
+                                    DicRules.TryAdd("www." + domain, dns);
+#else
+                                    if (!DicRules.ContainsKey(domain))
+                                        DicRules.Add(domain, dns);
+                                    if (!DicRules.ContainsKey("www." + domain))
+                                        DicRules.Add("www." + domain, dns);
+#endif
+                                }
+                            }
                         }
                         else
-                        {
-                            lock (DicRules)
-                            {
-#if NETCOREAPP2_0_OR_GREATER
-                                DicRules.TryAdd(domain, dns);
-                                DicRules.TryAdd("www." + domain, dns);
-#else
-                                if (!DicRules.ContainsKey(domain))
-                                    DicRules.Add(domain, dns);
-                                if (!DicRules.ContainsKey("www." + domain))
-                                    DicRules.Add("www." + domain, dns);
-#endif
-                            }
-                        }
+                            LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
                     }
                 });
             }
@@ -241,13 +247,13 @@ namespace MitmDNS
                         }
                         catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
+                            IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
                         }
                         break;
                     }
                 default:
                     {
-                        IP = CyberBackendLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
+                        IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }

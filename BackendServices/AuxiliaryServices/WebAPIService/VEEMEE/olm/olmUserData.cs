@@ -1,8 +1,7 @@
 using System;
 using System.IO;
 using System.Xml;
-using CyberBackendLibrary.HTTP;
-using WebAPIService.LeaderboardsService.VEEMEE;
+using NetworkLibrary.HTTP;
 
 namespace WebAPIService.VEEMEE.olm
 {
@@ -35,8 +34,8 @@ namespace WebAPIService.VEEMEE.olm
                     try
                     {
                         olmScoreBoardData.UpdateScoreBoard(psnid, throws, int.Parse(score));
-                        olmScoreBoardData.UpdateAllTimeScoreboardXml(); // We finalized edit, so we issue a write.
-                        olmScoreBoardData.UpdateWeeklyScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
+                        olmScoreBoardData.UpdateAllTimeScoreboardXml(apiPath); // We finalized edit, so we issue a write.
+                        olmScoreBoardData.UpdateWeeklyScoreboardXml(apiPath, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
                     catch (Exception)
                     {

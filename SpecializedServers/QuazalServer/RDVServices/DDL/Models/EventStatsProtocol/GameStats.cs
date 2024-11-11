@@ -1,4 +1,4 @@
-﻿namespace QuazalServer.RDVServices.DDL.Models.EventStatsProtocol
+namespace QuazalServer.RDVServices.DDL.Models.EventStatsProtocol
 {
     public class GameStats
     {

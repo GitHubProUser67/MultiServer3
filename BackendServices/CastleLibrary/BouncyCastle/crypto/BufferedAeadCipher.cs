@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;

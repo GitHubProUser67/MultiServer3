@@ -1,4 +1,4 @@
-﻿using Blaze3SDK;
+using Blaze3SDK;
 using Blaze3SDK.Blaze.Redirector;
 using Blaze3SDK.Components;
 using BlazeCommon;

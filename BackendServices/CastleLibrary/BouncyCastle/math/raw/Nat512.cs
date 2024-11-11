@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;

@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text;
 using WatsonWebserver.Core;
-using CyberBackendLibrary.HTTP;
+using NetworkLibrary.HTTP;
 using System.IO;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace HTTPSecureServerLite
 {
@@ -144,7 +144,7 @@ namespace HTTPSecureServerLite
                     ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                     ms.Write(Separator);
                     ms.Position = 0;
-                    ctx.Response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
+                    ctx.Response.ContentType = "multipart/byteranges; boundary=multiserver_separator";
                     ctx.Response.Headers.Add("Accept-Ranges", "bytes");
                     ctx.Response.Headers.Add("Content-Length", ms.Length.ToString());
                     ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));

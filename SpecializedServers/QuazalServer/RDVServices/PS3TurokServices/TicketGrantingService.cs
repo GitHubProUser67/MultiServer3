@@ -244,11 +244,7 @@ namespace QuazalServer.RDVServices.PS3TurokServices
                     retVal = (int)ErrorCode.Core_NoError,
                 };
 
-                if (sourcePID == 0) // Ubisoft tracker account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "JaDe!");
-                else if (sourcePID == 50 && !string.IsNullOrEmpty(Context.Client.WIIFriendCode)) // WII Quazal account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, Context.Client.WIIFriendCode);
-                else if (sourcePID == 100) // Quazal guest account.
+                if (sourcePID == 100) // Quazal guest account.
                     ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
                 {

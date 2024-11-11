@@ -1,6 +1,6 @@
 using CustomLogger;
-using CyberBackendLibrary.Extension;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.Extension;
+using NetworkLibrary.TCP_IP;
 using Newtonsoft.Json.Linq;
 using QuazalServer.ServerProcessors;
 using System.Reflection;
@@ -212,7 +212,7 @@ class Program
 
     static void Main()
     {
-        if (!DataUtils.IsWindows)
+        if (!OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

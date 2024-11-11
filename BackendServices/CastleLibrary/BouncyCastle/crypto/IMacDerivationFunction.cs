@@ -1,4 +1,4 @@
-﻿namespace Org.BouncyCastle.Crypto
+namespace Org.BouncyCastle.Crypto
 {
     public interface IMacDerivationFunction
         : IDerivationFunction

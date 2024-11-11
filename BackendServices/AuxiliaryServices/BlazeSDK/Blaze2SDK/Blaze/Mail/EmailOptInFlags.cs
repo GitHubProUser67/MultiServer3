@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze.Mail
+namespace Blaze2SDK.Blaze.Mail
 {
     [Flags]
     public enum EmailOptInFlags

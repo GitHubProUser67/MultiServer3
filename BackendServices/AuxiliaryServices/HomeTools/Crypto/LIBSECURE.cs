@@ -5,18 +5,17 @@ using Org.BouncyCastle.Security;
 using EndianTools;
 using System.Text;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
+using System.Threading.Tasks;
 
 namespace HomeTools.Crypto
 {
     public class LIBSECURE
     {
-        public static byte[] InitiateXTEABuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, string mode, bool memxor = true, bool encrypt = false)
+        public static Task<byte[]> InitiateXTEABufferAsync(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, string mode, bool memxor = true, bool encrypt = false)
         {
             if (KeyBytes.Length == 16)
             {
-                byte[] nulledBytes = new byte[FileBytes.Length];
-
                 // Create the cipher
                 IBufferedCipher cipher = CipherUtilities.GetCipher($"LIBSECUREXTEA/{mode}/NOPADDING");
 
@@ -34,26 +33,24 @@ namespace HomeTools.Crypto
                     cipher.Init(encrypt, new KeyParameter(EndianUtils.EndianSwap(KeyBytes)));
 
                 // Encrypt the plaintext
-                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(memxor ? nulledBytes : EndianUtils.EndianSwap(FileBytes), 0, nulledBytes.Length, ciphertextBytes, 0); // Little optimization for nulled bytes array, no need to endian swap a bunch of nulls.
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(memxor ? new byte[FileBytes.Length] : EndianUtils.EndianSwap(FileBytes), 0, FileBytes.Length, ciphertextBytes, 0); // Little optimization for nulled bytes array, no need to endian swap a bunch of nulls.
                 cipher.DoFinal(ciphertextBytes, ciphertextLength);
 
                 cipher = null;
 
-                return memxor ? Crypt_Decrypt(FileBytes, EndianUtils.EndianSwap(ciphertextBytes), 8) : EndianUtils.EndianSwap(ciphertextBytes);
+                return Task.FromResult(memxor ? Crypt_Decrypt(FileBytes, EndianUtils.EndianSwap(ciphertextBytes), 8) : EndianUtils.EndianSwap(ciphertextBytes));
             }
             else
                 LoggerAccessor.LogError("[LIBSECURE] - InitiateXTEABuffer - Invalid KeyByes!");
 
-            return null;
+            return Task.FromResult<byte[]>(null);
         }
 
         public static byte[] InitiateBlowfishBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv, string mode, bool memxor = true, bool encrypt = false)
         {
             if (KeyBytes.Length == 32)
             {
-                byte[] nulledBytes = new byte[FileBytes.Length];
-
                 // Create the cipher
                 IBufferedCipher cipher = CipherUtilities.GetCipher($"Blowfish/{mode}/NOPADDING");
 
@@ -71,8 +68,8 @@ namespace HomeTools.Crypto
                     cipher.Init(encrypt, new KeyParameter(KeyBytes));
 
                 // Encrypt the plaintext
-                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(memxor ? nulledBytes : FileBytes, 0, nulledBytes.Length, ciphertextBytes, 0);
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(memxor ? new byte[FileBytes.Length] : FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
                 cipher.DoFinal(ciphertextBytes, ciphertextLength);
 
                 cipher = null;
@@ -89,8 +86,6 @@ namespace HomeTools.Crypto
         {
             if (KeyBytes.Length >= 16)
             {
-                byte[] nulledBytes = new byte[FileBytes.Length];
-
                 // Create the cipher
                 IBufferedCipher cipher = CipherUtilities.GetCipher($"AES/{mode}/NOPADDING");
 
@@ -108,8 +103,8 @@ namespace HomeTools.Crypto
                     cipher.Init(encrypt, new KeyParameter(KeyBytes));
 
                 // Encrypt the plaintext
-                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(nulledBytes.Length)];
-                int ciphertextLength = cipher.ProcessBytes(memxor ? nulledBytes : FileBytes, 0, nulledBytes.Length, ciphertextBytes, 0);
+                byte[] ciphertextBytes = new byte[cipher.GetOutputSize(FileBytes.Length)];
+                int ciphertextLength = cipher.ProcessBytes(memxor ? new byte[FileBytes.Length] : FileBytes, 0, FileBytes.Length, ciphertextBytes, 0);
                 cipher.DoFinal(ciphertextBytes, ciphertextLength);
 
                 cipher = null;
@@ -138,7 +133,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -150,7 +145,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -162,7 +157,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -174,7 +169,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(DataUtils.ByteArrayToHexString(DataUtils.HexStringToByteArray(
+                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
                                     ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
                         }
                         break;
@@ -229,15 +224,15 @@ namespace HomeTools.Crypto
 
                     Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
 
-                    hexStr.Append(MemXOR(DataUtils.ByteArrayToHexString(ivBlk), DataUtils.ByteArrayToHexString(block), blockSize).Substring(0, BytesToFill * 2));
+                    hexStr.Append(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk), OtherExtensions.ByteArrayToHexString(block), blockSize).Substring(0, BytesToFill * 2));
                 }
                 else
-                    hexStr.Append(MemXOR(DataUtils.ByteArrayToHexString(ivBlk), DataUtils.ByteArrayToHexString(block), blockSize));
+                    hexStr.Append(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk), OtherExtensions.ByteArrayToHexString(block), blockSize));
 
                 totalProcessedBytes += blockSize;
             }
 
-            CipheredFileBytes = DataUtils.HexStringToByteArray(hexStr.ToString());
+            CipheredFileBytes = OtherExtensions.HexStringToByteArray(hexStr.ToString());
 
             hexStr = null;
 
@@ -275,8 +270,8 @@ namespace HomeTools.Crypto
                 Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
 
                 Buffer.BlockCopy(CipheredFileBytes, 0, ResultAppendedArray, 0, CipheredFileBytes.Length);
-                Buffer.BlockCopy(DataUtils.HexStringToByteArray(MemXOR(DataUtils.ByteArrayToHexString(ivBlk),
-                    DataUtils.ByteArrayToHexString(block), blockSize)), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
+                Buffer.BlockCopy(OtherExtensions.HexStringToByteArray(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk),
+                    OtherExtensions.ByteArrayToHexString(block), blockSize)), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
                 return ResultAppendedArray;
             }
 

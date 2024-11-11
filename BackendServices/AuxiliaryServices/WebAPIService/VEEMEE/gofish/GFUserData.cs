@@ -1,8 +1,7 @@
 using System;
 using System.IO;
 using System.Xml;
-using CyberBackendLibrary.HTTP;
-using WebAPIService.LeaderboardsService.VEEMEE;
+using NetworkLibrary.HTTP;
 
 namespace WebAPIService.VEEMEE.gofish
 {
@@ -39,8 +38,8 @@ namespace WebAPIService.VEEMEE.gofish
                     try
                     {
                         GFScoreBoardData.UpdateScoreBoard(psnid, fishcount, biggestfishweight, totalfishweight, int.Parse(score));
-                        GFScoreBoardData.UpdateAllTimeScoreboardXml(); // We finalized edit, so we issue a write.
-                        GFScoreBoardData.UpdateTodayScoreboardXml(DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
+                        GFScoreBoardData.UpdateAllTimeScoreboardXml(apiPath); // We finalized edit, so we issue a write.
+                        GFScoreBoardData.UpdateTodayScoreboardXml(apiPath, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
                     catch (Exception)
                     {

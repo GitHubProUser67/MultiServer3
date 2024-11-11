@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {

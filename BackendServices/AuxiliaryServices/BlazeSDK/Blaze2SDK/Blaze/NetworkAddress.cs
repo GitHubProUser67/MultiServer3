@@ -1,4 +1,4 @@
-﻿using Tdf;
+using Tdf;
 
 namespace Blaze2SDK.Blaze
 {

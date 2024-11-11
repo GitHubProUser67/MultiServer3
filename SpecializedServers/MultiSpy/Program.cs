@@ -1,6 +1,6 @@
 using CustomLogger;
-using CyberBackendLibrary.GeoLocalization;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.GeoLocalization;
+using NetworkLibrary.TCP_IP;
 using MultiSpy;
 using MultiSpy.Data;
 using MultiSpy.Servers;
@@ -457,7 +457,7 @@ public static class MultiSpyServerConfiguration
 		{ "BladeKitten", string.Empty },
 		{ "blade", "Eel1q7" },
 		{ "bodarkness", "Jn33pM" },
-		{ "explomâ�'?", "?°n" },
+		{ "explomâ�'?", "?°n" },
 		{ "explomäntest", "xUX" },
 		{ "blzrdriverds", "n9HLOG" },
 		{ "BA2SecretMissionsW", string.Empty },
@@ -4863,7 +4863,7 @@ class Program
         if (MultiSpyServerConfiguration.EnablePeerChat)
 		{
             LoggerAccessor.LogInfo("[ServerNatNeg] - Starting Peer Chat Listener");
-            serverChat = new PythonExecEngine(Directory.GetCurrentDirectory() + "/Python_Scripts/gschatserver.py", CyberBackendLibrary.Extension.DataUtils.IsWindows);
+            serverChat = new PythonExecEngine(Directory.GetCurrentDirectory() + "/Python_Scripts/gschatserver.py", NetworkLibrary.Extension.OtherExtensions.IsWindows);
         }
     }
 
@@ -4885,7 +4885,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.Extension.DataUtils.IsWindows)
+        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

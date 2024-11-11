@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Digests;
 using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium

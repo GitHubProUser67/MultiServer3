@@ -32,7 +32,7 @@ namespace Horizon.MUM.Models
         public List<Channel> LocalChannels = new();
 
         public string LobbyIp = MediusClass.SERVER_IP.ToString();
-        public string RegionCode = CyberBackendLibrary.GeoLocalization.GeoIP.GetGeoCodeFromIP(MediusClass.SERVER_IP) ?? string.Empty;
+        public string RegionCode = NetworkLibrary.GeoLocalization.GeoIP.GetGeoCodeFromIP(MediusClass.SERVER_IP) ?? string.Empty;
         public int LobbyPort = MediusClass.LobbyServer.TCPPort;
         public int Id = 0;
         public int ApplicationId = 0;
@@ -417,6 +417,26 @@ namespace Horizon.MUM.Models
                     MessageSize = msg.MessageSize,
                     Message = msg.Message
                 });
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task BroadcastDirectBinaryMessage(MediusBinaryFwdMessage msg)
+        {
+            foreach (var client in LocalClients)
+            {
+                client?.Queue(msg);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task BroadcastDirectBinaryMessage(MediusBinaryFwdMessage1 msg)
+        {
+            foreach (var client in LocalClients)
+            {
+                client?.Queue(msg);
             }
 
             return Task.CompletedTask;

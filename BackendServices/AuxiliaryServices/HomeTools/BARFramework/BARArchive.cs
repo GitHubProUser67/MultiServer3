@@ -10,8 +10,8 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
-using CyberBackendLibrary.Extension;
-using CastleLibrary.Utils;
+using NetworkLibrary.Extension;
+using HashLib;
 
 namespace HomeTools.BARFramework
 {
@@ -374,7 +374,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, DataUtils.ByteArrayToHexString(m_header.IV));
+                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, OtherExtensions.ByteArrayToHexString(m_header.IV));
                     num += 16U;
                 }
                 textWriter.WriteLine("{0:X8} User: {1}", num, m_header.UserData);
@@ -383,7 +383,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, DataUtils.ByteArrayToHexString(m_header.Key));
+                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, OtherExtensions.ByteArrayToHexString(m_header.Key));
                     num += 16U;
                 }
                 textWriter.WriteLine("\n== Table of Contents ==");
@@ -407,7 +407,7 @@ namespace HomeTools.BARFramework
                         tocentry.Path,
                         (uint)tocentry.FileName.Value,
                         tocentry.Size,
-                        DataUtils.ByteArrayToHexString(tocentry.IV)
+                        OtherExtensions.ByteArrayToHexString(tocentry.IV)
                         });
                         num += 24U;
                     }
@@ -650,7 +650,7 @@ namespace HomeTools.BARFramework
             return tocentry;
         }
 
-        private void CompressAndAddFile(bool compress, Stream inStream, TOCEntry tocEntry)
+        private async void CompressAndAddFile(bool compress, Stream inStream, TOCEntry tocEntry)
         {
             if (m_header.Version == 512)
             {
@@ -663,7 +663,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[] array2 = null;
                 if (isvalid)
-                    array2 = Zlib.ComponentAceEdgeZlibCompress(array);
+                    array2 = await Zlib.EdgeZlibCompress(array).ConfigureAwait(false);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length;
@@ -677,7 +677,7 @@ namespace HomeTools.BARFramework
                     tocEntry.Index = count;
                     byte[] IV = new byte[8];
                     Buffer.BlockCopy(tocEntry.IV, 0, IV, 0, tocEntry.IV.Length);
-                    tocEntry.RawData = ToolsImplementation.ProcessXTEAProxyBlocks(array2, m_header.Key, IV);
+                    tocEntry.RawData = await ToolsImplementation.ProcessXTEAProxyAsync(array2, m_header.Key, IV).ConfigureAwait(false);
                 }
                 else
                 {
@@ -705,7 +705,7 @@ namespace HomeTools.BARFramework
                 inStream.Close();
                 byte[] array2 = null;
                 if (isvalid)
-                    array2 = Zlib.ComponentAceEdgeZlibCompress(array);
+                    array2 = await Zlib.EdgeZlibCompress(array).ConfigureAwait(false);
                 if (array2 != null)
                 {
                     tocEntry.CompressedSize = (uint)array2.Length + 28;
@@ -718,13 +718,13 @@ namespace HomeTools.BARFramework
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
                     if (m_endian == EndianType.BigEndian)
-                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImplementation.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = OtherExtensions.CombineByteArrays(ToolsImplementation.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              EndianUtils.EndianSwap(Utils.IntToByteArray(array2.Length)),
                              array2
                         });
                     else
-                        tocEntry.RawData = DataUtils.CombineByteArrays(ToolsImplementation.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = OtherExtensions.CombineByteArrays(ToolsImplementation.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              Utils.IntToByteArray(array2.Length),
                              array2

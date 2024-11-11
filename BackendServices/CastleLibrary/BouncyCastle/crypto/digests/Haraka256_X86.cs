@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP3_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;

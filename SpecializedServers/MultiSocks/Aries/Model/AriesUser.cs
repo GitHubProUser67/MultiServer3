@@ -11,7 +11,7 @@ namespace MultiSocks.Aries.Model
         public AriesClient? Connection;
         public string LADDR = "127.0.0.1";
         public string ADDR = "127.0.0.1";
-        public string Username = "@brobot24";
+        public string Username = "brobot24";
         public string LOC = "frFR";
         public string MAC = string.Empty;
         public string?[] Personas = new string[4];
@@ -92,7 +92,7 @@ namespace MultiSocks.Aries.Model
             };
         }
 
-        public void SendPlusWho(AriesUser user, string? VERS = null, bool async = false)
+        public void SendPlusWho(AriesUser user, string? VERS = null)
         {
             //send who to this user to tell them who they are
 
@@ -176,10 +176,7 @@ namespace MultiSocks.Aries.Model
                     F = string.Empty,
                 };
 
-            if (async)
-                user.Connection?.EnqueueAsyncMessage(who);
-            else
-                user.Connection?.SendMessage(who);
+            user.Connection?.SendMessage(who);
         }
 
         public Onln SendOnlnOut(AriesUser user, string VERS = "")

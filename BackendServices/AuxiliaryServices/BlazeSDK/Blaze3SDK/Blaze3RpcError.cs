@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK
+namespace Blaze3SDK
 {
     public enum Blaze3RpcError : int
     {

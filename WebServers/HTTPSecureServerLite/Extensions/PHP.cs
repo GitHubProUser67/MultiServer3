@@ -2,7 +2,7 @@ using WatsonWebserver.Core;
 using System.Diagnostics;
 using System.IO;
 using System;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using System.Text;
 
 namespace HTTPSecureServerLite.Extensions
@@ -105,7 +105,7 @@ namespace HTTPSecureServerLite.Extensions
                         // into our response headers.
                         index = line.IndexOf(':');
 
-                        HeadersLocal = DataUtils.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
+                        HeadersLocal = NetworkLibrary.Extension.OtherExtensions.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
                     }
                     else
                         // Write non-header lines into the output as is.

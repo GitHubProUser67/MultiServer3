@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Utilities.Collections;

@@ -9,6 +9,7 @@ using System.Linq;
 
 namespace CompressionLibrary.Edge
 {
+    // Partially from https://github.com/AdmiralCurtiss/ToVPatcher/blob/master/Tales/tlzc/TLZC.cs
     public class LZMA
     {
         private static int dictionary = 1 << 23;
@@ -38,12 +39,12 @@ namespace CompressionLibrary.Edge
         // these are the default properties, keeping it simple for now:
         private static object[] properties =
                 {
-                    (System.Int32)(dictionary),
-                    (System.Int32)(2),
-                    (System.Int32)(3),
-                    (System.Int32)(0),
-                    (System.Int32)(2),
-                    (System.Int32)(128),
+                    (int)(dictionary),
+                    (int)(2),
+                    (int)(3),
+                    (int)(0),
+                    (int)(2),
+                    (int)(128),
                     "bt4",
                     eos
                 };
@@ -52,47 +53,71 @@ namespace CompressionLibrary.Edge
         /// Decompress a EdgeLZMA byte array data.
         /// <para>Decompresser un tableau de byte en format EdgeLZMA.</para>
         /// </summary>
-        /// <param name="data">The byte array to decompress.</param>
+        /// <param name="CompressedData">The byte array to decompress.</param>
         /// <param name="SegsMode">Enables an alternative decompression mode.</param>
-        /// <param name="safemode">Uses a proper error checking flag.</param>
         /// <returns>A byte array.</returns>
-        public static byte[] Decompress(byte[] data, bool SegsMode, bool safemode = true)
+        public static byte[] Decompress(byte[] CompressedData, bool SegsMode)
         {
             if (SegsMode)
-                return SegmentsDecompress(data, safemode);
+                return SegmentsDecompress(CompressedData);
+            else if (BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(CompressedData) : CompressedData, 8) != CompressedData.Length)
+                throw new InvalidDataException("[Edge] - LZMA - Decompress: buffer length does not match declared buffer length");
             else
-                return Decompress(data);
+            {
+                switch (CompressedData[5])
+                {
+                    case 2:
+                        return Decompress2(CompressedData);
+                    case 4:
+                        return Decompress4(CompressedData);
+                }
+
+                throw new InvalidDataException("[Edge] - LZMA - Decompress: unknown compression type");
+            }
         }
 
-        /// <summary>
-        /// Compress a given buffer compressed with EdgeLZMA.
-        /// <para>Compresse un tableau de bytes avec le codec EdgeLZMA.</para>
-        /// </summary>
-        /// <param name="buffer">The byte array to compress.</param>
-        /// <returns>A byte array.</returns>
-        private static byte[] Compress(byte[] buffer)
+        // magic value for Tales of Vesperia PS3: TLZC
+        public static byte[] Compress(byte[] data, byte[] magic, byte compressionType, int numFastBytes = 64)
         {
-            int numFastBytes = 64;
-            int litContextBits = 3;
-            int litPosBits = 0;
-            int posStateBits = 2;
-            int inSize = buffer.Length;
-            int streamCount = inSize + 0xffff >> 16;
-            int offset = 0;
+            if (compressionType != 4)
+                throw new ArgumentException("[Edge] - LZMA - Compress: only compressionType 4 is supported currently", "compressionType");
+
+            switch (compressionType)
+            {
+                case 4:
+                    return Compress4(data, magic, numFastBytes);
+            }
+
+            throw new Exception();
+        }
+
+        private static byte[] Decompress2(byte[] buffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static byte[] Compress4(byte[] buffer, byte[] magic, int numFastBytes = 64, int litContextBits = 3, int litPosBits = 0, int posStateBits = 2, int blockSize = 0, int matchFinderCycles = 32)
+        {
             MemoryStream result = new MemoryStream();
+            int inSize = buffer.Length;
+            int streamCount = (inSize + 0xffff) >> 16;
+            int offset = 0;
+
             BinaryWriter bw = new BinaryWriter(result);
 
-            bw.Write(new byte[] { 0x54, 0x4C, 0x5A, 0x43 }); // Tales of magic.
-            bw.Write((byte)0x01); // Mode
-            bw.Write((byte)0x04); // Version
+            bw.Write(magic);
+            bw.Write((byte)0x01);
+            bw.Write((byte)0x04);
             bw.Write((byte)0x00);
             bw.Write((byte)0x00);
-            bw.Write(0);   // compressed size - we'll fill this in once we know it
-            bw.Write(buffer.Length);   // decompressed size
-            bw.Write(0);   // unknown, 0
-            bw.Write(0);   // unknown, 0
-            var encoder = new Encoder(); // next comes the coder properties (5 bytes), followed by stream lengths, followed by the streams themselves.
-            var props = new Dictionary<CoderPropID, object>();
+            bw.Write((int)0);   // compressed size - we'll fill this in once we know it
+            bw.Write((int)buffer.Length);   // decompressed size
+            bw.Write((int)0);   // unknown, 0
+            bw.Write((int)0);   // unknown, 0
+                                // next comes the coder properties (5 bytes), followed by stream lengths, followed by the streams themselves.
+
+            Encoder encoder = new Encoder();
+            Dictionary<CoderPropID, object> props = new Dictionary<CoderPropID, object>();
             props[CoderPropID.DictionarySize] = 0x10000;
             props[CoderPropID.MatchFinder] = "BT4";
             props[CoderPropID.NumFastBytes] = numFastBytes;
@@ -120,17 +145,18 @@ namespace CompressionLibrary.Edge
 
             for (int i = 0; i < streamCount; i++)
             {
+                int count = Math.Min(inSize, 0x10000);
                 long preLength = result.Length;
 
-                encoder.Code(new MemoryStream(buffer, offset, Math.Min(inSize, 0x10000)), result, Math.Min(inSize, 0x10000), -1, null);
+                encoder.Code(new MemoryStream(buffer, offset, count), result, count, -1, null);
 
                 int streamSize = (int)(result.Length - preLength);
                 if (streamSize >= 0x10000)
                 {
-                    LoggerAccessor.LogDebug("[EdgeLzma] - Warning - Stream did not compress - script might not be executed on PS3 correctly.");
+                    LoggerAccessor.LogDebug("[Edge] - LZMA - Compress4: Warning! stream did not compress at all. This will cause a different code path to be executed on the PS3 whose operation is assumed and not tested!");
                     result.Position = preLength;
                     result.SetLength(preLength);
-                    result.Write(buffer, offset, Math.Min(inSize, 0x10000));
+                    result.Write(buffer, offset, count);
                     streamSize = 0;
                 }
 
@@ -155,17 +181,11 @@ namespace CompressionLibrary.Edge
             return temp;
         }
 
-        /// <summary>
-        /// Decompress a given buffer to EdgeLZMA.
-        /// <para>d�compresse un tableau de bytes avec le codec EdgeLZMA.</para>
-        /// </summary>
-        /// <param name="buffer">The byte array to decompress.</param>
-        /// <returns>A byte array.</returns>
-        private static byte[] Decompress(byte[] buffer)
+        private static byte[] Decompress4(byte[] buffer)
         {
             MemoryStream result = new MemoryStream();
             int outSize = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(buffer) : buffer, 12);
-            int streamCount = outSize + 0xffff >> 16;
+            int streamCount = (outSize + 0xffff) >> 16;
             int offset = 0x18 + streamCount * 2 + 5;
 
             Decoder decoder = new Decoder();
@@ -173,7 +193,7 @@ namespace CompressionLibrary.Edge
 
             for (int i = 0; i < streamCount; i++)
             {
-                int streamSize = buffer[5 + 0x18 + i * 2] + (buffer[6 + 0x18 + i * 2] << 8);
+                int streamSize = (buffer[5 + 0x18 + i * 2]) + (buffer[6 + 0x18 + i * 2] << 8);
                 if (streamSize != 0)
                     decoder.Code(new MemoryStream(buffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
                 else
@@ -192,16 +212,16 @@ namespace CompressionLibrary.Edge
         /// <param name="inbuffer">The byte array to decompress.</param>
         /// <param name="safemode">Uses a proper error checking flag (disable for file bruteforcing).</param>
         /// <returns>A byte array.</returns>
-        private static byte[] SegmentsDecompress(byte[] inbuffer, bool safemode) // Todo, make it multithreaded like original sdk.
+        private static byte[] SegmentsDecompress(byte[] inbuffer) // Todo, make it multithreaded like original sdk.
         {
             bool LittleEndian = BitConverter.IsLittleEndian;
             try
             {
-                if (inbuffer[0] == 0x73 && inbuffer[1] == 0x65 && inbuffer[2] == 0x67 && inbuffer[3] == 0x73)
+                if (inbuffer.Length > 4 && inbuffer[0] == 0x73 && inbuffer[1] == 0x65 && inbuffer[2] == 0x67 && inbuffer[3] == 0x73)
                 {
                     int numofsegments = BitConverter.ToInt16(!LittleEndian ? new byte[] { inbuffer[6], inbuffer[7] } : new byte[] { inbuffer[7], inbuffer[6] }, 0);
                     int OriginalSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[8], inbuffer[9], inbuffer[10], inbuffer[11] } : new byte[] { inbuffer[11], inbuffer[10], inbuffer[9], inbuffer[8] }, 0);
-                    int CompressedSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[12], inbuffer[13], inbuffer[14], inbuffer[15] } : new byte[] { inbuffer[15], inbuffer[14], inbuffer[13], inbuffer[12] }, 0); // Unused during decompression.
+                    // int CompressedSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[12], inbuffer[13], inbuffer[14], inbuffer[15] } : new byte[] { inbuffer[15], inbuffer[14], inbuffer[13], inbuffer[12] }, 0); // Unused during decompression.
                     byte[] TOCData = new byte[8 * numofsegments]; // 8 being size of each TOC entry.
                     byte[][] arrayOfArrays = new byte[numofsegments][];
                     Buffer.BlockCopy(inbuffer, 16, TOCData, 0, TOCData.Length);
@@ -218,21 +238,24 @@ namespace CompressionLibrary.Edge
                             Buffer.BlockCopy(TOCData, i, SegmentCompressedSizeByte, 0, SegmentCompressedSizeByte.Length);
                             Buffer.BlockCopy(TOCData, i + 2, SegmentOriginalSizeByte, 0, SegmentOriginalSizeByte.Length);
                             Buffer.BlockCopy(TOCData, i + 4, SegmentOffsetByte, 0, SegmentOffsetByte.Length);
-                            Array.Reverse(SegmentCompressedSizeByte);
-                            Array.Reverse(SegmentOriginalSizeByte);
-                            Array.Reverse(SegmentOffsetByte);
-                            int SegmentCompressedSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.ReverseArray(SegmentCompressedSizeByte) : SegmentCompressedSizeByte, 0);
-                            int SegmentOriginalSize = BitConverter.ToUInt16(!LittleEndian ? EndianUtils.ReverseArray(SegmentOriginalSizeByte) : SegmentOriginalSizeByte, 0);
+                            if (LittleEndian)
+                            {
+                                Array.Reverse(SegmentCompressedSizeByte);
+                                Array.Reverse(SegmentOriginalSizeByte);
+                                Array.Reverse(SegmentOffsetByte);
+                            }
+                            int SegmentCompressedSize = BitConverter.ToUInt16(SegmentCompressedSizeByte, 0);
+                            int SegmentOriginalSize = BitConverter.ToUInt16(SegmentOriginalSizeByte, 0);
                             int SegmentOffset = 0;
                             byte[] CompressedData = Array.Empty<byte>();
                             if (SegmentCompressedSize <= 0) // Safer than just comparing with 0.
                             {
-                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.ReverseArray(SegmentOffsetByte) : SegmentOffsetByte, 0);
+                                SegmentOffset = BitConverter.ToInt32(SegmentOffsetByte, 0);
                                 CompressedData = new byte[65536];
                             }
                             else
                             {
-                                SegmentOffset = BitConverter.ToInt32(!LittleEndian ? EndianUtils.ReverseArray(SegmentOffsetByte) : SegmentOffsetByte, 0) - 1; // -1 cause there is an offset for compressed content... sdk bug?
+                                SegmentOffset = BitConverter.ToInt32(SegmentOffsetByte, 0) - 1; // -1 cause there is an offset for compressed content... sdk bug?
                                 CompressedData = new byte[SegmentCompressedSize];
                             }
                             Buffer.BlockCopy(inbuffer, SegmentOffset, CompressedData, 0, CompressedData.Length);
@@ -264,31 +287,18 @@ namespace CompressionLibrary.Edge
 
                         if (FileData.Length == OriginalSize)
                             return FileData;
-                        else if (safemode)
-                        {
-                            LoggerAccessor.LogError("[EdgeLzmaSegs] - File size is different than the one indicated in TOC!.");
-                            return inbuffer;
-                        }
+
+                        LoggerAccessor.LogError("[Edge] - LZMA - Segs: File size is different than the one indicated in TOC!.");
                     }
-                    else if (safemode)
-                    {
-                        LoggerAccessor.LogError("[EdgeLzmaSegs] - The byte array length is not evenly divisible by 8!");
-                        return inbuffer;
-                    }
+                    else
+                        LoggerAccessor.LogError("[Edge] - LZMA - Segs: The byte array length is not evenly divisible by 8!");
                 }
-                else if (safemode)
-                {
-                    LoggerAccessor.LogError("[EdgeLzmaSegs] - File is not a valid segment based EdgeLzma compressed file!");
-                    return inbuffer;
-                }
+                else
+                    LoggerAccessor.LogError("[Edge] - LZMA - Segs: File is not a valid segment based EdgeLzma compressed file!");
             }
             catch (Exception ex)
             {
-                if (safemode)
-                {
-                    LoggerAccessor.LogError($"[EdgeLzmaSegs] - SegmentsDecompress thrown an assertion : {ex}");
-                    return inbuffer;
-                }
+                LoggerAccessor.LogError($"[Edge] - LZMA - Segs: SegmentsDecompress thrown an assertion : {ex}");
             }
 
             return null;

@@ -1,6 +1,6 @@
 using BlazeCommon;
 using CustomLogger;
-using CyberBackendLibrary.TCP_IP;
+using NetworkLibrary.TCP_IP;
 using MultiSocks.Aries;
 using MultiSocks.Blaze;
 using Newtonsoft.Json.Linq;
@@ -11,7 +11,6 @@ public static class MultiSocksServerConfiguration
 {
     public static bool UsePublicIPAddress { get; set; } = false;
     public static bool RPCS3Workarounds { get; set; } = true;
-    public static string ProtoSSLCertificateCachePath { get; set; } = $"{Directory.GetCurrentDirectory()}/SSL/ProtoSSL/Cache";
     public static string DirtySocksDatabasePath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
 
     /// <summary>
@@ -33,7 +32,6 @@ public static class MultiSocksServerConfiguration
             File.WriteAllText(configPath, new JObject(
                 new JProperty("use_public_ipaddress", UsePublicIPAddress),
                 new JProperty("rpcs3_workarounds", RPCS3Workarounds),
-                new JProperty("protossl_certificate_cache_path", ProtoSSLCertificateCachePath),
                 new JProperty("dirtysocks_database_path", DirtySocksDatabasePath)
             ).ToString());
 
@@ -47,7 +45,6 @@ public static class MultiSocksServerConfiguration
 
             UsePublicIPAddress = GetValueOrDefault(config, "use_public_ipaddress", UsePublicIPAddress);
             RPCS3Workarounds = GetValueOrDefault(config, "rpcs3_workarounds", RPCS3Workarounds);
-            ProtoSSLCertificateCachePath = GetValueOrDefault(config, "protossl_certificate_cache_path", ProtoSSLCertificateCachePath);
             DirtySocksDatabasePath = GetValueOrDefault(config, "dirtysocks_database_path", DirtySocksDatabasePath);
         }
         catch (Exception ex)
@@ -85,15 +82,13 @@ public static class MultiSocksServerConfiguration
 
 class Program
 {
-    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    public static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "MultiSocks.json";
     private static AriesServer? DirtySocksServer;
     private static BlazeClass? BlazeDirtySocksServer;
 
     private static void StartOrUpdateServer()
     {
-        Directory.CreateDirectory(MultiSocksServerConfiguration.ProtoSSLCertificateCachePath);
-
         DirtySocksServer?.Dispose();
         BlazeDirtySocksServer?.Dispose();
 
@@ -107,7 +102,7 @@ class Program
 
     static void Main()
     {
-        if (!CyberBackendLibrary.Extension.DataUtils.IsWindows)
+        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

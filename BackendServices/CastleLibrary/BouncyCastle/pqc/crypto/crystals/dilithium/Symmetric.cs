@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;

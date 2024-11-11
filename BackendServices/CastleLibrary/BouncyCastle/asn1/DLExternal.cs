@@ -1,4 +1,4 @@
-﻿namespace Org.BouncyCastle.Asn1
+namespace Org.BouncyCastle.Asn1
 {
     public class DLExternal
         : DerExternal

@@ -1,4 +1,4 @@
-﻿namespace MultiSpyService.GS
+namespace MultiSpyService.GS
 {
     public class GSEncodingData
     {

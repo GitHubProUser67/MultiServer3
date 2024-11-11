@@ -60,7 +60,7 @@ namespace MultiSocks.Aries.Messages
             else if (NAME == "0")
                 client.SendMessage(new Newsnew0() { BUDDYRESOURCE = context.Project });
             else if (NAME == "1" || NAME == "3")
-                client.SendMessage(Encoding.ASCII.GetBytes("MultiServer Driven EA Server."));
+                client.SendImmediateMessage(Encoding.ASCII.GetBytes("MultiServer Driven EA Server."));
             else if (NAME == "8")
                 client.SendMessage(new Newsnew8());
             // NCAA MM 06, Madden NFL 06

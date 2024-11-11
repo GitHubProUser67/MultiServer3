@@ -79,10 +79,9 @@ namespace MultiSocks.Aries.Model
 
         public void Broadcast(AbstractMessage msg)
         {
-            byte[] data = msg.GetData();
             foreach (var user in Users)
             {
-                user.Value.Connection?.SendMessage(data);
+                user.Value.Connection?.SendMessage(msg);
             }
         }
     }

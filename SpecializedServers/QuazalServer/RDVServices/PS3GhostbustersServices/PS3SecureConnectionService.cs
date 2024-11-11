@@ -6,7 +6,7 @@ using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
 using System.Text;
 using QuazalServer.RDVServices.RMC;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace QuazalServer.RDVServices.PS3GhostbustersServices
 {
@@ -71,7 +71,7 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
                         extractedData[i] = 0x48;
                 }
 
-                if (DataUtils.FindBytePattern(hCustomData.data.ticket.data, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (OtherExtensions.FindBytePattern(hCustomData.data.ticket.data, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                     LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                 else
                     LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");

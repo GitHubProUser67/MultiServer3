@@ -14,7 +14,7 @@ namespace MultiSocks.Aries
         public string RedirIP;
         public string RedirPort;
 
-        public RedirectorServer(ushort port, string targetIP, ushort targetPort, string? Project = null, string? SKU = null, bool secure = false, string CN = "", string email = "", bool WeakChainSignedRSAKey = false) : base(port, targetIP, Project, SKU, secure, CN, email, WeakChainSignedRSAKey)
+        public RedirectorServer(ushort port, string targetIP, ushort targetPort, string? Project = null, string? SKU = null, bool secure = false, string CN = "", bool WeakChainSignedRSAKey = false) : base(port, targetIP, Project, SKU, secure, CN, WeakChainSignedRSAKey)
         {
             RedirIP = targetIP;
             RedirPort = targetPort.ToString();

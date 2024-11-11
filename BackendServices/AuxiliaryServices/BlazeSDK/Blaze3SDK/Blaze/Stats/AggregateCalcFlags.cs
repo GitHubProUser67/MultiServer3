@@ -1,4 +1,4 @@
-﻿namespace Blaze3SDK.Blaze.Stats
+namespace Blaze3SDK.Blaze.Stats
 {
     [Flags]
     public enum AggregateCalcFlags

@@ -1,4 +1,4 @@
-﻿namespace Org.BouncyCastle.Pqc.Crypto.Ntru
+namespace Org.BouncyCastle.Pqc.Crypto.Ntru
 {
     public sealed class NtruPrivateKeyParameters
         : NtruKeyParameters

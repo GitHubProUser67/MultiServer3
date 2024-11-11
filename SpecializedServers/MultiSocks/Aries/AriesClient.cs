@@ -2,13 +2,13 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using CastleLibrary.ProtoSSL.Crypto;
 using CustomLogger;
 using MultiSocks.Aries.Messages;
 using MultiSocks.Aries.Model;
-using MultiSocks.Tls;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Tls;
+using MultiSocks.ProtoSSL;
+using MultiSocks.ProtoSSL.Crypto;
 
 namespace MultiSocks.Aries
 {
@@ -28,11 +28,13 @@ namespace MultiSocks.Aries
 
         private int ExpectedBytes = -1;
         private bool InHeader;
-        private bool secure;
-        private TcpClient ClientTcp;
+        private readonly bool secure;
+        private bool isDequeueRunning = false;
+        private readonly Timer timerDequeue;
+        private readonly TcpClient ClientTcp;
         private Stream? ClientStream;
-        private Thread RecvThread;
-        private ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
+        private readonly Thread RecvThread;
+        private readonly ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
         private byte[]? TempData = null;
         private int TempDatOff;
         private string CommandName = "null";
@@ -44,16 +46,22 @@ namespace MultiSocks.Aries
 
         private static int MAX_SIZE = 1024 * 1024 * 2;
 
-        public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, string email, bool WeakChainSignedRSAKey)
+        public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, bool WeakChainSignedRSAKey)
         {
             this.secure = secure;
             Context = context;
             ClientTcp = client;
+            timerDequeue = new Timer(DequeueAsyncMessage, null, 0, 100);
 
             LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
             if (secure && context.SSLCache != null)
-                SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, email, WeakChainSignedRSAKey);
+            {
+                if (CN == "fesl.ea.com")
+                    SecureKeyCert = context.SSLCache.GetVulnerableFeslEaCert(true);
+                else
+                    SecureKeyCert = context.SSLCache.GetVulnerableLegacyCustomEaCert(CN, WeakChainSignedRSAKey, true);
+            }
 
             RecvThread = new Thread(RunLoop);
             RecvThread.Start();
@@ -79,7 +87,7 @@ namespace MultiSocks.Aries
                 }
                 catch (Exception e)
                 {
-                    LoggerAccessor.LogError($"[DirtySocks ProtoSSL] - Failed to accept connection:{e}");
+                    LoggerAccessor.LogError($"[AriesClient] - ProtoSSL - Failed to accept connection:{e}");
 
                     serverProtocol.Flush();
                     serverProtocol.Close();
@@ -87,7 +95,8 @@ namespace MultiSocks.Aries
 
                     ClientStream?.Dispose();
                     ClientTcp.Dispose();
-                    LoggerAccessor.LogInfo($"User {ADDR} Disconnected.");
+                    timerDequeue.Dispose();
+                    LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 
                     return;
@@ -164,27 +173,28 @@ namespace MultiSocks.Aries
 
             ClientStream?.Dispose();
             ClientTcp.Dispose();
-            LoggerAccessor.LogInfo($"User {ADDR} Disconnected.");
+            timerDequeue.Dispose();
+            LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
             Context.RemoveClient(this);
         }
 
-        public void EnqueueAsyncMessage(AbstractMessage msg)
+        private void DequeueAsyncMessage(object? state)
         {
-            AsyncMessageQueue.Enqueue(msg);
-        }
+            if (isDequeueRunning)
+                return;
 
-        public void DequeueAsyncMessage()
-        {
+            isDequeueRunning = true;
+
             while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
             {
                 if (msg != null)
-                {
-                    SendAsyncMessage(msg);
-                }
+                    SendImmediateMessage(msg.GetData());
             }
+
+            isDequeueRunning = false;
         }
 
-        public void SendMessage(byte[] data)
+        public void SendImmediateMessage(byte[] data)
         {
             try
             {
@@ -194,35 +204,19 @@ namespace MultiSocks.Aries
             {
                 // something bad happened :(
             }
-
-            DequeueAsyncMessage();
         }
 
         public void SendMessage(AbstractMessage msg)
         {
             if (msg._Name.Equals("+gam") && !CanAsyncGameSearch)
                 return;
-            else if (msg._Name.StartsWith('+') && !CanAsync)
-                return;
-
-            try
+            else if (msg._Name.StartsWith('+'))
             {
-                ClientStream?.Write(msg.GetData());
-            }
-            catch
-            {
-                // something bad happened :(
-            }
+                if (CanAsync)
+                    AsyncMessageQueue.Enqueue(msg);
 
-            DequeueAsyncMessage();
-        }
-
-        public void SendAsyncMessage(AbstractMessage msg)
-        {
-            if (msg._Name.Equals("+gam") && !CanAsyncGameSearch)
                 return;
-            else if (msg._Name.StartsWith('+') && !CanAsync)
-                return;
+            }
 
             try
             {

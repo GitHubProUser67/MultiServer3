@@ -1,4 +1,4 @@
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using MultiSocks.Aries.Messages;
 
 namespace MultiSocks.Aries.Model
@@ -134,7 +134,7 @@ namespace MultiSocks.Aries.Model
             Dictionary<string, string?> OutputCache = new()
             {
                 { "IDENT", ID.ToString() },
-                { "HOST", Host?.Username },
+                { "HOST", '@' + Host?.Username },
                 { "NAME", Name },
                 { "ROOM", RoomID.ToString() },
                 { "MAXSIZE", MaxSize.ToString() },
@@ -187,7 +187,7 @@ namespace MultiSocks.Aries.Model
                 {
                     if (user != null)
                     {
-                        PLAYERSLIST.Add($"OPPO{i}", user.Username);
+                        PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
                         PLAYERSLIST.Add($"OPPART{i}", "0");
                         PLAYERSLIST.Add($"OPFLAG{i}", "0");
                         PLAYERSLIST.Add($"PRES{i}", "0");

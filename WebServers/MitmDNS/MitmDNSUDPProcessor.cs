@@ -67,7 +67,7 @@ namespace MitmDNS
         {
             _exit = false;
 
-            if (CyberBackendLibrary.TCP_IP.TCP_UDPUtils.IsUDPPortAvailable(53))
+            if (NetworkLibrary.TCP_IP.TCP_UDPUtils.IsUDPPortAvailable(53))
             {
                 _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 

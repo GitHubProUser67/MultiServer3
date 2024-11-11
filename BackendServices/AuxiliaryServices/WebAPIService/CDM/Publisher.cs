@@ -1,4 +1,4 @@
-﻿using CustomLogger;
+using CustomLogger;
 using System;
 using System.IO;
 using System.Collections.Generic;

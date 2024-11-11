@@ -1,4 +1,4 @@
-﻿namespace MultiSocks.Aries.Messages
+namespace MultiSocks.Aries.Messages
 {
     internal class Rcat : AbstractMessage
     {

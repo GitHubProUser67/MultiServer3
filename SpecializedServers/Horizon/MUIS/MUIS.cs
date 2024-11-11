@@ -15,7 +15,7 @@ using Horizon.SERVER;
 using static Horizon.SERVER.Medius.BaseMediusComponent;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Medius;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.MUIS
@@ -327,7 +327,7 @@ namespace Horizon.MUIS
 
                             if (QueryData != null)
                             {
-                                LoggerAccessor.LogDebug($"[MUIS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{DataUtils.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+                                LoggerAccessor.LogDebug($"[MUIS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{OtherExtensions.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
 
                                 if (data.ApplicationId == 20371 || data.ApplicationId == 20374)
                                 {
@@ -339,8 +339,9 @@ namespace Horizon.MUIS
                                                 case 65536:
                                                     if (data.ClientObject != null)
                                                     {
-                                                        data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
-                                                        .Equals(DataUtils.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+														if (data.ClientObject.ClientHomeData == null)
+															data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
+															.Equals(OtherExtensions.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                                                         if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot && data.ClientObject.ClientHomeData == null)
                                                         {

@@ -12,7 +12,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.SERVER;
-using CyberBackendLibrary.Extension;
+using NetworkLibrary.Extension;
 
 namespace Horizon.DME
 {
@@ -48,7 +48,7 @@ namespace Horizon.DME
         private Bootstrap? _bootstrap = null;
         private ScertServerHandler? _scertHandler = null;
 
-        private ConcurrentBag<World> _worlds = new();
+        private ConcurrentList<World> _worlds = new();
         private ConcurrentQueue<World> _removeWorldQueue = new();
 
         private ConcurrentQueue<BaseScertMessage> _mpsRecvQueue { get; } = new();
@@ -475,13 +475,11 @@ namespace Horizon.DME
                                 World world = new(this, createGameWithAttributesRequest.ApplicationID, createGameWithAttributesRequest.MaxClients, createGameWithAttributesRequest.WorldID, gameOrPartyId);
 
                                 if (world.WorldId == -1)
-                                {
                                     Enqueue(new MediusServerCreateGameWithAttributesResponse()
                                     {
                                         MessageID = new MessageId($"{world.WorldId}-{accountId}-{msgId}-{partyType}"),
                                         Confirmation = MGCL_ERROR_CODE.MGCL_WORLDID_INUSE
                                     });
-                                }
                                 else
                                 {
                                     _worlds.Add(world);

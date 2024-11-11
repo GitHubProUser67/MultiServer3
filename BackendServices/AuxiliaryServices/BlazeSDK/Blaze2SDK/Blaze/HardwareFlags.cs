@@ -1,4 +1,4 @@
-﻿namespace Blaze2SDK.Blaze
+namespace Blaze2SDK.Blaze
 {
     [Flags]
     public enum HardwareFlags
