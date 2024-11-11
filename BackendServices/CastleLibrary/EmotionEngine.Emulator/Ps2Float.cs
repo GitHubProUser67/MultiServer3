@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Specialized;
 
 namespace EmotionEngine.Emulator
@@ -192,15 +192,6 @@ namespace EmotionEngine.Emulator
                 };
             }
 
-            uint a = AsUInt32();
-            uint b = mulend.AsUInt32();
-
-            // DJBox edge cases.
-            if (a == 0x4071B168 && b == 0x3D01C180)
-                return new Ps2Float(0x3DF50229);
-            else if (a == 0x3CA664CC && b == 0x3F7CA9A1)
-                return new Ps2Float(0x3CA4397A);
-
             return DoMul(mulend);
         }
 
@@ -266,7 +257,7 @@ namespace EmotionEngine.Emulator
             return new Ps2Float((uint)man & 0x80000000 | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
         }
 
-        // Rounding can be slightly off: https://fobes.dev/ps2/detecting-emu-vu-floats (example in the article handled).
+        // Rounding can be slightly off: (PS2/IEEE754: 0x3F800040 * 0x3F800020 = 0x3F800060 | SoftFloat: 0x3F800040 * 0x3F800020 = 0x3F80005F).
         private Ps2Float DoMul(Ps2Float other)
         {
             uint selfMantissa = Mantissa | 0x800000;
@@ -282,7 +273,7 @@ namespace EmotionEngine.Emulator
 
             uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
             ulong res = 0;
-            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFF000", 16); // Alter the precision of the multiplication slightly by lossing A few bits at each operations: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67
+            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFFFFF", 16); // Uses a booth and wallace tree approach to Multiplication.
 
             result.Exponent = (byte)resExponent;
 
@@ -330,7 +321,7 @@ namespace EmotionEngine.Emulator
 
             result.Mantissa = (uint)(res >> 23);
 
-            if ((testImprecision & 0x000aaa) != 0 && (res & 0x7fffff) == 0)
+            if ((testImprecision & 0x000aaa) != 0 && (res & 0x7FFFFF) == 0)
                 result.Mantissa -= 1;
 
             if (result.Mantissa > 0)
