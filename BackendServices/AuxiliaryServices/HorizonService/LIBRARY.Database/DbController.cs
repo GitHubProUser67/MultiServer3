@@ -3954,10 +3954,10 @@ namespace Horizon.LIBRARY.Database
         #region Matchmaking 
 
         /// <summary>
-        /// Returns all clan invitations for the given player.
+        /// Returns all Matchmaking Supersets.
         /// </summary>
-        /// <param name="accountId">Id of target player.</param>
-        /// <returns>Success or failure.</returns>
+        /// <param name="appId">AppId of the game.</param>
+        /// <returns>Returns list of supersets or no result.</returns>
         public async Task<List<MatchmakingSupersetDTO>> GetMatchmakingSupersets(int appId)
         {
             List<MatchmakingSupersetDTO> result = null;
@@ -3966,7 +3966,7 @@ namespace Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    // get clans
+                    // get matchmaking supersets
                     var supersets = _simulatedMatchmakingSupersets.Where(x => x.AppId == appId);
 
                     result = supersets.Select(x => new MatchmakingSupersetDTO()
