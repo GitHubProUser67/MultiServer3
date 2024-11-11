@@ -411,6 +411,10 @@ namespace WebAPIService.OHS
                             {
                                 switch (ohsKey)
                                 {
+                                    case "timestamp":
+                                        if (directorypath.Contains("Ooblag"))
+                                            output = DateTime.Now.ToString("yyyyMMdd");
+                                        break;
                                     case "timeStamp":
                                         if (directorypath.Contains("casino"))
                                             output = "nil";
@@ -749,6 +753,9 @@ namespace WebAPIService.OHS
                                 }
                             }
                         }
+                        //Alien Casino Ooblag
+                        else if (keys.Contains("Initial_Credit") && keys.Contains("Daily_Credit"))
+                            output = "{[\"Initial_Credit\"] = 100, [\"Daily_Credit\"] = 25}";
                         else if (keys.Contains("heatmap_samples_to_send") && keys.Contains("heatmap_sample_period"))
                             output = "{[\"heatmap_samples_to_send\"] = 1, [\"heatmap_sample_period\"] = 5}";
                         else if (directorypath.Contains("LockwoodTokens"))
