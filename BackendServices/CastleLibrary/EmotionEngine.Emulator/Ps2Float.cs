@@ -192,15 +192,6 @@ namespace EmotionEngine.Emulator
                 };
             }
 
-            uint a = AsUInt32();
-            uint b = mulend.AsUInt32();
-
-            // DJBox edge cases.
-            if (a == 0x4071B168 && b == 0x3D01C180)
-                return new Ps2Float(0x3DF50229);
-            else if (a == 0x3CA664CC && b == 0x3F7CA9A1)
-                return new Ps2Float(0x3CA4397A);
-
             return DoMul(mulend);
         }
 
