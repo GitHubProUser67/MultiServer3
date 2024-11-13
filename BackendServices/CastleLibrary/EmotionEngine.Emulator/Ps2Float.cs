@@ -268,7 +268,7 @@ namespace EmotionEngine.Emulator
 
             if (resExponent > 255)
                 return result.Sign ? Min() : Max();
-            else if (resExponent <= 0)
+            else if (resExponent < 0)
                 return new Ps2Float(result.Sign, 0, 0);
 
             uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
