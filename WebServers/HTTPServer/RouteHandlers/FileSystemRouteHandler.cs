@@ -20,6 +20,8 @@ namespace HTTPServer.RouteHandlers
                 return (false, Handle_LocalDir(request, filePath, directoryUrl));
             else if (File.Exists(filePath))
                 return (true, Handle_LocalFile(request, filePath));
+            else if (!string.IsNullOrEmpty(Accept) && Accept.Contains("text/html") && Directory.Exists(filePath + "/"))
+                return (false, Handle_ApachePermanentRedirect(request, absolutepath, filePath, Host));
 
             if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
             {
@@ -130,6 +132,60 @@ namespace HTTPServer.RouteHandlers
             }
             else
                 response.ContentStream = File.OpenRead(filePath);
+
+            return response;
+        }
+
+        private static HttpResponse Handle_ApachePermanentRedirect(HttpRequest request, string absolutepath, string filePath, string Host)
+        {
+            HttpResponse? response = new()
+            {
+                HttpStatusCode = HttpStatusCode.MovedPermanently
+            };
+
+            MemoryStream MovedPayloadStream = new MemoryStream(Encoding.UTF8.GetBytes($@"
+            <!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
+            <html><head>
+            <title>301 Moved Permanently</title>
+            </head><body>
+            <h1>Moved Permanently</h1>
+            <p>The document has moved <a href=""http://{(!string.IsNullOrEmpty(Host) ? Host : request.ServerIP)}{absolutepath}/"">here</a>.</p>
+            <hr>
+            <address>{request.ServerIP} Port {request.ServerPort}</address>
+            </body></html>"));
+
+            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
+
+            response.Headers.Add("Location", $"http://{(!string.IsNullOrEmpty(Host) ? Host : request.ServerIP)}{absolutepath}/");
+            response.Headers.Add("Content-Type", "text/html; charset=iso-8859-1");
+
+            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+            {
+                if (encoding.Contains("zstd"))
+                {
+                    response.Headers.Add("Content-Encoding", "zstd");
+                    response.ContentStream = HTTPProcessor.ZstdCompressStream(MovedPayloadStream);
+                }
+                else if (encoding.Contains("br"))
+                {
+                    response.Headers.Add("Content-Encoding", "br");
+                    response.ContentStream = HTTPProcessor.BrotliCompressStream(MovedPayloadStream);
+                }
+                else if (encoding.Contains("gzip"))
+                {
+                    response.Headers.Add("Content-Encoding", "gzip");
+                    response.ContentStream = HTTPProcessor.GzipCompressStream(MovedPayloadStream);
+                }
+                else if (encoding.Contains("deflate"))
+                {
+                    response.Headers.Add("Content-Encoding", "deflate");
+                    response.ContentStream = HTTPProcessor.InflateStream(MovedPayloadStream);
+                }
+                else
+                    response.ContentStream = MovedPayloadStream;
+            }
+            else
+                response.ContentStream = MovedPayloadStream;
 
             return response;
         }

@@ -268,7 +268,7 @@ namespace EmotionEngine.Emulator
 
             if (resExponent > 255)
                 return result.Sign ? Min() : Max();
-            else if (resExponent <= 0)
+            else if (resExponent < 0)
                 return new Ps2Float(result.Sign, 0, 0);
 
             uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
@@ -511,7 +511,7 @@ namespace EmotionEngine.Emulator
 
         public bool IsZero()
         {
-            return (AsUInt32() & MAX_FLOATING_POINT_VALUE) == 0;
+            return (Abs()) == 0;
         }
 
         public Ps2Float RoundTowardsZero()
@@ -521,13 +521,18 @@ namespace EmotionEngine.Emulator
 
         public int CompareTo(Ps2Float other)
         {
-            int selfTwoComplementVal = (int)(AsUInt32() & MAX_FLOATING_POINT_VALUE);
+            int selfTwoComplementVal = (int)(Abs());
             if (Sign) selfTwoComplementVal = -selfTwoComplementVal;
 
-            int otherTwoComplementVal = (int)(other.AsUInt32() & MAX_FLOATING_POINT_VALUE);
+            int otherTwoComplementVal = (int)(other.Abs());
             if (other.Sign) otherTwoComplementVal = -otherTwoComplementVal;
 
             return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
+        }
+
+        public uint Abs()
+        {
+            return AsUInt32() & MAX_FLOATING_POINT_VALUE;
         }
 
         private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add, bool COP1)
@@ -612,6 +617,30 @@ namespace EmotionEngine.Emulator
 
                 if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
                     return Max();
+
+                if (aval == MAX_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                    return Max();
+
+                if (aval == MAX_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return Min();
+
+                if (aval == MIN_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                    return Min();
+
+                if (aval == MIN_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return Max();
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
+                    return Max();
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
+                    return Min();
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
+                    return Min();
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
+                    return Max();
             }
             else
             {
@@ -634,6 +663,30 @@ namespace EmotionEngine.Emulator
 
                 if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
                     return One();
+
+                if (aval == MAX_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                    return new Ps2Float(0x3FFFFFFF);
+
+                if (aval == MAX_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return new Ps2Float(0xBFFFFFFF);
+
+                if (aval == MIN_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
+                    return new Ps2Float(0xBFFFFFFF);
+
+                if (aval == MIN_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
+                    return new Ps2Float(0x3FFFFFFF);
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
+                    return new Ps2Float(0x3F000001);
+
+                if (aval == POSITIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
+                    return new Ps2Float(0xBF000001);
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
+                    return new Ps2Float(0xBF000001);
+
+                if (aval == NEGATIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
+                    return new Ps2Float(0x3F000001);
             }
 
             throw new InvalidOperationException("Unhandled abnormal mul/div floating point operation");
@@ -757,11 +810,18 @@ namespace EmotionEngine.Emulator
             return -1;
         }
 
-        public override string ToString()
+        public double ToDouble()
         {
             double res = (Mantissa / Math.Pow(2, 23) + 1.0) * Math.Pow(2, Exponent - 127.0);
             if (Sign)
                 res *= -1.0;
+
+            return res;
+        }
+
+        public override string ToString()
+        {
+            double res = ToDouble();
 
             uint value = AsUInt32();
             if (IsDenormalized())
