@@ -341,7 +341,7 @@ namespace HTTPServer
                                                     version = 2;
                                                 else if (absolutepath.Contains("/AirRace/"))
                                                     version = 2;
-                                                else if (absolutepath.Contains("/Uncharted2/"))
+                                                else if (absolutepath.Contains("/uncharted2"))
                                                     version = 1;
                                                 else if (absolutepath.Contains("/Infamous/"))
                                                     version = 1;
