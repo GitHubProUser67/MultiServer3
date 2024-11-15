@@ -476,8 +476,27 @@ namespace WebAPIService.OHS
                                     case "vickie_version":
                                         output = "{ [\"vickie_version\"] = 7 }";
                                         break;
+                                    case "e3_global_data":
+                                        if (directorypath.Contains("DustScene"))
+                                            output = "{ [\"unlocks\"] = { [\"opendate\"] = { [\"unlocked\"] = \"20130101120000\" } }," +
+                                                " { [\"closedate\"] = { [\"unlocked\"] = \"21130101120000\" } } }";
+                                        break;
+                                    case "cp_global_data":
+                                        if (directorypath.Contains("DustScene"))
+                                            output = "{ [\"unlocks\"] = { [\"opendate\"] = { [\"unlocked\"] = \"20130101120000\" } } }";
+                                        break;
+                                    case "voucher_global_data":
+                                        if (directorypath.Contains("DustScene"))
+                                            output = "{ [\"vouchers\"] = { [\"weekend1\"] = { [\"start\"] = \"20130101120000\" }, { [\"stop\"] = \"20130107120000\" }, { [\"SCEEopen\"] = \"20120628110000\" }, { [\"SCEEclose\"] = \"20120702113000\" }, { [\"SCEAopen\"] = \"20120628110000\" }, { [\"SCEAclose\"] = \"20120702113000\" } }," +
+                                                "{ [\"weekend2\"] = { [\"start\"] = \"20130108120000\" }, { [\"stop\"] = \"20130115120000\" }, { [\"SCEEopen\"] = \"20120712110000\" }, { [\"SCEEclose\"] = \"20120716113000\" }, { [\"SCEAopen\"] = \"20120712110000\" }, { [\"SCEAclose\"] = \"20120716113000\" } } }," +
+                                                "{ [\"weekend3\"] = { [\"start\"] = \"20130116120000\" }, { [\"stop\"] = \"20130123120000\" }, { [\"SCEEopen\"] = \"20120716113000\" }, { [\"SCEEclose\"] = \"20120730113000\" }, { [\"SCEAopen\"] = \"20120716113000\" }, { [\"SCEAclose\"] = \"20120730113000\" } }," +
+                                                "{ [\"weekend4\"] = { [\"start\"] = \"20130124120000\" }, { [\"stop\"] = \"21130123120000\" }, { [\"SCEEopen\"] = \"20120809110000\" }, { [\"SCEEclose\"] = \"20120813113000\" }, { [\"SCEAopen\"] = \"20120809110000\" }, { [\"SCEAclose\"] = \"20120813113000\" } } }";
+                                        break;
                                     case "global_data":
-                                        if (directorypath.Contains("Uncharted3"))
+                                        if (directorypath.Contains("Dust_Slay"))
+                                            //DateTime.Now.ToString("yyyyMMddHHmmss");
+                                            output = "{ [\"unlocks\"] = { [\"week1\"] = { [\"unlocked\"] = \"20241112120000\" } } }";
+                                        else if (directorypath.Contains("Uncharted3"))
                                             output = "{ [\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = { [\"accuracy\"] = 1 } }";
                                         else if (directorypath.Contains("Halloween2012"))
                                             output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\"," +
