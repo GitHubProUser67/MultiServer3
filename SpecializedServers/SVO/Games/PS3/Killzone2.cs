@@ -588,9 +588,10 @@ namespace SVO.Games.PS3
                             }
                     }
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-
+                    LoggerAccessor.LogError($"[SVO] - Killzone2_SVOAsync thrown an assertion - {ex}");
+                    response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                 }
             }
         }

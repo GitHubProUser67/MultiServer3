@@ -621,9 +621,10 @@ namespace SVO.Games.PS3
 
                     }
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-
+                    LoggerAccessor.LogError($"[SVO] - RFOM_SVO thrown an assertion - {ex}");
+                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 }
             }
         }
