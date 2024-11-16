@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using System.Web;
 
-namespace SVO
+namespace SVO.Games.PS3
 {
     public class PlayStationHome
     {

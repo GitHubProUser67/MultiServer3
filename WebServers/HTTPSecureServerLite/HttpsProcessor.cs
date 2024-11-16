@@ -587,18 +587,6 @@ namespace HTTPSecureServerLite
 
                                 #region OHS API Version
                                 int version = 0;
-                                if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
-                                    version = 2;
-                                else if (absolutepath.Contains("/SCEA/SaucerPop/"))
-                                    version = 2;
-                                else if (absolutepath.Contains("/AirRace/"))
-                                    version = 2;
-                                else if (absolutepath.Contains("/Uncharted2/"))
-                                    version = 1;
-                                else if (absolutepath.Contains("/Infamous/"))
-                                    version = 1;
-                                else if (absolutepath.Contains("/warhawk_shooter/"))
-                                    version = 1;
                                 #endregion
 
                                 string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
