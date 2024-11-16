@@ -347,6 +347,8 @@ namespace HTTPServer
                                                     version = 1;
                                                 else if (absolutepath.Contains("/warhawk_shooter/"))
                                                     version = 1;
+                                                else if (absolutepath.Contains("/Flugtag/"))
+                                                    version = 1;
                                                 #endregion
 
                                                 using (MemoryStream postdata = new())
