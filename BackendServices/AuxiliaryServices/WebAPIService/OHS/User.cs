@@ -512,48 +512,10 @@ namespace WebAPIService.OHS
 
                                         #region Dead Island Globals
                                         else if (directorypath.Contains("dead_island"))
-                                            output = @"{
-                                              ""difficulty"": {
-                                                ""easy"": {
-                                                  ""enemyDamage"": 0.4,
-                                                  ""weaponDamage"": 1
-                                                },
-                                                ""medium"": {
-                                                  ""enemyDamage"": 0.8,
-                                                  ""weaponDamage"": 1
-                                                },
-                                                ""hard"": {
-                                                  ""enemyDamage"": 1,
-                                                  ""weaponDamage"": 0.85
-                                                }
-                                              },
-                                              ""unlocks"": {
-                                                ""wave_2"": {
-                                                  ""unlocked"": ""2011-08-25T00:00:00"",
-                                                  ""date"": ""25-08-2011"",
-                                                  ""override"": false
-                                                },
-                                                ""wave_3"": {
-                                                  ""unlocked"": ""2011-09-01T00:00:00"",
-                                                  ""date"": ""01-09-2011"",
-                                                  ""override"": false
-                                                },
-                                                ""receipe3"": {
-                                                  ""unlocked"": ""2011-08-25T00:00:00"",
-                                                  ""date"": ""25-08-2011"",
-                                                  ""override"": false
-                                                },
-                                                ""receipe5"": {
-                                                  ""unlocked"": ""2011-09-01T00:00:00"",
-                                                  ""date"": ""01-09-2011"",
-                                                  ""override"": false
-                                                }
-                                              },
-                                              ""minDropInterval"": 10,
-                                              ""maxDropInterval"": 15,
-                                              ""maxDrops"": 4,
-                                              ""enableCheats"": false
-                                            }";
+                                            output = "{ [\"difficulty\"] = { [\"easy\"] = { [\"enemyDamage\"] = 0.4, [\"weaponDamage\"] = 1 }, [\"medium\"] = { [\"enemyDamage\"] = 0.8, [\"weaponDamage\"] = 1 }, " +
+                                                "[\"hard\"] = { [\"enemyDamage\"] = 1, [\"weaponDamage\"] = 0.85 } }, [\"unlocks\"] = { [\"wave_2\"] = { [\"unlocked\"] = \"2011-08-25T00:00:00\", [\"date\"] = \"25-08-2011\", [\"override\"] = false }, " +
+                                                "[\"wave_3\"] = { [\"unlocked\"] = \"2011-09-01T00:00:00\", [\"date\"] = \"01-09-2011\", [\"override\"] = false }, [\"receipe3\"] = { [\"unlocked\"] = \"2011-08-25T00:00:00\", [\"date\"] = \"25-08-2011\", [\"override\"] = false }, " +
+                                                "[\"receipe5\"] = { [\"unlocked\"] = \"2011-09-01T00:00:00\", [\"date\"] = \"01-09-2011\", [\"override\"] = false } }, [\"minDropInterval\"] = 10, [\"maxDropInterval\"] = 15, [\"maxDrops\"] = 4, [\"enableCheats\"] = false }";
                                         #endregion
                                         break;
                                     case "unlock_data":
