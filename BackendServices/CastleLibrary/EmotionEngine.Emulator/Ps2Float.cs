@@ -530,6 +530,14 @@ namespace EmotionEngine.Emulator
             return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
         }
 
+        public int CompareOperand(Ps2Float other)
+        {
+            int selfTwoComplementVal = (int)(Abs());
+            int otherTwoComplementVal = (int)(other.Abs());
+
+            return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
+        }
+
         public uint Abs()
         {
             return AsUInt32() & MAX_FLOATING_POINT_VALUE;
@@ -756,10 +764,8 @@ namespace EmotionEngine.Emulator
                 else
                     throw new InvalidOperationException("Unhandled addition operation flags");
             }
-            else if (a.IsZero())
-                return b.Sign;
 
-            return a.Sign;
+            return a.CompareOperand(b) >= 0 ? a.Sign : b.Sign;
         }
 
         private static bool DetermineSubtractionOperationSign(Ps2Float a, Ps2Float b)
@@ -773,12 +779,8 @@ namespace EmotionEngine.Emulator
                 else
                     throw new InvalidOperationException("Unhandled subtraction operation flags");
             }
-            else if (a.IsZero())
-                return !b.Sign;
-            else if (b.IsZero())
-                return a.Sign;
 
-            return a.CompareTo(b) >= 0 ? a.Sign : !b.Sign;
+            return a.CompareOperand(b) >= 0 ? a.Sign : !b.Sign;
         }
 
         /// <summary>
