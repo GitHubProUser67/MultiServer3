@@ -593,11 +593,13 @@ namespace HTTPSecureServerLite
                                     version = 2;
                                 else if (absolutepath.Contains("/AirRace/"))
                                     version = 2;
-                                else if (absolutepath.Contains("/Uncharted2/"))
+                                else if (absolutepath.Contains("/Uncharted2"))
                                     version = 1;
                                 else if (absolutepath.Contains("/Infamous/"))
                                     version = 1;
                                 else if (absolutepath.Contains("/warhawk_shooter/"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/Flugtag/"))
                                     version = 1;
                                 #endregion
 

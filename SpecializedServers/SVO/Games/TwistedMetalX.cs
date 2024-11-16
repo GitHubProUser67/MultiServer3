@@ -229,14 +229,23 @@ namespace SVO.Games
                                     response.Headers.Set("Content-Type", "text/xml;charset=UTF-8");
                                     response.Headers.Set("x-statuscode", "0");
 
-                                    byte[]? xmlMessage = Encoding.UTF8.GetBytes("<XML>\r\n" +
-                                                "    <files end=\"0\" start=\"0\" total=\"0\">\r\n" +
-                                                "        <status>\r\n" +
-                                                "            <id>0</id>\r\n" +
-                                                "            <message>Success</message>\r\n" +
-                                                "        </status>\r\n" +
-                                                "    </files>\r\n" +
-                                                "</XML>\r\n ");
+                                    byte[]? xmlMessage = Encoding.UTF8.GetBytes(@"<XML>
+    <files end=""0"" start=""0"" total=""1"">
+        <file
+            fileAccountName=""twistedmetalxAdmin""
+            fileCreateDate=""2012-24-09 13:24:45 +0000""
+            fileDescription="""" fileDownloadCount=""1"" fileID=""1""
+            fileLastModified=""2018-04-06 05:33:08 +0000""
+            fileModerationStatus=""1"" fileName=""ugcSkins.manifest""
+            fileOwnerID=""-1"" filePermission=""2"" fileSize=""5988""
+            fileSystemName=""/u01/data/svfs/twistedmetalx-prod3/0004/0003/000000000020_001073048502"" fileTypeID=""1""/>
+        <nextURL>http://twistedmetalx-prod3.svo.online.scea.com:10060/TWISTEDMETALX_XML/fileservices/DownloadFileServlet?fileNameBeginsWith=ugcSkins.manifest&amp;fileSizeGreaterThan=0&amp;fileSizeLessThan=999999999&amp;fileOwnerID=-1&amp;fileNewerThanTimeStamp=0&amp;filterPermissionFilter=2&amp;fileTypeID=1&amp;fileModerationStatusID=0&amp;fileSystemOwnedFile=N&amp;start=0&amp;end=0</nextURL>
+        <status>
+            <id>0</id>
+            <message>Success</message>
+        </status>
+    </files>
+</XML>");
 
                                     response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
