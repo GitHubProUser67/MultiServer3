@@ -88,13 +88,13 @@ namespace EmotionEngine.Emulator
             return result;
         }
 
-        public Ps2Float Add(Ps2Float addend, bool COP1)
+        public Ps2Float Add(Ps2Float addend)
         {
             if (IsDenormalized() || addend.IsDenormalized())
                 return SolveAddSubDenormalizedOperation(this, addend, true);
 
             if (IsAbnormal() && addend.IsAbnormal())
-                return SolveAbnormalAdditionOrSubtractionOperation(this, addend, true, COP1);
+                return SolveAbnormalAdditionOrSubtractionOperation(this, addend, true);
 
             uint a = AsUInt32();
             uint b = addend.AsUInt32();
@@ -132,13 +132,13 @@ namespace EmotionEngine.Emulator
             return new Ps2Float(a).DoAdd(new Ps2Float(b));
         }
 
-        public Ps2Float Sub(Ps2Float subtrahend, bool COP1)
+        public Ps2Float Sub(Ps2Float subtrahend)
         {
             if (IsDenormalized() || subtrahend.IsDenormalized())
                 return SolveAddSubDenormalizedOperation(this, subtrahend, false);
 
             if (IsAbnormal() && subtrahend.IsAbnormal())
-                return SolveAbnormalAdditionOrSubtractionOperation(this, subtrahend, false, COP1);
+                return SolveAbnormalAdditionOrSubtractionOperation(this, subtrahend, false);
 
             uint a = AsUInt32();
             uint b = subtrahend.AsUInt32();
@@ -543,7 +543,7 @@ namespace EmotionEngine.Emulator
             return AsUInt32() & MAX_FLOATING_POINT_VALUE;
         }
 
-        private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add, bool COP1)
+        private static Ps2Float SolveAbnormalAdditionOrSubtractionOperation(Ps2Float a, Ps2Float b, bool add)
         {
             uint aval = a.AsUInt32();
             uint bval = b.AsUInt32();
@@ -555,19 +555,19 @@ namespace EmotionEngine.Emulator
                 return add ? Min() : new Ps2Float(0);
 
             if (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                return COP1 ? Min() : (add ? new Ps2Float(0) : Min());
+                return add ? new Ps2Float(0) : Min();
 
             if (aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                return COP1 ? Max() : (add ? new Ps2Float(0) : Max());
+                return add ? new Ps2Float(0) : Max();
 
             if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
                 return add ? Max() : new Ps2Float(0);
 
             if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                return COP1 ? Min() : (add ? new Ps2Float(0) : Min());
+                return add ? new Ps2Float(0) : Min();
 
             if (aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                return COP1 ? Max() : (add ? new Ps2Float(0) : Max());
+                return add ? new Ps2Float(0) : Max();
 
             if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
                 return add ? Min() : new Ps2Float(0);
