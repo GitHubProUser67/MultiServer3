@@ -493,15 +493,68 @@ namespace WebAPIService.OHS
                                                 "{ [\"weekend4\"] = { [\"start\"] = \"20130124120000\" }, { [\"stop\"] = \"21130123120000\" }, { [\"SCEEopen\"] = \"20120809110000\" }, { [\"SCEEclose\"] = \"20120813113000\" }, { [\"SCEAopen\"] = \"20120809110000\" }, { [\"SCEAclose\"] = \"20120813113000\" } } }";
                                         break;
                                     case "global_data":
+                                        #region Dust Slay
                                         if (directorypath.Contains("Dust_Slay"))
                                             //DateTime.Now.ToString("yyyyMMddHHmmss");
                                             output = "{ [\"unlocks\"] = { [\"week1\"] = { [\"unlocked\"] = \"20241112120000\" } } }";
+                                        #endregion
+                                        #region Uncharted3 Waves
                                         else if (directorypath.Contains("Uncharted3"))
                                             output = "{ [\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = { [\"accuracy\"] = 1 } }";
+                                        #endregion
+
+                                        #region Halloween2012
                                         else if (directorypath.Contains("Halloween2012"))
                                             output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\"," +
                                                 " [\"closed\"] = \"20990926163000\" }, [\"hemlock\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"wolfsbane\"] = { [\"open\"] =" +
                                                 " \"20230926113000\", [\"closed\"] = \"20990926163000\" } } }";
+                                        #endregion
+
+                                        #region Dead Island Globals
+                                        else if (directorypath.Contains("dead_island"))
+                                            output = @"{
+                                              ""difficulty"": {
+                                                ""easy"": {
+                                                  ""enemyDamage"": 0.4,
+                                                  ""weaponDamage"": 1
+                                                },
+                                                ""medium"": {
+                                                  ""enemyDamage"": 0.8,
+                                                  ""weaponDamage"": 1
+                                                },
+                                                ""hard"": {
+                                                  ""enemyDamage"": 1,
+                                                  ""weaponDamage"": 0.85
+                                                }
+                                              },
+                                              ""unlocks"": {
+                                                ""wave_2"": {
+                                                  ""unlocked"": ""2011-08-25T00:00:00"",
+                                                  ""date"": ""25-08-2011"",
+                                                  ""override"": false
+                                                },
+                                                ""wave_3"": {
+                                                  ""unlocked"": ""2011-09-01T00:00:00"",
+                                                  ""date"": ""01-09-2011"",
+                                                  ""override"": false
+                                                },
+                                                ""receipe3"": {
+                                                  ""unlocked"": ""2011-08-25T00:00:00"",
+                                                  ""date"": ""25-08-2011"",
+                                                  ""override"": false
+                                                },
+                                                ""receipe5"": {
+                                                  ""unlocked"": ""2011-09-01T00:00:00"",
+                                                  ""date"": ""01-09-2011"",
+                                                  ""override"": false
+                                                }
+                                              },
+                                              ""minDropInterval"": 10,
+                                              ""maxDropInterval"": 15,
+                                              ""maxDrops"": 4,
+                                              ""enableCheats"": false
+                                            }";
+                                        #endregion
                                         break;
                                     case "unlock_data":
                                         if (directorypath.Contains("killzone_3"))

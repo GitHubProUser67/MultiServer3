@@ -19,7 +19,6 @@ namespace Horizon.RT.Models.Lobby
 
         public MediusAssignedGameToJoin mediusAssignedGameToJoin;
 
-        public int Unk1;
         public uint GameWorldID;
         public uint TeamID;
         public int PlayerCount;
@@ -58,9 +57,7 @@ namespace Horizon.RT.Models.Lobby
 
             if (StatusCode == MediusCallbackStatus.MediusJoinAssignedGame)
             {
-                reader.ReadBytes(4);
                 GameWorldID = reader.ReadUInt32();
-                //reader.ReadBytes(2);
                 TeamID = reader.ReadUInt32();
                 PlayerCount = reader.ReadInt32();
                 GameName = reader.ReadString(Constants.GAMENAME_MAXLEN);
@@ -100,9 +97,6 @@ namespace Horizon.RT.Models.Lobby
 
             if (StatusCode == MediusCallbackStatus.MediusJoinAssignedGame)
             {
-                //writer.Write(new byte[4] /*{ 0, 0, 0, 0 }*/);
-
-                writer.Write(Unk1);
                 writer.Write(GameWorldID);
                 writer.Write(TeamID);
                 writer.Write(PlayerCount);
