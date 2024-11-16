@@ -40,7 +40,7 @@ namespace WebAPIService.UBISOFT.BuildAPI.BuildDBPullService
                     case "GetCurrentLauncherVersion":
                         {
 
-                            Console.WriteLine($"GetCurrentLauncherVersion: TRIGGERED!");
+                            LoggerAccessor.LogInfo($"GetCurrentLauncherVersion: TRIGGERED!");
 
                             return @"<?xml version=""1.0"" encoding=""utf-8""?>
 <soap:Envelope
@@ -62,7 +62,7 @@ namespace WebAPIService.UBISOFT.BuildAPI.BuildDBPullService
                     default:
                         {
 
-                            Console.WriteLine($"GetCurrentLauncherVersion: FAILEd!");
+                            LoggerAccessor.LogInfo($"GetCurrentLauncherVersion: FAILEd!");
                             return @"<?xml version=""1.0"" encoding=""utf-8""?>
 <soap:Envelope
   xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
