@@ -67,9 +67,10 @@ namespace Server.SVO_CLI.SVOGames
                             }
                     }
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-
+                    LoggerAccessor.LogError($"[SVO] - GT4Beta_SVO thrown an assertion - {ex}");
+                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 }
             }
         }
