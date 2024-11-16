@@ -587,18 +587,6 @@ namespace HTTPSecureServerLite
 
                                 #region OHS API Version
                                 int version = 0;
-                                if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
-                                    version = 2;
-                                else if (absolutepath.Contains("/SCEA/SaucerPop/"))
-                                    version = 2;
-                                else if (absolutepath.Contains("/AirRace/"))
-                                    version = 2;
-                                else if (absolutepath.Contains("/Uncharted2/"))
-                                    version = 1;
-                                else if (absolutepath.Contains("/Infamous/"))
-                                    version = 1;
-                                else if (absolutepath.Contains("/warhawk_shooter/"))
-                                    version = 1;
                                 #endregion
 
                                 string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
@@ -1413,6 +1401,53 @@ namespace HTTPSecureServerLite
                                                             sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer);
                                                         }
                                                     }
+                                                    else if (request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html") && Directory.Exists(filePath + "/"))
+                                                    {
+                                                        statusCode = HttpStatusCode.MovedPermanently;
+                                                        response.StatusCode = (int)statusCode;
+
+                                                        byte[] MovedPayload = Encoding.UTF8.GetBytes($@"
+                                                        <!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
+                                                        <html><head>
+                                                        <title>301 Moved Permanently</title>
+                                                        </head><body>
+                                                        <h1>Moved Permanently</h1>
+                                                        <p>The document has moved <a href=""https://{request.Destination.Hostname}{absolutepath}/"">here</a>.</p>
+                                                        <hr>
+                                                        <address>{request.Destination.IpAddress} Port {request.Destination.Port}</address>
+                                                        </body></html>");
+
+                                                        if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                                                        {
+                                                            if (encoding.Contains("zstd"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                                                MovedPayload = HTTPProcessor.CompressZstd(MovedPayload);
+                                                            }
+                                                            else if (encoding.Contains("br"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "br");
+                                                                MovedPayload = HTTPProcessor.CompressBrotli(MovedPayload);
+                                                            }
+                                                            else if (encoding.Contains("gzip"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                                MovedPayload = HTTPProcessor.CompressGzip(MovedPayload);
+                                                            }
+                                                            else if (encoding.Contains("deflate"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                                                MovedPayload = HTTPProcessor.Inflate(MovedPayload);
+                                                            }
+                                                        }
+
+                                                        response.ChunkedTransfer = false;
+                                                        response.ContentType = "text/html; charset=iso-8859-1";
+
+                                                        response.Headers.Add("Location", $"https://{request.Destination.Hostname}{absolutepath}/");
+
+                                                        sent = await response.Send(MovedPayload);
+                                                    }
                                                     else
                                                     {
                                                         bool ArchiveOrgProcessed = false;
@@ -1671,6 +1706,53 @@ namespace HTTPSecureServerLite
 
                                                             sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer);
                                                         }
+                                                    }
+                                                    else if (request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html") && Directory.Exists(filePath + "/"))
+                                                    {
+                                                        statusCode = HttpStatusCode.MovedPermanently;
+                                                        response.StatusCode = (int)statusCode;
+
+                                                        byte[] MovedPayload = Encoding.UTF8.GetBytes($@"
+                                                        <!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
+                                                        <html><head>
+                                                        <title>301 Moved Permanently</title>
+                                                        </head><body>
+                                                        <h1>Moved Permanently</h1>
+                                                        <p>The document has moved <a href=""https://{request.Destination.Hostname}{absolutepath}/"">here</a>.</p>
+                                                        <hr>
+                                                        <address>{request.Destination.IpAddress} Port {request.Destination.Port}</address>
+                                                        </body></html>");
+
+                                                        if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                                                        {
+                                                            if (encoding.Contains("zstd"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                                                MovedPayload = HTTPProcessor.CompressZstd(MovedPayload);
+                                                            }
+                                                            else if (encoding.Contains("br"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "br");
+                                                                MovedPayload = HTTPProcessor.CompressBrotli(MovedPayload);
+                                                            }
+                                                            else if (encoding.Contains("gzip"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                                MovedPayload = HTTPProcessor.CompressGzip(MovedPayload);
+                                                            }
+                                                            else if (encoding.Contains("deflate"))
+                                                            {
+                                                                ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                                                MovedPayload = HTTPProcessor.Inflate(MovedPayload);
+                                                            }
+                                                        }
+
+                                                        response.ChunkedTransfer = false;
+                                                        response.ContentType = "text/html; charset=iso-8859-1";
+
+                                                        response.Headers.Add("Location", $"https://{request.Destination.Hostname}{absolutepath}/");
+
+                                                        sent = await response.Send(MovedPayload);
                                                     }
                                                     else
                                                     {

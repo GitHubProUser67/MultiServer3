@@ -60,8 +60,7 @@ namespace SSFWServer
             "qcqa-a", "qcqa-j", "qcqa-h", "qcpreprod",
             "qcqab-e", "qcqab-a", "qcqab-j", "qcqab-h",
             "qcpreprodb", "coredev", "core-dev", "core-qa",
-            "cdev", "cdev3", "cdeva", "cdevb",
-            "cdevc"
+            "cdev", "cdev2", "cdev3", "cdeva", "cdevb", "cdevc"
         };
 
         /// <summary>

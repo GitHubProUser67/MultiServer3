@@ -411,6 +411,10 @@ namespace WebAPIService.OHS
                             {
                                 switch (ohsKey)
                                 {
+                                    case "timestamp":
+                                        if (directorypath.Contains("Ooblag"))
+                                            output = DateTime.Now.ToString("yyyyMMdd");
+                                        break;
                                     case "timeStamp":
                                         if (directorypath.Contains("casino"))
                                             output = "nil";
@@ -472,13 +476,47 @@ namespace WebAPIService.OHS
                                     case "vickie_version":
                                         output = "{ [\"vickie_version\"] = 7 }";
                                         break;
+                                    case "e3_global_data":
+                                        if (directorypath.Contains("DustScene"))
+                                            output = "{ [\"unlocks\"] = { [\"opendate\"] = { [\"unlocked\"] = \"20130101120000\" } }," +
+                                                " { [\"closedate\"] = { [\"unlocked\"] = \"21130101120000\" } } }";
+                                        break;
+                                    case "cp_global_data":
+                                        if (directorypath.Contains("DustScene"))
+                                            output = "{ [\"unlocks\"] = { [\"opendate\"] = { [\"unlocked\"] = \"20130101120000\" } } }";
+                                        break;
+                                    case "voucher_global_data":
+                                        if (directorypath.Contains("DustScene"))
+                                            output = "{ [\"vouchers\"] = { [\"weekend1\"] = { [\"start\"] = \"20130101120000\" }, { [\"stop\"] = \"20130107120000\" }, { [\"SCEEopen\"] = \"20120628110000\" }, { [\"SCEEclose\"] = \"20120702113000\" }, { [\"SCEAopen\"] = \"20120628110000\" }, { [\"SCEAclose\"] = \"20120702113000\" } }," +
+                                                "{ [\"weekend2\"] = { [\"start\"] = \"20130108120000\" }, { [\"stop\"] = \"20130115120000\" }, { [\"SCEEopen\"] = \"20120712110000\" }, { [\"SCEEclose\"] = \"20120716113000\" }, { [\"SCEAopen\"] = \"20120712110000\" }, { [\"SCEAclose\"] = \"20120716113000\" } } }," +
+                                                "{ [\"weekend3\"] = { [\"start\"] = \"20130116120000\" }, { [\"stop\"] = \"20130123120000\" }, { [\"SCEEopen\"] = \"20120716113000\" }, { [\"SCEEclose\"] = \"20120730113000\" }, { [\"SCEAopen\"] = \"20120716113000\" }, { [\"SCEAclose\"] = \"20120730113000\" } }," +
+                                                "{ [\"weekend4\"] = { [\"start\"] = \"20130124120000\" }, { [\"stop\"] = \"21130123120000\" }, { [\"SCEEopen\"] = \"20120809110000\" }, { [\"SCEEclose\"] = \"20120813113000\" }, { [\"SCEAopen\"] = \"20120809110000\" }, { [\"SCEAclose\"] = \"20120813113000\" } } }";
+                                        break;
                                     case "global_data":
-                                        if (directorypath.Contains("Uncharted3"))
+                                        #region Dust Slay
+                                        if (directorypath.Contains("Dust_Slay"))
+                                            //DateTime.Now.ToString("yyyyMMddHHmmss");
+                                            output = "{ [\"unlocks\"] = { [\"week1\"] = { [\"unlocked\"] = \"20241112120000\" } } }";
+                                        #endregion
+                                        #region Uncharted3 Waves
+                                        else if (directorypath.Contains("Uncharted3"))
                                             output = "{ [\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = { [\"accuracy\"] = 1 } }";
+                                        #endregion
+
+                                        #region Halloween2012
                                         else if (directorypath.Contains("Halloween2012"))
                                             output = "{ [\"unlocks\"] = { [\"dance\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"limbo\"] = { [\"open\"] = \"20230926113000\"," +
                                                 " [\"closed\"] = \"20990926163000\" }, [\"hemlock\"] = { [\"open\"] = \"20230926113000\", [\"closed\"] = \"20990926163000\" }, [\"wolfsbane\"] = { [\"open\"] =" +
                                                 " \"20230926113000\", [\"closed\"] = \"20990926163000\" } } }";
+                                        #endregion
+
+                                        #region Dead Island Globals
+                                        else if (directorypath.Contains("dead_island"))
+                                            output = "{ [\"difficulty\"] = { [\"easy\"] = { [\"enemyDamage\"] = 0.4, [\"weaponDamage\"] = 1 }, [\"medium\"] = { [\"enemyDamage\"] = 0.8, [\"weaponDamage\"] = 1 }, " +
+                                                "[\"hard\"] = { [\"enemyDamage\"] = 1, [\"weaponDamage\"] = 0.85 } }, [\"unlocks\"] = { [\"wave_2\"] = { [\"unlocked\"] = \"2011-08-25T00:00:00\", [\"date\"] = \"25-08-2011\", [\"override\"] = false }, " +
+                                                "[\"wave_3\"] = { [\"unlocked\"] = \"2011-09-01T00:00:00\", [\"date\"] = \"01-09-2011\", [\"override\"] = false }, [\"receipe3\"] = { [\"unlocked\"] = \"2011-08-25T00:00:00\", [\"date\"] = \"25-08-2011\", [\"override\"] = false }, " +
+                                                "[\"receipe5\"] = { [\"unlocked\"] = \"2011-09-01T00:00:00\", [\"date\"] = \"01-09-2011\", [\"override\"] = false } }, [\"minDropInterval\"] = 10, [\"maxDropInterval\"] = 15, [\"maxDrops\"] = 4, [\"enableCheats\"] = false }";
+                                        #endregion
                                         break;
                                     case "unlock_data":
                                         if (directorypath.Contains("killzone_3"))
@@ -749,6 +787,9 @@ namespace WebAPIService.OHS
                                 }
                             }
                         }
+                        //Alien Casino Ooblag
+                        else if (keys.Contains("Initial_Credit") && keys.Contains("Daily_Credit"))
+                            output = "{[\"Initial_Credit\"] = 100, [\"Daily_Credit\"] = 25}";
                         else if (keys.Contains("heatmap_samples_to_send") && keys.Contains("heatmap_sample_period"))
                             output = "{[\"heatmap_samples_to_send\"] = 1, [\"heatmap_sample_period\"] = 5}";
                         else if (directorypath.Contains("LockwoodTokens"))

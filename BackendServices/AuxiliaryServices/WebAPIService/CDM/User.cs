@@ -33,6 +33,53 @@ namespace WebAPIService.CDM
             else
             {
                 LoggerAccessor.LogError($"[CDM] - Publisher Game failed with expected path {filePath}!");
+                string resourceXML = "<xml>\r\n\t" +
+                    "<status>success</status>\r\n" +
+                    $"<publisher_game>\r\n" +
+                    $"    <publisher_id>14</publisher_id>\r\n" +
+                    $"    <games>\r\n" +
+                    $"        <game>\r\n" +
+                    $"            <attributes>\r\n" +
+                    $"                <id>10</id>\r\n" +
+                    $"            </attributes>\r\n" +
+                    $"            <game_data />\r\n" +
+                    $"        </game>\r\n" +
+                    $"    </games>\r\n" +
+                    $"    <inventories>\r\n" +
+                    $"        <inventory>\r\n" +
+                    $"            <attributes>\r\n" +
+                    $"                <id>1</id>\r\n" +
+                    $"            </attributes>\r\n" +
+                    $"            <item>Test</item>\r\n" +
+                    $"            <quantity>1</quantity>\r\n" +
+                    $"        </inventory>\r\n" +
+                    $"        <!-- Additional inventory entries go here -->\r\n" +
+                    $"    </inventories>\r\n" +
+                    $"</publisher_game>\r\n" +
+                    $"<publisher_game>\r\n" +
+                    $"    <publisher_id>13</publisher_id>\r\n" +
+                    $"    <games>\r\n" +
+                    $"        <game>\r\n" +
+                    $"            <attributes>\r\n" +
+                    $"                <id>6</id>\r\n" +
+                    $"            </attributes>\r\n" +
+                    $"            <game_data />\r\n" +
+                    $"        </game>\r\n" +
+                    $"    </games>\r\n" +
+                    $"    <inventories>\r\n" +
+                    $"        <inventory>\r\n" +
+                    $"            <attributes>\r\n" +
+                    $"                <id>1</id>\r\n" +
+                    $"            </attributes>\r\n" +
+                    $"            <item>Test</item>\r\n" +
+                    $"            <quantity>1</quantity>\r\n" +
+                    $"        </inventory>\r\n" +
+                    $"        <!-- Additional inventory entries go here -->\r\n" +
+                    $"    </inventories>\r\n" +
+                    $"</publisher_game>\r\n" +
+                    "</xml>";
+
+                return resourceXML;
             }
 
             return "<xml>" +
