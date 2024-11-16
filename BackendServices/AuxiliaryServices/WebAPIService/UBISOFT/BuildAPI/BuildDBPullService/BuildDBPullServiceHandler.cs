@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CustomLogger;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,10 @@ namespace WebAPIService.UBISOFT.BuildAPI.BuildDBPullService
 
         public static string buildDBRequestParser(byte[] PostData, string ContentType)
         {
+
+            if (PostData == null || PostData.Length == 0)
+                return "Empty PostData";
+            
 
             // Load the XML string into an XDocument
             XDocument xdoc = XDocument.Parse(Encoding.UTF8.GetString(PostData));
@@ -76,35 +81,11 @@ namespace WebAPIService.UBISOFT.BuildAPI.BuildDBPullService
                         }
 
                 }
-
-
-                //Console.WriteLine($"ADLogin: {adLogin}");
-                //Console.WriteLine($"Name: {name}");
             }
             else
             {
-                Console.WriteLine("No GetConsoleOwnerResult found.");
+                LoggerAccessor.LogWarn("No GetConsoleOwnerResult found.");
             }
-
-            /*
-            // Get the GetConsoleOwner element from the SOAP body
-            var resultElement = xdoc.Descendants(soap + "Body").FirstOrDefault();
-
-            if (buildDbRequests.Contains(resultElement.Name.ToString()))
-            {
-                // Extract the ADLogin and Name elements
-                string adLogin = resultElement.Element("ADLogin")?.Value;
-                string name = resultElement.Element("Name")?.Value;
-
-                Console.WriteLine($"ADLogin: {adLogin}");
-                Console.WriteLine($"Name: {name}");
-            }
-            else
-            {
-                Console.WriteLine("No GetConsoleOwnerResult found.");
-            }
-
-            */
 
 
             return @"<?xml version=""1.0"" encoding=""utf-8""?>

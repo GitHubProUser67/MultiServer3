@@ -14,7 +14,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\NetworkLibrary\NetworkLibrary.csproj" />
-    <ProjectReference Include="..\..\WatsonWebserver\WatsonWebserver.csproj" />
   </ItemGroup>
 
 </Project>
