@@ -12,7 +12,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using NetworkLibrary.Extension;
-using Ionic.Exploration;
 using System.Threading;
 using System.Buffers;
 using HashLib;
@@ -858,8 +857,9 @@ namespace NetworkLibrary.HTTP
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, 2))
-                CopyStream(input, outGStream, 4096, false);
+            GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true);
+            CopyStream(input, outGStream, 4096, false);
+            outGStream.Close();
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);
