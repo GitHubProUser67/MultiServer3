@@ -1,3 +1,4 @@
+using QuazalServer.AtariMelbourneHouse;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.RMC;

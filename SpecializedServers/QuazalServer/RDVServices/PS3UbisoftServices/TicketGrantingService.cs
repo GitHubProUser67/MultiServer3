@@ -5,6 +5,7 @@ using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
 using System.Net;
 using QuazalServer.RDVServices.RMC;
+using RDVServices;
 
 namespace QuazalServer.RDVServices.PS3UbisoftServices
 {
@@ -67,7 +68,6 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
                 }
                 else if (userName == "Tracking")
                 {
-                    plInfo.PID = 0;
                     plInfo.AccountId = userName;
                     plInfo.Name = userName;
 
@@ -141,9 +141,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
                 else if (sourcePID == 100) // Quazal guest account.
                     ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
-                {
-                    UNIMPLEMENTED();
-                }
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
 
                 return Result(ticketData);
             }

@@ -112,9 +112,7 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
                 if (sourcePID == 100) // Quazal guest account.
                     ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
-                {
-                    UNIMPLEMENTED();
-                }
+                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
 
                 return Result(ticketData);
             }
