@@ -2,6 +2,7 @@ using HashLib;
 using CustomLogger;
 using System.Security.Cryptography;
 using System.Text;
+using Ionic.Crc;
 
 namespace QuazalServer.QNetZ
 {
@@ -73,14 +74,12 @@ namespace QuazalServer.QNetZ
 
         public static uint GenerateUniqueUint(string input)
         {
-            // Compute hash using MD5 algorithm
-            byte[] hashBytes = NetHasher.ComputeMD5(input);
+            CRC32 crc = new CRC32();
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
 
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(hashBytes);
+            crc.SlurpBlock(inputBytes, 0, inputBytes.Length);
 
-            // Take the first 4 bytes of the hash as the uint value
-            return Math.Max(BitConverter.ToUInt32(hashBytes, 0), 1000);
+            return (uint)crc.Crc32Result;
         }
     }
 }

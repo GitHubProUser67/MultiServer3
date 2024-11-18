@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace QuazalServer.RDVServices
+namespace QuazalServer.AtariMelbourneHouse
 {
     public class AmhLairProxy
     {

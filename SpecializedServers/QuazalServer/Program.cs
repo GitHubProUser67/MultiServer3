@@ -181,7 +181,7 @@ public static class QuazalServerConfiguration
 
 class Program
 {
-    private static string configDir = Directory.GetCurrentDirectory() + "/static/";
+    public static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "quazal.json";
     private static BackendServicesServer? BackendServer;
     private static RDVServer? RendezVousServer;
