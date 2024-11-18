@@ -56,12 +56,5 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 
 			return Result(fileList);
 		}
-
-        [RMCMethod(7)]
-        public RMCResult UKN7() // Assasin's creed 3 doesn't like our response and block online connection.
-        {
-            UNIMPLEMENTED();
-            return new RMCResult(new RMCPResponseEmpty(), true, 0x10001);
-        }
     }
 }

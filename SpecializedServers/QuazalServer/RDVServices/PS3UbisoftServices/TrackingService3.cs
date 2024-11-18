@@ -13,19 +13,20 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         [RMCMethod(1)]
         public void SendTag(uint tracking_id, string tag, string attributes, uint delta_time)
         {
-            
+            UNIMPLEMENTED();
         }
 
         [RMCMethod(2)]
         public void SendTagAndUpdateUserInfo(uint tracking_id, string tag, string attributes, uint delta_time, string user_id)
         {
-            
+            UNIMPLEMENTED();
         }
 
         [RMCMethod(3)]
         public RMCResult SendUserInfo(uint delta_time)
         {
-            return Result(new { user_info = new TrackingInformation(), tracking_id = 0 });
+            UNIMPLEMENTED();
+            return Error(0);
         }
 
         [RMCMethod(4)]

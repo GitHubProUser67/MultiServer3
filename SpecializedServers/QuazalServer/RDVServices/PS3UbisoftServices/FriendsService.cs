@@ -47,26 +47,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		[RMCMethod(6)]
 		public RMCResult DeclineFriendship(uint uiPlayer)
 		{
-			if (Context != null && Context.Client.PlayerInfo != null)
-			{
-                PlayerInfo? plInfo = Context.Client.PlayerInfo;
-                uint myUserPid = plInfo.PID;
-
-                // send notification
-                NotificationEvent notification = new(NotificationEventsType.FriendEvent, 0)
-                {
-                    m_pidSource = myUserPid,
-                    m_uiParam1 = myUserPid, // i'm just guessing
-                    m_uiParam2 = 3
-                };
-
-                // send to proper client
-                QClient? qClient = Context.Handler.GetQClientByClientPID(uiPlayer);
-
-                if (qClient != null)
-                    NotificationQueue.SendNotification(Context.Handler, qClient, notification);
-            }
-
+            UNIMPLEMENTED();
             return Result(new { retVal = true });
 		}
 
@@ -113,11 +94,8 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		[RMCMethod(13)]
 		public RMCResult GetRelationships(int offset, int size)
 		{
-			var onlinePlayerIds = NetworkPlayers.Players.Select(x => x.PID);
-
-            RelationshipsResult result = new();
-
-			return Result(result);
-		}
-	}
+            UNIMPLEMENTED();
+			return Error(0);
+        }
+    }
 }

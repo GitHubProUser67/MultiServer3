@@ -183,7 +183,6 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "quazal.json";
-    private static Timer? DatabaseUpdate = null;
     private static BackendServicesServer? BackendServer;
     private static RDVServer? RendezVousServer;
 
@@ -191,16 +190,11 @@ class Program
     {
         BackendServer?.Stop();
         RendezVousServer?.Stop();
-        DatabaseUpdate?.Dispose();
         QuazalServer.RDVServices.ServiceFactoryRDV.ClearServices();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
-
-        QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.InitiateDatabase();
-
-        DatabaseUpdate = new Timer(QuazalServer.RDVServices.UbisoftDatabase.AccountDatabase.ScheduledDatabaseUpdate, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
 
         BackendServer = new BackendServicesServer();
         RendezVousServer = new RDVServer();

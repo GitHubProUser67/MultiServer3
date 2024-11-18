@@ -1,4 +1,4 @@
-using QuazalServer.RDVServices.Entities;
+using Alcatraz.Context.Entities;
 using Newtonsoft.Json;
 
 namespace QuazalServer.RDVServices.DDL.Models
