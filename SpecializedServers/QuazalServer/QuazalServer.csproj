@@ -31,8 +31,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\BackendServices\NetworkLibrary\NetworkLibrary.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
+	<ProjectReference Include="..\..\BackendServices\AuxiliaryServices\AlcatrazService\AlcatrazService.csproj" />
   </ItemGroup>
   
   <Target Name="ModifyDepsFile" AfterTargets="AfterBuild">

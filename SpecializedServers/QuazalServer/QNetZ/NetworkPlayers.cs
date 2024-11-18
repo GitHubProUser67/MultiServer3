@@ -46,9 +46,6 @@ namespace QuazalServer.QNetZ
 		{
 			LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - dropping player: {playerInfo.Name}");
 
-            if (playerInfo.Client != null)
-                playerInfo.Client.PlayerInfo = null;
-
             playerInfo.OnDropped();
             Players.Remove(playerInfo);
         }
@@ -58,13 +55,16 @@ namespace QuazalServer.QNetZ
 			lock (lockObject) // Prevents the same action being done multiple times if the loop is very tight.
 			{
                 Players.RemoveAll(playerInfo => {
-                    if (playerInfo.Client?.State != QClient.StateType.Dropped)
-                        return false;
-                    if (playerInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
-                        return false;
-                    LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - auto-dropping player: {playerInfo.Name}");
                     if (playerInfo.Client != null)
-                        playerInfo.Client.PlayerInfo = null;
+                    {
+                        if (playerInfo.Client.State != QClient.StateType.Dropped)
+                            return false;
+                        if (playerInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                            return false;
+                    }
+
+                    LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - auto-dropping player: {playerInfo.Name}");
+
                     playerInfo.OnDropped();
                     return true;
                 });
