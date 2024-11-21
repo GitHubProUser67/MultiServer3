@@ -105,26 +105,26 @@ namespace EmotionEngine.Emulator
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
             {
-                b = b & 0x80000000;
+                b = b & SIGNMASK;
             }
             // diff = 1 .. 24, expt < expd
             else if (expDiff > 0)
             {
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 b = (uint)(temp & b);
             }
             // diff = -255 .. -25, expd < expt
             else if (expDiff <= -25)
             {
-                a = a & 0x80000000;
+                a = a & SIGNMASK;
             }
             // diff = -24 .. -1 , expd < expt
             else if (expDiff < 0)
             {
                 expDiff = -expDiff;
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 a = (uint)(a & temp);
             }
 
@@ -149,26 +149,26 @@ namespace EmotionEngine.Emulator
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
             {
-                b = b & 0x80000000;
+                b = b & SIGNMASK;
             }
             // diff = 1 .. 24, expt < expd
             else if (expDiff > 0)
             {
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 b = (uint)(temp & b);
             }
             // diff = -255 .. -25, expd < expt
             else if (expDiff <= -25)
             {
-                a = a & 0x80000000;
+                a = a & SIGNMASK;
             }
             // diff = -24 .. -1 , expd < expt
             else if (expDiff < 0)
             {
                 expDiff = -expDiff;
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 a = (uint)(a & temp);
             }
 
@@ -253,7 +253,7 @@ namespace EmotionEngine.Emulator
             else if (rawExp <= 0)
                 return new Ps2Float(man < 0, 0, 0);
 
-            return new Ps2Float((uint)man & 0x80000000 | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
+            return new Ps2Float((uint)man & SIGNMASK | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
         }
 
         private Ps2Float DoMul(Ps2Float other)
@@ -262,7 +262,7 @@ namespace EmotionEngine.Emulator
             byte otherExponent = other.Exponent;
             uint selfMantissa = Mantissa | 0x800000;
             uint otherMantissa = other.Mantissa | 0x800000;
-            uint sign = (AsUInt32() ^ other.AsUInt32()) & 0x80000000;
+            uint sign = (AsUInt32() ^ other.AsUInt32()) & SIGNMASK;
 
             int resExponent = selfExponent + otherExponent - 127;
             uint resMantissa = (uint)(BoothMultiplier.MulMantissa(selfMantissa, otherMantissa) >> 23);
