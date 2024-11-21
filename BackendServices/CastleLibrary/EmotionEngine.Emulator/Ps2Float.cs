@@ -100,7 +100,7 @@ namespace EmotionEngine.Emulator
             int temp = 0;
 
             // Exponent difference
-            int expDiff = ((int)(a >> 23) & 0xff) - ((int)(b >> 23) & 0xff);
+            int expDiff = ((int)(a >> 23) & 0xFF) - ((int)(b >> 23) & 0xFF);
 
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
@@ -144,7 +144,7 @@ namespace EmotionEngine.Emulator
             int temp = 0;
 
             // Exponent difference
-            int expDiff = ((int)(a >> 23) & 0xff) - ((int)(b >> 23) & 0xff);
+            int expDiff = ((int)(a >> 23) & 0xFF) - ((int)(b >> 23) & 0xFF);
 
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
@@ -253,7 +253,7 @@ namespace EmotionEngine.Emulator
             else if (rawExp <= 0)
                 return new Ps2Float(man < 0, 0, 0);
 
-            return new Ps2Float((uint)man & SIGNMASK | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
+            return new Ps2Float((uint)man & SIGNMASK | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF));
         }
 
         private Ps2Float DoMul(Ps2Float other)
@@ -267,7 +267,7 @@ namespace EmotionEngine.Emulator
             int resExponent = selfExponent + otherExponent - 127;
             uint resMantissa = (uint)(BoothMultiplier.MulMantissa(selfMantissa, otherMantissa) >> 23);
 
-            if (resMantissa > 0xffffff)
+            if (resMantissa > 0xFFFFFF)
             {
                 resMantissa >>= 1;
                 resExponent++;
@@ -278,7 +278,7 @@ namespace EmotionEngine.Emulator
             else if (resExponent <= 0)
                 return new Ps2Float(sign);
 
-            return new Ps2Float(sign | (uint)(resExponent << 23) | (resMantissa & 0x7fffff)).RoundTowardsZero();
+            return new Ps2Float(sign | (uint)(resExponent << 23) | (resMantissa & 0x7FFFFF));
         }
 
         // Rounding can be slightly off: (PS2: 0x3F800000 / 0x3F800001 = 0x3F7FFFFF | SoftFloat/IEEE754: 0x3F800000 / 0x3F800001 = 0x3F7FFFFE).
@@ -311,7 +311,7 @@ namespace EmotionEngine.Emulator
                 resMantissa |= ((ulong)otherMantissa * resMantissa != selfMantissa64) ? 1U : 0;
 
             result.Exponent = (byte)resExponent;
-            result.Mantissa = (resMantissa + 0x39U /* Non-standard value, 40U in IEEE754 (PS2: rsqrt(0x40400000, 0x40400000) = 0x3FDDB3D7 -> IEEE754: rsqrt(0x40400000, 0x40400000) = 0x3FDDB3D8 */) >> 7;
+            result.Mantissa = (resMantissa + 0x40U) >> 7;
 
             if (result.Mantissa > 0)
             {
@@ -372,7 +372,7 @@ namespace EmotionEngine.Emulator
             /* extract mantissa and unbias exponent */
             int m = (ix >> 23) - BIAS;
 
-            ix = (ix & 0x007fffff) | 0x00800000;
+            ix = (ix & 0x007FFFFF) | 0x00800000;
             if ((m & 1) == 1)
             {
                 /* odd m, double x to make it even */
@@ -404,7 +404,7 @@ namespace EmotionEngine.Emulator
                 q += q & 1;
             }
 
-            ix = (q >> 1) + 0x3f000000;
+            ix = (q >> 1) + 0x3F000000;
             ix += m << 23;
 
             return new Ps2Float((uint)ix);
