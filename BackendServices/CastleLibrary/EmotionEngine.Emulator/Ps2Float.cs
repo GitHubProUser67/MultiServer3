@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Specialized;
 
 namespace EmotionEngine.Emulator
 {
@@ -101,31 +100,31 @@ namespace EmotionEngine.Emulator
             int temp = 0;
 
             // Exponent difference
-            int expDiff = ((int)(a >> 23) & 0xff) - ((int)(b >> 23) & 0xff);
+            int expDiff = ((int)(a >> 23) & 0xFF) - ((int)(b >> 23) & 0xFF);
 
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
             {
-                b = b & 0x80000000;
+                b = b & SIGNMASK;
             }
             // diff = 1 .. 24, expt < expd
             else if (expDiff > 0)
             {
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 b = (uint)(temp & b);
             }
             // diff = -255 .. -25, expd < expt
             else if (expDiff <= -25)
             {
-                a = a & 0x80000000;
+                a = a & SIGNMASK;
             }
             // diff = -24 .. -1 , expd < expt
             else if (expDiff < 0)
             {
                 expDiff = -expDiff;
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 a = (uint)(a & temp);
             }
 
@@ -145,31 +144,31 @@ namespace EmotionEngine.Emulator
             int temp = 0;
 
             // Exponent difference
-            int expDiff = ((int)(a >> 23) & 0xff) - ((int)(b >> 23) & 0xff);
+            int expDiff = ((int)(a >> 23) & 0xFF) - ((int)(b >> 23) & 0xFF);
 
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
             {
-                b = b & 0x80000000;
+                b = b & SIGNMASK;
             }
             // diff = 1 .. 24, expt < expd
             else if (expDiff > 0)
             {
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 b = (uint)(temp & b);
             }
             // diff = -255 .. -25, expd < expt
             else if (expDiff <= -25)
             {
-                a = a & 0x80000000;
+                a = a & SIGNMASK;
             }
             // diff = -24 .. -1 , expd < expt
             else if (expDiff < 0)
             {
                 expDiff = -expDiff;
                 expDiff = expDiff - 1;
-                temp = unchecked((int)0xffffffff) << expDiff;
+                temp = unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff;
                 a = (uint)(a & temp);
             }
 
@@ -254,113 +253,32 @@ namespace EmotionEngine.Emulator
             else if (rawExp <= 0)
                 return new Ps2Float(man < 0, 0, 0);
 
-            return new Ps2Float((uint)man & 0x80000000 | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
+            return new Ps2Float((uint)man & SIGNMASK | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF));
         }
 
-        // Rounding can be slightly off: (PS2/IEEE754: 0x3F800040 * 0x3F800020 = 0x3F800060 | SoftFloat: 0x3F800040 * 0x3F800020 = 0x3F80005F).
         private Ps2Float DoMul(Ps2Float other)
         {
+            byte selfExponent = Exponent;
+            byte otherExponent = other.Exponent;
             uint selfMantissa = Mantissa | 0x800000;
             uint otherMantissa = other.Mantissa | 0x800000;
-            int resExponent = Exponent + other.Exponent - BIAS;
+            uint sign = (AsUInt32() ^ other.AsUInt32()) & SIGNMASK;
 
-            Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
+            int resExponent = selfExponent + otherExponent - 127;
+            uint resMantissa = (uint)(BoothMultiplier.MulMantissa(selfMantissa, otherMantissa) >> 23);
+
+            if (resMantissa > 0xFFFFFF)
+            {
+                resMantissa >>= 1;
+                resExponent++;
+            }
 
             if (resExponent > 255)
-                return result.Sign ? Min() : Max();
-            else if (resExponent < 0)
-                return new Ps2Float(result.Sign, 0, 0);
+                return new Ps2Float(sign | MAX_FLOATING_POINT_VALUE);
+            else if (resExponent <= 0)
+                return new Ps2Float(sign);
 
-            uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
-            ulong res = 0;
-            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFFFFF", 16); // Uses a booth and wallace tree approach to Multiplication.
-
-            result.Exponent = (byte)resExponent;
-
-            otherMantissa <<= 1;
-
-            uint[] part = new uint[13]; // Partial products
-            uint[] bit = new uint[13]; // More partial products. 0 or 1.
-
-            for (int i = 0; i <= 12; i++, otherMantissa >>= 2)
-            {
-                uint test = otherMantissa & 7;
-                if (test == 0 || test == 7)
-                {
-                    part[i] = 0;
-                    bit[i] = 0;
-                }
-                else if (test == 3)
-                {
-                    part[i] = (selfMantissa << 1);
-                    bit[i] = 0;
-                }
-                else if (test == 4)
-                {
-                    part[i] = ~(selfMantissa << 1);
-                    bit[i] = 1;
-                }
-                else if (test < 4)
-                {
-                    part[i] = selfMantissa;
-                    bit[i] = 0;
-                }
-                else
-                {
-                    part[i] = ~selfMantissa;
-                    bit[i] = 1;
-                }
-            }
-
-            for (int i = 0; i <= 12; i++)
-            {
-                res += (ulong)(int)part[i] << (i * 2);
-                res &= mask;
-                res += bit[i] << (i * 2);
-            }
-
-            result.Mantissa = (uint)(res >> 23);
-
-            if ((testImprecision & 0x000aaa) != 0 && (res & 0x7FFFFF) == 0)
-                result.Mantissa -= 1;
-
-            if (result.Mantissa > 0)
-            {
-                int leadingBitPosition = GetMostSignificantBitPosition(result.Mantissa);
-
-                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
-                {
-                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa >>= 1;
-
-                        int increasedExponent = result.Exponent + 1;
-
-                        if (increasedExponent > 255)
-                            return result.Sign ? Min() : Max();
-
-                        result.Exponent = (byte)increasedExponent;
-
-                        leadingBitPosition--;
-                    }
-                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa <<= 1;
-
-                        int decreasedExponent = result.Exponent - 1;
-
-                        if (decreasedExponent <= 0)
-                            return new Ps2Float(result.Sign, 0, 0);
-
-                        result.Exponent = (byte)decreasedExponent;
-
-                        leadingBitPosition++;
-                    }
-                }
-            }
-
-            result.Mantissa &= 0x7FFFFF;
-            return result.RoundTowardsZero();
+            return new Ps2Float(sign | (uint)(resExponent << 23) | (resMantissa & 0x7FFFFF));
         }
 
         // Rounding can be slightly off: (PS2: 0x3F800000 / 0x3F800001 = 0x3F7FFFFF | SoftFloat/IEEE754: 0x3F800000 / 0x3F800001 = 0x3F7FFFFE).
@@ -393,7 +311,7 @@ namespace EmotionEngine.Emulator
                 resMantissa |= ((ulong)otherMantissa * resMantissa != selfMantissa64) ? 1U : 0;
 
             result.Exponent = (byte)resExponent;
-            result.Mantissa = (resMantissa + 0x39U /* Non-standard value, 40U in IEEE754 (PS2: rsqrt(0x40400000, 0x40400000) = 0x3FDDB3D7 -> IEEE754: rsqrt(0x40400000, 0x40400000) = 0x3FDDB3D8 */) >> 7;
+            result.Mantissa = (resMantissa + 0x40U) >> 7;
 
             if (result.Mantissa > 0)
             {
@@ -454,7 +372,7 @@ namespace EmotionEngine.Emulator
             /* extract mantissa and unbias exponent */
             int m = (ix >> 23) - BIAS;
 
-            ix = (ix & 0x007fffff) | 0x00800000;
+            ix = (ix & 0x007FFFFF) | 0x00800000;
             if ((m & 1) == 1)
             {
                 /* odd m, double x to make it even */
@@ -486,7 +404,7 @@ namespace EmotionEngine.Emulator
                 q += q & 1;
             }
 
-            ix = (q >> 1) + 0x3f000000;
+            ix = (q >> 1) + 0x3F000000;
             ix += m << 23;
 
             return new Ps2Float((uint)ix);
