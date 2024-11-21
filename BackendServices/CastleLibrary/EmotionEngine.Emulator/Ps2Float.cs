@@ -256,110 +256,29 @@ namespace EmotionEngine.Emulator
             return new Ps2Float((uint)man & 0x80000000 | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF)).RoundTowardsZero();
         }
 
-        // Rounding can be slightly off: (PS2/IEEE754: 0x3F800040 * 0x3F800020 = 0x3F800060 | SoftFloat: 0x3F800040 * 0x3F800020 = 0x3F80005F).
         private Ps2Float DoMul(Ps2Float other)
         {
+            byte selfExponent = Exponent;
+            byte otherExponent = other.Exponent;
             uint selfMantissa = Mantissa | 0x800000;
             uint otherMantissa = other.Mantissa | 0x800000;
-            int resExponent = Exponent + other.Exponent - BIAS;
+            uint sign = (AsUInt32() ^ other.AsUInt32()) & 0x80000000;
 
-            Ps2Float result = new Ps2Float(0) { Sign = DetermineMultiplicationDivisionOperationSign(this, other) };
+            int resExponent = selfExponent + otherExponent - 127;
+            uint resMantissa = (uint)(BoothMultiplier.MulMantissa(selfMantissa, otherMantissa) >> 23);
+
+            if (resMantissa > 0xffffff)
+            {
+                resMantissa >>= 1;
+                resExponent++;
+            }
 
             if (resExponent > 255)
-                return result.Sign ? Min() : Max();
-            else if (resExponent < 0)
-                return new Ps2Float(result.Sign, 0, 0);
+                return new Ps2Float(sign | MAX_FLOATING_POINT_VALUE);
+            else if (resExponent <= 0)
+                return new Ps2Float(sign);
 
-            uint testImprecision = otherMantissa ^ ((otherMantissa >> 4) & 0x800); // For some reason, 0x808000 loses a bit and 0x800800 loses a bit, but 0x808800 does not
-            ulong res = 0;
-            ulong mask = Convert.ToUInt64("0xFFFFFFFFFFFFFFFF", 16); // Uses a booth and wallace tree approach to Multiplication.
-
-            result.Exponent = (byte)resExponent;
-
-            otherMantissa <<= 1;
-
-            uint[] part = new uint[13]; // Partial products
-            uint[] bit = new uint[13]; // More partial products. 0 or 1.
-
-            for (int i = 0; i <= 12; i++, otherMantissa >>= 2)
-            {
-                uint test = otherMantissa & 7;
-                if (test == 0 || test == 7)
-                {
-                    part[i] = 0;
-                    bit[i] = 0;
-                }
-                else if (test == 3)
-                {
-                    part[i] = (selfMantissa << 1);
-                    bit[i] = 0;
-                }
-                else if (test == 4)
-                {
-                    part[i] = ~(selfMantissa << 1);
-                    bit[i] = 1;
-                }
-                else if (test < 4)
-                {
-                    part[i] = selfMantissa;
-                    bit[i] = 0;
-                }
-                else
-                {
-                    part[i] = ~selfMantissa;
-                    bit[i] = 1;
-                }
-            }
-
-            for (int i = 0; i <= 12; i++)
-            {
-                res += (ulong)(int)part[i] << (i * 2);
-                res &= mask;
-                res += bit[i] << (i * 2);
-            }
-
-            result.Mantissa = (uint)(res >> 23);
-
-            if ((testImprecision & 0x000aaa) != 0 && (res & 0x7FFFFF) == 0)
-                result.Mantissa -= 1;
-
-            if (result.Mantissa > 0)
-            {
-                int leadingBitPosition = GetMostSignificantBitPosition(result.Mantissa);
-
-                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
-                {
-                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa >>= 1;
-
-                        int increasedExponent = result.Exponent + 1;
-
-                        if (increasedExponent > 255)
-                            return result.Sign ? Min() : Max();
-
-                        result.Exponent = (byte)increasedExponent;
-
-                        leadingBitPosition--;
-                    }
-                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
-                    {
-                        result.Mantissa <<= 1;
-
-                        int decreasedExponent = result.Exponent - 1;
-
-                        if (decreasedExponent <= 0)
-                            return new Ps2Float(result.Sign, 0, 0);
-
-                        result.Exponent = (byte)decreasedExponent;
-
-                        leadingBitPosition++;
-                    }
-                }
-            }
-
-            result.Mantissa &= 0x7FFFFF;
-            return result.RoundTowardsZero();
+            return new Ps2Float(sign | (uint)(resExponent << 23) | (resMantissa & 0x7fffff)).RoundTowardsZero();
         }
 
         // Rounding can be slightly off: (PS2: 0x3F800000 / 0x3F800001 = 0x3F7FFFFF | SoftFloat/IEEE754: 0x3F800000 / 0x3F800001 = 0x3F7FFFFE).
