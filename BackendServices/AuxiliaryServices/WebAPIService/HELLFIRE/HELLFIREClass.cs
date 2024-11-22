@@ -45,7 +45,7 @@ namespace WebAPIService.HELLFIRE
                         #endregion
 
                         #region SlimJim Rescue
-                        case "/SlimJim/Main.php ":
+                        case "/SlimJim/Main.php":
                             return SlimJimRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
                         #endregion
 
