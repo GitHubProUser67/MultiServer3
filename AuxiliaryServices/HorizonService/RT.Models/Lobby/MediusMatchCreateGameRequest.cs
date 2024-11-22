@@ -44,10 +44,7 @@ namespace Horizon.RT.Models
             base.Deserialize(reader);
 
             MessageID = reader.Read<MessageId>();
-
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
-            //reader.ReadBytes(2);
-
             SupersetID = reader.ReadInt32();
             ApplicationID = reader.ReadInt32();
             MinPlayers = reader.ReadInt32();
@@ -71,8 +68,6 @@ namespace Horizon.RT.Models
             MatchOptions = reader.Read<MediusMatchOptions>();
             ServerSessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
             RequestData = reader.ReadBytes(Constants.REQUESTDATA_MAXLEN);
-            //reader.ReadBytes(3);
-
             GroupMemberListSize = reader.ReadUInt32();
             ApplicationDataSize = reader.ReadUInt32();
             GroupMemberAccountIDList = reader.ReadBytes((int)GroupMemberListSize);
@@ -84,10 +79,7 @@ namespace Horizon.RT.Models
             base.Serialize(writer);
 
             writer.Write(MessageID ?? MessageId.Empty);
-
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
-            //writer.Write(new byte[2]);
-
             writer.Write(SupersetID);
             writer.Write(ApplicationID);
             writer.Write(MinPlayers);
@@ -111,8 +103,6 @@ namespace Horizon.RT.Models
             writer.Write(MatchOptions);
             writer.Write(ServerSessionKey, Constants.SESSIONKEY_MAXLEN);
             writer.Write(RequestData);
-            //writer.Write(new byte[3]);
-
             writer.Write(GroupMemberListSize);
             writer.Write(ApplicationDataSize);
             writer.Write(GroupMemberAccountIDList);

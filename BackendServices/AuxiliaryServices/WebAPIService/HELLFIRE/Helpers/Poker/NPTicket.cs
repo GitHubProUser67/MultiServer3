@@ -9,11 +9,11 @@ using HashLib;
 using WebAPIService.HELLFIRE.HFProcessors;
 using WebAPIService.HELLFIRE.Helpers.Poker;
 
-namespace WebAPIService.HELLFIRE.Helpers
+namespace WebAPIService.HELLFIRE.Helpers.Poker
 {
     public class NPTicket
     {
-        public static string RequestNPTicket(byte[] PostData, string boundary)
+        public static string RequestNPTicket(byte[] PostData, string boundary, bool poker)
         {
             string userid = string.Empty;
             string sessionid = string.Empty;
@@ -104,6 +104,20 @@ namespace WebAPIService.HELLFIRE.Helpers
                     resultString += hash;
 
                     sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
+                }
+
+                if(poker == true)
+                {
+                    /*
+                    PokerServerRequestProcessor pokerServerRequestProcessor = new PokerServerRequestProcessor();
+                    PokerPlayer pokerPlayerToAdd = new PokerPlayer()
+                    {
+                        PlayerName = userid,
+                        SessionID = sessionid
+                    };
+
+                    pokerServerRequestProcessor.pokerPlayers.Add(pokerPlayerToAdd);
+                    */
                 }
 
                 return $"<response><Thing>{userid};{sessionid}</Thing></response>";
