@@ -35,7 +35,6 @@ namespace WebAPIService.HELLFIRE.Helpers
 
         public static string GetUserHomeTycoon(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
-            // Retrieve the user's JSON profile
             string profilePath = $"{WorkPath}/TYCOON/User_Data/{UserID}.xml";
 
             string xmlProfile;
@@ -86,7 +85,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                         return "<Response></Response>";
                                     }
 
-                                    // Create a new element
                                     XmlElement BuildingToAddEntry = doc.CreateElement(data.GetParameterValue("BuildingName"));
                                     BuildingToAddEntry.InnerText = data.GetParameterValue("BuildingName");
 
@@ -124,7 +122,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                 break;
                             case "AddDialog":
                                 {
-                                    // Update the profile values from the provided data
                                     var userProfileDialogNode = doc.SelectSingleNode("//Dialogs");
                                     XmlElement DialogToAdd = doc.CreateElement(data.GetParameterValue("DialogName"));
                                     DialogToAdd.InnerText = data.GetParameterValue("DialogName");
@@ -135,7 +132,9 @@ namespace WebAPIService.HELLFIRE.Helpers
                                 {
                                     var userProfileDialogNode = doc.DocumentElement.SelectSingleNode("//Dialogs").SelectSingleNode(data.GetParameterValue("DialogName"));
                                     doc.DocumentElement.SelectSingleNode("//Dialogs").RemoveChild(userProfileDialogNode);
+#if DEBUG
                                     LoggerAccessor.LogInfo($"Removed Dialog {data.GetParameterValue("DialogName")}");
+#endif
                                 }
                                 break;
                             case "AddVehicle":
@@ -154,8 +153,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     userProfileVehicleNode.RemoveChild(userProfileVehicleNode);
                                 }
                                 break;
-
-
                             case "AddInventory":
                                 {
                                     var userProfileInvNode = doc.SelectSingleNode("//Inventory");
@@ -164,7 +161,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     userProfileInvNode.AppendChild(BuildingToAdd);
                                 }
                                 break;
-
                             case "AddActivity":
                                 {
                                     var userProfileFlagNode = doc.SelectSingleNode("//Activities");
@@ -413,7 +409,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                 break;
                         }
 
-                        // Get the updated XML string
                         updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", string.Empty).Replace("</root>", string.Empty);
 #pragma warning restore 8602
                         // Save the updated profile back to the file
@@ -436,7 +431,6 @@ namespace WebAPIService.HELLFIRE.Helpers
             string xmlProfile = string.Empty;
             string updatedXMLProfile = string.Empty;
 
-            // Retrieve the user's JSON profile
             string profilePath = $"{WorkPath}/ClearasilSkater/User_Data/{UserID}.xml";
 
             if (File.Exists(profilePath))
@@ -461,10 +455,8 @@ namespace WebAPIService.HELLFIRE.Helpers
                         doc.SelectSingleNode("//BestScoreStage2").InnerText = data.GetParameterValue("BestScoreStage2");
                         doc.SelectSingleNode("//LeaderboardScore").InnerText = data.GetParameterValue("LeaderboardScore");
                         
-                        // Get the updated XML string
                         updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", string.Empty).Replace("</root>", string.Empty);
 #pragma warning restore 8602
-                        // Save the updated profile back to the file
                         File.WriteAllText(profilePath, updatedXMLProfile);
 
                         ms.Flush();
