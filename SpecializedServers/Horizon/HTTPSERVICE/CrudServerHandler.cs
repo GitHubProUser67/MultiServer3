@@ -9,6 +9,7 @@ using System.Text;
 using WatsonWebserver;
 using WatsonWebserver.Core;
 using Horizon.MUM.Models;
+using Newtonsoft.Json;
 
 namespace Horizon.HTTPSERVICE
 {
@@ -450,6 +451,73 @@ namespace Horizon.HTTPSERVICE
                                 ctx.Response.ContentType = "application/json; charset=utf-8";
                                 await ctx.Response.Send(sb.ToString());
                                 break;
+                            default:
+                                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                ctx.Response.ContentType = "text/plain";
+                                await ctx.Response.Send();
+                                return;
+                        }
+                    }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/HomeGJS/{command}/", async (HttpContextBase ctx) =>
+                {
+                    string? Command = ctx.Request.Url.Parameters["command"];
+                    string userAgent = ctx.Request.Useragent;
+
+                    if (!string.IsNullOrEmpty(userAgent) && userAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(Command))
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                            ctx.Response.ContentType = "text/plain";
+                            await ctx.Response.Send();
+                            return;
+                        }
+                        else
+                            Command = HTTPProcessor.DecodeUrl(Command);
+
+                        bool Retail = true;
+                        string? AccessToken = null;
+                        string clientip = ctx.Request.Source.IpAddress;
+
+                        if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
+                        {
+
+                        }
+
+                        if (ctx.Request.QuerystringExists("AccessToken"))
+                            AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                        switch (Command)
+                        {
+                            case "SendCrc":
+                                ctx.Response.ContentType = "text/plain; charset=utf-8";
+
+                                if (ctx.Request.QuerystringExists("Crc"))
+                                {
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    await ctx.Response.Send(await HomeGuestJoiningSystem.SendCrcOverride(clientip, AccessToken, ctx.Request.RetrieveQueryValue("Crc"), Retail) ? "Requested Crc sent successfully!" : "Error while sending the Requested Crc!");
+                                }
+                                else
+                                {
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                                    await ctx.Response.Send("No Crc given for the request!");
+                                }
+
+                                return;
+                            case "GetCrcList":
+                                ctx.Response.ContentType = "application/json; charset=utf-8";
+                                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+
+                                await ctx.Response.Send(JsonConvert.SerializeObject(await HomeGuestJoiningSystem.getCrcList(clientip, AccessToken, Retail), Formatting.Indented));
+                                return;
                             default:
                                 ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                                 ctx.Response.ContentType = "text/plain";

@@ -2781,9 +2781,9 @@ namespace Horizon.SERVER.Medius
             {
                 if (isHome && data.ClientObject.ClientHomeData != null)
                 {
-                    /*if (data.ClientObject.IsOnRPCN)
+                    if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.35)
                         _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
-                    else // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
+                    /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.35) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
                         _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");*/
 
                     switch (data.ClientObject.ClientHomeData.Type)

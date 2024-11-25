@@ -51,6 +51,11 @@ namespace Horizon.MUM.Models
         /// 
         /// </summary>
         public string? SSFWid = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string? LobbyKeyOverride = null;
         #endregion
 
         /// <summary>

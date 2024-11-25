@@ -147,7 +147,7 @@ namespace SSFWServer
                     LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 #endif
 
-                    if (UserAgent.Contains("PSHome")) // Host ban is not perfect, but netcoreserver only has that to offer...
+                    if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")) // Host ban is not perfect, but netcoreserver only has that to offer...
                     {
                         string? env = ExtractBeforeFirstDot(GetHeaderValue(Headers, "Host", false));
                         string sessionid = GetHeaderValue(Headers, "X-Home-Session-Id");
@@ -590,6 +590,32 @@ namespace SSFWServer
 
                                 switch (absolutepath)
                                 {
+                                    case "/WebService/GetSceneLike/":
+                                        string sceneNameLike = GetHeaderValue(Headers, "like", false);
+
+                                        Response.Clear();
+
+                                        if (!string.IsNullOrEmpty(sceneNameLike))
+                                        {
+                                            string? sceneName = ScenelistParser.GetSceneNameLike(sceneNameLike);
+
+                                            if (!string.IsNullOrEmpty(sceneName))
+                                            {
+                                                Response.SetBegin(200);
+                                                Response.SetBody(sceneName);
+                                            }
+                                            else
+                                            {
+                                                Response.SetBegin(500);
+                                                Response.SetBody("SceneNameLike returned a null or empty sceneName!");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Response.SetBegin(403);
+                                            Response.SetBody("Invalid like attribute was used!");
+                                        }
+                                        break;
                                     case "/WebService/AddMiniItem/":
                                         uuid = GetHeaderValue(Headers, "uuid", false);
                                         sessionId = GetHeaderValue(Headers, "sessionid", false);

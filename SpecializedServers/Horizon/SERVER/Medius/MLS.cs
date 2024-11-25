@@ -379,9 +379,9 @@ namespace Horizon.SERVER.Medius
 
                                                     if (data.ClientObject.ClientHomeData != null)
                                                     {
-                                                        /*if (data.ClientObject.IsOnRPCN)
+                                                        if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.35)
                                                             _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
-                                                        else // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
+                                                        /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.35) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
                                                             _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");*/
 
                                                         switch (data.ClientObject.ClientHomeData.Type)
@@ -5466,6 +5466,49 @@ namespace Horizon.SERVER.Medius
                                 EndOfList = true
                             });
                             break;
+                        }
+
+                        if ((rClient.ApplicationId == 20371 || rClient.ApplicationId == 20374) && !string.IsNullOrEmpty(rClient.LobbyKeyOverride))
+                        {
+                            string requestedLobbyKey = rClient.LobbyKeyOverride;
+                            rClient.LobbyKeyOverride = null;
+                            bool foundLobby = false;
+
+                            foreach (Game homeLobby in MediusClass.Manager.GetAllGamesByAppId(rClient.ApplicationId))
+                            {
+                                if (homeLobby.Host != null && !string.IsNullOrEmpty(homeLobby.GameName) && homeLobby.GameName.StartsWith("AP|") && homeLobby.GameName.Split('|').Length >= 5)
+                                {
+                                    string LobbyName = homeLobby.GameName!.Split('|')[5];
+                                    Ionic.Crc.CRC32? crc = new();
+
+                                    byte[] APPassCode = Encoding.UTF8.GetBytes(homeLobby.Host.AccountName + homeLobby.GameName!.Split('|')[5] + "H3m0");
+
+                                    crc.SlurpBlock(APPassCode, 0, APPassCode.Length);
+
+                                    if ($"{crc.Crc32Result:X4}" == requestedLobbyKey)
+                                    {
+                                        foundLobby = true;
+
+                                        rClient.Queue(new MediusGameListResponse()
+                                        {
+                                            MessageID = gameListRequest.MessageID,
+                                            StatusCode = MediusCallbackStatus.MediusSuccess,
+
+                                            MediusWorldID = homeLobby.MediusWorldId,
+                                            GameName = homeLobby.GameName,
+                                            WorldStatus = homeLobby.WorldStatus,
+                                            GameHostType = homeLobby.GameHostType,
+                                            PlayerCount = (ushort)homeLobby.PlayerCount,
+                                            EndOfList = true
+                                        });
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (foundLobby)
+                                break;
                         }
 
                         if (rClient.ApplicationId == 10538 || rClient.ApplicationId == 10190)
