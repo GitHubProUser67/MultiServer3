@@ -9683,16 +9683,7 @@ namespace Horizon.SERVER.Medius
                                                     case "IGA":
                                                         break;
                                                     default:
-                                                        string SupplementalMessage = "Unknown";
-
-                                                        switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
-                                                        {
-                                                            case 0x0B:
-                                                                SupplementalMessage = "Kick";
-                                                                break;
-                                                        }
-
-                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                         _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
