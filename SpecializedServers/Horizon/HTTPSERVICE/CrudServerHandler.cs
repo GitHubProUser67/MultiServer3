@@ -202,6 +202,18 @@ namespace Horizon.HTTPSERVICE
                                     case "Kick":
                                         result = NewIGA.KickClient(DmeId, WorldId, DmeWorldId, Retail);
                                         break;
+                                    case "Release":
+                                        result = NewIGA.ReleaseClient(DmeId, WorldId, DmeWorldId, Retail);
+                                        break;
+                                    case "Mute":
+                                        result = NewIGA.MuteClient(DmeId, WorldId, DmeWorldId, Retail);
+                                        break;
+                                    case "MuteFreeze":
+                                        result = NewIGA.MuteAndFreezeClient(DmeId, WorldId, DmeWorldId, Retail);
+                                        break;
+                                    case "Freeze":
+                                        result = NewIGA.FreezeClient(DmeId, WorldId, DmeWorldId, Retail);
+                                        break;
                                     default:
                                         LoggerAccessor.LogWarn($"[CrudServerHandler] - Unknown Home IGA command: {Command}");
                                         break;
