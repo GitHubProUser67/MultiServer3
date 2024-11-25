@@ -14,10 +14,10 @@ namespace WebAPIService.HELLFIRE.Helpers
     {
         public static string DefaultHomeTycoonProfile = @"<NewPlayer>1</NewPlayer>
             <TotalCollected>0.000000</TotalCollected>
-            <Wallet>20000.000000</Wallet>
+            <Wallet>5000.000000</Wallet>
             <Workers>99.000000</Workers>
             <GoldCoins>9999.000000</GoldCoins>
-            <SilverCoins>9999.000000</SilverCoins>
+            <SilverCoins>0.000000</SilverCoins>
             <Options><MusicVolume>1.0</MusicVolume><PrivacySetting>3</PrivacySetting></Options>
             <Missions></Missions>
             <Journal></Journal>
@@ -29,13 +29,38 @@ namespace WebAPIService.HELLFIRE.Helpers
             <Flags></Flags>
             <Inventory></Inventory>";
 
+        public static string DefaultNovusPrimeProfile = @"
+            <CharData>
+                <Nebulon>0</Nebulon>
+                <TotalNebulonEver>0</TotalNebulonEver>
+                <Experience>0</Experience>
+                <Level>1</Level>
+            </CharData>
+                <Front1>0</Front1>
+                <Front2>0</Front2>
+                <Turret1>0</Turret1>
+                <Turret2>0</Turret2>
+                <Special>0</Special>
+                <Maneuver>0</Maneuver>
+                <Upgrade1>0</Upgrade1>
+                <Upgrade2>0</Upgrade2>
+                <Upgrade3>0</Upgrade3>
+                <Upgrade4>0</Upgrade4>
+                <PaintJob>0</PaintJob>
+            </ShipConfig>
+            <Inventory></Inventory>
+            <Missions>
+            </Missions>
+            <DailyAvailable>
+            </DailyAvailable>";
+
         public static string DefaultClearasilSkaterAndSlimJimProfile = "<BestScoreStage1>0</BestScoreStage1><BestScoreStage2>0</BestScoreStage2><LeaderboardScore>0</LeaderboardScore>";
         public static string DefaultPokerProfile = "<Bankroll>1000</Bankroll><NewPlayer>1</NewPlayer>";
 
 
         public static string GetUserHomeTycoon(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
-            string profilePath = $"{WorkPath}/TYCOON/User_Data/{UserID}.xml";
+            string profilePath = $"{WorkPath}/TYCOON/User_Data/{UserID}/Profile.xml";
 
             string xmlProfile;
             if (File.Exists(profilePath))
@@ -505,6 +530,324 @@ namespace WebAPIService.HELLFIRE.Helpers
                         updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", string.Empty).Replace("</root>", string.Empty);
 #pragma warning restore 8602
                         // Save the updated profile back to the file
+                        File.WriteAllText(profilePath, updatedXMLProfile);
+
+                        ms.Flush();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[HFGAMES] User - An assertion was thrown in UpdateUser : {ex}");
+            }
+
+            return $"<Response>{updatedXMLProfile}</Response>";
+        }
+
+        public static string RequestInitialDataNovusPrime(byte[] PostData, string boundary, string UserID, string WorkPath)
+        {
+            string profilePath = $"{WorkPath}/NovusPrime/User_Data/{UserID}.xml";
+
+            string xmlProfile;
+            if (File.Exists(profilePath))
+            {
+                LoggerAccessor.LogInfo($"[HFGAMES] - Detected existing player data, sending!");
+                xmlProfile = File.ReadAllText(profilePath);
+            }
+            else
+            {
+                LoggerAccessor.LogInfo($"[HFGAMES] - New player with no player data! Using default!");
+                xmlProfile = DefaultNovusPrimeProfile;
+            }
+
+            return $"<Response>{xmlProfile}</Response>";
+        }
+
+        public static string NovusCompleteMission(byte[] PostData, string boundary, string UserID, string WorkPath)
+        {
+            string profilePath = $"{WorkPath}/NovusPrime/User_Data/{UserID}.xml";
+            string xmlProfile = string.Empty;
+            if (File.Exists(profilePath))
+                xmlProfile = File.ReadAllText(profilePath);
+
+
+
+            var doc = new XmlDocument();
+
+            doc.LoadXml($"<xml>{xmlProfile}</xml>");
+
+            var userProfileMissionsNode = doc.DocumentElement.SelectSingleNode("//Missions");
+
+            if (userProfileMissionsNode != null)
+            {
+                using (MemoryStream ms = new MemoryStream(PostData))
+                {
+                    var data = MultipartFormDataParser.Parse(ms, boundary);
+
+                    // Retrieve the new MissionId from the parsed data
+                    string newMissionId = data.GetParameterValue("MissionId");
+
+                    // Check if the MissionId already exists
+                    var MissionNodesList = userProfileMissionsNode.SelectNodes("Mission");
+                    bool missionExists = false;
+
+                    foreach (XmlNode MissionNode in MissionNodesList)
+                    {
+                        if (MissionNode.SelectSingleNode("MissionId").InnerText == newMissionId)
+                        {
+                            missionExists = true;
+                            LoggerAccessor.LogInfo($"Mission {newMissionId} already exists.");
+                            break;
+                        }
+                    }
+
+                    // If the mission doesn't exist, add a new entry
+                    if (!missionExists)
+                    {
+                        XmlElement newMissionNode = doc.CreateElement("Mission");
+
+                        XmlElement missionIdNode = doc.CreateElement("MissionId");
+                        missionIdNode.InnerText = newMissionId;
+
+                        newMissionNode.AppendChild(missionIdNode);
+
+                        userProfileMissionsNode.AppendChild(newMissionNode);
+
+                        LoggerAccessor.LogInfo($"Mission {newMissionId} added.");
+
+                        // Save the updated XML to file
+                        File.WriteAllText(profilePath, doc.DocumentElement.InnerXml);
+                    }
+                }
+            }
+            else
+            {
+                LoggerAccessor.LogInfo("Missions node not found in the XML.");
+            }
+            return "<Response></Response>";
+        }
+
+        public static string UpdateCharacter(byte[] PostData, string boundary, string UserID, string WorkPath, string cmd)
+        {
+            //userId
+            //Experience
+            //Level
+            //Nebulon
+            //TotalNebulonEver
+
+            string xmlProfile = string.Empty;
+            string updatedXMLProfile = string.Empty;
+
+            string profilePath = $"{WorkPath}/NovusPrime/User_Data/{UserID}.xml";
+            string lbPath = $"{WorkPath}/NovusPrime/User_Data/Leaderboards.xml";
+
+            if (File.Exists(profilePath))
+                xmlProfile = File.ReadAllText(profilePath);
+            else
+                xmlProfile = DefaultNovusPrimeProfile;
+
+            try
+            {
+                var doc = new XmlDocument();
+                var lbDoc = new XmlDocument();
+
+
+                doc.LoadXml("<root>" + xmlProfile + "</root>"); // Wrap the XML string in a root element
+                if (doc != null && PostData != null && !string.IsNullOrEmpty(boundary))
+                {
+                    using (MemoryStream ms = new MemoryStream(PostData))
+                    {
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        // Update the profile values from the provided data
+                        // Update the values based on IDs
+#pragma warning disable 8602
+
+                        switch (cmd)
+                        {
+                            case "UpdateCharacter":
+                                {
+
+                                    doc.SelectSingleNode("//Experience").InnerText = data.GetParameterValue("Experience");
+                                    doc.SelectSingleNode("//Level").InnerText = data.GetParameterValue("Level");
+                                    doc.SelectSingleNode("//Nebulon").InnerText = data.GetParameterValue("Nebulon");
+                                    doc.SelectSingleNode("//TotalNebulonEver").InnerText = data.GetParameterValue("TotalNebulonEver");
+
+                                    #region Leaderboard entry update
+
+                                    if (File.Exists(lbPath))
+                                    {
+                                        lbDoc.LoadXml("<root>" + File.ReadAllText(lbPath) + "</root>");
+
+                                        if (lbDoc.SelectSingleNode($"//{UserID}") != null)
+                                        {
+                                            XmlNode userNameExistEntry = lbDoc.SelectSingleNode($"//{UserID}");
+
+                                            XmlNode scoreNode = userNameExistEntry.SelectSingleNode("//Score");
+                                            scoreNode.InnerText = data.GetParameterValue("TotalNebulonEver").Split(".")[0];
+
+                                        }
+                                        else
+                                        {
+                                            XmlElement userNameElement = lbDoc.CreateElement(UserID);
+                                            XmlElement displayNameElement = lbDoc.CreateElement("DisplayName");
+                                            XmlElement scoreElement = lbDoc.CreateElement("Score");
+
+                                            scoreElement.InnerText = data.GetParameterValue("TotalNebulonEver");
+                                            displayNameElement.InnerText = UserID;
+
+                                            userNameElement.AppendChild(displayNameElement);
+                                            userNameElement.AppendChild(scoreElement);
+
+                                            lbDoc.DocumentElement.AppendChild(userNameElement);
+                                        }
+
+                                    }
+                                    else
+                                    {
+
+                                        XmlElement userNameElement = lbDoc.CreateElement(UserID);
+                                        XmlElement displayNameElement = lbDoc.CreateElement("DisplayName");
+                                        XmlElement scoreElement = lbDoc.CreateElement("Score");
+
+                                        scoreElement.InnerText = data.GetParameterValue("TotalNebulonEver");
+                                        displayNameElement.InnerText = UserID;
+
+                                        userNameElement.AppendChild(displayNameElement);
+                                        userNameElement.AppendChild(scoreElement);
+
+                                        lbDoc.AppendChild(userNameElement);
+                                    }
+
+                                    File.WriteAllText(lbPath, lbDoc.DocumentElement.InnerXml);
+                                    #endregion
+                                }
+                                break;
+
+                            case "AddInventory":
+                                {
+                                    string baseName = "Item";
+                                    int index = 1;
+                                    string newObjectId = $"{baseName}{index}";
+
+                                    var inventoryNode = doc.SelectSingleNode("//Inventory");
+
+                                    var inventoryItems = inventoryNode.SelectNodes("*");
+                                    var existingIds = new HashSet<string>();
+
+                                    foreach (XmlNode item in inventoryItems)
+                                    {
+                                        existingIds.Add(item.Name);
+                                    }
+
+                                    while (existingIds.Contains(newObjectId))
+                                    {
+                                        index++;
+                                        newObjectId = $"{baseName}{index}";
+                                    }
+
+                                    XmlElement objectNodeEntry = doc.CreateElement(newObjectId);
+                                    XmlElement ObjectIdEntry = doc.CreateElement("ObjectId");
+                                    XmlElement QuantityEntry = doc.CreateElement("Quantity");
+
+                                    ObjectIdEntry.InnerText = data.GetParameterValue("ObjectId");
+                                    QuantityEntry.InnerText = "1";
+
+                                    objectNodeEntry.AppendChild(ObjectIdEntry);
+                                    objectNodeEntry.AppendChild(QuantityEntry);
+
+                                    inventoryNode.AppendChild(objectNodeEntry);
+
+                                    doc.SelectSingleNode("//Inventory").AppendChild(objectNodeEntry);
+                                }
+                                break;
+
+                            case "UseDaily":
+                                {
+                                    XmlNode DailyAvailable = doc.SelectSingleNode("//DailyAvailable");
+                                    if (DailyAvailable.SelectSingleNode("TimeElapsed") != null)
+                                    {
+                                        XmlNode timeElapsedExisting = DailyAvailable.SelectSingleNode("TimeElapsed");
+                                        timeElapsedExisting.InnerText = DateTime.Now.ToString("HHmmss");
+                                        DailyAvailable.AppendChild(timeElapsedExisting);
+                                    } else
+                                    {
+                                        XmlElement timeElapsed = doc.CreateElement("TimeElapsed");
+                                        timeElapsed.InnerText = DateTime.Now.ToString("HHmmss");
+                                        DailyAvailable.AppendChild(timeElapsed);
+                                    }
+
+                                }
+                                break;
+
+                            case "ConfigureShip":
+                                {
+                                    XmlNode shipConfig = doc.SelectSingleNode("//ShipConfig");
+
+                                    //data.GetParameterValue("Slot") 1
+                                    shipConfig.SelectSingleNode("Chassis").InnerText = data.GetParameterValue("Chassis");
+                                    shipConfig.SelectSingleNode("Front1").InnerText = data.GetParameterValue("Front1");
+                                    shipConfig.SelectSingleNode("Front2").InnerText = data.GetParameterValue("Front2");
+                                    shipConfig.SelectSingleNode("Turret1").InnerText = data.GetParameterValue("Turret1");
+                                    shipConfig.SelectSingleNode("Turret2").InnerText = data.GetParameterValue("Turret2");
+                                    shipConfig.SelectSingleNode("Special").InnerText = data.GetParameterValue("Special");
+                                    shipConfig.SelectSingleNode("Maneuver").InnerText = data.GetParameterValue("Maneuver");
+                                    shipConfig.SelectSingleNode("Upgrade1").InnerText = data.GetParameterValue("Upgrade1");
+                                    shipConfig.SelectSingleNode("Upgrade2").InnerText = data.GetParameterValue("Upgrade2");
+                                    shipConfig.SelectSingleNode("Upgrade3").InnerText = data.GetParameterValue("Upgrade3");
+                                    shipConfig.SelectSingleNode("Upgrade4").InnerText = data.GetParameterValue("Upgrade4");
+                                    shipConfig.SelectSingleNode("PaintJob").InnerText = data.GetParameterValue("PaintJob");
+                                }
+                                break;
+
+                        }
+
+                        // Get the updated XML string
+                        updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", string.Empty).Replace("</root>", string.Empty);
+#pragma warning restore 8602
+                        // Save the updated profile back to the file
+                        File.WriteAllText(profilePath, updatedXMLProfile);
+
+                        ms.Flush();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[HFGAMES] User - An assertion was thrown in UpdateUser : {ex}");
+            }
+
+            return $"<Response></Response>";
+        }
+
+        public static string RequestShipSlots(byte[] PostData, string boundary, string UserID, string WorkPath)
+        {
+            string xmlProfile = string.Empty;
+            string updatedXMLProfile = string.Empty;
+
+            string profilePath = $"{WorkPath}/ClearasilSkater/User_Data/{UserID}.xml";
+
+            if (File.Exists(profilePath))
+                xmlProfile = File.ReadAllText(profilePath);
+            else
+                xmlProfile = DefaultClearasilSkaterAndSlimJimProfile;
+
+            try
+            {
+                // Create an XmlDocument
+                var doc = new XmlDocument();
+                doc.LoadXml("<root>" + xmlProfile + "</root>"); // Wrap the XML string in a root element
+                if (doc != null && PostData != null && !string.IsNullOrEmpty(boundary))
+                {
+                    using (MemoryStream ms = new MemoryStream(PostData))
+                    {
+                        var data = MultipartFormDataParser.Parse(ms, boundary);
+                        // Update the profile values from the provided data
+                        // Update the values based on IDs
+#pragma warning disable 8602
+                        doc.SelectSingleNode("//BestScoreStage1").InnerText = data.GetParameterValue("BestScoreStage1");
+
+                        updatedXMLProfile = doc.DocumentElement.InnerXml.Replace("<root>", string.Empty).Replace("</root>", string.Empty);
+#pragma warning restore 8602
                         File.WriteAllText(profilePath, updatedXMLProfile);
 
                         ms.Flush();

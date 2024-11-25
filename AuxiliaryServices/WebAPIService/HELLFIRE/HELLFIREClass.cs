@@ -51,7 +51,7 @@ namespace WebAPIService.HELLFIRE
 
                         #region Novus Primus Prime
                         case "/Main.php":
-                            //return NovusPrimeRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                            return NovusPrimeRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
                         #endregion
 
                         #region 
