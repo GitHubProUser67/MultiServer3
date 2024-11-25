@@ -11,6 +11,8 @@ using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
 using Newtonsoft.Json;
 using System;
+using System.ComponentModel;
+using System.IO;
 
 namespace SSFWServer
 {
@@ -21,6 +23,9 @@ namespace SSFWServer
         private static string? legacykey;
         private static SSFWServer? _Server;
         private static HttpSSFWServer? _HttpServer;
+
+        private static Dictionary<string, string> LayoutGetOverrides = new();
+
         private string certpath;
         private string certpass;
 
@@ -162,8 +167,54 @@ namespace SSFWServer
                                 #region LayoutService
                                 if (absolutepath.Contains($"/LayoutService/{env}/person/") && IsSSFWRegistered(sessionid))
                                 {
+                                    string? res = null;
                                     SSFWLayoutService layout = new(legacykey);
-                                    string? res = layout.HandleLayoutServiceGET(directoryPath, filePath);
+
+                                    if (LayoutGetOverrides.ContainsKey(sessionid))
+                                    {
+                                        string layoutNewUser = LayoutGetOverrides[sessionid];
+                                        bool isRpcnUser = layoutNewUser.Contains("@RPCN");
+                                        string LayoutDirectoryPath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"LayoutService/{env}/person/");
+
+                                        if (Directory.Exists(LayoutDirectoryPath))
+                                        {
+                                            string? matchingDirectory;
+
+                                            if (isRpcnUser)
+                                            {
+                                                string[] nameParts = layoutNewUser.Split('@');
+
+                                                if (nameParts.Length == 2 && !SSFWServerConfiguration.SSFWCrossSave)
+                                                {
+                                                    matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                       .Where(dir =>
+                                                           Path.GetFileName(dir).StartsWith(nameParts[0]) &&
+                                                           Path.GetFileName(dir).Contains(nameParts[1])
+                                                       ).FirstOrDefault();
+                                                }
+                                                else
+                                                    matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                      .Where(dir =>
+                                                          Path.GetFileName(dir).StartsWith(layoutNewUser.Replace("@RPCN", string.Empty))
+                                                      ).FirstOrDefault();
+                                            }
+                                            else
+                                                matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                  .Where(dir =>
+                                                      Path.GetFileName(dir).StartsWith(layoutNewUser) &&
+                                                      !Path.GetFileName(dir).Contains("RPCN")
+                                                  ).FirstOrDefault();
+
+                                            res = layout.HandleLayoutServiceGET(!string.IsNullOrEmpty(matchingDirectory) ? matchingDirectory : directoryPath, filePath);
+
+                                        } // if the dir not exists, we return 403.
+
+                                        lock (LayoutGetOverrides)
+                                            LayoutGetOverrides.Remove(sessionid);
+                                    }
+                                    else
+                                        res = layout.HandleLayoutServiceGET(directoryPath, filePath);
+
                                     if (res == null)
                                     {
                                         Response.Clear();
@@ -440,16 +491,16 @@ namespace SSFWServer
                                             switch (GetHeaderValue(Headers, "Content-type", false))
                                             {
                                                 case "image/jpeg":
-                                                    string savaDataAvatarFilePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"SaveDataService/avatar/{env}/");
+                                                    string savaDataAvatarDirectoryPath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"SaveDataService/avatar/{env}/");
 
-                                                    Directory.CreateDirectory(savaDataAvatarFilePath);
+                                                    Directory.CreateDirectory(savaDataAvatarDirectoryPath);
 
                                                     string? userName = SSFWUserSessionManager.GetFormatedUsernameBySessionId(sessionid);
 
                                                     if (!string.IsNullOrEmpty(userName))
                                                     {
                                                         Task.WhenAll(File.WriteAllBytesAsync($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.jpeg", putbuffer),
-                                                            File.WriteAllBytesAsync($"{savaDataAvatarFilePath}{userName}.jpg", putbuffer)).Wait();
+                                                            File.WriteAllBytesAsync($"{savaDataAvatarDirectoryPath}{userName}.jpg", putbuffer)).Wait();
                                                         Response.MakeOkResponse();
                                                     }
                                                     else
@@ -614,6 +665,53 @@ namespace SSFWServer
                                         {
                                             Response.SetBegin(403);
                                             Response.SetBody("Invalid like attribute was used!");
+                                        }
+                                        break;
+                                    case "/WebService/ApplyLayoutOverride/":
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+                                        string targetUserName = GetHeaderValue(Headers, "targetUserName", false);
+
+                                        Response.Clear();
+
+                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName))
+                                        {
+                                            lock (LayoutGetOverrides)
+                                            {
+                                                if (!LayoutGetOverrides.ContainsKey(sessionId))
+                                                    LayoutGetOverrides.Add(sessionId, targetUserName);
+                                                else
+                                                    LayoutGetOverrides[sessionId] = targetUserName;
+                                            }
+
+                                            Response.SetBegin(200);
+                                            Response.SetBody($"Override set for {sessionId}.");
+                                        }
+                                        else
+                                        {
+                                            Response.SetBegin(403);
+                                            Response.SetBody("Invalid sessionid or targetUserName attribute was used!");
+                                        }
+                                        break;
+                                    case "/WebService/R3moveLayoutOverride/":
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+
+                                        Response.Clear();
+
+                                        if (!string.IsNullOrEmpty(sessionId))
+                                        {
+                                            lock (LayoutGetOverrides)
+                                            {
+                                                if (LayoutGetOverrides.ContainsKey(sessionId))
+                                                    LayoutGetOverrides.Remove(sessionId);
+                                            }
+
+                                            Response.SetBegin(200);
+                                            Response.SetBody($"Override removed for {sessionId}.");
+                                        }
+                                        else
+                                        {
+                                            Response.SetBegin(403);
+                                            Response.SetBody("Invalid sessionid attribute was used!");
                                         }
                                         break;
                                     case "/WebService/AddMiniItem/":

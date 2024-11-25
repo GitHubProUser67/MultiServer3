@@ -282,22 +282,19 @@ namespace Horizon.MUM
             return null;
         }
 
-        public List<Game> GetAllGamesByAppId(int applicationId)
+        public IEnumerable<Game> GetAllGamesByAppId(int applicationId)
         {
-            List<Game> Games = new();
-
             if (_lookupsByAppId.TryGetValue(applicationId, out QuickLookup? quickLookup))
             {
                 lock (quickLookup.GameIdToGame)
                 {
-                    Games.AddRange(quickLookup.GameIdToGame
-                        .Where(pair => pair.Value.GameChannel != null && pair.Value.GameChannel.ApplicationId == applicationId)
-                        .Select(pair => pair.Value)
-                        .ToList());
+                    foreach (var pair in quickLookup.GameIdToGame)
+                    {
+                        if (pair.Value.GameChannel != null && pair.Value.GameChannel.ApplicationId == applicationId)
+                            yield return pair.Value;
+                    }
                 }
             }
-
-            return Games;
         }
 		
         public List<Game> GetGamesByGameIdViaChannelFilter(int gameId)

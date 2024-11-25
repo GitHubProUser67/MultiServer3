@@ -19,6 +19,7 @@ using NetworkLibrary.Extension;
 using Horizon.SERVER;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Medius;
+using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.DME
 {
@@ -1039,6 +1040,12 @@ namespace Horizon.DME
                                     {
                                         TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNER_REMOVED, 0, 0) }
                                     }, clientChannel);
+
+                                // Hotfix the arcade cabinets MLAA enabling in PS Home.
+                                ClientObject? mumClient = MediusClass.Manager.GetClientBySessionKey(data.DMEObject.SessionKey, data.DMEObject.ApplicationId);
+
+                                if (mumClient != null && (mumClient.ApplicationId == 20371 || mumClient.ApplicationId == 20374) && mumClient.IsOnRPCN && mumClient.ClientHomeData != null && mumClient.ClientHomeData.VersionAsDouble >= 01.83)
+                                    _ = HomeRTMTools.SendRemoteCommand(mumClient, "lc Debug.System( 'mlaaenable 0' )");
                             }
                             else
                             {

@@ -379,9 +379,9 @@ namespace Horizon.SERVER.Medius
 
                                                     if (data.ClientObject.ClientHomeData != null)
                                                     {
-                                                        if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.35)
+                                                        if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83)
                                                             _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
-                                                        /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.35) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
+                                                        /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
                                                             _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");*/
 
                                                         switch (data.ClientObject.ClientHomeData.Type)
@@ -5479,13 +5479,8 @@ namespace Horizon.SERVER.Medius
                                 if (homeLobby.Host != null && !string.IsNullOrEmpty(homeLobby.GameName) && homeLobby.GameName.StartsWith("AP|") && homeLobby.GameName.Split('|').Length >= 5)
                                 {
                                     string LobbyName = homeLobby.GameName!.Split('|')[5];
-                                    Ionic.Crc.CRC32? crc = new();
 
-                                    byte[] APPassCode = Encoding.UTF8.GetBytes(homeLobby.Host.AccountName + homeLobby.GameName!.Split('|')[5] + "H3m0");
-
-                                    crc.SlurpBlock(APPassCode, 0, APPassCode.Length);
-
-                                    if ($"{crc.Crc32Result:X4}" == requestedLobbyKey)
+                                    if (HomeGuestJoiningSystem.GetGJSCRC(homeLobby.Host.AccountName!, LobbyName + "H3m0", homeLobby.utcTimeCreated) == requestedLobbyKey)
                                     {
                                         foundLobby = true;
 
@@ -5509,6 +5504,8 @@ namespace Horizon.SERVER.Medius
 
                             if (foundLobby)
                                 break;
+                            else if (!string.IsNullOrEmpty(rClient.SSFWid))
+                                NetworkLibrary.HTTP.HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/R3moveLayoutOverride/", new Dictionary<string, string>() { { "sessionid", rClient.SSFWid } }, string.Empty, "text/plain");
                         }
 
                         if (rClient.ApplicationId == 10538 || rClient.ApplicationId == 10190)

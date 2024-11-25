@@ -35,19 +35,10 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                     if (homeLobby.Host != null && !string.IsNullOrEmpty(homeLobby.GameName) && homeLobby.GameName.StartsWith("AP|") && homeLobby.GameName.Split('|').Length >= 5)
                     {
                         string LobbyName = homeLobby.GameName!.Split('|')[5];
-                        Ionic.Crc.CRC32? crc = new();
 
-                        byte[] APPassCode = Encoding.UTF8.GetBytes(homeLobby.Host.AccountName + homeLobby.GameName!.Split('|')[5] + "H3m0");
-
-                        crc.SlurpBlock(APPassCode, 0, APPassCode.Length);
-
-                        if ($"{crc.Crc32Result:X4}" == SceneCrc)
+                        if (GetGJSCRC(homeLobby.Host.AccountName!, LobbyName + "H3m0", homeLobby.utcTimeCreated) == SceneCrc)
                         {
-                            string SSFWIp = HorizonServerConfiguration.SSFWAddress;
-                            if (SSFWIp.Length > 15)
-                                SSFWIp = "[" + SSFWIp + "]"; // Format the hostname if it's a IPV6 url format.
-
-                            string ssfwSceneNameResult = HTTPProcessor.RequestURLPOST($"http://{SSFWIp}:{HorizonServerConfiguration.SSFWPort}/WebService/GetSceneLike/", new Dictionary<string, string>() { { "like", LobbyName } }, string.Empty, "text/plain");
+                            string ssfwSceneNameResult = HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/GetSceneLike/", new Dictionary<string, string>() { { "like", LobbyName } }, string.Empty, "text/plain");
 
                             if (!string.IsNullOrEmpty(ssfwSceneNameResult))
                             {
@@ -55,6 +46,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                 {
                                     client.LobbyKeyOverride = SceneCrc;
                                     _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
+                                    if (!string.IsNullOrEmpty(client.SSFWid) && !string.IsNullOrEmpty(homeLobby.Host.AccountName))
+                                        HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/ApplyLayoutOverride/", new Dictionary<string, string>() { { "sessionid", client.SSFWid }, { "targetUserName", homeLobby.Host.AccountName } }, string.Empty, "text/plain");
                                 }
 
                                 return Task.FromResult(true);
@@ -102,16 +95,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                 foreach (ClientObject client in clients)
                 {
                     if (client.CurrentGame != null && client.CurrentGame.Host != null && !string.IsNullOrEmpty(client.CurrentGame.GameName) && client.CurrentGame.GameName.StartsWith("AP|") && client.CurrentGame.GameName.Split('|').Length >= 5)
-                    {
-                        string LobbyName = client.CurrentGame.GameName!.Split('|')[5];
-                        Ionic.Crc.CRC32? crc = new();
-
-                        byte[] APPassCode = Encoding.UTF8.GetBytes(client.CurrentGame.Host.AccountName + client.CurrentGame.GameName!.Split('|')[5] + "H3m0");
-
-                        crc.SlurpBlock(APPassCode, 0, APPassCode.Length);
-
-                        crcList.Add($"{client.AccountName}|{crc.Crc32Result:X4}");
-                    }
+                        crcList.Add($"{client.AccountName}|{GetGJSCRC(client.CurrentGame.Host.AccountName!, client.CurrentGame.GameName!.Split('|')[5] + "H3m0", client.CurrentGame.utcTimeCreated)}");
                 }
 
                 return Task.FromResult(crcList);
@@ -120,6 +104,28 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             LoggerAccessor.LogError($"[HomeGuestJoiningSystem] - {(!AccessTokenProvided ? $"Ip:{targetClientIp}" : $"AccessToken:{AccessToken}")} didn't return any Medius clients!");
 
             return Task.FromResult(crcList);
+        }
+
+        public static string GetGJSCRC(string salt1, string salt2, DateTime dateSalt)
+        {
+            int res1;
+            int res2;
+
+            Ionic.Crc.CRC32? crc = new();
+
+            byte[] SaltedDateTimeBytes = Encoding.UTF8.GetBytes("S1l3" + dateSalt.ToString());
+            byte[] PassCode = Encoding.UTF8.GetBytes(salt1 + salt2 + "H3m0");
+
+            crc.SlurpBlock(PassCode, 0, PassCode.Length);
+
+            res1 = crc.Crc32Result;
+
+            crc.SlurpBlock(SaltedDateTimeBytes, 0, SaltedDateTimeBytes.Length);
+
+            res2 = crc.Crc32Result;
+
+            return TimeZoneInfo.Local.IsDaylightSavingTime(dateSalt) ? ((res1 ^ dateSalt.Minute).ToString("X8") + (dateSalt.Day ^ dateSalt.DayOfYear ^ res2).ToString("X8"))
+                : ((dateSalt.Minute ^ res2).ToString("X8") + (dateSalt.Hour ^ res1 ^ dateSalt.Month).ToString("X8"));
         }
     }
 }

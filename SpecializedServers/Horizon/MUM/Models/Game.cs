@@ -605,6 +605,7 @@ namespace Horizon.MUM.Models
 
         public virtual async Task RemovePlayer(ClientObject client, int appid, string? WorldId)
         {
+            bool MigrateHost = false;
             LoggerAccessor.LogInfo($"Game {MediusWorldId}: {GameName}: {client} removed.");
 
             try
@@ -623,6 +624,8 @@ namespace Horizon.MUM.Models
             // Remove host
             if (Host == client)
             {
+                MigrateHost = true;
+
                 // Send to plugins
                 await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_HOST_LEFT, new OnPlayerGameArgs() { Player = client, Game = this });
 
@@ -631,7 +634,12 @@ namespace Horizon.MUM.Models
 
             // Remove from clients list
             lock (LocalClients)
+            {
                 LocalClients.RemoveAll(x => x.Client == client);
+
+                if (MigrateHost && MediusVersion >= 109)
+                    Host = LocalClients.FirstOrDefault()?.Client;
+            }
         }
 
         public virtual async Task OnEndGameReport(MediusEndGameReport report, int appid)
@@ -906,20 +914,13 @@ namespace Horizon.MUM.Models
                     Host.Tasks.TryAdd(funcName, Task.Run(() =>
                     {
                         string LobbyName = GameName!.Split('|')[5];
-                        Ionic.Crc.CRC32? crc = new();
-
-                        byte[] APPassCode = Encoding.UTF8.GetBytes(Host.AccountName + LobbyName + "H3m0");
-
-                        crc.SlurpBlock(APPassCode, 0, APPassCode.Length);
 
                         while (!Host.IsInGame)
                         {
                             Thread.Sleep(4500);
                         }
 
-                        HomeRTMTools.SendRemoteCommand(Host, $"lc Debug.System( 'say {LobbyName}->{(~(crc.Crc32Result ^ uint.MaxValue ^ MediusWorldId ^ utcTimeCreated.ToUnixTime() ^ 0xFFFF)).ToString("X4").Replace("0X", string.Empty)}' )");
-
-                        crc = null;
+                        HomeRTMTools.SendRemoteCommand(Host, $"lc Debug.System( 'say {LobbyName}->{HomeGuestJoiningSystem.GetGJSCRC(Host.AccountName!, LobbyName + "H3m0", utcTimeCreated)}' )");
                     }));
                 }
             }*/
