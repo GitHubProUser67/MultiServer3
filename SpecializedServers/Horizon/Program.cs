@@ -32,8 +32,7 @@ public static class HorizonServerConfiguration
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
     public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc=";
-    public static string SSFWAddress { get; set; } = IPUtils.GetLocalIPAddress().ToString();
-    public static ushort SSFWPort = 8080;
+    public static string SSFWUrl { get; set; } = $"http://{IPUtils.GetLocalIPAddress().ToString()}:8080";
     public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
@@ -84,8 +83,7 @@ public static class HorizonServerConfiguration
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("player_api_static_path", PlayerAPIStaticPath),
                 new JProperty("medius_api_key", MediusAPIKey),
-                new JProperty("ssfw_address", SSFWAddress),
-                new JProperty("ssfw_port", SSFWPort),
+                new JProperty("ssfw_url", SSFWUrl),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("database", DatabaseConfig)
             ).ToString());
@@ -117,10 +115,9 @@ public static class HorizonServerConfiguration
             string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
             if (OtherExtensions.IsBase64String(APIKey))
                 MediusAPIKey = APIKey;
-            string ssfwADR = GetValueOrDefault(config, "ssfw_address", SSFWAddress);
-            if (System.Net.IPAddress.TryParse(ssfwADR, out _))
-                SSFWAddress = ssfwADR;
-            SSFWPort = GetValueOrDefault(config, "ssfw_port", SSFWPort);
+            string ssfwADR = GetValueOrDefault(config, "ssfw_url", SSFWUrl);
+            if (!string.IsNullOrEmpty(ssfwADR) && ssfwADR.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+                SSFWUrl = ssfwADR;
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
         }
