@@ -6,9 +6,9 @@ using NetworkLibrary.GeoLocalization;
 using System.Runtime;
 using System.Security.Cryptography;
 using System.Collections.Concurrent;
+using System.Reflection;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
-using System.Reflection;
 using NetworkLibrary.TCP_IP;
 using NetworkLibrary.Extension;
 
@@ -32,6 +32,8 @@ public static class HorizonServerConfiguration
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
     public static string MediusAPIKey { get; set; } = "nwnbiRsiohjuUHQfPaNrStG3moQZH+deR8zIykB8Lbc=";
+    public static string SSFWAddress { get; set; } = IPUtils.GetLocalIPAddress().ToString();
+    public static ushort SSFWPort = 8080;
     public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
@@ -82,6 +84,8 @@ public static class HorizonServerConfiguration
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("player_api_static_path", PlayerAPIStaticPath),
                 new JProperty("medius_api_key", MediusAPIKey),
+                new JProperty("ssfw_address", SSFWAddress),
+                new JProperty("ssfw_port", SSFWPort),
                 new JProperty("plugins_folder", PluginsFolder),
                 new JProperty("database", DatabaseConfig)
             ).ToString());
@@ -109,10 +113,14 @@ public static class HorizonServerConfiguration
             MUISConfig = GetValueOrDefault(config.muis, "config", MUISConfig);
             NATConfig = GetValueOrDefault(config.nat, "config", NATConfig);
             BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
-            EBOOTDEFSConfig = GetValueOrDefault(config.bwps, "eboot_defs_config", EBOOTDEFSConfig);
+            EBOOTDEFSConfig = GetValueOrDefault(config, "eboot_defs_config", EBOOTDEFSConfig);
             string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
             if (OtherExtensions.IsBase64String(APIKey))
                 MediusAPIKey = APIKey;
+            string ssfwADR = GetValueOrDefault(config, "ssfw_address", SSFWAddress);
+            if (System.Net.IPAddress.TryParse(ssfwADR, out _))
+                SSFWAddress = ssfwADR;
+            SSFWPort = GetValueOrDefault(config, "ssfw_port", SSFWPort);
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
             DatabaseConfig = GetValueOrDefault(config, "database", DatabaseConfig);
         }

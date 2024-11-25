@@ -264,7 +264,7 @@ namespace EmotionEngine.Emulator
             uint otherMantissa = other.Mantissa | 0x800000;
             uint sign = (AsUInt32() ^ other.AsUInt32()) & SIGNMASK;
 
-            int resExponent = selfExponent + otherExponent - 127;
+            int resExponent = selfExponent + otherExponent - BIAS;
             uint resMantissa = (uint)(BoothMultiplier.MulMantissa(selfMantissa, otherMantissa) >> 23);
 
             if (resMantissa > 0xFFFFFF)
