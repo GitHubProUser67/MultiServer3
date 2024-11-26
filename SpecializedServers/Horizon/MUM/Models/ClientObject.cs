@@ -372,6 +372,27 @@ namespace Horizon.MUM.Models
             LongTimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientLongTimeoutSeconds;
         }
 
+        public ClientObject(int MediusVersion, string SessionKey, string AccessToken)
+        {
+            this.MediusVersion = MediusVersion;
+
+            this.SessionKey = SessionKey;
+            this.AccessToken = AccessToken;
+
+            // default last echo to creation of client object
+            if (MediusVersion <= 108)
+            {
+                // reply must be before sent for the timeout to work
+                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
+                UtcLastMessageReceived = Utils.GetHighPrecisionUtcTime();
+            }
+            else
+                UtcLastMessageReceived = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+
+            TimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
+            LongTimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientLongTimeoutSeconds;
+        }
+
         public void QueueServerEcho()
         {
             SendMessageQueue.Enqueue(new RT_MSG_SERVER_ECHO());
@@ -545,8 +566,6 @@ namespace Horizon.MUM.Models
             // Logout
             _logoutTime = Utils.GetHighPrecisionUtcTime();
 
-            HTTPSERVICE.RoomManager.RemoveUser(AccountName);
-
             // Tell database
             PostStatus();
         }
@@ -600,8 +619,6 @@ namespace Horizon.MUM.Models
 
                 // Update last sign in date
                 _ = HorizonServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
-
-                HTTPSERVICE.RoomManager.AddOrUpdateUser(AccountName, ApplicationId);
 
                 // Update database status
                 PostStatus();

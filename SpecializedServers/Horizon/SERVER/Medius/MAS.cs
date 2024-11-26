@@ -1984,7 +1984,7 @@ namespace Horizon.SERVER.Medius
 
                                 if (data.IsBanned == true)
                                 {
-                                    LoggerAccessor.LogInfo($"Account MachineID {data.MachineId} is BANNED!");
+                                    LoggerAccessor.LogError($"Account MachineID {data.MachineId} is BANNED!");
 
                                     // Account is banned
                                     // Temporary solution is to tell the client the login failed

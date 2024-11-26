@@ -9,7 +9,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BackendServices\AuxiliaryServices\EdNetService\EdNetService.csproj" />
+    <ProjectReference Include="..\..\..\AuxiliaryServices\EdNetService\EdNetService.csproj" />
     <ProjectReference Include="..\..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
     <ProjectReference Include="..\..\..\WebServers\HTTPServer\HTTPServer.csproj" />
 	<PackageReference Include="System.Text.Json" Version="8.0.4" />
