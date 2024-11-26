@@ -35,10 +35,12 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using NetworkLibrary.HTTP.PluginManager;
 using NetworkLibrary.Extension;
+using Newtonsoft.Json;
 using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
-using Newtonsoft.Json;
+using WebAPIService.CCPGames;
 using WebAPIService.DEMANGLER;
+using WebAPIService.UBISOFT.BuildAPI;
 
 namespace HTTPServer
 {
@@ -85,6 +87,11 @@ namespace HTTPServer
                                     "samples.hdk.scee.net",
                                 };
 
+
+        private readonly static List<string> CCPGamesDomains = new() {
+                                    //"dust.ccpgamescdn.com",
+                                    "dust514.online"
+                                };
         private readonly static List<string> ILoveSonyDomains = new() {
                                     "www.myresistance.net",
                                 };
@@ -318,8 +325,31 @@ namespace HTTPServer
                                     {
                                         default:
 
+                                            #region Dust 514 dcrest
+                                            //CCPGamesDomains.Contains(Host) || 
+                                            if (Host.Contains("26004") //Check for Dust514 specific Port!!
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a Dust514  method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new Dust514Class(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), request.Headers, false);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/plain");
+                                            }
+
+                                            #endregion
+
                                             #region Outso OHS API
-                                            if ((Host == "stats.outso-srv1.com"
+                                            else if ((Host == "stats.outso-srv1.com"
                                                 || Host == "www.outso-srv1.com") &&
                                                 request.GetDataStream != null &&
                                                 (absolutepath.Contains("/ohs_") ||
@@ -379,6 +409,28 @@ namespace HTTPServer
                                                 {
                                                     request.GetDataStream.CopyTo(postdata);
                                                     res = new OuWFClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region Ubisoft Build API
+                                            else if (Host == "builddatabasepullapi"
+                                                && request.GetDataStream != null
+                                                && !string.IsNullOrEmpty(Method)
+                                                && request.GetContentType().StartsWith("application/soap+xml"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a Ubisoft Build API method : {absolutepath}");
+
+                                                string? res = null;
+                                                using (MemoryStream postdata = new())
+                                                {
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new SoapBuildAPIClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))

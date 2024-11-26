@@ -84,8 +84,13 @@ namespace Horizon.SERVER.Medius
                         }
 
                         data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
-                        if (data.ClientObject == null)
-                            data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
+                        // If booth are null, it means MAS client wants a new object.
+                        if (!string.IsNullOrEmpty(clientConnectTcp.AccessToken) && !string.IsNullOrEmpty(clientConnectTcp.SessionKey))
+                        {
+                            data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
+                            if (data.ClientObject == null)
+                                data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
+                        }
 
                         if (data.ClientObject != null)
                             LoggerAccessor.LogInfo($"[MAPS] - Client Connected {clientChannel.RemoteAddress}!");
@@ -95,6 +100,7 @@ namespace Horizon.SERVER.Medius
 
                             data.ClientObject = new(scertClient.MediusVersion ?? 0)
                             {
+                                MediusVersion = scertClient.MediusVersion ?? 0,
                                 ApplicationId = clientConnectTcp.AppId
                             };
                             data.ClientObject.OnConnected();
@@ -187,15 +193,13 @@ namespace Horizon.SERVER.Medius
 
                 case NetMessageHello netMessageHello:
                     {
-                        /*
-                        data.ClientObject?.Queue(new NetMAPSHelloMessage()
-                        {
-                            m_success = false,
-                            m_isOnline = false,
-                            m_availableFactions = new byte[3] { 1, 2, 3 }
-                        });
-                        */
 
+                        //MAGDevBuild3 = 1725
+                        //MAG BCET70016 v1.3 = 7002
+
+
+                        var ProtoBytesReversed = ReverseBytesUInt(1725);
+                        var BuildNumber = ReverseBytesUInt(0);
                         data.ClientObject.Queue(new NetMessageTypeProtocolInfo()
                         {
                             protocolInfo = EndianUtils.ReverseUint(1725), //1725 //1958
@@ -209,6 +213,25 @@ namespace Horizon.SERVER.Medius
 
                 case NetMessageTypeProtocolInfo protocolInfo:
                     {
+                        byte[] availFactions = new byte[] { 0b00000111, 0, 0, 0 }; //= new byte[4];
+
+                        //0b11100000
+                        //availFactions[0] = 0;
+                        //availFactions[1] = 0;
+                        //availFactions[2] = 0;
+                        //availFactions[3] = 31;
+
+                        data.ClientObject.Queue(new NetMAPSHelloMessage()
+                        {
+                            m_success = true,
+                            m_isOnline = true,
+                            m_availableFactions = availFactions
+
+                        });
+
+
+
+
                         //Time
                         DateTime time = DateTime.Now;
                         long timeBS = time.Ticks >> 1;
@@ -282,6 +305,35 @@ namespace Horizon.SERVER.Medius
         {
             return t[1..] + t[..1];
         }
+
+        public static ulong ReverseBytesULong(ulong value)
+        {
+            return ((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
+                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
+        }
+
+        public static uint ReverseBytesUInt(uint value)
+        {
+            return ((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
+                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
+        }
+        public static int ReverseBytesInt(int value)
+        {
+            return (int)((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
+                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
+        }
+
+        #region ReverseBytes16
+        /// <summary>
+        /// Reverses UInt16 
+        /// </summary>
+        /// <param name="nValue"></param>
+        /// <returns></returns>
+        public static ushort ReverseBytes16(ushort nValue)
+        {
+            return (ushort)((ushort)((nValue >> 8)) | (nValue << 8));
+        }
+        #endregion
 
         public byte[] BitShift(byte[] sequence, int length)
         {
