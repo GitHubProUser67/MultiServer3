@@ -124,14 +124,31 @@ namespace Horizon.SERVER.Medius
                                 }
                                 else
                                 {
-                                    data.ClientObject = new(scertClient.MediusVersion ?? 0)
-                                    {
-                                        ApplicationId = clientConnectTcp.AppId
-                                    };
-                                    data.ClientObject.OnConnected();
-                                    data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
+                                    string clientIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' });
 
-                                    if (!await GuestLogin(clientChannel, data))
+                                    data.ClientObject = MediusClass.Manager.GetClientsByIp(clientIP, clientConnectTcp.AppId)?.FirstOrDefault();
+
+                                    if (data.ClientObject == null)
+                                    {
+                                        data.ClientObject = new(scertClient.MediusVersion ?? 0, clientConnectTcp.SessionKey, clientConnectTcp.AccessToken)
+                                        {
+                                            ApplicationId = clientConnectTcp.AppId,
+                                        };
+                                        data.ClientObject.OnConnected();
+                                        data.ClientObject.SetIp(clientIP);
+                                    }
+
+                                    if (await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId)) // Would be too easy if the Client could bypass Ban with a Guest...
+                                    {
+                                        // Then queue send ban message
+                                        await QueueBanMessage(data, "You have been banned from this server.");
+
+                                        await data.ClientObject!.Logout();
+
+                                        break;
+                                    }
+
+                                    if (!data.ClientObject.IsLoggedIn && !await GuestLogin(clientChannel, data))
                                     {
                                         data.Ignore = true;
                                         LoggerAccessor.LogError($"[MLS] - Ignoring banned client for {clientChannel.RemoteAddress}: {clientConnectTcp}");
@@ -10979,21 +10996,11 @@ namespace Horizon.SERVER.Medius
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
-            if (await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId ?? string.Empty)) // Would be too easy if the Client could bypass Ban with a Guest...
-            {
-                // Then queue send ban message
-                await QueueBanMessage(data, "You have been banned from this server.");
-
-                await data.ClientObject!.Logout();
-
-                return false;
-            }
-
             AccountDTO? accountDto = await HorizonServerConfiguration.Database.GetAccountByFirstIp(data.ClientObject!.IP.ToString());
 
             if (accountDto == null)
             {
-                Ionic.Crc.CRC32? crc = new();
+                Ionic.Crc.CRC32 crc = new();
                 Anonymous = true;
 
                 int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
@@ -11012,8 +11019,6 @@ namespace Horizon.SERVER.Medius
                     MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                     AppId = data.ClientObject?.ApplicationId
                 };
-
-                crc = null;
             }
             else if (accountDto.IsBanned) // Would be too easy if the Client could bypass Ban with a Guest...
             {
@@ -11039,6 +11044,8 @@ namespace Horizon.SERVER.Medius
 
             await data.ClientObject!.Login(accountDto);
 
+            data.ClientObject.IsOnRPCN = true; // Sets the RPCN flag even if not on RPCN, this prevents pokes from being active while on RPCS3 (we have no way to detect that on guest login yet).
+
             #region Update DB IP and CID
             if (!Anonymous)
             {
@@ -11050,8 +11057,8 @@ namespace Horizon.SERVER.Medius
 
             CIDManager.CreateCIDPair(accountDto.AccountName, data.MachineId);
 
-            // Add to logged in clients
-            MediusClass.Manager.AddOrUpdateLoggedInClient(data.ClientObject);
+            // Add in clients list
+            MediusClass.Manager.AddClient(data.ClientObject);
 
             LoggerAccessor.LogInfo($"CREATING GUEST IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.AccessToken}");
 

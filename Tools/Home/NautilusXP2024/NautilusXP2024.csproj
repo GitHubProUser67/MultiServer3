@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BackendServices\AuxiliaryServices\HomeTools\HomeTools.csproj" />
+    <ProjectReference Include="..\..\..\AuxiliaryServices\HomeTools\HomeTools.csproj" />
   </ItemGroup>
 
 </Project>
