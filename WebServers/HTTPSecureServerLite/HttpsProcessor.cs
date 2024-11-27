@@ -45,15 +45,11 @@ namespace HTTPSecureServerLite
         private readonly ushort port;
 
         #region Domains
-
         private readonly static List<string> HPDDomains = new() {
                                     "prd.destinations.scea.com",
                                     "pre.destinations.scea.com",
                                     "qa.destinations.scea.com",
-                                    "dev.destinations.scea.com",
-                                    "holdemeu.destinations.scea.com",
-                                    "holdemna.destinations.scea.com",
-                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                    "dev.destinations.scea.com"
                                 };
 
         private readonly static List<string> CAPONEDomains = new() {
@@ -72,6 +68,16 @@ namespace HTTPSecureServerLite
                                     "www.ndreamshs.com",
                                     "www.ndreamsportal.com",
                                     "nDreams-multiserver-cdn"
+                                };
+
+        private readonly static List<string> HellFireGamesDomains = new()
+                                {
+                                    "game.hellfiregames.com",
+                                    "game2.hellfiregames.com",
+                                    "holdemqa.destinations.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
                                 };
 
         private readonly static List<string> HTSDomains = new() {
@@ -555,7 +561,7 @@ namespace HTTPSecureServerLite
                             #endregion
 
                             #region Hellfire Games API
-                            else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
+                            else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php"))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 

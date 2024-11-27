@@ -56,7 +56,6 @@ namespace HTTPServer
         #endregion
 
         #region Domains
-
         private readonly static List<string> HPDDomains = new() {
                                     "prd.destinations.scea.com",
                                     "pre.destinations.scea.com",
