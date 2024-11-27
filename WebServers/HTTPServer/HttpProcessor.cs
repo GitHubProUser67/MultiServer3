@@ -296,7 +296,9 @@ namespace HTTPServer
                                 // Process the request based on the HTTP method
                                 string filePath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
 
-                                string apiPath = HTTPServerConfiguration.APIStaticFolder;
+                                string apiRootPathWithURIPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
+                                //For HF to trim the url path out the combine, we don't need it for that api
+                                string apiRootPath = HTTPServerConfiguration.APIStaticFolder;
 
                                 if (response == null && HTTPServerConfiguration.plugins.Count > 0)
                                 {
@@ -362,7 +364,7 @@ namespace HTTPServer
                                                 using (MemoryStream postdata = new())
                                                 {
                                                     request.GetDataStream?.CopyTo(postdata);
-                                                    res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                    res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
                                                     postdata.Flush();
                                                 }
 
@@ -449,7 +451,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
-                                                NDREAMSClass ndreams = new(CurrentDate, Method, apiPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, HTTPServerConfiguration.APIStaticFolder, Host);
+                                                NDREAMSClass ndreams = new(CurrentDate, Method, apiRootPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, HTTPServerConfiguration.APIStaticFolder, Host);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -479,7 +481,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
                                                     postdata.Flush();
                                                 }
 
@@ -529,7 +531,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
 
                                                 string? res = null;
-                                                LOOTClass loot = new(Method, absolutepath, apiPath);
+                                                LOOTClass loot = new(Method, absolutepath, apiRootPath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -738,7 +740,7 @@ namespace HTTPServer
                                                     {
                                                         using MemoryStream postdata = new();
                                                         request.GetDataStream.CopyTo(postdata);
-                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPath);
                                                         postdata.Flush();
                                                     }
                                                 }
@@ -747,7 +749,7 @@ namespace HTTPServer
 
                                                     using (MemoryStream postdata = new())
                                                     {
-                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiPath);
+                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPath);
                                                         postdata.Flush();
                                                     }
                                                 }
