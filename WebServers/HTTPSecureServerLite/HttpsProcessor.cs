@@ -391,7 +391,7 @@ namespace HTTPSecureServerLite
                             // Process the request based on the HTTP method
                             string filePath = Path.Combine(!HTTPSServerConfiguration.DomainFolder ? HTTPSServerConfiguration.HTTPSStaticFolder : HTTPSServerConfiguration.HTTPSStaticFolder + '/' + Host, absolutepath[1..]);
 
-                            string apiPath = Path.Combine(HTTPSServerConfiguration.APIStaticFolder, absolutepath[1..]);
+                            string apiPath = HTTPSServerConfiguration.APIStaticFolder;
 
                             if ((absolutepath == "/" || absolutepath == "\\") && request.Method.ToString() == "GET")
                             {

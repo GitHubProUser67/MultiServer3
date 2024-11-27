@@ -97,18 +97,18 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                             return Leaderboards.GetLeaderboardsNovusPrime(PostData, boundary, UserID, WorkPath);
                         case "CompleteMission":
                             return User.NovusCompleteMission(PostData, boundary, UserID, WorkPath);
-
+                        case "RequestCharacter":
+                            return User.UpdateCharacter(PostData, boundary, UserID, WorkPath, Command);
                         case "UpdateCharacter":
                             return User.UpdateCharacter(PostData, boundary, UserID, WorkPath, Command);
                         case "ReadShipConfigData":
                             return "<Response></Response>";
-
                         case "ConfigureShip":
                             return User.UpdateCharacter(PostData, boundary, UserID, WorkPath, Command);
                         case "RequestStore":
                             return "<Response></Response>";
                         case "RequestInventory":
-                            return "<Response></Response>";
+                            return User.UpdateCharacter(PostData, boundary, UserID, WorkPath, Command);
                         case "AddInventory":
                             return User.UpdateCharacter(PostData, boundary, UserID, WorkPath, Command);
                         case "UseDaily":
@@ -119,8 +119,10 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                             else
                                 return "<Response></Response>";
                         case "Log":
+#if DEBUG
                             LoggerAccessor.LogInfo($"Novus Log: {Type} {Str} {Amount}");
-                            return "<Response></Response>"; // We don't really care about Metrics just yet
+#endif
+                            return "<Response></Response>";
                         default:
                             LoggerAccessor.LogWarn($"[HFGAMES] - Client Request a Command I don't know about, please post the message on GITHUB : {Command}");
                             return "<Response></Response>";
