@@ -296,7 +296,7 @@ namespace HTTPServer
                                 // Process the request based on the HTTP method
                                 string filePath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
 
-                                string apiPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder);
+                                string apiPath = HTTPServerConfiguration.APIStaticFolder;
 
                                 if (response == null && HTTPServerConfiguration.plugins.Count > 0)
                                 {

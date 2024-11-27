@@ -36,6 +36,8 @@ namespace WebAPIService.HELLFIRE.Helpers
                 <Experience>0</Experience>
                 <Level>1</Level>
             </CharData>
+            <ShipConfig>
+                <Chassis>0</Chassis>
                 <Front1>0</Front1>
                 <Front2>0</Front2>
                 <Turret1>0</Turret1>
@@ -570,8 +572,6 @@ namespace WebAPIService.HELLFIRE.Helpers
             if (File.Exists(profilePath))
                 xmlProfile = File.ReadAllText(profilePath);
 
-
-
             var doc = new XmlDocument();
 
             doc.LoadXml($"<xml>{xmlProfile}</xml>");
@@ -664,9 +664,17 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                         switch (cmd)
                         {
+                            case "RequestCharacter":
+                                {
+                                    string Experience = doc.SelectSingleNode("//Experience").InnerText;
+                                    string Level = doc.SelectSingleNode("//Level").InnerText;
+                                    string Nebulon = doc.SelectSingleNode("//Nebulon").InnerText;
+                                    string TotalNebulonEver = doc.SelectSingleNode("//TotalNebulonEver").InnerText;
+                                    return $"<Response><Nebulon>{Nebulon}</Nebulon><TotalNebulonEver>{TotalNebulonEver}</TotalNebulonEver><Level>{Level}</Level><Experience>{Experience}</Experience></Response>";
+                                }
+
                             case "UpdateCharacter":
                                 {
-
                                     doc.SelectSingleNode("//Experience").InnerText = data.GetParameterValue("Experience");
                                     doc.SelectSingleNode("//Level").InnerText = data.GetParameterValue("Level");
                                     doc.SelectSingleNode("//Nebulon").InnerText = data.GetParameterValue("Nebulon");
@@ -723,6 +731,11 @@ namespace WebAPIService.HELLFIRE.Helpers
                                 }
                                 break;
 
+                            case "RequestInventory":
+                                {
+                                    var inventoryNode = doc.SelectSingleNode("//Inventory");
+                                    return $"<Response>{inventoryNode}</Response>";
+                                }
                             case "AddInventory":
                                 {
                                     string baseName = "Item";
@@ -763,22 +776,29 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                             case "UseDaily":
                                 {
+                                    var timeToAdd = DateTime.Now.AddHours(24);
+
                                     XmlNode DailyAvailable = doc.SelectSingleNode("//DailyAvailable");
                                     if (DailyAvailable.SelectSingleNode("TimeElapsed") != null)
                                     {
                                         XmlNode timeElapsedExisting = DailyAvailable.SelectSingleNode("TimeElapsed");
-                                        timeElapsedExisting.InnerText = DateTime.Now.ToString("HHmmss");
+                                        timeElapsedExisting.InnerText = timeToAdd.ToString("HHmmss");
                                         DailyAvailable.AppendChild(timeElapsedExisting);
                                     } else
                                     {
                                         XmlElement timeElapsed = doc.CreateElement("TimeElapsed");
-                                        timeElapsed.InnerText = DateTime.Now.ToString("HHmmss");
+                                        timeElapsed.InnerText = timeToAdd.ToString("HHmmss");
                                         DailyAvailable.AppendChild(timeElapsed);
                                     }
 
                                 }
                                 break;
 
+                            case "RequestShipSlots":
+                                {
+                                    var ShipConfig = doc.SelectSingleNode("//ShipConfig");
+                                    return $"<Response>{ShipConfig}</Response>";
+                                }
                             case "ConfigureShip":
                                 {
                                     XmlNode shipConfig = doc.SelectSingleNode("//ShipConfig");
