@@ -48,7 +48,10 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         continue;
 
                                     client.LobbyKeyOverride = SceneCrc;
-                                    _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
+                                    if (!string.IsNullOrEmpty(client.ClientHomeData?.Version) && (client.ClientHomeData.Version.Contains("HDK") || client.ClientHomeData.Version == "Online Debug"))
+                                        _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
+                                    else
+                                        _ = HomeRTMTools.SendRemoteCommand(client, $"map {ssfwSceneNameResult}");
                                     if (!string.IsNullOrEmpty(client.SSFWid) && !string.IsNullOrEmpty(homeLobby.Host.AccountName))
                                         HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/ApplyLayoutOverride/", new Dictionary<string, string>() { { "sessionid", client.SSFWid }, { "targetUserName", homeLobby.Host.AccountName } }, string.Empty, "text/plain");
                                 }
