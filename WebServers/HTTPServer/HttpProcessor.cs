@@ -1513,10 +1513,12 @@ namespace HTTPServer
                             {
                                 ms.Flush();
                                 ms.Close();
-                                response = new()
-                                    {
-                                        HttpStatusCode = HttpStatusCode.OK
-                                    };
+                                // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+                                response = new(null, !string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
+                                    && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                                {
+                                    HttpStatusCode = HttpStatusCode.OK
+                                };
                                 response.Headers.Add("Accept-Ranges", "bytes");
                                 response.Headers.Add("Content-Type", ContentType);
 
@@ -1713,10 +1715,12 @@ namespace HTTPServer
                                 }
                             }
                         }
-                        response = new()
-                            {
+                        // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+                        response = new(null, !string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
+                            && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
+                        {
                                 HttpStatusCode = HttpStatusCode.OK
-                            };
+                        };
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Type", ContentType);
 
@@ -1835,12 +1839,6 @@ namespace HTTPServer
                 {
                     if (response.ContentStream != null)
                     {
-                        // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
-                        if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
-                            && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg")
-                            && response.Headers.ContainsKey("Transfer-Encoding"))
-                            response.Headers.Remove("Transfer-Encoding");
-
                         bool KeepAlive = AllowKeepAlive && request.RetrieveHeaderValue("Connection").Equals("keep-alive");
                         string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
                         string? EtagMD5 = HTTPProcessor.ComputeStreamMD5(response.ContentStream);
