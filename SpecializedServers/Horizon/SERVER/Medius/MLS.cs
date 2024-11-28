@@ -397,9 +397,19 @@ namespace Horizon.SERVER.Medius
                                                     if (data.ClientObject.ClientHomeData != null)
                                                     {
                                                         if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83)
-                                                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
+                                                        {
+                                                            if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Version) && (data.ClientObject.ClientHomeData.Version.Contains("HDK") || data.ClientObject.ClientHomeData.Version == "Online Debug"))
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
+                                                            else
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "mlaaenable 0");
+                                                        }
                                                         /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
-                                                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");*/
+                                                        {
+                                                            if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Version) && (data.ClientObject.ClientHomeData.Version.Contains("HDK") || data.ClientObject.ClientHomeData.Version == "Online Debug"))
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");
+                                                            else
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "msaaenable 1");
+                                                        }*/
 
                                                         switch (data.ClientObject.ClientHomeData.Type)
                                                         {
