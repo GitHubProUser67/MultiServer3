@@ -188,6 +188,7 @@ namespace HTTPServer
                                 string Method = request.Method;
                                 string Host = request.RetrieveHeaderValue("host", false);
                                 string Accept = request.RetrieveHeaderValue("Accept");
+                                string UserAgent = request.RetrieveHeaderValue("User-Agent");
                                 string cacheControl = request.RetrieveHeaderValue("Cache-Control");
                                 bool noCompressCacheControl = !string.IsNullOrEmpty(cacheControl) && cacheControl == "no-transform";
                                 string SuplementalMessage = string.Empty;
@@ -615,7 +616,7 @@ namespace HTTPServer
 
                                             #region Ubisoft API
                                             else if (Host.Contains("api-ubiservices.ubi.com")
-                                                && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client")
+                                                && UserAgent.Contains("UbiServices_SDK_HTTP_Client")
                                                 && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
@@ -897,9 +898,9 @@ namespace HTTPServer
                                                             #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
-                                                                if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
-                                                                    response = HttpBuilder.NotAllowed();
-                                                                else
+                                                                if (UserAgent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("trident", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase))
                                                                 {
                                                                     Dictionary<string, string>? QueryDic = request.QueryParameters;
                                                                     if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
@@ -936,6 +937,8 @@ namespace HTTPServer
                                                                             Headers = { { "Content-Type", "text/html" } }
                                                                         };
                                                                 }
+                                                                else
+                                                                    response = HttpBuilder.NotAllowed();
                                                                 break;
                                                             #endregion
 
@@ -966,10 +969,11 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive, noCompressCacheControl);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
                                                                     else
                                                                     {
-                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true, noCompressCacheControl);
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
+                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true, noCompressCacheControl);
                                                                         EtagCompatible = handleResponse.Item1;
                                                                         response = handleResponse.Item2;
                                                                     }
@@ -1013,10 +1017,11 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive, noCompressCacheControl);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
                                                                     else
                                                                     {
-                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false, noCompressCacheControl);
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
+                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false, noCompressCacheControl);
                                                                         EtagCompatible = handleResponse.Item1;
                                                                         response = handleResponse.Item2;
                                                                     }
@@ -1080,9 +1085,9 @@ namespace HTTPServer
                                                             #region WebVideo
                                                             case "/!webvideo":
                                                             case "/!webvideo/":
-                                                                if (request.RetrieveHeaderValue("User-Agent").Contains("PSHome")) // The game is imcompatible with the webvideo, and it can even spam request it, so we forbid.
-                                                                    response = HttpBuilder.NotAllowed();
-                                                                else
+                                                                if (UserAgent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("trident", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase))
                                                                 {
                                                                     Dictionary<string, string>? QueryDic = request.QueryParameters;
                                                                     if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
@@ -1106,6 +1111,8 @@ namespace HTTPServer
                                                                     else
                                                                         response = HttpBuilder.BadRequest();
                                                                 }
+                                                                else
+                                                                    response = HttpBuilder.NotAllowed();
                                                                 break;
                                                             #endregion
 
@@ -1382,7 +1389,7 @@ namespace HTTPServer
             response.Dispose();
         }
 
-        private static void Handle_LocalFile_Stream(Stream stream, HttpRequest request, string filePath, bool AllowKeepAlive, bool noCompressCacheControl)
+        private static void Handle_LocalFile_Stream(Stream stream, HttpRequest request, string filePath, string UserAgent, bool AllowKeepAlive, bool noCompressCacheControl)
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
@@ -1391,6 +1398,8 @@ namespace HTTPServer
 
             try
             {
+                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+
                 if (HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Unmodified-Since"), true))
                     response = new()
                     {
@@ -1402,7 +1411,6 @@ namespace HTTPServer
                     const int rangebuffersize = 32768;
 
                     string? acceptencoding = request.RetrieveHeaderValue("Accept-Encoding");
-                    string userAgent = request.RetrieveHeaderValue("User-Agent");
 
                     using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     long startByte = -1;
@@ -1414,7 +1422,6 @@ namespace HTTPServer
                         using HugeMemoryStream ms = new();
                         int buffersize = HTTPServerConfiguration.BufferSize;
                         Span<byte> Separator = new byte[] { 0x0D, 0x0A };
-                        string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                         if (ContentType == "application/octet-stream")
                         {
                             byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
@@ -1567,7 +1574,9 @@ namespace HTTPServer
                         ms.Write(Encoding.UTF8.GetBytes("--multiserver_separator--").AsSpan());
                         ms.Write(Separator);
                         ms.Position = 0;
-                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                        // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+                        response = new(null, !string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
+                            && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                         {
                             HttpStatusCode = HttpStatusCode.PartialContent
                         };
@@ -1692,7 +1701,6 @@ namespace HTTPServer
                     }
                     else if (startByte >= endByte || startByte < 0 || endByte <= 0) // Curl test showed this behaviour.
                     {
-                        string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                         if (ContentType == "application/octet-stream")
                         {
                             byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
@@ -1751,7 +1759,6 @@ namespace HTTPServer
 
                         fs.Position = startByte;
 
-                        string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                         if (ContentType == "application/octet-stream")
                         {
                             foreach (var entry in HTTPProcessor._PathernDictionary)
@@ -1763,7 +1770,9 @@ namespace HTTPServer
                                 }
                             }
                         }
-                        response = new(null, !string.IsNullOrEmpty(userAgent) && userAgent.Contains("PSHome")) // Partial Content doesn't like chunked encoding on some broken browsers (netscape).
+                        // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+                        response = new(null, !string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
+                            && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
@@ -1826,6 +1835,12 @@ namespace HTTPServer
                 {
                     if (response.ContentStream != null)
                     {
+                        // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+                        if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
+                            && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg")
+                            && response.Headers.ContainsKey("Transfer-Encoding"))
+                            response.Headers.Remove("Transfer-Encoding");
+
                         bool KeepAlive = AllowKeepAlive && request.RetrieveHeaderValue("Connection").Equals("keep-alive");
                         string NoneMatch = request.RetrieveHeaderValue("If-None-Match");
                         string? EtagMD5 = HTTPProcessor.ComputeStreamMD5(response.ContentStream);
