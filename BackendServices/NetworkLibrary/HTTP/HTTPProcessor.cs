@@ -931,8 +931,8 @@ namespace NetworkLibrary.HTTP
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
-            CopyStream(input, outBStream, 4096);
+            using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest, true))
+                CopyStream(input, outBStream, 4096);
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);
@@ -946,9 +946,11 @@ namespace NetworkLibrary.HTTP
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true);
-            CopyStream(input, outGStream, 4096, false);
-            outGStream.Close();
+            using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
+            {
+                CopyStream(input, outGStream, 4096, false);
+                outGStream.Close();
+            }
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);
