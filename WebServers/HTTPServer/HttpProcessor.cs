@@ -187,6 +187,8 @@ namespace HTTPServer
                                 string Method = request.Method;
                                 string Host = request.RetrieveHeaderValue("host", false);
                                 string Accept = request.RetrieveHeaderValue("Accept");
+                                string cacheControl = request.RetrieveHeaderValue("Cache-Control");
+                                bool noCompressCacheControl = !string.IsNullOrEmpty(cacheControl) && cacheControl == "no-transform";
                                 string SuplementalMessage = string.Empty;
                                 string fullurl = HTTPProcessor.DecodeUrl(request.RawUrlWithQuery);
                                 string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
@@ -922,7 +924,7 @@ namespace HTTPServer
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
-                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
                                                                             response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
@@ -941,10 +943,10 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive, noCompressCacheControl);
                                                                     else
                                                                     {
-                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true);
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true, noCompressCacheControl);
                                                                         EtagCompatible = handleResponse.Item1;
                                                                         response = handleResponse.Item2;
                                                                     }
@@ -969,7 +971,7 @@ namespace HTTPServer
                                                                 else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
                                                                     var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
-                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
                                                                         if (encoding.Contains("zstd"))
                                                                             response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
@@ -988,10 +990,10 @@ namespace HTTPServer
                                                                 else
                                                                 {
                                                                     if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, AllowKeepAlive, noCompressCacheControl);
                                                                     else
                                                                     {
-                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false);
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false, noCompressCacheControl);
                                                                         EtagCompatible = handleResponse.Item1;
                                                                         response = handleResponse.Item2;
                                                                     }
@@ -1357,7 +1359,7 @@ namespace HTTPServer
             response.Dispose();
         }
 
-        private static void Handle_LocalFile_Stream(Stream stream, HttpRequest request, string filePath, bool AllowKeepAlive)
+        private static void Handle_LocalFile_Stream(Stream stream, HttpRequest request, string filePath, bool AllowKeepAlive, bool noCompressCacheControl)
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
             // If a part of the code sounds weird to you, it's normal... So does curl tests...
@@ -1447,7 +1449,7 @@ namespace HTTPServer
                                 };
                                 response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                                 response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                                if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
+                                if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding))
                                 {
                                     if (acceptencoding.Contains("zstd"))
                                     {
@@ -1490,7 +1492,7 @@ namespace HTTPServer
 
                                 long FileLength = new FileInfo(filePath).Length;
 
-                                if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
+                                if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
                                 {
                                     if (acceptencoding.Contains("zstd"))
                                     {
@@ -1637,7 +1639,7 @@ namespace HTTPServer
                         };
                         response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                         response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
-                        if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
+                        if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding))
                         {
                             if (acceptencoding.Contains("zstd"))
                             {
@@ -1689,7 +1691,7 @@ namespace HTTPServer
 
                         long FileLength = new FileInfo(filePath).Length;
 
-                        if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
+                        if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
                         {
                             if (acceptencoding.Contains("zstd"))
                             {
