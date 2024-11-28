@@ -13,13 +13,14 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static (bool, HttpResponse) Handle(HttpRequest request, string absolutepath, string fullurl, string filePath, string Host, string Accept, 
+        public static (bool, HttpResponse) Handle(HttpRequest request, string absolutepath, string fullurl,
+            string filePath, string UserAgent, string Host, string Accept, 
             string directoryUrl , bool GET, bool noCompressCacheControl)
         {
             if (Directory.Exists(filePath) && filePath.EndsWith("/"))
                 return (false, Handle_LocalDir(request, filePath, directoryUrl, noCompressCacheControl));
             else if (File.Exists(filePath))
-                return (true, Handle_LocalFile(request, filePath, noCompressCacheControl));
+                return (true, Handle_LocalFile(request, filePath, UserAgent, noCompressCacheControl));
             else if (!string.IsNullOrEmpty(Accept) && Accept.Contains("text/html") && Directory.Exists(filePath + "/"))
                 return (false, Handle_ApachePermanentRedirect(request, absolutepath, filePath, Host, noCompressCacheControl));
 
@@ -70,16 +71,19 @@ namespace HTTPServer.RouteHandlers
                 return HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
-        private static HttpResponse Handle_LocalFile(HttpRequest request, string filePath, bool noCompressCacheControl)
+        private static HttpResponse Handle_LocalFile(HttpRequest request, string filePath, string UserAgent, bool noCompressCacheControl)
         {
-            HttpResponse? response = new()
+            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+
+            // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+            HttpResponse? response = new(null, !string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
+                            && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
 				
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
-            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
             if (ContentType == "application/octet-stream")
             {
                 byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
