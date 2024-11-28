@@ -44,6 +44,9 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                             {
                                 foreach (ClientObject client in clients)
                                 {
+                                    if (client.CurrentGame == homeLobby)
+                                        continue;
+
                                     client.LobbyKeyOverride = SceneCrc;
                                     _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
                                     if (!string.IsNullOrEmpty(client.SSFWid) && !string.IsNullOrEmpty(homeLobby.Host.AccountName))
