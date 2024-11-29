@@ -76,13 +76,15 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             return Task.FromResult(false);
         }
 
-        public static Task<List<string>> getCrcList(string targetClientIp, string? AccessToken, bool Retail)
+        public static Task<List<string>> getCrcList(string targetClientIp, string? AccessToken, bool Retail, bool AllClients)
         {
             bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
             List<ClientObject>? clients = null;
             List<string> crcList = new();
 
-            if (AccessTokenProvided)
+            if (AllClients)
+                clients = MediusClass.Manager.GetClients(Retail ? 20374 : 20371);
+            else if (AccessTokenProvided)
             {
                 ClientObject? client = MediusClass.Manager.GetClientByAccessToken(AccessToken, Retail ? 20374 : 20371);
                 if (client != null)
