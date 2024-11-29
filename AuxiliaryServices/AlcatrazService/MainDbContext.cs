@@ -93,13 +93,13 @@ namespace Alcatraz.Context
 			context = (MainDbContext)currentContext.Context;
 		}
 
-		/// <summary>
-		/// Modified from http://weblogs.thinktecture.com/pawel/2018/06/entity-framework-core-changing-db-migration-schema-at-runtime.html
-		/// </summary>
-		/// <param name="migrationClass"></param>
-		/// <param name="activeProvider"></param>
-		/// <returns></returns>
-		public override Migration CreateMigration(TypeInfo migrationClass, string activeProvider)
+        /// <summary>
+        /// Modified from https://web.archive.org/web/20181021034610/http://weblogs.thinktecture.com/pawel/2018/06/entity-framework-core-changing-db-migration-schema-at-runtime.html
+        /// </summary>
+        /// <param name="migrationClass"></param>
+        /// <param name="activeProvider"></param>
+        /// <returns></returns>
+        public override Migration CreateMigration(TypeInfo migrationClass, string activeProvider)
 		{
 			var hasCtorWithDbContext = migrationClass
 					.GetConstructor(new[] { typeof(MainDbContext) }) != null;

@@ -3,7 +3,7 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.RMC;
 
-namespace QuazalServer.RDVServices.PS3UbisoftServices
+namespace QuazalServer.RDVServices.PS3DriverServices
 {
     /// <summary>
     /// Ubi achievements service
@@ -12,7 +12,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
     public class UbiWinService : RMCServiceBase
 	{
 		[RMCMethod(1)]
-		public RMCResult GetActions(int start_row_index, int maximum_rows, string sort_expression, string culture_name)
+		public RMCResult GetActions(int start_row_index, int maximum_rows, string sort_expression, string culture_name, string platform_code, string game_code)
 		{
             UNIMPLEMENTED();
 
@@ -21,7 +21,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         }
 
 		[RMCMethod(2)]
-		public RMCResult GetActionsCompleted(int start_row_index, int maximum_rows, string sort_expression, string culture_name)
+		public RMCResult GetActionsCompleted(int start_row_index, int maximum_rows, string sort_expression, string culture_name, string platform_code, string game_code)
 		{
             UNIMPLEMENTED();
             return Error(0);
@@ -44,7 +44,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         }
 
 		[RMCMethod(5)]
-		public RMCResult GetRewards(int start_row_index, int maximum_rows, string sort_expression, string culture_name)
+		public RMCResult GetRewards(int start_row_index, int maximum_rows, string sort_expression, string culture_name, string platform_code, string game_code)
 		{
             UNIMPLEMENTED();
             return Error(0);
@@ -53,9 +53,77 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		[RMCMethod(6)]
 		public RMCResult GetRewardsPurchased(int startRowIndex, int maximumRows, string sortExpression, string cultureName, string platformCode)
 		{
-            UNIMPLEMENTED();
-
-            var rewards = new List<UPlayReward>();
+			var rewards = new List<UPlayReward>()
+			{
+				new UPlayReward() // useless but we still adding it
+                {
+					m_code = "DRV5REWARD01PC",
+					m_name = "Exclusive Wallpaper",
+					m_description = "Download the DRIVER San Francisco Wallpaper.",
+					m_rewardTypeName = "Downloadable",
+					m_gameCode = "DRV5",
+					m_value = 0,
+					m_platforms = new List<UPlayRewardPlatform>()
+                    {
+						new UPlayRewardPlatform()
+                        {
+							m_platformCode = platformCode,
+							m_purchased = true
+                        }
+					}
+				},
+				new UPlayReward()
+                {
+					m_code = "DRV5REWARD02",
+					m_name = "Tanner's Day Off Challenge",
+					m_description = "Tear through Russian Hill in Tannerâ\u0080\u0099s iconic Dodge Challenger.",
+					m_rewardTypeName = "Unlockable",
+					m_gameCode = "DRV5",
+					m_value = 20,
+					m_platforms = new List<UPlayRewardPlatform>()
+					{
+						new UPlayRewardPlatform()
+						{
+							m_platformCode = platformCode,
+							m_purchased = true
+						}
+					}
+				},
+				new UPlayReward()
+				{
+					m_code = "DRV5REWARD03",
+					m_name = "Dodge Charger SRT8 Police Car",
+					m_description = "Unlocks the Dodge Charger SRT8 Police Car for use in Online games.",
+					m_rewardTypeName = "Unlockable",
+					m_gameCode = "DRV5",
+					m_value = 30,
+					m_platforms = new List<UPlayRewardPlatform>()
+					{
+						new UPlayRewardPlatform()
+						{
+							m_platformCode = platformCode,
+							m_purchased = true
+						}
+					}
+				},
+				new UPlayReward()
+				{
+					m_code = "DRV5REWARD04",
+					m_name = "San Francisco Challenges",
+					m_description = "Four Challenges that showcase different areas of San Francisco.",
+					m_rewardTypeName = "Unlockable",
+					m_gameCode = "DRV5",
+					m_value = 40,
+					m_platforms = new List<UPlayRewardPlatform>()
+					{
+						new UPlayRewardPlatform()
+						{
+							m_platformCode = platformCode,
+							m_purchased = true
+						}
+					}
+				},
+			};
 
 			// return 
 			return Result(rewards);
@@ -76,7 +144,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 			{
 				m_code = actionCode,
 				m_description = actionCode + "_description",
-				m_gameCode = "UNK",
+				m_gameCode = "DRV5",
 				m_name = actionCode + "_action",
 				m_value = 1,
 			};
@@ -112,7 +180,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         }
 
 		[RMCMethod(12)]
-		public RMCResult GetSectionsByKey(string culture_name, string section_key)
+		public RMCResult GetSectionsByKey(string culture_name, string section_key, string platform_code, string game_code)
 		{
             UNIMPLEMENTED();
             return Error(0);
