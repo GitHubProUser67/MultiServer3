@@ -2,7 +2,7 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.RMC;
 
-namespace QuazalServer.RDVServices.PS3UbisoftServices
+namespace QuazalServer.RDVServices.PS3DriverServices
 {
     [RMCService(RMCProtocolId.DriverUniqueIDService)]
 	public class DriverUniqueIDService : RMCServiceBase

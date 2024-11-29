@@ -19,7 +19,7 @@ namespace QuazalServer.RDVServices.PS3TurokServices
         [RMCMethod(1)]
         public RMCResult? Register(List<string> vecMyURLs)
         {
-            if (Context != null && Context.Client.PlayerInfo != null)
+            if (Context != null)
             {
                 // change address
                 StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
@@ -30,7 +30,7 @@ namespace QuazalServer.RDVServices.PS3TurokServices
 
                 RegisterResult result = new()
                 {
-                    pidConnectionID = Context.Client.PlayerInfo.RVCID,
+                    pidConnectionID = Context.Client.PlayerInfo?.RVCID ?? 0,
                     retval = (int)ErrorCode.Core_NoError,
                     urlPublic = rdvConnectionUrl
                 };

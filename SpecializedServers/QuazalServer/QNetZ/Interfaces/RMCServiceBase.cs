@@ -52,7 +52,7 @@ namespace QuazalServer.QNetZ.Interfaces
 			if (rmcMethodAttr != null && !string.IsNullOrWhiteSpace(rmcMethodAttr.Name))
 				methodName = rmcMethodAttr.Name;
 
-			LoggerAccessor.LogWarn($"[RMCServiceBase] - Method '{ _context?.RMC.proto }.{ methodName }' is unimplemented");
+			LoggerAccessor.LogError($"[RMCServiceBase] - Method '{ _context?.RMC.proto }.{ methodName }' is unimplemented");
 
 			if (!string.IsNullOrWhiteSpace(additionalMessage))
 				LoggerAccessor.LogWarn($"[RMCServiceBase] - info: { additionalMessage } ");
