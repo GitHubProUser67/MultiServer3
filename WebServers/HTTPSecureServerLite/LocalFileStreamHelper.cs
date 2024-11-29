@@ -10,7 +10,7 @@ namespace HTTPSecureServerLite
 {
     public class LocalFileStreamHelper
     {
-        public static bool Handle_LocalFile_Stream(HttpContextBase ctx, string filePath, string ContentType)
+        public static bool Handle_LocalFile_Stream(HttpContextBase ctx, string filePath, string ContentType, bool noCompressCacheControl)
         {
             ctx.Response.ChunkedTransfer = false;
 
@@ -81,7 +81,7 @@ namespace HTTPSecureServerLite
                             ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                             ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                             ctx.Response.ContentType = "text/html; charset=UTF-8";
-                            if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
+                            if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding))
                             {
                                 if (acceptencoding.Contains("zstd"))
                                 {
@@ -190,7 +190,7 @@ namespace HTTPSecureServerLite
                     ctx.Response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
                     ctx.Response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
                     ctx.Response.ContentType = "text/html; charset=UTF-8";
-                    if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(acceptencoding))
+                    if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding))
                     {
                         if (acceptencoding.Contains("zstd"))
                         {

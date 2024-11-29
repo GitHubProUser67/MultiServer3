@@ -15,6 +15,7 @@ using NetworkLibrary.Extension;
 using System.Threading;
 using System.Buffers;
 using HashLib;
+using System.Net;
 
 namespace NetworkLibrary.HTTP
 {
@@ -617,6 +618,94 @@ namespace NetworkLibrary.HTTP
             "default.asp"
         };
 
+        public static string RequestURLGET(string url)
+        {
+#if NET7_0_OR_GREATER
+            try
+            {
+                HttpResponseMessage response = new HttpClient().GetAsync(url).Result;
+                response.EnsureSuccessStatusCode();
+                return response.Content.ReadAsStringAsync().Result;
+            }
+            catch
+            {
+                // Not Important.
+            }
+#else
+            try
+            {
+#pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
+                return new WebClient().DownloadStringTaskAsync(url).Result;
+#pragma warning restore
+            }
+            catch
+            {
+                // Not Important.
+            }
+#endif
+
+            return null;
+        }
+
+        public static string RequestURLPOST(string url, Dictionary<string, string> headers, string postData, string ContentType)
+        {
+#if NET7_0_OR_GREATER
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    // Add headers to the request
+                    if (headers != null)
+                    {
+                        foreach (var header in headers)
+                        {
+                            client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                        }
+                    }
+
+                    // Create the content for the POST request
+                    var content = new StringContent(postData, System.Text.Encoding.UTF8, ContentType);
+
+                    HttpResponseMessage response = client.PostAsync(url, content).Result;
+                    response.EnsureSuccessStatusCode();
+                    return response.Content.ReadAsStringAsync().Result;
+                }
+            }
+            catch
+            {
+                // Not Important.
+            }
+#else
+            try
+            {
+#pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMELY slow to operate (https://github.com/dotnet/runtime/issues/65375).
+                using (WebClient client = new WebClient())
+                {
+                    // Add headers to the request
+                    if (headers != null)
+                    {
+                        foreach (var header in headers)
+                        {
+                            client.Headers.Add(header.Key, header.Value);
+                        }
+                    }
+
+                    client.Headers[HttpRequestHeader.ContentType] = ContentType;
+
+                    // Send POST request
+                    return client.UploadStringTaskAsync(url, postData).Result;
+                }
+#pragma warning restore
+            }
+            catch
+            {
+                // Not Important.
+            }
+#endif
+
+            return null;
+        }
+
         public static string DecodeUrl(string url)
         {
             if (string.IsNullOrEmpty(url)) return string.Empty;
@@ -842,8 +931,8 @@ namespace NetworkLibrary.HTTP
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest);
-            CopyStream(input, outBStream, 4096);
+            using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest, true))
+                CopyStream(input, outBStream, 4096);
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);
@@ -857,9 +946,11 @@ namespace NetworkLibrary.HTTP
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true);
-            CopyStream(input, outGStream, 4096, false);
-            outGStream.Close();
+            using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
+            {
+                CopyStream(input, outGStream, 4096, false);
+                outGStream.Close();
+            }
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);

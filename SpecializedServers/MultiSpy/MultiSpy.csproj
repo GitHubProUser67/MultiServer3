@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BackendServices\AuxiliaryServices\MultiSpyService\MultiSpyService.csproj" />
+    <ProjectReference Include="..\..\AuxiliaryServices\MultiSpyService\MultiSpyService.csproj" />
     <ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
   </ItemGroup>
   

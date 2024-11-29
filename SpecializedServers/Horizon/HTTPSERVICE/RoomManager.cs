@@ -1,3 +1,4 @@
+using Horizon.SERVER;
 using NetworkLibrary.Extension;
 using Newtonsoft.Json;
 using System.Text;
@@ -6,39 +7,17 @@ namespace Horizon.HTTPSERVICE
 {
     public class RoomManager
     {
-        private static (ConcurrentList<KeyValuePair<string, int>>, ConcurrentList<Room>) rooms = (
-            new ConcurrentList<KeyValuePair<string, int>>(),
-            new ConcurrentList<Room>()
-        );
-
-        public static void AddOrUpdateUser(string? accountName, int appid)
-        {
-            if (!string.IsNullOrEmpty(accountName))
-            {
-                KeyValuePair<string, int> newUser = new(accountName, appid);
-
-                foreach (KeyValuePair<string, int> User in rooms.Item1.ToList())
-                {
-                    if (User.Key.Equals(accountName))
-                    {
-                        rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(accountName));
-                        break;
-                    }
-                }
-
-                rooms.Item1.Add(newUser);
-            }
-        }
+        private static ConcurrentList<Room> rooms = new ConcurrentList<Room>();
 
         // Update or Create a Room based on the provided parameters
         public static void UpdateOrCreateRoom(string appId, string? gameName, int? gameId, string? worldId, string? accountName, int accountDmeId, string? languageType, bool host)
         {
-            Room? roomToUpdate = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
+            Room? roomToUpdate = rooms.FirstOrDefault(r => r.AppId == appId);
 
             if (roomToUpdate == null)
             {
                 roomToUpdate = new Room { AppId = appId, Worlds = new List<World>() };
-                rooms.Item2.Add(roomToUpdate);
+                rooms.Add(roomToUpdate);
             }
 
             if (worldId != null)
@@ -89,7 +68,7 @@ namespace Horizon.HTTPSERVICE
         // Remove a user from a specific room based on the provided parameters
         public static void RemoveUserFromGame(string appId, string gameName, string worldId, string accountName)
         {
-            Room? roomToRemoveUser = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
+            Room? roomToRemoveUser = rooms.FirstOrDefault(r => r.AppId == appId);
 
             if (roomToRemoveUser != null)
             {
@@ -113,7 +92,7 @@ namespace Horizon.HTTPSERVICE
         // Remove a world from a specific room based on the provided parameters
         public static void RemoveWorld(string appId, string? worldId)
         {
-            Room? roomToRemove = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
+            Room? roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
 
             if (roomToRemove != null)
             {
@@ -129,7 +108,7 @@ namespace Horizon.HTTPSERVICE
         {
             if (!string.IsNullOrEmpty(gameName))
             {
-                Room? roomToRemove = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
+                Room? roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
 
                 if (roomToRemove != null)
                 {
@@ -150,7 +129,7 @@ namespace Horizon.HTTPSERVICE
         {
             if (!string.IsNullOrEmpty(previousGameName) && !string.IsNullOrEmpty(gameName))
             {
-                Room? roomToRemove = rooms.Item2.FirstOrDefault(r => r.AppId == appId);
+                Room? roomToRemove = rooms.FirstOrDefault(r => r.AppId == appId);
 
                 if (roomToRemove != null)
                 {
@@ -170,31 +149,32 @@ namespace Horizon.HTTPSERVICE
         // Remove a Room by AppId
         public static void RemoveRoom(string appId)
         {
-            lock (rooms.Item2)
-                rooms.Item2.RemoveAll(r => r.AppId == appId);
-        }
-
-        public static void RemoveUser(string? accountName)
-        {
-            if (!string.IsNullOrEmpty(accountName))
-                rooms.Item1.RemoveAll(keypair => keypair.Key.Equals(accountName));
+            rooms.RemoveAll(r => r.AppId == appId);
         }
 
         // Get a list of all Rooms
         public static List<Room> GetAllRooms()
         {
-            return rooms.Item2.ToList();
+            return rooms.ToList();
         }
 
-        public static List<KeyValuePair<string, int>> GetAllUsers()
+        public static List<KeyValuePair<string, int>> GetAllLoggedInUsers()
         {
-            return rooms.Item1.ToList();
+            List<KeyValuePair<string, int>> usersList = new();
+
+            foreach (var user in MediusClass.Manager.GetClients(0))
+            {
+                if (user.IsLoggedIn && !string.IsNullOrEmpty(user.AccountName))
+                    usersList.Add(new KeyValuePair<string, int>(user.AccountName, user.ApplicationId));
+            }
+
+            return usersList;
         }
 
         // Serialize the RoomConfig to JSON
         public static string ToJson()
         {
-            return "{\"usernames\":" + JsonConvert.SerializeObject(GetAllUsers()) + ",\"rooms\":" + JsonConvert.SerializeObject(GetAllRooms()) + "}";
+            return "{\"usernames\":" + JsonConvert.SerializeObject(GetAllLoggedInUsers()) + ",\"rooms\":" + JsonConvert.SerializeObject(GetAllRooms()) + "}";
         }
 
         private static string XORString(string input, string? key)

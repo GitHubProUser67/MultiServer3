@@ -124,14 +124,31 @@ namespace Horizon.SERVER.Medius
                                 }
                                 else
                                 {
-                                    data.ClientObject = new(scertClient.MediusVersion ?? 0)
-                                    {
-                                        ApplicationId = clientConnectTcp.AppId
-                                    };
-                                    data.ClientObject.OnConnected();
-                                    data.ClientObject.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
+                                    string clientIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' });
 
-                                    if (!await GuestLogin(clientChannel, data))
+                                    data.ClientObject = MediusClass.Manager.GetClientsByIp(clientIP, clientConnectTcp.AppId)?.FirstOrDefault();
+
+                                    if (data.ClientObject == null)
+                                    {
+                                        data.ClientObject = new(scertClient.MediusVersion ?? 0, clientConnectTcp.SessionKey, clientConnectTcp.AccessToken)
+                                        {
+                                            ApplicationId = clientConnectTcp.AppId,
+                                        };
+                                        data.ClientObject.OnConnected();
+                                        data.ClientObject.SetIp(clientIP);
+                                    }
+
+                                    if (await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId)) // Would be too easy if the Client could bypass Ban with a Guest...
+                                    {
+                                        // Then queue send ban message
+                                        await QueueBanMessage(data, "You have been banned from this server.");
+
+                                        await data.ClientObject!.Logout();
+
+                                        break;
+                                    }
+
+                                    if (!data.ClientObject.IsLoggedIn && !await GuestLogin(clientChannel, data))
                                     {
                                         data.Ignore = true;
                                         LoggerAccessor.LogError($"[MLS] - Ignoring banned client for {clientChannel.RemoteAddress}: {clientConnectTcp}");
@@ -379,10 +396,20 @@ namespace Horizon.SERVER.Medius
 
                                                     if (data.ClientObject.ClientHomeData != null)
                                                     {
-                                                        /*if (data.ClientObject.IsOnRPCN)
-                                                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
-                                                        else // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
-                                                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");*/
+                                                        if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83)
+                                                        {
+                                                            if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Version) && (data.ClientObject.ClientHomeData.Version.Contains("HDK") || data.ClientObject.ClientHomeData.Version == "Online Debug"))
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
+                                                            else
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "mlaaenable 0");
+                                                        }
+                                                        /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
+                                                        {
+                                                            if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Version) && (data.ClientObject.ClientHomeData.Version.Contains("HDK") || data.ClientObject.ClientHomeData.Version == "Online Debug"))
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");
+                                                            else
+                                                                _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "msaaenable 1");
+                                                        }*/
 
                                                         switch (data.ClientObject.ClientHomeData.Type)
                                                         {
@@ -5468,6 +5495,46 @@ namespace Horizon.SERVER.Medius
                             break;
                         }
 
+                        if ((rClient.ApplicationId == 20371 || rClient.ApplicationId == 20374) && !string.IsNullOrEmpty(rClient.LobbyKeyOverride))
+                        {
+                            string requestedLobbyKey = rClient.LobbyKeyOverride;
+                            rClient.LobbyKeyOverride = null;
+                            bool foundLobby = false;
+
+                            foreach (Game homeLobby in MediusClass.Manager.GetAllGamesByAppId(rClient.ApplicationId))
+                            {
+                                if (homeLobby.Host != null && !string.IsNullOrEmpty(homeLobby.GameName) && homeLobby.GameName.StartsWith("AP|") && homeLobby.GameName.Split('|').Length >= 5)
+                                {
+                                    string LobbyName = homeLobby.GameName!.Split('|')[5];
+
+                                    if (HomeGuestJoiningSystem.GetGJSCRC(homeLobby.Host.AccountName!, LobbyName + "H3m0", homeLobby.utcTimeCreated) == requestedLobbyKey)
+                                    {
+                                        foundLobby = true;
+
+                                        rClient.Queue(new MediusGameListResponse()
+                                        {
+                                            MessageID = gameListRequest.MessageID,
+                                            StatusCode = MediusCallbackStatus.MediusSuccess,
+
+                                            MediusWorldID = homeLobby.MediusWorldId,
+                                            GameName = homeLobby.GameName,
+                                            WorldStatus = homeLobby.WorldStatus,
+                                            GameHostType = homeLobby.GameHostType,
+                                            PlayerCount = (ushort)homeLobby.PlayerCount,
+                                            EndOfList = true
+                                        });
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (foundLobby)
+                                break;
+                            else if (!string.IsNullOrEmpty(rClient.SSFWid))
+                                NetworkLibrary.HTTP.HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/R3moveLayoutOverride/", new Dictionary<string, string>() { { "sessionid", rClient.SSFWid } }, string.Empty, "text/plain");
+                        }
+
                         if (rClient.ApplicationId == 10538 || rClient.ApplicationId == 10190)
                         {
                             var gameList = MediusClass.Manager.GetGameListAppId(
@@ -9643,16 +9710,7 @@ namespace Horizon.SERVER.Medius
                                                     case "IGA":
                                                         break;
                                                     default:
-                                                        string SupplementalMessage = "Unknown";
-
-                                                        switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
-                                                        {
-                                                            case 0x0B:
-                                                                SupplementalMessage = "Kick";
-                                                                break;
-                                                        }
-
-                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                         _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
@@ -10948,21 +11006,11 @@ namespace Horizon.SERVER.Medius
             var fac = new PS2CipherFactory();
             var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
-            if (await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId ?? string.Empty)) // Would be too easy if the Client could bypass Ban with a Guest...
-            {
-                // Then queue send ban message
-                await QueueBanMessage(data, "You have been banned from this server.");
-
-                await data.ClientObject!.Logout();
-
-                return false;
-            }
-
             AccountDTO? accountDto = await HorizonServerConfiguration.Database.GetAccountByFirstIp(data.ClientObject!.IP.ToString());
 
             if (accountDto == null)
             {
-                Ionic.Crc.CRC32? crc = new();
+                Ionic.Crc.CRC32 crc = new();
                 Anonymous = true;
 
                 int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
@@ -10981,8 +11029,6 @@ namespace Horizon.SERVER.Medius
                     MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),
                     AppId = data.ClientObject?.ApplicationId
                 };
-
-                crc = null;
             }
             else if (accountDto.IsBanned) // Would be too easy if the Client could bypass Ban with a Guest...
             {
@@ -11008,6 +11054,8 @@ namespace Horizon.SERVER.Medius
 
             await data.ClientObject!.Login(accountDto);
 
+            data.ClientObject.IsOnRPCN = true; // Sets the RPCN flag even if not on RPCN, this prevents pokes from being active while on RPCS3 (we have no way to detect that on guest login yet).
+
             #region Update DB IP and CID
             if (!Anonymous)
             {
@@ -11019,8 +11067,8 @@ namespace Horizon.SERVER.Medius
 
             CIDManager.CreateCIDPair(accountDto.AccountName, data.MachineId);
 
-            // Add to logged in clients
-            MediusClass.Manager.AddOrUpdateLoggedInClient(data.ClientObject);
+            // Add in clients list
+            MediusClass.Manager.AddClient(data.ClientObject);
 
             LoggerAccessor.LogInfo($"CREATING GUEST IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.AccessToken}");
 

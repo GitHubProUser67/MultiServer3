@@ -1,6 +1,5 @@
 // Copyright (C) 2016 by Barend Erasmus and donated to the public domain
 using NetworkLibrary.Extension;
-using HTTPServer.Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer publisher script 05/10/2024
+@echo MultiServer publisher script 26/11/2024
 @echo.
 
 @echo Cleaning up directories:
@@ -73,14 +73,6 @@ for %%r in (%RIDs%) do (
 	)
 	if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" (
 		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~PublishOutput/MultiServer/%%r/Release/runtimes"
-	)
-	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "Tools/Home/NautilusXP2024/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Debug"
-		xcopy /E /Y /I "Tools/Home/NautilusXP2024/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Release"
-	)
-	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "Tools/Home/NautilusXP2024/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Debug"
-		xcopy /E /Y /I "Tools/Home/NautilusXP2024/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/Nautilus/%%r/Release"
 	)
 )
 

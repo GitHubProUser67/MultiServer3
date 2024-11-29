@@ -183,6 +183,7 @@ namespace HTTPSecureServerLite
                 string fullurl = string.Empty;
                 string absolutepath = string.Empty;
                 string fulluripath = string.Empty;
+                bool noCompressCacheControl = request.HeaderExists("Cache-Control") && ctx.Request.RetrieveHeaderValue("Cache-Control") == "no-transform";
                 string Host = request.RetrieveHeaderValue("Host");
                 if (string.IsNullOrEmpty(Host))
                     Host = request.RetrieveHeaderValue("HOST");
@@ -436,7 +437,7 @@ namespace HTTPSecureServerLite
                                         }
                                         if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
                                             sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}",
-                                                HTTPProcessor.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}"), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                HTTPProcessor.GetMimeType(Path.GetExtension(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}"), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), noCompressCacheControl);
                                         else
                                         {
                                             using FileStream stream = new(HTTPSServerConfiguration.HTTPSStaticFolder + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -1398,13 +1399,13 @@ namespace HTTPSecureServerLite
                                                             || UserAgent.Contains("chrome") || UserAgent.Contains("trident")))
                                                             sent = await new Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
                                                         else if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
-                                                            sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType);
+                                                            sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType, noCompressCacheControl);
                                                         else
                                                         {
                                                             // send file
                                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer);
+                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer, noCompressCacheControl);
                                                         }
                                                     }
                                                     else if (request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html") && Directory.Exists(filePath + "/"))
@@ -1423,7 +1424,7 @@ namespace HTTPSecureServerLite
                                                         <address>{request.Destination.IpAddress} Port {request.Destination.Port}</address>
                                                         </body></html>");
 
-                                                        if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                                                        if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
                                                         {
                                                             if (encoding.Contains("zstd"))
                                                             {
@@ -1704,13 +1705,13 @@ namespace HTTPSecureServerLite
                                                         }
 
                                                         if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
-                                                            sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType);
+                                                            sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType, noCompressCacheControl);
                                                         else
                                                         {
                                                             // send file
                                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer);
+                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer, noCompressCacheControl);
                                                         }
                                                     }
                                                     else if (request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html") && Directory.Exists(filePath + "/"))
@@ -1729,7 +1730,7 @@ namespace HTTPSecureServerLite
                                                         <address>{request.Destination.IpAddress} Port {request.Destination.Port}</address>
                                                         </body></html>");
 
-                                                        if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                                                        if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
                                                         {
                                                             if (encoding.Contains("zstd"))
                                                             {
@@ -2001,7 +2002,7 @@ namespace HTTPSecureServerLite
             await ctx.Response.Send();
         }
 
-        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string contentType, bool ChunkedMode)
+        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string contentType, bool ChunkedMode, bool noCompressCacheControl)
         {
             bool sent = false;
             bool flush = false;
@@ -2021,7 +2022,7 @@ namespace HTTPSecureServerLite
 
                 st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, crc.Crc32Result));
             }
-            else if (HTTPSServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && contentType.StartsWith("text/"))
+            else if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && contentType.StartsWith("text/"))
             {
                 if (encoding.Contains("zstd"))
                 {
