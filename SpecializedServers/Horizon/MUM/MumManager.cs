@@ -282,6 +282,21 @@ namespace Horizon.MUM
             return null;
         }
 
+        public IEnumerable<Game> GetAllGamesByAppId(int applicationId)
+        {
+            if (_lookupsByAppId.TryGetValue(applicationId, out QuickLookup? quickLookup))
+            {
+                lock (quickLookup.GameIdToGame)
+                {
+                    foreach (var pair in quickLookup.GameIdToGame)
+                    {
+                        if (pair.Value.GameChannel != null && pair.Value.GameChannel.ApplicationId == applicationId)
+                            yield return pair.Value;
+                    }
+                }
+            }
+        }
+		
         public List<Game> GetGamesByGameIdViaChannelFilter(int gameId)
         {
             List<Channel> channels = new();

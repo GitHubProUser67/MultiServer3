@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer build script 05/10/2024
+@echo MultiServer build script 26/11/2024
 @echo.
 
 @echo Cleaning up directories:
@@ -47,7 +47,6 @@ if exist "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" (
 if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" (
     xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~BuildOutput/MultiServer/Release/net6.0/runtimes"
 )
-xcopy /E /Y /I "Tools/Home/NautilusXP2024/bin" "~BuildOutput/Nautilus"
 
 @echo Crafting final output:
 if exist "~BuildOutput/MultiServer/Debug/net6.0" (
@@ -57,14 +56,6 @@ if exist "~BuildOutput/MultiServer/Debug/net6.0" (
 if exist "~BuildOutput/MultiServer/Release/net6.0" (
     xcopy /E /Y /I "~BuildOutput/MultiServer/Release/net6.0" "~BuildOutput/MultiServer/Release"
 	@rmdir /S /Q "~BuildOutput/MultiServer/Release/net6.0"
-)
-if exist "~BuildOutput/Nautilus/Debug/net6.0-windows" (
-    xcopy /E /Y /I "~BuildOutput/Nautilus/Debug/net6.0-windows" "~BuildOutput/Nautilus/Debug"
-	@rmdir /S /Q "~BuildOutput/Nautilus/Debug/net6.0-windows"
-)
-if exist "~BuildOutput/Nautilus/Release/net6.0-windows" (
-    xcopy /E /Y /I "~BuildOutput/Nautilus/Release/net6.0-windows" "~BuildOutput/Nautilus/Release"
-	@rmdir /S /Q "~BuildOutput/Nautilus/Release/net6.0-windows"
 )
 @echo.
 
