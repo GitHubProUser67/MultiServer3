@@ -61,7 +61,7 @@ namespace Horizon.RT.Models
         {
             return base.ToString() + " " +
                 $"TargetWorldId: {TargetWorldId} " +
-                $"UNK1: {(UNK1 != null ? BitConverter.ToString(UNK1) : global::System.Array.Empty<byte>())} " +
+                $"UNK1: {(UNK1 != null ? BitConverter.ToString(UNK1) : string.Empty)} " +
                 $"UNK0: {UNK0:X2} " +
                 $"AppId: {AppId} " +
                 $"Key: {Key} " +

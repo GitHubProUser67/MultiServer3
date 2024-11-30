@@ -61,7 +61,8 @@ namespace WatsonWebserver
         /// <param name="defaultRoute">Method used when a request is received and no matching routes are found.  Commonly used as the 404 handler when routes are used.</param>
         public Webserver(WebserverSettings settings, Func<HttpContextBase, Task> defaultRoute) : base(settings, defaultRoute)
         {
-            settings ??= new WebserverSettings();
+            if (settings == null)
+                settings = new WebserverSettings();
 
             Settings = settings;
             Settings.Headers.DefaultHeaders[WebserverConstants.HeaderHost] = settings.Hostname + ":" + settings.Port;

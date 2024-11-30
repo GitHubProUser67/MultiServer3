@@ -60,9 +60,14 @@ namespace Org.Mentalis.Security.Cryptography
 				throw new ArgumentNullException();
 			if (rgbKey == null) {
 				rgbKey = new byte[hash.HashSize / 8];
+#if NETCOREAPP2_0_OR_GREATER
 				RandomNumberGenerator.Fill(rgbKey);
-			}
-			m_HashAlgorithm = hash;
+#else
+                using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+                    rng.GetBytes(rgbKey);
+#endif
+            }
+            m_HashAlgorithm = hash;
 			this.Key = (byte[])rgbKey.Clone();
 			m_IsDisposed = false;
 			m_KeyBuffer = new byte[64];

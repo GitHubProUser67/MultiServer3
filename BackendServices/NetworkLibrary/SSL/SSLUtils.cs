@@ -142,7 +142,6 @@ namespace NetworkLibrary.SSL
             // Generate a new RSA key pair
             using (RSA rsa = RSA.Create())
             {
-
                 rsa.ImportParameters(ROOT_CA_PARAMETERS);
 
                 // Create a certificate request with the RSA key pair
@@ -338,7 +337,7 @@ namespace NetworkLibrary.SSL
                 // Convert PEM-encoded private key to RSA parameters
                 AsymmetricCipherKeyPair keyPair;
                 using (StringReader reader = new StringReader(File.ReadAllText(privateKeyPath)))
-                    keyPair = new PemReader(reader).ReadObject() as AsymmetricCipherKeyPair;
+                    keyPair = new Org.BouncyCastle.OpenSsl.PemReader(reader).ReadObject() as AsymmetricCipherKeyPair;
 
                 if (keyPair == null)
                     throw new CryptographicException("[LoadPemCertificate] - Invalid private key.");

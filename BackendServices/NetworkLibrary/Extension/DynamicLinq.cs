@@ -308,8 +308,12 @@ namespace NetworkLibrary.Extension
 					FieldInfo[] fields = GenerateProperties(tb, properties);
 					GenerateEquals(tb, fields);
 					GenerateGetHashCode(tb, fields);
+#if NETSTANDARD2_1_OR_GREATER || NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER
 					Type result = tb.CreateType();
-					classCount++;
+#else
+                    Type result = tb.CreateTypeInfo();
+#endif
+                    classCount++;
 					return result;
 				} finally {
 #if ENABLE_LINQ_PARTIAL_TRUST
