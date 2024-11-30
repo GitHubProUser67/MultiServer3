@@ -48,7 +48,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         continue;
 
                                     client.LobbyKeyOverride = SceneCrc;
-                                    if (!string.IsNullOrEmpty(client.ClientHomeData?.Version) && (client.ClientHomeData.Version.Contains("HDK") || client.ClientHomeData.Version == "Online Debug"))
+                                    if (!string.IsNullOrEmpty(client.ClientHomeData?.Type) && (client.ClientHomeData.Type.Contains("HDK") || client.ClientHomeData.Type == "Online Debug"))
                                         _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
                                     else
                                         _ = HomeRTMTools.SendRemoteCommand(client, $"map {ssfwSceneNameResult}");
