@@ -210,7 +210,6 @@ namespace CompressionLibrary.Edge
         /// <para>Compresse un tableau de bytes avec le codec EdgeLZMA en mode s�gment�.</para>
         /// </summary>
         /// <param name="inbuffer">The byte array to decompress.</param>
-        /// <param name="safemode">Uses a proper error checking flag (disable for file bruteforcing).</param>
         /// <returns>A byte array.</returns>
         private static byte[] SegmentsDecompress(byte[] inbuffer) // Todo, make it multithreaded like original sdk.
         {
