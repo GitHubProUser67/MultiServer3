@@ -1996,7 +1996,7 @@ namespace HTTPSecureServerLite
             await ctx.Response.Send();
         }
 
-        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string contentType, bool ChunkedMode, bool noCompressCacheControl)
+        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string ContentType, bool ChunkedMode, bool noCompressCacheControl)
         {
             bool sent = false;
             bool flush = false;
@@ -2005,9 +2005,9 @@ namespace HTTPSecureServerLite
             ctx.Response.ChunkedTransfer = ChunkedMode;
             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-            ctx.Response.ContentType = contentType;
+            ctx.Response.ContentType = ContentType;
             ctx.Response.StatusCode = 200;
-            if (HTTPSServerConfiguration.EnableImageUpscale && contentType.StartsWith("image/"))
+            if (HTTPSServerConfiguration.EnableImageUpscale && ContentType.StartsWith("image/"))
             {
                 Ionic.Crc.CRC32 crc = new();
                 byte[] PathIdent = Encoding.UTF8.GetBytes(filePath);
@@ -2016,7 +2016,9 @@ namespace HTTPSecureServerLite
 
                 st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, crc.Crc32Result));
             }
-            else if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && contentType.StartsWith("text/"))
+            else if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
+                && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
+                         || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
             {
                 if (encoding.Contains("zstd"))
                 {
