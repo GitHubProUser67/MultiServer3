@@ -210,8 +210,11 @@ namespace QuazalServer.QNetZ
 			else
                 LoggerAccessor.LogInfo("[PRUDP Reliable Handler] - Found cached request");
 
-            cache.ResponseList.Add(new QPacketState(responsePacket));
-			return true;
+            lock (cache.ResponseList)
+            {
+                cache.ResponseList.Add(new QPacketState(responsePacket));
+            }
+            return true;
 		}
 
 		private void RetrySend(QReliableResponse cache)

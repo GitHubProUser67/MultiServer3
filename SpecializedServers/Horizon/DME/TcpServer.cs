@@ -19,6 +19,7 @@ using NetworkLibrary.Extension;
 using Horizon.SERVER;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Medius;
+using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.DME
 {
@@ -804,16 +805,8 @@ namespace Horizon.DME
                                                             break;
                                                         default:
                                                             InvalidatedRequest = true;
-                                                            string SupplementalMessage = "Unknown";
 
-                                                            switch (HubMessagePayload[HubPathernOffset + 3]) // TODO, add all the other codes.
-                                                            {
-                                                                case 0x0B:
-                                                                    SupplementalMessage = "Kick";
-                                                                    break;
-                                                            }
-
-                                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - DmeId:{data.DMEObject.DmeId}");
+                                                            LoggerAccessor.LogError($"[DME] - TcpServer - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND) - DmeId:{data.DMEObject.DmeId}");
 
                                                             await clientChannel.CloseAsync();
                                                             break;
@@ -1039,6 +1032,12 @@ namespace Horizon.DME
                                     {
                                         TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNER_REMOVED, 0, 0) }
                                     }, clientChannel);
+
+                                // Hotfix the arcade cabinets MLAA enabling in PS Home.
+                                ClientObject? mumClient = MediusClass.Manager.GetClientBySessionKey(data.DMEObject.SessionKey, data.DMEObject.ApplicationId);
+
+                                if (mumClient != null && (mumClient.ApplicationId == 20371 || mumClient.ApplicationId == 20374) && mumClient.IsOnRPCN && mumClient.ClientHomeData != null && mumClient.ClientHomeData.VersionAsDouble >= 01.83)
+                                    _ = HomeRTMTools.SendRemoteCommand(mumClient, "lc Debug.System( 'mlaaenable 0' )");
                             }
                             else
                             {

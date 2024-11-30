@@ -14,10 +14,8 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
         [RMCMethod(1)]
         public RMCResult CreateAccount(string strPrincipalName, string strKey, uint uiGroups, string strEmail)
         {
-            if (Context != null && Context.Handler.AccessKey != null && DBHelper.RegisterUser(strPrincipalName, strKey, uiGroups, strEmail, Context.Handler.AccessKey))
-                return new RMCResult(new RMCPResponseEmpty());
-            else
-                return Error((int)ErrorCode.Core_RegistrationError);
+            UNIMPLEMENTED();
+            return Error(0);
         }
 
         [RMCMethod(2)]
@@ -72,16 +70,6 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
         [RMCMethod(9)]
         public RMCResult GetPublicData(uint PID) // Return a bool result, and oData if true.
         {
-            if (Context != null)
-            {
-                switch (Context.Handler.AccessKey)
-                {
-                    case "os4R9pEiy":
-                        AnyData<GhostbustersPS3Data> ghostbuster = new(); // Seems optional.
-                        return Result(new { retVal = true, oData = ghostbuster });
-                }
-            }
-
             return Result(new { retVal = false });
         }
 
@@ -165,19 +153,7 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
         [RMCMethod(22)]
         public RMCResult RetrieveAccount()
         {
-            if (Context != null && Context.Client.PlayerInfo != null)
-            {
-                PlayerInfo? playerInfo = Context.Client.PlayerInfo;
-
-                if (playerInfo != null)
-                {
-                    var keypair = DBHelper.GetUserByPID(playerInfo.PID, Context.Handler.AccessKey, true);
-
-                    if (keypair != null)
-                        return Result(new { oAccountData = keypair.Value.Item3, oPublicData = keypair.Value.Item1?.Value, oPrivateData = keypair.Value.Item2?.Value });
-                }
-            }
-
+            UNIMPLEMENTED();
             return Error(0);
         }
 

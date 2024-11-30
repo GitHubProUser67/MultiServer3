@@ -1,198 +1,85 @@
-using Newtonsoft.Json;
-using QuazalServer.QNetZ.DDL;
-using QuazalServer.RDVServices.DDL.Models;
-using QuazalServer.RDVServices.Entities;
+﻿using Alcatraz.Context;
+using Alcatraz.Context.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace QuazalServer.RDVServices
+namespace RDVServices
 {
 	public static class DBHelper
 	{
-		public static (KeyValuePair<string, AnyData<PlayerData>?>?, KeyValuePair<string, AnyData<AccountInfoPrivateData>?>?, User?)? GetUserByName(string name, string AccessKey, bool extraData = false)
+		public static MainDbContext? GetDbContext(string serviceClass)
 		{
-            if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}"))
-            {
-                string? parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{name}_*.json").OrderBy(file => file.Length).FirstOrDefault();
+			MainDbContext retCtx;
+			string connectionString;
 
-                if (!string.IsNullOrEmpty(parts) && File.Exists(parts))
-                {
-                    (KeyValuePair<string, AnyData<PlayerData>?>?, KeyValuePair<string, AnyData<AccountInfoPrivateData>?>?, User?) keypair = new(null, null, JsonConvert.DeserializeObject<User>(File.ReadAllText(parts)));
+            switch (serviceClass)
+			{
+                case "PCUbisoftServices":
+                case "PS3UbisoftServices":
+					connectionString = $"{Program.configDir}/Quazal/Database/Uplay.sqlite";
 
-                    if (keypair.Item3 == null)
-                        return null;
+					Directory.CreateDirectory(Path.GetDirectoryName(connectionString)!);
 
-                    if (extraData)
-                    {
-                        string[] underscoreparts = Path.GetFileNameWithoutExtension(parts).Split('_');
+                    retCtx = new MainDbContext(MainDbContext.OnContextBuilding(new DbContextOptionsBuilder<MainDbContext>(), 0, $"Data Source={connectionString}").Options);
 
-                        if (underscoreparts.Length == 2)
-                        {
-                            AnyData<PlayerData> playerData = new();
-                            using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{underscoreparts[0]}_{underscoreparts[1]}_publicdata.dat", FileMode.Open, FileAccess.Read))
-                            {
-                                playerData.Read(fileStream);
-                            }
+                    retCtx.Database.Migrate();
 
-                            AnyData<AccountInfoPrivateData> privateplayerData = new();
-                            using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{underscoreparts[0]}_{underscoreparts[1]}_privatedata.dat", FileMode.Open, FileAccess.Read))
-                            {
-                                privateplayerData.Read(fileStream);
-                            }
+                    return retCtx;
+                case "PS3TurokServices":
+                    connectionString = $"{Program.configDir}/Quazal/Database/Turok2008_PS3.sqlite";
 
-                            keypair.Item1 = new("oPublicData", playerData);
-                            keypair.Item2 = new("oPrivateData", privateplayerData);
-                        }
-                    }
+                    Directory.CreateDirectory(Path.GetDirectoryName(connectionString)!);
 
-                    return keypair;
-                }
-            }
-            
-            return null;
+                    retCtx = new MainDbContext(MainDbContext.OnContextBuilding(new DbContextOptionsBuilder<MainDbContext>(), 0, $"Data Source={connectionString}").Options);
+
+                    retCtx.Database.Migrate();
+
+                    return retCtx;
+                case "PS3GhostbustersServices":
+                    connectionString = $"{Program.configDir}/Quazal/Database/Ghostbusters_PS3.sqlite";
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(connectionString)!);
+
+                    retCtx = new MainDbContext(MainDbContext.OnContextBuilding(new DbContextOptionsBuilder<MainDbContext>(), 0, $"Data Source={connectionString}").Options);
+
+                    retCtx.Database.Migrate();
+
+                    return retCtx;
+                case "v2Services":
+                    connectionString = $"{Program.configDir}/Quazal/Database/RendezVous_v2.sqlite";
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(connectionString)!);
+
+                    retCtx = new MainDbContext(MainDbContext.OnContextBuilding(new DbContextOptionsBuilder<MainDbContext>(), 0, $"Data Source={connectionString}").Options);
+
+                    retCtx.Database.Migrate();
+
+                    return retCtx;
+                default:
+					CustomLogger.LoggerAccessor.LogError($"[DbHelper] - Unknwon: {serviceClass} Class passed to the database!");
+					break;
+			}
+
+			return null;
 		}
 
-		public static (KeyValuePair<string, AnyData<PlayerData>?>?, KeyValuePair<string, AnyData<AccountInfoPrivateData>?>?, User?)? GetUserByPID(uint PID, string AccessKey, bool extraData = false)
+		public static User GetUserByName(string serviceClass, string name)
 		{
-            if (Directory.Exists($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}"))
-            {
-                string? parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"*_{PID}.json").OrderBy(file => file.Length).FirstOrDefault();
+			using (MainDbContext? context = GetDbContext(serviceClass))
+			{
+				return context?.Users
+					.AsNoTracking()
+					.SingleOrDefault(x => x.PlayerNickName == name);
+			}
+		}
 
-                if (!string.IsNullOrEmpty(parts) && File.Exists(parts))
-                {
-                    (KeyValuePair<string, AnyData<PlayerData>?>?, KeyValuePair<string, AnyData<AccountInfoPrivateData>?>?, User?) keypair = new(null, null, JsonConvert.DeserializeObject<User>(File.ReadAllText(parts)));
-
-                    if (keypair.Item3 == null)
-                        return null;
-
-                    if (extraData)
-                    {
-                        string[] underscoreparts = Path.GetFileNameWithoutExtension(parts).Split('_');
-
-                        if (underscoreparts.Length == 2)
-                        {
-                            AnyData<PlayerData> playerData = new();
-                            using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{underscoreparts[0]}_{underscoreparts[1]}_publicdata.dat", FileMode.Open, FileAccess.Read))
-                            {
-                                playerData.Read(fileStream);
-                            }
-
-                            AnyData<AccountInfoPrivateData> privateplayerData = new();
-                            using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{underscoreparts[0]}_{underscoreparts[1]}_privatedata.dat", FileMode.Open, FileAccess.Read))
-                            {
-                                privateplayerData.Read(fileStream);
-                            }
-
-                            keypair.Item1 = new("oPublicData", playerData);
-                            keypair.Item2 = new("oPrivateData", privateplayerData);
-                        }
-                    }
-
-                    return keypair;
-                }
-            }
-
-            return null;
-        }
-
-        public static bool RegisterUser(string strPrincipalName, string strKey, uint uiGroups, string strEmail, string AccessKey, AnyData<PlayerData>? oPublicData = null, AnyData<AccountInfoPrivateData>? oPrivateData = null)
+		public static User GetUserByPID(string serviceClass, uint PID)
 		{
-            uint PID = QNetZ.NetworkPlayers.GenerateUniqueUint(strPrincipalName);
-
-            DateTime servertime = DateTime.Now;
-
-            // Serialize the user object to JSON
-            string? json = JsonConvert.SerializeObject(new User()
-            {
-                Id = PID,
-                Username = strPrincipalName,
-                PlayerNickName = strPrincipalName,
-                PID = PID,
-                Name = strPrincipalName,
-                UiGroups = uiGroups,
-                Email = strEmail,
-                CreationDate = servertime,
-                EffectiveDate = servertime,
-                ExpiryDate = servertime.AddYears(500),
-                Password = strKey
-            }, Formatting.Indented);
-                
-            if (!string.IsNullOrEmpty(json))
-            {
-                Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}" ?? Directory.GetCurrentDirectory() + $"/static/Quazal/Accounts/{AccessKey}");
-
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{strPrincipalName}_*.json");
-
-                if (parts.Length == 0) // Not create account with same name.
-                {
-                    if (oPublicData != null && oPrivateData != null)
-                    {
-                        using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_privatedata.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            oPrivateData.Write(fileStream);
-                        }
-
-                        using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_publicdata.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            oPublicData.Write(fileStream);
-                        }
-                    }
-
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}.json", json);
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_password.txt", strKey);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static bool RegisterUserWithPID(string strPrincipalName, string strKey, uint uiGroups, string strEmail, uint PID, string AccessKey, AnyData<PlayerData>? oPublicData = null, AnyData<AccountInfoPrivateData>? oPrivateData = null)
-        {
-            DateTime servertime = DateTime.Now;
-
-            // Serialize the user object to JSON
-            string? json = JsonConvert.SerializeObject(new User()
-            {
-                Id = PID,
-                Username = strPrincipalName,
-                PlayerNickName = strPrincipalName,
-                PID = PID,
-                Name = strPrincipalName,
-                UiGroups = uiGroups,
-                Email = strEmail,
-                CreationDate = servertime,
-                EffectiveDate = servertime,
-                ExpiryDate = servertime.AddYears(500),
-                Password = strKey
-            }, Formatting.Indented);
-
-            if (!string.IsNullOrEmpty(json))
-            {
-                Directory.CreateDirectory(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}" ?? Directory.GetCurrentDirectory() + $"/static/Quazal/Accounts/{AccessKey}");
-
-                string[] parts = Directory.GetFiles($"{QuazalServerConfiguration.QuazalStaticFolder}/Accounts/{AccessKey}", $"{strPrincipalName}_*.json");
-
-                if (parts.Length == 0) // Not create account with same name.
-                {
-                    if (oPublicData != null && oPrivateData != null)
-                    {
-                        using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_privatedata.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            oPrivateData.Write(fileStream);
-                        }
-
-                        using (FileStream fileStream = new(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_publicdata.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            oPublicData.Write(fileStream);
-                        }
-                    }
-
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}.json", json);
-                    File.WriteAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Accounts/{AccessKey}/{strPrincipalName}_{PID}_password.txt", strKey);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
+			using (MainDbContext? context = GetDbContext(serviceClass))
+			{
+				return context?.Users
+					.AsNoTracking()
+					.SingleOrDefault(x => x.Id == PID);
+			}
+		}
+	}
 }

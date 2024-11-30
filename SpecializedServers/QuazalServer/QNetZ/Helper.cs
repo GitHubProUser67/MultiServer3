@@ -3,9 +3,10 @@ using System.Security.Cryptography;
 using lzo.net;
 using System.Text.RegularExpressions;
 using EndianTools;
-using Ionic.Zlib;
 using NetworkLibrary.Extension;
 using HashLib;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using ICSharpCode.SharpZipLib.Zip.Compression;
 
 namespace QuazalServer.QNetZ
 {
@@ -241,19 +242,28 @@ namespace QuazalServer.QNetZ
                         return memoryStream.ToArray();
                     }
 				default:
-                    ZlibStream s = new(new MemoryStream(InData), CompressionMode.Decompress);
-                    MemoryStream result = new();
-                    s.CopyTo(result);
-                    return result.ToArray();
+                    InflaterInputStream inflaterInputStream = new(new MemoryStream(InData), new Inflater());
+                    byte[] array = new byte[4096];
+                    for (; ; )
+                    {
+                        int num = inflaterInputStream.Read(array, 0, array.Length);
+                        if (num <= 0)
+                            break;
+                        memoryStream.Write(array, 0, num);
+                    }
+                    inflaterInputStream.Close();
+                    return memoryStream.ToArray();
             }
         }
 
         public static byte[] Compress(byte[] InData)
         {
-            ZlibStream s = new(new MemoryStream(InData), CompressionMode.Compress);
-            MemoryStream result = new();
-            s.CopyTo(result);
-            return result.ToArray();
+            MemoryStream memoryStream = new();
+            DeflaterOutputStream deflaterOutputStream = new(memoryStream, new Deflater(9));
+            deflaterOutputStream.Write(InData, 0, InData.Length);
+            deflaterOutputStream.Close();
+            memoryStream.Close();
+            return memoryStream.ToArray(); // Send OG data if compressed size higher?
         }
 
         public static byte[] Encrypt(string key, byte[] data)

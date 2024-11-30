@@ -1,3 +1,4 @@
+using QuazalServer.AtariMelbourneHouse;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.RMC;
@@ -18,10 +19,8 @@ namespace QuazalServer.RDVServices.v2Services
             else if (QuazalServerConfiguration.UsePublicIP)
                 destip = QuazalServerConfiguration.ServerPublicBindAddress;
 
-            if (AmhLairProxy.TryConvertIpAddressToHex(destip, out uint result))
-                return Result(new { retVal = result });
-            else
-                return Result(new { retVal = result });
+            AmhLairProxy.TryConvertIpAddressToHex(destip, out uint result);
+            return Result(new { retVal = result });
         }
     }
 }

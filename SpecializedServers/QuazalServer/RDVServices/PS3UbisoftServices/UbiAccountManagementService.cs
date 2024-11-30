@@ -3,6 +3,7 @@ using QuazalServer.QNetZ;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.RMC;
+using RDVServices;
 
 namespace QuazalServer.RDVServices.PS3UbisoftServices
 {
@@ -15,15 +16,8 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		[RMCMethod(1)]
 		public RMCResult CreateAccount()
 		{
-            if (Context != null && Context.Client.PlayerInfo != null)
-			{
-				UbiAccount? account = UbisoftDatabase.AccountDatabase.CreateAccount(Context.Client.PlayerInfo);
-
-				if (account != null)
-                    return Result(new { ubi_account = account, failed_reasons = new List<ValidationFailureReason>() });
-            }
-
-			return Error(0);
+            UNIMPLEMENTED();
+            return Error(0);
         }
 
 		[RMCMethod(2)]
@@ -35,100 +29,60 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		[RMCMethod(3)]
 		public RMCResult GetAccount()
 		{
-			if (Context != null && Context.Client.PlayerInfo != null)
-			{
-                PlayerInfo? playerInfo = Context.Client.PlayerInfo;
-
-				if (playerInfo != null)
-				{
-					UbiAccount? account = UbisoftDatabase.AccountDatabase.GetAccountByUbiAcctId(playerInfo.AccountId, playerInfo.UbiAcctName);
-
-                    if (account != null)
-                        return Result(new { account = account, exist = true });
-                    else if (!string.IsNullOrEmpty(playerInfo.Name))
-					{
-						if (playerInfo.Name == "Tracking")
-                            return Result(new { account = UbisoftDatabase.AccountDatabase.GetTrackingAccount(), exist = true });
-						else
-						{
-							if (Context.Handler.AccessKey == "QusaPha9") // Workaround for UplayV2 freeze in RPCS3.
-                                return Result(new
-                                {
-                                    account = new UbiAccount()
-                                    {
-                                        m_ubi_account_id = GuidGenerator.UBISOFTGenerateGuid(playerInfo.AccountId, playerInfo.Name),
-                                        m_username = playerInfo.Name,
-                                        m_password = string.Empty,
-                                        m_first_name = playerInfo.Name,
-                                        m_last_name = playerInfo.Name,
-                                        m_country_code = "KZ",
-                                        m_email = "whatever@dontcare.com",
-                                        m_preferred_language = "en",
-                                        m_gender = 0,
-                                        m_opt_in = true,
-                                        m_third_party_opt_in = true,
-                                        m_status = new UbiAccountStatus()
-                                        {
-                                            m_basic_status = 2,
-                                            m_missing_required_informations = false,
-                                            m_pending_deactivation = false,
-                                            m_recovering_password = true
-                                        },
-                                        m_external_accounts = new List<ExternalAccount>()
-                                        {
-                                            new ExternalAccount()
-                                            {
-                                                m_account_type = 11,
-                                                m_id = "loh",
-                                                m_username = "aabb0"
-                                            },
-                                            new ExternalAccount()
-                                            {
-                                                m_account_type = 25,
-                                                m_id = "pidr",
-                                                m_username = "aabb1"
-                                            },
-                                            new ExternalAccount()
-                                            {
-                                                m_account_type = 31,
-                                                m_id = "whatev",
-                                                m_username = "aabb2"
-                                            }
-
-                                        },
-                                        m_date_of_birth = new DateTime(1990, 11, 1)
-                                    },
-                                    exist = true
-                                });
-                            else
-                                return Result(new { account = playerInfo.Name, exist = false });
-                        }
+            var playerInfo = Context.Client.PlayerInfo;
+            var account = new UbiAccount()
+            {
+                m_ubi_account_id = playerInfo.AccountId,
+                m_username = playerInfo.Name,
+                m_password = "",
+                m_first_name = "",
+                m_last_name = "",
+                m_country_code = "KZ",
+                m_email = "whatever@dontcare.com",
+                m_preferred_language = "en",
+                m_gender = 0,
+                m_opt_in = true,
+                m_third_party_opt_in = true,
+                m_status = new UbiAccountStatus()
+                {
+                    m_basic_status = 2,
+                    m_missing_required_informations = false,
+                    m_pending_deactivation = false,
+                    m_recovering_password = true
+                },
+                m_external_accounts = new List<ExternalAccount>()
+                {
+                    new ExternalAccount()
+                    {
+                        m_account_type = 11,
+                        m_id = "loh",
+                        m_username = "aabb0"
+                    },
+                    new ExternalAccount()
+                    {
+                        m_account_type = 25,
+                        m_id = "pidr",
+                        m_username = "aabb1"
+                    },
+                    new ExternalAccount()
+                    {
+                        m_account_type = 31,
+                        m_id = "whatev",
+                        m_username = "aabb2"
                     }
-                }
-            }
 
-            return Result(new { exist = false });
+                },
+                m_date_of_birth = new System.DateTime(1990, 11, 1)
+            };
+
+            return Result(new { account = account, exist = true });
         }
 
         [RMCMethod(4)]
 		public RMCResult? LinkAccount(string ubi_account_username, string ubi_account_password)
 		{
-			if (Context != null && Context.Client.PlayerInfo != null)
-			{
-                UbiAccount? account = UbisoftDatabase.AccountDatabase.GetAccountByUsername(ubi_account_username);
-
-                if (account != null && account.m_password == ubi_account_password)
-                {
-                    Context.Client.PlayerInfo.UbiAcctName = account.m_username;
-                    Context.Client.PlayerInfo.UbiPass = account.m_password;
-					Context.Client.PlayerInfo.UbiMail = account.m_email;
-					Context.Client.PlayerInfo.UbiLanguageCode = account.m_preferred_language;
-                    Context.Client.PlayerInfo.UbiCountryCode = account.m_country_code;
-                    return Error(0);
-                }
-            }
-
-			return null; // Only way to reject invalid accounts.
+            UNIMPLEMENTED();
+            return Error(0);
         }
 
 		[RMCMethod(5)]
@@ -146,28 +100,22 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		[RMCMethod(6)]
 		public RMCResult ValidateUsername(string username)
 		{
-            if (Context != null && Context.Client.PlayerInfo != null)
-                Context.Client.PlayerInfo.UbiAcctName = username;
-
-            return Result(new { username_validation = new UsernameValidation() });
+            UNIMPLEMENTED();
+            return Error(0);
         }
 
 		[RMCMethod(7)]
 		public RMCResult ValidatePassword(string password, string username)
 		{
-            if (Context != null && Context.Client.PlayerInfo != null)
-                Context.Client.PlayerInfo.UbiPass = password;
-
-            return Result(new { failed_reasons = new List<ValidationFailureReason>() });
+            UNIMPLEMENTED();
+            return Error(0);
         }
 
 		[RMCMethod(8)]
 		public RMCResult ValidateEmail(string email)
 		{
-            if (Context != null && Context.Client.PlayerInfo != null)
-                Context.Client.PlayerInfo.UbiMail = email;
-
-            return Result(new { failed_reasons = new List<ValidationFailureReason>() });
+            UNIMPLEMENTED();
+            return Error(0);
         }
 
 		[RMCMethod(9)]
@@ -182,48 +130,86 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 			UNIMPLEMENTED();
 		}
 
-		[RMCMethod(11)]
-		public RMCResult LookupPrincipalIds(IEnumerable<string> ubiAccountIds)
-		{
-			var pids = new Dictionary<string, uint>();
-            UNIMPLEMENTED();
+        [RMCMethod(11)]
+        public RMCResult LookupPrincipalIds(IEnumerable<string> ubiAccountIds)
+        {
+            var pids = new Dictionary<string, uint>();
+            using (var db = DBHelper.GetDbContext(Context.Handler.Factory.Item1))
+            {
+                var usersList = db.Users.Where(x => ubiAccountIds.Contains(x.Username)).ToArray();
+
+                foreach (var usr in usersList)
+                {
+                    pids[usr.Username] = usr.Id;
+                }
+            }
             return Result(pids);
-		}
+        }
 
-		[RMCMethod(12)]
-		public RMCResult LookupUbiAccountIDsByPids(IEnumerable<uint> pids)
-		{
-			var ubiaccountIDs = new Dictionary<uint, string>();
-            UNIMPLEMENTED();
+        [RMCMethod(12)]
+        public RMCResult LookupUbiAccountIDsByPids(IEnumerable<uint> pids)
+        {
+            var ubiaccountIDs = new Dictionary<uint, string>();
+
+            using (var db = DBHelper.GetDbContext(Context.Handler.Factory.Item1))
+            {
+                var usersList = db.Users.Where(x => pids.Contains(x.Id)).ToArray();
+
+                foreach (var usr in usersList)
+                {
+                    ubiaccountIDs[usr.Id] = usr.PlayerNickName;
+                }
+            }
+
             return Result(ubiaccountIDs);
-		}
+        }
 
-		[RMCMethod(13)]
-		public RMCResult LookupUbiAccountIDsByUsernames(IEnumerable<string> Usernames)
-		{
-			var UbiAccountIDs = new Dictionary<string, string>();
+        [RMCMethod(13)]
+        public RMCResult LookupUbiAccountIDsByUsernames(IEnumerable<string> Usernames)
+        {
+            var UbiAccountIDs = new Dictionary<string, string>();
+
+            using (var db = DBHelper.GetDbContext(Context.Handler.Factory.Item1))
+            {
+                var usersList = db.Users.Where(x => Usernames.Contains(x.PlayerNickName)).ToArray();
+
+                foreach (var usr in usersList)
+                {
+                    UbiAccountIDs[usr.Username] = usr.PlayerNickName;
+                }
+            }
+
+            return Result(UbiAccountIDs);
+        }
+
+        [RMCMethod(14)]
+        public RMCResult LookupUsernamesByUbiAccountIDs(IEnumerable<string> UbiAccountIds)
+        {
+            var Usernames = new Dictionary<string, string>();
+
+            using (var db = DBHelper.GetDbContext(Context.Handler.Factory.Item1))
+            {
+                var usersList = db.Users.Where(x => UbiAccountIds.Contains(x.Username)).ToArray();
+
+                foreach (var usr in usersList)
+                {
+                    Usernames[usr.Username] = usr.Username;
+                }
+            }
+
+            return Result(Usernames);
+        }
+
+        [RMCMethod(15)]
+        public RMCResult LookupUbiAccountIDsByUsernameSubString(string UsernameSubString)
+        {
+            var UbiAccountIDs = new Dictionary<string, string>();
+
             UNIMPLEMENTED();
             return Result(UbiAccountIDs);
-		}
+        }
 
-		[RMCMethod(14)]
-		public RMCResult LookupUsernamesByUbiAccountIDs(IEnumerable<string> UbiAccountIds)
-		{
-			var Usernames = new Dictionary<string, string>();
-            UNIMPLEMENTED();
-            return Result(Usernames);
-		}
-
-		[RMCMethod(15)]
-		public RMCResult LookupUbiAccountIDsByUsernameSubString(string UsernameSubString)
-		{
-			var UbiAccountIDs = new Dictionary<string, string>();
-			
-			UNIMPLEMENTED();
-			return Result(UbiAccountIDs);
-		}
-
-		[RMCMethod(16)]
+        [RMCMethod(16)]
 		public void UserHasPlayed()
 		{
 			UNIMPLEMENTED();

@@ -13,15 +13,16 @@ namespace HTTPServer.RouteHandlers
 {
     public class FileSystemRouteHandler
     {
-        public static (bool, HttpResponse) Handle(HttpRequest request, string absolutepath, string fullurl, string filePath, string Host, string Accept, 
-            string directoryUrl , bool GET)
+        public static (bool, HttpResponse) Handle(HttpRequest request, string absolutepath, string fullurl,
+            string filePath, string UserAgent, string Host, string Accept, 
+            string directoryUrl , bool GET, bool noCompressCacheControl)
         {
             if (Directory.Exists(filePath) && filePath.EndsWith("/"))
-                return (false, Handle_LocalDir(request, filePath, directoryUrl));
+                return (false, Handle_LocalDir(request, filePath, directoryUrl, noCompressCacheControl));
             else if (File.Exists(filePath))
-                return (true, Handle_LocalFile(request, filePath));
+                return (true, Handle_LocalFile(request, filePath, UserAgent, noCompressCacheControl));
             else if (!string.IsNullOrEmpty(Accept) && Accept.Contains("text/html") && Directory.Exists(filePath + "/"))
-                return (false, Handle_ApachePermanentRedirect(request, absolutepath, filePath, Host));
+                return (false, Handle_ApachePermanentRedirect(request, absolutepath, filePath, Host, noCompressCacheControl));
 
             if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
             {
@@ -70,16 +71,19 @@ namespace HTTPServer.RouteHandlers
                 return HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
-        private static HttpResponse Handle_LocalFile(HttpRequest request, string filePath)
+        private static HttpResponse Handle_LocalFile(HttpRequest request, string filePath, string UserAgent, bool noCompressCacheControl)
         {
-            HttpResponse? response = new()
+            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+
+            // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+            HttpResponse? response = new(null, !string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
+                            && (ContentType == "video/mp4" || ContentType == "video/mpeg" || ContentType == "audio/mpeg"))
                 {
                     HttpStatusCode = HttpStatusCode.OK
                 };
 				
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
-            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
             if (ContentType == "application/octet-stream")
             {
                 byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
@@ -105,7 +109,7 @@ namespace HTTPServer.RouteHandlers
 
                 response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, crc.Crc32Result));
             }
-            else if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/"))
+            else if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/"))
             {
                 if (encoding.Contains("zstd"))
                 {
@@ -136,7 +140,7 @@ namespace HTTPServer.RouteHandlers
             return response;
         }
 
-        private static HttpResponse Handle_ApachePermanentRedirect(HttpRequest request, string absolutepath, string filePath, string Host)
+        private static HttpResponse Handle_ApachePermanentRedirect(HttpRequest request, string absolutepath, string filePath, string Host, bool noCompressCacheControl)
         {
             HttpResponse? response = new()
             {
@@ -159,7 +163,7 @@ namespace HTTPServer.RouteHandlers
             response.Headers.Add("Location", $"http://{(!string.IsNullOrEmpty(Host) ? Host : request.ServerIP)}{absolutepath}/");
             response.Headers.Add("Content-Type", "text/html; charset=iso-8859-1");
 
-            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+            if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
             {
                 if (encoding.Contains("zstd"))
                 {
@@ -218,13 +222,13 @@ namespace HTTPServer.RouteHandlers
             return response;
         }
 
-        private static HttpResponse Handle_LocalDir(HttpRequest request, string filePath, string directoryUrl)
+        private static HttpResponse Handle_LocalDir(HttpRequest request, string filePath, string directoryUrl, bool noCompressCacheControl)
         {
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
             if (request.QueryParameters != null && request.QueryParameters.TryGetValue("directory", out string? queryparam) && queryparam == "on")
             {
-                if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
                 {
                     if (encoding.Contains("zstd"))
                         return HttpResponse.Send(HTTPProcessor.CompressZstd(
@@ -249,7 +253,7 @@ namespace HTTPServer.RouteHandlers
                 string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], directoryUrl);
                 if (!string.IsNullOrEmpty(m3ufile))
                 {
-                    if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                    if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
                     {
                         if (encoding.Contains("zstd"))
                             return HttpResponse.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(m3ufile)), "audio/x-mpegurl", new string[][] { new string[] { "Content-Encoding", "zstd" } });
@@ -277,7 +281,7 @@ namespace HTTPServer.RouteHandlers
                         if (indexFile.Contains(".php") && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder))
                         {
                             (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath + $"/{indexFile}", HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
-                            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                            if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                             {
                                 if (encoding.Contains("zstd"))
                                     return HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
@@ -295,7 +299,7 @@ namespace HTTPServer.RouteHandlers
                         }
                         else
                         {
-                            if (HTTPServerConfiguration.EnableHTTPCompression && !string.IsNullOrEmpty(encoding))
+                            if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
                             {
                                 if (encoding.Contains("zstd"))
                                     return HttpResponse.Send(HTTPProcessor.CompressZstd(File.ReadAllBytes(filePath + $"/{indexFile}")), "text/html", new string[][] { new string[] { "Content-Encoding", "zstd" } });
