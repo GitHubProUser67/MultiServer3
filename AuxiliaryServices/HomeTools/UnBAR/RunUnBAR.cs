@@ -284,51 +284,37 @@ namespace HomeTools.UnBAR
                         archive.WriteMap(filePath);
                         File.WriteAllText(barDirectoryPath + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
 
-                        // Create a list to hold the tasks
-                        List<Task> TOCTasks = new List<Task>();
-
                         foreach (TOCEntry tableOfContent in archive.TableOfContents)
                         {
                             byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
 
                             if (FileData != null)
                             {
-                                // Create a task for each iteration
-                                Task task = Task.Run(() =>
+                                try
                                 {
-                                    try
+                                    if (archive.GetHeader().Version == 512)
+                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
+                                    else
                                     {
-                                        if (archive.GetHeader().Version == 512)
-                                            ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
-                                        else
+                                        using (MemoryStream memoryStream = new MemoryStream(FileData))
                                         {
-                                            using (MemoryStream memoryStream = new MemoryStream(FileData))
-                                            {
-                                                ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath,
-                                                    FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)), cdnMode);
-                                                memoryStream.Flush();
-                                            }
+                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath,
+                                                FileTypeAnalyser.Instance.GetRegisteredExtension(FileTypeAnalyser.Instance.Analyse(memoryStream)), cdnMode);
+                                            memoryStream.Flush();
                                         }
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} or failed to scan for extension - {ex}");
+                                }
+                                catch (Exception ex)
+                                {
+                                    LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} or failed to scan for extension - {ex}");
 
-                                        if (archive.GetHeader().Version == 512)
-                                            ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
-                                        else
-                                            ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath, ".unknown", cdnMode);
-                                    }
-                                });
-
-                                TOCTasks.Add(task);
+                                    if (archive.GetHeader().Version == 512)
+                                        ExtractToFileBarVersion2(archive.GetHeader().Key, archive, tableOfContent.FileName, barDirectoryPath);
+                                    else
+                                        ExtractToFileBarVersion1(RawBarData, archive, tableOfContent.FileName, barDirectoryPath, ".unknown", cdnMode);
+                                }
                             }
                         }
-
-                        // Wait for all tasks to complete
-                        await Task.WhenAll(TOCTasks).ConfigureAwait(false);
-
-                        TOCTasks = null;
 
                         if (File.Exists(filePath + ".map"))
                             File.Move(filePath + ".map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
