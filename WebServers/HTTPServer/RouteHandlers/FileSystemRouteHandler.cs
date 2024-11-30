@@ -109,7 +109,9 @@ namespace HTTPServer.RouteHandlers
 
                 response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, crc.Crc32Result));
             }
-            else if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && ContentType.StartsWith("text/"))
+            else if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
+                && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
+                         || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
             {
                 if (encoding.Contains("zstd"))
                 {

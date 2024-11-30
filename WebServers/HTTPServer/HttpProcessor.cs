@@ -1524,7 +1524,9 @@ namespace HTTPServer
 
                                 long FileLength = new FileInfo(filePath).Length;
 
-                                if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
+                                if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding)
+                                    && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
+                                    || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
                                 {
                                     if (acceptencoding.Contains("zstd"))
                                     {
@@ -1726,7 +1728,9 @@ namespace HTTPServer
 
                         long FileLength = new FileInfo(filePath).Length;
 
-                        if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding) && ContentType.StartsWith("text/"))
+                        if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding)
+                            && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
+                                    || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
                         {
                             if (acceptencoding.Contains("zstd"))
                             {
