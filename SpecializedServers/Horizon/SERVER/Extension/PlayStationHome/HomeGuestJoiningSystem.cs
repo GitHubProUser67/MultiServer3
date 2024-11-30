@@ -1,14 +1,16 @@
 ﻿using CustomLogger;
 using Horizon.MUM.Models;
-using Horizon.RT.Common;
-using Horizon.RT.Models;
 using NetworkLibrary.HTTP;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Horizon.SERVER.Extension.PlayStationHome
 {
     public class HomeGuestJoiningSystem
     {
+        private static readonly byte[] RandCRCKey = NetworkLibrary.Extension.OtherExtensions.GenerateRandomBytes(24);
+        private static readonly byte[] RandCRCIV = NetworkLibrary.Extension.OtherExtensions.GenerateRandomBytes(8);
+
         public static Task<bool> SendCrcOverride(string targetClientIp, string? AccessToken, string SceneCrc, bool Retail)
         {
             bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
@@ -120,15 +122,25 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             int res2;
 
             Ionic.Crc.CRC32? crc = new();
+            TripleDES des = TripleDES.Create();
+
+            des.Mode = CipherMode.CBC;
+            des.Padding = PaddingMode.PKCS7;
+            des.Key = RandCRCKey;
+            des.IV = RandCRCIV;
+
+            ICryptoTransform cryptoTransform = des.CreateEncryptor();
 
             byte[] SaltedDateTimeBytes = Encoding.UTF8.GetBytes("S1l3" + dateSalt.ToString());
             byte[] PassCode = Encoding.UTF8.GetBytes(salt1 + salt2 + "H3m0");
 
-            crc.SlurpBlock(PassCode, 0, PassCode.Length);
+            crc.SlurpBlock(cryptoTransform.TransformFinalBlock(PassCode, 0, PassCode.Length), 0, PassCode.Length);
 
             res1 = crc.Crc32Result;
 
-            crc.SlurpBlock(SaltedDateTimeBytes, 0, SaltedDateTimeBytes.Length);
+            crc.SlurpBlock(cryptoTransform.TransformFinalBlock(SaltedDateTimeBytes, 0, SaltedDateTimeBytes.Length), 0, SaltedDateTimeBytes.Length);
+			
+            des.Dispose();
 
             res2 = crc.Crc32Result;
 
