@@ -17,7 +17,7 @@ namespace SSFWServer.Services
 
         public bool HandleAdminObjectService(string UserAgent)
         {
-            string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionid ?? string.Empty);
+            string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionid);
 
             if (!string.IsNullOrEmpty(username) && File.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json"))
             {
