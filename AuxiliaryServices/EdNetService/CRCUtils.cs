@@ -43,7 +43,7 @@ namespace EdNetService
         {
             uint CRCValue = 0;
 
-            if (b.Length >= 2 && b[0] == '"' && b[^1] == '"')
+            if (b.Length >= 2 && b[0] == '"' && b[b.Length - 1] == '"')
             {
                 char[] result = new char[b.Length - 2];
                 Array.Copy(b, 1, result, 0, result.Length);

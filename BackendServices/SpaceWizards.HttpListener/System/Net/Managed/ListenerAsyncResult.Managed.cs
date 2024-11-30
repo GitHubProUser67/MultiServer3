@@ -197,7 +197,7 @@ namespace SpaceWizards.HttpListener
 
             if (_exception != null)
             {
-#if NET462_OR_GREATER || NETCORE1_0_OR_GREATER
+#if NETCORE1_0_OR_GREATER
                 ExceptionDispatchInfo.Throw(_exception);
 #else
                 throw _exception;

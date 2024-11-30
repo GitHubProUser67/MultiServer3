@@ -321,8 +321,8 @@ namespace DLNAService
             {
                 string HTMLPosition = GetPosition();
                 if (HTMLPosition.Length < 50) return 0;
-                int RTime = TotalSeconds(HTMLPosition.ChopOffBefore("<RelTime>").ChopOffAfter("</RelTime>")[2..]);
-                int TTime = TotalSeconds(HTMLPosition.ChopOffBefore("<TrackDuration>").ChopOffAfter("</TrackDuration>")[2..]);
+                int RTime = TotalSeconds(HTMLPosition.ChopOffBefore("<RelTime>").ChopOffAfter("</RelTime>").Substring(2));
+                int TTime = TotalSeconds(HTMLPosition.ChopOffBefore("<TrackDuration>").ChopOffAfter("</TrackDuration>").Substring(2));
                 if (RTime < 3 || TTime < 2)
                 {
                     NoPlayCount++;

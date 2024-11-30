@@ -198,7 +198,7 @@ namespace SpaceWizards.HttpListener
             }
             catch (IOException e) when (e.InnerException is ArgumentException || e.InnerException is InvalidOperationException)
             {
-#if NET462_OR_GREATER || NETCORE1_0_OR_GREATER
+#if NETCORE1_0_OR_GREATER
                 ExceptionDispatchInfo.Throw(e.InnerException);
 #else
                 throw e.InnerException;
