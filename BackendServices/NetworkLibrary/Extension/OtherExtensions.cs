@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using Tpm2Lib;
 
 namespace NetworkLibrary.Extension
 {
@@ -336,6 +338,39 @@ namespace NetworkLibrary.Extension
             return result.ToArray();
         }
 
+        public static byte[] GenerateRandomBytes(ushort size)
+        {
+            Tpm2 _tpm = null;
+
+            try
+            {
+                TbsDevice _crypto_device = new TbsDevice();
+                _crypto_device.Connect();
+                _tpm = new Tpm2(_crypto_device);
+
+                return _tpm.GetRandom(size);
+            }
+            catch
+            {
+                // Fallback to classic .NET version.
+            }
+            finally
+            {
+                if (_tpm != null) _tpm.Dispose();
+            }
+
+            byte[] result = new byte[size];
+
+#if NETCOREAPP2_0_OR_GREATER
+            RandomNumberGenerator.Fill(result);
+#else
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+                rng.GetBytes(result);
+#endif
+
+            return result;
+        }
+
         /// <summary>
         /// Adds an element to a double string array.
         /// <para>Ajoute un élément à une liste double de strings.</para>
@@ -433,42 +468,6 @@ namespace NetworkLibrary.Extension
             }
 
             return -1;
-        }
-
-        /// <summary>
-        /// Prints a sequence of bytes within a byte array when found.
-        /// <para>Affiche une séquence de bytes dans un tableau de bytes quand un match est trouvé.</para>
-        /// </summary>
-        /// <param name="buffer">The array in which we search for the sequence.</param>
-        /// <param name="searchPattern">The byte array sequence to find.</param>
-        /// <param name="offset">The offset from where we start our research.</param>
-        public static void PrintBytePatternMatch(byte[] buffer, byte[] searchPattern, int offset = 0)
-        {
-            if (buffer.Length > 0 && searchPattern.Length > 0 && offset <= buffer.Length - searchPattern.Length && buffer.Length >= searchPattern.Length)
-            {
-                for (int i = offset; i <= buffer.Length - searchPattern.Length; i++)
-                {
-                    if (buffer[i] == searchPattern[0])
-                    {
-                        if (buffer.Length > 1)
-                        {
-                            bool matched = true;
-                            for (int y = 1; y <= searchPattern.Length - 1; y++)
-                            {
-                                if (buffer[i + y] != searchPattern[y])
-                                {
-                                    matched = false;
-                                    break;
-                                }
-                            }
-                            if (matched)
-                                CustomLogger.LoggerAccessor.LogInfo($"[DataUtils] - PrintBytePattern - Sequence: {BitConverter.ToString(searchPattern).Replace("-", string.Empty)} was found at Position: {i}");
-                        }
-                        else
-                            CustomLogger.LoggerAccessor.LogInfo($"[DataUtils] - PrintBytePattern - Sequence: {BitConverter.ToString(searchPattern).Replace("-", string.Empty)} was found at Position: {i}");
-                    }
-                }
-            }
         }
     }
 }
