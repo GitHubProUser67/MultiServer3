@@ -149,6 +149,8 @@ namespace HTTPServer
                 return;
 
             bool IsInterlocked = false;
+            HttpRequest? request = null;
+            HttpResponse? response = null;
 
             try
             {
@@ -166,8 +168,6 @@ namespace HTTPServer
                 IsInterlocked = Interlocked.Increment(ref KeepAliveClients) > 0;
                 bool AllowKeepAlive = KeepAliveClients < HTTPServerConfiguration.MaximumAllowedKeepAliveClients;
 
-                HttpRequest? request = null;
-
                 using Stream? inputStream = GetInputStream(tcpClient);
                 using (Stream? outputStream = GetOutputStream(tcpClient))
                 {
@@ -180,15 +180,26 @@ namespace HTTPServer
                             else
                                 request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
 
-                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery) && !request.RetrieveHeaderValue("User-Agent").Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery))
                             {
+                                string UserAgent = request.RetrieveHeaderValue("User-Agent");
+
+                                if (UserAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                                {
+                                    WriteResponse(outputStream, request, HttpBuilder.NotAllowed(), null, false, false);
+                                    continue;
+                                }
+                                else if (response != null)
+                                {
+                                    response.Dispose();
+                                    response = null;
+                                }
+
                                 bool EtagCompatible = false;
                                 DateTime CurrentDate = DateTime.UtcNow;
-                                HttpResponse? response = null;
                                 string Method = request.Method;
                                 string Host = request.RetrieveHeaderValue("host", false);
                                 string Accept = request.RetrieveHeaderValue("Accept");
-                                string UserAgent = request.RetrieveHeaderValue("User-Agent");
                                 string cacheControl = request.RetrieveHeaderValue("Cache-Control");
                                 bool noCompressCacheControl = !string.IsNullOrEmpty(cacheControl) && cacheControl == "no-transform";
                                 string SuplementalMessage = string.Empty;
@@ -968,12 +979,17 @@ namespace HTTPServer
                                                                 }
                                                                 else
                                                                 {
-                                                                    if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
+                                                                    bool fileExists = File.Exists(filePath);
+
+                                                                    if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
+                                                                    {
                                                                         Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
+                                                                        continue;
+                                                                    }
                                                                     else
                                                                     {
                                                                         (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
-                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", true, noCompressCacheControl);
+                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", fileExists, true, noCompressCacheControl);
                                                                         EtagCompatible = handleResponse.Item1;
                                                                         response = handleResponse.Item2;
                                                                     }
@@ -1016,12 +1032,17 @@ namespace HTTPServer
                                                                 }
                                                                 else
                                                                 {
-                                                                    if (File.Exists(filePath) && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
+                                                                    bool fileExists = File.Exists(filePath);
+
+                                                                    if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
+                                                                    {
                                                                         Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
+                                                                        continue;
+                                                                    }
                                                                     else
                                                                     {
                                                                         (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
-                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", false, noCompressCacheControl);
+                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", fileExists, false, noCompressCacheControl);
                                                                         EtagCompatible = handleResponse.Item1;
                                                                         response = handleResponse.Item2;
                                                                     }
@@ -1174,18 +1195,13 @@ namespace HTTPServer
                                     }
                                 }
 
-                                if (response != null)
-                                    WriteResponse(outputStream, request, response, filePath, AllowKeepAlive, EtagCompatible);
+                                WriteResponse(outputStream, request, response, filePath, AllowKeepAlive, EtagCompatible);
                             }
                         }
-
-                        Thread.Sleep(1);
                     }
                     outputStream.Flush();
                 }
                 inputStream.Flush();
-
-                request?.Dispose();
             }
             catch (IOException ex)
             {
@@ -1206,6 +1222,9 @@ namespace HTTPServer
 			
             if (IsInterlocked)
                 Interlocked.Decrement(ref KeepAliveClients);
+
+            request?.Dispose();
+            response?.Dispose();
 
             tcpClient.Close();
             tcpClient.Dispose();
@@ -1235,17 +1254,19 @@ namespace HTTPServer
             return data;
         }
 
-        private static void WriteResponse(Stream stream, HttpRequest request, HttpResponse response, string filePath, bool AllowKeepAlive, bool EtagCompatible)
+        private static void WriteResponse(Stream stream, HttpRequest request, HttpResponse response, string? filePath, bool AllowKeepAlive, bool EtagCompatible)
         {
             try
             {
+                bool hasFilePath = !string.IsNullOrEmpty(filePath);
+
                 if (response.ContentStream != null)
                 {
                     bool KeepAlive = AllowKeepAlive && request.RetrieveHeaderValue("Connection").Equals("keep-alive");
                     string NoneMatch = EtagCompatible ? request.RetrieveHeaderValue("If-None-Match") : string.Empty;
                     string? EtagMD5 = EtagCompatible ? HTTPProcessor.ComputeStreamMD5(response.ContentStream) : null;
                     bool isNoneMatchValid = EtagCompatible && !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
-                    bool isModifiedSinceValid = EtagCompatible && HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
+                    bool isModifiedSinceValid = hasFilePath && EtagCompatible && HTTPProcessor.CheckLastWriteTime(filePath, request.RetrieveHeaderValue("If-Modified-Since"));
 
                     if (EtagCompatible && ((isNoneMatchValid && isModifiedSinceValid) ||
                         (isNoneMatchValid && string.IsNullOrEmpty(request.RetrieveHeaderValue("If-Modified-Since"))) ||
@@ -1278,7 +1299,7 @@ namespace HTTPServer
                     }
                     else
                     {
-                        int buffersize = HTTPServerConfiguration.BufferSize;
+                        int bufferSize = HTTPServerConfiguration.BufferSize;
                         long totalBytes = response.ContentStream.Length;
                         long bytesLeft = totalBytes;
                         string? encoding = null;
@@ -1303,7 +1324,7 @@ namespace HTTPServer
                             response.Headers.Add("Access-Control-Max-Age", "1728000");
                         }
 
-                        if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
+                        if (!response.Headers.Keys.Any(key => key.Equals("content-type", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Content-Type", "text/plain");
 
                         if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1314,8 +1335,8 @@ namespace HTTPServer
                                 response.Headers.Add("ETag", EtagMD5);
                                 response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             }
-                            if (File.Exists(filePath))
-                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                            if (hasFilePath)
+                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath!).ToString("r"));
                         }
 
                         if (!response.Headers.ContainsKey("Content-Length"))
@@ -1332,10 +1353,14 @@ namespace HTTPServer
 
                         stream.Flush();
 
+                        // We override the bufferSize for large content, else, we monster the CPU.
+                        if (totalBytes >= 500000 && bufferSize < 500000)
+                            bufferSize = 500000;
+
                         using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
                         while (bytesLeft > 0)
                         {
-                            Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                            Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
                             int n = response.ContentStream.Read(buffer);
 
                             ctwire.Write(buffer);
@@ -1368,7 +1393,7 @@ namespace HTTPServer
                 else
                 {
                     if (response.HttpStatusCode == HttpStatusCode.NotFound)
-                        LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, filePath, response.HttpStatusCode));
+                        LoggerAccessor.LogWarn(string.Format("[HTTP] - {0}:{1} Requested a non-existant file: {2} -> {3}", request.IP, request.Port, hasFilePath ? filePath : "Invalid Path", response.HttpStatusCode));
                     else if (response.HttpStatusCode == HttpStatusCode.NotImplemented || response.HttpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
                         LoggerAccessor.LogWarn(string.Format("{0} -> {1}", request.RawUrlWithQuery, response.HttpStatusCode));
                     else
@@ -1420,7 +1445,7 @@ namespace HTTPServer
                     if (HeaderString.Contains(','))
                     {
                         using HugeMemoryStream ms = new();
-                        int buffersize = HTTPServerConfiguration.BufferSize;
+                        int bufferSize = HTTPServerConfiguration.BufferSize;
                         Span<byte> Separator = new byte[] { 0x0D, 0x0A };
                         if (ContentType == "application/octet-stream")
                         {
@@ -1610,11 +1635,15 @@ namespace HTTPServer
                         long totalBytes = ms.Length;
                         long bytesLeft = totalBytes;
 
+                        // We override the bufferSize for large content, else, we monster the CPU.
+                        if (totalBytes >= 500000 && bufferSize < 500000)
+                            bufferSize = 500000;
+
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                         {
                             while (bytesLeft > 0)
                             {
-                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
                                 int n = ms.Read(buffer);
 
                                 ctwire.Write(buffer);
@@ -1760,7 +1789,7 @@ namespace HTTPServer
                     }
                     else
                     {
-                        int buffersize = HTTPServerConfiguration.BufferSize;
+                        int bufferSize = HTTPServerConfiguration.BufferSize;
                         long totalBytes = endByte - startByte;
                         long bytesLeft = totalBytes;
                         string? encoding = null;
@@ -1806,11 +1835,15 @@ namespace HTTPServer
 
                         stream.Flush();
 
+                        // We override the bufferSize for large content, else, we monster the CPU.
+                        if (totalBytes >= 500000 && bufferSize < 500000)
+                            bufferSize = 500000;
+
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                         {
                             while (bytesLeft > 0)
                             {
-                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
                                 int n = fs.Read(buffer);
 
                                 ctwire.Write(buffer);
@@ -1880,7 +1913,7 @@ namespace HTTPServer
                         }
                         else
                         {
-                            int buffersize = HTTPServerConfiguration.BufferSize;
+                            int bufferSize = HTTPServerConfiguration.BufferSize;
                             long totalBytes = response.ContentStream.Length;
                             long bytesLeft = totalBytes;
                             string? encoding = null;
@@ -1898,7 +1931,7 @@ namespace HTTPServer
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
 
-                            if (!response.Headers.ContainsKey("Content-Type") && !response.Headers.ContainsKey("Content-type") && !response.Headers.ContainsKey("content-type"))
+                            if (!response.Headers.Keys.Any(key => key.Equals("content-type", StringComparison.OrdinalIgnoreCase)))
                                 response.Headers.Add("Content-Type", "text/plain");
 
                             if (response.HttpStatusCode == HttpStatusCode.OK)
@@ -1909,8 +1942,7 @@ namespace HTTPServer
                                     response.Headers.Add("ETag", EtagMD5);
                                     response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                                 }
-                                if (File.Exists(filePath))
-                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                             }
 
                             if (!response.Headers.ContainsKey("Content-Length"))
@@ -1927,10 +1959,14 @@ namespace HTTPServer
 
                             stream.Flush();
 
+                            // We override the bufferSize for large content, else, we monster the CPU.
+                            if (totalBytes >= 500000 && bufferSize < 500000)
+                                bufferSize = 500000;
+
                             using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
                             while (bytesLeft > 0)
                             {
-                                Span<byte> buffer = new byte[bytesLeft > buffersize ? buffersize : bytesLeft];
+                                Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
                                 int n = response.ContentStream.Read(buffer);
 
                                 ctwire.Write(buffer);
