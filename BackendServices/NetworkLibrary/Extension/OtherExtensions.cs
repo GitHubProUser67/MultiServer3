@@ -37,14 +37,6 @@ namespace NetworkLibrary.Extension
             return false;
         }
 
-        public static bool RemoveAt<T>(this HashSet<T> hashSet, int index)
-        {
-            if (index < 0 || index >= hashSet.Count)
-                return false;
-
-            return hashSet.Remove(hashSet.Skip(index).First());
-        }
-
         /// <summary>
         /// Convert UTF-8 byte array to array of uint, each containing 4 chars to be manipulated
         /// </summary>
