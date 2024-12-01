@@ -1354,7 +1354,7 @@ namespace HTTPServer
                         stream.Flush();
 
                         // We override the bufferSize for large content, else, we monster the CPU.
-                        if (totalBytes >= 500000 && bufferSize < 500000)
+                        if (totalBytes > 8000000 && bufferSize < 500000)
                             bufferSize = 500000;
 
                         using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
@@ -1636,7 +1636,7 @@ namespace HTTPServer
                         long bytesLeft = totalBytes;
 
                         // We override the bufferSize for large content, else, we monster the CPU.
-                        if (totalBytes >= 500000 && bufferSize < 500000)
+                        if (totalBytes > 8000000 && bufferSize < 500000)
                             bufferSize = 500000;
 
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
@@ -1836,7 +1836,7 @@ namespace HTTPServer
                         stream.Flush();
 
                         // We override the bufferSize for large content, else, we monster the CPU.
-                        if (totalBytes >= 500000 && bufferSize < 500000)
+                        if (totalBytes > 8000000 && bufferSize < 500000)
                             bufferSize = 500000;
 
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
@@ -1960,7 +1960,7 @@ namespace HTTPServer
                             stream.Flush();
 
                             // We override the bufferSize for large content, else, we monster the CPU.
-                            if (totalBytes >= 500000 && bufferSize < 500000)
+                            if (totalBytes > 8000000 && bufferSize < 500000)
                                 bufferSize = 500000;
 
                             using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
