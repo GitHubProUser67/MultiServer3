@@ -15,11 +15,11 @@ namespace HTTPServer.RouteHandlers
     {
         public static (bool, HttpResponse) Handle(HttpRequest request, string absolutepath, string fullurl,
             string filePath, string UserAgent, string Host, string Accept, 
-            string directoryUrl , bool GET, bool noCompressCacheControl)
+            string directoryUrl, bool fileExists , bool GET, bool noCompressCacheControl)
         {
             if (Directory.Exists(filePath) && filePath.EndsWith("/"))
                 return (false, Handle_LocalDir(request, filePath, directoryUrl, noCompressCacheControl));
-            else if (File.Exists(filePath))
+            else if (fileExists)
                 return (true, Handle_LocalFile(request, filePath, UserAgent, noCompressCacheControl));
             else if (!string.IsNullOrEmpty(Accept) && Accept.Contains("text/html") && Directory.Exists(filePath + "/"))
                 return (false, Handle_ApachePermanentRedirect(request, absolutepath, filePath, Host, noCompressCacheControl));

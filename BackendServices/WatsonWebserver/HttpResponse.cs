@@ -493,14 +493,16 @@ namespace WatsonWebserver
                 {
                     if (stream != null && stream.CanRead && contentLength > 0)
                     {
+                        // We override the bufferSize for large content, else, we monster the CPU.
+                        int BufferSize = contentLength >= 500000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
                         long bytesRemaining = contentLength;
 
                         _Data = new MemoryStream();
 
                         while (bytesRemaining > 0)
                         {
-                            int bytesRead = 0;
-                            byte[] buffer = new byte[_Settings.IO.StreamBufferSize];
+                            int bytesRead;
+                            byte[] buffer = new byte[BufferSize];
                             bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
                             if (bytesRead > 0)
                             {
