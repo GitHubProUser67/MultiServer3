@@ -2,6 +2,7 @@ using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.RMC;
+using QuazalServer.QNetZ;
 
 namespace QuazalServer.RDVServices.PS3UbisoftServices
 {
@@ -28,7 +29,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         }
 
 		[RMCMethod(3)]
-        public RMCResult GetActionsCount(string platform_code, string game_code)
+        public RMCResult GetActionsCount(string game_code)
 		{
             UNIMPLEMENTED();
 
@@ -37,7 +38,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		}
 
 		[RMCMethod(4)]
-		public RMCResult GetActionsCompletedCount(string platform_code, string game_code)
+		public RMCResult GetActionsCompletedCount(string game_code)
 		{
             UNIMPLEMENTED();
             return Error(0);
@@ -46,12 +47,17 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		[RMCMethod(5)]
 		public RMCResult GetRewards(int start_row_index, int maximum_rows, string sort_expression, string culture_name)
 		{
-            UNIMPLEMENTED();
-            return Error(0);
+			var rewards = new List<UPlayReward>()
+			{
+
+			};
+
+            // return 
+            return Result(rewards);
         }
 
-		[RMCMethod(6)]
-		public RMCResult GetRewardsPurchased(int startRowIndex, int maximumRows, string sortExpression, string cultureName, string platformCode)
+        [RMCMethod(6)]
+		public RMCResult GetRewardsPurchased(int startRowIndex, int maximumRows, string sortExpression, string cultureName)
 		{
             UNIMPLEMENTED();
 
@@ -62,14 +68,14 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		}
 
 		[RMCMethod(7)]
-		public RMCResult UplayWelcome(string culture, string platformCode)
+		public RMCResult UplayWelcome(string culture)
         {
             var result = new List<UplayAction>();
 			return Result(result);
 		}
 
 		[RMCMethod(8)]
-		public RMCResult SetActionCompleted(string actionCode, string cultureName, string platformCode)
+		public RMCResult SetActionCompleted(string actionCode, string cultureName)
 		{
 			UNIMPLEMENTED();
 			var unlockedAction = new UplayAction()
@@ -83,7 +89,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 			unlockedAction.m_platforms.Add(new UplayActionPlatform()
             {
 				m_completed = true,
-				m_platformCode = platformCode,
+				m_platformCode = "PS3",
 				m_specificKey = string.Empty
 			});
 
@@ -91,7 +97,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 		}
 
 		[RMCMethod(9)]
-		public RMCResult SetActionsCompleted(IEnumerable<string> actionCodeList, string cultureName, string platformCode)
+		public RMCResult SetActionsCompleted(IEnumerable<string> actionCodeList, string cultureName)
 		{
 			var actionList = new List<UplayAction>();
 			return Result(actionList);
@@ -105,13 +111,22 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         }
 
 		[RMCMethod(11)]
-		public RMCResult GetVirtualCurrencyUserBalance(string platform_code)
+		public RMCResult GetVirtualCurrencyUserBalance()
 		{
-            UNIMPLEMENTED();
-            return Error(0);
+            int numOfTokens = 0;
+
+			if (Context != null && Context.Client.PlayerInfo != null && !string.IsNullOrEmpty(Context.Client.PlayerInfo.Name))
+			{
+                string tokenProfileDataPath = QuazalServerConfiguration.QuazalStaticFolder + $"/Database/Uplay/account_data/currency/{Context.Client.PlayerInfo.Name}.txt";
+
+				if (File.Exists(tokenProfileDataPath) && int.TryParse(File.ReadAllText(tokenProfileDataPath), out int localNumOfTokens))
+					numOfTokens = localNumOfTokens;
+            }
+
+            return Result(new { numOfTokens });
         }
 
-		[RMCMethod(12)]
+        [RMCMethod(12)]
 		public RMCResult GetSectionsByKey(string culture_name, string section_key)
 		{
             UNIMPLEMENTED();
@@ -119,7 +134,7 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
         }
 
         [RMCMethod(13)]
-        public RMCResult BuyReward(string reward_code, string platform_code)
+        public RMCResult BuyReward(string reward_code)
         {
             UNIMPLEMENTED();
             return Error(0);

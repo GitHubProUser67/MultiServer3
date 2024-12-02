@@ -46,8 +46,13 @@ namespace QuazalServer.RDVServices.PS3DriverServices
 		[RMCMethod(5)]
 		public RMCResult GetRewards(int start_row_index, int maximum_rows, string sort_expression, string culture_name, string platform_code, string game_code)
 		{
-            UNIMPLEMENTED();
-            return Error(0);
+            var rewards = new List<UPlayReward>()
+			{
+
+			};
+
+            // return 
+            return Result(rewards);
         }
 
 		[RMCMethod(6)]
@@ -175,8 +180,17 @@ namespace QuazalServer.RDVServices.PS3DriverServices
 		[RMCMethod(11)]
 		public RMCResult GetVirtualCurrencyUserBalance(string platform_code)
 		{
-            UNIMPLEMENTED();
-            return Error(0);
+            int numOfTokens = 0;
+
+            if (Context != null && Context.Client.PlayerInfo != null && !string.IsNullOrEmpty(Context.Client.PlayerInfo.Name))
+            {
+                string tokenProfileDataPath = QuazalServerConfiguration.QuazalStaticFolder + $"/Database/Uplay/account_data/currency/{Context.Client.PlayerInfo.Name}.txt";
+
+                if (File.Exists(tokenProfileDataPath) && int.TryParse(File.ReadAllText(tokenProfileDataPath), out int localNumOfTokens))
+                    numOfTokens = localNumOfTokens;
+            }
+
+            return Result(new { numOfTokens });
         }
 
 		[RMCMethod(12)]

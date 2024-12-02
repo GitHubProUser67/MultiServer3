@@ -8,13 +8,6 @@ namespace QuazalServer.RDVServices.PS3DriverServices
     [RMCService(RMCProtocolId.MissionService)]
     public class MissionService : RMCServiceBase
     {
-        [RMCMethod(1)]
-        public RMCResult UKN1()
-        {
-            UNIMPLEMENTED();
-            return Error(0);
-        }
-
         [RMCMethod(3)]
         public RMCResult GetPersonaMissions()
         {
