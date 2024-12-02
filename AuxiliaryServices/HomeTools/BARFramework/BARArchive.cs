@@ -374,7 +374,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, OtherExtensions.ByteArrayToHexString(m_header.IV));
+                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, m_header.IV.ToHexString());
                     num += 16U;
                 }
                 textWriter.WriteLine("{0:X8} User: {1}", num, m_header.UserData);
@@ -383,7 +383,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, OtherExtensions.ByteArrayToHexString(m_header.Key));
+                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, m_header.Key.ToHexString());
                     num += 16U;
                 }
                 textWriter.WriteLine("\n== Table of Contents ==");
@@ -403,11 +403,11 @@ namespace HomeTools.BARFramework
                     {
                         textWriter.WriteLine("{0:X8} {1}[{2:X8}] size={3} IV={4}", new object[]
                         {
-                        num,
-                        tocentry.Path,
-                        (uint)tocentry.FileName.Value,
-                        tocentry.Size,
-                        OtherExtensions.ByteArrayToHexString(tocentry.IV)
+                            num,
+                            tocentry.Path,
+                            (uint)tocentry.FileName.Value,
+                            tocentry.Size,
+                            tocentry.IV.ToHexString()
                         });
                         num += 24U;
                     }
@@ -718,13 +718,13 @@ namespace HomeTools.BARFramework
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
                     if (m_endian == EndianType.BigEndian)
-                        tocEntry.RawData = OtherExtensions.CombineByteArrays(ToolsImplementation.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = ByteUtils.CombineByteArrays(ToolsImplementation.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              EndianUtils.EndianSwap(Utils.IntToByteArray(array2.Length)),
                              array2
                         });
                     else
-                        tocEntry.RawData = OtherExtensions.CombineByteArrays(ToolsImplementation.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = ByteUtils.CombineByteArrays(ToolsImplementation.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              Utils.IntToByteArray(array2.Length),
                              array2

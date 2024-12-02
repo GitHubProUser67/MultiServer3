@@ -39,6 +39,7 @@ using WebAPIService.HTS;
 using WebAPIService.ILoveSony;
 using Newtonsoft.Json;
 using WebAPIService.DEMANGLER;
+using NetworkLibrary.Extension.Csharp;
 
 namespace HTTPServer
 {
@@ -615,27 +616,32 @@ namespace HTTPServer
                                                 {
                                                     // TODO, verify ticket data for every platforms.
 
-                                                    if (Authorization.StartsWith("psn t=") && OtherExtensions.IsBase64String(Authorization))
+                                                    if (Authorization.StartsWith("psn t="))
                                                     {
-                                                        byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
+                                                        (bool, byte[]) base64Data = Authorization.Replace("psn t=", string.Empty).IsBase64();
 
-                                                        // Extract the desired portion of the binary data
-                                                        byte[] extractedData = new byte[0x63 - 0x54 + 1];
-
-                                                        // Copy it
-                                                        Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
-
-                                                        // Convert 0x00 bytes to 0x48 so FileSystem can support it
-                                                        for (int i = 0; i < extractedData.Length; i++)
+                                                        if (base64Data.Item1)
                                                         {
-                                                            if (extractedData[i] == 0x00)
-                                                                extractedData[i] = 0x48;
-                                                        }
+                                                            byte[] PSNTicket = base64Data.Item2;
 
-                                                        if (OtherExtensions.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
-                                                            LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
-                                                        else
-                                                            LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                                                            // Extract the desired portion of the binary data
+                                                            byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+                                                            // Copy it
+                                                            Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
+
+                                                            // Convert 0x00 bytes to 0x48 so FileSystem can support it
+                                                            for (int i = 0; i < extractedData.Length; i++)
+                                                            {
+                                                                if (extractedData[i] == 0x00)
+                                                                    extractedData[i] = 0x48;
+                                                            }
+
+                                                            if (ByteUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                                                                LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                                                            else
+                                                                LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                                                        }
                                                     }
                                                     else if (Authorization.StartsWith("Ubi_v1 t="))
                                                     {
@@ -1133,10 +1139,10 @@ namespace HTTPServer
                                                             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                             if (ContentType == "application/octet-stream")
                                                             {
-                                                                byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                                                                byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                                 {
-                                                                    if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                    if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                     {
                                                                         ContentType = entry.Key;
                                                                         break;
@@ -1426,10 +1432,10 @@ namespace HTTPServer
                         Span<byte> Separator = new byte[] { 0x0D, 0x0A };
                         if (ContentType == "application/octet-stream")
                         {
-                            byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                            byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
@@ -1713,10 +1719,10 @@ namespace HTTPServer
                     {
                         if (ContentType == "application/octet-stream")
                         {
-                            byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                            byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;
@@ -1777,7 +1783,7 @@ namespace HTTPServer
                         {
                             foreach (var entry in HTTPProcessor._PathernDictionary)
                             {
-                                if (OtherExtensions.FindBytePattern(OtherExtensions.ReadSmallFileChunck(filePath, 10), entry.Value) != -1)
+                                if (ByteUtils.FindBytePattern(FileSystemUtils.ReadFileChunck(filePath, 10), entry.Value) != -1)
                                 {
                                     ContentType = entry.Key;
                                     break;

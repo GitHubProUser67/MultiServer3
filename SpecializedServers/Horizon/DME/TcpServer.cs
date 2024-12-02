@@ -20,6 +20,7 @@ using Horizon.SERVER;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Medius;
 using Horizon.SERVER.Extension.PlayStationHome;
+using NetworkLibrary.Extension.Csharp;
 
 namespace Horizon.DME
 {
@@ -787,7 +788,7 @@ namespace Horizon.DME
                                 if (clientAppSingle.Payload.Length > 8)
                                 {
                                     byte[] HubMessagePayload = clientAppSingle.Payload;
-                                    int HubPathernOffset = OtherExtensions.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00 });
+                                    int HubPathernOffset = ByteUtils.FindBytePattern(HubMessagePayload, new byte[] { 0x64, 0x00 });
 
                                     if (HubPathernOffset != -1 && HubMessagePayload.Length >= HubPathernOffset + 8) // Hub command.
                                     {

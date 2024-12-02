@@ -11,11 +11,11 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using NetworkLibrary.Extension;
 using System.Threading;
 using System.Buffers;
 using HashLib;
 using System.Net;
+using NetworkLibrary.Extension.Csharp;
 
 namespace NetworkLibrary.HTTP
 {

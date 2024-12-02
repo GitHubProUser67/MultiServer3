@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace NetworkLibrary.TCP_IP
 {
-    public static class TCP_UDPUtils
+    public class TCPUtils
     {
         [DllImport("Iphlpapi.dll", SetLastError = true)]
         private static extern uint GetTcpTable(IntPtr pTcpTable, ref uint dwOutBufLen, bool order);
@@ -177,28 +177,6 @@ namespace NetworkLibrary.TCP_IP
             }
 
             // The port is in use as we could connect to it.
-            return false;
-        }
-
-        /// <summary>
-        /// Know if the given UDP port is available.
-        /// <para>Savoir si le port UDP en question est disponible.</para>
-        /// </summary>
-        /// <param name="startingAtPort">The port from which we scan.</param>
-        /// <param name="maxNumberOfPortsToCheck">The number of ports to scan after the starting port.</param>
-        /// <returns>A boolean.</returns>
-        public static bool IsUDPPortAvailable(int startingAtPort, int maxNumberOfPortsToCheck = 1)
-        {
-            IEnumerable<int> range = Enumerable.Range(startingAtPort, maxNumberOfPortsToCheck);
-
-            if (range.Except(from p in range
-                             join used in IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners()
-                         on p equals used.Port
-                             select p).FirstOrDefault() > 0)
-                // The port is available
-                return true;
-
-            // The port is in use.
             return false;
         }
     }

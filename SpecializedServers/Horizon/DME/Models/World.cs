@@ -6,8 +6,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Horizon.PluginManager;
 using Horizon.LIBRARY.Common;
-using NetworkLibrary.Extension;
 using System;
+using NetworkLibrary.Extension.Csharp;
 
 namespace Horizon.DME.Models
 {

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace NetworkLibrary.Extension
+namespace NetworkLibrary.Extension.Csharp
 {
     // This class removes the 2gb limit of the classic MemoryStream (but might consume more ram).
     public class HugeMemoryStream : Stream
@@ -115,7 +115,7 @@ namespace NetworkLibrary.Extension
                 _position = _length;
         }
 
-#endregion Internals
+        #endregion Internals
 
         #region Stream
 

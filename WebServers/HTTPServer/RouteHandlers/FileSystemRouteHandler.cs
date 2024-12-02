@@ -1,6 +1,5 @@
 // Copyright (C) 2016 by Barend Erasmus, David Jeske and donated to the public domain
 using NetworkLibrary.Extension;
-using NetworkLibrary.FileSystem;
 using NetworkLibrary.HTTP;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
@@ -47,10 +46,10 @@ namespace HTTPServer.RouteHandlers
                 if (ContentType == "application/octet-stream")
                 {
                     bool matched = false;
-                    byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                    byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                     foreach (var entry in HTTPProcessor._PathernDictionary)
                     {
-                        if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                        if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                         {
                             matched = true;
                             response.Headers["Content-Type"] = entry.Key;
@@ -86,10 +85,10 @@ namespace HTTPServer.RouteHandlers
 
             if (ContentType == "application/octet-stream")
             {
-                byte[] VerificationChunck = OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                 foreach (var entry in HTTPProcessor._PathernDictionary)
                 {
-                    if (OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                    if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                     {
                         ContentType = entry.Key;
                         break;
@@ -252,7 +251,7 @@ namespace HTTPServer.RouteHandlers
             }
             else if (request.QueryParameters != null && request.QueryParameters.TryGetValue("m3u", out queryparam) && queryparam == "on")
             {
-                string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], directoryUrl);
+                string? m3ufile = FileSystemUtils.GetM3UStreamFromDirectory(filePath[..^1], directoryUrl);
                 if (!string.IsNullOrEmpty(m3ufile))
                 {
                     if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))

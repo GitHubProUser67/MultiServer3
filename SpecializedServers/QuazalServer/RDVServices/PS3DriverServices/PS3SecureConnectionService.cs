@@ -71,7 +71,7 @@ namespace QuazalServer.RDVServices.PS3DriverServices
                         extractedData[i] = 0x48;
                 }
 
-                if (OtherExtensions.FindBytePattern(hCustomData.data.ticket.data, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (ByteUtils.FindBytePattern(hCustomData.data.ticket.data, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                     LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                 else
                     LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
