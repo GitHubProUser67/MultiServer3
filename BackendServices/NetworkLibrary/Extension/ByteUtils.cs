@@ -160,10 +160,10 @@ namespace NetworkLibrary.Extension
                 return first;
 
             byte[] bytes = new byte[totalLength];
-            Task t = Task.Run(() => { Buffer.BlockCopy(first, 0, bytes, 0, first.Length); });
+            Task t = Task.Run(() => { Array.Copy(first, 0, bytes, 0, first.Length); });
             try
             {
-                Buffer.BlockCopy(second, 0, bytes, first.Length, second.Length);
+                Array.Copy(second, 0, bytes, first.Length, second.Length);
             }
             catch
             {
