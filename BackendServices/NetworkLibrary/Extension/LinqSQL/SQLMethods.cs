@@ -35,7 +35,7 @@ For more information, please refer to <http://unlicense.org/>
 
 using System;
 
-namespace NetworkLibrary.Extension
+namespace NetworkLibrary.Extension.LinqSQL
 {
     public static class SQLMethods
     {

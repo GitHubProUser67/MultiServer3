@@ -37,8 +37,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 
             if (clients != null)
             {
-                byte[] HubRexecMessage = OtherExtensions.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
-                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight( OtherExtensions.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
+                byte[] HubRexecMessage = ByteUtils.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
+                    , "FFFFFFE5FFFFFFFF".HexStringToByteArray(), EnsureMultipleOfEight( ByteUtils.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
 
                 clients.ForEach(x => x.Queue(new MediusBinaryFwdMessage1()
                 {
@@ -62,8 +62,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) && ForbiddenWords.Any(x => x.Contains(command, StringComparison.InvariantCultureIgnoreCase))))
                 return Task.FromResult(false);
 
-            byte[] HubRexecMessage = OtherExtensions.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
-                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight( OtherExtensions.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
+            byte[] HubRexecMessage = ByteUtils.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
+                    , "FFFFFFE5FFFFFFFF".HexStringToByteArray(), EnsureMultipleOfEight( ByteUtils.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
 
             client.Queue(new MediusBinaryFwdMessage1()
             {
@@ -82,8 +82,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             if (string.IsNullOrEmpty(command) || command.Length > ushort.MaxValue || (!command.StartsWith("say", StringComparison.InvariantCultureIgnoreCase) && ForbiddenWords.Any(x => x.Contains(command, StringComparison.InvariantCultureIgnoreCase))))
                 return Task.FromResult(false);
 
-            byte[] HubRexecMessage = OtherExtensions.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
-                    , OtherExtensions.HexStringToByteArray("FFFFFFE5FFFFFFFF"), EnsureMultipleOfEight( OtherExtensions.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
+            byte[] HubRexecMessage = ByteUtils.CombineByteArrays(RexecHubMessageHeader, new byte[][] { BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)(command.Length + 9)) : (ushort)(command.Length + 9))
+                    , "FFFFFFE5FFFFFFFF".HexStringToByteArray(), EnsureMultipleOfEight( ByteUtils.CombineByteArray(Encoding.UTF8.GetBytes(command), Encoding.ASCII.GetBytes("\0"))) });
 
             foreach (Channel channel in MediusClass.Manager.GetAllChannels(Retail ? 20374 : 20371))
             {

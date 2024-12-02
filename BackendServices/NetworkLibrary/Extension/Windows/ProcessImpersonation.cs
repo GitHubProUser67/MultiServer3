@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
-namespace NetworkLibrary.Extension
+namespace NetworkLibrary.Extension.Windows
 {
     public delegate object Invoker();
 
@@ -55,6 +55,9 @@ namespace NetworkLibrary.Extension
 
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool DuplicateToken(IntPtr ExistingTokenHandle, int ImpersonationLevel, ref IntPtr DuplicateTokenHandle);
+
+        public static readonly bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT
+            || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
 
         public static IntPtr GetActiveUserToken()
         {
@@ -166,7 +169,7 @@ namespace NetworkLibrary.Extension
                 }
             }
         }
-#endregion
+        #endregion
     }
 
     public class HighProcessImpersonation : ProcessImpersonation

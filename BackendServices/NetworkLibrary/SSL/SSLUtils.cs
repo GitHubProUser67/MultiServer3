@@ -531,15 +531,15 @@ namespace NetworkLibrary.SSL
             const string SHA512id = "300D06092A864886F70D01010D0500";
 
             if (hashAlgorithm == HashAlgorithmName.MD5)
-                return OtherExtensions.HexStringToByteArray(MD5id);
+                return MD5id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA1)
-                return OtherExtensions.HexStringToByteArray(SHA1id);
+                return SHA1id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA256)
-                return OtherExtensions.HexStringToByteArray(SHA256id);
+                return SHA256id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA384)
-                return OtherExtensions.HexStringToByteArray(SHA384id);
+                return SHA384id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA512)
-                return OtherExtensions.HexStringToByteArray(SHA512id);
+                return SHA512id.HexStringToByteArray();
 
             LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 

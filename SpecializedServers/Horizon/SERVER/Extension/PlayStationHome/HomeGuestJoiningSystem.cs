@@ -1,5 +1,6 @@
 ﻿using CustomLogger;
 using Horizon.MUM.Models;
+using NetworkLibrary.Extension;
 using NetworkLibrary.HTTP;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,8 +9,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 {
     public class HomeGuestJoiningSystem
     {
-        private static readonly byte[] RandCRCKey = NetworkLibrary.Extension.OtherExtensions.GenerateRandomBytes(24);
-        private static readonly byte[] RandCRCIV = NetworkLibrary.Extension.OtherExtensions.GenerateRandomBytes(8);
+        private static readonly byte[] RandCRCKey = ByteUtils.GenerateRandomBytes(24);
+        private static readonly byte[] RandCRCIV = ByteUtils.GenerateRandomBytes(8);
 
         public static Task<bool> SendCrcOverride(string targetClientIp, string? AccessToken, string SceneCrc, bool Retail)
         {

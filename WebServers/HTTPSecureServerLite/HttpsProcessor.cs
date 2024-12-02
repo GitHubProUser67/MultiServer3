@@ -30,7 +30,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using NetworkLibrary.FileSystem;
 using NetworkLibrary.HTTP.PluginManager;
 using WatsonWebserver;
 using NetworkLibrary.Extension;
@@ -771,27 +770,32 @@ namespace HTTPSecureServerLite
                                 {
                                     // TODO, verify ticket data for every platforms.
 
-                                    if (Authorization.StartsWith("psn t=") && NetworkLibrary.Extension.OtherExtensions.IsBase64String(Authorization))
+                                    if (Authorization.StartsWith("psn t="))
                                     {
-                                        byte[] PSNTicket = Convert.FromBase64String(Authorization.Replace("psn t=", string.Empty));
+                                        (bool, byte[]) base64Data = Authorization.Replace("psn t=", string.Empty).IsBase64();
 
-                                        // Extract the desired portion of the binary data
-                                        byte[] extractedData = new byte[0x63 - 0x54 + 1];
-
-                                        // Copy it
-                                        Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
-
-                                        // Convert 0x00 bytes to 0x48 so FileSystem can support it
-                                        for (int i = 0; i < extractedData.Length; i++)
+                                        if (base64Data.Item1)
                                         {
-                                            if (extractedData[i] == 0x00)
-                                                extractedData[i] = 0x48;
-                                        }
+                                            byte[] PSNTicket = base64Data.Item2;
 
-                                        if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
-                                            LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
-                                        else
-                                            LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                                            // Extract the desired portion of the binary data
+                                            byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+                                            // Copy it
+                                            Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
+
+                                            // Convert 0x00 bytes to 0x48 so FileSystem can support it
+                                            for (int i = 0; i < extractedData.Length; i++)
+                                            {
+                                                if (extractedData[i] == 0x00)
+                                                    extractedData[i] = 0x48;
+                                            }
+
+                                            if (ByteUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                                                LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                                            else
+                                                LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                                        }
                                     }
                                     else if (Authorization.StartsWith("Ubi_v1 t="))
                                     {
@@ -1209,7 +1213,7 @@ namespace HTTPSecureServerLite
                                                     }
                                                     else if (request.RetrieveQueryValue("m3u") == "on")
                                                     {
-                                                        string? m3ufile = StaticFileSystem.GetM3UStreamFromDirectory(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}");
+                                                        string? m3ufile = FileSystemUtils.GetM3UStreamFromDirectory(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}");
                                                         if (!string.IsNullOrEmpty(m3ufile))
                                                         {
                                                             statusCode = HttpStatusCode.OK;
@@ -1370,10 +1374,10 @@ namespace HTTPSecureServerLite
                                                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                                         if (ContentType == "application/octet-stream")
                                                         {
-                                                            byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                                                            byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1687,10 +1691,10 @@ namespace HTTPSecureServerLite
 
                                                         if (ContentType == "application/octet-stream")
                                                         {
-                                                            byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                                                            byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                                                             foreach (var entry in HTTPProcessor._PathernDictionary)
                                                             {
-                                                                if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                                if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                 {
                                                                     ContentType = entry.Key;
                                                                     break;
@@ -1856,10 +1860,10 @@ namespace HTTPSecureServerLite
                                             if (ContentType == "application/octet-stream")
                                             {
                                                 bool matched = false;
-                                                byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                                                byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                    if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         matched = true;
                                                         response.ContentType = entry.Key;
@@ -1907,10 +1911,10 @@ namespace HTTPSecureServerLite
                                             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
                                             if (ContentType == "application/octet-stream")
                                             {
-                                                byte[] VerificationChunck = NetworkLibrary.Extension.OtherExtensions.ReadSmallFileChunck(filePath, 10);
+                                                byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
                                                 foreach (var entry in HTTPProcessor._PathernDictionary)
                                                 {
-                                                    if (NetworkLibrary.Extension.OtherExtensions.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                    if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                     {
                                                         ContentType = entry.Key;
                                                         break;

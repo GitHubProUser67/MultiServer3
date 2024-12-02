@@ -222,10 +222,10 @@ namespace Horizon.SERVER.Medius
 
                         if (QueryData != null)
                         {
-                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{OtherExtensions.ByteArrayToHexString(QueryData)} in offset: {clientCheatQuery.StartAddress}");
+                            LoggerAccessor.LogDebug($"[MAS] - QUERY CHECK - Client:{data.ClientObject?.IP} Has Data:{QueryData.ToHexString()} in offset: {clientCheatQuery.StartAddress}");
 
                             if (MediusClass.Settings.HttpsSVOCheckPatcher && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 6
-                                && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }))
+                                && QueryData.EqualsTo(new byte[] { 0x68, 0x74, 0x74, 0x70, 0x73, 0x3A }))
                                 PatchHttpsSVOCheck(clientCheatQuery.StartAddress + 4, clientChannel);
 
                             if (data.ApplicationId == 20371 || data.ApplicationId == 20374)
@@ -242,12 +242,12 @@ namespace Horizon.SERVER.Medius
                                                     {
                                                         case 0x00546cf4:
                                                             // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc0, 0x2b, 0x78 }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc0, 0x2b, 0x78 }))
                                                                 PokeAddress(0x00546cf4, new byte[] { 0x60, 0xc0, 0x07, 0xf0 }, clientChannel);
                                                             break;
                                                         case 0x005478dc:
                                                             // 4096 character command line limit.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
                                                             {
                                                                 PokeAddress(0x005478dc, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                                 PokeAddress(0x00548378, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
@@ -274,12 +274,12 @@ namespace Horizon.SERVER.Medius
                                                     {
                                                         case 0x00530770:
                                                             // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc0, 0x2b, 0x78 }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc0, 0x2b, 0x78 }))
                                                                 PokeAddress(0x00530770, new byte[] { 0x60, 0xc0, 0x07, 0xf0 }, clientChannel);
                                                             break;
                                                         case 0x00531370:
                                                             // 4096 character command line limit.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
                                                             {
                                                                 PokeAddress(0x00531370, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                                 PokeAddress(0x00531e08, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
@@ -299,12 +299,12 @@ namespace Horizon.SERVER.Medius
                                                     {
                                                         case 0x0054ac80:
                                                             // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
                                                                 PokeAddress(0x0054ac80, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
                                                             break;
                                                         case 0x00548bc0:
                                                             // 4096 character command line limit.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
                                                             {
                                                                 PokeAddress(0x00548bc0, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                                 PokeAddress(0x0054964c, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
@@ -317,12 +317,12 @@ namespace Horizon.SERVER.Medius
                                                     {
                                                         case 0x00557d8c:
                                                             // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
                                                                 PokeAddress(0x00557d8c, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
                                                             break;
                                                         case 0x00555cb4:
                                                             // 4096 character command line limit.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
                                                             {
                                                                 PokeAddress(0x00555cb4, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                                 PokeAddress(0x00556740, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
@@ -342,7 +342,7 @@ namespace Horizon.SERVER.Medius
                                                     {
                                                         case 0x006f59b8:
                                                             // Grant PS Plus for 1.86 retail.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x54, 0x63, 0xd9, 0x7e }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x54, 0x63, 0xd9, 0x7e }))
                                                             {
                                                                 byte[] liPatch = new byte[] { 0x38, 0x60, 0x00, 0x01 };
                                                                 PokeAddress(0x006f59b8, liPatch, clientChannel);
@@ -351,17 +351,17 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x002aa960:
                                                             // Disable SSFW Reward check for 1.86 retail.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0x65, 0x1b, 0x78 }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0x65, 0x1b, 0x78 }))
                                                                 PokeAddress(0x002aa960, new byte[] { 0x48, 0x40, 0xe2, 0x2c }, clientChannel);
                                                             break;
                                                         case 0x000861e8:
                                                             // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
                                                                 PokeAddress(0x000861e8, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
                                                             break;
                                                         case 0x00087080:
                                                             // 4096 character command line limit.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && OtherExtensions.AreArraysIdentical(QueryData, new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
                                                                 PokeAddress(0x00087080, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                             break;
                                                     }
@@ -387,7 +387,7 @@ namespace Horizon.SERVER.Medius
                                                 {
                                                     if (data.ClientObject.ClientHomeData == null)
                                                         data.ClientObject.ClientHomeData = MediusClass.HomeOffsetsList.Where(x => !string.IsNullOrEmpty(x.Sha1Hash) && x.Sha1Hash[..^8]
-                                                        .Equals(OtherExtensions.ByteArrayToHexString(clientCheatQuery.Data), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                                                        .Equals(clientCheatQuery.Data.ToHexString(), StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                                                     if (data.ClientObject.ClientHomeData != null)
                                                     {
@@ -1895,9 +1895,9 @@ namespace Horizon.SERVER.Medius
                         }
 
                         string accountLoggingMsg = string.Empty;
-                        byte[] XI5TicketData = OtherExtensions.CombineByteArray(OtherExtensions.CombineByteArray(BitConverter.GetBytes(
-                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), BitConverter.GetBytes(
-                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size)), ticketLoginRequest.TicketData);
+                        byte[] XI5TicketData = ByteUtils.CombineByteArrays(BitConverter.GetBytes(
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), new byte[][] { BitConverter.GetBytes(
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size), ticketLoginRequest.TicketData });
 
                         // Extract the desired portion of the binary data for a npticket 4.0
                         byte[] extractedData = new byte[0x63 - 0x54 + 1];
@@ -1916,7 +1916,7 @@ namespace Horizon.SERVER.Medius
 
                         string UserOnlineId = Encoding.UTF8.GetString(extractedData);
 
-                        if (OtherExtensions.FindBytePattern(XI5TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                        if (ByteUtils.FindBytePattern(XI5TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                         {
                             if (MediusClass.Settings.ForceOfficialRPCNSignature && !new XI5Ticket(XI5TicketData).SignedByOfficialRPCN)
                             {

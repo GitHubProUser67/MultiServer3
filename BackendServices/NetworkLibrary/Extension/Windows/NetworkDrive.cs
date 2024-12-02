@@ -3,9 +3,8 @@ using System.Text;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.IO;
-using NetworkLibrary.Extension;
 
-namespace NetworkLibrary.FileSystem
+namespace NetworkLibrary.Extension.Windows
 {
     public class NetworkDrive : IDisposable
     {
@@ -260,7 +259,7 @@ namespace NetworkLibrary.FileSystem
 
         public NETRESOURCE GetNetworkResourceInfo(string path)
         {
-            NETRESOURCE result = default(NETRESOURCE);
+            NETRESOURCE result = default;
             using (ProcessImpersonation processImp = new ProcessImpersonation())
             {
                 processImp.Impersonate(delegate
@@ -322,8 +321,8 @@ namespace NetworkLibrary.FileSystem
         }
 
         public List<NETRESOURCE> GetNetworkDrives(ResourceScope scope, ResourceType type, ResourceUsage usage, ResourceDisplayType displayType)
-		{
-			List<NETRESOURCE> result = new List<NETRESOURCE>();
+        {
+            List<NETRESOURCE> result = new List<NETRESOURCE>();
 
             using (ProcessImpersonation processImp = new ProcessImpersonation())
             {
@@ -335,17 +334,17 @@ namespace NetworkLibrary.FileSystem
             }
 
             return result;
-		}
+        }
         #endregion
 
         #region Private methods
         private void EnumerateServers(NETRESOURCE pRsrc, ResourceScope scope, ResourceType type, ResourceUsage usage, ResourceDisplayType displayType, List<NETRESOURCE> netresorces)
-		{
-			int bufferSize = 16384;
-			IntPtr buffer	= Marshal.AllocHGlobal((int) bufferSize);
-			IntPtr handle = IntPtr.Zero;
-			int	result;
-			uint cEntries = 1;
+        {
+            int bufferSize = 16384;
+            IntPtr buffer = Marshal.AllocHGlobal(bufferSize);
+            IntPtr handle = IntPtr.Zero;
+            int result;
+            uint cEntries = 1;
 
             try
             {
@@ -355,7 +354,7 @@ namespace NetworkLibrary.FileSystem
                 {
                     do
                     {
-                        result = WNetEnumResource(handle, ref cEntries, buffer, ref	bufferSize);
+                        result = WNetEnumResource(handle, ref cEntries, buffer, ref bufferSize);
 
                         if (result == (int)ErrorCodes.NO_ERROR)
                         {
@@ -379,7 +378,7 @@ namespace NetworkLibrary.FileSystem
             {
                 Marshal.FreeHGlobal(buffer);
             }
-		}
+        }
 
         // Map network drive
         private void mapDrive(string psUsername, string psPassword)
