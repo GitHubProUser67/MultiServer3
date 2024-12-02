@@ -3,7 +3,7 @@ namespace QuazalServer.RDVServices.DDL.Models
     public class ValidationFailureReason
     {
         public uint m_validation_id { get; set; }
-        public string? m_description { get; set; } // KZ
+        public string? m_description { get; set; }
     }
 
     public class UsernameValidation

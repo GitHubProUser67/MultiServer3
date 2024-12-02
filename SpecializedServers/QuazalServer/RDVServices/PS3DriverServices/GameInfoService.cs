@@ -23,13 +23,13 @@ namespace QuazalServer.RDVServices.PS3DriverServices
 
 			if (!string.IsNullOrEmpty(stringSearch))
 			{
+                string directoryPath = QuazalServerConfiguration.QuazalStaticFolder + "/StaticFiles";
+
                 if (stringSearch == "*")
                 {
                     foreach (string name in FileList.Skip(indexStart).Take(numElements))
                     {
-                        string path = Path.Combine(QuazalServerConfiguration.QuazalStaticFolder + "/StaticFiles", name);
-
-                        Console.WriteLine(path);
+                        string path = Path.Combine(directoryPath, name);
 
                         if (!File.Exists(path))
                             continue;
@@ -43,12 +43,12 @@ namespace QuazalServer.RDVServices.PS3DriverServices
                 }
                 else
                 {
-                    if (File.Exists(Path.Combine(QuazalServerConfiguration.QuazalStaticFolder + "/StaticFiles", stringSearch)))
+                    if (File.Exists(Path.Combine(directoryPath, stringSearch)))
                     {
                         fileList.Add(new PersistentInfo
                         {
                             m_name = stringSearch,
-                            m_size = (uint)new FileInfo(Path.Combine(QuazalServerConfiguration.QuazalStaticFolder + "/StaticFiles", stringSearch)).Length
+                            m_size = (uint)new FileInfo(Path.Combine(directoryPath, stringSearch)).Length
                         });
                     }
                 }
