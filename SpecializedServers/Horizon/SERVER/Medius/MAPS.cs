@@ -196,6 +196,8 @@ namespace Horizon.SERVER.Medius
                         });
                         */
 
+                        //MAGDevBuild3 = 1725
+                        //MAG BCET70016 v1.3 = 7002
                         data.ClientObject.Queue(new NetMessageTypeProtocolInfo()
                         {
                             protocolInfo = EndianUtils.ReverseUint(1725), //1725 //1958

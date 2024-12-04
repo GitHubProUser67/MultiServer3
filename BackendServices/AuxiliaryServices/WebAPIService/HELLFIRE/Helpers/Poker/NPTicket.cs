@@ -9,11 +9,11 @@ using HashLib;
 using WebAPIService.HELLFIRE.HFProcessors;
 using WebAPIService.HELLFIRE.Helpers.Poker;
 
-namespace WebAPIService.HELLFIRE.Helpers
+namespace WebAPIService.HELLFIRE.Helpers.Poker
 {
     public class NPTicket
     {
-        public static string RequestNPTicket(byte[] PostData, string boundary)
+        public static string RequestNPTicket(byte[] PostData, string boundary, bool poker)
         {
             string userid = string.Empty;
             string sessionid = string.Empty;
@@ -65,7 +65,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                         extractedData[i] = 0x20;
                 }
 
-                if (ByteUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (OtherExtensions.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HFGames] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
@@ -104,6 +104,20 @@ namespace WebAPIService.HELLFIRE.Helpers
                     resultString += hash;
 
                     sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
+                }
+
+                if(poker == true)
+                {
+                    /*
+                    PokerServerRequestProcessor pokerServerRequestProcessor = new PokerServerRequestProcessor();
+                    PokerPlayer pokerPlayerToAdd = new PokerPlayer()
+                    {
+                        PlayerName = userid,
+                        SessionID = sessionid
+                    };
+
+                    pokerServerRequestProcessor.pokerPlayers.Add(pokerPlayerToAdd);
+                    */
                 }
 
                 return $"<response><Thing>{userid};{sessionid}</Thing></response>";
