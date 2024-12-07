@@ -78,15 +78,5 @@ namespace ComponentAce.Compression.Libs.zlib
             }
             return num;
         }
-
-        public static byte[] ToByteArray(string sourceString)
-        {
-            return Encoding.UTF8.GetBytes(sourceString);
-        }
-
-        public static char[] ToCharArray(byte[] byteArray)
-        {
-            return Encoding.UTF8.GetChars(byteArray);
-        }
     }
 }
