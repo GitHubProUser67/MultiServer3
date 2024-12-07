@@ -10,7 +10,7 @@ namespace DLNAService
         {
             try
             {
-#if NET7_0
+#if NET7_0_OR_GREATER
                 return new HttpClient().GetStringAsync(url).Result.Replace("status=ok", string.Empty);
 #else
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).

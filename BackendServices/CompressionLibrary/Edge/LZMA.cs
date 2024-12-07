@@ -58,6 +58,9 @@ namespace CompressionLibrary.Edge
         /// <returns>A byte array.</returns>
         public static byte[] Decompress(byte[] CompressedData, bool SegsMode)
         {
+            if (CompressedData == null || CompressedData.Length <= 12)
+                throw new InvalidDataException("[Edge] - LZMA - Decompress: buffer is not a valid EdgeLZMA compressed data");
+
             if (SegsMode)
                 return SegmentsDecompress(CompressedData);
             else if (BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(CompressedData) : CompressedData, 8) != CompressedData.Length)
@@ -98,111 +101,116 @@ namespace CompressionLibrary.Edge
 
         private static byte[] Compress4(byte[] buffer, byte[] magic, int numFastBytes = 64, int litContextBits = 3, int litPosBits = 0, int posStateBits = 2, int blockSize = 0, int matchFinderCycles = 32)
         {
-            MemoryStream result = new MemoryStream();
+            const int dictionarySize = 0x10000;
+
             int inSize = buffer.Length;
-            int streamCount = (inSize + 0xffff) >> 16;
+            int streamCount = (inSize + 0xFFFF) >> 16;
             int offset = 0;
 
-            BinaryWriter bw = new BinaryWriter(result);
-
-            bw.Write(magic);
-            bw.Write((byte)0x01);
-            bw.Write((byte)0x04);
-            bw.Write((byte)0x00);
-            bw.Write((byte)0x00);
-            bw.Write((int)0);   // compressed size - we'll fill this in once we know it
-            bw.Write((int)buffer.Length);   // decompressed size
-            bw.Write((int)0);   // unknown, 0
-            bw.Write((int)0);   // unknown, 0
-                                // next comes the coder properties (5 bytes), followed by stream lengths, followed by the streams themselves.
-
-            Encoder encoder = new Encoder();
-            Dictionary<CoderPropID, object> props = new Dictionary<CoderPropID, object>();
-            props[CoderPropID.DictionarySize] = 0x10000;
-            props[CoderPropID.MatchFinder] = "BT4";
-            props[CoderPropID.NumFastBytes] = numFastBytes;
-            props[CoderPropID.LitContextBits] = litContextBits;
-            props[CoderPropID.LitPosBits] = litPosBits;
-            props[CoderPropID.PosStateBits] = posStateBits;
-            //props[CoderPropID.BlockSize] = blockSize; // this always throws an exception when set
-            //props[CoderPropID.MatchFinderCycles] = matchFinderCycles; // ^ same here
-            //props[CoderPropID.DefaultProp] = 0;
-            //props[CoderPropID.UsedMemorySize] = 100000;
-            //props[CoderPropID.Order] = 1;
-            //props[CoderPropID.NumPasses] = 10;
-            //props[CoderPropID.Algorithm] = 0;
-            //props[CoderPropID.NumThreads] = ;
-            //props[CoderPropID.EndMarker] = ;
-
-            encoder.SetCoderProperties(props.Keys.ToArray(), props.Values.ToArray());
-
-            encoder.WriteCoderProperties(result);
-
-            // reserve space for the stream lengths. we'll fill them in later after we know what they are.
-            bw.Write(new byte[streamCount * 2]);
-
-            List<int> streamSizes = new List<int>();
-
-            for (int i = 0; i < streamCount; i++)
+            using (MemoryStream result = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(result))
             {
-                int count = Math.Min(inSize, 0x10000);
-                long preLength = result.Length;
+                bw.Write(magic);
+                bw.Write((byte)0x01);
+                bw.Write((byte)0x04);
+                bw.Write((byte)0x00);
+                bw.Write((byte)0x00);
+                bw.Write(0);   // compressed size - we'll fill this in once we know it
+                bw.Write(buffer.Length);   // decompressed size
+                bw.Write(0);   // unknown, 0
+                bw.Write(0);   // unknown, 0
+                               // next comes the coder properties (5 bytes), followed by stream lengths, followed by the streams themselves.
 
-                encoder.Code(new MemoryStream(buffer, offset, count), result, count, -1, null);
+                Encoder encoder = new Encoder();
+                Dictionary<CoderPropID, object> props = new Dictionary<CoderPropID, object>();
+                props[CoderPropID.DictionarySize] = dictionarySize;
+                props[CoderPropID.MatchFinder] = "BT4";
+                props[CoderPropID.NumFastBytes] = numFastBytes;
+                props[CoderPropID.LitContextBits] = litContextBits;
+                props[CoderPropID.LitPosBits] = litPosBits;
+                props[CoderPropID.PosStateBits] = posStateBits;
+                //props[CoderPropID.BlockSize] = blockSize; // this always throws an exception when set
+                //props[CoderPropID.MatchFinderCycles] = matchFinderCycles; // ^ same here
+                //props[CoderPropID.DefaultProp] = 0;
+                //props[CoderPropID.UsedMemorySize] = 100000;
+                //props[CoderPropID.Order] = 1;
+                //props[CoderPropID.NumPasses] = 10;
+                //props[CoderPropID.Algorithm] = 0;
+                //props[CoderPropID.NumThreads] = ;
+                //props[CoderPropID.EndMarker] = ;
 
-                int streamSize = (int)(result.Length - preLength);
-                if (streamSize >= 0x10000)
+                encoder.SetCoderProperties(props.Keys.ToArray(), props.Values.ToArray());
+
+                encoder.WriteCoderProperties(result);
+
+                // reserve space for the stream lengths. we'll fill them in later after we know what they are.
+                bw.Write(new byte[streamCount * 2]);
+
+                List<int> streamSizes = new List<int>();
+
+                for (int i = 0; i < streamCount; i++)
                 {
-                    LoggerAccessor.LogDebug("[Edge] - LZMA - Compress4: Warning! stream did not compress at all. This will cause a different code path to be executed on the PS3 whose operation is assumed and not tested!");
-                    result.Position = preLength;
-                    result.SetLength(preLength);
-                    result.Write(buffer, offset, count);
-                    streamSize = 0;
+                    int count = Math.Min(inSize, dictionarySize);
+                    long preLength = result.Length;
+
+                    encoder.Code(new MemoryStream(buffer, offset, count), result, count, -1, null);
+
+                    int streamSize = (int)(result.Length - preLength);
+                    if (streamSize >= dictionarySize)
+                    {
+                        LoggerAccessor.LogDebug("[Edge] - LZMA - Compress4: Warning! stream did not compress at all. This will cause a different code path to be executed on the PS3 whose operation is assumed and not tested!");
+                        result.Position = preLength;
+                        result.SetLength(preLength);
+                        result.Write(buffer, offset, count);
+                        streamSize = 0;
+                    }
+
+                    inSize -= dictionarySize;
+                    offset += dictionarySize;
+                    streamSizes.Add(streamSize);
                 }
 
-                inSize -= 0x10000;
-                offset += 0x10000;
-                streamSizes.Add(streamSize);
+                // fill in compressed size
+                result.Position = 8;
+                bw.Write((int)result.Length);
+
+                byte[] temp = result.ToArray();
+
+                // fill in stream sizes
+                for (int i = 0; i < streamSizes.Count; i++)
+                {
+                    temp[5 + 0x18 + i * 2] = (byte)streamSizes[i];
+                    temp[6 + 0x18 + i * 2] = (byte)(streamSizes[i] >> 8);
+                }
+
+                return temp;
             }
-
-            // fill in compressed size
-            result.Position = 8;
-            bw.Write((int)result.Length);
-
-            byte[] temp = result.ToArray();
-
-            // fill in stream sizes
-            for (int i = 0; i < streamSizes.Count; i++)
-            {
-                temp[5 + 0x18 + i * 2] = (byte)streamSizes[i];
-                temp[6 + 0x18 + i * 2] = (byte)(streamSizes[i] >> 8);
-            }
-
-            return temp;
         }
 
         private static byte[] Decompress4(byte[] buffer)
         {
-            MemoryStream result = new MemoryStream();
-            int outSize = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(buffer) : buffer, 12);
-            int streamCount = (outSize + 0xffff) >> 16;
-            int offset = 0x18 + streamCount * 2 + 5;
-
-            Decoder decoder = new Decoder();
-            decoder.SetDecoderProperties(new MemoryStream(buffer, 0x18, 5).ToArray());
-
-            for (int i = 0; i < streamCount; i++)
+            using (MemoryStream result = new MemoryStream())
             {
-                int streamSize = (buffer[5 + 0x18 + i * 2]) + (buffer[6 + 0x18 + i * 2] << 8);
-                if (streamSize != 0)
-                    decoder.Code(new MemoryStream(buffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
-                else
-                    result.Write(buffer, offset, streamSize = Math.Min(outSize, 0x10000));
-                outSize -= 0x10000;
-                offset += streamSize;
-            }
+                int outSize = BitConverter.ToInt32(!BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(buffer) : buffer, 12);
+                int streamCount = (outSize + 0xFFFF) >> 16;
+                int offset = 0x18 + streamCount * 2 + 5;
 
-            return result.ToArray();
+                Decoder decoder = new Decoder();
+                decoder.SetDecoderProperties(new MemoryStream(buffer, 0x18, 5).ToArray());
+
+                for (int i = 0; i < streamCount; i++)
+                {
+                    int streamSize = buffer[5 + 0x18 + i * 2] + (buffer[6 + 0x18 + i * 2] << 8);
+                    if (streamSize != 0)
+                        decoder.Code(new MemoryStream(buffer, offset, streamSize), result, streamSize, Math.Min(outSize, 0x10000), null);
+                    else
+                        result.Write(buffer, offset, streamSize = Math.Min(outSize, 0x10000));
+                    outSize -= 0x10000;
+                    offset += streamSize;
+                }
+
+                return result.ToArray();
+            }
         }
 
         /// <summary>
@@ -214,39 +222,49 @@ namespace CompressionLibrary.Edge
         private static byte[] SegmentsDecompress(byte[] inbuffer) // Todo, make it multithreaded like original sdk.
         {
             bool LittleEndian = BitConverter.IsLittleEndian;
+
             try
             {
                 if (inbuffer.Length > 4 && inbuffer[0] == 0x73 && inbuffer[1] == 0x65 && inbuffer[2] == 0x67 && inbuffer[3] == 0x73)
                 {
                     int numofsegments = BitConverter.ToInt16(!LittleEndian ? new byte[] { inbuffer[6], inbuffer[7] } : new byte[] { inbuffer[7], inbuffer[6] }, 0);
                     int OriginalSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[8], inbuffer[9], inbuffer[10], inbuffer[11] } : new byte[] { inbuffer[11], inbuffer[10], inbuffer[9], inbuffer[8] }, 0);
-                    // int CompressedSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[12], inbuffer[13], inbuffer[14], inbuffer[15] } : new byte[] { inbuffer[15], inbuffer[14], inbuffer[13], inbuffer[12] }, 0); // Unused during decompression.
+                    //int CompressedSize = BitConverter.ToInt32(!LittleEndian ? new byte[] { inbuffer[12], inbuffer[13], inbuffer[14], inbuffer[15] } : new byte[] { inbuffer[15], inbuffer[14], inbuffer[13], inbuffer[12] }, 0); // Unused during decompression.
+
                     byte[] TOCData = new byte[8 * numofsegments]; // 8 being size of each TOC entry.
                     byte[][] arrayOfArrays = new byte[numofsegments][];
+
                     Buffer.BlockCopy(inbuffer, 16, TOCData, 0, TOCData.Length);
+
                     // Check if the length of the byte array is evenly divisible by 8
                     if (TOCData.Length % 8 == 0)
                     {
                         int index = 0;
+
                         // Parse the byte array in blocks of 8
                         for (int i = 0; i < TOCData.Length; i += 8)
                         {
+                            int SegmentOffset;
+
+                            byte[] CompressedData;
                             byte[] SegmentCompressedSizeByte = new byte[2];
                             byte[] SegmentOriginalSizeByte = new byte[2];
                             byte[] SegmentOffsetByte = new byte[4];
+
                             Buffer.BlockCopy(TOCData, i, SegmentCompressedSizeByte, 0, SegmentCompressedSizeByte.Length);
                             Buffer.BlockCopy(TOCData, i + 2, SegmentOriginalSizeByte, 0, SegmentOriginalSizeByte.Length);
                             Buffer.BlockCopy(TOCData, i + 4, SegmentOffsetByte, 0, SegmentOffsetByte.Length);
+
                             if (LittleEndian)
                             {
                                 Array.Reverse(SegmentCompressedSizeByte);
                                 Array.Reverse(SegmentOriginalSizeByte);
                                 Array.Reverse(SegmentOffsetByte);
                             }
+
                             int SegmentCompressedSize = BitConverter.ToUInt16(SegmentCompressedSizeByte, 0);
-                            int SegmentOriginalSize = BitConverter.ToUInt16(SegmentOriginalSizeByte, 0);
-                            int SegmentOffset = 0;
-                            byte[] CompressedData = Array.Empty<byte>();
+                            //int SegmentOriginalSize = BitConverter.ToUInt16(SegmentOriginalSizeByte, 0); // Unused.
+
                             if (SegmentCompressedSize <= 0) // Safer than just comparing with 0.
                             {
                                 SegmentOffset = BitConverter.ToInt32(SegmentOffsetByte, 0);
@@ -257,22 +275,26 @@ namespace CompressionLibrary.Edge
                                 SegmentOffset = BitConverter.ToInt32(SegmentOffsetByte, 0) - 1; // -1 cause there is an offset for compressed content... sdk bug?
                                 CompressedData = new byte[SegmentCompressedSize];
                             }
+
                             Buffer.BlockCopy(inbuffer, SegmentOffset, CompressedData, 0, CompressedData.Length);
+
                             if (SegmentCompressedSize > 0 && SegmentCompressedSize <= 65536 && CompressedData.Length > 3 && CompressedData[0] == 0x5D && CompressedData[1] == 0x00 && CompressedData[2] == 0x00)
                             {
                                 using (MemoryStream compressedStream = new MemoryStream(CompressedData))
+                                using (MemoryStream decompressedStream = new MemoryStream())
                                 {
-                                    using (MemoryStream decompressedStream = new MemoryStream())
-                                    {
-                                        SegmentDecompress(compressedStream, decompressedStream);
-                                        // Find the number of bytes in the stream
-                                        int contentLength = (int)decompressedStream.Length;
-                                        // Create a byte array
-                                        byte[] buffer = new byte[contentLength];
-                                        // Read the contents of the memory stream into the byte array
-                                        decompressedStream.Read(buffer, 0, contentLength);
-                                        arrayOfArrays[index] = buffer;
-                                    }
+                                    SegmentDecompress(compressedStream, decompressedStream);
+
+                                    // Find the number of bytes in the stream
+                                    int contentLength = (int)decompressedStream.Length;
+
+                                    // Create a byte array
+                                    byte[] buffer = new byte[contentLength];
+
+                                    // Read the contents of the memory stream into the byte array
+                                    decompressedStream.Read(buffer, 0, contentLength);
+
+                                    arrayOfArrays[index] = buffer;
                                 }
                             }
                             else
