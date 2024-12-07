@@ -46,14 +46,14 @@ namespace ComponentAce.Compression.Libs.zlib
 
         private static readonly int[] inflate_mask = new int[17]
         {
-        0, 1, 3, 7, 15, 31, 63, 127, 255, 511,
-        1023, 2047, 4095, 8191, 16383, 32767, 65535
+            0, 1, 3, 7, 15, 31, 63, 127, 255, 511,
+            1023, 2047, 4095, 8191, 16383, 32767, 65535
         };
 
         internal static readonly int[] border = new int[19]
         {
-        16, 17, 18, 0, 8, 7, 9, 6, 10, 5,
-        11, 4, 12, 3, 13, 2, 14, 1, 15
+            16, 17, 18, 0, 8, 7, 9, 6, 10, 5,
+            11, 4, 12, 3, 13, 2, 14, 1, 15
         };
 
         internal int mode;

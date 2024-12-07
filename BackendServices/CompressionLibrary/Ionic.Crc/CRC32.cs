@@ -14,7 +14,7 @@
 //
 // ------------------------------------------------------------------
 //
-// Last Saved: <2024-December-06 20:01:54>
+// Last Saved: <2024-December-07 23:28:42>
 //
 // ------------------------------------------------------------------
 //
@@ -31,6 +31,14 @@ using Interop = System.Runtime.InteropServices;
 
 namespace Ionic.Crc
 {
+    public class CRC32Polynomials
+    {
+        public static uint IEEE_802_3 = 0xEDB88320;
+        public static uint Castagnoli = 0x82F63B78;
+        public static uint Koopman = 0xEB31D82E;
+        public static uint CRC_32Q = 0xD5828281;
+    }
+
     /// <summary>
     ///   Computes a CRC-32. The CRC-32 algorithm is parameterized - you
     ///   can set the polynomial and enable or disable bit
@@ -100,13 +108,15 @@ namespace Ionic.Crc
 
                 _TotalBytesRead = 0;
                 int count = input.Read(buffer, 0, readSize);
-                if (output != null) output.Write(buffer, 0, count);
+                if (output != null)
+                    output.Write(buffer, 0, count);
                 _TotalBytesRead += count;
                 while (count > 0)
                 {
                     SlurpBlock(buffer, 0, count);
                     count = input.Read(buffer, 0, readSize);
-                    if (output != null) output.Write(buffer, 0, count);
+                    if (output != null)
+                        output.Write(buffer, 0, count);
                     _TotalBytesRead += count;
                 }
 
@@ -152,12 +162,12 @@ namespace Ionic.Crc
                 byte b = block[x];
                 if (reverseBits)
                 {
-                    UInt32 temp = (_register >> 24) ^ b;
+                    uint temp = (_register >> 24) ^ b;
                     _register = (_register << 8) ^ crc32Table[temp];
                 }
                 else
                 {
-                    UInt32 temp = (_register & 0x000000FF) ^ b;
+                    uint temp = (_register & 0x000000FF) ^ b;
                     _register = (_register >> 8) ^ crc32Table[temp];
                 }
             }
@@ -219,8 +229,6 @@ namespace Ionic.Crc
             }
         }
 
-
-
         private static uint ReverseBits(uint data)
         {
             unchecked
@@ -229,8 +237,7 @@ namespace Ionic.Crc
                 ret = (ret & 0x55555555) << 1 | (ret >> 1) & 0x55555555;
                 ret = (ret & 0x33333333) << 2 | (ret >> 2) & 0x33333333;
                 ret = (ret & 0x0F0F0F0F) << 4 | (ret >> 4) & 0x0F0F0F0F;
-                ret = (ret << 24) | ((ret & 0xFF00) << 8) | ((ret >> 8) & 0xFF00) | (ret >> 24);
-                return ret;
+                return (ret << 24) | ((ret & 0xFF00) << 8) | ((ret >> 8) & 0xFF00) | (ret >> 24);
             }
         }
 
@@ -240,13 +247,9 @@ namespace Ionic.Crc
             {
                 uint u = (uint)data * 0x00020202;
                 uint m = 0x01044010;
-                uint s = u & m;
-                uint t = (u << 2) & (m << 1);
-                return (byte)((0x01001001 * (s + t)) >> 24);
+                return (byte)((0x01001001 * ((u & m) + ((u << 2) & (m << 1)))) >> 24);
             }
         }
-
-
 
         private void GenerateLookupTable()
         {
@@ -298,7 +301,6 @@ namespace Ionic.Crc
 #endif
         }
 
-
         private uint gf2_matrix_times(uint[] matrix, uint vec)
         {
             uint sum = 0;
@@ -318,8 +320,6 @@ namespace Ionic.Crc
             for (int i = 0; i < 32; i++)
                 square[i] = gf2_matrix_times(mat, mat[i]);
         }
-
-
 
         /// <summary>
         ///   Combines the given CRC32 value with the current running total.
@@ -390,7 +390,6 @@ namespace Ionic.Crc
             return;
         }
 
-
         /// <summary>
         ///   Create an instance of the CRC32 class using the default settings: no
         ///   bit reversal, and a polynomial of 0xEDB88320.
@@ -416,10 +415,9 @@ namespace Ionic.Crc
         ///   </para>
         /// </remarks>
         public CRC32(bool reverseBits) :
-            this( unchecked((int)0xEDB88320), reverseBits)
+            this(unchecked((int)CRC32Polynomials.IEEE_802_3), reverseBits)
         {
         }
-
 
         /// <summary>
         ///   Create an instance of the CRC32 class, specifying the polynomial and
@@ -483,338 +481,5 @@ namespace Ionic.Crc
         private uint[] crc32Table;
         private const int BUFFER_SIZE = 8192;
         private uint _register = 0xFFFFFFFFU;
-    }
-
-
-    /// <summary>
-    /// A Stream that calculates a CRC32 (a checksum) on all bytes read,
-    /// or on all bytes written.
-    /// </summary>
-    ///
-    /// <remarks>
-    /// <para>
-    /// This class can be used to verify the CRC of a ZipEntry when
-    /// reading from a stream, or to calculate a CRC when writing to a
-    /// stream.  The stream should be used to either read, or write, but
-    /// not both.  If you intermix reads and writes, the results are not
-    /// defined.
-    /// </para>
-    ///
-    /// <para>
-    /// This class is intended primarily for use internally by the
-    /// DotNetZip library.
-    /// </para>
-    /// </remarks>
-    public class CrcCalculatorStream : System.IO.Stream, System.IDisposable
-    {
-        private static readonly long UnsetLengthLimit = -99;
-
-        internal System.IO.Stream _innerStream;
-        private CRC32 _Crc32;
-        private long _lengthLimit = -99;
-        private bool _leaveOpen;
-
-        /// <summary>
-        /// The default constructor.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Instances returned from this constructor will leave the underlying
-        ///     stream open upon Close().  The stream uses the default CRC32
-        ///     algorithm, which implies a polynomial of 0xEDB88320.
-        ///   </para>
-        /// </remarks>
-        /// <param name="stream">The underlying stream</param>
-        public CrcCalculatorStream(System.IO.Stream stream)
-            : this(true, UnsetLengthLimit, stream, null)
-        {
-        }
-
-        /// <summary>
-        ///   The constructor allows the caller to specify how to handle the
-        ///   underlying stream at close.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     The stream uses the default CRC32 algorithm, which implies a
-        ///     polynomial of 0xEDB88320.
-        ///   </para>
-        /// </remarks>
-        /// <param name="stream">The underlying stream</param>
-        /// <param name="leaveOpen">true to leave the underlying stream
-        /// open upon close of the <c>CrcCalculatorStream</c>; false otherwise.</param>
-        public CrcCalculatorStream(System.IO.Stream stream, bool leaveOpen)
-            : this(leaveOpen, UnsetLengthLimit, stream, null)
-        {
-        }
-
-        /// <summary>
-        ///   A constructor allowing the specification of the length of the stream
-        ///   to read.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     The stream uses the default CRC32 algorithm, which implies a
-        ///     polynomial of 0xEDB88320.
-        ///   </para>
-        ///   <para>
-        ///     Instances returned from this constructor will leave the underlying
-        ///     stream open upon Close().
-        ///   </para>
-        /// </remarks>
-        /// <param name="stream">The underlying stream</param>
-        /// <param name="length">The length of the stream to slurp</param>
-        public CrcCalculatorStream(System.IO.Stream stream, long length)
-            : this(true, length, stream, null)
-        {
-            if (length < 0)
-                throw new ArgumentException("length");
-        }
-
-        /// <summary>
-        ///   A constructor allowing the specification of the length of the stream
-        ///   to read, as well as whether to keep the underlying stream open upon
-        ///   Close().
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     The stream uses the default CRC32 algorithm, which implies a
-        ///     polynomial of 0xEDB88320.
-        ///   </para>
-        /// </remarks>
-        /// <param name="stream">The underlying stream</param>
-        /// <param name="length">The length of the stream to slurp</param>
-        /// <param name="leaveOpen">true to leave the underlying stream
-        /// open upon close of the <c>CrcCalculatorStream</c>; false otherwise.</param>
-        public CrcCalculatorStream(System.IO.Stream stream, long length, bool leaveOpen)
-            : this(leaveOpen, length, stream, null)
-        {
-            if (length < 0)
-                throw new ArgumentException("length");
-        }
-
-        /// <summary>
-        ///   A constructor allowing the specification of the length of the stream
-        ///   to read, as well as whether to keep the underlying stream open upon
-        ///   Close(), and the CRC32 instance to use.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     The stream uses the specified CRC32 instance, which allows the
-        ///     application to specify how the CRC gets calculated.
-        ///   </para>
-        /// </remarks>
-        /// <param name="stream">The underlying stream</param>
-        /// <param name="length">The length of the stream to slurp</param>
-        /// <param name="leaveOpen">true to leave the underlying stream
-        /// open upon close of the <c>CrcCalculatorStream</c>; false otherwise.</param>
-        /// <param name="crc32">the CRC32 instance to use to calculate the CRC32</param>
-        public CrcCalculatorStream(System.IO.Stream stream, long length, bool leaveOpen,
-                                   CRC32 crc32)
-            : this(leaveOpen, length, stream, crc32)
-        {
-            if (length < 0)
-                throw new ArgumentException("length");
-        }
-
-
-        // This ctor is private - no validation is done here.  This is to allow the use
-        // of a (specific) negative value for the _lengthLimit, to indicate that there
-        // is no length set.  So we validate the length limit in those ctors that use an
-        // explicit param, otherwise we don't validate, because it could be our special
-        // value.
-        private CrcCalculatorStream
-            (bool leaveOpen, long length, System.IO.Stream stream, CRC32 crc32)
-            : base()
-        {
-            _innerStream = stream;
-            _Crc32 = crc32 ?? new CRC32();
-            _lengthLimit = length;
-            _leaveOpen = leaveOpen;
-        }
-
-
-        /// <summary>
-        ///   Gets the total number of bytes run through the CRC32 calculator.
-        /// </summary>
-        ///
-        /// <remarks>
-        ///   This is either the total number of bytes read, or the total number of
-        ///   bytes written, depending on the direction of this stream.
-        /// </remarks>
-        public long TotalBytesSlurped
-        {
-            get { return _Crc32.TotalBytesRead; }
-        }
-
-        /// <summary>
-        ///   Provides the current CRC for all blocks slurped in.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     The running total of the CRC is kept as data is written or read
-        ///     through the stream.  read this property after all reads or writes to
-        ///     get an accurate CRC for the entire stream.
-        ///   </para>
-        /// </remarks>
-        public int Crc
-        {
-            get { return _Crc32.Crc32Result; }
-        }
-
-        /// <summary>
-        ///   Indicates whether the underlying stream will be left open when the
-        ///   <c>CrcCalculatorStream</c> is Closed.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Set this at any point before calling <see cref="Close()"/>.
-        ///   </para>
-        /// </remarks>
-        public bool LeaveOpen
-        {
-            get { return _leaveOpen; }
-            set { _leaveOpen = value; }
-        }
-
-        /// <summary>
-        /// Read from the stream
-        /// </summary>
-        /// <param name="buffer">the buffer to read</param>
-        /// <param name="offset">the offset at which to start</param>
-        /// <param name="count">the number of bytes to read</param>
-        /// <returns>the number of bytes actually read</returns>
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            int bytesToRead = count;
-
-            // Need to limit the # of bytes returned, if the stream is intended to have
-            // a definite length.  This is especially useful when returning a stream for
-            // the uncompressed data directly to the application.  The app won't
-            // necessarily read only the UncompressedSize number of bytes.  For example
-            // wrapping the stream returned from OpenReader() into a StreadReader() and
-            // calling ReadToEnd() on it, We can "over-read" the zip data and get a
-            // corrupt string.  The length limits that, prevents that problem.
-
-            if (_lengthLimit != UnsetLengthLimit)
-            {
-                if (_Crc32.TotalBytesRead >= _lengthLimit) return 0; // EOF
-                long bytesRemaining = _lengthLimit - _Crc32.TotalBytesRead;
-                if (bytesRemaining < count) bytesToRead = (int)bytesRemaining;
-            }
-            int n = _innerStream.Read(buffer, offset, bytesToRead);
-            if (n > 0) _Crc32.SlurpBlock(buffer, offset, n);
-            return n;
-        }
-
-        /// <summary>
-        /// Write to the stream.
-        /// </summary>
-        /// <param name="buffer">the buffer from which to write</param>
-        /// <param name="offset">the offset at which to start writing</param>
-        /// <param name="count">the number of bytes to write</param>
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            if (count > 0) _Crc32.SlurpBlock(buffer, offset, count);
-            _innerStream.Write(buffer, offset, count);
-        }
-
-        /// <summary>
-        /// Indicates whether the stream supports reading.
-        /// </summary>
-        public override bool CanRead
-        {
-            get { return _innerStream.CanRead; }
-        }
-
-        /// <summary>
-        ///   Indicates whether the stream supports seeking.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Always returns false.
-        ///   </para>
-        /// </remarks>
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
-
-        /// <summary>
-        /// Indicates whether the stream supports writing.
-        /// </summary>
-        public override bool CanWrite
-        {
-            get { return _innerStream.CanWrite; }
-        }
-
-        /// <summary>
-        /// Flush the stream.
-        /// </summary>
-        public override void Flush()
-        {
-            _innerStream.Flush();
-        }
-
-        /// <summary>
-        ///   Returns the length of the underlying stream.
-        /// </summary>
-        public override long Length
-        {
-            get
-            {
-                if (_lengthLimit == UnsetLengthLimit)
-                    return _innerStream.Length;
-                else return _lengthLimit;
-            }
-        }
-
-        /// <summary>
-        ///   The getter for this property returns the total bytes read.
-        ///   If you use the setter, it will throw
-        /// <see cref="NotSupportedException"/>.
-        /// </summary>
-        public override long Position
-        {
-            get { return _Crc32.TotalBytesRead; }
-            set { throw new NotSupportedException(); }
-        }
-
-        /// <summary>
-        /// Seeking is not supported on this stream. This method always throws
-        /// <see cref="NotSupportedException"/>
-        /// </summary>
-        /// <param name="offset">N/A</param>
-        /// <param name="origin">N/A</param>
-        /// <returns>N/A</returns>
-        public override long Seek(long offset, System.IO.SeekOrigin origin)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// This method always throws
-        /// <see cref="NotSupportedException"/>
-        /// </summary>
-        /// <param name="value">N/A</param>
-        public override void SetLength(long value)
-        {
-            throw new NotSupportedException();
-        }
-
-        void IDisposable.Dispose()
-        {
-            Close();
-        }
-
-        /// <summary>
-        /// Closes the stream.
-        /// </summary>
-        public override void Close()
-        {
-            base.Close();
-            if (!_leaveOpen)
-                _innerStream.Close();
-        }
     }
 }

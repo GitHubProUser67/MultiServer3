@@ -68,12 +68,11 @@ namespace ICSharpCode.SharpZipLib.Checksum
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static uint UpdateDataForNormalPoly(byte[] input, int offset, uint[] crcTable, uint checkValue)
 		{
-			byte x1 = (byte)((byte)(checkValue >> 24) ^ input[offset]);
-			byte x2 = (byte)((byte)(checkValue >> 16) ^ input[offset + 1]);
-			byte x3 = (byte)((byte)(checkValue >> 8) ^ input[offset + 2]);
-			byte x4 = (byte)((byte)checkValue ^ input[offset + 3]);
-
-			return UpdateDataCommon(input, offset, crcTable, x1, x2, x3, x4);
+			return UpdateDataCommon(input, offset, crcTable,
+				(byte)((byte)(checkValue >> 24) ^ input[offset]),
+				(byte)((byte)(checkValue >> 16) ^ input[offset + 1]), 
+				(byte)((byte)(checkValue >> 8) ^ input[offset + 2]),
+				(byte)((byte)checkValue ^ input[offset + 3]));
 		}
 
 		/// <summary>
@@ -93,12 +92,11 @@ namespace ICSharpCode.SharpZipLib.Checksum
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static uint UpdateDataForReversedPoly(byte[] input, int offset, uint[] crcTable, uint checkValue)
 		{
-			byte x1 = (byte)((byte)checkValue ^ input[offset]);
-			byte x2 = (byte)((byte)(checkValue >>= 8) ^ input[offset + 1]);
-			byte x3 = (byte)((byte)(checkValue >>= 8) ^ input[offset + 2]);
-			byte x4 = (byte)((byte)(checkValue >>= 8) ^ input[offset + 3]);
-
-			return UpdateDataCommon(input, offset, crcTable, x1, x2, x3, x4);
+			return UpdateDataCommon(input, offset, crcTable,
+				(byte)((byte)checkValue ^ input[offset]),
+                (byte)((byte)(checkValue >>= 8) ^ input[offset + 1]),
+                (byte)((byte)(checkValue >>= 8) ^ input[offset + 2]),
+                (byte)((byte)(checkValue >>= 8) ^ input[offset + 3]));
 		}
 
 		/// <summary>
