@@ -3,7 +3,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ForceManagedImplementation>true</ForceManagedImplementation>
     <TargetFramework>net6.0</TargetFramework>
-	<IsTrimmable>true</IsTrimmable>
 	<IsPublishable>false</IsPublishable>
     <CommonPath>Common\src\</CommonPath>
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>

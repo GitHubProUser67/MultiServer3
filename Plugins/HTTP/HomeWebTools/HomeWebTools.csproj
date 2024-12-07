@@ -12,8 +12,8 @@
     <ProjectReference Include="..\..\..\AuxiliaryServices\HomeTools\HomeTools.csproj" />
     <ProjectReference Include="..\..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
     <ProjectReference Include="..\..\..\WebServers\HTTPServer\HTTPServer.csproj" />
-	<PackageReference Include="System.Text.Json" Version="8.0.4" />
-	<PackageReference Include="Costura.Fody" Version="5.7.0">
+	<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	<PackageReference Include="Costura.Fody" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
     </PackageReference>
