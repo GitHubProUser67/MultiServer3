@@ -338,30 +338,31 @@ namespace ComponentAce.Compression.Libs.zlib
             int num;
             if ((num = z.avail_in) == 0)
                 return -5;
-            int num2 = z.next_in_index;
-            int num3 = z.istate.marker;
-            if (z.next_in != null)
+            else if (z.next_in != null)
             {
+                int num2 = z.next_in_index;
+                int num3 = z.istate.marker;
                 while (num != 0 && num3 < 4)
                 {
                     num3 = ((z.next_in[num2] != mark[num3]) ? ((z.next_in[num2] == 0) ? (4 - num3) : 0) : (num3 + 1));
                     num2++;
                     num--;
                 }
+                z.total_in += num2 - z.next_in_index;
+                z.next_in_index = num2;
+                z.avail_in = num;
+                z.istate.marker = num3;
+                if (num3 != 4)
+                    return -3;
+                long total_in = z.total_in;
+                long total_out = z.total_out;
+                inflateReset(z);
+                z.total_in = total_in;
+                z.total_out = total_out;
+                z.istate.mode = 7;
+                return 0;
             }
-            z.total_in += num2 - z.next_in_index;
-            z.next_in_index = num2;
-            z.avail_in = num;
-            z.istate.marker = num3;
-            if (num3 != 4)
-                return -3;
-            long total_in = z.total_in;
-            long total_out = z.total_out;
-            inflateReset(z);
-            z.total_in = total_in;
-            z.total_out = total_out;
-            z.istate.mode = 7;
-            return 0;
+            return -1;
         }
 
         internal int inflateSyncPoint(ZStream z)
