@@ -316,7 +316,7 @@ namespace SpaceWizards.HttpListener
                     // wrap the whole thing in an HttpListenerException.  This is all to match Windows behavior.
                     if (ex.InnerException is ArgumentException || ex.InnerException is InvalidOperationException)
                     {
-#if NET462_OR_GREATER || NETCORE1_0_OR_GREATER
+#if NETCORE1_0_OR_GREATER
                         ExceptionDispatchInfo.Throw(ex.InnerException);
 #else
                         throw ex.InnerException;

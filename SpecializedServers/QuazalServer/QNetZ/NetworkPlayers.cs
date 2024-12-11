@@ -75,11 +75,21 @@ namespace QuazalServer.QNetZ
         public static uint GenerateUniqueUint(string input)
         {
             CRC32 crc = new CRC32();
-            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+            uint result = 0;
 
-            crc.SlurpBlock(inputBytes, 0, inputBytes.Length);
+            do
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input + "QnetZM$3");
+                crc.SlurpBlock(inputBytes, 0, inputBytes.Length);
+                result = ((uint)(crc.Crc32Result) ^ result);
 
-            return (uint)crc.Crc32Result;
+                // If below or equal 1000, modify the input slightly and recalculate.
+                if (result <= 1000)
+                    input += "_retry";
+            }
+            while (result <= 1000);
+
+            return result;
         }
     }
 }

@@ -9,10 +9,11 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using NetworkLibrary.Extension.LinqSQL;
 
 namespace MultiSpy.Servers
 {
-	internal class ServerListReport
+    internal class ServerListReport
 	{
 		public readonly ConcurrentDictionary<string, GameServer> Servers;
 

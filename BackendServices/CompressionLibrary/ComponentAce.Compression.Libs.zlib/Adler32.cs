@@ -14,7 +14,7 @@ namespace ComponentAce.Compression.Libs.zlib
             long num2 = (adler >> 16) & 0xFFFF;
             while (len > 0)
             {
-                int num3 = ((len < 5552) ? len : 5552);
+                int num3 = (len < 5552) ? len : 5552;
                 len -= num3;
                 while (num3 >= 16)
                 {

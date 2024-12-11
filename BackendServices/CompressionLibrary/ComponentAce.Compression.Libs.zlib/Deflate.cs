@@ -261,25 +261,25 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal void lm_init()
         {
-            window_size = 2 * w_size;
             if (head != null)
             {
+                window_size = 2 * w_size;
                 head[hash_size - 1] = 0;
                 for (int i = 0; i < hash_size - 1; i++)
                 {
                     head[i] = 0;
                 }
+                max_lazy_match = config_table[level].max_lazy;
+                good_match = config_table[level].good_length;
+                nice_match = config_table[level].nice_length;
+                max_chain_length = config_table[level].max_chain;
+                strstart = 0;
+                block_start = 0;
+                lookahead = 0;
+                match_length = (prev_length = 2);
+                match_available = 0;
+                ins_h = 0;
             }
-            max_lazy_match = config_table[level].max_lazy;
-            good_match = config_table[level].good_length;
-            nice_match = config_table[level].nice_length;
-            max_chain_length = config_table[level].max_chain;
-            strstart = 0;
-            block_start = 0;
-            lookahead = 0;
-            match_length = (prev_length = 2);
-            match_available = 0;
-            ins_h = 0;
         }
 
         internal void tr_init()
@@ -488,8 +488,10 @@ namespace ComponentAce.Compression.Libs.zlib
         internal void put_byte(byte[] p, int start, int len)
         {
             if (pending_buf != null)
+            {
                 Array.Copy(p, start, pending_buf, pending, len);
-            pending += len;
+                pending += len;
+            }
         }
 
         internal void put_byte(byte c)
@@ -552,30 +554,32 @@ namespace ComponentAce.Compression.Libs.zlib
                 pending_buf[d_buf + last_lit * 2] = (byte)SupportClass.URShift(dist, 8);
                 pending_buf[d_buf + last_lit * 2 + 1] = (byte)dist;
                 pending_buf[l_buf + last_lit] = (byte)lc;
-            }
-            last_lit++;
-            if (dist == 0)
-                dyn_ltree[lc * 2]++;
-            else
-            {
-                matches++;
-                dist--;
-                dyn_ltree[(Tree._length_code[lc] + 256 + 1) * 2]++;
-                dyn_dtree[Tree.d_code(dist) * 2]++;
-            }
-            if ((last_lit & 0x1FFF) == 0 && level > 2)
-            {
-                int num = last_lit * 8;
-                int num2 = strstart - block_start;
-                for (int i = 0; i < 30; i++)
+                last_lit++;
+                if (dist == 0)
+                    dyn_ltree[lc * 2]++;
+                else
                 {
-                    num = (int)(num + dyn_dtree[i * 2] * (5L + (long)Tree.extra_dbits[i]));
+                    matches++;
+                    dist--;
+                    dyn_ltree[(Tree._length_code[lc] + 256 + 1) * 2]++;
+                    dyn_dtree[Tree.d_code(dist) * 2]++;
                 }
-                num = SupportClass.URShift(num, 3);
-                if (matches < last_lit / 2 && num < num2 / 2)
-                    return true;
+                if ((last_lit & 0x1FFF) == 0 && level > 2)
+                {
+                    int num = last_lit * 8;
+                    int num2 = strstart - block_start;
+                    for (int i = 0; i < 30; i++)
+                    {
+                        num = (int)(num + dyn_dtree[i * 2] * (5L + (long)Tree.extra_dbits[i]));
+                    }
+                    num = SupportClass.URShift(num, 3);
+                    if (matches < last_lit / 2 && num < num2 / 2)
+                        return true;
+                }
+                return last_lit == lit_bufsize - 1;
             }
-            return last_lit == lit_bufsize - 1;
+
+            return false;
         }
 
         internal void compress_block(short[] ltree, short[] dtree)
@@ -665,15 +669,17 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal void copy_block(int buf, int len, bool header)
         {
-            bi_windup();
-            last_eob_len = 8;
-            if (header)
-            {
-                put_short((short)len);
-                put_short((short)(~len));
-            }
             if (window != null)
+            {
+                bi_windup();
+                last_eob_len = 8;
+                if (header)
+                {
+                    put_short((short)len);
+                    put_short((short)(~len));
+                }
                 put_byte(window, buf, len);
+            }
         }
 
         internal void flush_block_only(bool eof)
@@ -897,9 +903,11 @@ namespace ComponentAce.Compression.Libs.zlib
                 }
                 if (flush != 4)
                     return 1;
+
+                return 3;
             }
 
-            return 3;
+            return -1;
         }
 
         internal int deflate_slow(int flush)
@@ -991,9 +999,11 @@ namespace ComponentAce.Compression.Libs.zlib
                 }
                 if (flush != 4)
                     return 1;
+
+                return 3;
             }
 
-            return 3;
+            return -1;
         }
 
         internal int longest_match(int cur_match)
@@ -1039,9 +1049,11 @@ namespace ComponentAce.Compression.Libs.zlib
                 while ((cur_match = prev[cur_match & num6] & 0xFFFF) > num4 && --num != 0);
                 if (num3 <= lookahead)
                     return num3;
+
+                return lookahead;
             }
 
-            return lookahead;
+            return -1;
         }
 
         internal int deflateInit(ZStream strm, int level, int bits)
@@ -1170,8 +1182,10 @@ namespace ComponentAce.Compression.Libs.zlib
                     prev[i & w_mask] = head[ins_h];
                     head[ins_h] = (short)i;
                 }
+
+                return 0;
             }
-            return 0;
+            return -1;
         }
 
         internal int deflate(ZStream strm, int flush)
@@ -1208,8 +1222,7 @@ namespace ComponentAce.Compression.Libs.zlib
                     putShortMSB((int)SupportClass.URShift(strm.adler, 16));
                     putShortMSB((int)(strm.adler & 0xFFFF));
                 }
-                if (strm._adler != null)
-                    strm.adler = strm._adler.adler32(0L, null, 0, 0);
+                strm.adler = strm._adler.adler32(0L, null, 0, 0);
             }
             if (pending != 0)
             {
@@ -1260,7 +1273,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         else
                         {
                             _tr_stored_block(0, 0, eof: false);
-                            if (flush == 3 && head != null)
+                            if (flush == 3)
                             {
                                 for (int i = 0; i < hash_size; i++)
                                 {

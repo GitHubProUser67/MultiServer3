@@ -82,7 +82,7 @@ namespace WebAPIService.HTS.Helpers
                         userOnlineId[i] = 0x20;
                 }
 
-                if (OtherExtensions.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (ByteUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HTS] : User {Encoding.ASCII.GetString(userOnlineId).Replace("H", string.Empty)} logged in and is on RPCN");
 

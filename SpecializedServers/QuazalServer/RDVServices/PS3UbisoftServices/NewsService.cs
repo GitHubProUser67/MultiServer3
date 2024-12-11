@@ -64,9 +64,6 @@ namespace QuazalServer.RDVServices.PS3UbisoftServices
 				"Actumcnally",
 				$"Hello { plInfo?.Name }! Welcome to Alcatraz server!",
 				$"Players online: { NetworkPlayers.Players.Count-1 }",
-				"Need Deluxe Edition content? Enter IWantDeluxeCars and IWantDeluxeChallenges in Extras > Exclusive Content menu!",
-				"All UPlay Rewards were unlocked for you!",
-				"Play Driver 2 in Web Browser at opendriver2.github.io!",
 				"Subscribe to VortexStory on YouTube!",
 				"Support SoapyMan with coffee!",
 			};

@@ -156,8 +156,13 @@ namespace Org.Mentalis.Security.Cryptography
 		/// <remarks>Use this method to generate a random key when none is specified.</remarks>
 		public override void GenerateKey() {
 			byte[] key = new byte[this.KeySize / 8];
-            RandomNumberGenerator.Fill(key);
-			this.Key = key;
+#if NETCOREAPP2_0_OR_GREATER
+				RandomNumberGenerator.Fill(key);
+#else
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+                rng.GetBytes(key);
+#endif
+            this.Key = key;
 		}
 		/// <summary>
 		/// Creates an instance of the default cryptographic object used to perform the RC4 transformation.

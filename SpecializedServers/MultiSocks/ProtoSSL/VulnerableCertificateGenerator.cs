@@ -225,8 +225,8 @@ public class VulnerableCertificateGenerator
         byte[] certDer = DotNetUtilities.ToX509Certificate(cCertificate).GetRawCertData();
 
         // There must be two signatures in the DER encoded certificate
-        int signature1Offset = OtherExtensions.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span);
-        int signature2Offset = OtherExtensions.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span, signature1Offset + (MD5Mode ? MD5CipherSignature.Length : SHA1CipherSignature.Length));
+        int signature1Offset = ByteUtils.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span);
+        int signature2Offset = ByteUtils.FindBytePattern(certDer, MD5Mode ? MD5CipherSignature.Span : SHA1CipherSignature.Span, signature1Offset + (MD5Mode ? MD5CipherSignature.Length : SHA1CipherSignature.Length));
 
         if (signature1Offset == -1 || signature2Offset == -1)
             throw new Exception("[ProtoSSL] - Failed to find valid signature for patching!");

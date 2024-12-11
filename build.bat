@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer build script 26/11/2024
+@echo MultiServer build script 07/12/2024
 @echo.
 
 @echo Cleaning up directories:
@@ -23,6 +23,8 @@ xcopy /E /Y /I "SpecializedServers/MultiSpy/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "WebServers/HTTPServer/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "WebServers/MitmDNS/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows" "~BuildOutput/MultiServer/Debug"
+xcopy /E /Y /I "RemoteControl/bin/Release/net6.0-windows" "~BuildOutput/MultiServer/Release"
 if exist "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" (
     xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
 )

@@ -142,7 +142,6 @@ namespace NetworkLibrary.SSL
             // Generate a new RSA key pair
             using (RSA rsa = RSA.Create())
             {
-
                 rsa.ImportParameters(ROOT_CA_PARAMETERS);
 
                 // Create a certificate request with the RSA key pair
@@ -338,7 +337,7 @@ namespace NetworkLibrary.SSL
                 // Convert PEM-encoded private key to RSA parameters
                 AsymmetricCipherKeyPair keyPair;
                 using (StringReader reader = new StringReader(File.ReadAllText(privateKeyPath)))
-                    keyPair = new PemReader(reader).ReadObject() as AsymmetricCipherKeyPair;
+                    keyPair = new Org.BouncyCastle.OpenSsl.PemReader(reader).ReadObject() as AsymmetricCipherKeyPair;
 
                 if (keyPair == null)
                     throw new CryptographicException("[LoadPemCertificate] - Invalid private key.");
@@ -532,15 +531,15 @@ namespace NetworkLibrary.SSL
             const string SHA512id = "300D06092A864886F70D01010D0500";
 
             if (hashAlgorithm == HashAlgorithmName.MD5)
-                return OtherExtensions.HexStringToByteArray(MD5id);
+                return MD5id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA1)
-                return OtherExtensions.HexStringToByteArray(SHA1id);
+                return SHA1id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA256)
-                return OtherExtensions.HexStringToByteArray(SHA256id);
+                return SHA256id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA384)
-                return OtherExtensions.HexStringToByteArray(SHA384id);
+                return SHA384id.HexStringToByteArray();
             if (hashAlgorithm == HashAlgorithmName.SHA512)
-                return OtherExtensions.HexStringToByteArray(SHA512id);
+                return SHA512id.HexStringToByteArray();
 
             LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 

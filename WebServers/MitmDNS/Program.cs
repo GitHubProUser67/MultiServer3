@@ -192,7 +192,7 @@ class Program
         dnswatcher.NotifyFilter = NotifyFilters.LastWrite;
         dnswatcher.Changed += OnDNSChanged;
 
-        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.Windows.Win32API.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

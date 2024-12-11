@@ -18,7 +18,7 @@ using System;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
-using NetworkLibrary.Extension;
+using NetworkLibrary.Extension.Csharp;
 
 namespace Horizon.LIBRARY.Database
 {

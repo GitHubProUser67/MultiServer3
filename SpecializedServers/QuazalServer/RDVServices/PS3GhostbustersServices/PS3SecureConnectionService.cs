@@ -19,7 +19,7 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
         [RMCMethod(1)]
         public RMCResult? Register(List<string> vecMyURLs)
         {
-            if (Context != null && Context.Client.PlayerInfo != null)
+            if (Context != null)
             {
                 // change address
                 StationURL rdvConnectionUrl = new(vecMyURLs.Last().ToString())
@@ -30,7 +30,7 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
 
                 RegisterResult result = new()
                 {
-                    pidConnectionID = Context.Client.PlayerInfo.RVCID,
+                    pidConnectionID = Context.Client.PlayerInfo?.RVCID ?? 0,
                     retval = (int)ErrorCode.Core_NoError,
                     urlPublic = rdvConnectionUrl
                 };
@@ -71,7 +71,7 @@ namespace QuazalServer.RDVServices.PS3GhostbustersServices
                         extractedData[i] = 0x48;
                 }
 
-                if (OtherExtensions.FindBytePattern(hCustomData.data.ticket.data, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (ByteUtils.FindBytePattern(hCustomData.data.ticket.data, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                     LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
                 else
                     LoggerAccessor.LogInfo($"[PS3SecureConnectionService] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");

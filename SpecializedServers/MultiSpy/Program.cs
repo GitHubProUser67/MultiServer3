@@ -4863,7 +4863,7 @@ class Program
         if (MultiSpyServerConfiguration.EnablePeerChat)
 		{
             LoggerAccessor.LogInfo("[ServerNatNeg] - Starting Peer Chat Listener");
-            serverChat = new PythonExecEngine(Directory.GetCurrentDirectory() + "/Python_Scripts/gschatserver.py", NetworkLibrary.Extension.OtherExtensions.IsWindows);
+            serverChat = new PythonExecEngine(Directory.GetCurrentDirectory() + "/Python_Scripts/gschatserver.py", NetworkLibrary.Extension.Windows.Win32API.IsWindows);
         }
     }
 
@@ -4885,7 +4885,7 @@ class Program
 
     static void Main()
     {
-        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.Windows.Win32API.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);
