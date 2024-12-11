@@ -274,13 +274,15 @@ namespace SVO
                         await PlayStationHome.Home_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/WARHAWK_SVML/"))
                         await Warhawk.Warhawk_SVO(ctx.Request, ctx.Response);
+                    else if (absolutepath.Contains("/MOTORSTORM2PS3_SVML/") || absolutepath.Contains("/MOTORSTORM2PS3_XML/"))
+                        await MotorstormPR2.MotorStormPR_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/motorstorm3ps3_xml/"))
                         await MotorStormApocalypse.MSApocalypse_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/BUZZPS3_SVML/"))
                         await BuzzQuizGame.BuzzQuizGame_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/BOURBON_XML/"))
                         await Starhawk.Starhawk_SVO(ctx.Request, ctx.Response);
-                    else if (absolutepath.Contains("/SOCOMCF_SVML/"))
+                    else if (absolutepath.Contains("/CONFRONTATION_XML/"))
                         await SocomConfrontation.SocomConfrontation_SVO(ctx.Request, ctx.Response);
                     else if (absolutepath.Contains("/SINGSTARPS3_SVML/"))
                         await SingStar.Singstar_SVO(ctx.Request, ctx.Response);
@@ -289,7 +291,6 @@ namespace SVO
                     else
                     {
                         // Only meant to be used with fairly small files.
-
                         string filePath = Path.Combine(SVOServerConfiguration.SVOStaticFolder, absolutepath[1..]);
 
                         if (File.Exists(filePath))

@@ -83,7 +83,6 @@ namespace Horizon.SERVER.Medius
                             }
                         }
 
-                        data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
                         // If booth are null, it means MAS client wants a new object.
                         if (!string.IsNullOrEmpty(clientConnectTcp.AccessToken) && !string.IsNullOrEmpty(clientConnectTcp.SessionKey))
                         {
@@ -100,7 +99,6 @@ namespace Horizon.SERVER.Medius
 
                             data.ClientObject = new(scertClient.MediusVersion ?? 0)
                             {
-                                MediusVersion = scertClient.MediusVersion ?? 0,
                                 ApplicationId = clientConnectTcp.AppId
                             };
                             data.ClientObject.OnConnected();
@@ -196,10 +194,6 @@ namespace Horizon.SERVER.Medius
 
                         //MAGDevBuild3 = 1725
                         //MAG BCET70016 v1.3 = 7002
-
-
-                        var ProtoBytesReversed = ReverseBytesUInt(1725);
-                        var BuildNumber = ReverseBytesUInt(0);
                         data.ClientObject.Queue(new NetMessageTypeProtocolInfo()
                         {
                             protocolInfo = EndianUtils.ReverseUint(1725), //1725 //1958
@@ -229,17 +223,14 @@ namespace Horizon.SERVER.Medius
 
                         });
 
-
-
-
                         //Time
                         DateTime time = DateTime.Now;
                         long timeBS = time.Ticks >> 1;
 
                         //bool finBs = true >> 1;
                         //Content string bitshift
-                        string newsBs = ShiftString("Test News");
-                        string eulaBs = ShiftString("Test Eula");
+                        //string newsBs = ShiftString("Test News");
+                        //string eulaBs = ShiftString("Test Eula");
                         // News/Eula Type bitshifted
                         int newsBS = 0;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.News) >> 1;
                         int eulaBS = 1;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.Eula) >> 1;
@@ -299,59 +290,6 @@ namespace Horizon.SERVER.Medius
                         break;
                     }
             }
-        }
-
-        public static string ShiftString(string t)
-        {
-            return t[1..] + t[..1];
-        }
-
-        public static ulong ReverseBytesULong(ulong value)
-        {
-            return ((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
-                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
-        }
-
-        public static uint ReverseBytesUInt(uint value)
-        {
-            return ((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
-                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
-        }
-        public static int ReverseBytesInt(int value)
-        {
-            return (int)((value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
-                (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24);
-        }
-
-        #region ReverseBytes16
-        /// <summary>
-        /// Reverses UInt16 
-        /// </summary>
-        /// <param name="nValue"></param>
-        /// <returns></returns>
-        public static ushort ReverseBytes16(ushort nValue)
-        {
-            return (ushort)((ushort)((nValue >> 8)) | (nValue << 8));
-        }
-        #endregion
-
-        public byte[] BitShift(byte[] sequence, int length)
-        {
-            // Check if the length is valid
-            if (length <= 0 || length >= 8)
-            {
-                LoggerAccessor.LogError("[MAPS] - Invalid shift length. The length must be between 1 and 7.");
-                return Array.Empty<byte>();
-            }
-
-            // Perform the bitwise shift operation
-            byte[] shiftedSequence = new byte[sequence.Length];
-            for (int i = 0; i < sequence.Length; i++)
-            {
-                shiftedSequence[i] = (byte)(sequence[i] << length);
-            }
-
-            return shiftedSequence;
         }
     }
 }

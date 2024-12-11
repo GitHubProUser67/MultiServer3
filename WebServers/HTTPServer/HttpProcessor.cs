@@ -1296,7 +1296,7 @@ namespace HTTPServer
                         if (!string.IsNullOrEmpty(EtagMD5))
                         {
                             response.Headers.Add("ETag", EtagMD5);
-                            response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                            response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                         }
 
                         response.HttpStatusCode = HttpStatusCode.NotModified;
@@ -1341,7 +1341,7 @@ namespace HTTPServer
                             if (!string.IsNullOrEmpty(EtagMD5))
                             {
                                 response.Headers.Add("ETag", EtagMD5);
-                                response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             }
                             if (File.Exists(filePath))
                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
@@ -1894,7 +1894,7 @@ namespace HTTPServer
                             if (!string.IsNullOrEmpty(EtagMD5))
                             {
                                 response.Headers.Add("ETag", EtagMD5);
-                                response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             }
 
                             response.HttpStatusCode = HttpStatusCode.NotModified;
@@ -1932,7 +1932,7 @@ namespace HTTPServer
                                 if (!string.IsNullOrEmpty(EtagMD5))
                                 {
                                     response.Headers.Add("ETag", EtagMD5);
-                                    response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                                    response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                                 }
                                 if (File.Exists(filePath))
                                     response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));

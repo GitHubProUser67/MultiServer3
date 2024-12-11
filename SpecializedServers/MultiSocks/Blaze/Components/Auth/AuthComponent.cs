@@ -1,15 +1,7 @@
-﻿using Blaze3SDK;
-using Blaze3SDK.Blaze.Authentication;
-using Blaze3SDK.Blaze.Util;
+﻿using Blaze3SDK.Blaze.Authentication;
 using Blaze3SDK.Components;
 using BlazeCommon;
 using CustomLogger;
-using MultiSocks.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MultiSocks.Blaze.Util
 {
