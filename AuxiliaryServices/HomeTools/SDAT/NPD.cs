@@ -26,7 +26,7 @@ namespace HomeTools.SDAT
 
         public static NPD CreateNPD(byte[] npd)
         {
-            NPD npd1 = new();
+            NPD npd1 = new NPD();
             ConversionUtils.Arraycopy(npd, 0, npd1.magic, 0L, 4);
             npd1.version = ConversionUtils.Be32(npd, 4);
             npd1.license = ConversionUtils.Be32(npd, 8);

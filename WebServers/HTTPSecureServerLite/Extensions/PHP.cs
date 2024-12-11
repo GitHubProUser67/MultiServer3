@@ -105,7 +105,7 @@ namespace HTTPSecureServerLite.Extensions
                         // into our response headers.
                         index = line.IndexOf(':');
 
-                        HeadersLocal = NetworkLibrary.Extension.OtherExtensions.AddElement(HeadersLocal, new string[] { line[..index], line[(index + 2)..] });
+                        HeadersLocal = HeadersLocal.AddArray(new string[] { line[..index], line[(index + 2)..] });
                     }
                     else
                         // Write non-header lines into the output as is.

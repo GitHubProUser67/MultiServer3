@@ -8,7 +8,7 @@ using System.Net.Sockets;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #endif
-#if NETCORE3_0_OR_GREATER
+#if NETCORE3_0_OR_GREATER || NET5_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 #endif
 
@@ -16,7 +16,7 @@ namespace NetworkLibrary.TCP_IP
 {
     public static class IPUtils
     {
-        public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength)
+        public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength, bool detailed = false)
         {
             if (cidrPrefixLength == null || cidrPrefixLength.Value > 32 || cidrPrefixLength.Value < 8)
             {
@@ -38,11 +38,15 @@ namespace NetworkLibrary.TCP_IP
             uint networkAddress = BitConverter.ToUInt32(ipBytes, 0) & subnetMask;
             uint broadcastAddress = networkAddress | ~subnetMask;
 
-            LoggerAccessor.LogInfo($"CIDR Prefix Length:{cidrPrefixLength.Value}");
             LoggerAccessor.LogInfo($"Subnet Mask:{ConvertToIpAddress(subnetMask)}");
-            LoggerAccessor.LogInfo($"Network Address:{ConvertToIpAddress(networkAddress)}");
-            LoggerAccessor.LogInfo($"Broadcast Address:{ConvertToIpAddress(broadcastAddress)}");
-            LoggerAccessor.LogInfo($"Number of Hosts:{CalculateNumberOfHosts(subnetMask)}");
+
+            if (detailed)
+            {
+                LoggerAccessor.LogInfo($"CIDR Prefix Length:{cidrPrefixLength.Value}");
+                LoggerAccessor.LogInfo($"Network Address:{ConvertToIpAddress(networkAddress)}");
+                LoggerAccessor.LogInfo($"Broadcast Address:{ConvertToIpAddress(broadcastAddress)}");
+                LoggerAccessor.LogInfo($"Number of Hosts:{CalculateNumberOfHosts(subnetMask)}");
+            }
         }
 
         /// <summary>
@@ -212,7 +216,7 @@ namespace NetworkLibrary.TCP_IP
         private static uint CountSetBits(uint value)
         {
             // Use the Popcnt intrinsic if available
-#if NETCORE3_0_OR_GREATER
+#if NETCORE3_0_OR_GREATER || NET5_0_OR_GREATER
             if (Popcnt.IsSupported)
                 return Popcnt.PopCount(value);
 #endif

@@ -269,7 +269,7 @@ class Program
 
             Parallel.ForEach(HTTPServerConfiguration.Ports, port =>
             {
-                if (TCP_UDPUtils.IsTCPPortAvailable(port))
+                if (TCPUtils.IsTCPPortAvailable(port))
                     HTTPBag.Add(new HttpServer(port, new List<HTTPServer.Models.Route> { } /*TODO: Make it so we can input custom routes*/, Processor, new CancellationTokenSource().Token));
             });
         }
@@ -282,7 +282,7 @@ class Program
 
     static void Main()
     {
-        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.Windows.Win32API.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

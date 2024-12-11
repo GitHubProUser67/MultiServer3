@@ -51,8 +51,8 @@ namespace HashLib
                 return ConvertFloatsToBytes((float[])a_in);
             else if (a_in is double[])
                 return ConvertDoublesToBytes((double[])a_in);
-            else
-                throw new ArgumentException();
+
+            throw new ArgumentException();
         }
 
         public static uint[] ConvertBytesToUInts(byte[] a_in, int a_index = 0, int a_length = -1)

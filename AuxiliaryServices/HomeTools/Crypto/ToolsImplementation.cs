@@ -188,23 +188,24 @@ namespace HomeTools.Crypto
 
         public static ulong Sha1toNonce(byte[] digest)
         {
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(digest);
-
             ulong v1 = 0UL;
-            if (digest != null && digest.Length >= 8)
-                v1 = BitConverter.ToUInt64(digest, 0);
+
+            if (digest == null || digest.Length < 8)
+                return v1;
+
+            v1 = BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseArray(digest) : digest, 0);
+
             return v1;
         }
 
         public static byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return OtherExtensions.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
+            return ByteUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
         }
 
         public static byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return OtherExtensions.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
+            return ByteUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
         }
 
         public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
@@ -219,8 +220,8 @@ namespace HomeTools.Crypto
 
                 return destinationArray;
             }
-            else
-                return fileBytes;
+
+            return fileBytes;
         }
     }
 }

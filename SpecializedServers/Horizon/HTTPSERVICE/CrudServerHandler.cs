@@ -496,8 +496,13 @@ namespace Horizon.HTTPSERVICE
                             Command = HTTPProcessor.DecodeUrl(Command);
 
                         bool Retail = true;
+                        bool Admin = false;
                         string? AccessToken = null;
                         string clientip = ctx.Request.Source.IpAddress;
+
+                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
+                        || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
+                            Admin = true;
 
                         if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
                         {
@@ -528,7 +533,14 @@ namespace Horizon.HTTPSERVICE
                                 ctx.Response.ContentType = "application/json; charset=utf-8";
                                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
 
-                                await ctx.Response.Send(JsonConvert.SerializeObject(await HomeGuestJoiningSystem.getCrcList(clientip, AccessToken, Retail), Formatting.Indented));
+                                string CrcListJsonOutputString;
+
+                                if (Admin && ctx.Request.QuerystringExists("GetAll") && bool.TryParse(ctx.Request.RetrieveQueryValue("GetAll"), out bool getAll) && getAll)
+                                    CrcListJsonOutputString = JsonConvert.SerializeObject(await HomeGuestJoiningSystem.getCrcList(clientip, null, Retail, true), Formatting.Indented);
+                                else
+                                    CrcListJsonOutputString = JsonConvert.SerializeObject(await HomeGuestJoiningSystem.getCrcList(clientip, AccessToken, Retail, false), Formatting.Indented);
+
+                                await ctx.Response.Send(CrcListJsonOutputString);
                                 return;
                             default:
                                 ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;

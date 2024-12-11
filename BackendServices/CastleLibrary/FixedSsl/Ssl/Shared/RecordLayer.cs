@@ -132,8 +132,13 @@ namespace Org.Mentalis.Security.Ssl.Shared
 								trailer[i] = padding;
 							}
 						} else {
-                            RandomNumberGenerator.Fill(trailer);
-							ret[ret.Length - 1] = padding;
+#if NETCOREAPP2_0_OR_GREATER
+							RandomNumberGenerator.Fill(trailer);
+#else
+                            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+                                rng.GetBytes(trailer);
+#endif
+                            ret[ret.Length - 1] = padding;
 						}
 						if (messTrailer > 0)
 							Array.Copy(buffer, offset + size - messTrailer, trailer, 0, messTrailer);
@@ -211,8 +216,13 @@ namespace Org.Mentalis.Security.Ssl.Shared
 							}
 						} else {
 							byte[] buffer = new byte[ret.Length - message.length - mac.Length];
-                            RandomNumberGenerator.Fill(buffer);
-							Array.Copy(buffer, 0, ret, message.length + mac.Length, buffer.Length);
+#if NETCOREAPP2_0_OR_GREATER
+							RandomNumberGenerator.Fill(buffer);
+#else
+                            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+                                rng.GetBytes(buffer);
+#endif
+                            Array.Copy(buffer, 0, ret, message.length + mac.Length, buffer.Length);
 							ret[ret.Length - 1] = padding;
 						}
 						m_BulkEncryption.TransformBlock(ret, 0, ret.Length, ret, 0);

@@ -1,5 +1,7 @@
 ﻿using Alcatraz.Context;
 using Alcatraz.Context.Entities;
+using Alcatraz.DTO.Helpers;
+using CustomLogger;
 using Microsoft.EntityFrameworkCore;
 
 namespace RDVServices
@@ -13,6 +15,9 @@ namespace RDVServices
 
             switch (serviceClass)
 			{
+                case "PS3RaymanLegendsServices":
+                case "PCDriverServices":
+                case "PS3DriverServices":
                 case "PCUbisoftServices":
                 case "PS3UbisoftServices":
 					connectionString = $"{Program.configDir}/Quazal/Database/Uplay.sqlite";
@@ -55,14 +60,73 @@ namespace RDVServices
 
                     return retCtx;
                 default:
-					CustomLogger.LoggerAccessor.LogError($"[DbHelper] - Unknwon: {serviceClass} Class passed to the database!");
+					LoggerAccessor.LogError($"[DbHelper] - Unknwon: {serviceClass} Class passed to the database!");
 					break;
 			}
 
 			return null;
 		}
 
-		public static User GetUserByName(string serviceClass, string name)
+        public static bool RegisterUser(string serviceClass, string userName, string password, uint PID, string? NickName = null)
+        {
+            using (MainDbContext? context = GetDbContext(serviceClass))
+            {
+                if (context != null)
+                {
+                    if (!context.Users.Any())
+                    {
+                        // Add dummy user with starting ID == 1000
+                        context.Users.Add(new User()
+                        {
+                            Id = 1000,
+                            Username = "dummy",
+                            PlayerNickName = "dummy",
+                            Password = "dummy",
+                            RewardFlags = 0,
+                        });
+                        context.SaveChanges();
+                    }
+
+                    bool HasNickName = !string.IsNullOrEmpty(NickName);
+
+                    if (!context.Users.Any(x => x.Username == userName || x.Id == PID || (HasNickName && x.PlayerNickName == NickName)))
+                    {
+                        User dbUser = new User() { Id = PID, Username = userName };
+
+                        if (HasNickName)
+                            dbUser.PlayerNickName = NickName;
+
+                        dbUser.Password = SecurePasswordHasher.Hash($"{dbUser.Id}-{password}");
+
+                        try
+                        {
+                            context.Users.Add(dbUser);
+                            context.SaveChanges();
+
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerAccessor.LogError($"[DBHelper] - An assertion was thrown while adding User:{dbUser} to the database. (Exception: {ex})");
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static User? GetUserByUserName(string serviceClass, string userName)
+        {
+            using (MainDbContext? context = GetDbContext(serviceClass))
+            {
+                return context?.Users
+                    .AsNoTracking()
+                    .SingleOrDefault(x => x.Username == userName);
+            }
+        }
+
+        public static User? GetUserByNickName(string serviceClass, string name)
 		{
 			using (MainDbContext? context = GetDbContext(serviceClass))
 			{
@@ -72,7 +136,7 @@ namespace RDVServices
 			}
 		}
 
-		public static User GetUserByPID(string serviceClass, uint PID)
+		public static User? GetUserByPID(string serviceClass, uint PID)
 		{
 			using (MainDbContext? context = GetDbContext(serviceClass))
 			{

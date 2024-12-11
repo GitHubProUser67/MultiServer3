@@ -167,7 +167,7 @@ namespace SSFWServer
 
                 XI5Ticket ticket = new XI5Ticket(ticketBuffer);
 
-                if (OtherExtensions.FindBytePattern(ticketBuffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (ByteUtils.FindBytePattern(ticketBuffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     if (SSFWServerConfiguration.ForceOfficialRPCNSignature && !ticket.SignedByOfficialRPCN)
                     {

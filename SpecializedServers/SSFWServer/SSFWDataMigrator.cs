@@ -1,3 +1,5 @@
+using NetworkLibrary.Extension;
+
 namespace SSFWServer
 {
     public class SSFWDataMigrator
@@ -9,7 +11,7 @@ namespace SSFWServer
 
             foreach (string directory in new string[] { "/AvatarLayoutService", "/LayoutService", "/RewardsService", "/SaveDataService" })
             {
-                foreach (FileSystemInfo item in NetworkLibrary.FileSystem.StaticFileSystem.AllFilesAndFoldersLinq(new DirectoryInfo(ssfwrootDirectory + directory)).Where(item => item.FullName.Contains(oldStr)))
+                foreach (FileSystemInfo item in FileSystemUtils.AllFilesAndFoldersLinq(new DirectoryInfo(ssfwrootDirectory + directory)).Where(item => item.FullName.Contains(oldStr)))
                 {
                     // Construct the full path for the new file/folder in the target directory
                     string newPath = item.FullName.Replace(oldStr, newStr);

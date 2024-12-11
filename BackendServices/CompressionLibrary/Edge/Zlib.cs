@@ -64,7 +64,7 @@ namespace CompressionLibrary.Edge
             {
                 while (memoryStream.Position < memoryStream.Length)
                 {
-                    int num = Math.Min((int)(memoryStream.Length - memoryStream.Position), 65535);
+                    int num = Math.Min((int)(memoryStream.Length - memoryStream.Position), ushort.MaxValue);
                     byte[] array = new byte[num];
                     memoryStream.Read(array, 0, num);
                     zlibTasks.Add(new KeyValuePair<int, Task<byte[]>>(chunkIndex, ComponentAceCompressEdgeZlibChunk(array)));
@@ -159,7 +159,7 @@ namespace CompressionLibrary.Edge
                 return array;
             }
 
-            internal static int SizeOf
+            internal static byte SizeOf
             {
                 get
                 {

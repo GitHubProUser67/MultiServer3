@@ -1,5 +1,4 @@
 using CustomLogger;
-using NetworkLibrary.Extension;
 using MultiSpyService.Data;
 using MultiSpyService.GS;
 using MultiSpyService.Utils;
@@ -7,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using NetworkLibrary.Extension.LinqSQL;
 
 namespace MultiSpy.Servers
 {
