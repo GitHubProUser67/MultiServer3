@@ -2062,7 +2062,7 @@ namespace HTTPSecureServerLite
                 if (!string.IsNullOrEmpty(EtagMD5))
                 {
                     ctx.Response.Headers.Add("ETag", EtagMD5);
-                    ctx.Response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                    ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                 }               
                 ctx.Response.StatusCode = 304;
                 sent = await ctx.Response.Send();
@@ -2072,7 +2072,7 @@ namespace HTTPSecureServerLite
                 if (!string.IsNullOrEmpty(EtagMD5))
                 {
                     ctx.Response.Headers.Add("ETag", EtagMD5);
-                    ctx.Response.Headers.Add("expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                    ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                 }
 
                 if (ctx.Response.ChunkedTransfer)

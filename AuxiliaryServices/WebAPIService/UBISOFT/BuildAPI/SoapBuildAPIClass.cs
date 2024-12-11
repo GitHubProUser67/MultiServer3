@@ -40,7 +40,7 @@ namespace WebAPIService.UBISOFT.BuildAPI
                             return BuildDBPullServiceHandler.buildDBRequestParser(PostData, ContentType);
                         default:
                             {
-                                LoggerAccessor.LogError($"[OuWF] - Unhandled server request discovered: {absolutepath} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
+                                LoggerAccessor.LogError($"[BuildAPI] - Unhandled server request discovered: {absolutepath} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
                             }
                             break;
                     }
