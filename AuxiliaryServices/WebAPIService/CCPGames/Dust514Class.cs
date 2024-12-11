@@ -60,6 +60,7 @@ namespace WebAPIService.CCPGames
                             break;
                         case "/crest/":
 
+                            //If they ARE logged in
                             if(GlobalState.isLoggedIn) {
                                 return @"{""character"":{""name"":""Wrecker 39"",""href"":""http://dust514.online:26004/character/{GlobalState.charaId}/"",""id"":{GlobalState.charaId},""contacts"":{""href"":""""},""private"":{""href"":""""},""mercenary"":{""href"":""""},""corporation"":{""href"":"""",""id"":0,""name"":""""},""corporationMember"":{""href"":""""},""mail"":{""href"":""""},""description"":"""",""gender"":false,""race"":{""id"":0,""name"":"""",""icon"":{""href"":""""},""description"":"""",""href"":""""},""bloodLine"":{""href"":"""",""id"":0},""portrait"":{""id"":0},""skills"":{""href"":""""},""notifications"":{""href"":""""},""channels"":{""href"":""""},""npeSettings"":{""href"":""""}},""marketGroups"":{""href"":""http://dust514.online:26004/market/groups/350001/""}}";
                             } else
