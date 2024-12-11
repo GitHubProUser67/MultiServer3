@@ -40,7 +40,7 @@ namespace WebAPIService.UBISOFT.BuildAPI.BuildDBPullService
                     case "GetCurrentLauncherVersion":
                         {
 
-                            LoggerAccessor.LogInfo($"GetCurrentLauncherVersion: TRIGGERED!");
+                            LoggerAccessor.LogInfo($"[BuildDBPullService] - GetCurrentLauncherVersion: TRIGGERED!");
 
                             return @"<?xml version=""1.0"" encoding=""utf-8""?>
 <soap:Envelope
@@ -62,7 +62,7 @@ namespace WebAPIService.UBISOFT.BuildAPI.BuildDBPullService
                     default:
                         {
 
-                            LoggerAccessor.LogInfo($"GetCurrentLauncherVersion: FAILEd!");
+                            LoggerAccessor.LogInfo($"[BuildDBPullService] - GetCurrentLauncherVersion: FAILED!");
                             return @"<?xml version=""1.0"" encoding=""utf-8""?>
 <soap:Envelope
   xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
@@ -84,7 +84,7 @@ namespace WebAPIService.UBISOFT.BuildAPI.BuildDBPullService
             }
             else
             {
-                LoggerAccessor.LogWarn("No GetConsoleOwnerResult found.");
+                LoggerAccessor.LogWarn("[BuildDBPullService] - No GetConsoleOwnerResult found.");
             }
 
 
