@@ -83,9 +83,13 @@ namespace Horizon.SERVER.Medius
                             }
                         }
 
-                        data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
-                        if (data.ClientObject == null)
-                            data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
+                        // If booth are null, it means MAS client wants a new object.
+                        if (!string.IsNullOrEmpty(clientConnectTcp.AccessToken) && !string.IsNullOrEmpty(clientConnectTcp.SessionKey))
+                        {
+                            data.ClientObject = MediusClass.Manager.GetClientByAccessToken(clientConnectTcp.AccessToken, clientConnectTcp.AppId);
+                            if (data.ClientObject == null)
+                                data.ClientObject = MediusClass.Manager.GetClientBySessionKey(clientConnectTcp.SessionKey, clientConnectTcp.AppId);
+                        }
 
                         if (data.ClientObject != null)
                             LoggerAccessor.LogInfo($"[MAPS] - Client Connected {clientChannel.RemoteAddress}!");
@@ -187,15 +191,9 @@ namespace Horizon.SERVER.Medius
 
                 case NetMessageHello netMessageHello:
                     {
-                        /*
-                        data.ClientObject?.Queue(new NetMAPSHelloMessage()
-                        {
-                            m_success = false,
-                            m_isOnline = false,
-                            m_availableFactions = new byte[3] { 1, 2, 3 }
-                        });
-                        */
 
+                        //MAGDevBuild3 = 1725
+                        //MAG BCET70016 v1.3 = 7002
                         data.ClientObject.Queue(new NetMessageTypeProtocolInfo()
                         {
                             protocolInfo = EndianUtils.ReverseUint(1725), //1725 //1958
@@ -209,14 +207,30 @@ namespace Horizon.SERVER.Medius
 
                 case NetMessageTypeProtocolInfo protocolInfo:
                     {
+                        byte[] availFactions = new byte[] { 0b00000111, 0, 0, 0 }; //= new byte[4];
+
+                        //0b11100000
+                        //availFactions[0] = 0;
+                        //availFactions[1] = 0;
+                        //availFactions[2] = 0;
+                        //availFactions[3] = 31;
+
+                        data.ClientObject.Queue(new NetMAPSHelloMessage()
+                        {
+                            m_success = true,
+                            m_isOnline = true,
+                            m_availableFactions = availFactions
+
+                        });
+
                         //Time
                         DateTime time = DateTime.Now;
                         long timeBS = time.Ticks >> 1;
 
                         //bool finBs = true >> 1;
                         //Content string bitshift
-                        string newsBs = ShiftString("Test News");
-                        string eulaBs = ShiftString("Test Eula");
+                        //string newsBs = ShiftString("Test News");
+                        //string eulaBs = ShiftString("Test Eula");
                         // News/Eula Type bitshifted
                         int newsBS = 0;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.News) >> 1;
                         int eulaBS = 1;//Convert.ToInt32(NetMessageNewsEulaResponseContentType.Eula) >> 1;
@@ -276,30 +290,6 @@ namespace Horizon.SERVER.Medius
                         break;
                     }
             }
-        }
-
-        public static string ShiftString(string t)
-        {
-            return t[1..] + t[..1];
-        }
-
-        public byte[] BitShift(byte[] sequence, int length)
-        {
-            // Check if the length is valid
-            if (length <= 0 || length >= 8)
-            {
-                LoggerAccessor.LogError("[MAPS] - Invalid shift length. The length must be between 1 and 7.");
-                return Array.Empty<byte>();
-            }
-
-            // Perform the bitwise shift operation
-            byte[] shiftedSequence = new byte[sequence.Length];
-            for (int i = 0; i < sequence.Length; i++)
-            {
-                shiftedSequence[i] = (byte)(sequence[i] << length);
-            }
-
-            return shiftedSequence;
         }
     }
 }
