@@ -340,7 +340,6 @@ namespace HTTPServer
                                     {
                                         default:
 
-                                            
                                             #region Dust 514 dcrest
                                             if (request.ServerPort == 26004 //Check for Dust514 specific Port!!
                                                 && !string.IsNullOrEmpty(Method)
