@@ -343,7 +343,6 @@ namespace HTTPServer
                                             #region Dust 514 dcrest
                                             if (request.ServerPort == 26004 //Check for Dust514 specific Port!!
                                                 && !string.IsNullOrEmpty(Method)
-                                                && request.Headers != null
                                                 && request.RetrieveHeaderValue("X-CCP-User-Agent", true).Contains("CCPGamesCrestClient")
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a Dust514  method : {absolutepath}");
