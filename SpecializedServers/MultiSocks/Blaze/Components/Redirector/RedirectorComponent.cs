@@ -4,9 +4,8 @@ using Blaze3SDK.Components;
 using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Utils;
-using System.Net;
 
-namespace MultiSocks.Blaze.Redirector
+namespace MultiSocks.Blaze.Components.Redirector
 {
     internal class RedirectorComponent : RedirectorComponentBase.Server
     {
@@ -38,7 +37,7 @@ namespace MultiSocks.Blaze.Redirector
 
             //Connection details
             bool secure = false; //insecure
-            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+            string ip = "127.0.0.1";
             ushort port = 33152;
 
             ServerInstanceInfo responseData = new()
@@ -62,7 +61,7 @@ namespace MultiSocks.Blaze.Redirector
 
                 //optionally server messages can be specified
                 mMessages = new List<string>() {
-                    "Hello, from Multiserver!"
+                    //"Hello, from Multiserver!"
                 },
 
                 //optionally name remaps can be specified

@@ -1,24 +1,31 @@
-using NetworkLibrary.HTTP;
+﻿using CustomLogger;
 using System;
-using WebAPIService.HTS.Helpers;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WebAPIService.OUWF;
+using WebAPIService.UBISOFT.BuildAPI.BuildDBPullService;
 
-namespace WebAPIService.HTS
+namespace WebAPIService.UBISOFT.BuildAPI
 {
-    public class HTSClass : IDisposable
+
+    public class SoapBuildAPIClass : IDisposable
     {
-        private string workpath;
-        private string absolutepath;
-        private string method;
+        string workpath;
+        string absolutepath;
+        string method;
         private bool disposedValue;
 
-        public HTSClass(string method, string absolutepath, string workpath)
+        public SoapBuildAPIClass(string method, string absolutepath, string workpath)
         {
-            this.absolutepath = absolutepath;
             this.workpath = workpath;
+            this.absolutepath = absolutepath;
             this.method = method;
         }
 
-        public string ProcessRequest(byte[] PostData, string ContentType, bool https)
+        public string ProcessRequest(byte[] PostData, string ContentType)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
@@ -28,19 +35,20 @@ namespace WebAPIService.HTS
                 case "POST":
                     switch (absolutepath)
                     {
-                        #region NPTicket Sample
-                        case "/NPTicketing/get_ticket_data.xml":
-                        case "/NPTicketing/get_ticket_data.json":
-                        case "/NPTicketing/get_ticket_data_base64.xml":
-                        case "/NPTicketing/get_ticket_data_base64.json":
-                            return NPTicketSample.RequestNPTicket(PostData, HTTPProcessor.ExtractBoundary(ContentType));
-                        #endregion
 
-                        default:    
+                        case "/BuildDBPullService.asmx":
+                            return BuildDBPullServiceHandler.buildDBRequestParser(PostData, ContentType);
+                        default:
+                            {
+                                LoggerAccessor.LogError($"[BuildDBPullService] - Unhandled server request discovered: {absolutepath} | DETAILS: \n{Encoding.UTF8.GetString(PostData)}");
+                            }
                             break;
                     }
                     break;
                 default:
+                    {
+                        LoggerAccessor.LogError($"[BuildDBPullService] - Method unhandled {method}");
+                    }
                     break;
             }
 
@@ -55,6 +63,7 @@ namespace WebAPIService.HTS
                 {
                     absolutepath = string.Empty;
                     method = string.Empty;
+                    workpath = string.Empty;
                 }
 
                 // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
@@ -64,7 +73,7 @@ namespace WebAPIService.HTS
         }
 
         // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~HELLFIREClass()
+        // ~HERMESClass()
         // {
         //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
         //     Dispose(disposing: false);
