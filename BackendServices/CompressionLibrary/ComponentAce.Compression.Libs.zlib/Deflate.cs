@@ -1222,7 +1222,8 @@ namespace ComponentAce.Compression.Libs.zlib
                     putShortMSB((int)SupportClass.URShift(strm.adler, 16));
                     putShortMSB((int)(strm.adler & 0xFFFF));
                 }
-                strm.adler = strm._adler.adler32(0L, null, 0, 0);
+                if (strm._adler != null)
+                    strm.adler = strm._adler.adler32(0L, null, 0, 0);
             }
             if (pending != 0)
             {
@@ -1273,7 +1274,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         else
                         {
                             _tr_stored_block(0, 0, eof: false);
-                            if (flush == 3)
+                            if (flush == 3 && head != null)
                             {
                                 for (int i = 0; i < hash_size; i++)
                                 {

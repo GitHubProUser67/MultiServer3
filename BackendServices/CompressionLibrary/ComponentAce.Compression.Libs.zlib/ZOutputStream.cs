@@ -17,6 +17,8 @@ namespace ComponentAce.Compression.Libs.zlib
 
         protected internal bool compress;
 
+        protected bool closed = false;
+
         private Stream out_Renamed;
 
         public virtual int FlushMode
@@ -58,6 +60,46 @@ namespace ComponentAce.Compression.Libs.zlib
         {
             flush_Renamed_Field = 0;
             buf = new byte[bufsize];
+        }
+
+        private void ImplDisposing(bool disposeOutput)
+        {
+            if (!closed)
+            {
+                try
+                {
+                    try
+                    {
+                        Finish();
+                    }
+                    catch (IOException)
+                    {
+                        // Ignore
+                    }
+                }
+                finally
+                {
+                    closed = true;
+                    End();
+                    if (disposeOutput)
+                        out_Renamed.Dispose();
+                    out_Renamed = null;
+                }
+            }
+        }
+
+        protected void Detach(bool disposing)
+        {
+            if (disposing)
+                ImplDisposing(disposeOutput: false);
+            base.Dispose(disposing);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                ImplDisposing(disposeOutput: true);
+            base.Dispose(disposing);
         }
 
         public ZOutputStream(Stream out_Renamed, bool NoHeader)
@@ -110,7 +152,7 @@ namespace ComponentAce.Compression.Libs.zlib
                     z.next_out = buf;
                     z.next_out_index = 0;
                     z.avail_out = bufsize;
-                    num = ((!compress) ? z.inflate(flush_Renamed_Field) : z.deflate(flush_Renamed_Field));
+                    num = (!compress) ? z.inflate(flush_Renamed_Field) : z.deflate(flush_Renamed_Field);
                     if (num != 0 && num != 1)
                         throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
                     if (buf != null)
@@ -120,7 +162,7 @@ namespace ComponentAce.Compression.Libs.zlib
             }
         }
 
-        public virtual void finish()
+        public virtual void Finish()
         {
             int num;
             if (z != null)
@@ -130,7 +172,7 @@ namespace ComponentAce.Compression.Libs.zlib
                     z.next_out = buf;
                     z.next_out_index = 0;
                     z.avail_out = bufsize;
-                    num = ((!compress) ? z.inflate(4) : z.deflate(4));
+                    num = (!compress) ? z.inflate(4) : z.deflate(4);
                     if (num != 1 && num != 0)
                         throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
                     if (bufsize - z.avail_out > 0 && buf != null)
@@ -138,40 +180,45 @@ namespace ComponentAce.Compression.Libs.zlib
                 }
                 while ((z.avail_in > 0 || z.avail_out == 0) && num == 0);
             }
-            try
-            {
-                Flush();
-            }
-            catch
-            {
 
-            }
+            Flush();
         }
 
-        public virtual void end()
+        public virtual void End()
         {
-            if (compress)
-                z?.deflateEnd();
-            else
-                z?.inflateEnd();
-            z?.free();
+            if (z != null)
+            {
+                if (compress)
+                    z.deflateEnd();
+                else
+                    z.inflateEnd();
+                z.free();
+            }
             z = null;
         }
 
         public override void Close()
         {
-            try
+            if (!closed)
             {
-                finish();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                end();
-                out_Renamed?.Close();
-                out_Renamed = null;
+                try
+                {
+                    try
+                    {
+                        Finish();
+                    }
+                    catch (IOException)
+                    {
+                        // Ignore
+                    }
+                }
+                finally
+                {
+                    closed = true;
+                    End();
+                    out_Renamed.Close();
+                    out_Renamed = null;
+                }
             }
         }
 
@@ -192,6 +239,35 @@ namespace ComponentAce.Compression.Libs.zlib
         public override long Seek(long offset, SeekOrigin origin)
         {
             return 0L;
+        }
+    }
+
+    public class ZOutputStreamLeaveOpen
+        : ZOutputStream
+    {
+        public ZOutputStreamLeaveOpen(Stream output)
+            : base(output, false)
+        {
+        }
+
+        public ZOutputStreamLeaveOpen(Stream output, bool NoHeader)
+            : base(output, NoHeader)
+        {
+        }
+
+        public ZOutputStreamLeaveOpen(Stream output, int level, bool NoHeader)
+            : base(output, level, NoHeader)
+        {
+        }
+
+        public override void Close()
+        {
+            Detach(true);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            Detach(disposing);
         }
     }
 }

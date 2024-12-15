@@ -1,5 +1,6 @@
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
+using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.v2Services
@@ -8,7 +9,7 @@ namespace QuazalServer.RDVServices.v2Services
     /// User friends service
     /// </summary>
     [RMCService(RMCProtocolId.FriendsService)]
-	public class LegacyFriendsService : RMCServiceBase
+	public class FriendsService : RMCServiceBase
 	{
 		[RMCMethod(3)]
 		public RMCResult UpdateDetails(uint uiPlayer, uint uiDetails)
@@ -20,8 +21,14 @@ namespace QuazalServer.RDVServices.v2Services
         [RMCMethod(10)]
 		public RMCResult GetDetailedList(byte byRelationship, bool bReversed)
         {
-            UNIMPLEMENTED();
-            return Error(0);
+            // TODO, relationship means to switch to relationship list, bReversed I assume is order.
+
+            List<FriendData> result = new();
+
+            if (bReversed)
+                result.Reverse();
+
+            return Result(result);
         }
-	}
+    }
 }

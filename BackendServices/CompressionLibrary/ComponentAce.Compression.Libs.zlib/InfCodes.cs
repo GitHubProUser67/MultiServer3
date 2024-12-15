@@ -108,7 +108,7 @@ namespace ComponentAce.Compression.Libs.zlib
             num = s.bitb;
             num2 = s.bitk;
             int num5 = s.write;
-            int num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+            int num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
             while (true)
             {
                 switch (mode)
@@ -128,7 +128,7 @@ namespace ComponentAce.Compression.Libs.zlib
                             num = s.bitb;
                             num2 = s.bitk;
                             num5 = s.write;
-                            num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                            num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                             if (r != 0)
                             {
                                 mode = ((r == 1) ? 7 : 9);
@@ -321,18 +321,18 @@ namespace ComponentAce.Compression.Libs.zlib
                                     if (num5 == s.end && s.read != 0)
                                     {
                                         num5 = 0;
-                                        num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                                        num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                                     }
                                     if (num6 == 0)
                                     {
                                         s.write = num5;
                                         r = s.inflate_flush(z, r);
                                         num5 = s.write;
-                                        num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                                        num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                                         if (num5 == s.end && s.read != 0)
                                         {
                                             num5 = 0;
-                                            num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                                            num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                                         }
                                         if (num6 == 0)
                                         {
@@ -346,8 +346,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                         }
                                     }
                                 }
-                                if (s.window != null)
-                                    s.window[num5++] = s.window[i++];
+                                s.window[num5++] = s.window[i++];
                                 num6--;
                                 if (i == s.end)
                                 {
@@ -364,18 +363,18 @@ namespace ComponentAce.Compression.Libs.zlib
                             if (num5 == s.end && s.read != 0)
                             {
                                 num5 = 0;
-                                num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                                num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                             }
                             if (num6 == 0)
                             {
                                 s.write = num5;
                                 r = s.inflate_flush(z, r);
                                 num5 = s.write;
-                                num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                                num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                                 if (num5 == s.end && s.read != 0)
                                 {
                                     num5 = 0;
-                                    num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                                    num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                                 }
                                 if (num6 == 0)
                                 {
@@ -390,8 +389,7 @@ namespace ComponentAce.Compression.Libs.zlib
                             }
                         }
                         r = 0;
-                        if (s.window != null)
-                            s.window[num5++] = (byte)lit;
+                        s.window[num5++] = (byte)lit;
                         num6--;
                         mode = 0;
                         break;
@@ -405,7 +403,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         s.write = num5;
                         r = s.inflate_flush(z, r);
                         num5 = s.write;
-                        num6 = ((num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5));
+                        num6 = (num5 < s.read) ? (s.read - num5 - 1) : (s.end - num5);
                         if (s.read != s.write)
                         {
                             s.bitb = num;
@@ -460,7 +458,7 @@ namespace ComponentAce.Compression.Libs.zlib
             int num2 = s.bitb;
             int num3 = s.bitk;
             int num4 = s.write;
-            int num5 = ((num4 < s.read) ? (s.read - num4 - 1) : (s.end - num4));
+            int num5 = (num4 < s.read) ? (s.read - num4 - 1) : (s.end - num4);
             int num6 = inflate_mask[bl];
             int num7 = inflate_mask[bd];
             int num11;
@@ -481,8 +479,7 @@ namespace ComponentAce.Compression.Libs.zlib
                 {
                     num2 >>= array[(num9 + num8) * 3 + 1];
                     num3 -= array[(num9 + num8) * 3 + 1];
-                    if (s.window != null)
-                        s.window[num4++] = (byte)array[(num9 + num8) * 3 + 2];
+                    s.window[num4++] = (byte)array[(num9 + num8) * 3 + 2];
                     num5--;
                 }
                 else
@@ -520,7 +517,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                 }
                                 z.msg = "invalid distance code";
                                 num11 = z.avail_in - num;
-                                num11 = ((num3 >> 3 < num11) ? (num3 >> 3) : num11);
+                                num11 = (num3 >> 3 < num11) ? (num3 >> 3) : num11;
                                 num += num11;
                                 next_in_index -= num11;
                                 num3 -= num11 << 3;
@@ -545,14 +542,14 @@ namespace ComponentAce.Compression.Libs.zlib
                             if (num4 >= num12)
                             {
                                 num13 = num4 - num12;
-                                if (num4 - num13 > 0 && 2 > num4 - num13 && s.window != null)
+                                if (num4 - num13 > 0 && 2 > num4 - num13)
                                 {
                                     s.window[num4++] = s.window[num13++];
                                     num11--;
                                     s.window[num4++] = s.window[num13++];
                                     num11--;
                                 }
-                                else if (s.window != null)
+                                else
                                 {
                                     Array.Copy(s.window, num13, s.window, num4, 2);
                                     num4 += 2;
@@ -572,7 +569,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                 if (num11 > num10)
                                 {
                                     num11 -= num10;
-                                    if (num4 - num13 > 0 && num10 > num4 - num13 && s.window != null)
+                                    if (num4 - num13 > 0 && num10 > num4 - num13)
                                     {
                                         do
                                         {
@@ -580,7 +577,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                         }
                                         while (--num10 != 0);
                                     }
-                                    else if (s.window != null)
+                                    else
                                     {
                                         Array.Copy(s.window, num13, s.window, num4, num10);
                                         num4 += num10;
@@ -590,7 +587,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                     num13 = 0;
                                 }
                             }
-                            if (num4 - num13 > 0 && num11 > num4 - num13 && s.window != null)
+                            if (num4 - num13 > 0 && num11 > num4 - num13)
                             {
                                 do
                                 {
@@ -599,8 +596,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                 while (--num11 != 0);
                                 break;
                             }
-                            if (s.window != null)
-                                Array.Copy(s.window, num13, s.window, num4, num11);
+                            Array.Copy(s.window, num13, s.window, num4, num11);
                             num4 += num11;
                             num13 += num11;
                             num11 = 0;
@@ -610,7 +606,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         {
                             num8 += array[(num9 + num8) * 3 + 2];
                             num8 += num2 & inflate_mask[num10];
-                            if ((num10 = array[(num9 + num8) * 3]) == 0 && s.window != null)
+                            if ((num10 = array[(num9 + num8) * 3]) == 0)
                             {
                                 num2 >>= array[(num9 + num8) * 3 + 1];
                                 num3 -= array[(num9 + num8) * 3 + 1];
@@ -623,7 +619,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         if (((uint)num10 & 0x20u) != 0)
                         {
                             num11 = z.avail_in - num;
-                            num11 = ((num3 >> 3 < num11) ? (num3 >> 3) : num11);
+                            num11 = (num3 >> 3 < num11) ? (num3 >> 3) : num11;
                             num += num11;
                             next_in_index -= num11;
                             num3 -= num11 << 3;
@@ -637,7 +633,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         }
                         z.msg = "invalid literal/length code";
                         num11 = z.avail_in - num;
-                        num11 = ((num3 >> 3 < num11) ? (num3 >> 3) : num11);
+                        num11 = (num3 >> 3 < num11) ? (num3 >> 3) : num11;
                         num += num11;
                         next_in_index -= num11;
                         num3 -= num11 << 3;
