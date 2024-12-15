@@ -117,7 +117,7 @@ namespace HomeTools.Crypto
             return null;
         }
 
-        public static string MemXOR(string IV, string block, int blocksize)
+        public static string MemXOR(string IV, string block, byte blocksize)
         {
             StringBuilder CryptoBytes = new StringBuilder();
 
@@ -179,7 +179,7 @@ namespace HomeTools.Crypto
             return CryptoBytes.ToString();
         }
 
-        private static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA, int blockSize)
+        public static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA, byte blockSize)
         {
             StringBuilder hexStr = new StringBuilder();
             byte[] CipheredFileBytes = null;

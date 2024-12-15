@@ -1087,14 +1087,14 @@ namespace HomeWebTools
                                 {
                                     buffer = ToolsImplementation.RemovePaddingPrefix(buffer);
 
-                                    byte[] decryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.MetaDataV1Key, ToolsImplementation.MetaDataV1IV, "CTR");
+                                    byte[] decryptedfilebytes = LIBSECURE.Crypt_Decrypt(buffer, ToolsImplementation.MetaDataV1IVA, 8);
 
                                     if (decryptedfilebytes != null)
                                         TasksResult.Add((decryptedfilebytes, $"{filename}_Decrypted.bin"));
                                 }
                                 else if (buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5)
                                 {
-                                    byte[] encryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.MetaDataV1Key, ToolsImplementation.MetaDataV1IV, "CTR");
+                                    byte[] encryptedfilebytes = LIBSECURE.Crypt_Decrypt(buffer, ToolsImplementation.MetaDataV1IVA, 8);
 
                                     if (encryptedfilebytes != null)
                                         TasksResult.Add((ToolsImplementation.ApplyLittleEndianPaddingPrefix(encryptedfilebytes), $"{filename}_Encrypted.bin"));

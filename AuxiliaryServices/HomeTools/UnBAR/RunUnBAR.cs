@@ -108,7 +108,7 @@ namespace HomeTools.UnBAR
 #endif
         }
 
-        private static async Task RunExtract(string filePath, string outDir, ushort cdnMode)
+        private static Task RunExtract(string filePath, string outDir, ushort cdnMode)
         {
             bool isSharc = false;
             bool isLittleEndian = false;
@@ -124,7 +124,7 @@ namespace HomeTools.UnBAR
                     RawBarData = File.ReadAllBytes(filePath);
 
                     if (RawBarData.Length < 12)
-                        return; // File not a BAR.
+                        return Task.CompletedTask; // File not a BAR.
                     else
                     {
                         if (RawBarData[0] == 0xAD && RawBarData[1] == 0xEF && RawBarData[2] == 0x17 && RawBarData[3] == 0xE1)
@@ -134,7 +134,7 @@ namespace HomeTools.UnBAR
                         else if (RawBarData[0] == 0xE1 && RawBarData[1] == 0x17 && RawBarData[2] == 0xEF && RawBarData[3] == 0xAD)
                             isLittleEndian = true;
                         else
-                            return; // File not a BAR.
+                            return Task.CompletedTask; // File not a BAR.
 
                         switch (isLittleEndian)
                         {
@@ -168,7 +168,7 @@ namespace HomeTools.UnBAR
                                  Convert.FromBase64String(options), HeaderIV, "CTR");
 
                                 if (SharcHeader == null)
-                                    return; // Sharc Header failed to decrypt.
+                                    return Task.CompletedTask; // Sharc Header failed to decrypt.
                                 else if (!(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }).EqualsTo(EmptyArray))
                                 {
                                     options = ToolsImplementation.base64CDNKey1;
@@ -179,7 +179,7 @@ namespace HomeTools.UnBAR
                                      Convert.FromBase64String(options), HeaderIV, "CTR");
 
                                     if (SharcHeader == null)
-                                        return; // Sharc Header failed to decrypt.
+                                        return Task.CompletedTask; // Sharc Header failed to decrypt.
                                     else if (!(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }).EqualsTo(EmptyArray))
                                     {
                                         options = ToolsImplementation.base64DefaultSharcKey;
@@ -190,9 +190,9 @@ namespace HomeTools.UnBAR
                                          Convert.FromBase64String(options), HeaderIV, "CTR");
 
                                         if (SharcHeader == null)
-                                            return; // Sharc Header failed to decrypt.
+                                            return Task.CompletedTask; // Sharc Header failed to decrypt.
                                         else if (!(new byte[] { SharcHeader[0], SharcHeader[1], SharcHeader[2], SharcHeader[3] }).EqualsTo(EmptyArray))
-                                            return; // All keys failed to decrypt.
+                                            return Task.CompletedTask; // All keys failed to decrypt.
                                     }
                                 }
 
@@ -329,6 +329,8 @@ namespace HomeTools.UnBAR
                     }
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         private static async void ExtractToFileBarVersion1(byte[] RawBarData, BARArchive archive, HashedFileName FileName, string outDir, string fileType, int cdnMode)
