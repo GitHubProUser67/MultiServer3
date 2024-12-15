@@ -22,8 +22,7 @@ namespace HomeTools.BARFramework
         private void ComputeHash(string text)
         {
             int num = 0;
-            string text2 = text.ToLower().Replace(Path.DirectorySeparatorChar, '/');
-            foreach (char value in text2)
+            foreach (char value in text.ToLower().Replace(Path.DirectorySeparatorChar, '/'))
             {
                 num *= 37;
                 num += Convert.ToInt32(value);

@@ -293,8 +293,7 @@ namespace HomeTools.BARFramework
         private EndianType GetEndianness(Stream inStream)
         {
             EndianType result = EndianType.LittleEndian;
-            int num = inStream.ReadByte();
-            if (num == 173)
+            if (inStream.ReadByte() == 173)
                 result = EndianType.BigEndian;
             inStream.Seek(0L, SeekOrigin.Begin);
             return result;
@@ -307,10 +306,11 @@ namespace HomeTools.BARFramework
                 try
                 {
                     TOCEntry tocentry = (TOCEntry)obj;
-                    byte[] data = tocentry.GetData(m_header.Flags);
-                    MemoryStream memoryStream = new MemoryStream(data);
-                    tocentry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
-                    memoryStream.Close();
+                    using (MemoryStream memoryStream = new MemoryStream(tocentry.GetData(m_header.Flags)))
+                    {
+                        tocentry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
+                        memoryStream.Close();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1092,13 +1092,7 @@ namespace HomeTools.BARFramework
                 if (tocentry != null)
                 {
                     tocentry.Path = (string)hashtable[hashedFileName2];
-                    string a = Path.GetExtension(tocentry.Path).ToLower();
-                    if (a == ".bar")
-                        tocentry.FileType = HomeFileType.BarArchive;
-                    else if (a == ".sharc")
-                        tocentry.FileType = HomeFileType.BarArchive;
-                    else if (a == ".png")
-                        tocentry.FileType = HomeFileType.Texture;
+                    tocentry.FileType = FileTypeAnalyser.GetFileType(Path.GetExtension(tocentry.Path).ToLower());
                 }
             }
             textReader.Close();
