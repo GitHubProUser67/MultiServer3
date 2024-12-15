@@ -4,11 +4,15 @@ namespace HomeTools.BARFramework
     {
         Texture,
 
+        PNG,
+
         Model,
 
         Collision,
 
         Animation,
+
+        Effect,
 
         Skin,
 
@@ -18,9 +22,17 @@ namespace HomeTools.BARFramework
 
         LUASource,
 
+        LUACompiled,
+
         LightProbe,
 
         MP3,
+
+        MP4,
+
+        Bank,
+
+        Font,
 
         BarArchive,
 

@@ -81,7 +81,7 @@ namespace HomeTools.UnBAR
                         text = Regex.Replace(text, "update.svml", "host_svml\\update.svml", RegexOptions.IgnoreCase);
                         text = Regex.Replace(text, "nekomuis.svml", "host_svml\\nekomuis.svml", RegexOptions.IgnoreCase);
 
-                        foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(ComputeAFSHash(prefix + text).ToString("X8") + ".*"))
+                        foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(new BARFramework.AfsHash(prefix + text).Value.ToString("X8") + ".*"))
                         {
                             if (File.Exists(Path.Combine(foldertomap, file.Name)))
                             {
@@ -100,7 +100,7 @@ namespace HomeTools.UnBAR
                         {
                             string cdatafromatmos = text.Remove(text.Length - 6) + ".cdata";
 
-                            foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(ComputeAFSHash(cdatafromatmos).ToString("X8") + ".*"))
+                            foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(new BARFramework.AfsHash(cdatafromatmos).Value.ToString("X8") + ".*"))
                             {
                                 if (File.Exists(Path.Combine(foldertomap, file.Name)))
                                 {
@@ -154,12 +154,12 @@ namespace HomeTools.UnBAR
         {
             try
             {
-                string UTF8Content = string.Empty;
+                string text = string.Empty;
 
                 foreach (string myfile in Directory.GetFiles(foldertomap))
                 {
                     string newFileName = myfile.Replace("0X", string.Empty);
-                    UTF8Content = File.ReadAllText(myfile);
+                    text = File.ReadAllText(myfile);
 
                     if (new FileInfo(myfile).Length <= 0)
                     {
@@ -170,72 +170,77 @@ namespace HomeTools.UnBAR
                     {
                         if (!Path.HasExtension(myfile))
                         {
-                            if (UTF8Content.StartsWith("DDS |"))
+                            if (text.StartsWith("DDS |"))
                             {
                                 if (!File.Exists(newFileName + ".dds"))
                                     File.Move(myfile, newFileName + ".dds");
                             }
-                            else if (UTF8Content.StartsWith("LuaQ"))
+                            else if (text.StartsWith("LuaQ"))
                             {
                                 if (!File.Exists(newFileName + ".luac"))
                                     File.Move(myfile, newFileName + ".luac");
                             }
-                            else if (UTF8Content.Contains("CHNK"))
-                            {
-                                if (!File.Exists(newFileName + ".effect"))
-                                    File.Move(myfile, newFileName + ".effect");
-                            }
-                            else if (UTF8Content.Contains("HM") || UTF8Content.Contains("MR04"))
+                            else if (text.StartsWith("HM") || text.StartsWith("MR04"))
                             {
                                 if (!File.Exists(newFileName + ".mdl"))
                                     File.Move(myfile, newFileName + ".mdl");
                             }
-                            else if (UTF8Content.StartsWith("‰PNG") || UTF8Content.Contains("Photoshop ICC profile") || UTF8Content.Contains("IHDR"))
+                            else if (text.StartsWith("‰PNG") || text.Contains("Photoshop ICC profile") || text.Contains("IHDR"))
                             {
                                 if (!File.Exists(newFileName + ".png"))
                                     File.Move(myfile, newFileName + ".png");
                             }
-                            else if (UTF8Content.Contains("WW") || UTF8Content.Contains("Havok-5.0.0-r1"))
+                            else if (text.StartsWith("WW") || text.Contains("Havok-5.0.0-r1"))
                             {
                                 if (!File.Exists(newFileName + ".hkx"))
                                     File.Move(myfile, newFileName + ".hkx");
                             }
-                            else if (UTF8Content.Contains("AC11"))
+                            else if (text.StartsWith("AC11"))
                             {
                                 if (!File.Exists(newFileName + ".ani"))
                                     File.Move(myfile, newFileName + ".ani");
                             }
-                            else if (UTF8Content.Contains("LoadLibrary") || UTF8Content.Contains("function"))
-                            {
-                                if (!File.Exists(newFileName + ".lua"))
-                                    File.Move(myfile, newFileName + ".lua");
-                            }
-                            else if (UTF8Content.Contains("SK08"))
+                            else if (text.StartsWith("SK08"))
                             {
                                 if (!File.Exists(newFileName + ".skn"))
                                     File.Move(myfile, newFileName + ".skn");
                             }
-                            else if (UTF8Content.Contains("klBS"))
+                            else if (text.Contains("CHNK"))
+                            {
+                                if (!File.Exists(newFileName + ".effect"))
+                                    File.Move(myfile, newFileName + ".effect");
+                            }
+                            else if (text.Contains("LoadLibrary") || text.Contains("function"))
+                            {
+                                if (!File.Exists(newFileName + ".lua"))
+                                    File.Move(myfile, newFileName + ".lua");
+                            }
+                            else if (text.Contains("klBS"))
                             {
                                 if (!File.Exists(newFileName + ".bnk"))
                                     File.Move(myfile, newFileName + ".bnk");
                             }
-                            else if (UTF8Content.Contains("LAME3.") || UTF8Content.Contains("SfMarkers"))
+                            else if (text.Contains("LAME3.") || text.Contains("SfMarkers"))
                             {
                                 if (!File.Exists(newFileName + ".mp3"))
                                     File.Move(myfile, newFileName + ".mp3");
                             }
-                            else if (UTF8Content.Contains("ftypmp42"))
+                            else if (text.Contains("ftypmp42"))
                             {
                                 if (!File.Exists(newFileName + ".mp4"))
                                     File.Move(myfile, newFileName + ".mp4");
                             }
-                            else if (UTF8Content.Contains("DSIG"))
+                            else if (text.Contains("DSIG"))
                             {
                                 if (!File.Exists(newFileName + ".ttf"))
                                     File.Move(myfile, newFileName + ".ttf");
                             }
-                            else if (UTF8Content.Contains("</") || UTF8Content.Contains("/>"))
+                            else if (text.Contains("<gap:game"))
+                            {
+                                if (!File.Exists(newFileName + ".scene"))
+                                    File.Move(myfile, newFileName + ".scene");
+                            }
+                            else if (text.Contains("</") || text.Contains("/>"))
                             {
                                 if (!File.Exists(newFileName + ".xml"))
                                     File.Move(myfile, newFileName + ".xml");
@@ -297,14 +302,6 @@ namespace HomeTools.UnBAR
                     // Not Important.
                 }
             }
-        }
-
-        private static int ComputeAFSHash(string text)
-        {
-            int hash = 0;
-            foreach (char ch in text.ToLower().Replace(Path.DirectorySeparatorChar, '/'))
-                hash = hash * 37 + Convert.ToInt32(ch);
-            return hash;
         }
 
         internal static List<MappedList> ScanForString(string sourceFile)
