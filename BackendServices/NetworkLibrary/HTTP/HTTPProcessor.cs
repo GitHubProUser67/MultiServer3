@@ -901,7 +901,8 @@ namespace NetworkLibrary.HTTP
             using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
             {
                 zlibStream.Write(input, 0, input.Length);
-                zlibStream.finish();
+                zlibStream.Close();
+                output.Close();
                 return output.ToArray();
             }
         }
@@ -964,9 +965,11 @@ namespace NetworkLibrary.HTTP
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
-            CopyStream(input, outZStream, 4096, false);
-            outZStream.finish();
+            using (ZOutputStreamLeaveOpen outZStream = new ZOutputStreamLeaveOpen(outMemoryStream, 1, true))
+            {
+                CopyStream(input, outZStream, 4096, false);
+                outZStream.Close();
+            }
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);

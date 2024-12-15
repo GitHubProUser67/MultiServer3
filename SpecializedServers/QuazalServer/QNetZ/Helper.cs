@@ -225,44 +225,43 @@ namespace QuazalServer.QNetZ
 
         public static byte[] Decompress(string AccessKey, byte[] InData)
         {
-            MemoryStream memoryStream = new();
-
-            switch (AccessKey)
+			using (MemoryStream memoryStream = new())
 			{
-                case "hg7j1":
-                case "yh64s":
-                case "uG9Kv3p":
-                case "1WguH+y":
-                    using (LzoStream lzo = new(new MemoryStream(InData), System.IO.Compression.CompressionMode.Decompress))
-                    {
-                        lzo.CopyTo(memoryStream);
-						lzo.Close();
-                        memoryStream.Position = 0;
-                        memoryStream.Close();
+                switch (AccessKey)
+                {
+                    case "hg7j1":
+                    case "yh64s":
+                    case "uG9Kv3p":
+                    case "1WguH+y":
+                        using (LzoStream lzo = new(new MemoryStream(InData), System.IO.Compression.CompressionMode.Decompress))
+                        {
+                            lzo.CopyTo(memoryStream);
+                            lzo.Dispose();
+                            memoryStream.Position = 0;
+                            return memoryStream.ToArray();
+                        }
+                    default:
+                        InflaterInputStream inflaterInputStream = new(new MemoryStream(InData), new Inflater());
+                        byte[] array = new byte[4096];
+                        for (; ; )
+                        {
+                            int num = inflaterInputStream.Read(array, 0, array.Length);
+                            if (num <= 0)
+                                break;
+                            memoryStream.Write(array, 0, num);
+                        }
+                        inflaterInputStream.Dispose();
                         return memoryStream.ToArray();
-                    }
-				default:
-                    InflaterInputStream inflaterInputStream = new(new MemoryStream(InData), new Inflater());
-                    byte[] array = new byte[4096];
-                    for (; ; )
-                    {
-                        int num = inflaterInputStream.Read(array, 0, array.Length);
-                        if (num <= 0)
-                            break;
-                        memoryStream.Write(array, 0, num);
-                    }
-                    inflaterInputStream.Close();
-                    return memoryStream.ToArray();
+                }
             }
         }
 
         public static byte[] Compress(byte[] InData)
         {
-            MemoryStream memoryStream = new();
+			MemoryStream memoryStream = new();
             DeflaterOutputStream deflaterOutputStream = new(memoryStream, new Deflater(9));
             deflaterOutputStream.Write(InData, 0, InData.Length);
-            deflaterOutputStream.Close();
-            memoryStream.Close();
+            deflaterOutputStream.Dispose();
             return memoryStream.ToArray(); // Send OG data if compressed size higher?
         }
 
@@ -344,8 +343,7 @@ namespace QuazalServer.QNetZ
 
 		public static byte[] MakeHMAC(byte[] key, byte[] data)
 		{
-			HMACMD5 hmac = new(key);
-			return hmac.ComputeHash(data);
+			return new HMACMD5(key).ComputeHash(data);
 		}
 
 		public static byte[] MakeFilledArray(int len)
@@ -360,12 +358,13 @@ namespace QuazalServer.QNetZ
 		{
 			s = s.Trim().Replace(" ", string.Empty);
 
-			var m = new MemoryStream();
+			using (MemoryStream m = new MemoryStream())
+			{
+                for (int i = 0; i < s.Length / 2; i++)
+                    m.WriteByte(Convert.ToByte(s.Substring(i * 2, 2), 16));
 
-			for (int i = 0; i < s.Length / 2; i++)
-				m.WriteByte(Convert.ToByte(s.Substring(i * 2, 2), 16));
-
-			return m.ToArray();
+                return m.ToArray();
+            }
 		}
 	}
 }

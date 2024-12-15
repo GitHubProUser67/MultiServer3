@@ -113,9 +113,9 @@ namespace ComponentAce.Compression.Libs.zlib
             mode = 0;
             bitk = 0;
             bitb = 0;
-            read = (write = 0);
+            read = write = 0;
             if (checkfn != null && z._adler != null)
-                z.adler = (check = z._adler.adler32(0L, null, 0, 0));
+                z.adler = check = z._adler.adler32(0L, null, 0, 0);
         }
 
         internal int proc(ZStream z, int r)
@@ -278,7 +278,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                 num6 = num2;
                             if (num6 > num5)
                                 num6 = num5;
-                            if (z.next_in != null && window != null)
+                            if (z.next_in != null)
                                 Array.Copy(z.next_in, num, window, num4, num6);
                             num += num6;
                             num2 -= num6;
@@ -360,28 +360,30 @@ namespace ComponentAce.Compression.Libs.zlib
                                 {
                                     blens[border[index++]] = 0;
                                 }
-                            }
-                            bb[0] = 7;
-                            int num6 = InfTree.inflate_trees_bits(blens, bb, tb, hufts ?? Array.Empty<int>(), z);
-                            if (num6 != 0)
-                            {
-                                r = num6;
-                                if (r == -3)
+                                bb[0] = 7;
+                                int num6 = InfTree.inflate_trees_bits(blens, bb, tb, hufts ?? Array.Empty<int>(), z);
+                                if (num6 != 0)
                                 {
-                                    blens = null;
-                                    mode = 9;
+                                    r = num6;
+                                    if (r == -3)
+                                    {
+                                        blens = null;
+                                        mode = 9;
+                                    }
+                                    bitb = num3;
+                                    bitk = i;
+                                    z.avail_in = num2;
+                                    z.total_in += num - z.next_in_index;
+                                    z.next_in_index = num;
+                                    write = num4;
+                                    return inflate_flush(z, r);
                                 }
-                                bitb = num3;
-                                bitk = i;
-                                z.avail_in = num2;
-                                z.total_in += num - z.next_in_index;
-                                z.next_in_index = num;
-                                write = num4;
-                                return inflate_flush(z, r);
+                                index = 0;
+                                mode = 5;
+                                goto case 5;
                             }
-                            index = 0;
-                            mode = 5;
-                            goto case 5;
+
+                            return -1;
                         }
                     case 5:
                         {
@@ -410,69 +412,63 @@ namespace ComponentAce.Compression.Libs.zlib
                                 }
                                 _ = tb[0];
                                 _ = -1;
-                                if (hufts != null)
+                                num6 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 1];
+                                int num7 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 2];
+                                if (num7 < 16)
                                 {
-                                    num6 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 1];
-                                    int num7 = hufts[(tb[0] + (num3 & inflate_mask[num6])) * 3 + 2];
-                                    if (num7 < 16 && blens != null)
-                                    {
-                                        num3 = SupportClass.URShift(num3, num6);
-                                        i -= num6;
-                                        blens[index++] = num7;
-                                        continue;
-                                    }
-                                    int num8 = ((num7 == 18) ? 7 : (num7 - 14));
-                                    int num9 = ((num7 == 18) ? 11 : 3);
-                                    for (; i < num6 + num8; i += 8)
-                                    {
-                                        if (num2 != 0 && z.next_in != null)
-                                        {
-                                            r = 0;
-                                            num2--;
-                                            num3 |= (z.next_in[num++] & 0xFF) << i;
-                                            continue;
-                                        }
-                                        bitb = num3;
-                                        bitk = i;
-                                        z.avail_in = num2;
-                                        z.total_in += num - z.next_in_index;
-                                        z.next_in_index = num;
-                                        write = num4;
-                                        return inflate_flush(z, r);
-                                    }
                                     num3 = SupportClass.URShift(num3, num6);
                                     i -= num6;
-                                    num9 += num3 & inflate_mask[num8];
-                                    num3 = SupportClass.URShift(num3, num8);
-                                    i -= num8;
-                                    num8 = index;
-                                    num6 = table;
-                                    if (num8 + num9 > 258 + (num6 & 0x1F) + ((num6 >> 5) & 0x1F) || (num7 == 16 && num8 < 1))
-                                    {
-                                        blens = null;
-                                        mode = 9;
-                                        z.msg = "invalid bit length repeat";
-                                        r = -3;
-                                        bitb = num3;
-                                        bitk = i;
-                                        z.avail_in = num2;
-                                        z.total_in += num - z.next_in_index;
-                                        z.next_in_index = num;
-                                        write = num4;
-                                        return inflate_flush(z, r);
-                                    }
-                                    if (blens != null)
-                                    {
-                                        num7 = ((num7 == 16) ? blens[num8 - 1] : 0);
-                                        do
-                                        {
-                                            blens[num8++] = num7;
-                                        }
-                                        while (--num9 != 0);
-                                    }
-
-                                    index = num8;
+                                    blens[index++] = num7;
+                                    continue;
                                 }
+                                int num8 = (num7 == 18) ? 7 : (num7 - 14);
+                                int num9 = (num7 == 18) ? 11 : 3;
+                                for (; i < num6 + num8; i += 8)
+                                {
+                                    if (num2 != 0 && z.next_in != null)
+                                    {
+                                        r = 0;
+                                        num2--;
+                                        num3 |= (z.next_in[num++] & 0xFF) << i;
+                                        continue;
+                                    }
+                                    bitb = num3;
+                                    bitk = i;
+                                    z.avail_in = num2;
+                                    z.total_in += num - z.next_in_index;
+                                    z.next_in_index = num;
+                                    write = num4;
+                                    return inflate_flush(z, r);
+                                }
+                                num3 = SupportClass.URShift(num3, num6);
+                                i -= num6;
+                                num9 += num3 & inflate_mask[num8];
+                                num3 = SupportClass.URShift(num3, num8);
+                                i -= num8;
+                                num8 = index;
+                                num6 = table;
+                                if (num8 + num9 > 258 + (num6 & 0x1F) + ((num6 >> 5) & 0x1F) || (num7 == 16 && num8 < 1))
+                                {
+                                    blens = null;
+                                    mode = 9;
+                                    z.msg = "invalid bit length repeat";
+                                    r = -3;
+                                    bitb = num3;
+                                    bitk = i;
+                                    z.avail_in = num2;
+                                    z.total_in += num - z.next_in_index;
+                                    z.next_in_index = num;
+                                    write = num4;
+                                    return inflate_flush(z, r);
+                                }
+                                num7 = (num7 == 16) ? blens[num8 - 1] : 0;
+                                do
+                                {
+                                    blens[num8++] = num7;
+                                }
+                                while (--num9 != 0);
+
+                                index = num8;
                             }
                             tb[0] = -1;
                             int[] array = new int[1];
@@ -482,8 +478,7 @@ namespace ComponentAce.Compression.Libs.zlib
                             array[0] = 9;
                             array2[0] = 6;
                             num6 = table;
-                            if (blens != null && hufts != null)
-                                num6 = InfTree.inflate_trees_dynamic(257 + (num6 & 0x1F), 1 + ((num6 >> 5) & 0x1F), blens, array, array2, array3, array4, hufts, z);
+                            num6 = InfTree.inflate_trees_dynamic(257 + (num6 & 0x1F), 1 + ((num6 >> 5) & 0x1F), blens, array, array2, array3, array4, hufts, z);
                             if (num6 != 0)
                             {
                                 if (num6 == -3)
@@ -500,8 +495,7 @@ namespace ComponentAce.Compression.Libs.zlib
                                 write = num4;
                                 return inflate_flush(z, r);
                             }
-                            if (hufts != null)
-                                codes = new InfCodes(array[0], array2[0], hufts, array3[0], hufts, array4[0], z);
+                            codes = new InfCodes(array[0], array2[0], hufts, array3[0], hufts, array4[0], z);
                             blens = null;
                             mode = 6;
                             goto case 6;
@@ -589,8 +583,7 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal void set_dictionary(byte[] d, int start, int n)
         {
-            if (window != null)
-                Array.Copy(d, start, window, 0, n);
+            Array.Copy(d, start, window, 0, n);
             read = write = n;
         }
 
@@ -614,8 +607,8 @@ namespace ComponentAce.Compression.Libs.zlib
             z.avail_out -= num2;
             z.total_out += num2;
             if (checkfn != null && z._adler != null)
-                z.adler = (check = z._adler.adler32(check, window, num, num2));
-            if (window != null && z.next_out != null)
+                z.adler = check = z._adler.adler32(check, window, num, num2);
+            if (z.next_out != null)
                 Array.Copy(window, num, z.next_out, next_out_index, num2);
             next_out_index += num2;
             num += num2;
@@ -632,8 +625,8 @@ namespace ComponentAce.Compression.Libs.zlib
                 z.avail_out -= num2;
                 z.total_out += num2;
                 if (checkfn != null && z._adler != null)
-                    z.adler = (check = z._adler.adler32(check, window, num, num2));
-                if (window != null && z.next_out != null)
+                    z.adler = check = z._adler.adler32(check, window, num, num2);
+                if (z.next_out != null)
                     Array.Copy(window, num, z.next_out, next_out_index, num2);
                 next_out_index += num2;
                 num += num2;
