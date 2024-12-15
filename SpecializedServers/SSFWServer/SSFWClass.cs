@@ -681,7 +681,7 @@ namespace SSFWServer
 
                                         Response.Clear();
 
-                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName))
+                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName) && IsSSFWRegistered(sessionId))
                                         {
                                             lock (LayoutGetOverrides)
                                             {
@@ -705,7 +705,7 @@ namespace SSFWServer
 
                                         Response.Clear();
 
-                                        if (!string.IsNullOrEmpty(sessionId))
+                                        if (!string.IsNullOrEmpty(sessionId) && IsSSFWRegistered(sessionId))
                                         {
                                             lock (LayoutGetOverrides)
                                             {

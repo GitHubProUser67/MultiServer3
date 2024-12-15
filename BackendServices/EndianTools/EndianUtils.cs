@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP || NETSTANDARD1_0_OR_GREATER || NET40_OR_GREATER
+using System.Threading.Tasks;
+#endif
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Buffers.Binary;
 #endif
@@ -15,19 +18,38 @@ namespace EndianTools
         /// <returns>A byte array.</returns>
         public static byte[] EndianSwap(byte[] dataIn)
         {
+            const byte chunkSize = 4;
+
+#if NETCOREAPP || NETSTANDARD1_0_OR_GREATER || NET40_OR_GREATER
+            int inputLength = dataIn.Length;
+            int chunkCount = (inputLength + chunkSize - 1) / chunkSize; // Ceiling division
+
+            byte[] reversedArray = new byte[inputLength];
+            Array.Copy(dataIn, reversedArray, inputLength);
+
+            // Process Environment.ProcessorCount patherns at a time, removing the limit is not tolerable as CPU usage can go high with large arrays.
+            Parallel.For(0, chunkCount, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, chunkIndex =>
+            {
+                int start = chunkIndex * chunkSize;
+                Array.Reverse(reversedArray, start, Math.Min(chunkSize, inputLength - start));
+            });
+
+            return reversedArray;
+#else
             int inputLength = dataIn.Length;
             byte[] reversedArray = new byte[inputLength];
             Array.Copy(dataIn, reversedArray, inputLength);
             int numofBytes;
             for (int i = 0; i < inputLength; i += numofBytes)
             {
-                numofBytes = 4;
+                numofBytes = chunkSize;
                 int remainingBytes = inputLength - i;
-                if (remainingBytes < 4)
+                if (remainingBytes < chunkSize)
                     numofBytes = remainingBytes;
                 Array.Reverse(reversedArray, i, numofBytes);
             }
             return reversedArray;
+#endif
         }
 
         /// <summary>
