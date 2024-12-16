@@ -26,13 +26,17 @@ namespace MultiSocks.Aries
         public bool CanAsyncGameSearch = false;
         public bool CanAsync = true;
 
+        private int ExpectedBytes = -1;
+        private bool InHeader;
         private readonly bool secure;
-        private readonly SemaphoreSlim dequeueSemaphore = new(1, 1);
+        private object _QueueLock = new();
         private readonly Timer timerDequeue;
         private readonly TcpClient ClientTcp;
+        private Stream? ClientStream;
         private readonly Thread RecvThread;
         private readonly ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
-        private Stream? ClientStream;
+        private byte[]? TempData = null;
+        private int TempDatOff;
         private string CommandName = "null";
 
         private (AsymmetricKeyParameter, Certificate, X509Certificate2) SecureKeyCert;
@@ -40,7 +44,7 @@ namespace MultiSocks.Aries
         public long PingSendTick;
         public int Ping;
 
-        private const int MAX_SIZE = 1024 * 1024 * 2;
+        private static int MAX_SIZE = 1024 * 1024 * 2;
 
         public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, bool WeakChainSignedRSAKey)
         {
@@ -103,10 +107,7 @@ namespace MultiSocks.Aries
             else
                 ClientStream = ClientTcp.GetStream();
 
-            bool InHeader = false;
-            int len, TempDatOff = 0;
-            int ExpectedBytes = -1;
-            Span<byte> TempData = null;
+            int len = 0;
             Span<byte> bytes = new byte[65536];
 
             try
@@ -129,7 +130,7 @@ namespace MultiSocks.Aries
                         if (TempData != null)
                         {
                             int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                            bytes.Slice(off, copyLen).CopyTo(TempData.Slice(TempDatOff));
+                            Array.Copy(bytes.ToArray(), off, TempData, TempDatOff, copyLen);
                             off += copyLen;
                             TempDatOff += copyLen;
                             len -= copyLen;
@@ -179,10 +180,11 @@ namespace MultiSocks.Aries
 
         private void DequeueAsyncMessage(object? state)
         {
-            if (!dequeueSemaphore.Wait(0))
-                return;
+            bool lockTaken = false;
 
-            try
+            Monitor.TryEnter(_QueueLock, ref lockTaken); // Attempt to acquire the lock.
+
+            if (lockTaken)
             {
                 while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
                 {
@@ -190,10 +192,8 @@ namespace MultiSocks.Aries
                         // Some games not like when async msgs are sent too close to each others (MOH).
                         Thread.Sleep(100);
                 }
-            }
-            finally
-            {
-                dequeueSemaphore.Release();
+
+                Monitor.Exit(_QueueLock);
             }
         }
 
