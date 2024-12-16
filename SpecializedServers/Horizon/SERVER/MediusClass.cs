@@ -6,7 +6,6 @@ using Horizon.LIBRARY.Common;
 using Horizon.SERVER.Config;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using Horizon.LIBRARY.libAntiCheat;
 using Horizon.PluginManager;
@@ -15,7 +14,6 @@ using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
 using Horizon.MUM;
 using Horizon.MUM.Models;
-using System.Reflection;
 using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.SERVER
