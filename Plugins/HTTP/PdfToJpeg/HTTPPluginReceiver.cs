@@ -14,7 +14,6 @@ using System.IO.Compression;
 using PDFtoImage;
 using SkiaSharp;
 using WebAPIService.Utils;
-using HashLib;
 
 namespace PdfToJpeg
 {
@@ -127,7 +126,7 @@ namespace PdfToJpeg
                             using Stream filedata = multipartfile.Data;
                             using MemoryStream pdfstream = new();
                             int i = 0;
-                            string pdfDirectory = $"{maindir}/{NetHasher.ComputeMD5String(WebAPIsUtils.GetCurrentDateTime() + filename)}/";
+                            string pdfDirectory = $"{maindir}/{NetHasher.DotNetHasher.ComputeMD5String(WebAPIsUtils.GetCurrentDateTime() + filename)}/";
                             string pdfPrefix = pdfDirectory + Path.GetFileNameWithoutExtension(filename);
                             Directory.CreateDirectory(pdfDirectory);
                             filedata.CopyTo(pdfstream);

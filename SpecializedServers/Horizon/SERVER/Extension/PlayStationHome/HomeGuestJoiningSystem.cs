@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+﻿using CompressionLibrary.NetChecksummer;
+using CustomLogger;
 using Horizon.MUM.Models;
 using NetworkLibrary.Extension;
 using NetworkLibrary.HTTP;
@@ -119,10 +120,9 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 
         public static string GetGJSCRC(string salt1, string salt2, DateTime dateSalt)
         {
-            int res1;
-            int res2;
+            uint res1;
+            uint res2;
 
-            Ionic.Crc.CRC32? crc = new();
             TripleDES des = TripleDES.Create();
 
             des.Mode = CipherMode.CBC;
@@ -135,15 +135,11 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             byte[] SaltedDateTimeBytes = Encoding.UTF8.GetBytes("S1l3" + dateSalt.ToString());
             byte[] PassCode = Encoding.UTF8.GetBytes(salt1 + salt2 + "H3m0");
 
-            crc.SlurpBlock(cryptoTransform.TransformFinalBlock(PassCode, 0, PassCode.Length), 0, PassCode.Length);
-
-            res1 = crc.Crc32Result;
-
-            crc.SlurpBlock(cryptoTransform.TransformFinalBlock(SaltedDateTimeBytes, 0, SaltedDateTimeBytes.Length), 0, SaltedDateTimeBytes.Length);
+            res1 = CRC32.CreateCastagnoli(cryptoTransform.TransformFinalBlock(PassCode, 0, PassCode.Length));
 			
             des.Dispose();
 
-            res2 = crc.Crc32Result;
+            res2 = CRC32.CreateCastagnoli(cryptoTransform.TransformFinalBlock(SaltedDateTimeBytes, 0, SaltedDateTimeBytes.Length));
 
             return TimeZoneInfo.Local.IsDaylightSavingTime(dateSalt) ? ((res1 ^ dateSalt.Minute).ToString("X8") + (dateSalt.Day ^ dateSalt.DayOfYear ^ res2).ToString("X8"))
                 : ((dateSalt.Minute ^ res2).ToString("X8") + (dateSalt.Hour ^ res1 ^ dateSalt.Month).ToString("X8"));

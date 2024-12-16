@@ -58,10 +58,8 @@ namespace MultiSocks.Aries.Messages
                     user.SendPlusWho(user, context.Project);
 
                     game.BroadcastPopulation(mc);
-                }
-                else
-                {
-                    // TODO SEND DIRTYSOCKS ERROR!
+
+                    return;
                 }
             }
 
@@ -85,16 +83,12 @@ namespace MultiSocks.Aries.Messages
                     user.SendPlusWho(user, context.Project);
 
                     game.BroadcastPopulation(mc);
-                }
-                else
-                {
-                    // TODO SEND DIRTYSOCKS ERROR!
+
+                    return;
                 }
             }
-            else
-            {
-                // TODO SEND DIRTYSOCKS ERROR!
-            }
+
+            client.SendMessage(new GjoiUgam());
         }
     }
 }

@@ -15,7 +15,6 @@ using System.Reflection;
 using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;
 using NetworkLibrary.TCP_IP;
-using HashLib;
 
 public static class HTTPSServerConfiguration
 {
@@ -440,7 +439,7 @@ class Program
     {
         using FileStream stream = File.OpenRead(filePath);
         // Convert the byte array to a hexadecimal string
-        return NetHasher.ComputeMD5String(stream);
+        return NetHasher.DotNetHasher.ComputeMD5String(stream);
     }
 
     static void Main()

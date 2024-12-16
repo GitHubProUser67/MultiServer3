@@ -1,4 +1,4 @@
-
+using CompressionLibrary.NetChecksummer;
 using EndianTools;
 using System;
 using System.Collections;
@@ -8,9 +8,7 @@ namespace HomeTools.ChannelID
     public class SIDKeyGenerator
     {
         private static SIDKeyGenerator m_Instance;
-        private short m_SIDMin = 0;
-        private int m_SIDMax = 65535;
-        private readonly int[,] m_ScatterTable = new int[16, 2]
+        private static readonly int[,] m_ScatterTable = new int[16, 2]
         {
           {
             2,
@@ -78,7 +76,7 @@ namespace HomeTools.ChannelID
           }
         };
 
-        private readonly int[,] m_NewerScatterTable = new int[16, 2]
+        private static readonly int[,] m_NewerScatterTable = new int[16, 2]
         {
           {
             3,
@@ -157,18 +155,6 @@ namespace HomeTools.ChannelID
             }
         }
 
-        public short MinSID
-        {
-            get => m_SIDMin;
-            set => m_SIDMin = value;
-        }
-
-        public int MaxSID
-        {
-            get => m_SIDMax;
-            set => m_SIDMax = value;
-        }
-
         public SceneKey Generate(ushort SceneID)
         {
             byte[] bytes2 = BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(SceneID) : SceneID);
@@ -178,7 +164,7 @@ namespace HomeTools.ChannelID
             bytes3[m_ScatterTable[index1, 1]] = bytes2[1];
             byte[] numArray = new byte[16];
             new BitArray(bytes3).Xor(new BitArray(new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes())).CopyTo(numArray, 0);
-            numArray[15] = CRC.Create(numArray, 0, 15);
+            numArray[15] = CRC8.Create(numArray, 0, 15);
             return new SceneKey(numArray);
         }
 
@@ -191,9 +177,9 @@ namespace HomeTools.ChannelID
             bytes3[m_NewerScatterTable[index1, 1]] = bytes2[1];
             byte[] numArray = new byte[16];
             new BitArray(bytes3).Xor(new BitArray(new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes())).CopyTo(numArray, 0);
-            uint num = CRC16.CalcCcittCRC16(numArray, 14);
-            numArray[14] = (byte)(num >> 8); // Get the higher 8 bits
-            numArray[15] = (byte)num;        // Get the lower 8 bits
+            ushort crc = EndianUtils.ReverseUshort(CRC16.Create(numArray, 0, 14));
+            numArray[14] = (byte)(crc >> 8); // Get the higher 8 bits
+            numArray[15] = (byte)crc;        // Get the lower 8 bits
             return new SceneKey(numArray);
         }
 
@@ -203,7 +189,7 @@ namespace HomeTools.ChannelID
             new BitArray(Key.GetBytes()).Xor(new BitArray(new SceneKey(new Guid("44E790BB-D88D-4d4f-9145-098931F62F7B")).GetBytes())).CopyTo(numArray, 0);
             int index1 = numArray[0] & 15;
             ushort sceneID = (ushort)(numArray[m_ScatterTable[index1, 0]] | (uint)numArray[m_ScatterTable[index1, 1]] << 8);
-            if (sceneID < m_SIDMin || sceneID > m_SIDMax)
+            if (sceneID < ushort.MinValue || sceneID > ushort.MaxValue)
                 throw new InvalidSceneIDException(Key, sceneID);
             return sceneID;
         }
@@ -214,7 +200,7 @@ namespace HomeTools.ChannelID
             new BitArray(Key.GetBytes()).Xor(new BitArray(new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes())).CopyTo(numArray, 0);
             int index1 = numArray[0] & 15;
             ushort sceneID = (ushort)(numArray[m_NewerScatterTable[index1, 0]] | (uint)numArray[m_NewerScatterTable[index1, 1]] << 8);
-            if (sceneID < m_SIDMin || sceneID > m_SIDMax)
+            if (sceneID < ushort.MinValue || sceneID > ushort.MaxValue)
                 throw new InvalidSceneIDException(Key, sceneID);
             return sceneID;
         }
@@ -222,14 +208,14 @@ namespace HomeTools.ChannelID
         public static void Verify(SceneKey Key)
         {
             byte[] data = !Key.ToString().Equals("00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
-            if (CRC.Create(data, 0, 15) != data[15])
+            if (CRC8.Create(data, 0, 15) != data[15])
                 throw new InvalidSceneIDKeyException(Key);
         }
 
         public static void VerifyNewerKey(SceneKey Key)
         {
             byte[] data = !Key.ToString().Equals("00000000-0000-0000-0000-000000000000") ? Key.GetBytes() : throw new InvalidSceneIDKeyException(Key);
-            if (CRC16.CalcCcittCRC16(data, 14) != (ushort)(data[14] << 8 | data[15]))
+            if (EndianUtils.ReverseUshort(CRC16.Create(data, 0, 14)) != (ushort)(data[14] << 8 | data[15]))
                 throw new InvalidSceneIDKeyException(Key);
         }
     }

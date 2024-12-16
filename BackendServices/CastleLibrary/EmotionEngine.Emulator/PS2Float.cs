@@ -8,7 +8,7 @@ namespace EmotionEngine.Emulator
         public const byte BIAS = 127;
         public const uint SIGNMASK = 0x80000000;
         public const uint MAX_FLOATING_POINT_VALUE = 0x7FFFFFFF;
-        public const uint MIN_FLOATING_POINT_VALUE = 0xFFFFFFFF;
+        public const uint MIN_FLOATING_POINT_VALUE = uint.MaxValue;
         public const uint POSITIVE_INFINITY_VALUE = 0x7F800000;
         public const uint NEGATIVE_INFINITY_VALUE = 0xFF800000;
         public const uint ONE = 0x3F800000;

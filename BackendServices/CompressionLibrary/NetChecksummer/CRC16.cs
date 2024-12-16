@@ -1,14 +1,12 @@
-using EndianTools;
 using System;
 
-namespace HomeTools.ChannelID
+namespace CompressionLibrary.NetChecksummer
 {
-    public class CRC16
+    public static class CRC16
     {
-        private const ushort InitialValue = 7439; // From Home Eboot.
+        private const ushort ccittInitialValue = 7439;
 
-        // From Home Eboot.
-        private static readonly ushort[] HomeccittCrc16Table = {
+        private static readonly ushort[] ccitt_hash = {
             0, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
             0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
             0x1231, 0x210, 0x3273, 0x2252, 0x52B5, 0x4294, 0x72F7, 0x62D6,
@@ -43,17 +41,24 @@ namespace HomeTools.ChannelID
             0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0xED1, 0x1EF0
         };
 
-        public static ushort CalcCcittCRC16(ReadOnlySpan<byte> bytes, int length)
+        public static ushort Create(byte[] data)
         {
-            ushort crc16 = InitialValue;
+            return Create(data, 0, data.Length);
+        }
 
-            int byteIndex = 0;
-            while (length-- > 0)
+        public static ushort Create(byte[] data, int offset, int length)
+        {
+            // Ensure the length doesn't exceed the array's length
+            length = Math.Min(length, data.Length);
+
+            ushort crc = ccittInitialValue;
+
+            for (int i = offset; i < length; i++)
             {
-                crc16 = (ushort)(crc16 << 8 ^ HomeccittCrc16Table[crc16 >> 8 ^ bytes[byteIndex++]]);
+                crc = (ushort)(crc << 8 ^ ccitt_hash[crc >> 8 ^ data[i]]);
             }
 
-            return EndianUtils.ReverseUshort(crc16); // Home expect big endian data.
+            return crc;
         }
     }
 }

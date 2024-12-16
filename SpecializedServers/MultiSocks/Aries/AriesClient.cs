@@ -187,23 +187,31 @@ namespace MultiSocks.Aries
 
             while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
             {
-                if (msg != null)
-                    SendImmediateMessage(msg.GetData());
+                if (msg != null && SendImmediateMessage(msg.GetData()))
+                    // Some games not like when async msgs are sent too close to each others (MOH).
+                    Thread.Sleep(100);
             }
 
             isDequeueRunning = false;
         }
 
-        public void SendImmediateMessage(byte[] data)
+        public bool SendImmediateMessage(byte[] data)
         {
-            try
+            if (ClientStream != null)
             {
-                ClientStream?.Write(data);
+                try
+                {
+                    ClientStream.Write(data);
+
+                    return true;
+                }
+                catch
+                {
+                    // something bad happened :(
+                }
             }
-            catch
-            {
-                // something bad happened :(
-            }
+
+            return false;
         }
 
         public void SendMessage(AbstractMessage msg)

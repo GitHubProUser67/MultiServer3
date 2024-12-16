@@ -1,4 +1,3 @@
-using HashLib;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
@@ -48,26 +47,27 @@ namespace XI5
 
         public XI5Ticket(byte[] data)
         {
-            MemoryStream ms = new MemoryStream(data);
-
-            uint version = ms.ReadUInt();
-
-            if (version != XI5_VER_2_0 && version != XI5_VER_2_1 && version != XI5_VER_3_0 && version != XI5_VER_4_0)
-                throw new NotSupportedException("Invalid ticket version: "+version); //invalid version
-
-            TicketVersion = version == XI5_VER_2_0 ? "XI5_VER_2_0" : version == XI5_VER_2_1 ? "XI5_VER_2_1" : version == XI5_VER_3_0 ? "XI5_VER_3_0" : version == XI5_VER_4_0 ? "XI5_VER_4_0" : "UNKNOWN";
-            if (version != XI5_VER_2_1)
+            using (MemoryStream ms = new MemoryStream(data))
             {
-                Directory.CreateDirectory("bad_xi5");
-                File.WriteAllBytes("bad_xi5/" + DateTime.Now.Ticks + ".bin", data);
-                throw new NotImplementedException("Reading " + TicketVersion + " ticket is not yet implemented.");
+                uint version = ms.ReadUInt();
+
+                if (version != XI5_VER_2_0 && version != XI5_VER_2_1 && version != XI5_VER_3_0 && version != XI5_VER_4_0)
+                    throw new NotSupportedException("Invalid ticket version: " + version); //invalid version
+
+                TicketVersion = version == XI5_VER_2_0 ? "XI5_VER_2_0" : version == XI5_VER_2_1 ? "XI5_VER_2_1" : version == XI5_VER_3_0 ? "XI5_VER_3_0" : version == XI5_VER_4_0 ? "XI5_VER_4_0" : "UNKNOWN";
+                if (version != XI5_VER_2_1)
+                {
+                    Directory.CreateDirectory("bad_xi5");
+                    File.WriteAllBytes("bad_xi5/" + DateTime.Now.Ticks + ".bin", data);
+                    throw new NotImplementedException("Reading " + TicketVersion + " ticket is not yet implemented.");
+                }
+
+                uint size = ms.ReadUInt();
+                if (size != ms.Length - 8) //invalid data
+                    throw new ArgumentException($"Specified ticket size: {size} | Actual ticket size : {ms.Length - 8}");
+
+                ParseTicketV2_1(ms);
             }
-
-            uint size = ms.ReadUInt();
-            if (size != ms.Length - 8) //invalid data
-                throw new ArgumentException($"Specified ticket size: {size} | Actual ticket size : {ms.Length - 8}");
-
-            ParseTicketV2_1(ms);
         }
 
 #if NET5_0_OR_GREATER
@@ -78,23 +78,27 @@ namespace XI5
             _fullBodyData = ReadFullBody(ms);
             byte[] footer = ReadFooter(ms);
 
-            MemoryStream bodyStream = new MemoryStream(_fullBodyData);
-            bodyStream.Seek(4, SeekOrigin.Begin); //skip existing dt and size
-            
-            Serial = ReadBinaryAsString(bodyStream);
-            IssuerId = ReadUInt(bodyStream);
-            Issued = ReadTime(bodyStream);
-            Expires = ReadTime(bodyStream);
-            UserId = ReadULong(bodyStream);
-            OnlineId = ReadString(bodyStream);
-            Region = ReadBinaryAsString(bodyStream);
-            Domain = ReadString(bodyStream);
-            ServiceId = ReadBinaryAsString(bodyStream);
-            Status = ReadUInt(bodyStream);
+            using (MemoryStream bodyStream = new MemoryStream(_fullBodyData))
+            {
+                bodyStream.Seek(4, SeekOrigin.Begin); //skip existing dt and size
 
-            MemoryStream footerStream = new MemoryStream(footer);
-            IssuerName = ReadBinaryAsString(footerStream);
-            _signature = ReadBinary(footerStream);
+                Serial = ReadBinaryAsString(bodyStream);
+                IssuerId = ReadUInt(bodyStream);
+                Issued = ReadTime(bodyStream);
+                Expires = ReadTime(bodyStream);
+                UserId = ReadULong(bodyStream);
+                OnlineId = ReadString(bodyStream);
+                Region = ReadBinaryAsString(bodyStream);
+                Domain = ReadString(bodyStream);
+                ServiceId = ReadBinaryAsString(bodyStream);
+                Status = ReadUInt(bodyStream);
+            }
+
+            using (MemoryStream footerStream = new MemoryStream(footer))
+            {
+                IssuerName = ReadBinaryAsString(footerStream);
+                _signature = ReadBinary(footerStream);
+            }
 
             //TODO: check out this later
             //optionally there is also cookie (Binary Data type)
@@ -104,9 +108,11 @@ namespace XI5
         public bool SignedByOfficialRPCN { 
             get
             {
-                Asn1InputStream decoder = new Asn1InputStream(_signature);
-                if (decoder.ReadObject() is DerSequence seq)
-                    return ECDsaRPCN.VerifySignature(NetHasher.ComputeSHA224(_fullBodyData), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
+                using (Asn1InputStream decoder = new Asn1InputStream(_signature))
+                {
+                    if (decoder.ReadObject() is DerSequence seq)
+                        return ECDsaRPCN.VerifySignature(NetHasher.DotNetHasher.ComputeSHA224(_fullBodyData), ((DerInteger)seq[0]).Value, ((DerInteger)seq[1]).Value);
+                }
 
                 return false;
             }

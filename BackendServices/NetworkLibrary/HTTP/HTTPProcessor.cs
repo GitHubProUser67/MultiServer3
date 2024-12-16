@@ -13,7 +13,6 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Threading;
 using System.Buffers;
-using HashLib;
 using System.Net;
 using NetworkLibrary.Extension.Csharp;
 
@@ -987,7 +986,7 @@ namespace NetworkLibrary.HTTP
             if (!input.CanSeek)
                 return null;
 
-            string md5Hash = NetHasher.ComputeMD5String(input).ToLower();
+            string md5Hash = NetHasher.DotNetHasher.ComputeMD5String(input).ToLower();
             input.Seek(0, SeekOrigin.Begin);
             return md5Hash;
         }

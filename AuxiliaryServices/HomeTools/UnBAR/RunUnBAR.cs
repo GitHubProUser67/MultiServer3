@@ -1,17 +1,16 @@
 using CustomLogger;
 using HomeTools.BARFramework;
 using HomeTools.Crypto;
+#if MAKE_NP_DATA_MODE
 using System.Diagnostics;
-using System.Text;
+#endif
 using EndianTools;
 using System.Threading.Tasks;
 using System;
 using System.IO;
-using System.Collections.Generic;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
 using HomeTools.SDAT;
-using HashLib;
 
 namespace HomeTools.UnBAR
 {
@@ -378,7 +377,7 @@ namespace HomeTools.UnBAR
                         // Copy the content after the first 28 bytes to the new array
                         Array.Copy(data, 28, FileBytes, 0, FileBytes.Length);
 
-                        string SHA1HexString = NetHasher.ComputeSHA1String(FileBytes);
+                        string SHA1HexString = NetHasher.DotNetHasher.ComputeSHA1String(FileBytes);
 
                         if (string.Equals(SHA1HexString, SignatureHeaderHexString.Substring(0, SignatureHeaderHexString.Length - 8))) // We strip the original file Compression size.
                         {
