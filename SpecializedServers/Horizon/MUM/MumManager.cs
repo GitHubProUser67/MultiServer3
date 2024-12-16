@@ -1023,8 +1023,6 @@ namespace Horizon.MUM
             {
                 //Program.AntiCheatPlugin.mc_anticheat_event_msg(AnticheatEventCode.anticheatJOINGAME, request.MediusWorldID, client.AccountId, Program.AntiCheatClient, request, 4);
 
-                ClientObject? dme = game.DMEServer;
-
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                     && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
@@ -1116,6 +1114,8 @@ namespace Horizon.MUM
                 // Else send normal Connection type to DME
                 else
                 {
+                    ClientObject? dme = game.DMEServer;
+
                     if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10680 || client.ApplicationId == 10681 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
                         dme?.Queue(new MediusServerJoinGameRequest()
                         {
@@ -1187,7 +1187,6 @@ namespace Horizon.MUM
             }
             else
             {
-                ClientObject? dme = game.DMEServer;
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
                 {
@@ -1207,7 +1206,7 @@ namespace Horizon.MUM
                 // Else send normal Connection type
                 else
                 {
-                    dme?.Queue(new MediusServerJoinGameRequest()
+                    game.DMEServer?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()

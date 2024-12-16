@@ -29,7 +29,7 @@ namespace MultiSocks.Aries
         private int ExpectedBytes = -1;
         private bool InHeader;
         private readonly bool secure;
-        private bool isDequeueRunning = false;
+        private int AsyncDequeueState = 0;
         private readonly Timer timerDequeue;
         private readonly TcpClient ClientTcp;
         private Stream? ClientStream;
@@ -180,10 +180,11 @@ namespace MultiSocks.Aries
 
         private void DequeueAsyncMessage(object? state)
         {
-            if (isDequeueRunning)
-                return;
+            // AMD processors are not liking a traditional lock here, interlocked works everywhere tho.
 
-            isDequeueRunning = true;
+            // Attempt to set isDequeueRunning to 1. If it's already 1, return immediately.
+            if (Interlocked.CompareExchange(ref AsyncDequeueState, 1, 0) == 1)
+                return;
 
             while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
             {
@@ -192,7 +193,8 @@ namespace MultiSocks.Aries
                     Thread.Sleep(100);
             }
 
-            isDequeueRunning = false;
+            // Reset isDequeueRunning to 0, allowing future executions.
+            Interlocked.Exchange(ref AsyncDequeueState, 0);
         }
 
         public bool SendImmediateMessage(byte[] data)

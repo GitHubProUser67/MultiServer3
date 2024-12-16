@@ -2782,7 +2782,7 @@ namespace Horizon.SERVER.Medius
                 {
                     if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83)
                     {
-                        if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
+                        if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
                             _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
                         else
                             _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "mlaaenable 0");
