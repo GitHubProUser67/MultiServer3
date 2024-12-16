@@ -29,7 +29,7 @@ namespace MultiSocks.Aries
         private int ExpectedBytes = -1;
         private bool InHeader;
         private readonly bool secure;
-        private bool isDequeueRunning = false;
+        private object _QueueLock = new();
         private readonly Timer timerDequeue;
         private readonly TcpClient ClientTcp;
         private Stream? ClientStream;
@@ -180,19 +180,21 @@ namespace MultiSocks.Aries
 
         private void DequeueAsyncMessage(object? state)
         {
-            if (isDequeueRunning)
-                return;
+            bool lockTaken = false;
 
-            isDequeueRunning = true;
+            Monitor.TryEnter(_QueueLock, ref lockTaken); // Attempt to acquire the lock.
 
-            while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
+            if (lockTaken)
             {
-                if (msg != null && SendImmediateMessage(msg.GetData()))
-                    // Some games not like when async msgs are sent too close to each others (MOH).
-                    Thread.Sleep(100);
-            }
+                while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
+                {
+                    if (msg != null && SendImmediateMessage(msg.GetData()))
+                        // Some games not like when async msgs are sent too close to each others (MOH).
+                        Thread.Sleep(100);
+                }
 
-            isDequeueRunning = false;
+                Monitor.Exit(_QueueLock);
+            }
         }
 
         public bool SendImmediateMessage(byte[] data)

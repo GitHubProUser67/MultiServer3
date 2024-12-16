@@ -32,6 +32,15 @@ namespace Horizon.MUM
             public Dictionary<string, Clan> ClanNameToClan = new();
         }
 
+        private object _joinGameQueueLock = new();
+        private object _joinGameQueue0Lock = new();
+
+        private ConcurrentDictionary<(int, int), DateTime> lastProcessedjoinGameQueue = new();
+        private ConcurrentDictionary<(int, int), DateTime> lastProcessedjoinGameQueue0 = new();
+
+        private ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)> joinGameQueue = new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>();
+        private ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)> joinGameQueue0 = new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>();
+
         private Dictionary<string, int[]> _appIdGroups = new();
         private readonly ConcurrentDictionary<int, QuickLookup> _lookupsByAppId = new();
 
@@ -1023,13 +1032,15 @@ namespace Horizon.MUM
             {
                 //Program.AntiCheatPlugin.mc_anticheat_event_msg(AnticheatEventCode.anticheatJOINGAME, request.MediusWorldID, client.AccountId, Program.AntiCheatClient, request, 4);
 
-                ClientObject? dme = game.DMEServer;
+                bool IsP2P = false;
+                MediusServerJoinGameRequest joinRequest;
 
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                     && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
                 {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                    IsP2P = true;
+                    joinRequest = new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1048,13 +1059,14 @@ namespace Horizon.MUM
                                 }
                             },
                         }
-                    });
+                    };
                 }
                 else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                         && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeExternal
                         && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeInternal)
                 {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                    IsP2P = true;
+                    joinRequest = new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1073,14 +1085,15 @@ namespace Horizon.MUM
                                 }
                             },
                         }
-                    });
+                    };
                 }
 
                 else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                         && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
                         && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
                 {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                    IsP2P = true;
+                    joinRequest = new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1109,15 +1122,14 @@ namespace Horizon.MUM
                                 }
                             },
                         }
-                    });
-
+                    };
                 }
 
                 // Else send normal Connection type to DME
                 else
                 {
                     if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10680 || client.ApplicationId == 10681 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
-                        dme?.Queue(new MediusServerJoinGameRequest()
+                        joinRequest = new MediusServerJoinGameRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                             ConnectInfo = new NetConnectionInfo()
@@ -1128,9 +1140,9 @@ namespace Horizon.MUM
                                 SessionKey = client.SessionKey,
                                 ServerKey = MediusClass.GlobalAuthPublic
                             }
-                        });
+                        };
                     else
-                        dme?.Queue(new MediusServerJoinGameRequest()
+                        joinRequest = new MediusServerJoinGameRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                             ConnectInfo = new NetConnectionInfo()
@@ -1141,8 +1153,12 @@ namespace Horizon.MUM
                                 SessionKey = client.SessionKey,
                                 ServerKey = MediusClass.GlobalAuthPublic
                             }
-                        });
+                        };
                 }
+
+                joinGameQueue.Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
+
+                _ = ProcessJoinQueueAsync();
             }
 
             return Task.CompletedTask;
@@ -1187,11 +1203,14 @@ namespace Horizon.MUM
             }
             else
             {
-                ClientObject? dme = game.DMEServer;
+                bool IsP2P = false;
+                MediusServerJoinGameRequest joinRequest;
+
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
                 {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                    IsP2P = true;
+                    joinRequest = new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1202,12 +1221,12 @@ namespace Horizon.MUM
                             SessionKey = client.SessionKey,
                             ServerKey = MediusClass.GlobalAuthPublic
                         }
-                    });
+                    };
                 }
                 // Else send normal Connection type
                 else
                 {
-                    dme?.Queue(new MediusServerJoinGameRequest()
+                    joinRequest = new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1218,13 +1237,105 @@ namespace Horizon.MUM
                             SessionKey = client.SessionKey,
                             ServerKey = MediusClass.GlobalAuthPublic
                         }
-                    });
+                    };
                 }
+
+                joinGameQueue0.Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
+
+                _ = ProcessJoinQueue0Async();
             }
         }
         #endregion
 
-#endregion
+        private Task ProcessJoinQueueAsync()
+        {
+            bool lockTaken = false;
+
+            Monitor.TryEnter(_joinGameQueueLock, ref lockTaken); // Attempt to acquire the lock.
+
+            if (lockTaken)
+            {
+                TimeSpan fourSeconds = TimeSpan.FromSeconds(4);
+
+                while (joinGameQueue.TryDequeue(out var dequeuedRequest))
+                {
+                    DateTime currentDate = dequeuedRequest.Item3;
+                    Game game = dequeuedRequest.Item2;
+                    (int, int) currentGameId = (game.ApplicationId, game.MediusWorldId);
+
+                    if (lastProcessedjoinGameQueue.ContainsKey(currentGameId))
+                    {
+                        if ((currentDate - lastProcessedjoinGameQueue[currentGameId]) < fourSeconds)
+                        {
+                            TimeSpan delayToWait = fourSeconds - (currentDate - lastProcessedjoinGameQueue[currentGameId]);
+#if DEBUG
+                            LoggerAccessor.LogWarn($"[MumManager] - ProcessJoinQueueAsync: Request:{dequeuedRequest.Item1} was delayed to: {delayToWait.Milliseconds} Milliseconds.");
+#endif
+                            Thread.Sleep(delayToWait);
+                        }
+
+                        lastProcessedjoinGameQueue[currentGameId] = currentDate;
+                    }
+                    else
+                        lastProcessedjoinGameQueue.TryAdd(currentGameId, currentDate);
+
+                    if (dequeuedRequest.Item4)
+                        game.Host?.Queue(dequeuedRequest.Item1);
+                    else
+                        game.DMEServer?.Queue(dequeuedRequest.Item1);
+                }
+
+                Monitor.Exit(_joinGameQueueLock);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private Task ProcessJoinQueue0Async()
+        {
+            bool lockTaken = false;
+
+            Monitor.TryEnter(_joinGameQueue0Lock, ref lockTaken); // Attempt to acquire the lock.
+
+            if (lockTaken)
+            {
+                TimeSpan fourSeconds = TimeSpan.FromSeconds(4);
+
+                while (joinGameQueue0.TryDequeue(out var dequeuedRequest))
+                {
+                    DateTime currentDate = dequeuedRequest.Item3;
+                    Game game = dequeuedRequest.Item2;
+                    (int, int) currentGameId = (game.ApplicationId, game.MediusWorldId);
+
+                    if (lastProcessedjoinGameQueue0.ContainsKey(currentGameId))
+                    {
+                        if ((currentDate - lastProcessedjoinGameQueue0[currentGameId]) < fourSeconds)
+                        {
+                            TimeSpan delayToWait = fourSeconds - (currentDate - lastProcessedjoinGameQueue0[currentGameId]);
+#if DEBUG
+                            LoggerAccessor.LogWarn($"[MumManager] - ProcessJoinQueue0Async: Request:{dequeuedRequest.Item1} was delayed to: {delayToWait.Milliseconds} Milliseconds.");
+#endif
+                            Thread.Sleep(delayToWait);
+                        }
+
+                        lastProcessedjoinGameQueue0[currentGameId] = currentDate;
+                    }
+                    else
+                        lastProcessedjoinGameQueue0.TryAdd(currentGameId, currentDate);
+
+                    if (dequeuedRequest.Item4)
+                        game.Host?.Queue(dequeuedRequest.Item1);
+                    else
+                        game.DMEServer?.Queue(dequeuedRequest.Item1);
+                }
+
+                Monitor.Exit(_joinGameQueue0Lock);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        #endregion
 
         #region Channels
 
