@@ -12,8 +12,7 @@ namespace MultiSocks.Aries.Model
                 string name, bool priv, string seed, string sysFlags, string? pass, int roomId)
         {
             if (!GamesSessions.Values.Any(game =>
-                    game.Name == name &&
-                    game.Priv == priv))
+                    game.Name == name))
             {
                 AriesGame game = new(maxSize, minSize, GameID, custFlags, @params,
                                 name, priv, seed, sysFlags, pass, roomId);
@@ -57,7 +56,7 @@ namespace MultiSocks.Aries.Model
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            return GamesSessions.FirstOrDefault(x => x.Value.Name == name && (!string.IsNullOrEmpty(x.Value.pass) ? x.Value.pass == pass : string.IsNullOrEmpty(x.Value.pass))).Value;
+            return GamesSessions.FirstOrDefault(x => x.Value.Name == name && (string.IsNullOrEmpty(x.Value.pass) || x.Value.pass == pass)).Value;
         }
 
         public int Count()

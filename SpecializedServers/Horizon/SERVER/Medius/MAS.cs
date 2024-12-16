@@ -19,7 +19,6 @@ using NetworkLibrary.Extension;
 using XI5;
 using EndianTools;
 using Horizon.MUM.Models;
-using HashLib;
 using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.SERVER.Medius
@@ -3309,7 +3308,7 @@ namespace Horizon.SERVER.Medius
         private static string ComputeSHA256(string input)
         {
             // ComputeHash - returns byte array  
-            byte[] bytes = NetHasher.ComputeSHA256(Encoding.UTF8.GetBytes(input));
+            byte[] bytes = NetHasher.DotNetHasher.ComputeSHA256(Encoding.UTF8.GetBytes(input));
 
             // Convert byte array to a string   
             StringBuilder builder = new();

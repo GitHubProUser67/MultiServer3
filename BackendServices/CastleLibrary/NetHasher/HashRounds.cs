@@ -1,5 +1,3 @@
-using System;
-
 namespace HashLib
 {
     public enum HashRounds

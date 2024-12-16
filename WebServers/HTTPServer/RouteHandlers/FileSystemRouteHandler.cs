@@ -100,14 +100,7 @@ namespace HTTPServer.RouteHandlers
             response.Headers.Add("Content-Type", ContentType);
 
             if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale)
-            {
-                Ionic.Crc.CRC32 crc = new();
-                byte[] PathIdent = Encoding.UTF8.GetBytes(filePath);
-
-                crc.SlurpBlock(PathIdent, 0, PathIdent.Length);
-
-                response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, crc.Crc32Result));
-            }
+                response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(filePath))));
             else if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
                 && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
                          || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))

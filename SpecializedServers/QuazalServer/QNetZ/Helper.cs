@@ -4,7 +4,6 @@ using lzo.net;
 using System.Text.RegularExpressions;
 using EndianTools;
 using NetworkLibrary.Extension;
-using HashLib;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 
@@ -336,7 +335,7 @@ namespace QuazalServer.QNetZ
             }
 
             for (uint i = 0; i < count; i++)
-                buff = NetHasher.ComputeMD5(buff);
+                buff = NetHasher.DotNetHasher.ComputeMD5(buff);
 
             return buff;
 		}

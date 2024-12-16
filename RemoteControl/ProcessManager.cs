@@ -7,9 +7,9 @@ namespace RemoteControl
     public static class ProcessManager
     {
         private static readonly object _lock = new();
-        public static readonly Dictionary<int, Process> Processes = new();
+        public static readonly Dictionary<uint, Process> Processes = new();
 
-        public static void StartupProgram(ControlWriter writer, TextBox textBox, GroupBox groupBox, string appPrefix, string exePath, int appid)
+        public static void StartupProgram(ControlWriter writer, TextBox textBox, GroupBox groupBox, string appPrefix, string exePath, uint appid)
         {
             // Start the process in the background
             ProcessStartInfo startInfo = new()
@@ -60,13 +60,13 @@ namespace RemoteControl
             RegisterProcess(appid, process);
         }
 
-        public static void RegisterProcess(int appid, Process process)
+        public static void RegisterProcess(uint appid, Process process)
         {
             lock (_lock)
                 Processes[appid] = process;
         }
 
-        public static bool ShutdownProcess(int appid)
+        public static bool ShutdownProcess(uint appid)
         {
             lock (_lock)
             {

@@ -7,7 +7,6 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using HashLib;
 
 namespace WebAPIService.NDREAMS.Xi2
 {
@@ -56,7 +55,7 @@ namespace WebAPIService.NDREAMS.Xi2
                                     else
                                     {
                                         string defaultProfile = Convert.ToBase64String(BattleContProfileData.GenerateDefaultSaveData());
-                                        profileData = new BattleContProfileData() { SaveData = defaultProfile, Hash = NetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes($"SAVE:{defaultProfile}:DATA")).ToLower(), Completed = 0, Wins = 0, Losses = 0, Conn_Lost = 0, Quits = 0, Best = 0, Average = 0, Packs = 0 };
+                                        profileData = new BattleContProfileData() { SaveData = defaultProfile, Hash = NetHasher.DotNetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes($"SAVE:{defaultProfile}:DATA")).ToLower(), Completed = 0, Wins = 0, Losses = 0, Conn_Lost = 0, Quits = 0, Best = 0, Average = 0, Packs = 0 };
 
                                         Directory.CreateDirectory(directoryPath);
                                         profileData.SerializeProfileData(profilePath);

@@ -1,24 +1,24 @@
-using Ionic.Crc;
+using CompressionLibrary.NetChecksummer;
 using System.Text;
 
 namespace RemoteControl
 {
     public partial class FormMain : Form
     {
-        private Dictionary<int, ControlWriter> _writersList = new();
+        private Dictionary<uint, ControlWriter> _writersList = new();
 
         private const string exeExtension = ".exe";
 
-        private readonly int httpCRC = CRC32.Compute(Encoding.ASCII.GetBytes("HTTPServer" + exeExtension));
-        private readonly int httpsCRC = CRC32.Compute(Encoding.ASCII.GetBytes("HTTPSecureServerLite" + exeExtension));
-        private readonly int dnsCRC = CRC32.Compute(Encoding.ASCII.GetBytes("MitmDNS" + exeExtension));
-        private readonly int horizonCRC = CRC32.Compute(Encoding.ASCII.GetBytes("Horizon" + exeExtension));
-        private readonly int multisocksCRC = CRC32.Compute(Encoding.ASCII.GetBytes("MultiSocks" + exeExtension));
-        private readonly int multispyCRC = CRC32.Compute(Encoding.ASCII.GetBytes("MultiSpy" + exeExtension));
-        private readonly int quazalCRC = CRC32.Compute(Encoding.ASCII.GetBytes("QuazalServer" + exeExtension));
-        private readonly int ssfwCRC = CRC32.Compute(Encoding.ASCII.GetBytes("SSFWServer" + exeExtension));
-        private readonly int svoCRC = CRC32.Compute(Encoding.ASCII.GetBytes("SVO" + exeExtension));
-        private readonly int edenCRC = CRC32.Compute(Encoding.ASCII.GetBytes("EdenServer" + exeExtension));
+        private readonly uint httpCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("HTTPServer" + exeExtension));
+        private readonly uint httpsCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("HTTPSecureServerLite" + exeExtension));
+        private readonly uint dnsCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("MitmDNS" + exeExtension));
+        private readonly uint horizonCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("Horizon" + exeExtension));
+        private readonly uint multisocksCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("MultiSocks" + exeExtension));
+        private readonly uint multispyCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("MultiSpy" + exeExtension));
+        private readonly uint quazalCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("QuazalServer" + exeExtension));
+        private readonly uint ssfwCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("SSFWServer" + exeExtension));
+        private readonly uint svoCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("SVO" + exeExtension));
+        private readonly uint edenCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("EdenServer" + exeExtension));
 
         public FormMain()
         {
@@ -309,7 +309,7 @@ namespace RemoteControl
         {
             _ = Task.Run(() =>
             {
-                string prefix = "MultiSspy";
+                string prefix = "MultiSpy";
 
                 try
                 {

@@ -1,10 +1,10 @@
-using HashLib;
 using CustomLogger;
 using NetworkLibrary.Extension;
 using System.Text;
 using System.Collections.Concurrent;
 using WebAPIService.SSFW;
 using XI5;
+using NetHasher;
 
 namespace SSFWServer
 {
@@ -194,7 +194,7 @@ namespace SSFWServer
                 else
                     salt = generalsecret + XHomeClientVersion;
 
-                string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
+                string hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
 
                 // Trim the hash to a specific length
                 hash = hash[..14];
@@ -215,7 +215,7 @@ namespace SSFWServer
                     else
                         salt = generalsecret + XHomeClientVersion;
 
-                    hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
+                    hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
 
                     // Trim the hash to a specific length
                     hash = hash[..10];

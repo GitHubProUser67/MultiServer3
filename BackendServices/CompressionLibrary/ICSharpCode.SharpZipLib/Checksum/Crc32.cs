@@ -47,7 +47,7 @@ namespace ICSharpCode.SharpZipLib.Checksum
 		private static readonly uint crcInit = 0xFFFFFFFF;
 		private static readonly uint crcXor = 0xFFFFFFFF;
 
-		private static readonly uint[] crcTable = CrcUtilities.GenerateSlicingLookupTable(Ionic.Crc.CRC32Polynomials.IEEE_802_3, isReversed: true);
+		private static readonly uint[] crcTable = CrcUtilities.GenerateSlicingLookupTable(0xEDB88320, isReversed: true);
 
 		/// <summary>
 		/// The CRC data checksum so far.

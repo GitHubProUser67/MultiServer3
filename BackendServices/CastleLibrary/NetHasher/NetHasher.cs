@@ -1,10 +1,10 @@
 using System;
-using System.Text;
+using HashLib;
 using Tpm2Lib;
 
-namespace HashLib
+namespace NetHasher
 {
-    public class NetHasher
+    public class DotNetHasher
     {
         public static byte[] ComputeMD5(object input)
         {

@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
-using HashLib;
 
 namespace HomeTools.BARFramework
 {
@@ -1005,7 +1004,7 @@ namespace HomeTools.BARFramework
                     if (FileBytes != null)
                     {
                         byte[] SignatureHeader = new byte[24];
-                        byte[] SHA1Data = NetHasher.ComputeSHA1(FileBytes);
+                        byte[] SHA1Data = NetHasher.DotNetHasher.ComputeSHA1(FileBytes);
                         Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);
@@ -1092,7 +1091,7 @@ namespace HomeTools.BARFramework
                 if (tocentry != null)
                 {
                     tocentry.Path = (string)hashtable[hashedFileName2];
-                    tocentry.FileType = FileTypeAnalyser.GetFileType(Path.GetExtension(tocentry.Path).ToLower());
+                    tocentry.FileType = FileTypeAnalyser.GetFileType(Path.GetExtension(tocentry.Path));
                 }
             }
             textReader.Close();

@@ -49,10 +49,6 @@ namespace MultiSocks.Aries.Messages
                     client.SendMessage(game.GetGameDetails("+gam"));
                 }
             }
-            else
-            {
-                // TODO, send dirtysocks error.
-            }
         }
     }
 }

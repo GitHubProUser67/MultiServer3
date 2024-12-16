@@ -1,8 +1,5 @@
-using HashLib;
 using CustomLogger;
-using System.Security.Cryptography;
 using System.Text;
-using Ionic.Crc;
 
 namespace QuazalServer.QNetZ
 {
@@ -74,14 +71,11 @@ namespace QuazalServer.QNetZ
 
         public static uint GenerateUniqueUint(string input)
         {
-            CRC32 crc = new CRC32();
             uint result = 0;
 
             do
             {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input + "QnetZM$3");
-                crc.SlurpBlock(inputBytes, 0, inputBytes.Length);
-                result = ((uint)(crc.Crc32Result) ^ result);
+                result = CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(input + "QnetZM$3")) ^ result;
 
                 // If below or equal 1000, modify the input slightly and recalculate.
                 if (result <= 1000)

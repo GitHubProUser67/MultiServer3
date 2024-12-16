@@ -21,7 +21,7 @@ using Horizon.LIBRARY.Pipeline.Attribute;
 using NetworkLibrary.Extension;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Extension.PlayStationHome;
-using HashLib;
+using CompressionLibrary.NetChecksummer;
 
 namespace Horizon.SERVER.Medius
 {
@@ -8955,7 +8955,7 @@ namespace Horizon.SERVER.Medius
                             LoggerAccessor.LogInfo($"Generating file checksum for {path}");
                             using (var stream = File.OpenRead(path))
                             {
-                                string serverCheckSumGenerated = BitConverter.ToString(NetHasher.ComputeMD5(stream));
+                                string serverCheckSumGenerated = BitConverter.ToString(NetHasher.DotNetHasher.ComputeMD5(stream));
                                 LoggerAccessor.LogWarn($"{serverCheckSumGenerated} checksum CHECK");
                                 FileDTO fileDTO = new FileDTO()
                                 {
@@ -11010,20 +11010,16 @@ namespace Horizon.SERVER.Medius
 
             if (accountDto == null)
             {
-                Ionic.Crc.CRC32 crc = new();
                 Anonymous = true;
 
                 int iAccountID = MediusClass.Manager.AnonymousAccountIDGenerator(MediusClass.Settings.AnonymousIDRangeSeed);
-                byte[] iAccountIDBytes = Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s");
-
-                crc.SlurpBlock(iAccountIDBytes, 0, iAccountIDBytes.Length);
 
                 LoggerAccessor.LogInfo($"AnonymousIDRangeSeedGenerator AccountID returned {iAccountID}");
 
                 accountDto = new()
                 {
                     AccountId = iAccountID,
-                    AccountName = $"Guest_{crc.Crc32Result:X4}",
+                    AccountName = $"Guest_{CRC32.Create(Encoding.UTF8.GetBytes(iAccountID.ToString() + "Med1U!s")):X4}",
                     AccountPassword = "UNSET",
                     MachineId = data.MachineId,
                     MediusStats = Convert.ToBase64String(new byte[Constants.ACCOUNTSTATS_MAXLEN]),

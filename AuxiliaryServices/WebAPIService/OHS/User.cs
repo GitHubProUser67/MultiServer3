@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using System.Text;
 using NetworkLibrary.HTTP;
 using static WebAPIService.OHS.UserCounter;
-using HashLib;
+using NetHasher;
 
 namespace WebAPIService.OHS
 {
@@ -1010,7 +1010,7 @@ namespace WebAPIService.OHS
             if (string.IsNullOrEmpty(input))
                 return null;
 
-            byte[] hashBytes = NetHasher.ComputeMD5(Encoding.UTF8.GetBytes(input));
+            byte[] hashBytes = DotNetHasher.ComputeMD5(Encoding.UTF8.GetBytes(input));
 
             // Convert the byte array to a hexadecimal string
             StringBuilder sb = new StringBuilder();
@@ -1046,7 +1046,7 @@ namespace WebAPIService.OHS
             // Function to generate a unique number based on a string using MD5
             public static int GenerateUniqueNumber(string inputString)
             {
-                byte[] MD5Data = NetHasher.ComputeMD5(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
+                byte[] MD5Data = DotNetHasher.ComputeMD5(Encoding.UTF8.GetBytes("0HS0000000000000A" + inputString));
 
                 if (!BitConverter.IsLittleEndian)
                     Array.Reverse(MD5Data);

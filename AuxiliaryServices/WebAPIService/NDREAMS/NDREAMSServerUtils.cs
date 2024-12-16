@@ -3,7 +3,7 @@ using CustomLogger;
 using NLua;
 using System.Text;
 using System;
-using HashLib;
+using NetHasher;
 
 namespace WebAPIService.NDREAMS
 {
@@ -11,12 +11,12 @@ namespace WebAPIService.NDREAMS
     {
         public static string Server_GetSignatureCustom(string signature, string username, string data, DateTime timeObj)
         {
-            return NetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes(signature + username + timeObj.Year + timeObj.Month + timeObj.Day + data + "Signature")).ToLower();
+            return DotNetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes(signature + username + timeObj.Year + timeObj.Month + timeObj.Day + data + "Signature")).ToLower();
         }
 
         public static string Server_GetSignature(string parameter, string username, string data, DateTime timeObj)
         {
-            return NetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes("nDreams" + parameter + username + timeObj.Year + timeObj.Month + timeObj.Day + data + "Signature")).ToLower();
+            return DotNetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes("nDreams" + parameter + username + timeObj.Year + timeObj.Month + timeObj.Day + data + "Signature")).ToLower();
         }
 
         public static string Server_KeyToHash(string key, DateTime dObj, string level)
@@ -58,7 +58,7 @@ namespace WebAPIService.NDREAMS
                 str.Append(mappedChar);
             }
 
-            return NetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes("keyString" + level + dObj.Year + dObj.Month + dObj.Day + str.ToString() + level)).ToLower();
+            return DotNetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes("keyString" + level + dObj.Year + dObj.Month + dObj.Day + str.ToString() + level)).ToLower();
         }
 
         public static string CreateBase64StringFromGuids(List<string> GUIDS)

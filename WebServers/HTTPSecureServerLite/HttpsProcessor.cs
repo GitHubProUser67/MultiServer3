@@ -2012,14 +2012,7 @@ namespace HTTPSecureServerLite
             ctx.Response.ContentType = ContentType;
             ctx.Response.StatusCode = 200;
             if (HTTPSServerConfiguration.EnableImageUpscale && ContentType.StartsWith("image/"))
-            {
-                Ionic.Crc.CRC32 crc = new();
-                byte[] PathIdent = Encoding.UTF8.GetBytes(filePath);
-
-                crc.SlurpBlock(PathIdent, 0, PathIdent.Length);
-
-                st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, crc.Crc32Result));
-            }
+                st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(filePath))));
             else if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
                 && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
                          || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))

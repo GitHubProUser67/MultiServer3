@@ -47,9 +47,7 @@ namespace MultiSocks.Aries.Messages
                 !string.IsNullOrEmpty(PARAMS) && !string.IsNullOrEmpty(NAME) && parsedPriv.HasValue &&
                 !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(SYSFLAGS) && !string.IsNullOrEmpty(user.Username))
             {
-                AriesGame? game = mc.Games.GetGameByName(NAME, PASS);
-
-                game ??= mc.Games.AddGame(parsedMaxSize.Value, parsedMinSize.Value, CUSTFLAGS, PARAMS, NAME, parsedPriv.Value != 0, SEED, SYSFLAGS, PASS, 0);
+                AriesGame? game = mc.Games.AddGame(parsedMaxSize.Value, parsedMinSize.Value, CUSTFLAGS, PARAMS, NAME, parsedPriv.Value != 0, SEED, SYSFLAGS, PASS, 0);
 
                 if (game != null)
                 {
@@ -76,14 +74,10 @@ namespace MultiSocks.Aries.Messages
                     game.BroadcastPopulation(mc);
                 }
                 else
-                {
-                    // TODO SEND DIRTYSOCKS ERROR!
-                }
+                    client.SendMessage(new GpscDupl());
             }
             else
-            {
-                // TODO SEND DIRTYSOCKS ERROR!
-            }
+                client.SendMessage(new GpscInvp());
         }
     }
 }

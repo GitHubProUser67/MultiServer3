@@ -15,7 +15,6 @@ using System.Linq;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
 using WebAPIService.Utils;
-using HashLib;
 using EndianTools;
 
 namespace HomeWebTools
@@ -736,7 +735,7 @@ namespace HomeWebTools
                                 }
                                 else
                                 {
-                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.ComputeSHA1String(buffer).Substring(0, 16).ToUpper(), cdnMode);
+                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.DotNetHasher.ComputeSHA1String(buffer).Substring(0, 16).ToUpper(), cdnMode);
 
                                     if (ProcessedFileBytes != null)
                                         TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_encrypted{Path.GetExtension(filename)}"));
