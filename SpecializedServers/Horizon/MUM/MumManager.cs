@@ -10,7 +10,6 @@ using Horizon.HTTPSERVICE;
 using Horizon.SERVER;
 using Horizon.SERVER.Medius;
 using Horizon.MUM.Models;
-using NetworkLibrary.Extension.Csharp;
 
 namespace Horizon.MUM
 {
@@ -1154,10 +1153,10 @@ namespace Horizon.MUM
                         };
                 }
 
-                joinGameQueue.TryAdd(game.ApplicationId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>());
-                joinGameQueue[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
-
-                _ = ProcessJoinQueueAsync();
+                if (joinGameQueue.ContainsKey(game.ApplicationId))
+                    joinGameQueue[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
+                else
+                    LoggerAccessor.LogError($"[MumManager] - No JoinGame queue set for appid:{game.ApplicationId}, aborting the game joining!");
             }
 
             return Task.CompletedTask;
@@ -1239,15 +1238,15 @@ namespace Horizon.MUM
                     };
                 }
 
-                joinGameQueue0.TryAdd(game.ApplicationId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>());
-                joinGameQueue0[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
-
-                _ = ProcessJoinQueue0Async();
+                if (joinGameQueue0.ContainsKey(game.ApplicationId))
+                    joinGameQueue0[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
+                else
+                    LoggerAccessor.LogError($"[MumManager] - No JoinGame0 queue set for appid:{game.ApplicationId}, aborting the game joining!");
             }
         }
         #endregion
 
-        private Task ProcessJoinQueueAsync()
+        public Task ProcessJoinQueueAsync()
         {
             bool lockTaken = false;
 
@@ -1257,7 +1256,7 @@ namespace Horizon.MUM
 
                 if (lockTaken)
                 {
-                    Parallel.ForEach(joinGameQueue, (kvp) =>
+                    Parallel.ForEach(joinGameQueue.Where(x => !x.Value.IsEmpty), (kvp) =>
                     {
                         int applicationId = kvp.Key;
 
@@ -1284,7 +1283,7 @@ namespace Horizon.MUM
             return Task.CompletedTask;
         }
 
-        private Task ProcessJoinQueue0Async()
+        public Task ProcessJoinQueue0Async()
         {
             bool lockTaken = false;
 
@@ -1294,7 +1293,7 @@ namespace Horizon.MUM
 
                 if (lockTaken)
                 {
-                    Parallel.ForEach(joinGameQueue0, (kvp) =>
+                    Parallel.ForEach(joinGameQueue0.Where(x => !x.Value.IsEmpty), (kvp) =>
                     {
                         int applicationId = kvp.Key;
 
@@ -2344,6 +2343,16 @@ namespace Horizon.MUM
         public int[] GetAppIdsInGroup(int appId)
         {
             return _appIdGroups.FirstOrDefault(x => x.Value.Contains(appId)).Value ?? Array.Empty<int>();
+        }
+
+        public Task<bool> AddJoinGameQueueAppid(int appId)
+        {
+            return Task.FromResult(joinGameQueue.TryAdd(appId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>()));
+        }
+
+        public Task<bool> AddJoinGameQueue0Appid(int appId)
+        {
+            return Task.FromResult(joinGameQueue0.TryAdd(appId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>()));
         }
 
         #endregion
