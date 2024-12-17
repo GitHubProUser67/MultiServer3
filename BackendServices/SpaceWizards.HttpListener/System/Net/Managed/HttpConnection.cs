@@ -155,26 +155,21 @@ namespace SpaceWizards.HttpListener
                         string dirname = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                         string path = Path.Combine(dirname, ".mono");
                         path = Path.Combine(path, "httplistener");
-                        string cert_file = Path.Combine(path, string.Format("{0}.pem", _sniDomain + $"-{port}"));
-                        string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", _sniDomain + $"-{port}"));
+                        string cert_prefix = _sniDomain + $"-{port}";
+                        string cert_file = Path.Combine(path, string.Format("{0}.pem", cert_prefix));
+                        string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", cert_prefix));
                         if (File.Exists(cert_file) && File.Exists(pvk_file))
+                            return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
+                        else
                         {
-#if NET6_0_OR_GREATER
-                            return X509Certificate2.CreateFromPemFile(cert_file, pvk_file);
-#else
-                                string[] privateKeyBlocks = File.ReadAllText(pvk_file).Split("-", StringSplitOptions.RemoveEmptyEntries);
-
-                                byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
-                                using (System.Security.Cryptography.RSA rsa = System.Security.Cryptography.RSA.Create())
-                                {
-                                    if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
-                                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
-                                    else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
-                                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
-
-                                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
-                                }
-#endif
+                            string origin_directory = Path.Combine(path, cert_prefix);
+                            if (Directory.Exists(origin_directory))
+                            {
+                                cert_file = Path.Combine(origin_directory, "Origin Certificate");
+                                pvk_file = Path.Combine(origin_directory, "Private Key");
+                                if (File.Exists(cert_file) && File.Exists(pvk_file))
+                                    return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
+                            }
                         }
                     }
                     catch

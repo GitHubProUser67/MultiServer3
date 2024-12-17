@@ -301,11 +301,8 @@ namespace NetworkLibrary.SSL
             if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
                 RootCACertificate = CreateRootCertificateAuthority(directoryPath, HashAlgorithmName.SHA256);
             else
-#if NET6_0_OR_GREATER
-                RootCACertificate = X509Certificate2.CreateFromPemFile(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");
-#else
                 RootCACertificate = LoadPemCertificate(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");
-#endif
+
             CreateChainSignedCert(RootCACertificate, Hashing, certPath, certPassword, DnsList);
         }
 

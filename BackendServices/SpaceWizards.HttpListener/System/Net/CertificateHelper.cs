@@ -123,7 +123,33 @@ namespace SpaceWizards.HttpListener
                 }
             }
         }
+#if NET5_0_OR_GREATER
+        /// <summary>
+        /// Initiate a X509Certificate2 from a PEM certificate and a PEM privatekey.
+        /// <para>Initialise un certificat X509Certificate2 depuis un fichier certificate PEM et un fichier privatekey PEM.</para>
+        /// </summary>
+        /// <param name="certificatePath">pem cert path.</param>
+        /// <param name="privateKeyPath">pem private key path.</param>
+        /// <returns>A X509Certificate2.</returns>
+        public static X509Certificate2 LoadPemCertificate(string certificatePath, string privateKeyPath)
+        {
+            using (X509Certificate2 cert = new X509Certificate2(certificatePath))
+            {
+                string[] privateKeyBlocks = System.IO.File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
 
+                byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
+                using (RSA rsa = RSA.Create())
+                {
+                    if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
+                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
+                    else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
+                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+
+                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+                }
+            }
+        }
+#endif
         /// <summary>
         /// Checks if the X509Certificate is of Certificate Authority type.
         /// </summary>
