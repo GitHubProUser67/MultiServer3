@@ -30,7 +30,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-using NetworkLibrary.SSL;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -152,10 +151,11 @@ namespace SpaceWizards.HttpListener
                     // Actually load the certificate
                     try
                     {
-                        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                            , ".mono");
+                        int port = localEndpoint.Port;
+                        string dirname = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        string path = Path.Combine(dirname, ".mono");
                         path = Path.Combine(path, "httplistener");
-                        string cert_prefix = _sniDomain + $"-{localEndpoint.Port}";
+                        string cert_prefix = _sniDomain + $"-{port}";
                         string cert_file = Path.Combine(path, string.Format("{0}.pem", cert_prefix));
                         string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", cert_prefix));
                         if (File.Exists(cert_file) && File.Exists(pvk_file))

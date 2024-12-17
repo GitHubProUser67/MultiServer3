@@ -10,6 +10,7 @@ using Horizon.HTTPSERVICE;
 using Horizon.SERVER;
 using Horizon.SERVER.Medius;
 using Horizon.MUM.Models;
+using NetworkLibrary.Extension.Csharp;
 
 namespace Horizon.MUM
 {
@@ -35,11 +36,8 @@ namespace Horizon.MUM
         private object _joinGameQueueLock = new();
         private object _joinGameQueue0Lock = new();
 
-        private ConcurrentDictionary<(int, int), DateTime> lastProcessedjoinGameQueue = new();
-        private ConcurrentDictionary<(int, int), DateTime> lastProcessedjoinGameQueue0 = new();
-
-        private ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)> joinGameQueue = new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>();
-        private ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)> joinGameQueue0 = new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>();
+        private ConcurrentDictionary<int, ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>> joinGameQueue = new();
+        private ConcurrentDictionary<int, ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>> joinGameQueue0 = new();
 
         private Dictionary<string, int[]> _appIdGroups = new();
         private readonly ConcurrentDictionary<int, QuickLookup> _lookupsByAppId = new();
@@ -1156,7 +1154,8 @@ namespace Horizon.MUM
                         };
                 }
 
-                joinGameQueue.Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
+                joinGameQueue.TryAdd(game.ApplicationId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>());
+                joinGameQueue[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
 
                 _ = ProcessJoinQueueAsync();
             }
@@ -1240,7 +1239,8 @@ namespace Horizon.MUM
                     };
                 }
 
-                joinGameQueue0.Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
+                joinGameQueue0.TryAdd(game.ApplicationId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>());
+                joinGameQueue0[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
 
                 _ = ProcessJoinQueue0Async();
             }
@@ -1251,41 +1251,34 @@ namespace Horizon.MUM
         {
             bool lockTaken = false;
 
-            Monitor.TryEnter(_joinGameQueueLock, ref lockTaken); // Attempt to acquire the lock.
-
-            if (lockTaken)
+            try
             {
-                TimeSpan fourSeconds = TimeSpan.FromSeconds(4);
+                Monitor.TryEnter(_joinGameQueueLock, ref lockTaken); // Attempt to acquire the lock.
 
-                while (joinGameQueue.TryDequeue(out var dequeuedRequest))
+                if (lockTaken)
                 {
-                    DateTime currentDate = dequeuedRequest.Item3;
-                    Game game = dequeuedRequest.Item2;
-                    (int, int) currentGameId = (game.ApplicationId, game.MediusWorldId);
-
-                    if (lastProcessedjoinGameQueue.ContainsKey(currentGameId))
+                    Parallel.ForEach(joinGameQueue, (kvp) =>
                     {
-                        if ((currentDate - lastProcessedjoinGameQueue[currentGameId]) < fourSeconds)
+                        int applicationId = kvp.Key;
+
+                        while (kvp.Value.TryDequeue(out var dequeuedRequest))
                         {
-                            TimeSpan delayToWait = fourSeconds - (currentDate - lastProcessedjoinGameQueue[currentGameId]);
-#if DEBUG
-                            LoggerAccessor.LogWarn($"[MumManager] - ProcessJoinQueueAsync: Request:{dequeuedRequest.Item1} was delayed to: {delayToWait.Milliseconds} Milliseconds.");
-#endif
-                            Thread.Sleep(delayToWait);
+                            Game game = dequeuedRequest.Item2;
+
+                            if (dequeuedRequest.Item4)
+                                game.Host?.Queue(dequeuedRequest.Item1);
+                            else
+                                game.DMEServer?.Queue(dequeuedRequest.Item1);
+
+                            Thread.Sleep(100);
                         }
-
-                        lastProcessedjoinGameQueue[currentGameId] = currentDate;
-                    }
-                    else
-                        lastProcessedjoinGameQueue.TryAdd(currentGameId, currentDate);
-
-                    if (dequeuedRequest.Item4)
-                        game.Host?.Queue(dequeuedRequest.Item1);
-                    else
-                        game.DMEServer?.Queue(dequeuedRequest.Item1);
+                    });
                 }
-
-                Monitor.Exit(_joinGameQueueLock);
+            }
+            finally
+            {
+                if (lockTaken)
+                    Monitor.Exit(_joinGameQueueLock);
             }
 
             return Task.CompletedTask;
@@ -1295,41 +1288,34 @@ namespace Horizon.MUM
         {
             bool lockTaken = false;
 
-            Monitor.TryEnter(_joinGameQueue0Lock, ref lockTaken); // Attempt to acquire the lock.
-
-            if (lockTaken)
+            try
             {
-                TimeSpan fourSeconds = TimeSpan.FromSeconds(4);
+                Monitor.TryEnter(_joinGameQueue0Lock, ref lockTaken); // Attempt to acquire the lock.
 
-                while (joinGameQueue0.TryDequeue(out var dequeuedRequest))
+                if (lockTaken)
                 {
-                    DateTime currentDate = dequeuedRequest.Item3;
-                    Game game = dequeuedRequest.Item2;
-                    (int, int) currentGameId = (game.ApplicationId, game.MediusWorldId);
-
-                    if (lastProcessedjoinGameQueue0.ContainsKey(currentGameId))
+                    Parallel.ForEach(joinGameQueue0, (kvp) =>
                     {
-                        if ((currentDate - lastProcessedjoinGameQueue0[currentGameId]) < fourSeconds)
+                        int applicationId = kvp.Key;
+
+                        while (kvp.Value.TryDequeue(out var dequeuedRequest))
                         {
-                            TimeSpan delayToWait = fourSeconds - (currentDate - lastProcessedjoinGameQueue0[currentGameId]);
-#if DEBUG
-                            LoggerAccessor.LogWarn($"[MumManager] - ProcessJoinQueue0Async: Request:{dequeuedRequest.Item1} was delayed to: {delayToWait.Milliseconds} Milliseconds.");
-#endif
-                            Thread.Sleep(delayToWait);
+                            Game game = dequeuedRequest.Item2;
+
+                            if (dequeuedRequest.Item4)
+                                game.Host?.Queue(dequeuedRequest.Item1);
+                            else
+                                game.DMEServer?.Queue(dequeuedRequest.Item1);
+
+                            Thread.Sleep(100);
                         }
-
-                        lastProcessedjoinGameQueue0[currentGameId] = currentDate;
-                    }
-                    else
-                        lastProcessedjoinGameQueue0.TryAdd(currentGameId, currentDate);
-
-                    if (dequeuedRequest.Item4)
-                        game.Host?.Queue(dequeuedRequest.Item1);
-                    else
-                        game.DMEServer?.Queue(dequeuedRequest.Item1);
+                    });
                 }
-
-                Monitor.Exit(_joinGameQueue0Lock);
+            }
+            finally
+            {
+                if (lockTaken)
+                    Monitor.Exit(_joinGameQueue0Lock);
             }
 
             return Task.CompletedTask;
