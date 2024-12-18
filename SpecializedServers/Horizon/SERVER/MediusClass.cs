@@ -139,18 +139,6 @@ namespace Horizon.SERVER
             }
         }
 
-        private static async Task LoopJoinGameQueues()
-        {
-            // iterate
-            while (started)
-            {
-                _ = Manager.ProcessJoinQueueAsync();
-                _ = Manager.ProcessJoinQueue0Async();
-
-                await Task.Delay(100);
-            }
-        }
-
         public static async void StopServer()
         {
             started = false;
@@ -507,7 +495,6 @@ namespace Horizon.SERVER
 
                 started = true;
 
-                _ = Task.Run(LoopJoinGameQueues);
                 _ = Task.Run(LoopServer);
             }
             catch (Exception ex)
@@ -649,9 +636,6 @@ namespace Horizon.SERVER
                                 }
 
                                 RoomManager.UpdateOrCreateRoom(Convert.ToString(appId), null, null, null, null, 0, null, false);
-
-                                // TODO, filter appids here?
-                                await Task.WhenAll(Manager.AddJoinGameQueueAppid(appId), Manager.AddJoinGameQueue0Appid(appId));
                             }
                         }
                     }

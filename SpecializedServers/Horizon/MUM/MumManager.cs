@@ -32,12 +32,6 @@ namespace Horizon.MUM
             public Dictionary<string, Clan> ClanNameToClan = new();
         }
 
-        private object _joinGameQueueLock = new();
-        private object _joinGameQueue0Lock = new();
-
-        private ConcurrentDictionary<int, ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>> joinGameQueue = new();
-        private ConcurrentDictionary<int, ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>> joinGameQueue0 = new();
-
         private Dictionary<string, int[]> _appIdGroups = new();
         private readonly ConcurrentDictionary<int, QuickLookup> _lookupsByAppId = new();
 
@@ -1029,15 +1023,11 @@ namespace Horizon.MUM
             {
                 //Program.AntiCheatPlugin.mc_anticheat_event_msg(AnticheatEventCode.anticheatJOINGAME, request.MediusWorldID, client.AccountId, Program.AntiCheatClient, request, 4);
 
-                bool IsP2P = false;
-                MediusServerJoinGameRequest joinRequest;
-
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                     && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
                 {
-                    IsP2P = true;
-                    joinRequest = new MediusServerJoinGameRequest()
+                    game.Host?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1056,14 +1046,13 @@ namespace Horizon.MUM
                                 }
                             },
                         }
-                    };
+                    });
                 }
                 else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                         && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeExternal
                         && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeInternal)
                 {
-                    IsP2P = true;
-                    joinRequest = new MediusServerJoinGameRequest()
+                    game.Host?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1082,15 +1071,14 @@ namespace Horizon.MUM
                                 }
                             },
                         }
-                    };
+                    });
                 }
 
                 else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                         && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
                         && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
                 {
-                    IsP2P = true;
-                    joinRequest = new MediusServerJoinGameRequest()
+                    game.Host?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1119,14 +1107,17 @@ namespace Horizon.MUM
                                 }
                             },
                         }
-                    };
+                    });
+
                 }
 
                 // Else send normal Connection type to DME
                 else
                 {
+                    ClientObject? dme = game.DMEServer;
+
                     if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10680 || client.ApplicationId == 10681 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
-                        joinRequest = new MediusServerJoinGameRequest()
+                        dme?.Queue(new MediusServerJoinGameRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                             ConnectInfo = new NetConnectionInfo()
@@ -1137,9 +1128,9 @@ namespace Horizon.MUM
                                 SessionKey = client.SessionKey,
                                 ServerKey = MediusClass.GlobalAuthPublic
                             }
-                        };
+                        });
                     else
-                        joinRequest = new MediusServerJoinGameRequest()
+                        dme?.Queue(new MediusServerJoinGameRequest()
                         {
                             MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                             ConnectInfo = new NetConnectionInfo()
@@ -1150,13 +1141,8 @@ namespace Horizon.MUM
                                 SessionKey = client.SessionKey,
                                 ServerKey = MediusClass.GlobalAuthPublic
                             }
-                        };
+                        });
                 }
-
-                if (joinGameQueue.ContainsKey(game.ApplicationId))
-                    joinGameQueue[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
-                else
-                    LoggerAccessor.LogError($"[MumManager] - No JoinGame queue set for appid:{game.ApplicationId}, aborting the game joining!");
             }
 
             return Task.CompletedTask;
@@ -1201,14 +1187,10 @@ namespace Horizon.MUM
             }
             else
             {
-                bool IsP2P = false;
-                MediusServerJoinGameRequest joinRequest;
-
                 // if This is a Peer to Peer Player Host as DME we treat differently
                 if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
                 {
-                    IsP2P = true;
-                    joinRequest = new MediusServerJoinGameRequest()
+                    game.Host?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1219,12 +1201,12 @@ namespace Horizon.MUM
                             SessionKey = client.SessionKey,
                             ServerKey = MediusClass.GlobalAuthPublic
                         }
-                    };
+                    });
                 }
                 // Else send normal Connection type
                 else
                 {
-                    joinRequest = new MediusServerJoinGameRequest()
+                    game.DMEServer?.Queue(new MediusServerJoinGameRequest()
                     {
                         MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
                         ConnectInfo = new NetConnectionInfo()
@@ -1235,92 +1217,13 @@ namespace Horizon.MUM
                             SessionKey = client.SessionKey,
                             ServerKey = MediusClass.GlobalAuthPublic
                         }
-                    };
+                    });
                 }
-
-                if (joinGameQueue0.ContainsKey(game.ApplicationId))
-                    joinGameQueue0[game.ApplicationId].Enqueue((joinRequest, game, DateTime.UtcNow, IsP2P));
-                else
-                    LoggerAccessor.LogError($"[MumManager] - No JoinGame0 queue set for appid:{game.ApplicationId}, aborting the game joining!");
             }
         }
         #endregion
 
-        public Task ProcessJoinQueueAsync()
-        {
-            bool lockTaken = false;
-
-            try
-            {
-                Monitor.TryEnter(_joinGameQueueLock, ref lockTaken); // Attempt to acquire the lock.
-
-                if (lockTaken)
-                {
-                    Parallel.ForEach(joinGameQueue.Where(x => !x.Value.IsEmpty), (kvp) =>
-                    {
-                        int applicationId = kvp.Key;
-
-                        while (kvp.Value.TryDequeue(out var dequeuedRequest))
-                        {
-                            Game game = dequeuedRequest.Item2;
-
-                            if (dequeuedRequest.Item4)
-                                game.Host?.Queue(dequeuedRequest.Item1);
-                            else
-                                game.DMEServer?.Queue(dequeuedRequest.Item1);
-
-                            Thread.Sleep(100);
-                        }
-                    });
-                }
-            }
-            finally
-            {
-                if (lockTaken)
-                    Monitor.Exit(_joinGameQueueLock);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task ProcessJoinQueue0Async()
-        {
-            bool lockTaken = false;
-
-            try
-            {
-                Monitor.TryEnter(_joinGameQueue0Lock, ref lockTaken); // Attempt to acquire the lock.
-
-                if (lockTaken)
-                {
-                    Parallel.ForEach(joinGameQueue0.Where(x => !x.Value.IsEmpty), (kvp) =>
-                    {
-                        int applicationId = kvp.Key;
-
-                        while (kvp.Value.TryDequeue(out var dequeuedRequest))
-                        {
-                            Game game = dequeuedRequest.Item2;
-
-                            if (dequeuedRequest.Item4)
-                                game.Host?.Queue(dequeuedRequest.Item1);
-                            else
-                                game.DMEServer?.Queue(dequeuedRequest.Item1);
-
-                            Thread.Sleep(100);
-                        }
-                    });
-                }
-            }
-            finally
-            {
-                if (lockTaken)
-                    Monitor.Exit(_joinGameQueue0Lock);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        #endregion
+#endregion
 
         #region Channels
 
@@ -2343,16 +2246,6 @@ namespace Horizon.MUM
         public int[] GetAppIdsInGroup(int appId)
         {
             return _appIdGroups.FirstOrDefault(x => x.Value.Contains(appId)).Value ?? Array.Empty<int>();
-        }
-
-        public Task<bool> AddJoinGameQueueAppid(int appId)
-        {
-            return Task.FromResult(joinGameQueue.TryAdd(appId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>()));
-        }
-
-        public Task<bool> AddJoinGameQueue0Appid(int appId)
-        {
-            return Task.FromResult(joinGameQueue0.TryAdd(appId, new ConcurrentQueue<(MediusServerJoinGameRequest, Game, DateTime, bool)>()));
         }
 
         #endregion
