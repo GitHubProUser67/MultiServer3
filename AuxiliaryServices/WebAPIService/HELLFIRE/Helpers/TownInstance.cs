@@ -19,8 +19,9 @@ namespace WebAPIService.HELLFIRE.Helpers
 
         public static string RequestTown(string UserID, string InstanceID, string DisplayName, string WorkPath)
         {
-            if (File.Exists($"{WorkPath}/TYCOON/User_Data/{UserID}_{GenerateCityguid(InstanceID, UserID)}.xml"))
-                return $"<Response>{File.ReadAllText($"{WorkPath}/TYCOON/User_Data/{UserID}_{GenerateCityguid(InstanceID, UserID)}.xml")}</Response>";
+            Directory.CreateDirectory($"{WorkPath}/TYCOON/User_Data/{UserID}");
+            if (File.Exists($"{WorkPath}/TYCOON/User_Data/{UserID}/Town_{GenerateCityguid(InstanceID, UserID)}.xml"))
+                return $"<Response>{File.ReadAllText($"{WorkPath}/TYCOON/User_Data/{UserID}/Town_{GenerateCityguid(InstanceID, UserID)}.xml")}</Response>";
             else
             {
                 StringBuilder gridBuilder = new StringBuilder();
@@ -36,7 +37,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                 gridBuilder = null;
 
-                File.WriteAllText($"{WorkPath}/TYCOON/User_Data/{UserID}_{GenerateCityguid(InstanceID, UserID)}.xml", xml);
+                File.WriteAllText($"{WorkPath}/TYCOON/User_Data/{UserID}/Town_{GenerateCityguid(InstanceID, UserID)}.xml", xml);
                 return $"<Response>{xml}</Response>";
             }
         }

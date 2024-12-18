@@ -6,7 +6,7 @@ using System.IO;
 
 namespace WebAPIService.HELLFIRE.HFProcessors
 {
-    public class ClearasilSkaterRequestProcessor
+    public class SlimJimRequestProcessor
     {
         public static string ProcessMainPHP(byte[] PostData, string ContentType, string PHPSessionID, string WorkPath)
         {
@@ -59,18 +59,18 @@ namespace WebAPIService.HELLFIRE.HFProcessors
 
                 if (!string.IsNullOrEmpty(Command))
                 {
-                    Directory.CreateDirectory($"{WorkPath}/ClearasilSkater/User_Data");
+                    Directory.CreateDirectory($"{WorkPath}/SlimJim/User_Data");
 
                     switch (Command)
                     {
                         case "RequestNPTicket":
                             return NPTicket.RequestNPTicket(PostData, boundary);
                         case "RequestUser":
-                            return User.RequestUserClearasilSkater(PostData, boundary, UserID, WorkPath);
+                            return User.RequestUserSlimJim(PostData, boundary, UserID, WorkPath);
                         case "UpdateUser":
-                            return User.UpdateUserClearasilSkater(PostData, boundary, UserID, WorkPath);
+                            return User.UpdateUserSlimJim(PostData, boundary, UserID, WorkPath);
                         case "TotalScoreLeaderboard":
-                            return Leaderboards.GetLeaderboardsClearasil(PostData, boundary, UserID, WorkPath);
+                            return Leaderboards.GetLeaderboardsSlimJim(PostData, boundary, UserID, WorkPath);
                         case "LogMetric":
                             return "<Response></Response>"; // We don't really care about Metrics just yet
 

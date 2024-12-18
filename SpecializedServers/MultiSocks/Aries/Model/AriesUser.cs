@@ -131,6 +131,39 @@ namespace MultiSocks.Aries.Model
                     R = user.CurrentRoom?.Name,
                     RI = user.CurrentRoom?.ID.ToString()
                 };
+            } 
+            else if (!string.IsNullOrEmpty(VERS) && VERS.Contains("FLM/A1"))
+            {
+                who = new PlusWho()
+                {
+                    LO = LOC,
+                    C = "0",
+                    F = "U",
+                    LV = "1049601",
+                    HW = "0",
+                    G = "0",
+                    P = "1",
+                    S = "0",
+                    MD = "0",
+                    US = "0",
+                    CI = "0",
+                    CL = "511",
+                    RGC = "0",
+                    CT = "0",
+                    AT = string.Empty,
+                    RF = "0",
+                    RG = (user.CurrentGame != null) ? user.CurrentGame.ID.ToString() : "0",
+                    RM = "0",
+                    RP = user.CurrentRoom?.Users?.Count().ToString(),
+                    I = info.I ?? string.Empty,
+                    N = info.N,
+                    M = info.M,
+                    A = info.A ?? string.Empty,
+                    LA = user.LADDR ?? string.Empty,
+                    X = info.X,
+                    R = user.CurrentRoom?.Name,
+                    RI = user.CurrentRoom?.ID.ToString()
+                };
             }
             else if (!string.IsNullOrEmpty(VERS) && (VERS.Contains("BURNOUT5") || VERS.Contains("DPR-09")))
             {
