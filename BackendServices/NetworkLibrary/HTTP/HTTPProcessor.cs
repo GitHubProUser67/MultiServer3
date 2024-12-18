@@ -13,7 +13,11 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Threading;
 using System.Buffers;
+#if NET7_0_OR_GREATER
+using System.Net.Http;
+#else
 using System.Net;
+#endif
 using NetworkLibrary.Extension.Csharp;
 
 namespace NetworkLibrary.HTTP
