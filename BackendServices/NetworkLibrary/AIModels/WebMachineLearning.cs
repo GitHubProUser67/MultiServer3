@@ -1,10 +1,10 @@
-using NetworkLibrary.FileSystem;
 using System.Text.RegularExpressions;
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using NetworkLibrary.Extension;
 
 namespace NetworkLibrary.AIModels
 {
@@ -200,7 +200,7 @@ namespace NetworkLibrary.AIModels
                     CustomLogger.LoggerAccessor.LogWarn("[WebMachineLearning] - Caching fileSystem structure, this might longer on very slow hard drives...");
 
                     lock (_Lock)
-                        fileSystemCache = StaticFileSystem.AllFilesAndFoldersLinq(new DirectoryInfo(HttpRootFolder));
+                        fileSystemCache = FileSystemUtils.AllFilesAndFoldersLinq(new DirectoryInfo(HttpRootFolder));
 
                     CustomLogger.LoggerAccessor.LogInfo("[WebMachineLearning] - fileSystem Cache has been actualized and is ready!");
                 }

@@ -71,7 +71,7 @@ namespace HomeTools.SDAT
             numArray2[0] = 0;
             while (o1.Length < 256L)
                 o1.Write(numArray2, 0, 1);
-            EDATData data = new()
+            EDATData data = new EDATData()
             {
                 flags = 16777276L,
                 blockSize = 16384L,
@@ -81,7 +81,7 @@ namespace HomeTools.SDAT
             int hashFlag1 = 268435458;
             EncryptData(fileStream, o1, npdPtr[0], data, key1);
             o1.Seek(144L, 0);
-            AppLoader appLoader = new();
+            AppLoader appLoader = new AppLoader();
             appLoader.DoInit(hashFlag1, 0, 1, new byte[16], new byte[16], key1);
             int num1 = (data.GetFlags() & FLAG_SDAT) != 0L ? 32 : 16;
             int num2 = (int)((data.GetFileLen() + (BigInteger)data.GetBlockSize() - (BigInteger)1) / (BigInteger)data.GetBlockSize());
@@ -107,7 +107,7 @@ namespace HomeTools.SDAT
             byte[] numArray4 = new byte[160];
             byte[] numArray5 = new byte[160];
             o1.Read(numArray4, 0, numArray4.Length);
-            AppLoaderReverse appLoaderReverse = new();
+            AppLoaderReverse appLoaderReverse = new AppLoaderReverse();
             byte[] numArray6 = new byte[16];
             int hashFlag2 = hashFlag1;
             byte[] i1 = numArray4;
@@ -269,7 +269,7 @@ namespace HomeTools.SDAT
             }
             i.Read(numArray, 0, numArray.Length);
             i.Read(expectedHash, 0, expectedHash.Length);
-            AppLoader appLoader1 = new();
+            AppLoader appLoader1 = new AppLoader();
             int hashFlag = (data.GetFlags() & FLAG_KEYENCRYPTED) == 0L ? 2 : 268435458;
             if ((data.GetFlags() & FLAG_DEBUG) != 0L)
                 hashFlag |= 16777216;
@@ -277,7 +277,7 @@ namespace HomeTools.SDAT
                 return STATUS_ERROR_HEADERCHECK;
             if ((data.GetFlags() & FLAG_0x20) == 0L)
             {
-                AppLoader appLoader2 = new();
+                AppLoader appLoader2 = new AppLoader();
                 appLoader2.DoInit(hashFlag, version, 1, new byte[16], new byte[16], rifKey);
                 int num1 = (data.GetFlags() & FLAG_COMPRESSED) != 0L ? 32 : 16;
                 int num2 = (int)((data.GetFileLen() + (BigInteger)data.GetBlockSize() - (BigInteger)11) / (BigInteger)data.GetBlockSize());
@@ -386,7 +386,7 @@ namespace HomeTools.SDAT
                     ConversionUtils.Arraycopy(numArray3, 0, numArray4, 0L, numArray3.Length);
                 int num8 = 268435458;
                 int num9 = 268435457;
-                AppLoaderReverse appLoaderReverse = new();
+                AppLoaderReverse appLoaderReverse = new AppLoaderReverse();
                 byte[] digest = npd.GetDigest();
                 byte[] numArray5 = new byte[20];
                 int hashFlag = num9;

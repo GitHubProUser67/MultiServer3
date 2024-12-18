@@ -25,7 +25,7 @@ namespace SVO.Games.PS3
                     switch (request.Url.AbsolutePath)
                     {
                         #region SOCOMCONFRONTATION
-                        case "/SOCOMCF_SVML/index.jsp":
+                        case "/CONFRONTATION_XML/index.jsp":
 
                             switch (request.HttpMethod)
                             {
@@ -58,7 +58,7 @@ namespace SVO.Games.PS3
                                             languageID = 1;
                                         }
 
-                                        response.Headers.Set("Content-Type", "text/svml; charset=UTF-8");
+                                        response.Headers.Set("Content-Type", "text/xml; charset=UTF-8");
                                         response.Headers.Set("X-SVOMac", serverMac);
                                         response.Headers.Set("X-Powered-By", "MultiServer");
                                         response.Headers.Set("Date", DateTime.Now.ToString("r"));
@@ -66,7 +66,7 @@ namespace SVO.Games.PS3
                                         byte[]? index = null;
 
                                         if (SVOServerConfiguration.SVOHTTPSBypass)
-                                            index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n    " +
+                                            index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<XML>\r\n    " +
                                                 $"<SET name=\"IP\" IPAddress=\"{request.RemoteEndPoint.Address}\" />     \r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"entryURI\" value=\"http://killzoneps3.svo.online.scee.com:10060/SOCOMCF_SVML/account/Account_Login.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"homeURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/home.jsp\" />\r\n\t" +
@@ -121,9 +121,9 @@ namespace SVO.Games.PS3
                                                 "/>\r\n    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/account/SP_Login_Submit.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"DATA\" name=\"SetIgnoreListURI\" value=\"http://killzoneps3.svo.online.scee.com:10060/SOCOMCF_SVML/account/SP_UpdateIgnoreList_Submit.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"DATA\" name=\"SetUniversePasswordURI\" value=\"http://killzoneps3.svo.online.scee.com:10060/SOCOMCF_SVML/account/SP_SetPassword_Submit.jsp\" />\r\n\r\n    " +
-                                                "<BROWSER_INIT name=\"init\" />\r\n</SVML>");
+                                                "<BROWSER_INIT name=\"init\" />\r\n</XML>");
                                         else
-                                            index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<SVML>\r\n    " +
+                                            index = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n<XML>\r\n    " +
                                                 $"<SET name=\"IP\" IPAddress=\"{request.RemoteEndPoint.Address}\" />     \r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"entryURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/Account_Login.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"URI\" name=\"homeURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/home.jsp\" />\r\n\t" +
@@ -178,7 +178,7 @@ namespace SVO.Games.PS3
                                                 "/>\r\n    <DATA dataType=\"DATA\" name=\"TicketLoginURI\" value=\"http://killzoneps3.svo.online.scee.com:10058/SOCOMCF_SVML/account/SP_Login_Submit.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"DATA\" name=\"SetIgnoreListURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/SP_UpdateIgnoreList_Submit.jsp\" />\r\n    " +
                                                 "<DATA dataType=\"DATA\" name=\"SetUniversePasswordURI\" value=\"https://killzoneps3.svo.online.scee.com:10061/SOCOMCF_SVML/account/SP_SetPassword_Submit.jsp\" />\r\n\r\n    " +
-                                                "<BROWSER_INIT name=\"init\" />\r\n</SVML>");
+                                                "<BROWSER_INIT name=\"init\" />\r\n</XML>");
 
                                         response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
@@ -200,7 +200,7 @@ namespace SVO.Games.PS3
                             }
                             break;
 
-                        case "/SOCOMCF_SVML/account/SP_Login_Submit.jsp":
+                        case "/CONFRONTATION_XML/account/SP_Login_Submit.jsp":
                             switch (request.HttpMethod)
                             {
                                 case "POST":
@@ -274,7 +274,7 @@ namespace SVO.Games.PS3
                                             // Convert the modified data to a string
                                             psnname = Encoding.ASCII.GetString(extractedData).Replace(" ", string.Empty);
 
-                                            if (OtherExtensions.FindBytePattern(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
+                                            if (ByteUtils.FindBytePattern(buffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }) != -1)
                                                 LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on RPCN");
                                             else
                                                 LoggerAccessor.LogInfo($"SVO : User {psnname} logged in and is on PSN");
@@ -338,7 +338,7 @@ namespace SVO.Games.PS3
 
                             break;
 
-                        case "/SOCOMCF_SVML/home.jsp":
+                        case "/CONFRONTATION_XML/home.jsp":
 
                             switch (request.HttpMethod)
                             {
@@ -386,7 +386,7 @@ namespace SVO.Games.PS3
                             }
                             break;
 
-                        case "/SOCOMCF_SVML/account/Logout.jsp":
+                        case "/CONFRONTATION_XML/account/Logout.jsp":
 
                             switch (request.HttpMethod)
                             {

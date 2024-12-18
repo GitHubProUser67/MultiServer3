@@ -117,7 +117,7 @@ namespace HomeTools.Crypto
             return null;
         }
 
-        public static string MemXOR(string IV, string block, int blocksize)
+        public static string MemXOR(string IV, string block, byte blocksize)
         {
             StringBuilder CryptoBytes = new StringBuilder();
 
@@ -133,8 +133,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
-                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                            CryptoBytes.Append(((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4").HexStringToByteArray().ToHexString());
                         }
                         break;
                     case 4:
@@ -145,8 +144,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
-                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                            CryptoBytes.Append(((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4").HexStringToByteArray().ToHexString());
                         }
                         break;
                     case 8:
@@ -157,8 +155,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
-                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                            CryptoBytes.Append(((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4").HexStringToByteArray().ToHexString());
                         }
                         break;
                     case 16:
@@ -169,8 +166,7 @@ namespace HomeTools.Crypto
                             IV = IV.Substring(4);
                             block = block.Substring(4);
 
-                            CryptoBytes.Append(OtherExtensions.ByteArrayToHexString(OtherExtensions.HexStringToByteArray(
-                                    ((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4"))));
+                            CryptoBytes.Append(((ushort)(Convert.ToUInt16(BlockIV, 16) ^ Convert.ToUInt16(CipherBlock, 16))).ToString("X4").HexStringToByteArray().ToHexString());
                         }
                         break;
                 }
@@ -183,7 +179,7 @@ namespace HomeTools.Crypto
             return CryptoBytes.ToString();
         }
 
-        private static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA, int blockSize)
+        public static byte[] Crypt_Decrypt(byte[] fileBytes, byte[] IVA, byte blockSize)
         {
             StringBuilder hexStr = new StringBuilder();
             byte[] CipheredFileBytes = null;
@@ -224,15 +220,15 @@ namespace HomeTools.Crypto
 
                     Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
 
-                    hexStr.Append(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk), OtherExtensions.ByteArrayToHexString(block), blockSize).Substring(0, BytesToFill * 2));
+                    hexStr.Append(MemXOR(ivBlk.ToHexString(), block.ToHexString(), blockSize).Substring(0, BytesToFill * 2));
                 }
                 else
-                    hexStr.Append(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk), OtherExtensions.ByteArrayToHexString(block), blockSize));
+                    hexStr.Append(MemXOR(ivBlk.ToHexString(), block.ToHexString(), blockSize));
 
                 totalProcessedBytes += blockSize;
             }
 
-            CipheredFileBytes = OtherExtensions.HexStringToByteArray(hexStr.ToString());
+            CipheredFileBytes = hexStr.ToString().HexStringToByteArray();
 
             hexStr = null;
 
@@ -270,8 +266,8 @@ namespace HomeTools.Crypto
                 Array.Copy(ISO97971, 0, block, block.Length - BytesToFill, BytesToFill);
 
                 Buffer.BlockCopy(CipheredFileBytes, 0, ResultAppendedArray, 0, CipheredFileBytes.Length);
-                Buffer.BlockCopy(OtherExtensions.HexStringToByteArray(MemXOR(OtherExtensions.ByteArrayToHexString(ivBlk),
-                    OtherExtensions.ByteArrayToHexString(block), blockSize)), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
+                Buffer.BlockCopy(MemXOR(ivBlk.ToHexString(),
+                    block.ToHexString(), blockSize).HexStringToByteArray(), 0, ResultAppendedArray, CipheredFileBytes.Length, difference);
                 return ResultAppendedArray;
             }
 

@@ -4,11 +4,11 @@ using System.Text;
 using System.IO;
 using System;
 using NetworkLibrary.Extension;
-using HashLib;
+using NetHasher;
 
 namespace WebAPIService.HTS.Helpers
 {
-    public class MyResistanceEula
+    public class NPTicketSample
     {
         public static string RequestNPTicket(byte[] PostData, string boundary)
         {
@@ -82,7 +82,7 @@ namespace WebAPIService.HTS.Helpers
                         userOnlineId[i] = 0x20;
                 }
 
-                if (OtherExtensions.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (ByteUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     LoggerAccessor.LogInfo($"[HTS] : User {Encoding.ASCII.GetString(userOnlineId).Replace("H", string.Empty)} logged in and is on RPCN");
 
@@ -90,7 +90,7 @@ namespace WebAPIService.HTS.Helpers
                     resultString = Encoding.ASCII.GetString(userOnlineId) + "RPCN";
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
+                    string hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 10);
@@ -106,7 +106,7 @@ namespace WebAPIService.HTS.Helpers
                     resultString = Encoding.ASCII.GetString(userOnlineId);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
+                    string hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "HtTeStSamPLe@$!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 14);

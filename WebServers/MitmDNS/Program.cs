@@ -184,7 +184,7 @@ class Program
     {
         using FileStream stream = File.OpenRead(filePath);
         // Convert the byte array to a hexadecimal string
-        return NetHasher.ComputeMD5String(stream);
+        return NetHasher.DotNetHasher.ComputeMD5String(stream);
     }
 
     static void Main()
@@ -192,7 +192,7 @@ class Program
         dnswatcher.NotifyFilter = NotifyFilters.LastWrite;
         dnswatcher.Changed += OnDNSChanged;
 
-        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.Windows.Win32API.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
-using HashLib;
 
 namespace HomeTools.BARFramework
 {
@@ -293,8 +292,7 @@ namespace HomeTools.BARFramework
         private EndianType GetEndianness(Stream inStream)
         {
             EndianType result = EndianType.LittleEndian;
-            int num = inStream.ReadByte();
-            if (num == 173)
+            if (inStream.ReadByte() == 173)
                 result = EndianType.BigEndian;
             inStream.Seek(0L, SeekOrigin.Begin);
             return result;
@@ -307,10 +305,11 @@ namespace HomeTools.BARFramework
                 try
                 {
                     TOCEntry tocentry = (TOCEntry)obj;
-                    byte[] data = tocentry.GetData(m_header.Flags);
-                    MemoryStream memoryStream = new MemoryStream(data);
-                    tocentry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
-                    memoryStream.Close();
+                    using (MemoryStream memoryStream = new MemoryStream(tocentry.GetData(m_header.Flags)))
+                    {
+                        tocentry.FileType = FileTypeAnalyser.Instance.Analyse(memoryStream);
+                        memoryStream.Close();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -374,7 +373,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, OtherExtensions.ByteArrayToHexString(m_header.IV));
+                    textWriter.WriteLine("{0:X8} IV: {1:X8}", num, m_header.IV.ToHexString());
                     num += 16U;
                 }
                 textWriter.WriteLine("{0:X8} User: {1}", num, m_header.UserData);
@@ -383,7 +382,7 @@ namespace HomeTools.BARFramework
                 num += 4U;
                 if (m_header.Version == 512)
                 {
-                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, OtherExtensions.ByteArrayToHexString(m_header.Key));
+                    textWriter.WriteLine("{0:X8} Key: {1:X8}", num, m_header.Key.ToHexString());
                     num += 16U;
                 }
                 textWriter.WriteLine("\n== Table of Contents ==");
@@ -403,11 +402,11 @@ namespace HomeTools.BARFramework
                     {
                         textWriter.WriteLine("{0:X8} {1}[{2:X8}] size={3} IV={4}", new object[]
                         {
-                        num,
-                        tocentry.Path,
-                        (uint)tocentry.FileName.Value,
-                        tocentry.Size,
-                        OtherExtensions.ByteArrayToHexString(tocentry.IV)
+                            num,
+                            tocentry.Path,
+                            (uint)tocentry.FileName.Value,
+                            tocentry.Size,
+                            tocentry.IV.ToHexString()
                         });
                         num += 24U;
                     }
@@ -718,13 +717,13 @@ namespace HomeTools.BARFramework
                     int count = (int)m_toc.Count;
                     tocEntry.Index = count;
                     if (m_endian == EndianType.BigEndian)
-                        tocEntry.RawData = OtherExtensions.CombineByteArrays(ToolsImplementation.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = ByteUtils.CombineByteArrays(ToolsImplementation.ApplyBigEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              EndianUtils.EndianSwap(Utils.IntToByteArray(array2.Length)),
                              array2
                         });
                     else
-                        tocEntry.RawData = OtherExtensions.CombineByteArrays(ToolsImplementation.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
+                        tocEntry.RawData = ByteUtils.CombineByteArrays(ToolsImplementation.ApplyLittleEndianPaddingPrefix(new byte[20]), new byte[][]
                         {
                              Utils.IntToByteArray(array2.Length),
                              array2
@@ -1005,7 +1004,7 @@ namespace HomeTools.BARFramework
                     if (FileBytes != null)
                     {
                         byte[] SignatureHeader = new byte[24];
-                        byte[] SHA1Data = NetHasher.ComputeSHA1(FileBytes);
+                        byte[] SHA1Data = NetHasher.DotNetHasher.ComputeSHA1(FileBytes);
                         Buffer.BlockCopy(SHA1Data, 0, tocentry.RawData, 4, SHA1Data.Length);
                         Buffer.BlockCopy(FileBytes, 0, tocentry.RawData, 28, FileBytes.Length);
                         Buffer.BlockCopy(tocentry.RawData, 4, SignatureHeader, 0, SignatureHeader.Length);
@@ -1092,13 +1091,7 @@ namespace HomeTools.BARFramework
                 if (tocentry != null)
                 {
                     tocentry.Path = (string)hashtable[hashedFileName2];
-                    string a = Path.GetExtension(tocentry.Path).ToLower();
-                    if (a == ".bar")
-                        tocentry.FileType = HomeFileType.BarArchive;
-                    else if (a == ".sharc")
-                        tocentry.FileType = HomeFileType.BarArchive;
-                    else if (a == ".png")
-                        tocentry.FileType = HomeFileType.Texture;
+                    tocentry.FileType = FileTypeAnalyser.GetFileType(Path.GetExtension(tocentry.Path));
                 }
             }
             textReader.Close();

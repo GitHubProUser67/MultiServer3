@@ -128,7 +128,7 @@ namespace HTTPServer.Models
                     response.ContentStream = streamtosend;
                 else
                 {
-                    response.ContentStream = new HugeMemoryStream(streamtosend, HTTPServerConfiguration.BufferSize)
+                    response.ContentStream = new NetworkLibrary.Extension.Csharp.HugeMemoryStream(streamtosend, HTTPServerConfiguration.BufferSize)
                     {
                         Position = 0
                     };

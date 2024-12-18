@@ -15,7 +15,6 @@ using System.Linq;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
 using WebAPIService.Utils;
-using HashLib;
 using EndianTools;
 
 namespace HomeWebTools
@@ -736,7 +735,7 @@ namespace HomeWebTools
                                 }
                                 else
                                 {
-                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.ComputeSHA1String(buffer).Substring(0, 16).ToUpper(), cdnMode);
+                                    byte[] ProcessedFileBytes = CDSProcess.CDSEncrypt_Decrypt(buffer, NetHasher.DotNetHasher.ComputeSHA1String(buffer).Substring(0, 16).ToUpper(), cdnMode);
 
                                     if (ProcessedFileBytes != null)
                                         TasksResult.Add((ProcessedFileBytes, Path.GetFileNameWithoutExtension(filename) + $"_encrypted{Path.GetExtension(filename)}"));
@@ -998,7 +997,7 @@ namespace HomeWebTools
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else if (version1 == "on")
-                                    TasksResult.Add((OtherExtensions.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV1Key, ToolsImplementation.TicketListV1IV, "CTR"))
+                                    TasksResult.Add((ByteUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x01 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV1Key, ToolsImplementation.TicketListV1IV, "CTR"))
                                             , $"{filename}_Encrypted.lst"));
                                 else if (buffer.Length > 8 && buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5
                                     && buffer[4] == 0x00 && buffer[5] == 0x00 && buffer[6] == 0x00 && buffer[7] == 0x00)
@@ -1010,7 +1009,7 @@ namespace HomeWebTools
                                         TasksResult.Add((ProcessedFileBytes, $"{filename}_Decrypted.lst"));
                                 }
                                 else
-                                    TasksResult.Add((OtherExtensions.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV0Key, ToolsImplementation.TicketListV0IV, "CTR"))
+                                    TasksResult.Add((ByteUtils.CombineByteArray(new byte[] { 0xBE, 0xE5, 0xBE, 0xE5, 0x00, 0x00, 0x00, 0x00 }, LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.TicketListV0Key, ToolsImplementation.TicketListV0IV, "CTR"))
                                             , $"{filename}_Encrypted.lst"));
 
                                 i++;
@@ -1087,14 +1086,14 @@ namespace HomeWebTools
                                 {
                                     buffer = ToolsImplementation.RemovePaddingPrefix(buffer);
 
-                                    byte[] decryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.MetaDataV1Key, ToolsImplementation.MetaDataV1IV, "CTR");
+                                    byte[] decryptedfilebytes = LIBSECURE.Crypt_Decrypt(buffer, ToolsImplementation.MetaDataV1IVA, 8);
 
                                     if (decryptedfilebytes != null)
                                         TasksResult.Add((decryptedfilebytes, $"{filename}_Decrypted.bin"));
                                 }
                                 else if (buffer[0] == 0xBE && buffer[1] == 0xE5 && buffer[2] == 0xBE && buffer[3] == 0xE5)
                                 {
-                                    byte[] encryptedfilebytes = LIBSECURE.InitiateBlowfishBuffer(buffer, ToolsImplementation.MetaDataV1Key, ToolsImplementation.MetaDataV1IV, "CTR");
+                                    byte[] encryptedfilebytes = LIBSECURE.Crypt_Decrypt(buffer, ToolsImplementation.MetaDataV1IVA, 8);
 
                                     if (encryptedfilebytes != null)
                                         TasksResult.Add((ToolsImplementation.ApplyLittleEndianPaddingPrefix(encryptedfilebytes), $"{filename}_Encrypted.bin"));

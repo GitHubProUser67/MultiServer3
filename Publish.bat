@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer publisher script 26/11/2024
+@echo MultiServer publisher script 07/12/2024
 @echo.
 
 @echo Cleaning up directories:
@@ -21,7 +21,7 @@ dotnet build "Plugins/HTTP/PdfToJpeg/PdfToJpeg.csproj" --configuration Release -
 setlocal enabledelayedexpansion
 
 rem List of RIDs to publish for
-set RIDs=win-x64
+set RIDs=win-x64 win-x86 osx-x64 osx-arm64 linux-x64 linux-arm linux-arm64
 
 rem Common parameters
 set params=-p:PublishReadyToRun=true -p:DebugType=None -p:DebugSymbols=false --property WarningLevel=0 --self-contained
@@ -73,6 +73,14 @@ for %%r in (%RIDs%) do (
 	)
 	if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" (
 		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~PublishOutput/MultiServer/%%r/Release/runtimes"
+	)
+	if "%%r"=="win-x64" (
+		xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+		xcopy /E /Y /I "PRemoteControl/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	)
+	if "%%r"=="win-x86" (
+		xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+		xcopy /E /Y /I "RemoteControl/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
 	)
 )
 

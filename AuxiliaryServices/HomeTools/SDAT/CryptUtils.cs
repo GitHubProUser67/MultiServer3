@@ -20,7 +20,7 @@ namespace HomeTools.SDAT
             byte[] numArray1 = new byte[16];
             byte[] numArray2 = new byte[16];
             AesecbEncrypt(key, numArray1, 0, numArray2, 0, numArray1.Length);
-            BigInteger bigInteger1 = new(ConversionUtils.ReverseByteWithSizeFIX(numArray2));
+            BigInteger bigInteger1 = new BigInteger(ConversionUtils.ReverseByteWithSizeFIX(numArray2));
             BigInteger bigInteger2 = (numArray2[0] & 128) == 0 ? bigInteger1 << 1 : bigInteger1 << 1 ^ new BigInteger(135);
             byte[] src1 = ConversionUtils.ReverseByteWithSizeFIX(bigInteger2.ToByteArray());
             if (src1.Length >= 16)

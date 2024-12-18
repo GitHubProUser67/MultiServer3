@@ -42,7 +42,7 @@ public static class HTTPServerConfiguration
     public static bool EnableImageUpscale { get; set; } = false;
     public static Dictionary<string, string>? MimeTypes { get; set; } = HTTPProcessor._mimeTypes;
     public static Dictionary<string, int>? DateTimeOffset { get; set; }
-    public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 3658, 9090, 10010, 33000 };
+    public static List<ushort>? Ports { get; set; } = new() { 80, 3074, 3658, 9090, 10010, 26004, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
 
@@ -269,7 +269,7 @@ class Program
 
             Parallel.ForEach(HTTPServerConfiguration.Ports, port =>
             {
-                if (TCP_UDPUtils.IsTCPPortAvailable(port))
+                if (TCPUtils.IsTCPPortAvailable(port))
                     HTTPBag.Add(new HttpServer(port, new List<HTTPServer.Models.Route> { } /*TODO: Make it so we can input custom routes*/, Processor, new CancellationTokenSource().Token));
             });
         }
@@ -282,7 +282,7 @@ class Program
 
     static void Main()
     {
-        if (!NetworkLibrary.Extension.OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.Windows.Win32API.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

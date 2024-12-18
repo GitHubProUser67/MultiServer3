@@ -113,7 +113,7 @@ public static class HorizonServerConfiguration
             BWPSConfig = GetValueOrDefault(config.bwps, "config", BWPSConfig);
             EBOOTDEFSConfig = GetValueOrDefault(config, "eboot_defs_config", EBOOTDEFSConfig);
             string APIKey = GetValueOrDefault(config, "medius_api_key", MediusAPIKey);
-            if (OtherExtensions.IsBase64String(APIKey))
+            if (APIKey.IsBase64().Item1)
                 MediusAPIKey = APIKey;
             string ssfwADR = GetValueOrDefault(config, "ssfw_url", SSFWUrl);
             if (!string.IsNullOrEmpty(ssfwADR) && ssfwADR.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
@@ -239,7 +239,7 @@ class Program
 
     static void Main()
     {
-        if (!OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.Windows.Win32API.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

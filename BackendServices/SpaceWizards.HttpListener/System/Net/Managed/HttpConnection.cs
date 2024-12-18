@@ -129,72 +129,60 @@ namespace SpaceWizards.HttpListener
 
             _timer = new Timer(OnTimeout, null, Timeout.Infinite, Timeout.Infinite);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            if (_sslStream != null && CertificateHelper.IsCertificateAuthority(_cert))
+            _sslStream?.AuthenticateAsServer(new SslServerAuthenticationOptions
             {
-                _sslStream.AuthenticateAsServer(new SslServerAuthenticationOptions
+                ClientCertificateRequired = false,
+                EnabledSslProtocols = GetSslProtocol,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                ServerCertificateSelectionCallback = (sender, actualHostName) =>
                 {
-                    ClientCertificateRequired = false,
-                    EnabledSslProtocols = GetSslProtocol,
-                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                    ServerCertificateSelectionCallback = (sender, actualHostName) =>
-                    {
-                        IPEndPoint localEndpoint = (IPEndPoint)sock.LocalEndPoint;
+                    IPEndPoint localEndpoint = (IPEndPoint)sock.LocalEndPoint;
 
-                        if (string.IsNullOrEmpty(actualHostName))
-                        {
-                            _sniDomain = localEndpoint.Address.ToString() ?? "127.0.0.1";
-                        }
-                        else
-                        {
-                            _sniDomain = actualHostName;
-                        }
+                    if (string.IsNullOrEmpty(actualHostName))
+                    {
+                        _sniDomain = localEndpoint.Address.ToString() ?? "127.0.0.1";
+                    }
+                    else
+                    {
+                        _sniDomain = actualHostName;
+                    }
 
 #if NET5_0_OR_GREATER
-                        // Actually load the certificate
-                        try
+                    // Actually load the certificate
+                    try
+                    {
+                        int port = localEndpoint.Port;
+                        string dirname = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        string path = Path.Combine(dirname, ".mono");
+                        path = Path.Combine(path, "httplistener");
+                        string cert_prefix = _sniDomain + $"-{port}";
+                        string cert_file = Path.Combine(path, string.Format("{0}.pem", cert_prefix));
+                        string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", cert_prefix));
+                        if (File.Exists(cert_file) && File.Exists(pvk_file))
+                            return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
+                        else
                         {
-                            int port = localEndpoint.Port;
-                            string dirname = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                            string path = Path.Combine(dirname, ".mono");
-                            path = Path.Combine(path, "httplistener");
-                            string cert_file = Path.Combine(path, string.Format("{0}.pem", _sniDomain + $"-{port}"));
-                            string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", _sniDomain + $"-{port}"));
-                            if (File.Exists(cert_file) && File.Exists(pvk_file))
+                            string origin_directory = Path.Combine(path, cert_prefix);
+                            if (Directory.Exists(origin_directory))
                             {
-#if NET6_0_OR_GREATER
-                                return X509Certificate2.CreateFromPemFile(cert_file, pvk_file);
-#else
-                                string[] privateKeyBlocks = File.ReadAllText(pvk_file).Split("-", StringSplitOptions.RemoveEmptyEntries);
-
-                                byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
-                                using (System.Security.Cryptography.RSA rsa = System.Security.Cryptography.RSA.Create())
-                                {
-                                    if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
-                                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
-                                    else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
-                                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
-
-                                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
-                                }
-#endif
+                                cert_file = Path.Combine(origin_directory, "Origin Certificate");
+                                pvk_file = Path.Combine(origin_directory, "Private Key");
+                                if (File.Exists(cert_file) && File.Exists(pvk_file))
+                                    return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
                             }
                         }
-                        catch
-                        {
-                            // ignore errors
-                        }
+                    }
+                    catch
+                    {
+                        // ignore errors
+                    }
 #endif
 
-                        return CertificateHelper.MakeChainSignedCert(_sniDomain, _cert, epl.Listener.GetPreferedHashAlgorithm(),
-                        ((IPEndPoint)sock.RemoteEndPoint).Address ?? IPAddress.Any, DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(7),
-                        epl.Listener.wildcardCertificates);
-                    }
-                });
-            }
-            else
-            {
-                _sslStream?.AuthenticateAsServer(_cert, false, GetSslProtocol, false);
-            }
+                    return CertificateHelper.IsCertificateAuthority(_cert) ? CertificateHelper.MakeChainSignedCert(_sniDomain, _cert, epl.Listener.GetPreferedHashAlgorithm(),
+                    ((IPEndPoint)sock.RemoteEndPoint).Address ?? IPAddress.Any, DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(7),
+                    epl.Listener.wildcardCertificates) : _cert;
+                }
+            });
 #else
             _sslStream?.AuthenticateAsServer(_cert, false, GetSslProtocol, false);
 #endif

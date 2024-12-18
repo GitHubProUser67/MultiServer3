@@ -73,51 +73,83 @@ namespace SpaceWizards.HttpListener
                 if (CachedCertificate.NotAfter > DateTime.Now && CachedCertificate.NotBefore < DateTime.Now)
                 { return CachedCertificate; }
                 else
+#if NET6_0_OR_GREATER
                 { FakeCertificates.Remove(certSubject, out _); }
+#else
+                { FakeCertificates.TryRemove(certSubject, out _); }
+#endif
             }
 
-            using RSA issuerPrivKey = issuerCertificate.GetRSAPrivateKey() ?? throw new Exception("Issuer Certificate doesn't have a private key, Chain Signed Certificate will not be generated.");
-
-            // If not found, initialize private key generator & set up a certificate creation request.
-            using RSA rsa = RSA.Create();
-
-            // Generate an unique serial number.
-            byte[] certSerialNumber = new byte[16];
-            new Random().NextBytes(certSerialNumber);
-
-            // set up a certificate creation request.
-            CertificateRequest certRequestAny = new CertificateRequest($"CN={certSubject} [{GetRandomInt64(100, 999)}], OU=SpaceStation14 Department," +
-                $" O=\"SpaceWizards Corp\", L=New York, S=Northeastern United, C=US", rsa, certHashAlgorithm, RSASignaturePadding.Pkcs1);
-
-            // set up a optional SAN builder.
-            SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
-
-            sanBuilder.AddDnsName(certSubject); // Some legacy clients will not recognize the cert serial-number.
-            sanBuilder.AddEmailAddress("SpaceWizards@gmail.com");
-            sanBuilder.AddIpAddress(serverIp);
-
-            if (wildcard)
+            using (RSA issuerPrivKey = issuerCertificate.GetRSAPrivateKey() ?? throw new Exception("Issuer Certificate doesn't have a private key, Chain Signed Certificate will not be generated."))
             {
-                tlds.Select(tld => "*" + tld)
-                .ToList()
-                .ForEach(sanBuilder.AddDnsName);
+                // If not found, initialize private key generator & set up a certificate creation request.
+                using (RSA rsa = RSA.Create())
+                {
+                    // Generate an unique serial number.
+                    byte[] certSerialNumber = new byte[16];
+                    new Random().NextBytes(certSerialNumber);
+
+                    // set up a certificate creation request.
+                    CertificateRequest certRequestAny = new CertificateRequest($"CN={certSubject} [{GetRandomInt64(100, 999)}], OU=SpaceStation14 Department," +
+                        $" O=\"SpaceWizards Corp\", L=New York, S=Northeastern United, C=US", rsa, certHashAlgorithm, RSASignaturePadding.Pkcs1);
+
+                    // set up a optional SAN builder.
+                    SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
+
+                    sanBuilder.AddDnsName(certSubject); // Some legacy clients will not recognize the cert serial-number.
+                    sanBuilder.AddEmailAddress("SpaceWizards@gmail.com");
+                    sanBuilder.AddIpAddress(serverIp);
+
+                    if (wildcard)
+                    {
+                        tlds.Select(tld => "*" + tld)
+                        .ToList()
+                        .ForEach(sanBuilder.AddDnsName);
+                    }
+
+                    certRequestAny.CertificateExtensions.Add(sanBuilder.Build());
+
+                    // Export the issued certificate with private key.
+                    X509Certificate2 certificateWithKey = new X509Certificate2(certRequestAny.Create(
+                        issuerCertificate.IssuerName,
+                        new RsaPkcs1SignatureGenerator(issuerPrivKey),
+                        certVaildBeforeNow,
+                        certVaildAfterNow,
+                        certSerialNumber).CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+
+                    // Save the certificate and return it.
+                    FakeCertificates.TryAdd(certSubject, certificateWithKey);
+                    return certificateWithKey;
+                }
             }
-
-            certRequestAny.CertificateExtensions.Add(sanBuilder.Build());
-
-            // Export the issued certificate with private key.
-            X509Certificate2 certificateWithKey = new X509Certificate2(certRequestAny.Create(
-                issuerCertificate.IssuerName,
-                new RsaPkcs1SignatureGenerator(issuerPrivKey),
-                certVaildBeforeNow,
-                certVaildAfterNow,
-                certSerialNumber).CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
-
-            // Save the certificate and return it.
-            FakeCertificates.TryAdd(certSubject, certificateWithKey);
-            return certificateWithKey;
         }
+#if NET5_0_OR_GREATER
+        /// <summary>
+        /// Initiate a X509Certificate2 from a PEM certificate and a PEM privatekey.
+        /// <para>Initialise un certificat X509Certificate2 depuis un fichier certificate PEM et un fichier privatekey PEM.</para>
+        /// </summary>
+        /// <param name="certificatePath">pem cert path.</param>
+        /// <param name="privateKeyPath">pem private key path.</param>
+        /// <returns>A X509Certificate2.</returns>
+        public static X509Certificate2 LoadPemCertificate(string certificatePath, string privateKeyPath)
+        {
+            using (X509Certificate2 cert = new X509Certificate2(certificatePath))
+            {
+                string[] privateKeyBlocks = System.IO.File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
 
+                byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
+                using (RSA rsa = RSA.Create())
+                {
+                    if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
+                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
+                    else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
+                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+
+                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+                }
+            }
+        }
+#endif
         /// <summary>
         /// Checks if the X509Certificate is of Certificate Authority type.
         /// </summary>

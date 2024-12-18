@@ -5,8 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using CustomLogger;
 using NetworkLibrary.Extension;
-using HashLib;
-
 
 namespace SSFWServer
 {
@@ -21,7 +19,7 @@ namespace SSFWServer
         {
             // MD5 is the hash algorithm expected by rave to generate encryption key
             // MD5 works with bytes so a conversion of plain secretKey to it bytes equivalent is required.
-            byte[] hashedSecret = NetHasher.ComputeMD5(Encoding.UTF8.GetBytes(secretKey));
+            byte[] hashedSecret = NetHasher.DotNetHasher.ComputeMD5(Encoding.UTF8.GetBytes(secretKey));
             byte[] hashedSecretLast12Bytes = new byte[12];
 
             Array.Copy(hashedSecret, hashedSecret.Length - 12, hashedSecretLast12Bytes, 0, 12);
@@ -54,7 +52,7 @@ namespace SSFWServer
 
                 Array.Copy(InData, 0, firstSixBytes, 0, firstSixBytes.Length);
 
-                if (OtherExtensions.FindBytePattern(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }) != -1)
+                if (ByteUtils.FindBytePattern(firstSixBytes, new byte[] { 0x58, 0x54, 0x4e, 0x44, 0x56, 0x32 }) != -1)
                 {
                     byte[] xteakey = new byte[16];
 

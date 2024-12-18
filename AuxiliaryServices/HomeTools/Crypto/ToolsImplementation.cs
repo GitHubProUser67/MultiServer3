@@ -5,10 +5,14 @@ using System.Threading.Tasks;
 using System.Linq;
 using NetworkLibrary.Extension;
 using HashLib;
+using CustomLogger;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 
 namespace HomeTools.Crypto
 {
-    public class ToolsImplementation
+    public static class ToolsImplementation
     {
         public static readonly string base64DefaultSharcKey = "L1ztpjqaZywDTBLh5CX6gRYWrhzmbeuVt+a/IUBHAtw=";
 
@@ -118,6 +122,8 @@ namespace HomeTools.Crypto
 
         public static readonly byte[] MQDiskCacheIV = new byte[] { 0x64, 0xbc, 0x9f, 0xe2, 0x2a, 0xe4, 0x04, 0xd8 };
 
+        public static readonly byte[] MetaDataV1IVA = InitiateMetaDataV1IVA();
+
         public static ulong BuildSignatureIv(int fileSize, int compressedSize, int dataStart, int userData)
         {
             return (ulong)fileSize << 0x30 | (ulong)compressedSize << 0x20 & 0xFFFF00000000UL | (ulong)dataStart << 0xE & 0xFFFF0000UL | (ushort)userData;
@@ -188,23 +194,20 @@ namespace HomeTools.Crypto
 
         public static ulong Sha1toNonce(byte[] digest)
         {
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(digest);
+            if (digest == null || digest.Length < 8)
+                return 0UL;
 
-            ulong v1 = 0UL;
-            if (digest != null && digest.Length >= 8)
-                v1 = BitConverter.ToUInt64(digest, 0);
-            return v1;
+            return BitConverter.ToUInt64(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseArray(digest) : digest, 0);
         }
 
         public static byte[] ApplyBigEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return OtherExtensions.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
+            return ByteUtils.CombineByteArray(new byte[] { 0x01, 0x00, 0x00, 0x00 }, filebytes);
         }
 
         public static byte[] ApplyLittleEndianPaddingPrefix(byte[] filebytes) // Before you say anything, this is an actual Home Feature...
         {
-            return OtherExtensions.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
+            return ByteUtils.CombineByteArray(new byte[] { 0x00, 0x00, 0x00, 0x01 }, filebytes);
         }
 
         public static byte[] RemovePaddingPrefix(byte[] fileBytes) // For Encryption Proxy, TicketList and INF files.
@@ -219,8 +222,29 @@ namespace HomeTools.Crypto
 
                 return destinationArray;
             }
-            else
-                return fileBytes;
+
+            return fileBytes;
+        }
+
+        private static byte[] InitiateMetaDataV1IVA()
+        {
+            const ushort metaSize = 528;
+
+            byte[] nulledBytes = new byte[metaSize];
+
+            // Create the cipher
+            IBufferedCipher cipher = CipherUtilities.GetCipher($"Blowfish/CTR/NOPADDING");
+
+            cipher.Init(false, new ParametersWithIV(new KeyParameter(MetaDataV1Key), MetaDataV1IV));
+
+            // Encrypt the plaintext
+            byte[] ciphertextBytes = new byte[cipher.GetOutputSize(metaSize)];
+            int ciphertextLength = cipher.ProcessBytes(nulledBytes, 0, metaSize, ciphertextBytes, 0);
+            cipher.DoFinal(ciphertextBytes, ciphertextLength);
+
+            cipher = null;
+
+            return ciphertextBytes;
         }
     }
 }

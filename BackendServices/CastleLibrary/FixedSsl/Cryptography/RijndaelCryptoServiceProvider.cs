@@ -59,7 +59,7 @@ namespace Org.Mentalis.Security.Cryptography
 				if (Marshal.GetLastWin32Error() == SecurityConstants.NTE_BAD_KEYSET)
 					SspiProvider.CryptAcquireContext(ref m_Provider, IntPtr.Zero, null, SecurityConstants.PROV_RSA_AES, SecurityConstants.CRYPT_NEWKEYSET);
 			}*/
-			m_Managed = Create("AesManaged")!;
+			m_Managed = Create("AesManaged");
 		}
 		/// <summary>
 		/// Releases all unmanaged resources.

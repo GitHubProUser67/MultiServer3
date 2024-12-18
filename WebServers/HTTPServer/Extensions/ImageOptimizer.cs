@@ -9,7 +9,7 @@ namespace HTTPServer.Extensions
     {
         private static string maindir = Path.GetTempPath() + "/ImageUpscale/Cache";
 
-        public static byte[] OptimizeImage(string imagePath, int num)
+        public static byte[] OptimizeImage(string imagePath, uint num)
         {
             string tempOutfilePath = maindir + $"/{num:X4}.tmp";
             string finalOutfilePath = maindir + $"/{num:X4}{Path.GetExtension(imagePath)}";

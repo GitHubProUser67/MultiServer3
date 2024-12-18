@@ -7,6 +7,7 @@ using System.Text;
 using NetworkLibrary.HTTP;
 using NetworkLibrary.Crypto;
 using Horizon.MUM.Models;
+using CompressionLibrary.NetChecksummer;
 
 namespace Horizon.MUM
 {
@@ -43,19 +44,13 @@ namespace Horizon.MUM
         public static string GetCRC32ChannelsList()
         {
             // No need to protect the CRC list, nothing critical in here.
-            Ionic.Crc.CRC32? crc = new();
 
             string XMLData = "<Root>";
 
             foreach (Channel channel in MediusClass.Manager.GetAllChannels())
             {
-                byte[] ChannelData = Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel));
-                crc.SlurpBlock(ChannelData, 0, ChannelData.Length);
-                XMLData += $"<CRC32 name=\"{channel.Name}\">{crc.Crc32Result:X4}</CRC32>";
-                crc.Reset();
+                XMLData += $"<CRC32 name=\"{channel.Name}\">{CRC32.Create(Encoding.UTF8.GetBytes(channel.Name + XMLSerializeChannel(channel))):X4}</CRC32>";
             }
-
-            crc = null;
 
             return XMLData + "</Root>";
         }

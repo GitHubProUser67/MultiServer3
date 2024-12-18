@@ -178,32 +178,40 @@ namespace SSFWServer
 
                                         if (Directory.Exists(LayoutDirectoryPath))
                                         {
-                                            string? matchingDirectory;
+                                            string? matchingDirectory = null;
+                                            string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionid);
+                                            string? clientVersion = username?.Substring(username.Length - 6, 6);
 
-                                            if (isRpcnUser)
+                                            if (!string.IsNullOrEmpty(clientVersion))
                                             {
-                                                string[] nameParts = layoutNewUser.Split('@');
-
-                                                if (nameParts.Length == 2 && !SSFWServerConfiguration.SSFWCrossSave)
+                                                if (isRpcnUser)
                                                 {
-                                                    matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
-                                                       .Where(dir =>
-                                                           Path.GetFileName(dir).StartsWith(nameParts[0]) &&
-                                                           Path.GetFileName(dir).Contains(nameParts[1])
-                                                       ).FirstOrDefault();
+                                                    string[] nameParts = layoutNewUser.Split('@');
+
+                                                    if (nameParts.Length == 2 && !SSFWServerConfiguration.SSFWCrossSave)
+                                                    {
+                                                        matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                           .Where(dir =>
+                                                               Path.GetFileName(dir).StartsWith(nameParts[0]) &&
+                                                               Path.GetFileName(dir).Contains(nameParts[1]) &&
+                                                               Path.GetFileName(dir).Contains(clientVersion)
+                                                           ).FirstOrDefault();
+                                                    }
+                                                    else
+                                                        matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                          .Where(dir =>
+                                                              Path.GetFileName(dir).StartsWith(layoutNewUser.Replace("@RPCN", string.Empty)) &&
+                                                              Path.GetFileName(dir).Contains(clientVersion)
+                                                          ).FirstOrDefault();
                                                 }
                                                 else
                                                     matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
                                                       .Where(dir =>
-                                                          Path.GetFileName(dir).StartsWith(layoutNewUser.Replace("@RPCN", string.Empty))
+                                                          Path.GetFileName(dir).StartsWith(layoutNewUser) &&
+                                                          !Path.GetFileName(dir).Contains("RPCN") &&
+                                                          Path.GetFileName(dir).Contains(clientVersion)
                                                       ).FirstOrDefault();
                                             }
-                                            else
-                                                matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
-                                                  .Where(dir =>
-                                                      Path.GetFileName(dir).StartsWith(layoutNewUser) &&
-                                                      !Path.GetFileName(dir).Contains("RPCN")
-                                                  ).FirstOrDefault();
 
                                             res = layout.HandleLayoutServiceGET(!string.IsNullOrEmpty(matchingDirectory) ? matchingDirectory : directoryPath, filePath);
 
@@ -341,7 +349,7 @@ namespace SSFWServer
 
                                         if (!string.IsNullOrEmpty(XHomeClientVersion) && !string.IsNullOrEmpty(generalsecret))
                                         {
-                                            SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty), GetHeaderValue(Headers, "x-signature"), legacykey);
+                                            SSFWLogin login = new(XHomeClientVersion, generalsecret, XHomeClientVersion.Replace(".", string.Empty).PadRight(6, '0'), GetHeaderValue(Headers, "x-signature"), legacykey);
                                             string? result = login.HandleLogin(postbuffer, env);
                                             if (!string.IsNullOrEmpty(result))
                                             {
@@ -673,7 +681,7 @@ namespace SSFWServer
 
                                         Response.Clear();
 
-                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName))
+                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName) && IsSSFWRegistered(sessionId))
                                         {
                                             lock (LayoutGetOverrides)
                                             {
@@ -697,7 +705,7 @@ namespace SSFWServer
 
                                         Response.Clear();
 
-                                        if (!string.IsNullOrEmpty(sessionId))
+                                        if (!string.IsNullOrEmpty(sessionId) && IsSSFWRegistered(sessionId))
                                         {
                                             lock (LayoutGetOverrides)
                                             {

@@ -11,9 +11,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
     <ProjectReference Include="..\..\..\WebServers\HTTPServer\HTTPServer.csproj" />
-    <PackageReference Include="PDFtoImage" Version="4.1.0" />
-	<PackageReference Include="System.Text.Json" Version="8.0.4" />
-	<PackageReference Include="Costura.Fody" Version="5.7.0">
+    <PackageReference Include="PDFtoImage" Version="5.0.0" />
+	<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	<PackageReference Include="Costura.Fody" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
     </PackageReference>

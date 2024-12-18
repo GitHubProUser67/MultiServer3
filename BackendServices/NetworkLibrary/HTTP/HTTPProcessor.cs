@@ -11,11 +11,10 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using NetworkLibrary.Extension;
 using System.Threading;
 using System.Buffers;
-using HashLib;
 using System.Net;
+using NetworkLibrary.Extension.Csharp;
 
 namespace NetworkLibrary.HTTP
 {
@@ -901,7 +900,8 @@ namespace NetworkLibrary.HTTP
             using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
             {
                 zlibStream.Write(input, 0, input.Length);
-                zlibStream.finish();
+                zlibStream.Close();
+                output.Close();
                 return output.ToArray();
             }
         }
@@ -964,9 +964,11 @@ namespace NetworkLibrary.HTTP
                 outMemoryStream = new HugeMemoryStream();
             else
                 outMemoryStream = new MemoryStream();
-            ZOutputStream outZStream = new ZOutputStream(outMemoryStream, 1, true);
-            CopyStream(input, outZStream, 4096, false);
-            outZStream.finish();
+            using (ZOutputStreamLeaveOpen outZStream = new ZOutputStreamLeaveOpen(outMemoryStream, 1, true))
+            {
+                CopyStream(input, outZStream, 4096, false);
+                outZStream.Close();
+            }
             input.Close();
             input.Dispose();
             outMemoryStream.Seek(0, SeekOrigin.Begin);
@@ -984,7 +986,7 @@ namespace NetworkLibrary.HTTP
             if (!input.CanSeek)
                 return null;
 
-            string md5Hash = NetHasher.ComputeMD5String(input).ToLower();
+            string md5Hash = NetHasher.DotNetHasher.ComputeMD5String(input).ToLower();
             input.Seek(0, SeekOrigin.Begin);
             return md5Hash;
         }

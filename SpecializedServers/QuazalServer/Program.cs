@@ -1,5 +1,4 @@
 using CustomLogger;
-using NetworkLibrary.Extension;
 using NetworkLibrary.TCP_IP;
 using Newtonsoft.Json.Linq;
 using QuazalServer.ServerProcessors;
@@ -18,9 +17,9 @@ public static class QuazalServerConfiguration
                         Tuple.Create(30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30216, "hg7j1", "v2Services"), // TDUPS2BETA
                         Tuple.Create(30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
-                        //Tuple.Create(60106, "w6kAtr3T", "PCUbisoftServices"), // DFSPC
-                        Tuple.Create(61111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3
-                        Tuple.Create(62111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3NTSCLOBBY
+                        //Tuple.Create(60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
+                        Tuple.Create(61111, "QusaPha9", "PS3DriverServices"), // DFSPS3
+                        Tuple.Create(62111, "QusaPha9", "PS3DriverServices"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
                         Tuple.Create(61121, "q1UFc45UwoyI", "PS3UbisoftServices"), // GRFSPS3
                         Tuple.Create(61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
@@ -31,7 +30,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
                         Tuple.Create(61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
                         Tuple.Create(61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
-                        Tuple.Create(61140, "HJb8Ix1M", "PS3UbisoftServices"), // RAYMANLEGENDSPS3
+                        //Tuple.Create(61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
                         //Tuple.Create(60001, "ridfebb9", "RockBand3Services"), // RB3
                         //Tuple.Create(21032, "8dtRv2oj", "PCUbisoftServices"), // GRO
                         Tuple.Create(30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
@@ -43,9 +42,9 @@ public static class QuazalServerConfiguration
                         Tuple.Create(30200, 30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30215, 30216, "hg7j1", "v2Services"), // TDUPS2BETA
                         Tuple.Create(30550, 30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
-                        //Tuple.Create(60105, 60106, "w6kAtr3T", "PCUbisoftServices"), // DFSPC
-                        Tuple.Create(61110, 61111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3
-                        Tuple.Create(62110, 62111, "QusaPha9", "PS3UbisoftServices"), // DFSPS3NTSCLOBBY
+                        //Tuple.Create(60105, 60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
+                        Tuple.Create(61110, 61111, "QusaPha9", "PS3DriverServices"), // DFSPS3
+                        Tuple.Create(62110, 62111, "QusaPha9", "PS3DriverServices"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60115, 60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
                         Tuple.Create(61120, 61121, "q1UFc45UwoyI", "PS3UbisoftServices"), // GRFSPS3
                         Tuple.Create(61125, 61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
@@ -56,7 +55,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61131, 61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
                         Tuple.Create(61133, 61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
                         Tuple.Create(61137, 61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
-                        Tuple.Create(61139, 61140, "HJb8Ix1M", "PS3UbisoftServices"), // RAYMANLEGENDSPS3
+                        //Tuple.Create(61139, 61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
                         Tuple.Create(30160, 30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
                         Tuple.Create(30560, 30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
                         //Tuple.Create(61135, 61136, "pJ3Lsyc2", "WIIUUbisoftServices"), // WATCHDOGSWIIU
@@ -206,7 +205,7 @@ class Program
 
     static void Main()
     {
-        if (!OtherExtensions.IsWindows)
+        if (!NetworkLibrary.Extension.Windows.Win32API.IsWindows)
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         else
             TechnitiumLibrary.Net.Firewall.FirewallHelper.CheckFirewallEntries(Assembly.GetEntryAssembly()?.Location);

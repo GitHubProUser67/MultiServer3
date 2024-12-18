@@ -1,10 +1,10 @@
-using HashLib;
 using CustomLogger;
 using NetworkLibrary.Extension;
 using System.Text;
 using System.Collections.Concurrent;
 using WebAPIService.SSFW;
 using XI5;
+using NetHasher;
 
 namespace SSFWServer
 {
@@ -167,7 +167,7 @@ namespace SSFWServer
 
                 XI5Ticket ticket = new XI5Ticket(ticketBuffer);
 
-                if (OtherExtensions.FindBytePattern(ticketBuffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (ByteUtils.FindBytePattern(ticketBuffer, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
                     if (SSFWServerConfiguration.ForceOfficialRPCNSignature && !ticket.SignedByOfficialRPCN)
                     {
@@ -194,7 +194,7 @@ namespace SSFWServer
                 else
                     salt = generalsecret + XHomeClientVersion;
 
-                string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
+                string hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item2 + salt));
 
                 // Trim the hash to a specific length
                 hash = hash[..14];
@@ -215,7 +215,7 @@ namespace SSFWServer
                     else
                         salt = generalsecret + XHomeClientVersion;
 
-                    hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
+                    hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(ResultStrings.Item1 + salt));
 
                     // Trim the hash to a specific length
                     hash = hash[..10];

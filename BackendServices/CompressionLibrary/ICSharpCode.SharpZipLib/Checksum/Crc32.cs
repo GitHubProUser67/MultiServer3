@@ -59,7 +59,7 @@ namespace ICSharpCode.SharpZipLib.Checksum
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static uint ComputeCrc32(uint oldCrc, byte bval)
 		{
-			return (uint)(Crc32.crcTable[(oldCrc ^ bval) & 0xFF] ^ (oldCrc >> 8));
+			return (uint)(crcTable[(oldCrc ^ bval) & 0xFF] ^ (oldCrc >> 8));
 		}
 
 		/// <summary>

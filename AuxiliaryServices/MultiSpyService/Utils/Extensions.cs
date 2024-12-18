@@ -39,7 +39,7 @@ namespace MultiSpyService.Utils
 
         public static string ToMD5(this string s)
         {
-            byte[] array = NetHasher.ComputeMD5(Encoding.ASCII.GetBytes(s));
+            byte[] array = NetHasher.DotNetHasher.ComputeMD5(Encoding.ASCII.GetBytes(s));
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < array.Length; i++)
             {

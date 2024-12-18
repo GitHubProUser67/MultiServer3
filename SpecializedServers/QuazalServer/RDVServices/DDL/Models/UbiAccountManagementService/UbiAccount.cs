@@ -37,7 +37,7 @@ namespace QuazalServer.RDVServices.DDL.Models
 			m_date_of_birth = new DateTime(2000, 10, 12);
 		}
 
-		public string? m_ubi_account_id { get; set; } // guid
+		public string? m_ubi_account_id { get; set; }
 		public string? m_username { get; set; }
 		public string? m_password { get; set; }
 		public UbiAccountStatus m_status { get; set; }
