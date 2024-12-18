@@ -29,7 +29,7 @@ namespace MultiSocks.Aries
         private int ExpectedBytes = -1;
         private bool InHeader;
         private readonly bool secure;
-        private object _QueueLock = new();
+        private int AsyncDequeueState = 0;
         private readonly Timer timerDequeue;
         private readonly TcpClient ClientTcp;
         private Stream? ClientStream;
@@ -180,21 +180,21 @@ namespace MultiSocks.Aries
 
         private void DequeueAsyncMessage(object? state)
         {
-            bool lockTaken = false;
+            // AMD processors are not liking a traditional lock here, interlocked works everywhere tho.
 
-            Monitor.TryEnter(_QueueLock, ref lockTaken); // Attempt to acquire the lock.
+            // Attempt to set isDequeueRunning to 1. If it's already 1, return immediately.
+            if (Interlocked.CompareExchange(ref AsyncDequeueState, 1, 0) == 1)
+                return;
 
-            if (lockTaken)
+            while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
             {
-                while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
-                {
-                    if (msg != null && SendImmediateMessage(msg.GetData()))
-                        // Some games not like when async msgs are sent too close to each others (MOH).
-                        Thread.Sleep(100);
-                }
-
-                Monitor.Exit(_QueueLock);
+                if (msg != null && SendImmediateMessage(msg.GetData()))
+                    // Some games not like when async msgs are sent too close to each others (MOH).
+                    Thread.Sleep(100);
             }
+
+            // Reset isDequeueRunning to 0, allowing future executions.
+            Interlocked.Exchange(ref AsyncDequeueState, 0);
         }
 
         public bool SendImmediateMessage(byte[] data)
