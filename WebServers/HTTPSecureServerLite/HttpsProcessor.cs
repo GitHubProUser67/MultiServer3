@@ -101,6 +101,7 @@ namespace HTTPSecureServerLite
                 settings.Ssl.Enable = true;
             }
             _Server = new Webserver(settings, DefaultRoute);
+            _Server.LogResponseSentMsg = false;
 
             StartServer();
         }
