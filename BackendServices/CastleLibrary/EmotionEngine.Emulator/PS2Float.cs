@@ -286,7 +286,7 @@ namespace EmotionEngine.Emulator
             if ((resMantissa & 0x3F) == 0)
                 resMantissa |= ((ulong)otherMantissa * resMantissa != selfMantissa64) ? 1U : 0;
 
-            resMantissa = (resMantissa + 0x40U) >> 7;
+            resMantissa >>= 7;
 
             if (resMantissa > 0)
             {
@@ -720,7 +720,7 @@ namespace EmotionEngine.Emulator
             else if (value == NEGATIVE_INFINITY_VALUE)
                 return $"-Inf({res:F6})";
 
-            return $"Ps2Float({res:F6})";
+            return $"PS2Float({res:F6})";
         }
     }
 }
