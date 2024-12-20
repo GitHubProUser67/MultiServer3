@@ -1254,15 +1254,16 @@ namespace HTTPServer
             {
                 LoggerAccessor.LogError($"[HTTP] - HandleClient thrown an exception : {ex}");
             }
-			
-            if (IsInterlocked)
-                Interlocked.Decrement(ref KeepAliveClients);
+            finally
+            {
+                if (IsInterlocked)
+                    Interlocked.Decrement(ref KeepAliveClients);
 
-            request?.Dispose();
-            response?.Dispose();
+                request?.Dispose();
+                response?.Dispose();
 
-            tcpClient.Close();
-            tcpClient.Dispose();
+                tcpClient.Close();
+            }
         }
 
         public void AddRoute(Route route)
