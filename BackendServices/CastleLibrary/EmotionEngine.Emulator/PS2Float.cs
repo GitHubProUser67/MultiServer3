@@ -51,6 +51,11 @@ namespace EmotionEngine.Emulator
             Raw = raw;
         }
 
+        public PS2Float(float value)
+        {
+            Raw = BitConverter.ToUInt32(BitConverter.GetBytes(value));
+        }
+
         public PS2Float(bool sign, byte exponent, uint mantissa)
         {
             Raw = 0;
@@ -344,7 +349,7 @@ namespace EmotionEngine.Emulator
             // PS2 only takes positive numbers for SQRT, and convert if necessary.
             int ix = (int)new PS2Float(false, Exponent, Mantissa).Raw;
 
-            /* extract mantissa and unbias exponent */
+            /* Extract mantissa and unbias exponent */
             int m = (ix >> 23) - BIAS;
 
             ix = (ix & 0x007FFFFF) | 0x00800000;
@@ -356,7 +361,7 @@ namespace EmotionEngine.Emulator
 
             m >>= 1; /* m = [m/2] */
 
-            /* generate sqrt(x) bit by bit */
+            /* Generate sqrt(x) bit by bit */
             ix += ix;
 
             while (r != 0)
@@ -373,7 +378,7 @@ namespace EmotionEngine.Emulator
                 r >>= 1;
             }
 
-            /* use floating add to find out rounding direction */
+            /* Use floating add to find out rounding direction */
             if (ix != 0)
             {
                 q += q & 1;
@@ -383,6 +388,26 @@ namespace EmotionEngine.Emulator
             ix += m << 23;
 
             return new PS2Float((uint)ix);
+        }
+
+        public PS2Float Pow(int exponent)
+        {
+            PS2Float result = One(); // Start with 1, since any number raised to the power of 0 is 1
+
+            if (exponent != 0)
+            {
+                int exp = Math.Abs(exponent);
+
+                for (int i = 0; i < exp; i++)
+                {
+                    result = result.Mul(this);
+                }
+            }
+            
+            if (exponent < 0)
+                return One().Div(result);
+            else
+                return result;
         }
 
         public PS2Float Rsqrt(PS2Float other)
