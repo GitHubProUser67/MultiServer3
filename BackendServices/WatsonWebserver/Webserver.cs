@@ -49,6 +49,18 @@ namespace WatsonWebserver
             }
         }
 
+        public bool KeepAliveResponseData
+        {
+            get
+            {
+                return _KeepAliveResponseData;
+            }
+            set
+            {
+                _KeepAliveResponseData = value;
+            }
+        }
+
         #endregion
 
         #region Private-Members
@@ -56,6 +68,7 @@ namespace WatsonWebserver
         private readonly string _Header = "[Webserver] ";
         private HttpListener _HttpListener = new HttpListener();
         private bool _ResponseMsg = true;
+        private bool _KeepAliveResponseData = true;
         private int _RequestCount = 0;
 
         private CancellationTokenSource _TokenSource = new CancellationTokenSource();
@@ -222,7 +235,7 @@ namespace WatsonWebserver
                                 listenerCtx.Request.RemoteEndPoint.Address.ToString(),
                                 listenerCtx.Request.RemoteEndPoint.Port));
 
-                            ctx = new HttpContext(listenerCtx, Settings, Events, Serializer);
+                            ctx = new HttpContext(listenerCtx, Settings, Events, Serializer, _KeepAliveResponseData);
 
                             Events.HandleRequestReceived(this, new RequestEventArgs(ctx));
 

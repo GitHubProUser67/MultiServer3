@@ -102,6 +102,7 @@ namespace HTTPSecureServerLite
             }
             _Server = new Webserver(settings, DefaultRoute);
             _Server.LogResponseSentMsg = false;
+            _Server.KeepAliveResponseData = false;
 
             StartServer();
         }
