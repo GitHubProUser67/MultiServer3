@@ -38,13 +38,13 @@ namespace WatsonWebserver
             HttpListenerContext ctx, 
             WebserverSettings settings, 
             WebserverEvents events,
-            ISerializationHelper serializer)
+            ISerializationHelper serializer, bool KeepAliveResponseData)
         {
             if (events == null) throw new ArgumentNullException(nameof(events));
             if (ctx == null) throw new ArgumentNullException(nameof(ctx));
 
             Request = new HttpRequest(ctx, serializer); 
-            Response = new HttpResponse(Request, ctx, settings, events, serializer); 
+            Response = new HttpResponse(Request, ctx, settings, events, serializer, KeepAliveResponseData); 
         }
 
         #endregion

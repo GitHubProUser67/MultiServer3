@@ -446,6 +446,9 @@ namespace NetCoreServer
         {
             int length = body.IsEmpty ? 0 : Encoding.UTF8.GetByteCount(body);
 
+            // Append CORS header
+            SetHeader("Access-Control-Allow-Origin", "*");
+
             // Append content length header
             SetHeader("Content-Length", length.ToString());
 
@@ -474,6 +477,9 @@ namespace NetCoreServer
         /// <param name="body">Body binary content as a span of bytes</param>
         public HttpResponse SetBody(ReadOnlySpan<byte> body)
         {
+            // Append CORS header
+            SetHeader("Access-Control-Allow-Origin", "*");
+
             // Append content length header
             SetHeader("Content-Length", body.Length.ToString());
 

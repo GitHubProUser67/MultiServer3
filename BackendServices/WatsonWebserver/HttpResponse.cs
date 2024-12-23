@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using WatsonWebserver.Core;
 using SpaceWizards.HttpListener;
+using NetworkLibrary.Extension.Csharp;
 
 namespace WatsonWebserver
 {
@@ -63,7 +64,39 @@ namespace WatsonWebserver
         {
             get
             {
-                return _Data;
+                if (_Data == null)
+                    throw new ArgumentNullException(nameof(_Data), "Input stream cannot be null");
+
+                else if (!_Data.CanRead)
+                    throw new NotSupportedException("Input stream is not readable");
+
+                else if (!_Data.CanSeek)
+                    throw new NotSupportedException("Input stream is not seekable");
+
+                else if (_Data is MemoryStream data)
+                    return data;
+
+                MemoryStream ms = new MemoryStream();
+
+                if (ContentLength <= 0)
+                    return ms;
+
+                long dataPos = _Data.Position;
+
+                try
+                {
+                    _Data.CopyTo(ms);
+                }
+                catch (Exception e)
+                {
+                    CustomLogger.LoggerAccessor.LogError($"[WatsonWebserver] - Data: an exception was thrown while copying data to the MemmoryStream: {e}");
+                    ms.Clear();
+                }
+
+                _Data.Position = dataPos;
+
+                ms.Seek(0, SeekOrigin.Begin);
+                return ms;
             }
         }
 
@@ -76,13 +109,14 @@ namespace WatsonWebserver
         private HttpListenerResponse _Response = null;
         private Stream _OutputStream = null;
         private bool _HeadersSet = false;
+        private bool _KeepAliveData = true;
 
         private WebserverSettings _Settings = new WebserverSettings();
         private WebserverEvents _Events = new WebserverEvents();
 
         private NameValueCollection _Headers = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);
         private byte[] _DataAsBytes = null;
-        private MemoryStream _Data = null;
+        private Stream _Data = null;
         private ISerializationHelper _Serializer = null;
 
         #endregion
@@ -102,7 +136,7 @@ namespace WatsonWebserver
             HttpListenerContext ctx, 
             WebserverSettings settings, 
             WebserverEvents events,
-            ISerializationHelper serializer)
+            ISerializationHelper serializer, bool KeepAliveResponseData)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (ctx == null) throw new ArgumentNullException(nameof(ctx));
@@ -116,6 +150,7 @@ namespace WatsonWebserver
             _Response = _Context.Response;
             _Settings = settings;
             _Events = events; 
+            _KeepAliveData = KeepAliveResponseData;
 
             _OutputStream = _Response.OutputStream;
         }
@@ -450,9 +485,7 @@ namespace WatsonWebserver
                         // already present
                     }
                     else
-                    {
                         _Response.AddHeader(header.Key, header.Value);
-                    }
                 }
             }
 
@@ -474,8 +507,7 @@ namespace WatsonWebserver
                     ms.Write(buffer, 0, read);
                 }
 
-                byte[] ret = ms.ToArray();
-                return ret;
+                return ms.ToArray();
             }
         }
 
@@ -493,29 +525,47 @@ namespace WatsonWebserver
                 {
                     if (stream != null && stream.CanRead && contentLength > 0)
                     {
-                        // We override the bufferSize for large content, else, we monster the CPU.
-                        int BufferSize = contentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
+                        int bytesRead;
                         long bytesRemaining = contentLength;
 
-                        _Data = new MemoryStream();
+                        // We override the bufferSize for large content, else, we monster the CPU.
+                        byte[] buffer = new byte[contentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize];
+
+                        if (_KeepAliveData)
+                            _Data = new MemoryStream();
+                        else
+                            _Data = stream;
 
                         while (bytesRemaining > 0)
                         {
-                            int bytesRead;
-                            byte[] buffer = new byte[BufferSize];
                             bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
                             if (bytesRead > 0)
                             {
-                                await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+                                if (_KeepAliveData)
+                                    await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
                                 await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
                                 bytesRemaining -= bytesRead;
                             }
                         }
 
-                        stream.Close();
-                        stream.Dispose();
+                        if (_KeepAliveData)
+                        {
+                            stream.Close();
+                            stream.Dispose();
 
-                        _Data.Seek(0, SeekOrigin.Begin);
+                            _Data.Seek(0, SeekOrigin.Begin);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                _Data.Close();
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                // _Data has been disposed already.
+                            }
+                        }
                     }
                 }
 
