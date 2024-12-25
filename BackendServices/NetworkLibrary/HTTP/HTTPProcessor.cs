@@ -1008,17 +1008,16 @@ namespace NetworkLibrary.HTTP
                 throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
 
             bool lockTaken = false;
-            int bytesRead = 0;
+            int bytesRead;
+
+            Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock.
 
             try
             {
 #if NET5_0_OR_GREATER
-                Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock.
-
                 if (lockTaken) // Lock is free.
                 {
                     Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommanded value for stackalloc).
-                    buffer.Clear();
                     while ((bytesRead = input.Read(buffer)) > 0)
                     {
                         output.Write(buffer[..bytesRead]);
@@ -1028,22 +1027,127 @@ namespace NetworkLibrary.HTTP
                 }
                 else
                 {
-                    Span<byte> buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                    while ((bytesRead = input.Read(buffer)) > 0)
+                    byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                    try
                     {
-                        output.Write(buffer[..bytesRead]);
+                        while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            output.Write(buffer, 0, bytesRead);
+                        }
+                        if (flush)
+                            output.Flush();
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(buffer);
+                    }
+                }
+#else
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                try
+                {
+                    while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        output.Write(buffer, 0, bytesRead);
                     }
                     if (flush)
                         output.Flush();
                 }
-#else
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+                finally
                 {
-                    output.Write(buffer, 0, bytesRead);
+                    ArrayPool<byte>.Shared.Return(buffer);
                 }
+#endif
+            }
+            finally
+            {
+                // Release the lock if it was acquired
+                if (lockTaken)
+                    Monitor.Exit(_StackLock);
+            }
+        }
+
+        /// <summary>
+        /// Copies a specified number of bytes from one Stream to another.
+        /// <para>Copie un nombre spécifié d'octets d'un Stream à un autre.</para>
+        /// </summary>
+        /// <param name="input">The Stream to copy from.</param>
+        /// <param name="output">The Stream to copy to.</param>
+        /// <param name="BufferSize">The buffer size to use for copying.</param>
+        /// <param name="numOfBytes">The number of bytes to copy.</param>
+        /// <param name="flush">Whether to flush the output stream after copying.</param>
+        public static void CopyStream(Stream input, Stream output, int BufferSize, long numOfBytes, bool flush = true)
+        {
+            if (BufferSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
+
+            else if (numOfBytes < 0)
+                throw new ArgumentOutOfRangeException(nameof(numOfBytes), "[HTTPProcessor] - CopyStream() - Number of bytes to copy must be non-negative.");
+
+            else if (numOfBytes == 0)
+            {
                 if (flush)
                     output.Flush();
+                return;
+            }
+
+            bool lockTaken = false;
+            int bytesRead;
+            long bytesCopied = 0;
+
+            Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock.
+
+            try
+            {
+#if NET5_0_OR_GREATER
+                if (lockTaken) // Lock is free.
+                {
+                    Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommended value for stackalloc).
+                    while (bytesCopied < numOfBytes && (bytesRead = input.Read(buffer)) > 0)
+                    {
+                        int bytesToWrite = (int)Math.Min(bytesRead, numOfBytes - bytesCopied); // Ensure we don't write more than the specified number of bytes.
+                        output.Write(buffer[..bytesToWrite]);
+                        bytesCopied += bytesToWrite;
+                    }
+                    if (flush)
+                        output.Flush();
+                }
+                else
+                {
+                    byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                    try
+                    {
+                        while (bytesCopied < numOfBytes && (bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            int bytesToWrite = (int)Math.Min(bytesRead, numOfBytes - bytesCopied); // Ensure we don't write more than the specified number of bytes.
+                            output.Write(buffer, 0, bytesToWrite);
+                            bytesCopied += bytesToWrite;
+                        }
+                        if (flush)
+                            output.Flush();
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(buffer);
+                    }
+                }
+#else
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                try
+                {
+                    while (bytesCopied < numOfBytes && (bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        int bytesToWrite = (int)Math.Min(bytesRead, numOfBytes - bytesCopied); // Ensure we don't write more than the specified number of bytes.
+                        output.Write(buffer, 0, bytesToWrite);
+                        bytesCopied += bytesToWrite;
+                    }
+                    if (flush)
+                        output.Flush();
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
 #endif
             }
             finally

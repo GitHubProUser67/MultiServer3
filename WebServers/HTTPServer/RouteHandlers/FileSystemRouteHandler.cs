@@ -16,11 +16,13 @@ namespace HTTPServer.RouteHandlers
             string filePath, string UserAgent, string Host, string Accept, 
             string directoryUrl, bool fileExists , bool GET, bool noCompressCacheControl)
         {
+            bool isHtmlCompatible = !string.IsNullOrEmpty(Accept) && Accept.Contains("html");
+
             if (Directory.Exists(filePath) && filePath.EndsWith("/"))
                 return (false, Handle_LocalDir(request, filePath, directoryUrl, noCompressCacheControl));
             else if (fileExists)
-                return (true, Handle_LocalFile(request, filePath, UserAgent, noCompressCacheControl));
-            else if (!string.IsNullOrEmpty(Accept) && Accept.Contains("text/html") && Directory.Exists(filePath + "/"))
+                return (true, Handle_LocalFile(request, absolutepath, filePath, UserAgent, isHtmlCompatible, noCompressCacheControl));
+            else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
                 return (false, Handle_ApachePermanentRedirect(request, absolutepath, filePath, Host, noCompressCacheControl));
 
             if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
@@ -30,7 +32,7 @@ namespace HTTPServer.RouteHandlers
                     return (false, HttpBuilder.PermanantRedirect(archiveReq.ArchivedURL));
             }
 
-            return (false, HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html")));
+            return (false, HttpBuilder.NotFound(request, absolutepath, Host, isHtmlCompatible));
         }
 
         public static HttpResponse HandleHEAD(HttpRequest request, string absolutepath, string filePath, string Host, string Accept)
@@ -70,9 +72,11 @@ namespace HTTPServer.RouteHandlers
                 return HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
         }
 
-        private static HttpResponse Handle_LocalFile(HttpRequest request, string filePath, string UserAgent, bool noCompressCacheControl)
+        private static HttpResponse Handle_LocalFile(HttpRequest request, string absolutepath, string filePath, string UserAgent, bool isHtmlCompatible, bool noCompressCacheControl)
         {
+            bool compressionSettingEnabled = HTTPServerConfiguration.EnableHTTPCompression;
             string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
             // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
             HttpResponse? response = new(null, !string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")
@@ -81,8 +85,6 @@ namespace HTTPServer.RouteHandlers
                     HttpStatusCode = HttpStatusCode.OK
                 };
 				
-            string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
-
             if (ContentType == "application/octet-stream")
             {
                 byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
@@ -97,11 +99,80 @@ namespace HTTPServer.RouteHandlers
             }
 
             response.Headers.Add("Accept-Ranges", "bytes");
-            response.Headers.Add("Content-Type", ContentType);
 
             if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale)
                 response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(filePath))));
-            else if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
+            else if (isHtmlCompatible && (ContentType.StartsWith("audio/") || ContentType.StartsWith("video/")))
+            {
+                // Generate an HTML page with the video element
+                string htmlContent = @"
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                              <title>Web Media Player</title>
+                              <style>
+                                body {
+                                  display: flex;
+                                  justify-content: center;
+                                  align-items: center;
+                                  height: 100vh;
+                                  margin: 0;
+                                  background-color: black;
+                                }
+                                #video-container {
+                                  max-width: 100%;
+                                  max-height: 100%;
+                                }
+                                video {
+                                  width: 100%;
+                                  height: 100%;
+                                  object-fit: contain;
+                                }
+                              </style>
+                            </head>
+                            <body>
+                              <div id=""video-container"">
+                                <video controls>
+                                  <source src=""" + absolutepath + $@""" type=""{ContentType}"">
+                                </video>
+                              </div>
+                            </body>
+                            </html>";
+
+                response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
+
+                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
+                {
+                    if (encoding.Contains("zstd"))
+                    {
+                        response.Headers.Add("Content-Encoding", "zstd");
+                        response.ContentAsBytes = HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(htmlContent));
+                    }
+                    else if (encoding.Contains("br"))
+                    {
+                        response.Headers.Add("Content-Encoding", "br");
+                        response.ContentAsBytes = HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(htmlContent));
+                    }
+                    else if (encoding.Contains("gzip"))
+                    {
+                        response.Headers.Add("Content-Encoding", "gzip");
+                        response.ContentAsBytes = HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(htmlContent));
+                    }
+                    else if (encoding.Contains("deflate"))
+                    {
+                        response.Headers.Add("Content-Encoding", "deflate");
+                        response.ContentAsBytes = HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(htmlContent));
+                    }
+                    else
+                        response.ContentAsUTF8 = htmlContent;
+                }
+                else
+                    response.ContentAsUTF8 = htmlContent;
+
+                return response;
+
+            }
+            else if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
                 && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
                          || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
             {
@@ -130,6 +201,8 @@ namespace HTTPServer.RouteHandlers
             }
             else
                 response.ContentStream = File.OpenRead(filePath);
+
+            response.Headers.Add("Content-Type", ContentType);
 
             return response;
         }

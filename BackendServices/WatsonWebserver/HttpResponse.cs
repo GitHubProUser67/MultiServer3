@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using WatsonWebserver.Core;
 using SpaceWizards.HttpListener;
 using NetworkLibrary.Extension.Csharp;
+using NetworkLibrary.HTTP;
 
 namespace WatsonWebserver
 {
@@ -525,41 +526,51 @@ namespace WatsonWebserver
                 {
                     if (stream != null && stream.CanRead && contentLength > 0)
                     {
-                        int bytesRead;
-                        long bytesRemaining = contentLength;
-
-                        // We override the bufferSize for large content, else, we monster the CPU.
-                        byte[] buffer = new byte[contentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize];
+                        int bufferSize = contentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
 
                         if (_KeepAliveData)
+                        {
+                            int bytesRead;
+                            long bytesRemaining = contentLength;
+
+                            // We override the bufferSize for large content, else, we monster the CPU.
+                            byte[] buffer = new byte[bufferSize];
+
                             _Data = new MemoryStream();
-                        else
-                            _Data = stream;
 
-                        while (bytesRemaining > 0)
-                        {
-                            bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
-                            if (bytesRead > 0)
+                            while (bytesRemaining > 0)
                             {
-                                if (_KeepAliveData)
+                                bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+                                if (bytesRead > 0)
+                                {
                                     await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                bytesRemaining -= bytesRead;
+                                    await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+                                    bytesRemaining -= bytesRead;
+                                }
                             }
-                        }
 
-                        if (_KeepAliveData)
-                        {
-                            stream.Close();
-                            stream.Dispose();
+                            try
+                            {
+                                stream.Close();
+                                stream.Dispose();
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                // stream has been disposed already.
+                            }
 
                             _Data.Seek(0, SeekOrigin.Begin);
                         }
                         else
                         {
+                            _Data = stream;
+
+                            HTTPProcessor.CopyStream(_Data, _OutputStream, bufferSize);
+
                             try
                             {
                                 _Data.Close();
+                                _Data.Dispose();
                             }
                             catch (ObjectDisposedException)
                             {

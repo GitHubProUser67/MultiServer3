@@ -1371,6 +1371,8 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else
                                                 {
+                                                    bool isHtmlCompatible = request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html");
+
                                                     if (File.Exists(filePath))
                                                     {
                                                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
@@ -1387,14 +1389,16 @@ namespace HTTPSecureServerLite
                                                             }
                                                         }
 
+                                                        bool isVideo = ContentType.StartsWith("video/");
+                                                        bool isAudio = ContentType.StartsWith("audio/");
                                                         string? UserAgent = null;
 
                                                         if (!string.IsNullOrEmpty(request.Useragent))
                                                             UserAgent = request.Useragent.ToLower();
 
                                                         if (HTTPSServerConfiguration.EnableLiveTranscoding
-                                                            && ((ContentType.Contains("video") && !ContentType.Contains("mp4"))
-                                                            || ContentType.Contains("audio")) && !ContentType.Contains("mpeg")
+                                                            && ((isVideo && !ContentType.Contains("mp4"))
+                                                            || isAudio) && !ContentType.Contains("mpeg")
                                                             && !string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox")
                                                             || UserAgent.Contains("chrome") || UserAgent.Contains("trident")))
                                                             sent = await new Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
@@ -1405,10 +1409,10 @@ namespace HTTPSecureServerLite
                                                             // send file
                                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer, noCompressCacheControl);
+                                                            sent = await SendFile(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, response.ChunkedTransfer, noCompressCacheControl);
                                                         }
                                                     }
-                                                    else if (request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html") && Directory.Exists(filePath + "/"))
+                                                    else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
                                                     {
                                                         statusCode = HttpStatusCode.MovedPermanently;
                                                         response.StatusCode = (int)statusCode;
@@ -1687,6 +1691,8 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else
                                                 {
+                                                    bool isHtmlCompatible = request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html");
+
                                                     if (File.Exists(filePath))
                                                     {
                                                         string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
@@ -1711,10 +1717,10 @@ namespace HTTPSecureServerLite
                                                             // send file
                                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                            sent = await SendFile(ctx, encoding, filePath, ContentType, response.ChunkedTransfer, noCompressCacheControl);
+                                                            sent = await SendFile(ctx, encoding, absolutepath, filePath, ContentType, ContentType.StartsWith("video/") || ContentType.StartsWith("audio/"), isHtmlCompatible, response.ChunkedTransfer, noCompressCacheControl);
                                                         }
                                                     }
-                                                    else if (request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html") && Directory.Exists(filePath + "/"))
+                                                    else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
                                                     {
                                                         statusCode = HttpStatusCode.MovedPermanently;
                                                         response.StatusCode = (int)statusCode;
@@ -1973,10 +1979,6 @@ namespace HTTPSecureServerLite
                     sent = await response.Send();
                 }
 
-#if DEBUG
-                if (!sent)
-                    LoggerAccessor.LogWarn($"[HTTPS] - {clientip}:{clientport} Failed to receive the response! Client might have closed the wire.");
-#endif
                 return;
             }
             catch (IOException ex)
@@ -2002,8 +2004,9 @@ namespace HTTPSecureServerLite
             await ctx.Response.Send();
         }
 
-        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string filePath, string ContentType, bool ChunkedMode, bool noCompressCacheControl)
+        private static async Task<bool> SendFile(HttpContextBase ctx, string encoding, string absolutepath, string filePath, string ContentType, bool isVideoOrAudio, bool isHtmlCompatible, bool ChunkedMode, bool noCompressCacheControl)
         {
+            bool compressionSettingEnabled = HTTPSServerConfiguration.EnableHTTPCompression;
             bool sent = false;
             bool flush = false;
             Stream? st;
@@ -2011,43 +2014,119 @@ namespace HTTPSecureServerLite
             ctx.Response.ChunkedTransfer = ChunkedMode;
             ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
             ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-            ctx.Response.ContentType = ContentType;
             ctx.Response.StatusCode = 200;
             if (HTTPSServerConfiguration.EnableImageUpscale && ContentType.StartsWith("image/"))
-                st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(filePath))));
-            else if (HTTPSServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
-                && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
-                         || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
             {
+                ctx.Response.ContentType = ContentType;
+
+                st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(filePath))));
+            }
+            else if (isHtmlCompatible && isVideoOrAudio)
+            {
+                // Generate an HTML page with the video element
+                string htmlContent = @"
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                              <title>Secure Web Media Player</title>
+                              <style>
+                                body {
+                                  display: flex;
+                                  justify-content: center;
+                                  align-items: center;
+                                  height: 100vh;
+                                  margin: 0;
+                                  background-color: black;
+                                }
+                                #video-container {
+                                  max-width: 100%;
+                                  max-height: 100%;
+                                }
+                                video {
+                                  width: 100%;
+                                  height: 100%;
+                                  object-fit: contain;
+                                }
+                              </style>
+                            </head>
+                            <body>
+                              <div id=""video-container"">
+                                <video controls>
+                                  <source src=""" + absolutepath + $@""" type=""{ContentType}"">
+                                </video>
+                              </div>
+                            </body>
+                            </html>";
+
+                ctx.Response.ContentType = "text/html; charset=UTF-8";
+
+                MemoryStream htmlMs = new MemoryStream(Encoding.UTF8.GetBytes(htmlContent));
+
                 if (encoding.Contains("zstd"))
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                    st = HTTPProcessor.ZstdCompressStream(File.OpenRead(filePath));
+                    st = HTTPProcessor.ZstdCompressStream(htmlMs);
                 }
                 else if (encoding.Contains("br"))
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "br");
-                    st = HTTPProcessor.BrotliCompressStream(File.OpenRead(filePath));
+                    st = HTTPProcessor.BrotliCompressStream(htmlMs);
                 }
                 else if (encoding.Contains("gzip"))
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    st = HTTPProcessor.GzipCompressStream(File.OpenRead(filePath));
+                    st = HTTPProcessor.GzipCompressStream(htmlMs);
                 }
                 else if (encoding.Contains("deflate"))
                 {
                     flush = true;
                     ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                    st = HTTPProcessor.InflateStream(File.OpenRead(filePath));
+                    st = HTTPProcessor.InflateStream(htmlMs);
+                }
+                else
+                    st = htmlMs;
+            }
+            else
+            {
+                ctx.Response.ContentType = ContentType;
+
+                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
+                && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
+                         || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
+                {
+                    if (encoding.Contains("zstd"))
+                    {
+                        flush = true;
+                        ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                        st = HTTPProcessor.ZstdCompressStream(File.OpenRead(filePath));
+                    }
+                    else if (encoding.Contains("br"))
+                    {
+                        flush = true;
+                        ctx.Response.Headers.Add("Content-Encoding", "br");
+                        st = HTTPProcessor.BrotliCompressStream(File.OpenRead(filePath));
+                    }
+                    else if (encoding.Contains("gzip"))
+                    {
+                        flush = true;
+                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                        st = HTTPProcessor.GzipCompressStream(File.OpenRead(filePath));
+                    }
+                    else if (encoding.Contains("deflate"))
+                    {
+                        flush = true;
+                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                        st = HTTPProcessor.InflateStream(File.OpenRead(filePath));
+                    }
+                    else
+                        st = File.OpenRead(filePath);
                 }
                 else
                     st = File.OpenRead(filePath);
             }
-            else
-                st = File.OpenRead(filePath);
 
             string NoneMatch = ctx.Request.RetrieveHeaderValue("If-None-Match");
             string? EtagMD5 = HTTPProcessor.ComputeStreamMD5(st);

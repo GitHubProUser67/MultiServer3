@@ -448,6 +448,9 @@ namespace NetCoreServer
 
             // Append CORS header
             SetHeader("Access-Control-Allow-Origin", "*");
+            SetHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
+            SetHeader("Access-Control-Allow-Headers", "*");
+            SetHeader("Access-Control-Expose-Headers", string.Empty);
 
             // Append content length header
             SetHeader("Content-Length", length.ToString());
@@ -479,6 +482,9 @@ namespace NetCoreServer
         {
             // Append CORS header
             SetHeader("Access-Control-Allow-Origin", "*");
+            SetHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
+            SetHeader("Access-Control-Allow-Headers", "*");
+            SetHeader("Access-Control-Expose-Headers", string.Empty);
 
             // Append content length header
             SetHeader("Content-Length", body.Length.ToString());
