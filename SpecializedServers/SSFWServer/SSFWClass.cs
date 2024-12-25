@@ -10,6 +10,7 @@ using CustomLogger;
 using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
 using Newtonsoft.Json;
+using NetworkLibrary.HTTP;
 
 namespace SSFWServer
 {
@@ -125,12 +126,17 @@ namespace SSFWServer
         {
             try
             {
-                (string HeaderIndex, string HeaderItem)[] Headers = CollectHeaders(request);
-
-                string UserAgent = GetHeaderValue(Headers, "User-Agent", false);
-
                 if (!string.IsNullOrEmpty(request.Url))
                 {
+                    (string HeaderIndex, string HeaderItem)[] Headers = CollectHeaders(request);
+
+                    string? encoding = null;
+                    string UserAgent = GetHeaderValue(Headers, "User-Agent", false);
+                    string cacheControl = GetHeaderValue(Headers, "Cache-Control");
+
+                    if (string.IsNullOrEmpty(cacheControl) || cacheControl != "no-transform")
+                        encoding = GetHeaderValue(Headers, "Accept-Encoding");
+
                     string absolutepath = request.Url;
 
                     // Split the URL into segments
@@ -353,7 +359,7 @@ namespace SSFWServer
                                                 Response.Clear();
                                                 Response.SetBegin(201);
                                                 Response.SetContentType("application/json");
-                                                Response.SetBody(result);
+                                                Response.SetBody(result, encoding);
                                             }
                                             else
                                                 Response.MakeErrorResponse();
@@ -619,7 +625,7 @@ namespace SSFWServer
                                             Response.Clear();
                                             Response.SetBegin(200);
                                             Response.SetContentType("text/html; charset=utf-8");
-                                            Response.SetBody(File.ReadAllBytes(filePath));
+                                            Response.SetBody(File.ReadAllBytes(filePath), encoding);
                                         }
                                         else
                                         {
@@ -658,18 +664,18 @@ namespace SSFWServer
                                             if (!string.IsNullOrEmpty(sceneName))
                                             {
                                                 Response.SetBegin(200);
-                                                Response.SetBody(sceneName);
+                                                Response.SetBody(sceneName, encoding);
                                             }
                                             else
                                             {
                                                 Response.SetBegin(500);
-                                                Response.SetBody("SceneNameLike returned a null or empty sceneName!");
+                                                Response.SetBody("SceneNameLike returned a null or empty sceneName!", encoding);
                                             }
                                         }
                                         else
                                         {
                                             Response.SetBegin(403);
-                                            Response.SetBody("Invalid like attribute was used!");
+                                            Response.SetBody("Invalid like attribute was used!", encoding);
                                         }
                                         break;
                                     case "/WebService/ApplyLayoutOverride/":
@@ -689,12 +695,12 @@ namespace SSFWServer
                                             }
 
                                             Response.SetBegin(200);
-                                            Response.SetBody($"Override set for {sessionId}.");
+                                            Response.SetBody($"Override set for {sessionId}.", encoding);
                                         }
                                         else
                                         {
                                             Response.SetBegin(403);
-                                            Response.SetBody("Invalid sessionid or targetUserName attribute was used!");
+                                            Response.SetBody("Invalid sessionid or targetUserName attribute was used!", encoding);
                                         }
                                         break;
                                     case "/WebService/R3moveLayoutOverride/":
@@ -711,12 +717,12 @@ namespace SSFWServer
                                             }
 
                                             Response.SetBegin(200);
-                                            Response.SetBody($"Override removed for {sessionId}.");
+                                            Response.SetBody($"Override removed for {sessionId}.", encoding);
                                         }
                                         else
                                         {
                                             Response.SetBegin(403);
-                                            Response.SetBody("Invalid sessionid attribute was used!");
+                                            Response.SetBody("Invalid sessionid attribute was used!", encoding);
                                         }
                                         break;
                                     case "/WebService/AddMiniItem/":
@@ -742,7 +748,7 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.");
+                                                        Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -762,14 +768,14 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!");
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!");
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
                                         }
                                         break;
                                     case "/WebService/AddMiniItems/":
@@ -798,7 +804,7 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.");
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -818,14 +824,14 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!");
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!");
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
                                         }
                                         break;
                                     case "/WebService/RemoveMiniItem/":
@@ -851,7 +857,7 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.");
+                                                        Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -871,14 +877,14 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!");
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!");
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
                                         }
                                         break;
                                     case "/WebService/RemoveMiniItems/":
@@ -907,7 +913,7 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.");
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -927,14 +933,14 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!");
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!");
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
                                         }
                                         break;
                                     default:
