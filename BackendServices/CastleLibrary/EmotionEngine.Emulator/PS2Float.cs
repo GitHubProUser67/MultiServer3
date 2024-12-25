@@ -40,8 +40,24 @@ namespace EmotionEngine.Emulator
             0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24
         };
 
+        public enum RoundingMode : byte
+        {
+            NearEven = 0,
+            MinMag = 1,
+            Min = 2,
+            Max = 3,
+            NearMaxMag = 4,
+            Odd = 6
+        }
+
+        /// <summary>
+        /// Gets or sets software floating-point rounding mode for Div.
+        /// </summary>
+        public RoundingMode DivRounding { get; set; } = RoundingMode.NearEven;
+
         public uint Raw { get; private set; }
 
+        public bool[] BinaryMantissa => GetBinaryMantissa();
         public uint Mantissa => Raw & 0x7FFFFF;
         public byte Exponent => (byte)((Raw >> 23) & 0xFF);
         public bool Sign => ((Raw >> 31) & 1) != 0;
@@ -61,7 +77,7 @@ namespace EmotionEngine.Emulator
             Raw = 0;
             Raw |= (sign ? 1u : 0u) << 31;
             Raw |= (uint)(exponent << 23);
-            Raw |= mantissa;
+            Raw |= mantissa & 0x7FFFFF;
         }
 
         public static PS2Float Max()
@@ -291,45 +307,31 @@ namespace EmotionEngine.Emulator
             if ((resMantissa & 0x3F) == 0)
                 resMantissa |= ((ulong)otherMantissa * resMantissa != selfMantissa64) ? 1U : 0;
 
-            resMantissa >>= 7;
+            RoundingMode roundingMode = DivRounding;
+            bool roundNearEven = roundingMode == RoundingMode.NearEven;
+            uint roundIncrement = (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
+                ? ((roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max)) ? 0x7FU : 0)
+                : 0x40U;
+            uint roundBits = resMantissa & 0x7F;
 
-            if (resMantissa > 0)
+            if (0x80000000 <= resMantissa + roundIncrement)
+                return sign ? Min() : Max();
+
+            resMantissa = (resMantissa + roundIncrement) >> 7;
+            if (roundBits != 0)
             {
-                int leadingBitPosition = GetMostSignificantBitPosition(resMantissa);
-
-                while (leadingBitPosition != IMPLICIT_LEADING_BIT_POS)
+                if (roundingMode == RoundingMode.Odd)
                 {
-                    if (leadingBitPosition > IMPLICIT_LEADING_BIT_POS)
-                    {
-                        resMantissa >>= 1;
-
-                        int increasedExponent = resExponent + 1;
-
-                        if (increasedExponent > 255)
-                            return sign ? Min() : Max();
-
-                        resExponent = increasedExponent;
-
-                        leadingBitPosition--;
-                    }
-                    else if (leadingBitPosition < IMPLICIT_LEADING_BIT_POS)
-                    {
-                        resMantissa <<= 1;
-
-                        int decreasedExponent = resExponent - 1;
-
-                        if (decreasedExponent <= 0)
-                            return new PS2Float(sign, 0, 0);
-
-                        resExponent = decreasedExponent;
-
-                        leadingBitPosition++;
-                    }
+                    resMantissa |= 1;
+                    return new PS2Float(sign, (byte)resExponent, resMantissa);
                 }
             }
 
-            resMantissa &= 0x7FFFFF;
-            return new PS2Float(sign, (byte)resExponent, resMantissa).RoundTowardsZero();
+            resMantissa &= ~(((roundBits ^ 0x40) == 0 & roundNearEven) ? 1U : 0U);
+            if (resMantissa == 0)
+                resExponent = 0;
+
+            return new PS2Float(sign, (byte)resExponent, resMantissa);
         }
 
         // Rounding can be slightly off: (PS2: rsqrt(0x7FFFFFF0) -> 0x5FB504ED | SoftFloat/IEEE754 rsqrt(0x7FFFFFF0) -> 0x5FB504EE).
@@ -432,11 +434,6 @@ namespace EmotionEngine.Emulator
             return Abs() == 0;
         }
 
-        public PS2Float RoundTowardsZero()
-        {
-            return new PS2Float((uint)Math.Truncate((double)Raw));
-        }
-
         public int CompareTo(PS2Float other)
         {
             int selfTwoComplementVal = (int)Abs();
@@ -464,6 +461,38 @@ namespace EmotionEngine.Emulator
         private PS2Float Negate()
         {
             return new PS2Float(Raw ^ SIGNMASK);
+        }
+
+        private bool[] GetBinaryMantissa()
+        {
+            uint val = Raw;
+            bool[] binaryMantissa = new bool[23];
+
+            binaryMantissa[0] = (val & 0x400000) != 0;
+            binaryMantissa[1] = (val & 0x200000) != 0;
+            binaryMantissa[2] = (val & 0x100000) != 0;
+            binaryMantissa[3] = (val & 0x80000) != 0;
+            binaryMantissa[4] = (val & 0x40000) != 0;
+            binaryMantissa[5] = (val & 0x20000) != 0;
+            binaryMantissa[6] = ((int)((val >> 16) & 1)) != 0;
+            binaryMantissa[7] = ((int)((val >> 15) & 1)) != 0;
+            binaryMantissa[8] = (val & 0x4000) != 0;
+            binaryMantissa[9] = (val & 0x2000) != 0;
+            binaryMantissa[10] = (val & 0x1000) != 0;
+            binaryMantissa[11] = (val & 0x800) != 0;
+            binaryMantissa[12] = (val & 0x400) != 0;
+            binaryMantissa[13] = (val & 0x200) != 0;
+            binaryMantissa[14] = ((int)((val >> 8) & 1)) != 0;
+            binaryMantissa[15] = ((int)((val >> 7) & 1)) != 0;
+            binaryMantissa[16] = (val & 0x40) != 0;
+            binaryMantissa[17] = (val & 0x20) != 0;
+            binaryMantissa[18] = (val & 0x10) != 0;
+            binaryMantissa[19] = (val & 8) != 0;
+            binaryMantissa[20] = (val & 4) != 0;
+            binaryMantissa[21] = (val & 2) != 0;
+            binaryMantissa[22] = ((int)(val & 1)) != 0;
+
+            return binaryMantissa;
         }
 
         private static PS2Float SolveAbnormalAdditionOrSubtractionOperation(PS2Float a, PS2Float b, bool add)

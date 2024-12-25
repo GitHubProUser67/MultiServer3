@@ -105,7 +105,7 @@ public class VulnerableCertificateGenerator
             else if (!File.Exists(OTGRootCAPrivKeyPath))
                 throw new Exception($"[ProtoSSL] - GenerateVulnerableCert: OTG Root Certificate Private Key was not found on path: {OTGRootCAPrivKeyPath}");
 
-            caKeyPair = DotNetUtilities.GetRsaKeyPair(((RSACryptoServiceProvider?)SSLUtils.LoadPemCertificate(OTGRootCACertPath, OTGRootCAPrivKeyPath).GetRSAPrivateKey() 
+            caKeyPair = DotNetUtilities.GetRsaKeyPair(((RSACryptoServiceProvider?)CertificateHelper.LoadPemCertificate(OTGRootCACertPath, OTGRootCAPrivKeyPath).GetRSAPrivateKey() 
                 ?? throw new Exception($"[ProtoSSL] - GenerateVulnerableCert: OTG Root Certificate does not contains a PrivateKey!")).ExportParameters(true));
 
             store = new Pkcs12StoreBuilder().Build();
@@ -163,7 +163,7 @@ public class VulnerableCertificateGenerator
             else if (!File.Exists(OTGRootCAPrivKeyPath))
                 throw new Exception($"[ProtoSSL] - GenerateVulnerableLegacyCert: OTG Root Certificate Private Key was not found on path: {OTGRootCAPrivKeyPath}");
 
-            caKeyPair = DotNetUtilities.GetRsaKeyPair(((RSACryptoServiceProvider?)SSLUtils.LoadPemCertificate(OTGRootCACertPath, OTGRootCAPrivKeyPath).GetRSAPrivateKey()
+            caKeyPair = DotNetUtilities.GetRsaKeyPair(((RSACryptoServiceProvider?)CertificateHelper.LoadPemCertificate(OTGRootCACertPath, OTGRootCAPrivKeyPath).GetRSAPrivateKey()
                 ?? throw new Exception($"[ProtoSSL] - GenerateVulnerableLegacyCert: OTG Root Certificate does not contains a PrivateKey!")).ExportParameters(true));
 
             store = new Pkcs12StoreBuilder().Build();

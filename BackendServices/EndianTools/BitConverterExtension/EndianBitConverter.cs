@@ -56,7 +56,7 @@ namespace BitConverterExtension
         /// <returns>A 64-bit signed integer whose value is equivalent to value.</returns>
         public long DoubleToInt64Bits(double value)
         {
-            return BitConverter.DoubleToInt64Bits(!BitConverter.IsLittleEndian ? EndianUtils.ReverseDouble(value) : value);
+            return BitConverter.DoubleToInt64Bits(value);
         }
 
         /// <summary>

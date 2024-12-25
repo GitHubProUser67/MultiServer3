@@ -10,7 +10,7 @@ namespace WebAPIService.Utils
     {
         public static string GenerateDynamicCacheGuid(string input)
         {
-            return DotNetHasher.ComputeMD5String(GetCurrentDateTime() + input + NetworkLibrary.SSL.SSLUtils.GetRandomInt64(long.MinValue, long.MaxValue));
+            return DotNetHasher.ComputeMD5String(GetCurrentDateTime() + input + NetworkLibrary.SSL.CertificateHelper.GetRandomInt64(long.MinValue, long.MaxValue));
         }
 
         public static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)
