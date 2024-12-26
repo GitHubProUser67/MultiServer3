@@ -1,8 +1,13 @@
+using NetworkLibrary.SSL;
 using System;
+using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace NetCoreServer
 {
@@ -75,8 +80,11 @@ namespace NetCoreServer
         #region Connect/Disconnect session
 
         private bool _disconnecting;
+        public bool wildcardCertificates = false;
         private SslStream _sslStream;
+        private string _sniDomain;
         private Guid? _sslStreamId;
+        private HashAlgorithmName _hashAlgorithm = HashAlgorithmName.SHA384;
 
         /// <summary>
         /// Is the session connected?
@@ -86,6 +94,16 @@ namespace NetCoreServer
         /// Is the session handshaked?
         /// </summary>
         public bool IsHandshaked { get; private set; }
+
+        public void SetPreferedHashAlgorithm(HashAlgorithmName hashAlgorithm)
+        {
+            _hashAlgorithm = hashAlgorithm;
+        }
+
+        public HashAlgorithmName GetPreferedHashAlgorithm()
+        {
+            return _hashAlgorithm;
+        }
 
         /// <summary>
         /// Connect the session
@@ -157,7 +175,97 @@ namespace NetCoreServer
                 Server.OnHandshakingInternal(this);
 
                 // Begin the SSL handshake
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+
+                if (IsHandshaked)
+                    return;
+
+                _ = Task.Run(() => {
+                    try
+                    {
+                        _sslStream.AuthenticateAsServer(new SslServerAuthenticationOptions
+                        {
+                            ClientCertificateRequired = Server.Context.ClientCertificateRequired,
+                            EnabledSslProtocols = Server.Context.Protocols,
+                            CertificateRevocationCheckMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
+                            ServerCertificateSelectionCallback = (sender, actualHostName) =>
+                            {
+                                IPEndPoint localEndpoint = (IPEndPoint)Socket.LocalEndPoint;
+
+                                if (string.IsNullOrEmpty(actualHostName))
+                                {
+                                    _sniDomain = localEndpoint.Address.ToString() ?? "127.0.0.1";
+                                }
+                                else
+                                {
+                                    _sniDomain = actualHostName;
+                                }
+
+#if NET5_0_OR_GREATER
+                                // Actually load the certificate
+                                try
+                                {
+                                    string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+                                        , "netcoreserver");
+                                    path = Path.Combine(path, "ssl");
+                                    string cert_prefix = _sniDomain + $"-{localEndpoint.Port}";
+                                    string cert_file = Path.Combine(path, string.Format("{0}.pem", cert_prefix));
+                                    string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", cert_prefix));
+                                    if (File.Exists(cert_file) && File.Exists(pvk_file))
+                                        return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
+                                    else
+                                    {
+                                        string origin_directory = Path.Combine(path, cert_prefix);
+                                        if (Directory.Exists(origin_directory))
+                                        {
+                                            cert_file = Path.Combine(origin_directory, "Origin Certificate");
+                                            pvk_file = Path.Combine(origin_directory, "Private Key");
+                                            if (File.Exists(cert_file) && File.Exists(pvk_file))
+                                                return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // ignore errors
+                                }
+#endif
+
+                                return CertificateHelper.IsCertificateAuthority(Server.Context.Certificate) ? CertificateHelper.MakeChainSignedCert(_sniDomain, Server.Context.Certificate, GetPreferedHashAlgorithm(),
+                                ((IPEndPoint)Socket.RemoteEndPoint).Address ?? IPAddress.Any, DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(7),
+                                wildcardCertificates) : Server.Context.Certificate;
+                            }
+                        });
+
+                        // Update the handshaked flag
+                        IsHandshaked = true;
+
+                        // Try to receive something from the client
+                        TryReceive();
+
+                        // Check the socket disposed state: in some rare cases it might be disconnected while receiving!
+                        if (IsSocketDisposed)
+                            return;
+
+                        // Call the session handshaked handler
+                        OnHandshaked();
+
+                        // Call the session handshaked handler in the server
+                        Server.OnHandshakedInternal(this);
+
+                        // Call the empty send buffer handler
+                        if (_sendBufferMain.IsEmpty)
+                            OnEmpty();
+                    }
+                    catch
+                    {
+                        SendError(SocketError.NotConnected);
+                        Disconnect();
+                    }
+                });
+#else
                 _sslStream.BeginAuthenticateAsServer(Server.Context.Certificate, Server.Context.ClientCertificateRequired, Server.Context.Protocols, false, ProcessHandshake, _sslStreamId);
+#endif
             }
             catch (Exception)
             {

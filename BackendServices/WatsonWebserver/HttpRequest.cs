@@ -1,3 +1,4 @@
+using NetworkLibrary.Extension;
 using SpaceWizards.HttpListener;
 using System;
 using System.Collections.Specialized;
@@ -180,7 +181,7 @@ namespace WatsonWebserver
                 bytesRead = await Data.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
                 if (bytesRead > 0)
                 {
-                    lenBytes = AppendBytes(lenBytes, buffer);  
+                    lenBytes = ByteUtils.CombineByteArray(lenBytes, buffer);  
                     string lenStr = Encoding.UTF8.GetString(lenBytes); 
 
                     if (lenBytes[lenBytes.Length - 1] == 10)
@@ -325,32 +326,6 @@ namespace WatsonWebserver
 
         #region Private-Methods
 
-        private byte[] AppendBytes(byte[] orig, byte[] append)
-        {
-            if (orig == null && append == null) return null;
-
-            byte[] ret = null;
-
-            if (append == null)
-            {
-                ret = new byte[orig.Length];
-                Buffer.BlockCopy(orig, 0, ret, 0, orig.Length);
-                return ret;
-            }
-
-            if (orig == null)
-            {
-                ret = new byte[append.Length];
-                Buffer.BlockCopy(append, 0, ret, 0, append.Length);
-                return ret;
-            }
-
-            ret = new byte[orig.Length + append.Length];
-            Buffer.BlockCopy(orig, 0, ret, 0, orig.Length);
-            Buffer.BlockCopy(append, 0, ret, orig.Length, append.Length);
-            return ret;
-        }
-
         private byte[] StreamToBytes(Stream input)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
@@ -384,7 +359,7 @@ namespace WatsonWebserver
                     while (true)
                     {
                         Chunk chunk = ReadChunk().Result;
-                        if (chunk.Data != null && chunk.Data.Length > 0) _DataAsBytes = AppendBytes(_DataAsBytes, chunk.Data);
+                        if (chunk.Data != null && chunk.Data.Length > 0) _DataAsBytes = ByteUtils.CombineByteArray(_DataAsBytes, chunk.Data);
                         if (chunk.IsFinal) break;
                     }
                 }

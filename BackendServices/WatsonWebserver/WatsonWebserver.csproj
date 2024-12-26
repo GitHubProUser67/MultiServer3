@@ -12,6 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\NetworkLibrary\NetworkLibrary.csproj" />
 	  <ProjectReference Include="..\SpaceWizards.HttpListener\SpaceWizards.HttpListener.csproj" />
 	</ItemGroup>
 

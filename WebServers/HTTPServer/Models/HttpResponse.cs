@@ -142,6 +142,14 @@ namespace HTTPServer.Models
             return response;
         }
 
+        public byte[] ContentAsBytes
+        {
+            set
+            {
+                ContentStream = new MemoryStream(value);
+            }
+        }
+
         public string ContentAsUTF8
         {
             set

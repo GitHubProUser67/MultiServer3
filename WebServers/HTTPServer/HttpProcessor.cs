@@ -1179,7 +1179,7 @@ namespace HTTPServer
                                                         break;
                                                     case "OPTIONS":
                                                         response = HttpBuilder.OK();
-                                                        response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST");
+                                                        response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST, PROPFIND");
                                                         break;
                                                     case "PROPFIND":
                                                         if (File.Exists(filePath))
@@ -1254,15 +1254,16 @@ namespace HTTPServer
             {
                 LoggerAccessor.LogError($"[HTTP] - HandleClient thrown an exception : {ex}");
             }
-			
-            if (IsInterlocked)
-                Interlocked.Decrement(ref KeepAliveClients);
+            finally
+            {
+                if (IsInterlocked)
+                    Interlocked.Decrement(ref KeepAliveClients);
 
-            request?.Dispose();
-            response?.Dispose();
+                request?.Dispose();
+                response?.Dispose();
 
-            tcpClient.Close();
-            tcpClient.Dispose();
+                tcpClient.Close();
+            }
         }
 
         public void AddRoute(Route route)
@@ -1309,7 +1310,7 @@ namespace HTTPServer
                     {
                         response.Headers.Clear();
 
-                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                        if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
@@ -1336,10 +1337,9 @@ namespace HTTPServer
                     {
                         int bufferSize = HTTPServerConfiguration.BufferSize;
                         long totalBytes = response.ContentStream.Length;
-                        long bytesLeft = totalBytes;
                         string? encoding = null;
 
-                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                        if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
@@ -1351,13 +1351,9 @@ namespace HTTPServer
                             response.Headers.Add("Connection", "close");
 
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
-
-                        if (!string.IsNullOrEmpty(request.Method) && request.Method == "OPTIONS")
-                        {
-                            response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-                            response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, HEAD");
-                            response.Headers.Add("Access-Control-Max-Age", "1728000");
-                        }
+                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                        response.Headers.Add("Access-Control-Allow-Headers", "*");
+                        response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
 
                         if (!response.Headers.Keys.Any(key => key.Equals("content-type", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Content-Type", "text/plain");
@@ -1374,7 +1370,7 @@ namespace HTTPServer
                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath!).ToString("r"));
                         }
 
-                        if (!response.Headers.ContainsKey("Content-Length"))
+                        if (!response.Headers.Keys.Any(key => key.Equals("content-length", StringComparison.OrdinalIgnoreCase)))
                         {
                             if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
                             {
@@ -1392,27 +1388,21 @@ namespace HTTPServer
                         if (totalBytes > 8000000 && bufferSize < 500000)
                             bufferSize = 500000;
 
-                        using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-                        while (bytesLeft > 0)
+                        using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                         {
-                            Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
-                            int n = response.ContentStream.Read(buffer);
+                            HTTPProcessor.CopyStream(response.ContentStream, ctwire, bufferSize, totalBytes, false);
 
-                            ctwire.Write(buffer);
+                            ctwire.WriteTerminator();
 
-                            bytesLeft -= n;
+                            ctwire.Flush();
                         }
-
-                        ctwire.WriteTerminator();
-
-                        ctwire.Flush();
                     }
                 }
                 else
                 {
                     response.Headers.Clear();
 
-                    if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                    if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
                     response.Headers.Add("Connection", "close");
 
@@ -1648,12 +1638,15 @@ namespace HTTPServer
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
+                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                        response.Headers.Add("Access-Control-Allow-Headers", "*");
+                        response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
 
                         string? encoding = null;
 
-                        if (!response.Headers.ContainsKey("Content-Length"))
+                        if (!response.Headers.Keys.Any(key => key.Equals("content-length", StringComparison.OrdinalIgnoreCase)))
                         {
                             if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
                             {
@@ -1668,7 +1661,6 @@ namespace HTTPServer
                         stream.Flush();
 
                         long totalBytes = ms.Length;
-                        long bytesLeft = totalBytes;
 
                         // We override the bufferSize for large content, else, we monster the CPU.
                         if (totalBytes > 8000000 && bufferSize < 500000)
@@ -1676,20 +1668,11 @@ namespace HTTPServer
 
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                         {
-                            while (bytesLeft > 0)
-                            {
-                                Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
-                                int n = ms.Read(buffer);
-
-                                ctwire.Write(buffer);
-
-                                bytesLeft -= n;
-                            }
+                            HTTPProcessor.CopyStream(ms, ctwire, bufferSize, totalBytes, false);
 
                             ctwire.WriteTerminator();
 
                             ctwire.Flush();
-
                         }
 
                         ms.Flush();
@@ -1826,7 +1809,6 @@ namespace HTTPServer
                     {
                         int bufferSize = HTTPServerConfiguration.BufferSize;
                         long totalBytes = endByte - startByte;
-                        long bytesLeft = totalBytes;
                         string? encoding = null;
 
                         fs.Position = startByte;
@@ -1853,10 +1835,13 @@ namespace HTTPServer
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
+                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                        response.Headers.Add("Access-Control-Allow-Headers", "*");
+                        response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
 
-                        if (!response.Headers.ContainsKey("Content-Length"))
+                        if (!response.Headers.Keys.Any(key => key.Equals("content-length", StringComparison.OrdinalIgnoreCase)))
                         {
                             if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
                             {
@@ -1876,15 +1861,7 @@ namespace HTTPServer
 
                         using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                         {
-                            while (bytesLeft > 0)
-                            {
-                                Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
-                                int n = fs.Read(buffer);
-
-                                ctwire.Write(buffer);
-
-                                bytesLeft -= n;
-                            }
+                            HTTPProcessor.CopyStream(fs, ctwire, bufferSize, totalBytes, false);
 
                             ctwire.WriteTerminator();
 
@@ -1923,7 +1900,7 @@ namespace HTTPServer
                         {
                             response.Headers.Clear();
 
-                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                                 response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
@@ -1950,10 +1927,9 @@ namespace HTTPServer
                         {
                             int bufferSize = HTTPServerConfiguration.BufferSize;
                             long totalBytes = response.ContentStream.Length;
-                            long bytesLeft = totalBytes;
                             string? encoding = null;
 
-                            if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                            if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                                 response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
@@ -1965,6 +1941,9 @@ namespace HTTPServer
                                 response.Headers.Add("Connection", "close");
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
+                            response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                            response.Headers.Add("Access-Control-Allow-Headers", "*");
+                            response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
 
                             if (!response.Headers.Keys.Any(key => key.Equals("content-type", StringComparison.OrdinalIgnoreCase)))
                                 response.Headers.Add("Content-Type", "text/plain");
@@ -1980,7 +1959,7 @@ namespace HTTPServer
                                 response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                             }
 
-                            if (!response.Headers.ContainsKey("Content-Length"))
+                            if (!response.Headers.Keys.Any(key => key.Equals("content-length", StringComparison.OrdinalIgnoreCase)))
                             {
                                 if (response.Headers.TryGetValue("Transfer-Encoding", out encoding) && !string.IsNullOrEmpty(encoding) && encoding.Contains("chunked"))
                                 {
@@ -1998,27 +1977,21 @@ namespace HTTPServer
                             if (totalBytes > 8000000 && bufferSize < 500000)
                                 bufferSize = 500000;
 
-                            using HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked"));
-                            while (bytesLeft > 0)
+                            using (HttpResponseContentStream ctwire = new(stream, response.Headers.ContainsKey("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")))
                             {
-                                Span<byte> buffer = new byte[bytesLeft > bufferSize ? bufferSize : bytesLeft];
-                                int n = response.ContentStream.Read(buffer);
+                                HTTPProcessor.CopyStream(response.ContentStream, ctwire, bufferSize, totalBytes, false);
 
-                                ctwire.Write(buffer);
+                                ctwire.WriteTerminator();
 
-                                bytesLeft -= n;
+                                ctwire.Flush();
                             }
-
-                            ctwire.WriteTerminator();
-
-                            ctwire.Flush();
                         }
                     }
                     else
                     {
                         response.Headers.Clear();
 
-                        if (!response.Headers.ContainsKey("server") && !response.Headers.ContainsKey("Server"))
+                        if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
                         response.Headers.Add("Connection", "close");
 

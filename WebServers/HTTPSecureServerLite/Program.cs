@@ -355,7 +355,7 @@ class Program
 
         WebAPIService.WebArchive.WebArchiveRequest.ArchiveDateLimit = HTTPSServerConfiguration.NotFoundWebArchiveDateLimit;
 
-        NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
+        NetworkLibrary.SSL.CertificateHelper.InitializeSSLCertificates(HTTPSServerConfiguration.HTTPSCertificateFile, HTTPSServerConfiguration.HTTPSCertificatePassword,
             HTTPSServerConfiguration.HTTPSDNSList, HTTPSServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         if (HTTPSServerConfiguration.DNSOverEthernetEnabled)

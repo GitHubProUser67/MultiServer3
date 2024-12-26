@@ -37,12 +37,38 @@ namespace WatsonWebserver
             }
         }
 
+        public bool LogResponseSentMsg
+        {
+            get
+            {
+                return _ResponseMsg;
+            }
+            set
+            {
+                _ResponseMsg = value;
+            }
+        }
+
+        public bool KeepAliveResponseData
+        {
+            get
+            {
+                return _KeepAliveResponseData;
+            }
+            set
+            {
+                _KeepAliveResponseData = value;
+            }
+        }
+
         #endregion
 
         #region Private-Members
 
         private readonly string _Header = "[Webserver] ";
         private HttpListener _HttpListener = new HttpListener();
+        private bool _ResponseMsg = true;
+        private bool _KeepAliveResponseData = true;
         private int _RequestCount = 0;
 
         private CancellationTokenSource _TokenSource = new CancellationTokenSource();
@@ -209,7 +235,7 @@ namespace WatsonWebserver
                                 listenerCtx.Request.RemoteEndPoint.Address.ToString(),
                                 listenerCtx.Request.RemoteEndPoint.Port));
 
-                            ctx = new HttpContext(listenerCtx, Settings, Events, Serializer);
+                            ctx = new HttpContext(listenerCtx, Settings, Events, Serializer, _KeepAliveResponseData);
 
                             Events.HandleRequestReceived(this, new RequestEventArgs(ctx));
 
@@ -257,7 +283,7 @@ namespace WatsonWebserver
                                     }
 
                                     await Routes.Preflight(ctx).ConfigureAwait(false);
-                                    if (!ctx.Response.ResponseSent) 
+                                    if (!ctx.Response.ResponseSent && _ResponseMsg) 
                                         throw new InvalidOperationException("Preflight route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                     return;
                                 }
@@ -320,7 +346,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent) 
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg) 
                                             throw new InvalidOperationException("Pre-authentication static route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -355,7 +381,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent)
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg)
                                             throw new InvalidOperationException("Pre-authentication content route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -392,7 +418,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent)
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg)
                                             throw new InvalidOperationException("Pre-authentication parameter route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -427,7 +453,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent)
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg)
                                             throw new InvalidOperationException("Pre-authentication dynamic route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -492,7 +518,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent)
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg)
                                             throw new InvalidOperationException("Post-authentication static route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -527,7 +553,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent)
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg)
                                             throw new InvalidOperationException("Post-authentication content route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -564,7 +590,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent)
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg)
                                             throw new InvalidOperationException("Post-authentication parameter route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -599,7 +625,7 @@ namespace WatsonWebserver
                                             else throw;
                                         }
 
-                                        if (!ctx.Response.ResponseSent)
+                                        if (!ctx.Response.ResponseSent && _ResponseMsg)
                                             throw new InvalidOperationException("Post-authentication dynamic route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                         return;
                                     }
@@ -623,7 +649,7 @@ namespace WatsonWebserver
                             {
                                 ctx.RouteType = RouteTypeEnum.Default;
                                 await Routes.Default(ctx).ConfigureAwait(false);
-                                if (!ctx.Response.ResponseSent)
+                                if (!ctx.Response.ResponseSent && _ResponseMsg)
                                     throw new InvalidOperationException("Default route for " + ctx.Request.Method.ToString() + " " + ctx.Request.Url.RawWithoutQuery + " did not send a response to the HTTP request.");
                                 return;
                             }

@@ -11,4 +11,8 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkLibrary\NetworkLibrary.csproj" />
+  </ItemGroup>
+
 </Project>

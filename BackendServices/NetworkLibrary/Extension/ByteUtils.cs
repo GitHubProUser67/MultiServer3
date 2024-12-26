@@ -148,7 +148,9 @@ namespace NetworkLibrary.Extension
         /// <returns>A byte array.</returns>
         public static byte[] CombineByteArray(byte[] first, byte[] second)
         {
-            if (second == null)
+            if (first == null && second == null)
+                return null;
+            else if (second == null)
                 return first;
             else if (first == null)
                 return second;
