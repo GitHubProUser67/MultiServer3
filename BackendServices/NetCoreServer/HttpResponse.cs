@@ -1,3 +1,4 @@
+using NetworkLibrary.HTTP;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -436,28 +437,80 @@ namespace NetCoreServer
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body string content (default is "")</param>
-        public HttpResponse SetBody(string body = "") => SetBody(body.AsSpan());
+        public HttpResponse SetBody(string body = "", string encoding = null) => SetBody(body.AsSpan(), encoding);
 
         /// <summary>
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body string content as a span of characters</param>
-        public HttpResponse SetBody(ReadOnlySpan<char> body)
+        public HttpResponse SetBody(ReadOnlySpan<char> body, string encoding = null)
         {
             int length = body.IsEmpty ? 0 : Encoding.UTF8.GetByteCount(body);
 
-            // Append content length header
-            SetHeader("Content-Length", length.ToString());
+            // Append CORS header
+            SetHeader("Access-Control-Allow-Origin", "*");
+            SetHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
+            SetHeader("Access-Control-Allow-Headers", "*");
+            SetHeader("Access-Control-Expose-Headers", string.Empty);
 
-            _cache.Append("\r\n");
+            if (!string.IsNullOrEmpty(encoding) && length > 0)
+            {
+                byte[] payload = Encoding.UTF8.GetBytes(body.ToString());
+                if (!string.IsNullOrEmpty(encoding))
+                {
+                    if (encoding.Contains("zstd"))
+                    {
+                        SetHeader("Content-Encoding", "zstd");
+                        payload = HTTPProcessor.CompressZstd(payload);
+                    }
+                    else if (encoding.Contains("br"))
+                    {
+                        SetHeader("Content-Encoding", "br");
+                        payload = HTTPProcessor.CompressBrotli(payload);
+                    }
+                    else if (encoding.Contains("gzip"))
+                    {
+                        SetHeader("Content-Encoding", "gzip");
+                        payload = HTTPProcessor.CompressGzip(payload);
+                    }
+                    else if (encoding.Contains("deflate"))
+                    {
+                        SetHeader("Content-Encoding", "deflate");
+                        payload = HTTPProcessor.Inflate(payload);
+                    }
+                }
 
-            int index = (int)_cache.Size;
+                length = payload.Length;
 
-            // Append the HTTP response body
-            _cache.Append(body);
-            _bodyIndex = index;
-            _bodySize = length;
-            _bodyLength = length;
+                // Append content length header
+                SetHeader("Content-Length", length.ToString());
+
+                _cache.Append("\r\n");
+
+                int index = (int)_cache.Size;
+
+                // Append the HTTP response body
+                _cache.Append(payload);
+                _bodyIndex = index;
+                _bodySize = length;
+                _bodyLength = length;
+            }
+            else
+            {
+                // Append content length header
+                SetHeader("Content-Length", length.ToString());
+
+                _cache.Append("\r\n");
+
+                int index = (int)_cache.Size;
+
+                // Append the HTTP response body
+                _cache.Append(body);
+                _bodyIndex = index;
+                _bodySize = length;
+                _bodyLength = length;
+            }
+
             _bodyLengthProvided = true;
             return this;
         }
@@ -466,26 +519,80 @@ namespace NetCoreServer
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body binary content</param>
-        public HttpResponse SetBody(byte[] body) => SetBody(body.AsSpan());
+        public HttpResponse SetBody(byte[] body, string encoding = null) => SetBody(body.AsSpan(), encoding);
 
         /// <summary>
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body binary content as a span of bytes</param>
-        public HttpResponse SetBody(ReadOnlySpan<byte> body)
+        public HttpResponse SetBody(ReadOnlySpan<byte> body, string encoding = null)
         {
-            // Append content length header
-            SetHeader("Content-Length", body.Length.ToString());
+            int length = body.Length;
 
-            _cache.Append("\r\n");
+            // Append CORS header
+            SetHeader("Access-Control-Allow-Origin", "*");
+            SetHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
+            SetHeader("Access-Control-Allow-Headers", "*");
+            SetHeader("Access-Control-Expose-Headers", string.Empty);
 
-            int index = (int)_cache.Size;
+            if (!string.IsNullOrEmpty(encoding) && length > 0)
+            {
+                byte[] payload = body.ToArray();
+                if (!string.IsNullOrEmpty(encoding))
+                {
+                    if (encoding.Contains("zstd"))
+                    {
+                        SetHeader("Content-Encoding", "zstd");
+                        payload = HTTPProcessor.CompressZstd(payload);
+                    }
+                    else if (encoding.Contains("br"))
+                    {
+                        SetHeader("Content-Encoding", "br");
+                        payload = HTTPProcessor.CompressBrotli(payload);
+                    }
+                    else if (encoding.Contains("gzip"))
+                    {
+                        SetHeader("Content-Encoding", "gzip");
+                        payload = HTTPProcessor.CompressGzip(payload);
+                    }
+                    else if (encoding.Contains("deflate"))
+                    {
+                        SetHeader("Content-Encoding", "deflate");
+                        payload = HTTPProcessor.Inflate(payload);
+                    }
+                }
 
-            // Append the HTTP response body
-            _cache.Append(body);
-            _bodyIndex = index;
-            _bodySize = body.Length;
-            _bodyLength = body.Length;
+                length = payload.Length;
+
+                // Append content length header
+                SetHeader("Content-Length", length.ToString());
+
+                _cache.Append("\r\n");
+
+                int index = (int)_cache.Size;
+
+                // Append the HTTP response body
+                _cache.Append(payload);
+                _bodyIndex = index;
+                _bodySize = length;
+                _bodyLength = length;
+            }
+            else
+            {
+                // Append content length header
+                SetHeader("Content-Length", length.ToString());
+
+                _cache.Append("\r\n");
+
+                int index = (int)_cache.Size;
+
+                // Append the HTTP response body
+                _cache.Append(body);
+                _bodyIndex = index;
+                _bodySize = length;
+                _bodyLength = length;
+            }
+                
             _bodyLengthProvided = true;
             return this;
         }

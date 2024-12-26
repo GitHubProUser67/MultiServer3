@@ -162,7 +162,7 @@ class Program
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        NetworkLibrary.SSL.SSLUtils.InitializeSSLCertificates(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
+        NetworkLibrary.SSL.CertificateHelper.InitializeSSLCertificates(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword,
             SVOServerConfiguration.HTTPSDNSList, SVOServerConfiguration.HTTPSCertificateHashingAlgorithm);
 
         MediusDatabaseLoop ??= Task.Run(SVOManager.StartTickPooling);

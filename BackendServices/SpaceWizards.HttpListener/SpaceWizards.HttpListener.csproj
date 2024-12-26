@@ -71,7 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SR.cs" />
-    <Compile Include="System\Net\CertificateHelper.cs" />
     <Compile Include="System\Net\StreamHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkLibrary\NetworkLibrary.csproj" />
   </ItemGroup>
 </Project>

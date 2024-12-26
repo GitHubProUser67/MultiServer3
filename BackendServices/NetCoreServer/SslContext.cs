@@ -13,7 +13,7 @@ namespace NetCoreServer
         /// Initialize SSL context with default protocols
         /// </summary>
         public SslContext() : this(
-#if NET6_0_OR_GREATER
+#if NET5_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
             SslProtocols.Tls13
 #else
             SslProtocols.Tls12
@@ -40,14 +40,14 @@ namespace NetCoreServer
         /// </summary>
         /// <param name="protocols">SSL protocols</param>
         /// <param name="certificate">SSL certificate</param>
-        public SslContext(SslProtocols protocols, X509Certificate certificate) : this(protocols, certificate, null) {}
+        public SslContext(SslProtocols protocols, X509Certificate2 certificate) : this(protocols, certificate, null) {}
         /// <summary>
         /// Initialize SSL context with given protocols, certificate and validation callback
         /// </summary>
         /// <param name="protocols">SSL protocols</param>
         /// <param name="certificate">SSL certificate</param>
         /// <param name="certificateValidationCallback">SSL certificate</param>
-        public SslContext(SslProtocols protocols, X509Certificate certificate, RemoteCertificateValidationCallback certificateValidationCallback)
+        public SslContext(SslProtocols protocols, X509Certificate2 certificate, RemoteCertificateValidationCallback certificateValidationCallback)
         {
             Protocols = protocols;
             Certificate = certificate;
@@ -79,7 +79,7 @@ namespace NetCoreServer
         /// <summary>
         /// SSL certificate
         /// </summary>
-        public X509Certificate Certificate { get; set; }
+        public X509Certificate2 Certificate { get; set; }
         /// <summary>
         /// SSL certificates collection
         /// </summary>
