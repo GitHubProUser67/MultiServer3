@@ -1351,7 +1351,7 @@ namespace HTTPServer
                             response.Headers.Add("Connection", "close");
 
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
-                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, PROPFIND");
                         response.Headers.Add("Access-Control-Allow-Headers", "*");
                         response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
 
@@ -1638,7 +1638,7 @@ namespace HTTPServer
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
-                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, PROPFIND");
                         response.Headers.Add("Access-Control-Allow-Headers", "*");
                         response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -1835,7 +1835,7 @@ namespace HTTPServer
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
-                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                        response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, PROPFIND");
                         response.Headers.Add("Access-Control-Allow-Headers", "*");
                         response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -1941,7 +1941,7 @@ namespace HTTPServer
                                 response.Headers.Add("Connection", "close");
 
                             response.Headers.Add("Access-Control-Allow-Origin", "*");
-                            response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND");
+                            response.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, PROPFIND");
                             response.Headers.Add("Access-Control-Allow-Headers", "*");
                             response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
 
