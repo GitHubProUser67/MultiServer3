@@ -21,7 +21,7 @@ namespace HTTPServer
         private readonly ConcurrentDictionary<int, TcpListener> _listeners = new();
         private readonly CancellationTokenSource _cts = null!;
         private readonly HttpProcessor Processor;
-        protected readonly int MaxConcurrentListeners = Environment.ProcessorCount;
+        protected readonly int MaxConcurrentListeners = 4;
 
         #endregion
 
@@ -43,6 +43,8 @@ namespace HTTPServer
         {
             _ = Task.Run(async () =>
             {
+                int i = 0;
+
                 try
                 {
                     TcpListener listener = new(IPAddress.Any, listenerPort);
@@ -50,44 +52,18 @@ namespace HTTPServer
                     LoggerAccessor.LogInfo($"[HTTP] - Server initiated on port: {listenerPort}...");
                     _listeners.TryAdd(listenerPort, listener);
 
-                    HashSet<Task> requests = new();
-                    for (int i = 0; i < MaxConcurrentListeners; i++)
-                        requests.Add(listener.AcceptTcpClientAsync(_cts.Token).AsTask());
-
                     while (!_cts.Token.IsCancellationRequested)
                     {
                         try
                         {
                             if (_cts.Token.IsCancellationRequested) break;
 
-                            Task t = await Task.WhenAny(requests);
-
-                            if (t is Task<TcpClient>)
+                            for (i = 0; i < MaxConcurrentListeners; i++)
                             {
-                                TcpClient? client = null;
-
-                                try
-                                {
-                                    client = (t as Task<TcpClient>)?.Result;
-                                }
-                                catch (AggregateException ex)
-                                {
-                                    ex.Handle(innerEx =>
-                                    {
-                                        if (innerEx is TaskCanceledException)
-                                            return true; // Indicate that the exception was handled
-
-                                        LoggerAccessor.LogWarn($"[HTTP] - TcpClient Task thrown an AggregateException: {ex}");
-
-                                        return false;
-                                    });
-                                }
-
-                                _ = Task.Run(() => Processor.HandleClient(client, listenerPort));
+                                _ = Task.Run(async () => Processor.HandleClient(await listener.AcceptTcpClientAsync(_cts.Token).ConfigureAwait(false), listenerPort));
                             }
 
-                            requests.Remove(t);
-                            requests.Add(listener.AcceptTcpClientAsync(_cts.Token).AsTask());
+                            await Task.Delay(1);
                         }
                         catch (OperationCanceledException)
                         {
@@ -110,8 +86,6 @@ namespace HTTPServer
                             if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTP] - Client loop thrown an assertion: {ex}");
                         }
                     }
-
-                    requests.Clear();
                 }
                 catch (Exception ex)
                 {
