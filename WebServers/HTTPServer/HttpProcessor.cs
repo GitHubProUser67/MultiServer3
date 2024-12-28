@@ -1233,6 +1233,8 @@ namespace HTTPServer
                                 WriteResponse(outputStream, request, response, filePath, AllowKeepAlive, EtagCompatible);
                             }
                         }
+
+                        Thread.Sleep(1);
                     }
                     outputStream.Flush();
                 }

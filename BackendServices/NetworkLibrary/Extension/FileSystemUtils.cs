@@ -9,13 +9,15 @@ namespace NetworkLibrary.Extension
 {
     public static class FileSystemUtils
     {
+        private const FileAttributes hiddenAttribute = FileAttributes.Hidden;
+
         public static IEnumerable<FileSystemInfo> AllFilesAndFolders(this DirectoryInfo directory)
         {
-            if ((directory.Attributes & FileAttributes.Hidden) == 0)
+            if (!directory.IsHidden())
             {
-                foreach (FileInfo f in directory.GetFiles().Where(file => (file.Attributes & FileAttributes.Hidden) == 0))
+                foreach (FileInfo f in directory.GetFiles().Where(file => !file.IsHidden()))
                     yield return f;
-                foreach (DirectoryInfo d in directory.GetDirectories().Where(dir => (dir.Attributes & FileAttributes.Hidden) == 0))
+                foreach (DirectoryInfo d in directory.GetDirectories().Where(dir => !dir.IsHidden()))
                 {
                     yield return d;
                     foreach (FileSystemInfo o in d.AllFilesAndFolders())
@@ -27,17 +29,35 @@ namespace NetworkLibrary.Extension
         public static IEnumerable<FileSystemInfo> AllFilesAndFoldersLinq(this DirectoryInfo dir)
         {
             return dir.EnumerateFileSystemInfos("*", SearchOption.AllDirectories).AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount)
-                .AsUnordered().Where(info => (info.Attributes & FileAttributes.Hidden) == 0);
+                .AsUnordered().Where(info => !info.IsHidden());
         }
 
         public static IEnumerable<string> GetMediaFilesList(string directoryPath)
         {
+            if (!Directory.Exists(directoryPath))
+                return null;
+
             // Define a set of valid extensions for media quick lookup
             HashSet<string> validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".mp3", ".aac", ".ts" };
 
             return Directory.EnumerateFiles(directoryPath, "*.*")
                             .Where(s => validExtensions.Contains(Path.GetExtension(s)) && !File.GetAttributes(s)
-                            .HasFlag(FileAttributes.Hidden));
+                            .HasFlag(hiddenAttribute));
+        }
+
+        public static bool IsHidden(this FileSystemInfo fileSystemInfo)
+        {
+            return (fileSystemInfo.Attributes & hiddenAttribute) == hiddenAttribute;
+        }
+
+        public static bool IsHidden(this DirectoryInfo directorySystemInfo)
+        {
+            return (directorySystemInfo.Attributes & hiddenAttribute) == hiddenAttribute;
+        }
+
+        public static bool IsHidden(this FileInfo fileInfo)
+        {
+            return (fileInfo.Attributes & hiddenAttribute) == hiddenAttribute;
         }
 
         /// <summary>
@@ -88,28 +108,25 @@ namespace NetworkLibrary.Extension
         {
             try
             {
-                if (Directory.Exists(directoryPath))
+                IEnumerable<string> MediaPaths = GetMediaFilesList(directoryPath);
+
+                if (MediaPaths != null && MediaPaths.Any())
                 {
-                    IEnumerable<string> MediaPaths = GetMediaFilesList(directoryPath);
+                    StringBuilder builder = new StringBuilder();
 
-                    if (MediaPaths?.Any() == true)
+                    // Add M3U header
+                    builder.AppendLine("#EXTM3U");
+
+                    foreach (string mediaPath in MediaPaths)
                     {
-                        StringBuilder builder = new StringBuilder();
+                        string fileName = Path.GetFileName(mediaPath);
 
-                        // Add M3U header
-                        builder.AppendLine("#EXTM3U");
-
-                        foreach (string mediaPath in MediaPaths)
-                        {
-                            string fileName = Path.GetFileName(mediaPath);
-
-                            // Add the song path to the playlist
-                            builder.AppendLine($"#EXTINF:,-1,{fileName}");
-                            builder.AppendLine(httpdirectoryrequest + $"/{fileName}");
-                        }
-
-                        return builder.ToString();
+                        // Add the song path to the playlist
+                        builder.AppendLine($"#EXTINF:,-1,{fileName}");
+                        builder.AppendLine(httpdirectoryrequest + $"/{fileName}");
                     }
+
+                    return builder.ToString();
                 }
             }
             catch (Exception ex)
