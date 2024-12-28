@@ -110,6 +110,8 @@ namespace HTTPServer
                             if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTP] - Client loop thrown an assertion: {ex}");
                         }
                     }
+
+                    requests.Clear();
                 }
                 catch (Exception ex)
                 {

@@ -135,9 +135,12 @@ namespace NetworkLibrary.Extension
             return (false, null);
         }
 
-        public static Stream ToStream(this string str)
+        public static Stream ToStream(this string str, Encoding encoding = null)
         {
-            return new MemoryStream(Encoding.UTF8.GetBytes(str));
+            if (encoding == null)
+                encoding = Encoding.UTF8;
+
+            return new MemoryStream(encoding.GetBytes(str));
         }
 
         /// <summary>

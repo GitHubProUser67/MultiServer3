@@ -105,62 +105,64 @@ namespace SVO
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
                 listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, securePort));
                 listener.Start();
+
+                HashSet<Task> requests = new();
+                for (int i = 0; i < MaxConcurrentListeners; i++)
+                    requests.Add(listener.GetContextAsync());
+
+                // wait for requests
+                while (threadActive)
+                {
+                    try
+                    {
+                        if (!threadActive) break;
+
+                        Task t = await Task.WhenAny(requests);
+
+                        if (t is Task<HttpListenerContext>)
+                        {
+                            HttpListenerContext? ctx = null;
+
+                            try
+                            {
+                                ctx = (t as Task<HttpListenerContext>)?.Result;
+                            }
+                            catch (AggregateException ex)
+                            {
+                                ex.Handle(innerEx =>
+                                {
+                                    if (innerEx is TaskCanceledException)
+                                        return true; // Indicate that the exception was handled
+
+                                    LoggerAccessor.LogWarn($"[SVO] - HttpListenerContext Task thrown an AggregateException: {ex}");
+
+                                    return false;
+                                });
+                            }
+
+                            _ = Task.Run(() => ProcessContext(ctx));
+                        }
+
+                        requests.Remove(t);
+                        requests.Add(listener.GetContextAsync());
+                    }
+                    catch (HttpListenerException e)
+                    {
+                        if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - A HttpListenerException Occured: " + e.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
+                    }
+                }
+
+                requests.Clear();
             }
             catch (Exception e)
             {
                 LoggerAccessor.LogError("[SVO] - An Exception Occured while starting the http server: " + e.Message);
                 threadActive = false;
                 return;
-            }
-
-            HashSet<Task> requests = new();
-            for (int i = 0; i < MaxConcurrentListeners; i++)
-                requests.Add(listener.GetContextAsync());
-
-            // wait for requests
-            while (threadActive)
-            {
-                try
-                {
-                    if (!threadActive) break;
-
-                    Task t = await Task.WhenAny(requests);
-
-                    if (t is Task<HttpListenerContext>)
-                    {
-                        HttpListenerContext? ctx = null;
-
-                        try
-                        {
-                            ctx = (t as Task<HttpListenerContext>)?.Result;
-                        }
-                        catch (AggregateException ex)
-                        {
-                            ex.Handle(innerEx =>
-                            {
-                                if (innerEx is TaskCanceledException)
-                                    return true; // Indicate that the exception was handled
-
-                                LoggerAccessor.LogWarn($"[SVO] - HttpListenerContext Task thrown an AggregateException: {ex}");
-
-                                return false;
-                            });
-                        }
-
-                        _ = Task.Run(() => ProcessContext(ctx));
-                    }
-
-                    requests.Remove(t);
-                    requests.Add(listener.GetContextAsync());
-                }
-                catch (HttpListenerException e)
-                {
-                    if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - A HttpListenerException Occured: " + e.Message);
-                }
-                catch (Exception e)
-                {
-                    LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
-                }
             }
         }
 
