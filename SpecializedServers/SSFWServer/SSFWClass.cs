@@ -658,6 +658,12 @@ namespace SSFWServer
                                     Response.SetBody();
                                 }
                                 break;
+                            case "OPTIONS":
+                                Response.Clear();
+                                Response.SetBegin(200);
+                                Response.SetHeader("Allow", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
+                                Response.SetBody();
+                                break;
                             case "POST":
                                 byte InventoryEntryType = 0;
                                 string? userId = null;
