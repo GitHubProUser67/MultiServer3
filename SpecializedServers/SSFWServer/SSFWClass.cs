@@ -18,6 +18,13 @@ namespace SSFWServer
     {
         private const string LoginGUID = "bb88aea9-6bf8-4201-a6ff-5d1f8da0dd37";
 
+        // Defines a list of web-related file extensions
+        private static HashSet<string> allowedWebExtensions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            ".html", ".htm", ".cgi", ".css", ".js", ".svg", ".gif", ".ico", ".woff", ".woff2", ".ttf", ".eot"
+        };
+
+
         private static string? legacykey;
         private static SSFWServer? _Server;
         private static HttpSSFWServer? _HttpServer;
@@ -617,14 +624,17 @@ namespace SSFWServer
                         switch (request.Method)
                         {
                             case "GET":
-                                switch (absolutepath)
+                                try
                                 {
-                                    case "/AddMiniItem.html":
+                                    string? extension = Path.GetExtension(filePath);
+
+                                    if (!string.IsNullOrEmpty(extension) && allowedWebExtensions.Contains(extension))
+                                    {
                                         if (File.Exists(filePath))
                                         {
                                             Response.Clear();
                                             Response.SetBegin(200);
-                                            Response.SetContentType("text/html; charset=utf-8");
+                                            Response.SetContentType(HTTPProcessor.GetMimeType(extension, HTTPProcessor._mimeTypes));
                                             Response.SetBody(File.ReadAllBytes(filePath), encoding);
                                         }
                                         else
@@ -633,13 +643,19 @@ namespace SSFWServer
                                             Response.SetBegin(404);
                                             Response.SetBody();
                                         }
-                                        
-                                        break;
-                                    default:
+                                    }
+                                    else
+                                    {
                                         Response.Clear();
                                         Response.SetBegin(403);
                                         Response.SetBody();
-                                        break;
+                                    }
+                                }
+                                catch
+                                {
+                                    Response.Clear();
+                                    Response.SetBegin(500);
+                                    Response.SetBody();
                                 }
                                 break;
                             case "POST":
