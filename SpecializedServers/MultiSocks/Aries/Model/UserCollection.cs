@@ -6,7 +6,7 @@ namespace MultiSocks.Aries.Model
     public class UserCollection
     {
         protected ConcurrentDictionary<int, AriesUser> Users = new();
-        protected Queue<int> UserIdsQueue = new(); // To maintain insertion order
+        protected ConcurrentQueue<int> UserIdsQueue = new(); // To maintain insertion order
 
         public List<AriesUser> GetAll()
         {
@@ -49,7 +49,7 @@ namespace MultiSocks.Aries.Model
             if (Users.ContainsKey(user.ID))
             {
                 Users.Remove(user.ID, out _);
-                UserIdsQueue = new Queue<int>(UserIdsQueue.Where(id => id != user.ID));
+                UserIdsQueue = new ConcurrentQueue<int>(UserIdsQueue.Where(id => id != user.ID));
             }
         }
 
