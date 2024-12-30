@@ -82,6 +82,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             string md5hash = DotNetHasher.ComputeMD5String(Encoding.UTF8.GetBytes(input1 + "**MyC1TY1sTH3be5T!!!!!!!!!!!!!!"));
             string sha512hash = DotNetHasher.ComputeSHA512String(Encoding.UTF8.GetBytes("1L0veH0mmmmeT1c000000nnnnn!!!!!" + input2));
             string result = (md5hash.Substring(1, 8) + sha512hash.Substring(2, 4) + md5hash.Substring(10, 4) + sha512hash.Substring(16, 4) + sha512hash.Substring(19, 16)).ToLower();
+            StringBuilder stringBuilder = new StringBuilder();
 
             // Use a dictionary to map characters 'a' to 'f' to specific numbers
             Dictionary<char, char> charMapping = new Dictionary<char, char>
@@ -95,25 +96,16 @@ namespace WebAPIService.HELLFIRE.Helpers
             };
 
             // Replace characters in the result based on the mapping
-            StringBuilder stringBuilder = new StringBuilder();
 
             foreach (char c in result)
             {
                 if (charMapping.TryGetValue(c, out char mappedChar))
-                {
                     stringBuilder.Append(mappedChar);
-                }
                 else
-                {
                     stringBuilder.Append(c);
-                }
             }
 
-            result = stringBuilder.ToString();
-
-            stringBuilder = null;
-
-            return result;
+            return stringBuilder.ToString();
         }
     }
 }

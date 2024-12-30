@@ -4,12 +4,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml;
-using WebAPIService.VEEMEE;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
@@ -34,11 +30,9 @@ namespace WebAPIService.HELLFIRE.Helpers
                     ms.Flush();
                 }
 
-                DateTime CurrentTime = DateTime.Now;
-#if DEBUG
-                LoggerAccessor.LogInfo($"CreatedBuilding with Type {Type} Orientation {Orientation} TownID {TownID} Index {Index}");
-#endif
                 string filePath = $"{WorkPath}/TYCOON/User_Data/{UserID}/Town_{TownID}.xml";
+                DateTime CurrentTime = DateTime.Now;
+
                 if (File.Exists(filePath))
                 {
                     File.WriteAllText(
@@ -74,10 +68,8 @@ namespace WebAPIService.HELLFIRE.Helpers
                     ms.Flush();
                 }
 
-#if DEBUG
-                LoggerAccessor.LogInfo($"BuildingData: {BuildingDataEncoded} \n TotalPop: {TotalPopulation}");
-#endif
                 string filePath = $"{WorkPath}/TYCOON/User_Data/{UserID}/Town_{TownID}.xml";
+
                 if (File.Exists(filePath))
                 {
                     List<BuildingData> buildingDataList = JsonConvert.DeserializeObject<List<BuildingData>>(BuildingDataEncoded);
@@ -98,24 +90,16 @@ namespace WebAPIService.HELLFIRE.Helpers
                             string orientation = match.Groups[3].Value;
                             string index = match.Groups[4].Value;
                             string type = match.Groups[5].Value;
-#if DEBUG
-                            LoggerAccessor.LogInfo($"Building Index: {bIdxAppend} Updated with {BuildingData.Money} money, {BuildingData.WorkersSpent} WorkersSpent, {BuildingData.Population} population");
-#endif
+
                             // Build the updated XML
                             string updatedXml = $@"<{tileIndex}><TimeBuilt>{timeBuilt}</TimeBuilt><Orientation>{orientation}</Orientation><Index>{index}</Index><Type>{type}</Type><WorkersSpent>{BuildingData.WorkersSpent}</WorkersSpent><Money>{BuildingData.Money}</Money><Population>{BuildingData.Population}</Population></{tileIndex}>";
 
                             File.WriteAllText(filePath, userTown.Replace(match.Value, updatedXml));
                         }
                         else
-                        {
-                            LoggerAccessor.LogWarn("No building match found.");
-                        }
-
+                            LoggerAccessor.LogWarn($"[TownProcessor] - No building match found for file: {filePath}.");
                     }
-                    
                 }
-
-                //return $"<Response><TimeBuilt>{CurrentTime}</TimeBuilt><Orientation>{Orientation}</Orientation><Index>{Index}</Index><Type>{Type}</Type></Response>";
 
                 return "<Response></Response>";
             }
