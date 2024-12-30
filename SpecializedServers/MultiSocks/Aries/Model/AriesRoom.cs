@@ -78,8 +78,7 @@ namespace MultiSocks.Aries.Model
         {
             lock (ChallengeMap)
             {
-                var byMe = ChallengeMap.Where(x => x.Value._From == user.PersonaName).ToList();
-                foreach (var chal in byMe)
+                foreach (var chal in ChallengeMap.Where(x => x.Value._From == user.PersonaName).ToList())
                 {
                     ChallengeMap.Remove(chal.Key);
                 }

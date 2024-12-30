@@ -1,7 +1,8 @@
 using CustomLogger;
-using NetworkLibrary.Extension;
 using MultiSocks.Aries.Messages;
 using MultiSocks.ProtoSSL;
+using NetworkLibrary.Extension;
+using NetworkLibrary.Extension.Csharp;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -16,7 +17,7 @@ namespace MultiSocks.Aries
         public string listenIP = string.Empty;
         public int SessionID = 1;
         public VulnerableCertificateGenerator? SSLCache = null;
-        public List<AriesClient> DirtySocksClients = new();
+        public ConcurrentList<AriesClient> DirtySocksClients = new();
         public TcpListener? Listener;
 
         private bool secure = false;
@@ -90,29 +91,24 @@ namespace MultiSocks.Aries
 
         public virtual void AddClient(AriesClient client)
         {
-            lock (DirtySocksClients)
-                DirtySocksClients.Add(client);
+            DirtySocksClients.Add(client);
         }
 
         public virtual void RemoveClient(AriesClient client)
         {
-            lock (DirtySocksClients)
-                DirtySocksClients.Remove(client);
+            DirtySocksClients.Remove(client);
         }
 
         public void Broadcast(AbstractMessage msg)
         {
-            lock (DirtySocksClients)
+            foreach (AriesClient user in DirtySocksClients)
             {
-                foreach (AriesClient? user in DirtySocksClients)
-                {
-                    user.PingSendTick = DateTime.Now.Ticks;
-                    user.SendMessage(msg);
-                }
+                user.PingSendTick = DateTime.Now.Ticks;
+                user.SendMessage(msg);
             }
         }
 
-        public virtual void HandleMessage(string name, byte[] data, AriesClient client)
+        public virtual void HandleMessage(string name, Span<byte> data, AriesClient client)
         {
             try
             {

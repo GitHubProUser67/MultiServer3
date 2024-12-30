@@ -1362,14 +1362,14 @@ namespace HTTPServer
 
                         if (response.HttpStatusCode == HttpStatusCode.OK)
                         {
-                            response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                            response.Headers.TryAdd("Date", DateTime.Now.ToString("r"));
                             if (!string.IsNullOrEmpty(EtagMD5))
                             {
                                 response.Headers.Add("ETag", EtagMD5);
                                 response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                             }
                             if (hasFilePath)
-                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath!).ToString("r"));
+                                response.Headers.TryAdd("Last-Modified", File.GetLastWriteTime(filePath!).ToString("r"));
                         }
 
                         if (!response.Headers.Keys.Any(key => key.Equals("content-length", StringComparison.OrdinalIgnoreCase)))

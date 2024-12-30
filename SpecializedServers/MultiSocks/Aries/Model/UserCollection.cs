@@ -5,12 +5,21 @@ namespace MultiSocks.Aries.Model
 {
     public class UserCollection
     {
+        private readonly object _Lock = new();
+
         protected ConcurrentDictionary<int, AriesUser> Users = new();
-        protected ConcurrentQueue<int> UserIdsQueue = new(); // To maintain insertion order
+        protected Queue<int> UserIdsQueue = new(); // To maintain insertion order
 
         public List<AriesUser> GetAll()
         {
-            return UserIdsQueue.Select(id => Users[id]).ToList();
+            IEnumerable<AriesUser> userQueue;
+
+            lock (_Lock)
+            {
+                userQueue = UserIdsQueue.Select(id => Users[id]);
+            }
+
+            return userQueue.ToList();
         }
 
         public virtual bool AddUser(AriesUser? user, string VERS = "")
@@ -18,13 +27,16 @@ namespace MultiSocks.Aries.Model
             if (user == null)
                 return false;
 
-            lock (Users)
+            if (Users.TryAdd(user.ID, user))
             {
-                Users.TryAdd(user.ID, user);
-                UserIdsQueue.Enqueue(user.ID);
+                lock (_Lock)
+                {
+                    UserIdsQueue.Enqueue(user.ID);
+                }
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public virtual bool AddUserWithRoomMesg(AriesUser? user, string VERS = "")
@@ -32,13 +44,16 @@ namespace MultiSocks.Aries.Model
             if (user == null)
                 return false;
 
-            lock (Users)
+            if (Users.TryAdd(user.ID, user))
             {
-                Users.TryAdd(user.ID, user);
-                UserIdsQueue.Enqueue(user.ID);
+                lock (_Lock)
+                {
+                    UserIdsQueue.Enqueue(user.ID);
+                }
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public virtual void RemoveUser(AriesUser? user)
@@ -46,10 +61,12 @@ namespace MultiSocks.Aries.Model
             if (user == null)
                 return;
 
-            if (Users.ContainsKey(user.ID))
+            if (Users.Remove(user.ID, out _))
             {
-                Users.Remove(user.ID, out _);
-                UserIdsQueue = new ConcurrentQueue<int>(UserIdsQueue.Where(id => id != user.ID));
+                lock (_Lock)
+                {
+                    UserIdsQueue = new Queue<int>(UserIdsQueue.Where(id => id != user.ID));
+                }
             }
         }
 
@@ -64,12 +81,12 @@ namespace MultiSocks.Aries.Model
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            return Users.FirstOrDefault(x => x.Value.Username == name).Value;
+            return Users.Values.FirstOrDefault(x => x.Username == name);
         }
 
         public AriesUser? GetUserByPersonaName(string name)
         {
-            return Users.FirstOrDefault(x => x.Value.PersonaName == name).Value;
+            return Users.Values.FirstOrDefault(x => x.PersonaName == name);
         }
 
         public int Count()
@@ -79,10 +96,9 @@ namespace MultiSocks.Aries.Model
 
         public void Broadcast(AbstractMessage msg)
         {
-            foreach (var user in Users)
-            {
-                user.Value.Connection?.SendMessage(msg);
-            }
+            Users.Values
+                .ToList()
+                .ForEach(x => x.Connection?.SendMessage(msg));
         }
     }
 }
