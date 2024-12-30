@@ -45,15 +45,11 @@ namespace HTTPSecureServerLite
         private readonly ushort port;
 
         #region Domains
-
         private readonly static List<string> HPDDomains = new() {
                                     "prd.destinations.scea.com",
                                     "pre.destinations.scea.com",
                                     "qa.destinations.scea.com",
-                                    "dev.destinations.scea.com",
-                                    "holdemeu.destinations.scea.com",
-                                    "holdemna.destinations.scea.com",
-                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
+                                    "dev.destinations.scea.com"
                                 };
 
         private readonly static List<string> CAPONEDomains = new() {
@@ -72,6 +68,16 @@ namespace HTTPSecureServerLite
                                     "www.ndreamshs.com",
                                     "www.ndreamsportal.com",
                                     "nDreams-multiserver-cdn"
+                                };
+
+        private readonly static List<string> HellFireGamesDomains = new()
+                                {
+                                    "game.hellfiregames.com",
+                                    "game2.hellfiregames.com",
+                                    "holdemqa.destinations.scea.com",
+                                    "holdemeu.destinations.scea.com",
+                                    "holdemna.destinations.scea.com",
+                                    "c93f2f1d-3946-4f37-b004-1196acf599c5.scalr.ws"
                                 };
 
         private readonly static List<string> HTSDomains = new() {
@@ -391,7 +397,9 @@ namespace HTTPSecureServerLite
                             // Process the request based on the HTTP method
                             string filePath = Path.Combine(!HTTPSServerConfiguration.DomainFolder ? HTTPSServerConfiguration.HTTPSStaticFolder : HTTPSServerConfiguration.HTTPSStaticFolder + '/' + Host, absolutepath[1..]);
 
-                            string apiPath = Path.Combine(HTTPSServerConfiguration.APIStaticFolder, absolutepath[1..]);
+                            string apiRootPathWithURIPath = Path.Combine(HTTPSServerConfiguration.APIStaticFolder, absolutepath[1..]);
+                            //For HF to trim the url path out the combine, we don't need it for that api
+                            string apiRootPath = HTTPSServerConfiguration.APIStaticFolder;
 
                             if ((absolutepath == "/" || absolutepath == "\\") && request.Method.ToString() == "GET")
                             {
@@ -503,7 +511,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 
-                                (byte[]?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.ContentLength > 0 ? request.DataAsBytes : null, request.ContentType, HTTPSServerConfiguration.APIStaticFolder);
+                                (byte[]?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.ContentLength > 0 ? request.DataAsBytes : null, request.ContentType, apiRootPath);
                                 if (res.Item1 == null || res.Item1.Length == 0)
                                     statusCode = HttpStatusCode.InternalServerError;
                                 else
@@ -531,8 +539,8 @@ namespace HTTPSecureServerLite
                             || absolutepath.Contains("/gateway/")))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
-                                string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiPath, $"{(secure ? "https" : "http")}://nDreams-multiserver-cdn/", $"{(secure ? "https" : "http")}://{Host}{request.Url.RawWithQuery}", absolutepath,
-                                    HTTPSServerConfiguration.APIStaticFolder, Host).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiRootPath, $"{(secure ? "https" : "http")}://nDreams-multiserver-cdn/", $"{(secure ? "https" : "http")}://{Host}{request.Url.RawWithQuery}", absolutepath,
+                                    apiRootPath, Host).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -553,11 +561,11 @@ namespace HTTPSecureServerLite
                             #endregion
 
                             #region Hellfire Games API
-                            else if (Host == "game2.hellfiregames.com" && absolutepath.EndsWith(".php"))
+                            else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php"))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                                string res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                string res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -591,7 +599,7 @@ namespace HTTPSecureServerLite
                                 int version = 0;
                                 #endregion
 
-                                string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                                string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPathWithURIPath);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -642,7 +650,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
 
-                                string? res = new LOOTClass(request.Method.ToString(), absolutepath, apiPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                string? res = new LOOTClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -670,9 +678,9 @@ namespace HTTPSecureServerLite
                                 string? res = null;
                                 JUGGERNAUTClass juggernaut = new(request.Method.ToString(), absolutepath);
                                 if (request.ContentLength > 0)
-                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), HTTPSServerConfiguration.APIStaticFolder, request.DataAsBytes, request.ContentType);
+                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath, request.DataAsBytes, request.ContentType);
                                 else
-                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), HTTPSServerConfiguration.APIStaticFolder);
+                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath);
 
                                 juggernaut.Dispose();
                                 if (res == null)
@@ -710,7 +718,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
-                                string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder, fullurl).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, apiRootPath, fullurl).ProcessRequest(request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -735,7 +743,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
 
-                                (byte[]?, string?, string[][]?) res = res = new FROMSOFTWAREClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                (byte[]?, string?, string[][]?) res = res = new FROMSOFTWAREClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType);
 
                                 if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
                                     statusCode = HttpStatusCode.InternalServerError;
@@ -837,7 +845,6 @@ namespace HTTPSecureServerLite
                             }
                             #endregion
 
-
                             #region gsconnect API
                             else if (Host == "gsconnect.ubisoft.com")
                             {
@@ -882,7 +889,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
 
-                                string? res = new CDMClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, apiPath);
+                                string? res = new CDMClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPath);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -907,7 +914,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
 
-                                string? res = new CAPONEClass(request.Method.ToString(), absolutepath, HTTPSServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, true);
+                                string? res = new CAPONEClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, true);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -926,7 +933,6 @@ namespace HTTPSecureServerLite
                                     sent = await response.Send(res);
                             }
                             #endregion
-
 
                             #region HTS Samples API
                             else if (HTSDomains.Contains(Host))

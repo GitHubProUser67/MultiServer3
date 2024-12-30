@@ -1,6 +1,5 @@
 using System;
 using TycoonServer.HFProcessors;
-using WebAPIService.HELLFIRE.Helpers;
 using WebAPIService.HELLFIRE.HFProcessors;
 
 namespace WebAPIService.HELLFIRE
@@ -45,9 +44,21 @@ namespace WebAPIService.HELLFIRE
                             return ClearasilSkaterRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
                         #endregion
 
+                        #region SlimJim Rescue
+                        case "/SlimJim/Main.php":
+                            return SlimJimRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                        #endregion
+
                         #region Novus Primus Prime
                         case "/Main.php":
-                            //return NovusPrimeRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                            return NovusPrimeRequestProcessor.ProcessMainPHP(PostData, ContentType, null, workpath);
+                        #endregion
+
+                        #region 
+                        case "/PokerMain.php":
+                        case "/DevPokerServer/PokerMain.php":
+                        case "/PokerServer/PokerMain.php":
+                            return PokerServerRequestProcessor.ProcessPokerMainPHP(PostData, ContentType, null, workpath);
                         #endregion
 
                         #region Giftinator

@@ -1,3 +1,4 @@
+using CustomLogger;
 using MultiSocks.Aries.Model;
 
 namespace MultiSocks.Aries.Messages
@@ -42,12 +43,22 @@ namespace MultiSocks.Aries.Messages
             int? parsedMaxSize = int.TryParse(GetInputCacheValue("MAXSIZE"), out int maxSize) ? maxSize : null;
             int? parsedPriv = int.TryParse(GetInputCacheValue("PRIV"), out int priv) ? priv : null;
 
+            if (user.Connection.VERS == "FLM/A1")
+            {
+                SEED = "0";
+                CUSTFLAGS = "0";
+                parsedPriv = 0;
+            }
+
             // Check if any of the nullable variables are null before calling CreateGame
             if (parsedMinSize.HasValue && parsedMaxSize.HasValue && !string.IsNullOrEmpty(CUSTFLAGS) &&
                 !string.IsNullOrEmpty(PARAMS) && !string.IsNullOrEmpty(NAME) && parsedPriv.HasValue &&
                 !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(SYSFLAGS) && !string.IsNullOrEmpty(user.Username))
             {
-                AriesGame? game = mc.Games.AddGame(parsedMaxSize.Value, parsedMinSize.Value, CUSTFLAGS, PARAMS, NAME, parsedPriv.Value != 0, SEED, SYSFLAGS, PASS, 0);
+                AriesGame? game = mc.Games.GetGameByName(NAME, PASS);
+
+
+                game ??= mc.Games.AddGame(parsedMaxSize.Value, parsedMinSize.Value, CUSTFLAGS, PARAMS, NAME, parsedPriv.Value != 0, SEED, SYSFLAGS, PASS, 0);
 
                 if (game != null)
                 {
