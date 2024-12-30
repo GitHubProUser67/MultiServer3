@@ -116,9 +116,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     BuildingToAddEntry.InnerText = data.GetParameterValue("BuildingName");
 
                                     userProfileUnlockNode.AppendChild(BuildingToAddEntry);
-#if DEBUG
-                                    LoggerAccessor.LogInfo($"Building to add: {BuildingName}");
-#endif
                                 }
                                 break;
                             case "RemoveUnlocked":
@@ -131,10 +128,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                         if (buildingNode != null)
                                         {
                                             doc.DocumentElement.SelectSingleNode("//Unlocked").RemoveChild(buildingNode);
-
-#if DEBUG
-                                            LoggerAccessor.LogInfo($"Building removed: {data.GetParameterValue("BuildingName")}");
-#endif
                                         }
                                         else
                                         {
@@ -143,7 +136,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogInfo("Unlocked node not found in the XML.");
+                                        LoggerAccessor.LogWarn("Unlocked node not found in the XML.");
                                     }
                                 }
                                 break;
@@ -196,9 +189,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     BuildingToAddEntry.InnerText = data.GetParameterValue("ActivityName");
 
                                     userProfileFlagNode.AppendChild(BuildingToAddEntry);
-#if DEBUG
-                                    LoggerAccessor.LogInfo($"Activity to add: {ActivityName}");
-#endif
                                 }
                                 break;
                             case "RemoveActivity":
@@ -213,18 +203,15 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                                             // Save the updated XML back to the file
                                             File.WriteAllText(profilePath, doc.InnerXml);
-#if DEBUG
-                                            LoggerAccessor.LogInfo($"Activity removed: {data.GetParameterValue("ActivityName")}");
-#endif
                                         }
                                         else
                                         {
-                                            LoggerAccessor.LogInfo($"Activity not found: {data.GetParameterValue("ActivityName")}");
+                                            LoggerAccessor.LogWarn($"Activity not found: {data.GetParameterValue("ActivityName")}");
                                         }
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogInfo("Activities node not found in the XML.");
+                                        LoggerAccessor.LogWarn("Activities node not found in the XML.");
                                     }
                                 }
                                 break;
@@ -241,9 +228,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                                 {
                                     try
                                     {
-#if DEBUG
-                    LoggerAccessor.LogInfo($"missionNode to Remove: {MissionName}");
-#endif
                                         var MissionsNode = doc.DocumentElement.SelectSingleNode("//Missions");
                                         var userProfileMissionsNode = MissionsNode.SelectSingleNode(data.GetParameterValue("MissionName"));
                                         MissionsNode.RemoveChild(userProfileMissionsNode);
@@ -276,18 +260,15 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                                             // Save the updated XML back to the file
                                             File.WriteAllText(profilePath, doc.InnerXml);
-#if DEBUG
-                                            LoggerAccessor.LogInfo($"Mission from Journal removed: {data.GetParameterValue("ActivityName")}");
-#endif
                                         }
                                         else
                                         {
-                                            LoggerAccessor.LogInfo($"Mission not found: {data.GetParameterValue("MissionName")}");
+                                            LoggerAccessor.LogWarn($"Mission not found: {data.GetParameterValue("MissionName")}");
                                         }
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogInfo("Journal node not found in the XML.");
+                                        LoggerAccessor.LogWarn("Journal node not found in the XML.");
                                     }
                                 }
                                 break;

@@ -397,9 +397,10 @@ namespace HTTPSecureServerLite
                             // Process the request based on the HTTP method
                             string filePath = Path.Combine(!HTTPSServerConfiguration.DomainFolder ? HTTPSServerConfiguration.HTTPSStaticFolder : HTTPSServerConfiguration.HTTPSStaticFolder + '/' + Host, absolutepath[1..]);
 
-                            string apiRootPathWithURIPath = Path.Combine(HTTPSServerConfiguration.APIStaticFolder, absolutepath[1..]);
                             //For HF to trim the url path out the combine, we don't need it for that api
                             string apiRootPath = HTTPSServerConfiguration.APIStaticFolder;
+
+                            string apiRootPathWithURIPath = Path.Combine(apiRootPath, absolutepath[1..]);
 
                             if ((absolutepath == "/" || absolutepath == "\\") && request.Method.ToString() == "GET")
                             {
@@ -539,7 +540,7 @@ namespace HTTPSecureServerLite
                             || absolutepath.Contains("/gateway/")))
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
-                                string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiRootPath, $"{(secure ? "https" : "http")}://nDreams-multiserver-cdn/", $"{(secure ? "https" : "http")}://{Host}{request.Url.RawWithQuery}", absolutepath,
+                                string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiRootPathWithURIPath, $"{(secure ? "https" : "http")}://nDreams-multiserver-cdn/", $"{(secure ? "https" : "http")}://{Host}{request.Url.RawWithQuery}", absolutepath,
                                     apiRootPath, Host).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                 {
