@@ -347,10 +347,9 @@ namespace SSFWServer
                                 break;
                             case "POST":
 
-                                #region SSFW Login
-
                                 if (request.BodyLength <= Array.MaxLength)
                                 {
+                                    #region SSFW Login
                                     byte[] postbuffer = request.BodyBytes;
                                     if (absolutepath == $"/{LoginGUID}/login/token/psn")
                                     {
@@ -745,6 +744,45 @@ namespace SSFWServer
                                         {
                                             Response.SetBegin(403);
                                             Response.SetBody("Invalid sessionid attribute was used!", encoding);
+                                        }
+                                        break;
+                                    case "/WebService/GetMini/":
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+                                        env = GetHeaderValue(Headers, "env", false);
+                                        userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
+
+                                        if (!string.IsNullOrEmpty(userId))
+                                        {
+                                            string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
+
+                                            if (File.Exists(miniPath))
+                                            {
+                                                Response.Clear();
+
+                                                try
+                                                {
+                                                    Response.SetBegin(200);
+                                                    Response.SetContentType("application/json; charset=utf-8");
+                                                    Response.SetBody(File.ReadAllBytes(miniPath), encoding);
+                                                }
+                                                catch
+                                                {
+                                                    Response.SetBegin(500);
+                                                    Response.SetBody($"Error while reading the mini file for User: {sessionId} on env:{env}!", encoding);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(403);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Response.Clear();
+                                            Response.SetBegin(403);
+                                            Response.SetBody($"User: {sessionId} is not connected!", encoding);
                                         }
                                         break;
                                     case "/WebService/AddMiniItem/":
