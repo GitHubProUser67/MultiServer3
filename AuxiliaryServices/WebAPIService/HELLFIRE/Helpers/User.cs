@@ -4,15 +4,13 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
     public class User
     {
-        public static string DefaultHomeTycoonProfile = @"<NewPlayer>1</NewPlayer>
+        public const string DefaultHomeTycoonProfile = @"<NewPlayer>1</NewPlayer>
             <TotalCollected>0.000000</TotalCollected>
             <Wallet>5000.000000</Wallet>
             <Workers>99.000000</Workers>
@@ -29,7 +27,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             <Flags></Flags>
             <Inventory></Inventory>";
 
-        public static string DefaultNovusPrimeProfile = @"
+        public const string DefaultNovusPrimeProfile = @"
             <CharData>
                 <Nebulon>0</Nebulon>
                 <TotalNebulonEver>0</TotalNebulonEver>
@@ -56,15 +54,15 @@ namespace WebAPIService.HELLFIRE.Helpers
             <DailyAvailable>
             </DailyAvailable>";
 
-        public static string DefaultClearasilSkaterAndSlimJimProfile = "<BestScoreStage1>0</BestScoreStage1><BestScoreStage2>0</BestScoreStage2><LeaderboardScore>0</LeaderboardScore>";
-        public static string DefaultPokerProfile = "<Bankroll>1000</Bankroll><NewPlayer>1</NewPlayer>";
-
+        public const string DefaultClearasilSkaterAndSlimJimProfile = "<BestScoreStage1>0</BestScoreStage1><BestScoreStage2>0</BestScoreStage2><LeaderboardScore>0</LeaderboardScore>";
+        public const string DefaultPokerProfile = "<Bankroll>1000</Bankroll><NewPlayer>1</NewPlayer>";
 
         public static string GetUserHomeTycoon(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
             string profilePath = $"{WorkPath}/TYCOON/User_Data/{UserID}/Profile.xml";
 
             string xmlProfile;
+
             if (File.Exists(profilePath))
                 xmlProfile = File.ReadAllText(profilePath);
             else
@@ -104,16 +102,15 @@ namespace WebAPIService.HELLFIRE.Helpers
                         {
                             case "AddUnlocked":
                                 {
+                                    string BuildingName = data.GetParameterValue("BuildingName");
                                     var userProfileUnlockNode = doc.SelectSingleNode("//Unlocked");
 
                                     //We check if HomeTycoon sends multiple AddUnlockeds for same building.. we don't need dupe entries.
-                                    if (userProfileUnlockNode.SelectSingleNode(data.GetParameterValue("BuildingName")) != null)
-                                    {
+                                    if (userProfileUnlockNode.SelectSingleNode(BuildingName) != null)
                                         return "<Response></Response>";
-                                    }
 
-                                    XmlElement BuildingToAddEntry = doc.CreateElement(data.GetParameterValue("BuildingName"));
-                                    BuildingToAddEntry.InnerText = data.GetParameterValue("BuildingName");
+                                    XmlElement BuildingToAddEntry = doc.CreateElement(BuildingName);
+                                    BuildingToAddEntry.InnerText = BuildingName;
 
                                     userProfileUnlockNode.AppendChild(BuildingToAddEntry);
                                 }
@@ -124,45 +121,42 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                                     if (userProfileUnlockNode != null)
                                     {
-                                        var buildingNode = userProfileUnlockNode.SelectSingleNode(data.GetParameterValue("BuildingName"));
+                                        string buildingName = data.GetParameterValue("BuildingName");
+
+                                        var buildingNode = userProfileUnlockNode.SelectSingleNode(buildingName);
                                         if (buildingNode != null)
-                                        {
                                             doc.DocumentElement.SelectSingleNode("//Unlocked").RemoveChild(buildingNode);
-                                        }
                                         else
-                                        {
-                                            LoggerAccessor.LogWarn($"Building not found: {data.GetParameterValue("BuildingName")}");
-                                        }
+                                            LoggerAccessor.LogWarn($"[HELLFIRE] - User - Building not found: {buildingName}");
                                     }
                                     else
-                                    {
-                                        LoggerAccessor.LogWarn("Unlocked node not found in the XML.");
-                                    }
+                                        LoggerAccessor.LogWarn($"[HELLFIRE] - User - Unlocked node not found in the XML");
                                 }
                                 break;
                             case "AddDialog":
                                 {
+                                    string DialogName = data.GetParameterValue("DialogName");
+
                                     var userProfileDialogNode = doc.SelectSingleNode("//Dialogs");
-                                    XmlElement DialogToAdd = doc.CreateElement(data.GetParameterValue("DialogName"));
-                                    DialogToAdd.InnerText = data.GetParameterValue("DialogName");
+                                    XmlElement DialogToAdd = doc.CreateElement(DialogName);
+                                    DialogToAdd.InnerText = DialogName;
                                     userProfileDialogNode.AppendChild(DialogToAdd);
                                 }
                                 break;
                             case "CompleteDialog":
                                 {
-                                    var userProfileDialogNode = doc.DocumentElement.SelectSingleNode("//Dialogs").SelectSingleNode(data.GetParameterValue("DialogName"));
-                                    doc.DocumentElement.SelectSingleNode("//Dialogs").RemoveChild(userProfileDialogNode);
-#if DEBUG
-                                    LoggerAccessor.LogInfo($"Removed Dialog {data.GetParameterValue("DialogName")}");
-#endif
+                                    doc.DocumentElement.SelectSingleNode("//Dialogs").RemoveChild(
+                                        doc.DocumentElement.SelectSingleNode("//Dialogs").SelectSingleNode(data.GetParameterValue("DialogName")));
                                 }
                                 break;
                             case "AddVehicle":
                                 {
+                                    string VehicleName = data.GetParameterValue("VehicleName");
+
                                     // Update the profile values from the provided data
                                     var userProfileVehicleNode = doc.SelectSingleNode("//Vehicles");
-                                    XmlElement VeicleToAdd = doc.CreateElement(data.GetParameterValue("VehicleName"));
-                                    VeicleToAdd.InnerText = data.GetParameterValue("VehicleName");
+                                    XmlElement VeicleToAdd = doc.CreateElement(VehicleName);
+                                    VeicleToAdd.InnerText = VehicleName;
                                     userProfileVehicleNode.AppendChild(VeicleToAdd);
                                 }
                                 break;
@@ -175,18 +169,21 @@ namespace WebAPIService.HELLFIRE.Helpers
                                 break;
                             case "AddInventory":
                                 {
+                                    string BuildingID = data.GetParameterValue("BuildingID");
+
                                     var userProfileInvNode = doc.SelectSingleNode("//Inventory");
-                                    XmlElement BuildingToAdd = doc.CreateElement(data.GetParameterValue("BuildingID"));
-                                    BuildingToAdd.InnerText = data.GetParameterValue("BuildingID");
+                                    XmlElement BuildingToAdd = doc.CreateElement(BuildingID);
+                                    BuildingToAdd.InnerText = BuildingID;
                                     userProfileInvNode.AppendChild(BuildingToAdd);
                                 }
                                 break;
                             case "AddActivity":
                                 {
+                                    string ActivityName = data.GetParameterValue("ActivityName");
                                     var userProfileFlagNode = doc.SelectSingleNode("//Activities");
 
-                                    XmlElement BuildingToAddEntry = doc.CreateElement(data.GetParameterValue("ActivityName"));
-                                    BuildingToAddEntry.InnerText = data.GetParameterValue("ActivityName");
+                                    XmlElement BuildingToAddEntry = doc.CreateElement(ActivityName);
+                                    BuildingToAddEntry.InnerText = ActivityName;
 
                                     userProfileFlagNode.AppendChild(BuildingToAddEntry);
                                 }
@@ -196,7 +193,9 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     var userProfileActivitiesNode = doc.DocumentElement.SelectSingleNode("//Activities");
                                     if (userProfileActivitiesNode != null)
                                     {
-                                        var buildingNode = userProfileActivitiesNode.SelectSingleNode(data.GetParameterValue("ActivityName"));
+                                        string ActivityName = data.GetParameterValue("ActivityName");
+
+                                        var buildingNode = userProfileActivitiesNode.SelectSingleNode(ActivityName);
                                         if (buildingNode != null)
                                         {
                                             doc.DocumentElement.SelectSingleNode("//Activities").RemoveChild(buildingNode);
@@ -205,22 +204,20 @@ namespace WebAPIService.HELLFIRE.Helpers
                                             File.WriteAllText(profilePath, doc.InnerXml);
                                         }
                                         else
-                                        {
-                                            LoggerAccessor.LogWarn($"Activity not found: {data.GetParameterValue("ActivityName")}");
-                                        }
+                                            LoggerAccessor.LogWarn($"[HELLFIRE] - User - Activity not found: {ActivityName}");
                                     }
                                     else
-                                    {
-                                        LoggerAccessor.LogWarn("Activities node not found in the XML.");
-                                    }
+                                        LoggerAccessor.LogWarn("[HELLFIRE] - User - Activities node not found in the XML.");
                                 }
                                 break;
                             case "AddMission":
                                 {
+                                    string MissionName = data.GetParameterValue("MissionName");
+
                                     // Update the profile values from the provided data
                                     var userProfileMissionsNode = doc.SelectSingleNode("//Missions");
-                                    XmlElement MissionToAddEntry = doc.CreateElement(data.GetParameterValue("MissionName"));
-                                    MissionToAddEntry.InnerText = data.GetParameterValue("MissionName");
+                                    XmlElement MissionToAddEntry = doc.CreateElement(MissionName);
+                                    MissionToAddEntry.InnerText = MissionName;
                                     userProfileMissionsNode.AppendChild(MissionToAddEntry);
                                 }
                                 break;
@@ -231,11 +228,10 @@ namespace WebAPIService.HELLFIRE.Helpers
                                         var MissionsNode = doc.DocumentElement.SelectSingleNode("//Missions");
                                         var userProfileMissionsNode = MissionsNode.SelectSingleNode(data.GetParameterValue("MissionName"));
                                         MissionsNode.RemoveChild(userProfileMissionsNode);
-
                                     }
                                     catch (Exception ex)
                                     {
-                                        LoggerAccessor.LogError($"Exception caught: {ex}");
+                                        LoggerAccessor.LogError($"[HELLFIRE] - User - CompleteMission: Exception caught: {ex}");
                                     }
                                 }
                                 break;
@@ -253,7 +249,9 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     var userProfileActivitiesNode = doc.DocumentElement.SelectSingleNode("//Journal");
                                     if (userProfileActivitiesNode != null)
                                     {
-                                        var buildingNode = userProfileActivitiesNode.SelectSingleNode(data.GetParameterValue("MissionName"));
+                                        string MissionName = data.GetParameterValue("MissionName");
+
+                                        var buildingNode = userProfileActivitiesNode.SelectSingleNode(MissionName);
                                         if (buildingNode != null)
                                         {
                                             doc.DocumentElement.SelectSingleNode("//Journal").RemoveChild(buildingNode);
@@ -262,14 +260,10 @@ namespace WebAPIService.HELLFIRE.Helpers
                                             File.WriteAllText(profilePath, doc.InnerXml);
                                         }
                                         else
-                                        {
-                                            LoggerAccessor.LogWarn($"Mission not found: {data.GetParameterValue("MissionName")}");
-                                        }
+                                            LoggerAccessor.LogWarn($"[HELLFIRE] - User - Mission not found: {MissionName}");
                                     }
                                     else
-                                    {
-                                        LoggerAccessor.LogWarn("Journal node not found in the XML.");
-                                    }
+                                        LoggerAccessor.LogWarn("[HELLFIRE] - User - Journal node not found in the XML.");
                                 }
                                 break;
                             case "AddFlag":
@@ -298,82 +292,82 @@ namespace WebAPIService.HELLFIRE.Helpers
                                                 doc.SelectSingleNode("//SilverCoins").InnerText = data.GetParameterValue("SilverCoins") ?? "0";
 
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                         case "BuyBuilding":
                                             {
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                         case "BuyWorkers":
                                             {
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                         case "BuyVehicles":
                                             {
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                         case "BuyExpansion":
                                             {
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                         case "BuyDollars":
                                             {
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                         case "BuySuburb":
                                             {
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                         case "BuyTimeOfDay":
                                             {
                                                 return $@"<Response>
-<ResponseCode>Success</ResponseCode>
-<TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
-<TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
-<SilverSpent>0</SilverSpent>
-<GoldSpent>{NumCoins}</GoldSpent>
-</Response>";
+                                                <ResponseCode>Success</ResponseCode>
+                                                <TotalSilver>{doc.SelectSingleNode("//SilverCoins").InnerText}</TotalSilver>
+                                                <TotalGold>{doc.SelectSingleNode("//GoldCoins").InnerText}</TotalGold>
+                                                <SilverSpent>0</SilverSpent>
+                                                <GoldSpent>{NumCoins}</GoldSpent>
+                                                </Response>";
                                             }
                                     }
 
@@ -473,7 +467,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[HFGAMES] User - An assertion was thrown in UpdateUser : {ex}");
+                LoggerAccessor.LogError($"[HELLFIRE] - User - An assertion was thrown in UpdateUser : {ex}");
             }
 
             return $"<Response>{updatedXMLProfile}</Response>";
@@ -521,7 +515,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[HFGAMES] User - An assertion was thrown in UpdateUser : {ex}");
+                LoggerAccessor.LogError($"[HELLFIRE] - User - An assertion was thrown in UpdateUser : {ex}");
             }
 
             return $"<Response>{updatedXMLProfile}</Response>";
@@ -534,12 +528,12 @@ namespace WebAPIService.HELLFIRE.Helpers
             string xmlProfile;
             if (File.Exists(profilePath))
             {
-                LoggerAccessor.LogInfo($"[HFGAMES] - Detected existing player data, sending!");
+                LoggerAccessor.LogInfo($"[HELLFIRE] - User - Detected existing player data, sending!");
                 xmlProfile = File.ReadAllText(profilePath);
             }
             else
             {
-                LoggerAccessor.LogInfo($"[HFGAMES] - New player with no player data! Using default!");
+                LoggerAccessor.LogInfo($"[[HELLFIRE] - User - New player with no player data! Using default!");
                 xmlProfile = DefaultNovusPrimeProfile;
             }
 
@@ -577,7 +571,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                         if (MissionNode.SelectSingleNode("MissionId").InnerText == newMissionId)
                         {
                             missionExists = true;
-                            LoggerAccessor.LogInfo($"Mission {newMissionId} already exists.");
                             break;
                         }
                     }
@@ -594,17 +587,14 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                         userProfileMissionsNode.AppendChild(newMissionNode);
 
-                        LoggerAccessor.LogInfo($"Mission {newMissionId} added.");
-
                         // Save the updated XML to file
                         File.WriteAllText(profilePath, doc.DocumentElement.InnerXml);
                     }
                 }
             }
             else
-            {
-                LoggerAccessor.LogInfo("Missions node not found in the XML.");
-            }
+                LoggerAccessor.LogWarn($"[HELLFIRE] - User - Missions node not found in the XML: {profilePath}.");
+
             return "<Response></Response>";
         }
 
@@ -814,7 +804,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[HFGAMES] User - An assertion was thrown in UpdateUser : {ex}");
+                LoggerAccessor.LogError($"[HELLFIRE] - User - An assertion was thrown in UpdateUser : {ex}");
             }
 
             return $"<Response></Response>";
@@ -857,7 +847,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[HFGAMES] User - An assertion was thrown in UpdateUser : {ex}");
+                LoggerAccessor.LogError($"[HELLFIRE] - User - An assertion was thrown in UpdateUser : {ex}");
             }
 
             return $"<Response>{updatedXMLProfile}</Response>";
@@ -870,12 +860,12 @@ namespace WebAPIService.HELLFIRE.Helpers
             string xmlProfile;
             if (File.Exists(profilePath))
             {
-                LoggerAccessor.LogInfo($"[HFGAMES] - Detected existing player data, sending!");
+                LoggerAccessor.LogInfo($"[HELLFIRE] - User - Detected existing player data, sending!");
                 xmlProfile = File.ReadAllText(profilePath);
             }
             else
             {
-                LoggerAccessor.LogInfo($"[HFGAMES] - New player with no player data! Using default!");
+                LoggerAccessor.LogInfo($"[HELLFIRE] - User - New player with no player data! Using default!");
                 xmlProfile = DefaultClearasilSkaterAndSlimJimProfile;
             }
 
@@ -887,16 +877,11 @@ namespace WebAPIService.HELLFIRE.Helpers
             string profilePath = $"{WorkPath}/SlimJim/User_Data/{UserID}.xml";
 
             string xmlProfile;
+
             if (File.Exists(profilePath))
-            {
-                LoggerAccessor.LogInfo($"[HFGAMES] - Detected existing player data, sending!");
                 xmlProfile = File.ReadAllText(profilePath);
-            }
             else
-            {
-                LoggerAccessor.LogInfo($"[HFGAMES] - New player with no player data! Using default!");
                 xmlProfile = DefaultClearasilSkaterAndSlimJimProfile;
-            }
 
             return $"<Response>{xmlProfile}</Response>";
         }
@@ -918,18 +903,12 @@ namespace WebAPIService.HELLFIRE.Helpers
                 }
             }
             
+            string xmlProfile;
 
-                string xmlProfile;
             if (File.Exists(profilePath))
-            {
-                LoggerAccessor.LogInfo($"[HFGAMES] - Detected existing poker player data, sending!");
                 xmlProfile = File.ReadAllText(profilePath);
-            }
             else
-            {
-                LoggerAccessor.LogInfo($"[HFGAMES] - New player with no poker player data! Using default!");
                 xmlProfile = DefaultPokerProfile;
-            }
 
             return $"<Response>{xmlProfile}</Response>";
         }
@@ -937,7 +916,6 @@ namespace WebAPIService.HELLFIRE.Helpers
         public static string UpdateUserPoker(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
             string Bankroll = string.Empty;
-
 
             if (PostData != null && !string.IsNullOrEmpty(boundary))
             {
@@ -951,7 +929,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 
             }
 
-                string xmlProfile = string.Empty;
+            string xmlProfile = string.Empty;
             string updatedXMLProfile = string.Empty;
 
             // Retrieve the user's JSON profile
@@ -989,7 +967,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             }
             catch (Exception ex)
             {
-                LoggerAccessor.LogError($"[HFGAMES] User - An assertion was thrown in UpdateUser : {ex}");
+                LoggerAccessor.LogError($"[HELLFIRE] - User - An assertion was thrown in UpdateUser : {ex}");
             }
 
             return $"<Response>{updatedXMLProfile}</Response>";

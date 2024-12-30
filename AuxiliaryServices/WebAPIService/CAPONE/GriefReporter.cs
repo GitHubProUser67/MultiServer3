@@ -42,7 +42,7 @@ namespace WebAPIService.CAPONE
                                 part.Data.CopyTo(fileStream);
                             }
 
-                            LoggerAccessor.LogInfo($"[CAPONE] GriefReporter - Written Evidence file {fileName} to {filePath} contentStore!");
+                            LoggerAccessor.LogInfo($"[CAPONE] - GriefReporter - Written Evidence file {fileName} to {filePath} contentStore!");
                         }
                     }
 

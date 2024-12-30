@@ -73,8 +73,6 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                             return Leaderboards.GetLeaderboardsSlimJim(PostData, boundary, UserID, WorkPath);
                         case "LogMetric":
                             return "<Response></Response>"; // We don't really care about Metrics just yet
-
-
                         case "QueryMotd":
                             return "<Response><Motd>Message of the Day!</Motd></Response>";
                         case "QueryServerGlobals":
