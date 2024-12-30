@@ -4,18 +4,12 @@ using HttpMultipartParser;
 using WebAPIService.HELLFIRE.Helpers;
 using System.IO;
 using System.Collections.Generic;
-using WebAPIService.HELLFIRE.Helpers.Poker;
-using WebAPIService.VEEMEE;
-using Org.BouncyCastle.Asn1.Cms;
 using System;
 
 namespace WebAPIService.HELLFIRE.HFProcessors
 {
     public class PokerServerRequestProcessor
     {
-        public List<PokerPlayer> pokerPlayers;
-
-
         public static string ProcessPokerMainPHP(byte[] PostData, string ContentType, string PHPSessionID, string WorkPath)
         {
             if (PostData == null || string.IsNullOrEmpty(ContentType))
@@ -80,8 +74,6 @@ namespace WebAPIService.HELLFIRE.HFProcessors
 
                     switch (Command)
                     {
-                        case "RequestNPTicket":
-                            return Helpers.Poker.NPTicket.RequestNPTicket(PostData, boundary, true);
                         case "RequestRewards":
                             
                             return @"<Response>
@@ -100,17 +92,18 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                             //Request InstanceID
 
                             //Response
-                            return @"<Response>
-    <Players>
-        <Player>
-            <TableNum>1</TableNum>
-            <SeatNum>2</SeatNum>
-            <Stack>5000</Stack>
-            <UserID>Dust514JumpDev</UserID>
-            <DisplayName>Dust514JumpDev</DisplayName>
-        </Player>
-    </Players>
-</Response>";
+                            return @"
+                            <Response>
+                                <Players>
+                                    <Player>
+                                        <TableNum>1</TableNum>
+                                        <SeatNum>2</SeatNum>
+                                        <Stack>5000</Stack>
+                                        <UserID>Dust514JumpDev</UserID>
+                                        <DisplayName>Dust514JumpDev</DisplayName>
+                                    </Player>
+                                </Players>
+                            </Response>";
                         case "RemoveTimedoutUsers":
                             return "<Response></Response>";
                         case "PlayerArrived":

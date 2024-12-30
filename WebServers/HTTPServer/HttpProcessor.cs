@@ -317,9 +317,10 @@ namespace HTTPServer
                                 // Process the request based on the HTTP method
                                 string filePath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
 
-                                string apiRootPathWithURIPath = Path.Combine(HTTPServerConfiguration.APIStaticFolder, absolutepath[1..]);
                                 //For HF to trim the url path out the combine, we don't need it for that api
                                 string apiRootPath = HTTPServerConfiguration.APIStaticFolder;
+
+                                string apiRootPathWithURIPath = Path.Combine(apiRootPath, absolutepath[1..]);
 
                                 if (response == null && HTTPServerConfiguration.plugins.Count > 0)
                                 {
@@ -517,7 +518,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
 
                                                 string? res = null;
-                                                NDREAMSClass ndreams = new(CurrentDate, Method, apiRootPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, HTTPServerConfiguration.APIStaticFolder, Host);
+                                                NDREAMSClass ndreams = new(CurrentDate, Method, apiRootPathWithURIPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, apiRootPath, Host);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -633,7 +634,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder, fulluripath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, apiRootPath, fulluripath).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -653,7 +654,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new FROMSOFTWAREClass(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    res = new FROMSOFTWAREClass(Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                     postdata.Flush();
                                                 }
                                                 if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
@@ -713,7 +714,7 @@ namespace HTTPServer
                                                         using MemoryStream postdata = new();
                                                         request.GetDataStream.CopyTo(postdata);
                                                         (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), apiRootPath)
                                                             .ProcessRequest(postdata.ToArray(), request.GetContentType());
                                                         postdata.Flush();
 
@@ -734,7 +735,7 @@ namespace HTTPServer
                                                     else
                                                     {
                                                         (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), HTTPServerConfiguration.APIStaticFolder)
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), apiRootPath)
                                                             .ProcessRequest(null, request.GetContentType());
 
                                                         if (string.IsNullOrEmpty(res.Item1))
@@ -764,7 +765,7 @@ namespace HTTPServer
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
 
                                                 (string?, string?, Dictionary<string, string>?) res;
-                                                gsconnectClass gsconn = new(Method, absolutepath, HTTPServerConfiguration.APIStaticFolder);
+                                                gsconnectClass gsconn = new(Method, absolutepath, apiRootPath);
                                                 if (request.GetDataStream != null)
                                                 {
                                                     using MemoryStream postdata = new();
@@ -811,7 +812,7 @@ namespace HTTPServer
                                                     {
                                                         using MemoryStream postdata = new();
                                                         request.GetDataStream.CopyTo(postdata);
-                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPath);
+                                                        res = new CDMClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
                                                         postdata.Flush();
                                                     }
                                                 }
@@ -820,7 +821,7 @@ namespace HTTPServer
 
                                                     using (MemoryStream postdata = new())
                                                     {
-                                                        res = new CDMClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPath);
+                                                        res = new CDMClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
                                                         postdata.Flush();
                                                     }
                                                 }
@@ -843,7 +844,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new CAPONEClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    res = new CAPONEClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -864,7 +865,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new HTSClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    res = new HTSClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
@@ -885,7 +886,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new ILoveSonyClass(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    res = new ILoveSonyClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
                                                     postdata.Flush();
                                                 }
                                                 if (string.IsNullOrEmpty(res))
