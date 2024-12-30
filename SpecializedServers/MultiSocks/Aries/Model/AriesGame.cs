@@ -4,6 +4,8 @@ namespace MultiSocks.Aries.Model
 {
     public class AriesGame
     {
+        private readonly object _Lock = new();
+
         public int MaxSize;
         public int MinSize;
         public int ID;
@@ -111,7 +113,7 @@ namespace MultiSocks.Aries.Model
         {
             Started = status;
 
-            lock (UsersCache)
+            lock (_Lock)
             {
                 if (status)
                     UsersCache = Users.GetAll();
@@ -180,34 +182,31 @@ namespace MultiSocks.Aries.Model
             int i = 0;
             Dictionary<string, string> PLAYERSLIST = new();
 
-            lock (UsersCache)
+            lock (_Lock)
             {
-                foreach (AriesUser? user in (Started && UsersCache.Count > 0) ? UsersCache : Users.GetAll())
+                foreach (AriesUser user in (Started && UsersCache.Count > 0) ? UsersCache.AsEnumerable() : Users.GetAll())
                 {
-                    if (user != null)
+                    PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
+                    PLAYERSLIST.Add($"OPPART{i}", "0");
+                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
+                    PLAYERSLIST.Add($"PRES{i}", "0");
+                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
+                    PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
+                    PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
+                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
+
+                    if (!string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5"))
                     {
-                        PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
-                        PLAYERSLIST.Add($"OPPART{i}", "0");
-                        PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                        PLAYERSLIST.Add($"PRES{i}", "0");
-                        PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                        PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
-                        PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
-                        PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-
-                        if (!string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5"))
+                        // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
+                        string PlayerColorModifer(int index, string param)
                         {
-                            // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
-                            string PlayerColorModifer(int index, string param)
-                            {
-                                return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", (i - 1).ToString() + ',');
-                            }
-
-                            PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
+                            return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", (i - 1).ToString() + ',');
                         }
-                        else
-                            PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
+
+                        PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
                     }
+                    else
+                        PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
 
                     i++;
                 }

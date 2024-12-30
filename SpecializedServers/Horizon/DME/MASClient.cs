@@ -16,9 +16,8 @@ namespace Horizon.DME
 {
     public class MASClient
     {
-        public TaskCompletionSource<bool> _masConnectionTaskCompletionSource = new();
-
         public bool IsConnected => _masChannel != null && _masChannel.Active && _masState > 0;
+        public bool IsAuthenticated => masConnected;
         public DateTime? TimeLostConnection { get; set; } = null;
         public string? SessionKey = null;
         public string? AccessKey = null;
@@ -37,6 +36,7 @@ namespace Horizon.DME
             AUTHENTICATED
         }
 
+        private bool masConnected;
         private DateTime _utcConnectionState;
         private MASConnectionState _masState = MASConnectionState.NO_CONNECTION;
 
@@ -44,6 +44,8 @@ namespace Horizon.DME
         private IChannel? _masChannel = null;
         private Bootstrap? _bootstrap = null;
         private ScertServerHandler? _scertHandler = null;
+
+        private CancellationTokenSource? ctsMPSQueue = null;
 
         private ConcurrentQueue<BaseScertMessage> _masRecvQueue { get; } = new();
         private ConcurrentQueue<BaseScertMessage> _masSendQueue { get; } = new();
@@ -57,6 +59,10 @@ namespace Horizon.DME
 
         public async Task Start()
         {
+            masConnected = false;
+
+            ctsMPSQueue = new();
+
             _group = new MultithreadEventLoopGroup();
             _scertHandler = new ScertServerHandler();
 
@@ -108,24 +114,44 @@ namespace Horizon.DME
 
             _ = Task.Run(async () =>
             {
-                Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(30)); // Set timeout to 30 seconds
+                try
+                {
+                    const byte maxNumOfRetries = 6;
+                    byte numOfRetries = 0;
 
-                if (await Task.WhenAny(_masConnectionTaskCompletionSource.Task, timeoutTask) == timeoutTask)
-                {
-                    LoggerAccessor.LogError("[DMEMediusManager] - Start() - Failed to authenticate with the MAS server within 30 seconds, aborting client...");
-                    await Stop(); // Status already as false.
-                }
-                else
-                {
+                    while (!masConnected)
+                    {
+                        await Task.Delay(1000);
+
+                        if (numOfRetries == maxNumOfRetries)
+                        {
+                            LoggerAccessor.LogError("[DMEMediusManager] - Start() - Failed to authenticate with the MAS server within 6 seconds, aborting client...");
+                            await Stop();
+                            return;
+                        }
+
+                        numOfRetries++;
+                    }
+
+                    MPSClient client = new MPSClient(ApplicationId, SessionKey, AccessKey);
+
                     lock (DmeClass.MPSManagersQueue)
                     {
                         if (!DmeClass.MPSManagersQueue.ContainsKey(ApplicationId))
-                            DmeClass.MPSManagersQueue.Add(ApplicationId, new MPSClient(ApplicationId, SessionKey, AccessKey));
+                            DmeClass.MPSManagersQueue.Add(ApplicationId, client);
                         else
-                            DmeClass.MPSManagersQueue[ApplicationId] = new MPSClient(ApplicationId, SessionKey, AccessKey); // Mostly placebo, unless you start 1000+ MAS for same appid at the same time...
+                            DmeClass.MPSManagersQueue[ApplicationId] = client; // Mostly placebo, unless you start 1000+ MAS for same appid at the same time...
                     }
                 }
-            });
+                catch (OperationCanceledException)
+                {
+                    LoggerAccessor.LogWarn("[DMEMediusManager] - Start() - MPS Queing Task was canceled.");
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[DMEMediusManager] - Start() - MPS Queing Task thrown an assertion: {ex}");
+                }
+            }, ctsMPSQueue.Token);
         }
 
         public async Task Stop()
@@ -141,23 +167,13 @@ namespace Horizon.DME
             _masRecvQueue.Clear();
             _masSendQueue.Clear();
             _masState = MASConnectionState.NO_CONNECTION;
-        }
 
-        public async Task StopAndClearStatus()
-        {
-            if (_masChannel != null)
+            if (ctsMPSQueue != null)
             {
-                await _masChannel.CloseAsync();
-                _masChannel = null;
+                ctsMPSQueue.Cancel();
+                ctsMPSQueue.Dispose();
+                ctsMPSQueue = null;
             }
-            if (_group != null)
-                await _group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
-
-            _masRecvQueue.Clear();
-            _masSendQueue.Clear();
-            _masState = MASConnectionState.NO_CONNECTION;
-
-            _masConnectionTaskCompletionSource.SetResult(false);
         }
 
         public bool CheckMASConnectivity()
@@ -166,6 +182,8 @@ namespace Horizon.DME
                 (_masState != MASConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
             {
                 LoggerAccessor.LogError("[DMEMediusManager] - HandleIncomingMessages() - MAS server is not authenticated!");
+                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                Stop().Wait();
                 return false;
             }
             else
@@ -424,7 +442,7 @@ namespace Horizon.DME
 
                         _masState = MASConnectionState.AUTHENTICATED;
 
-                        _masConnectionTaskCompletionSource.SetResult(true);
+                        masConnected = true;
 
                         break;
                     }

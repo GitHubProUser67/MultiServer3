@@ -21,7 +21,6 @@ namespace HTTPServer
         private readonly ConcurrentDictionary<int, TcpListener> _listeners = new();
         private readonly CancellationTokenSource _cts = null!;
         private readonly HttpProcessor Processor;
-        protected readonly int MaxConcurrentListeners = 4;
 
         #endregion
 
@@ -43,8 +42,6 @@ namespace HTTPServer
         {
             _ = Task.Run(async () =>
             {
-                int i = 0;
-
                 try
                 {
                     TcpListener listener = new(IPAddress.Any, listenerPort);
@@ -58,12 +55,9 @@ namespace HTTPServer
                         {
                             if (_cts.Token.IsCancellationRequested) break;
 
-                            for (i = 0; i < MaxConcurrentListeners; i++)
-                            {
-                                _ = Task.Run(async () => Processor.HandleClient(await listener.AcceptTcpClientAsync(_cts.Token).ConfigureAwait(false), listenerPort));
-                            }
+                            TcpClient? client = await listener.AcceptTcpClientAsync(_cts.Token).ConfigureAwait(false);
 
-                            await Task.Delay(1);
+                            _ = Task.Run(() => Processor.HandleClient(client, listenerPort));
                         }
                         catch (OperationCanceledException)
                         {

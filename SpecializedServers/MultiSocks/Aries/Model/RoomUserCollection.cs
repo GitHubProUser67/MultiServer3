@@ -135,8 +135,7 @@ namespace MultiSocks.Aries.Model
 
         public void RefreshUser(AriesUser target)
         {
-            PlusUser info = target.GetInfo();
-            Broadcast(info);
+            Broadcast(target.GetInfo());
         }
 
         public void ListToUser(AriesUser target)

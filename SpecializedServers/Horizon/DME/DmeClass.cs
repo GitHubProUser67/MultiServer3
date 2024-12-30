@@ -9,6 +9,8 @@ using System.Net;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
+using System.Collections.Concurrent;
+using NetworkLibrary.Extension.Csharp;
 
 
 namespace Horizon.DME
@@ -29,9 +31,10 @@ namespace Horizon.DME
 
         public static string DME_SERVER_VERSION = "3.05.0000";
 
+        public static ConcurrentList<int> MASReconnectQueue = new();
         public static Dictionary<int, MPSClient> MPSManagersQueue = new();
-        public static Dictionary<int, MPSClient> MPSManagers = new();
-        public static Dictionary<int, MASClient> MASManagers = new();
+        public static ConcurrentDictionary<int, MPSClient> MPSManagers = new();
+        public static ConcurrentDictionary<int, MASClient> MASManagers = new();
         public static TcpServer TcpServer = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
@@ -51,10 +54,14 @@ namespace Horizon.DME
                     // Copy the contents of MPSManagersQueue to MPSManagers
                     foreach (var kvp in MPSManagersQueue)
                     {
-                        if (!MPSManagers.ContainsKey(kvp.Key))
+                        int keyIdent = kvp.Key;
+
+                        if (!MPSManagers.ContainsKey(keyIdent))
                         {
-                            kvp.Value.Start().Wait();
-                            MPSManagers[kvp.Key] = kvp.Value;
+                            MPSManagers[keyIdent] = kvp.Value;
+                            _ = MPSManagers[keyIdent].Start();
+                            if (MASReconnectQueue.Contains(keyIdent))
+                                MASReconnectQueue.Remove(keyIdent);
                         }
                     }
 
@@ -71,19 +78,21 @@ namespace Horizon.DME
                         // Log and exit when unable to authenticate
                         LoggerAccessor.LogError("Unable to authenticate with the db middleware server");
 
+                        // disconnect All MAS clients.
+                        foreach (var manager in MASManagers)
+                        {
+                            if (manager.Value != null && manager.Value.IsConnected)
+                                await manager.Value.Stop();
+                        }
+
+                        MASManagers.Clear(); // We clear MAS connections.
+
                         // disconnect All MPS clients.
                         foreach (var manager in MPSManagers)
                             if (manager.Value != null && manager.Value.IsConnected)
                                 await manager.Value.Stop();
 
                         MPSManagers.Clear(); // We clear MPS connections.
-
-                        // Clear individual MAS Servers for re-auth.
-                        foreach (var manager in MASManagers)
-                        {
-                            if (manager.Value != null && manager.Value.IsConnected)
-                                await manager.Value.StopAndClearStatus();
-                        }
 
                         await Task.Delay(5000); // delay loop to give time before next authentication request
                         return;
@@ -96,15 +105,9 @@ namespace Horizon.DME
                         await RefreshAppSettings();
 
                         // connect/reconnect to MAS
-                        foreach (var manager in MASManagers)
-                            if (manager.Value != null && !manager.Value.IsConnected 
-                                && !manager.Value._masConnectionTaskCompletionSource.Task.IsCompleted) // We do not start/restart MAS if corresponding MPS is present.
-                                await manager.Value.Start();
-
-                        // connect/reconnect to MPS
-                        foreach (var manager in MPSManagers)
-                            if (manager.Value != null && !manager.Value.IsConnected)
-                                await manager.Value.Start();
+                        foreach (var manager in MASManagers.Values)
+                            if (manager != null && !manager.IsConnected && !manager.IsAuthenticated)
+                                await manager.Start();
                     }
                 }
 
@@ -139,21 +142,15 @@ namespace Horizon.DME
                 {
                      TcpServer.HandleIncomingMessages()
                 };
-            foreach (var manager in MASManagers)
+            foreach (var manager in MASManagers.Values)
             {
-                if (manager.Value.IsConnected)
-                {
-                    if (manager.Value.CheckMASConnectivity())
-                        InRequestsTasks.Add(manager.Value.HandleIncomingMessages());
-                }
+                if (manager.IsConnected && manager.CheckMASConnectivity())
+                    InRequestsTasks.Add(manager.HandleIncomingMessages());
             }
-            foreach (var manager in MPSManagers)
+            foreach (var manager in MPSManagers.Values)
             {
-                if (manager.Value.IsConnected)
-                {
-                    if (manager.Value.CheckMPSConnectivity())
-                        InRequestsTasks.Add(manager.Value.HandleIncomingMessages());
-                }
+                if (manager.IsConnected && manager.CheckMPSConnectivity())
+                    InRequestsTasks.Add(manager.HandleIncomingMessages());
             }
 
             await Task.WhenAll(InRequestsTasks);
@@ -166,16 +163,15 @@ namespace Horizon.DME
                 {
                      TcpServer.HandleOutgoingMessages()
                 };
-            foreach (var manager in MASManagers)
+            foreach (var manager in MASManagers.Values)
             {
-                if (manager.Value.IsConnected)
+                if (manager.IsConnected)
                 {
-                    if (manager.Value.CheckMASConnectivity())
-                        OutRequestsTasks.Add(manager.Value.HandleOutgoingMessages());
+                    if (manager.CheckMASConnectivity())
+                        OutRequestsTasks.Add(manager.HandleOutgoingMessages());
                 }
-                else if ((Utils.GetHighPrecisionUtcTime() - manager.Value.TimeLostConnection)?.TotalSeconds > Settings.ClientReconnectInterval
-                    && !manager.Value._masConnectionTaskCompletionSource.Task.IsCompleted) // We do not restart MAS if corresponding MPS is present.
-                    OutRequestsTasks.Add(manager.Value.Start());
+                else if (!manager.IsAuthenticated && (Utils.GetHighPrecisionUtcTime() - manager.TimeLostConnection)?.TotalSeconds > Settings.ClientReconnectInterval)
+                    OutRequestsTasks.Add(manager.Start());
             }
             foreach (var manager in MPSManagers)
             {
@@ -185,7 +181,27 @@ namespace Horizon.DME
                         OutRequestsTasks.Add(manager.Value.HandleOutgoingMessages());
                 }
                 else if ((Utils.GetHighPrecisionUtcTime() - manager.Value.TimeLostConnection)?.TotalSeconds > Settings.ClientReconnectInterval)
-                    OutRequestsTasks.Add(manager.Value.Start());
+                {
+                    int applicationId = manager.Key;
+
+                    if (MASManagers.ContainsKey(applicationId))
+                    {
+                        if (MASReconnectQueue.Contains(applicationId))
+                            continue;
+
+                        MASReconnectQueue.Add(applicationId);
+                        MPSManagers.Remove(applicationId, out _);
+
+                        var masClient = MASManagers[applicationId];
+
+                        if (masClient.IsConnected)
+                            await masClient.Stop();
+
+                        OutRequestsTasks.Add(masClient.Start());
+                    }
+                    else
+                        LoggerAccessor.LogError($"[DmeClass] - MPS Client timed-out, but no MAS servers exists for it! (ApplicationId: {applicationId})");
+                }
             }
 
             await Task.WhenAll(OutRequestsTasks);
@@ -208,7 +224,7 @@ namespace Horizon.DME
             started = false;
 
             await TcpServer.Stop();
-            await Task.WhenAll(MASManagers.Select(x => x.Value.StopAndClearStatus()));
+            await Task.WhenAll(MASManagers.Select(x => x.Value.Stop()));
             await Task.WhenAll(MPSManagers.Select(x => x.Value.Stop()));
         }
 
@@ -238,12 +254,9 @@ namespace Horizon.DME
                 LoggerAccessor.LogInfo($"TCP started.");
 
                 // build and start medius managers per app id
-                foreach (var applicationId in Settings.ApplicationIds)
+                foreach (int applicationId in Settings.ApplicationIds)
                 {
-                    if (MASManagers.ContainsKey(applicationId))
-                        MASManagers[applicationId] =  new MASClient(applicationId);
-                    else
-                        MASManagers.Add(applicationId, new MASClient(applicationId));
+                    MASManagers.TryAdd(applicationId, new MASClient(applicationId));
                 }
 
                 LoggerAccessor.LogInfo("DME Initalized.");

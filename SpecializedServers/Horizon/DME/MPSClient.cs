@@ -185,6 +185,8 @@ namespace Horizon.DME
                 (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
             {
                 LoggerAccessor.LogError("[DMEMediusManager] - HandleIncomingMessages() - MPS server is not authenticated!");
+                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                Stop().Wait();
                 return false;
             }
             else

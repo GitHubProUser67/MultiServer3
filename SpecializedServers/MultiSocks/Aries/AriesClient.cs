@@ -26,17 +26,13 @@ namespace MultiSocks.Aries
         public bool CanAsyncGameSearch = false;
         public bool CanAsync = true;
 
-        private int ExpectedBytes = -1;
-        private bool InHeader;
         private readonly bool secure;
-        private SemaphoreSlim dequeueSemaphore = new(1, 1);
+        private readonly SemaphoreSlim dequeueSemaphore = new(1, 1);
         private readonly Timer timerDequeue;
         private readonly TcpClient ClientTcp;
-        private Stream? ClientStream;
         private readonly Thread RecvThread;
         private readonly ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
-        private byte[]? TempData = null;
-        private int TempDatOff;
+        private Stream? ClientStream;
         private string CommandName = "null";
 
         private (AsymmetricKeyParameter, Certificate, X509Certificate2) SecureKeyCert;
@@ -44,7 +40,7 @@ namespace MultiSocks.Aries
         public long PingSendTick;
         public int Ping;
 
-        private static int MAX_SIZE = 1024 * 1024 * 2;
+        private const int MAX_SIZE = 1024 * 1024 * 2;
 
         public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, bool WeakChainSignedRSAKey)
         {
@@ -107,7 +103,10 @@ namespace MultiSocks.Aries
             else
                 ClientStream = ClientTcp.GetStream();
 
-            int len = 0;
+            bool InHeader = false;
+            int len, TempDatOff = 0;
+            int ExpectedBytes = -1;
+            Span<byte> TempData = null;
             Span<byte> bytes = new byte[65536];
 
             try
@@ -130,7 +129,7 @@ namespace MultiSocks.Aries
                         if (TempData != null)
                         {
                             int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                            Array.Copy(bytes.ToArray(), off, TempData, TempDatOff, copyLen);
+                            bytes.Slice(off, copyLen).CopyTo(TempData.Slice(TempDatOff));
                             off += copyLen;
                             TempDatOff += copyLen;
                             len -= copyLen;
