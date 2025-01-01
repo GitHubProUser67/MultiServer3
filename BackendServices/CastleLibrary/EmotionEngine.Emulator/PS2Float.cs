@@ -40,21 +40,6 @@ namespace EmotionEngine.Emulator
             0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24
         };
 
-        public enum RoundingMode : byte
-        {
-            NearEven = 0,
-            MinMag = 1,
-            Min = 2,
-            Max = 3,
-            NearMaxMag = 4,
-            Odd = 6
-        }
-
-        /// <summary>
-        /// Gets or sets software floating-point rounding mode for Div.
-        /// </summary>
-        public RoundingMode DivRounding { get; set; } = RoundingMode.NearEven;
-
         public uint Raw { get; private set; }
 
         public bool[] BinaryMantissa => GetBinaryMantissa();
@@ -198,18 +183,7 @@ namespace EmotionEngine.Emulator
 
         public PS2Float Div(PS2Float divend)
         {
-            if (IsDenormalized() || divend.IsDenormalized())
-                return SolveDivisionDenormalizedOperation(this, divend);
-
-            if (IsAbnormal() && divend.IsAbnormal())
-                return SolveAbnormalMultiplicationOrDivisionOperation(this, divend, false);
-
-            if (IsZero())
-                return new PS2Float(DetermineMultiplicationDivisionOperationSign(this, divend), 0, 0);
-            else if (divend.IsZero())
-                return DetermineMultiplicationDivisionOperationSign(this, divend) ? Min() : Max();
-
-            return DoDiv(divend);
+            return new PS2Float(new FpgaDiv(true, Raw, divend.Raw).floatResult);
         }
 
         private PS2Float DoAdd(PS2Float other)
@@ -278,118 +252,12 @@ namespace EmotionEngine.Emulator
             return new PS2Float(sign | (uint)(resExponent << 23) | (resMantissa & 0x7FFFFF));
         }
 
-        // Rounding can be slightly off: (PS2: 0x3F800000 / 0x3F800001 = 0x3F7FFFFF | SoftFloat/IEEE754: 0x3F800000 / 0x3F800001 = 0x3F7FFFFE).
-        private PS2Float DoDiv(PS2Float other)
-        {
-            bool sign = DetermineMultiplicationDivisionOperationSign(this, other);
-            uint selfMantissa = Mantissa | 0x800000;
-            uint otherMantissa = other.Mantissa | 0x800000;
-            int resExponent = Exponent - other.Exponent + BIAS;
-            ulong selfMantissa64;
-
-            if (resExponent > 255)
-                return sign ? Min() : Max();
-            else if (resExponent <= 0)
-                return new PS2Float(sign, 0, 0);
-
-            if (selfMantissa < otherMantissa)
-            {
-                --resExponent;
-                if (resExponent == 0)
-                    return new PS2Float(sign, 0, 0);
-                selfMantissa64 = (ulong)selfMantissa << 31;
-            }
-            else
-                selfMantissa64 = (ulong)selfMantissa << 30;
-
-            uint resMantissa = (uint)(selfMantissa64 / otherMantissa);
-
-            if ((resMantissa & 0x3F) == 0)
-                resMantissa |= ((ulong)otherMantissa * resMantissa != selfMantissa64) ? 1U : 0;
-
-            RoundingMode roundingMode = DivRounding;
-            bool roundNearEven = roundingMode == RoundingMode.NearEven;
-            uint roundIncrement = (!roundNearEven && roundingMode != RoundingMode.NearMaxMag)
-                ? ((roundingMode == (sign ? RoundingMode.Min : RoundingMode.Max)) ? 0x7FU : 0)
-                : 0x40U;
-            uint roundBits = resMantissa & 0x7F;
-
-            if (0x80000000 <= resMantissa + roundIncrement)
-                return sign ? Min() : Max();
-
-            resMantissa = (resMantissa + roundIncrement) >> 7;
-            if (roundBits != 0)
-            {
-                if (roundingMode == RoundingMode.Odd)
-                {
-                    resMantissa |= 1;
-                    return new PS2Float(sign, (byte)resExponent, resMantissa);
-                }
-            }
-
-            resMantissa &= ~(((roundBits ^ 0x40) == 0 & roundNearEven) ? 1U : 0U);
-            if (resMantissa == 0)
-                resExponent = 0;
-
-            return new PS2Float(sign, (byte)resExponent, resMantissa);
-        }
-
-        // Rounding can be slightly off: (PS2: rsqrt(0x7FFFFFF0) -> 0x5FB504ED | SoftFloat/IEEE754 rsqrt(0x7FFFFFF0) -> 0x5FB504EE).
         /// <summary>
         /// Returns the square root of x
         /// </summary>
         public PS2Float Sqrt()
         {
-            int t;
-            int s = 0;
-            int q = 0;
-            uint r = 0x01000000; /* r = moving bit from right to left */
-
-            if (IsDenormalized())
-                return new PS2Float(0);
-
-            // PS2 only takes positive numbers for SQRT, and convert if necessary.
-            int ix = (int)new PS2Float(false, Exponent, Mantissa).Raw;
-
-            /* Extract mantissa and unbias exponent */
-            int m = (ix >> 23) - BIAS;
-
-            ix = (ix & 0x007FFFFF) | 0x00800000;
-            if ((m & 1) == 1)
-            {
-                /* odd m, double x to make it even */
-                ix += ix;
-            }
-
-            m >>= 1; /* m = [m/2] */
-
-            /* Generate sqrt(x) bit by bit */
-            ix += ix;
-
-            while (r != 0)
-            {
-                t = s + (int)r;
-                if (t <= ix)
-                {
-                    s = t + (int)r;
-                    ix -= t;
-                    q += (int)r;
-                }
-
-                ix += ix;
-                r >>= 1;
-            }
-
-            /* Use floating add to find out rounding direction */
-            if (ix != 0)
-            {
-                q += q & 1;
-            }
-
-            ix = (q >> 1) + 0x3F000000;
-            ix += m << 23;
-
-            return new PS2Float((uint)ix);
+            return new PS2Float(new FpgaDiv(false, 0, new PS2Float(false, Exponent, Mantissa).Raw).floatResult);
         }
 
         public PS2Float Pow(int exponent)
