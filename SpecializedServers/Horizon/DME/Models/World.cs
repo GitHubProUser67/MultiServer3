@@ -112,6 +112,8 @@ namespace Horizon.DME.Models
 
         private ConcurrentQueue<MediusServerJoinGameRequest> _requestQueue = new();
 
+        private readonly SemaphoreSlim _requestQueueSemaphore = new(1, 1);
+
         public MPSClient? Manager { get; } = null;
         
         public World(MPSClient manager, int appId, int maxPlayers, int GameChannelWorldId, int WorldId)
@@ -158,9 +160,19 @@ namespace Horizon.DME.Models
 
         public async Task HandleIncomingJoinGame()
         {
-            while (_requestQueue.TryDequeue(out MediusServerJoinGameRequest? request))
+            if (!_requestQueueSemaphore.Wait(0))
+                return;
+
+            try
             {
-                Manager?.Enqueue(await OnJoinGameRequest(request));
+                while (_requestQueue.TryDequeue(out MediusServerJoinGameRequest? request))
+                {
+                    Manager?.Enqueue(await OnJoinGameRequest(request).ConfigureAwait(false));
+                }
+            }
+            finally
+            {
+                _requestQueueSemaphore.Release();
             }
         }
 

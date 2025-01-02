@@ -1,4 +1,6 @@
-﻿namespace EmotionEngine.Emulator
+﻿using System;
+
+namespace EmotionEngine.Emulator
 {
     public class FpgaDiv
     {
@@ -30,7 +32,7 @@
             uint floatDivisor, floatDividend;
             int i, j, csaRes;
             int man = 0;
-            int csaVal = 1;
+            int QuotientValueDomain = 1;
 
             Product[0] = 1;
             Carry[25] = 1;
@@ -118,11 +120,11 @@
 
             for (i = 0; i <= 24; ++i)
             {
-                MultipleFormation(csaVal);
-                csaRes = CSAQSLAdder(csaVal);
-                ProductQuotientRestTransformation(i, csaVal);
+                MultipleFormation(QuotientValueDomain);
+                csaRes = CSAQSLAdder(QuotientValueDomain);
+                ProductQuotientRestTransformation(i, QuotientValueDomain);
                 Carry[25] = csaRes > 0 ? 1 : 0;
-                csaVal = csaRes;
+                QuotientValueDomain = csaRes;
             }
 
             int sign = SignCalc(Dvdtsign, Dvsrsign) ? 1 : 0;
@@ -243,13 +245,13 @@
             return result + 127;
         }
 
-        private int CSAQSLAdder(int csaVal)
+        private int CSAQSLAdder(int QuotientValueDomain)
         {
             int[] CarryArray = new int[4];
             int[] SumArray = new int[4];
             int i;
 
-            if (csaVal == 0)
+            if (QuotientValueDomain == 0)
             {
                 SumArray[0] = SubSum;
                 CarryArray[0] = SubCarry;
@@ -275,9 +277,9 @@
             }
             Sum[i - 1] = 0;
             Carry[i - 2] = 0;
-            Carry[i - 1] = ~csaVal;
+            Carry[i - 1] = ~QuotientValueDomain;
             Carry[i - 1] = (int)((uint)Carry[i - 1] >> 31);
-            if (csaVal != 0)
+            if (QuotientValueDomain != 0)
             {
                 SumArray[0] = SubSum0;
                 CarryArray[0] = SubCarry0;
@@ -292,13 +294,13 @@
             return QSLAdder(SumArray, CarryArray);
         }
 
-        private int QSLAdder(int[] Sum, int[] Carry)
+        private int QSLAdder(int[] SumArray, int[] CarryArray)
         {
             bool specialCondition = false;
             int result;
-            int claResult = CLAAdder(Sum, Carry);
+            int claResult = CLAAdder(SumArray, CarryArray);
 
-            if (Sum[3] == 1 || Carry[3] == 1 || (claResult % 2 != 0))
+            if (SumArray[3] == 1 || CarryArray[3] == 1 || (claResult % 2 != 0))
                 specialCondition = true;
 
             switch (claResult)
@@ -329,24 +331,24 @@
             return result;
         }
 
-        private void ProductQuotientRestTransformation(int increment, int csaVal)
+        private void ProductQuotientRestTransformation(int increment, int QuotientValueDomain)
         {
             int i;
 
             Product[increment] = 0;
             Product[increment + 1] = 1;
-            if (csaVal == 0)
+            if (QuotientValueDomain == 0)
                 Rest[increment] = 1;
             else
             {
-                if (csaVal == -1)
+                if (QuotientValueDomain == -1)
                 {
                     for (i = 0; i <= 25; i++)
                         Quotient[i] = Rest[i];
                     Quotient[increment] = 1;
                     return;
                 }
-                else if (csaVal == 1)
+                else if (QuotientValueDomain == 1)
                 {
                     for (i = 0; i <= 25; ++i)
                         Rest[i] = Quotient[i];
@@ -373,37 +375,37 @@
             }
         }
 
-        private int CLAAdder(int[] Sum, int[] Carry)
+        private int CLAAdder(int[] SumArray, int[] CarryArray)
         {
-            return (2 * Carry[1] + 4 * Carry[0] + Carry[2] + 2 * Sum[1] + 4 * Sum[0] + Sum[2]) % 8;
+            return (2 * CarryArray[1] + 4 * CarryArray[0] + CarryArray[2] + 2 * SumArray[1] + 4 * SumArray[0] + SumArray[2]) % 8;
         }
 
         private bool BitInvert(int val)
         {
-            return val <= 0;
+            return val < 1;
         }
 
-        private void MultipleFormation(int csaVal)
+        private void MultipleFormation(int QuotientValueDomain)
         {
             int i;
 
-            if (csaVal == 0)
+            if (QuotientValueDomain == 0)
             {
                 SubMult = 0;
                 for (i = 0; i <= 25; i++)
                     Mult[i] = 0;
             }
             else if (divMode)
-                DivideModeFormation(csaVal);
+                DivideModeFormation(QuotientValueDomain);
             else
-                RootModeFormation(csaVal);
+                RootModeFormation(QuotientValueDomain);
         }
 
-        private void DivideModeFormation(int csaVal)
+        private void DivideModeFormation(int QuotientValueDomain)
         {
             int i;
 
-            if (csaVal <= 0)
+            if (QuotientValueDomain <= 0)
             {
                 SubMult = 0;
                 for (i = 0; i <= 25; i++)
@@ -417,11 +419,11 @@
             }
         }
 
-        private void RootModeFormation(int csaVal)
+        private void RootModeFormation(int QuotientValueDomain)
         {
             int i;
 
-            if (csaVal <= 0)
+            if (QuotientValueDomain <= 0)
             {
                 SubMult = 0;
                 if (Product[0] == 1)
