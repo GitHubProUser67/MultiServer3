@@ -151,6 +151,7 @@ namespace SSFWServer
             {
                 bool IsRPCN = false;
                 string salt = string.Empty;
+                string? RPCNsessionIdFallback = null;
 
                 // Extract the desired portion of the binary data
                 byte[] extractedData = new byte[0x63 - 0x54 + 1];
@@ -202,7 +203,9 @@ namespace SSFWServer
                 // Append the trimmed hash to the result
                 ResultStrings.Item2 += hash;
 
-                SessionIDs.Item2 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item2);
+                string sessionIdFallback = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item2);
+
+                SessionIDs.Item2 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item2, SSFWServerConfiguration.SSFWSessionIdKey);
 
                 if (IsRPCN)
                 {
@@ -223,7 +226,9 @@ namespace SSFWServer
                     // Append the trimmed hash to the result
                     ResultStrings.Item1 += hash;
 
-                    SessionIDs.Item1 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1);
+                    RPCNsessionIdFallback = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1);
+
+                    SessionIDs.Item1 = GuidGenerator.SSFWGenerateGuid(hash, ResultStrings.Item1, SSFWServerConfiguration.SSFWSessionIdKey);
                 }
 
                 if (!string.IsNullOrEmpty(UserNames.Item1) && !SSFWServerConfiguration.SSFWCrossSave) // RPCN confirmed.
@@ -232,6 +237,8 @@ namespace SSFWServer
 
                     if (SSFWAccountManagement.AccountExists(UserNames.Item2, SessionIDs.Item2))
                         SSFWAccountManagement.CopyAccountProfile(UserNames.Item2, UserNames.Item1, SessionIDs.Item2, SessionIDs.Item1!, key);
+                    else if (SSFWAccountManagement.AccountExists(UserNames.Item2, sessionIdFallback))
+                        SSFWAccountManagement.CopyAccountProfile(UserNames.Item2, UserNames.Item1, sessionIdFallback, SessionIDs.Item1!, key);
                 }
                 else
                 {
@@ -244,8 +251,13 @@ namespace SSFWServer
 
                 if (logoncount <= 0)
                 {
-                    LoggerAccessor.LogError($"[SSFWLogin] - Invalid Account or LogonCount value for user: {(IsRPCN ? UserNames.Item1 : UserNames.Item2)}");
-                    return null;
+                    logoncount = SSFWAccountManagement.ReadOrMigrateAccount(extractedData, IsRPCN ? UserNames.Item1 : UserNames.Item2, IsRPCN ? RPCNsessionIdFallback : sessionIdFallback, key);
+
+                    if (logoncount <= 0)
+                    {
+                        LoggerAccessor.LogError($"[SSFWLogin] - Invalid Account or LogonCount value for user: {(IsRPCN ? UserNames.Item1 : UserNames.Item2)}");
+                        return null;
+                    }
                 }
 
                 if (IsRPCN && Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item2}") && !Directory.Exists($"{SSFWServerConfiguration.SSFWStaticFolder}/AvatarLayoutService/{env}/{ResultStrings.Item1}"))

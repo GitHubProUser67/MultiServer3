@@ -763,7 +763,7 @@ namespace SSFWServer
                                                 {
                                                     Response.SetBegin(200);
                                                     Response.SetContentType("application/json; charset=utf-8");
-                                                    Response.SetBody(File.ReadAllBytes(miniPath), encoding);
+                                                    Response.SetBody(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty, encoding);
                                                 }
                                                 catch
                                                 {
@@ -797,11 +797,15 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(File.ReadAllText(miniPath));
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
 
                                                 if (rewardsList != null)
                                                 {
-                                                    SSFWRewardsService.AddMiniEntry(rewardsList, uuid, InventoryEntryType);
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.AddMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    rewardService.Dispose();
 
                                                     try
                                                     {
@@ -850,14 +854,22 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(File.ReadAllText(miniPath));
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
 
                                                 if (rewardsList != null)
                                                 {
+                                                    Dictionary<string, byte> entriesToAdd = new();
+
                                                     foreach (string iteruuid in uuids)
                                                     {
-                                                        SSFWRewardsService.AddMiniEntry(rewardsList, iteruuid, InventoryEntryType);
+                                                        entriesToAdd.TryAdd(iteruuid, InventoryEntryType);
                                                     }
+
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.AddMiniEntries(rewardsList, entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    rewardService.Dispose();
 
                                                     try
                                                     {
@@ -906,11 +918,15 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(File.ReadAllText(miniPath));
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
 
                                                 if (rewardsList != null)
                                                 {
-                                                    SSFWRewardsService.RemoveMiniEntry(rewardsList, uuid, InventoryEntryType);
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.RemoveMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    rewardService.Dispose();
 
                                                     try
                                                     {
@@ -959,14 +975,22 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(File.ReadAllText(miniPath));
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
 
                                                 if (rewardsList != null)
                                                 {
+                                                    Dictionary<string, byte> entriesToRemove = new();
+
                                                     foreach (string iteruuid in uuids)
                                                     {
-                                                        SSFWRewardsService.RemoveMiniEntry(rewardsList, iteruuid, InventoryEntryType);
+                                                        entriesToRemove.TryAdd(iteruuid, InventoryEntryType);
                                                     }
+
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.RemoveMiniEntries(rewardsList, entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    rewardService.Dispose();
 
                                                     try
                                                     {

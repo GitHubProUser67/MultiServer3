@@ -4351,7 +4351,7 @@ namespace Horizon.LIBRARY.Database
                 result = await PostDbAsync<AuthenticationResponse>($"Account/authenticate", new AuthenticationRequest()
                 {
                     AccountName = username,
-                    Password = (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(password, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : password
+                    Password = (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(password, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : password
                 });
             }
             catch (Exception ex)
@@ -4382,7 +4382,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4416,7 +4416,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4454,12 +4454,12 @@ namespace Horizon.LIBRARY.Database
                     try
                     {
                         if (!string.IsNullOrEmpty(_dbAccessToken))
-                            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                         var response = await client.GetAsync($"{_settings.DatabaseUrl}/{route}");
 
                         // Deserialize on success
                         if (response.IsSuccessStatusCode)
-                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Decrypt(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCrypto.AuthIV) : await response.Content.ReadAsStringAsync());
+                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.DecryptCTR(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCrypto.AuthIV) : await response.Content.ReadAsStringAsync());
                     }
                     catch (Exception ex)
                     {
@@ -4488,7 +4488,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4522,7 +4522,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4556,7 +4556,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4565,7 +4565,7 @@ namespace Horizon.LIBRARY.Database
 
                         // Deserialize on success
                         if (response.IsSuccessStatusCode)
-                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Decrypt(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCrypto.AuthIV) : await response.Content.ReadAsStringAsync());
+                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.DecryptCTR(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCrypto.AuthIV) : await response.Content.ReadAsStringAsync());
                     }
                     catch (Exception ex)
                     {
@@ -4594,7 +4594,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4628,7 +4628,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4662,7 +4662,7 @@ namespace Horizon.LIBRARY.Database
                 using (var client = new HttpClient(handler))
                 {
                     if (!string.IsNullOrEmpty(_dbAccessToken))
-                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Encrypt(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", (!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.EncryptCTR(_dbAccessToken, _settings.DatabaseAccessKey, WebCrypto.AuthIV) : _dbAccessToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     try
@@ -4671,7 +4671,7 @@ namespace Horizon.LIBRARY.Database
 
                         // Deserialize on success
                         if (response.IsSuccessStatusCode)
-                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.Decrypt(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCrypto.AuthIV) : await response.Content.ReadAsStringAsync());
+                            result = JsonConvert.DeserializeObject<T>((!string.IsNullOrEmpty(_settings.DatabaseAccessKey)) ? WebCrypto.DecryptCTR(await response.Content.ReadAsStringAsync(), _settings.DatabaseAccessKey, WebCrypto.AuthIV) : await response.Content.ReadAsStringAsync());
                     }
                     catch (Exception ex)
                     {

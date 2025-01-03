@@ -18,11 +18,11 @@ namespace HTTPServer.RouteHandlers
         {
             bool isHtmlCompatible = !string.IsNullOrEmpty(Accept) && Accept.Contains("html");
 
-            if (Directory.Exists(filePath) && filePath.EndsWith("/"))
+            if (absolutepath.EndsWith("/") && Directory.Exists(filePath))
                 return (false, Handle_LocalDir(request, filePath, directoryUrl, noCompressCacheControl));
             else if (fileExists)
                 return (true, Handle_LocalFile(request, absolutepath, filePath, UserAgent, isHtmlCompatible, noCompressCacheControl));
-            else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
+            else if (isHtmlCompatible && !absolutepath.EndsWith("/") && Directory.Exists(filePath + "/"))
                 return (false, Handle_ApachePermanentRedirect(request, absolutepath, filePath, Host, noCompressCacheControl));
 
             if (GET && HTTPServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
