@@ -12,9 +12,7 @@ namespace SSFWServer
                 return -1;
 
             int logoncount = 1;
-
             string userprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json";
-
             string olduserprofilefile = $"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{sessionid}.json";
 
             if (File.Exists(olduserprofilefile))
@@ -31,6 +29,7 @@ namespace SSFWServer
                     {
                         // Modifying the object if needed
                         userData.LogonCount += 1;
+                        userData.Username = sessionid;
                         logoncount = userData.LogonCount;
                         File.WriteAllText($"{SSFWServerConfiguration.SSFWStaticFolder}/SSFW_Accounts/{username}.json", JsonConvert.SerializeObject(userData, Formatting.Indented));
                     }
