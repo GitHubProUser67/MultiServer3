@@ -5,11 +5,14 @@ using WebAPIService.HELLFIRE.Helpers;
 using System.IO;
 using System.Collections.Generic;
 using System;
+using WebAPIService.HELLFIRE.Helpers.Poker;
 
 namespace WebAPIService.HELLFIRE.HFProcessors
 {
     public class PokerServerRequestProcessor
     {
+        public List<PokerPlayer> pokerPlayers;
+
         public static string ProcessPokerMainPHP(byte[] PostData, string ContentType, string PHPSessionID, string WorkPath)
         {
             if (PostData == null || string.IsNullOrEmpty(ContentType))
@@ -66,14 +69,14 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                 // Convert to Unix timestamp
                 long unixTimestamp = new DateTimeOffset(futureTime).ToUnixTimeSeconds();
 
-
-
                 if (!string.IsNullOrEmpty(Command))
                 {
                     Directory.CreateDirectory($"{WorkPath}/Poker/User_Data");
 
                     switch (Command)
                     {
+                        case "RequestNPTicket":
+                            return Helpers.Poker.NPTicket.RequestNPTicket(PostData, boundary);
                         case "RequestRewards":
                             
                             return @"<Response>
@@ -135,42 +138,41 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                             //ResponseCode == SeatingNotOpen, UserNotInTourney
 
                             return $@"<Response>
-    <ResponseCode>Success</ResponseCode>
-    <InstanceID>1</InstanceID>
-    <Type>SITNGO_TYPE</Type>
-    <FinalTable>true</FinalTable>
-    <TableNum>1</TableNum>
-    <SeatNum>1</SeatNum>
-    <Buyin>50</Buyin>
-    <Stack>0</Stack>
-    <StartTime>{unixTimestamp}</StartTime>
-</Response>";
+                                        <ResponseCode>Success</ResponseCode>
+                                        <InstanceID>1</InstanceID>
+                                        <Type>SITNGO_TYPE</Type>
+                                        <FinalTable>true</FinalTable>
+                                        <TableNum>1</TableNum>
+                                        <SeatNum>1</SeatNum>
+                                        <Buyin>50</Buyin>
+                                        <Stack>0</Stack>
+                                        <StartTime>{unixTimestamp}</StartTime>
+                                    </Response>";
                         case "UserDailyAssignedSeat":
                             //InstanceID or UserID
                             //Type - SITNGO_TYPE, DAILY_TYPE, WEEKLY_TYPE
                             //FinalTable - true
                             //ResponseCode == SeatingNotOpen, UserNotInTourney
                             return $@"<Response>
-    <ResponseCode>Success</ResponseCode>
-    <InstanceID>1</InstanceID>
-    <Type>SITNGO_TYPE</Type>
-    <FinalTable>true</FinalTable>
-    <TableNum>1</TableNum>
-    <SeatNum>1</SeatNum>
-    <Buyin>50</Buyin>
-    <Stack>0</Stack>
-    <StartTime>{unixTimestamp}</StartTime>
-</Response>";
+                                        <ResponseCode>Success</ResponseCode>
+                                        <InstanceID>1</InstanceID>
+                                        <Type>SITNGO_TYPE</Type>
+                                        <FinalTable>true</FinalTable>
+                                        <TableNum>1</TableNum>
+                                        <SeatNum>1</SeatNum>
+                                        <Buyin>50</Buyin>
+                                        <Stack>0</Stack>
+                                        <StartTime>{unixTimestamp}</StartTime>
+                                    </Response>";
                         case "UserTourneyQueue":
                             //Request UserID
 
                             //Response StartTime
                             //Type - DAILY_TYPE, WEEKLY_TYPE
                             return @"<Response>
-    <StartTime>15</StartTime>
-    <Type>DAILY_TYPE</Type>
-</Response>";
-
+                                        <StartTime>15</StartTime>
+                                        <Type>DAILY_TYPE</Type>
+                                    </Response>";
 
                         case "SetInstanceUUID":
                             //Request 
@@ -190,21 +192,17 @@ namespace WebAPIService.HELLFIRE.HFProcessors
                             return "<Response><StartupValue>-4331</StartupValue></Response>";
 
                         case "RequestConfig":
-
-
-
                             return @"<Response>
-<SITNGO_LEVEL_MINS>25</SITNGO_LEVEL_MINS>
-<SITNGO_PRESEATING_MINS>50</SITNGO_PRESEATING_MINS>
-<SITNGO_MIN_PLAYERS>4</SITNGO_MIN_PLAYERS>
-<SITNGO_BB_FRACT>0.5</SITNGO_BB_FRACT>
-<DAILY_BB_FRACT>0.5</DAILY_BB_FRACT>
-<DAILY_START_STACK>50</DAILY_START_STACK>
-<DAILY_DURATION_MINS>50</DAILY_DURATION_MINS>
-<DAILY_LEVEL_MINS>50</DAILY_LEVEL_MINS>
-<DAILY_PRESEATING_MINS>50</DAILY_PRESEATING_MINS>
-</Response>";
-
+                                        <SITNGO_LEVEL_MINS>25</SITNGO_LEVEL_MINS>
+                                        <SITNGO_PRESEATING_MINS>50</SITNGO_PRESEATING_MINS>
+                                        <SITNGO_MIN_PLAYERS>4</SITNGO_MIN_PLAYERS>
+                                        <SITNGO_BB_FRACT>0.5</SITNGO_BB_FRACT>
+                                        <DAILY_BB_FRACT>0.5</DAILY_BB_FRACT>
+                                        <DAILY_START_STACK>50</DAILY_START_STACK>
+                                        <DAILY_DURATION_MINS>50</DAILY_DURATION_MINS>
+                                        <DAILY_LEVEL_MINS>50</DAILY_LEVEL_MINS>
+                                        <DAILY_PRESEATING_MINS>50</DAILY_PRESEATING_MINS>
+                                    </Response>";
 
                         case "TourneyGameStarted":
                             //InstanceID

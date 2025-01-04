@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WebAPIService.HELLFIRE.Helpers.Poker
+﻿namespace WebAPIService.HELLFIRE.Helpers.Poker
 {
     public struct PokerPlayer
     {
