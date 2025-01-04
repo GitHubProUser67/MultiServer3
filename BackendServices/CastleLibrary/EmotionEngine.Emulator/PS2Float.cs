@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
 
 namespace EmotionEngine.Emulator
 {
@@ -9,8 +11,6 @@ namespace EmotionEngine.Emulator
         public const uint SIGNMASK = 0x80000000;
         public const uint MAX_FLOATING_POINT_VALUE = 0x7FFFFFFF;
         public const uint MIN_FLOATING_POINT_VALUE = uint.MaxValue;
-        public const uint POSITIVE_INFINITY_VALUE = 0x7F800000;
-        public const uint NEGATIVE_INFINITY_VALUE = 0xFF800000;
         public const uint ONE = 0x3F800000;
         public const uint MIN_ONE = 0xBF800000;
         public const int IMPLICIT_LEADING_BIT_POS = 23;
@@ -42,10 +42,14 @@ namespace EmotionEngine.Emulator
 
         public uint Raw { get; private set; }
 
-        public bool[] BinaryMantissa => GetBinaryMantissa();
         public uint Mantissa => Raw & 0x7FFFFF;
         public byte Exponent => (byte)((Raw >> 23) & 0xFF);
         public bool Sign => ((Raw >> 31) & 1) != 0;
+
+        public bool dz = false;
+        public bool iv = false;
+        public bool of = false;
+        public bool uf = false;
 
         public PS2Float(uint raw)
         {
@@ -90,14 +94,11 @@ namespace EmotionEngine.Emulator
             if (IsDenormalized() || addend.IsDenormalized())
                 return SolveAddSubDenormalizedOperation(this, addend, true);
 
-            if (IsAbnormal() && addend.IsAbnormal())
-                return SolveAbnormalAdditionOrSubtractionOperation(this, addend, true);
-
             uint a = Raw;
             uint b = addend.Raw;
 
             // Exponent difference
-            int expDiff = ((int)(a >> 23) & 0xFF) - ((int)(b >> 23) & 0xFF);
+            int expDiff = Exponent - addend.Exponent;
 
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
@@ -131,14 +132,11 @@ namespace EmotionEngine.Emulator
             if (IsDenormalized() || subtrahend.IsDenormalized())
                 return SolveAddSubDenormalizedOperation(this, subtrahend, false);
 
-            if (IsAbnormal() && subtrahend.IsAbnormal())
-                return SolveAbnormalAdditionOrSubtractionOperation(this, subtrahend, false);
-
             uint a = Raw;
             uint b = subtrahend.Raw;
 
             // Exponent difference
-            int expDiff = ((int)(a >> 23) & 0xFF) - ((int)(b >> 23) & 0xFF);
+            int expDiff = Exponent - subtrahend.Exponent;
 
             // diff = 25 .. 255 , expt < expd
             if (expDiff >= 25)
@@ -172,9 +170,6 @@ namespace EmotionEngine.Emulator
             if (IsDenormalized() || mulend.IsDenormalized())
                 return SolveMultiplicationDenormalizedOperation(this, mulend);
 
-            if (IsAbnormal() && mulend.IsAbnormal())
-                return SolveAbnormalMultiplicationOrDivisionOperation(this, mulend, true);
-
             if (IsZero() || mulend.IsZero())
                 return new PS2Float(DetermineMultiplicationDivisionOperationSign(this, mulend), 0, 0);
 
@@ -183,7 +178,13 @@ namespace EmotionEngine.Emulator
 
         public PS2Float Div(PS2Float divend)
         {
-            return new PS2Float(new FpgaDiv(true, Raw, divend.Raw).floatResult);
+            FpgaDiv fpga = new FpgaDiv(true, Raw, divend.Raw);
+            return new PS2Float(fpga.floatResult) {
+                dz = fpga.dz,
+                iv = fpga.iv,
+                of = fpga.of,
+                uf = fpga.uf
+            };
         }
 
         private PS2Float DoAdd(PS2Float other)
@@ -220,9 +221,16 @@ namespace EmotionEngine.Emulator
             absMan >>= msbIndex;
 
             if (rawExp > 255)
-                return man < 0 ? Min() : Max();
-            else if (rawExp <= 0)
-                return new PS2Float(man < 0, 0, 0);
+            {
+                PS2Float result = man < 0 ? Min() : Max();
+                result.of = true;
+                return result;
+            }
+            else if (rawExp < 1)
+                return new PS2Float(man < 0, 0, 0)
+                {
+                    uf = true
+                };
 
             return new PS2Float((uint)man & SIGNMASK | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF));
         }
@@ -245,9 +253,15 @@ namespace EmotionEngine.Emulator
             }
 
             if (resExponent > 255)
-                return new PS2Float(sign | MAX_FLOATING_POINT_VALUE);
-            else if (resExponent <= 0)
-                return new PS2Float(sign);
+                return new PS2Float(sign | MAX_FLOATING_POINT_VALUE) 
+                { 
+                    of = true
+                };
+            else if (resExponent < 1)
+                return new PS2Float(sign)
+                {
+                    uf = true
+                };
 
             return new PS2Float(sign | (uint)(resExponent << 23) | (resMantissa & 0x7FFFFF));
         }
@@ -257,7 +271,25 @@ namespace EmotionEngine.Emulator
         /// </summary>
         public PS2Float Sqrt()
         {
-            return new PS2Float(new FpgaDiv(false, 0, new PS2Float(false, Exponent, Mantissa).Raw).floatResult);
+            FpgaDiv fpga = new FpgaDiv(false, 0, new PS2Float(false, Exponent, Mantissa).Raw);
+            return new PS2Float(fpga.floatResult)
+            {
+                dz = fpga.dz,
+                iv = fpga.iv,
+            };
+        }
+
+        public PS2Float Rsqrt(PS2Float other)
+        {
+            FpgaDiv fpgaSqrt = new FpgaDiv(false, 0, new PS2Float(false, other.Exponent, other.Mantissa).Raw);
+            FpgaDiv fpgaDiv = new FpgaDiv(true, Raw, fpgaSqrt.floatResult);
+            return new PS2Float(fpgaDiv.floatResult)
+            {
+                dz = fpgaSqrt.dz || fpgaDiv.dz,
+                iv = fpgaSqrt.iv || fpgaDiv.iv,
+                of = fpgaDiv.of,
+                uf = fpgaDiv.uf
+            };
         }
 
         public PS2Float Pow(int exponent)
@@ -273,28 +305,16 @@ namespace EmotionEngine.Emulator
                     result = result.Mul(this);
                 }
             }
-            
+
             if (exponent < 0)
                 return One().Div(result);
             else
                 return result;
         }
 
-        public PS2Float Rsqrt(PS2Float other)
-        {
-            return Div(other.Sqrt());
-        }
-
         public bool IsDenormalized()
         {
             return Exponent == 0;
-        }
-
-        public bool IsAbnormal()
-        {
-            uint val = Raw;
-            return val == MAX_FLOATING_POINT_VALUE || val == MIN_FLOATING_POINT_VALUE ||
-                   val == POSITIVE_INFINITY_VALUE || val == NEGATIVE_INFINITY_VALUE;
         }
 
         public bool IsZero()
@@ -304,17 +324,8 @@ namespace EmotionEngine.Emulator
 
         public int CompareTo(PS2Float other)
         {
-            int selfTwoComplementVal = (int)Abs();
-            if (Sign) selfTwoComplementVal = -selfTwoComplementVal;
+            if (other == null) return -1;
 
-            int otherTwoComplementVal = (int)other.Abs();
-            if (other.Sign) otherTwoComplementVal = -otherTwoComplementVal;
-
-            return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
-        }
-
-        public int CompareOperand(PS2Float other)
-        {
             int selfTwoComplementVal = (int)Abs();
             int otherTwoComplementVal = (int)other.Abs();
 
@@ -331,193 +342,9 @@ namespace EmotionEngine.Emulator
             return new PS2Float(Raw ^ SIGNMASK);
         }
 
-        private bool[] GetBinaryMantissa()
+        private static PS2Float SolveMultiplicationDenormalizedOperation(PS2Float a, PS2Float b)
         {
-            uint val = Raw;
-            bool[] binaryMantissa = new bool[23];
-
-            binaryMantissa[0] = (val & 0x400000) != 0;
-            binaryMantissa[1] = (val & 0x200000) != 0;
-            binaryMantissa[2] = (val & 0x100000) != 0;
-            binaryMantissa[3] = (val & 0x80000) != 0;
-            binaryMantissa[4] = (val & 0x40000) != 0;
-            binaryMantissa[5] = (val & 0x20000) != 0;
-            binaryMantissa[6] = ((int)((val >> 16) & 1)) != 0;
-            binaryMantissa[7] = ((int)((val >> 15) & 1)) != 0;
-            binaryMantissa[8] = (val & 0x4000) != 0;
-            binaryMantissa[9] = (val & 0x2000) != 0;
-            binaryMantissa[10] = (val & 0x1000) != 0;
-            binaryMantissa[11] = (val & 0x800) != 0;
-            binaryMantissa[12] = (val & 0x400) != 0;
-            binaryMantissa[13] = (val & 0x200) != 0;
-            binaryMantissa[14] = ((int)((val >> 8) & 1)) != 0;
-            binaryMantissa[15] = ((int)((val >> 7) & 1)) != 0;
-            binaryMantissa[16] = (val & 0x40) != 0;
-            binaryMantissa[17] = (val & 0x20) != 0;
-            binaryMantissa[18] = (val & 0x10) != 0;
-            binaryMantissa[19] = (val & 8) != 0;
-            binaryMantissa[20] = (val & 4) != 0;
-            binaryMantissa[21] = (val & 2) != 0;
-            binaryMantissa[22] = ((int)(val & 1)) != 0;
-
-            return binaryMantissa;
-        }
-
-        private static PS2Float SolveAbnormalAdditionOrSubtractionOperation(PS2Float a, PS2Float b, bool add)
-        {
-            uint aval = a.Raw;
-            uint bval = b.Raw;
-
-            if (aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                return add ? Max() : new PS2Float(0);
-
-            if (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                return add ? Min() : new PS2Float(0);
-
-            if (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                return add ? new PS2Float(0) : Min();
-
-            if (aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                return add ? new PS2Float(0) : Max();
-
-            if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                return add ? Max() : new PS2Float(0);
-
-            if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                return add ? new PS2Float(0) : Min();
-
-            if (aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                return add ? new PS2Float(0) : Max();
-
-            if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                return add ? Min() : new PS2Float(0);
-
-            if (aval == MAX_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                return add ? Max() : new PS2Float(0x7F7FFFFE);
-
-            if (aval == MAX_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                return add ? new PS2Float(0x7F7FFFFE) : Max();
-
-            if (aval == MIN_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                return add ? new PS2Float(0xFF7FFFFE) : Min();
-
-            if (aval == MIN_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                return add ? Min() : new PS2Float(0xFF7FFFFE);
-
-            if (aval == POSITIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                return add ? Max() : new PS2Float(0xFF7FFFFE);
-
-            if (aval == POSITIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                return add ? new PS2Float(0xFF7FFFFE) : Max();
-
-            if (aval == NEGATIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                return add ? new PS2Float(0x7F7FFFFE) : Min();
-
-            if (aval == NEGATIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                return add ? Min() : new PS2Float(0x7F7FFFFE);
-
-            throw new InvalidOperationException("Unhandled abnormal add/sub floating point operation");
-        }
-
-        private static PS2Float SolveAbnormalMultiplicationOrDivisionOperation(PS2Float a, PS2Float b, bool mul)
-        {
-            uint aval = a.Raw;
-            uint bval = b.Raw;
-
-            if (mul)
-            {
-                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
-                    (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
-                    return Max();
-
-                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
-                    (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
-                    return Min();
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return Max();
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return Min();
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return Min();
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return Max();
-
-                if (aval == MAX_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return Max();
-
-                if (aval == MAX_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return Min();
-
-                if (aval == MIN_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return Min();
-
-                if (aval == MIN_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return Max();
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                    return Max();
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                    return Min();
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                    return Min();
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                    return Max();
-            }
-            else
-            {
-                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE) ||
-                    (aval == MIN_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE))
-                    return One();
-
-                if ((aval == MAX_FLOATING_POINT_VALUE && bval == MIN_FLOATING_POINT_VALUE) ||
-                    (aval == MIN_FLOATING_POINT_VALUE && bval == MAX_FLOATING_POINT_VALUE))
-                    return MinOne();
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return One();
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return MinOne();
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return MinOne();
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return One();
-
-                if (aval == MAX_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return new PS2Float(0x3FFFFFFF);
-
-                if (aval == MAX_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return new PS2Float(0xBFFFFFFF);
-
-                if (aval == MIN_FLOATING_POINT_VALUE && bval == POSITIVE_INFINITY_VALUE)
-                    return new PS2Float(0xBFFFFFFF);
-
-                if (aval == MIN_FLOATING_POINT_VALUE && bval == NEGATIVE_INFINITY_VALUE)
-                    return new PS2Float(0x3FFFFFFF);
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                    return new PS2Float(0x3F000001);
-
-                if (aval == POSITIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                    return new PS2Float(0xBF000001);
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == MAX_FLOATING_POINT_VALUE)
-                    return new PS2Float(0xBF000001);
-
-                if (aval == NEGATIVE_INFINITY_VALUE && bval == MIN_FLOATING_POINT_VALUE)
-                    return new PS2Float(0x3F000001);
-            }
-
-            throw new InvalidOperationException("Unhandled abnormal mul/div floating point operation");
+            return new PS2Float(DetermineMultiplicationDivisionOperationSign(a, b), 0, 0);
         }
 
         private static PS2Float SolveAddSubDenormalizedOperation(PS2Float a, PS2Float b, bool add)
@@ -530,25 +357,6 @@ namespace EmotionEngine.Emulator
                 return new PS2Float(sign, a.Exponent, a.Mantissa);
             else if (a.IsDenormalized() && b.IsDenormalized())
                 return new PS2Float(sign, 0, 0);
-            else
-                throw new InvalidOperationException("Both numbers are not denormalized");
-        }
-
-        private static PS2Float SolveMultiplicationDenormalizedOperation(PS2Float a, PS2Float b)
-        {
-            return new PS2Float(DetermineMultiplicationDivisionOperationSign(a, b), 0, 0);
-        }
-
-        private static PS2Float SolveDivisionDenormalizedOperation(PS2Float a, PS2Float b)
-        {
-            bool sign = DetermineMultiplicationDivisionOperationSign(a, b);
-
-            if (a.IsDenormalized() && !b.IsDenormalized())
-                return new PS2Float(sign, 0, 0);
-            else if (!a.IsDenormalized() && b.IsDenormalized())
-                return sign ? Min() : Max();
-            else if (a.IsDenormalized() && b.IsDenormalized())
-                return sign ? Min() : Max();
             else
                 throw new InvalidOperationException("Both numbers are not denormalized");
         }
@@ -570,7 +378,7 @@ namespace EmotionEngine.Emulator
                     throw new InvalidOperationException("Unhandled addition operation flags");
             }
 
-            return a.CompareOperand(b) >= 0 ? a.Sign : b.Sign;
+            return a.CompareTo(b) >= 0 ? a.Sign : b.Sign;
         }
 
         private static bool DetermineSubtractionOperationSign(PS2Float a, PS2Float b)
@@ -585,7 +393,77 @@ namespace EmotionEngine.Emulator
                     throw new InvalidOperationException("Unhandled subtraction operation flags");
             }
 
-            return a.CompareOperand(b) >= 0 ? a.Sign : !b.Sign;
+            return a.CompareTo(b) >= 0 ? a.Sign : !b.Sign;
+        }
+
+        public static uint Itof(int complement, int f1)
+        {
+            byte specialCondition;
+            uint result;
+            int subExponent, newExponent, floatResult;
+
+            if (f1 != 0)
+            {
+                specialCondition = 0;
+                subExponent = 158;
+                if (f1 < 0)
+                {
+                    f1 = ~(f1 - 1);
+                    specialCondition = 1;
+                }
+                while (f1 >= 0)
+                {
+                    f1 *= 2;
+                    --subExponent;
+                }
+                floatResult = (2 * f1) >> 9;
+                newExponent = subExponent - complement;
+                if (newExponent >= 0)
+                {
+                    floatResult = (((byte)newExponent << 7) | ((floatResult >> 16) & 0x807F)) << 16 | (floatResult & 0xFFFF);
+                    floatResult = (((specialCondition << 7) | ((floatResult >> 24) & 0x7F)) << 24) | (floatResult & 0xFFFFFF);
+                    result = (uint)floatResult;
+                }
+                else
+                    result = 0;
+            }
+            else
+                result = 0;
+
+            return result;
+        }
+
+        public static int Ftoi(int complement, uint f1)
+        {
+            uint a, result;
+
+            a = f1;
+            if ((f1 & 0x7F800000) == 0)
+                result = 0;
+            else
+            {
+                complement = (int)(f1 >> 23 & 0xFF) + complement;
+                f1 &= 0x7FFFFF;
+                f1 |= 0x800000;
+                if (complement < 158)
+                {
+                    if (complement >= 126)
+                    {
+                        f1 = (f1 << 7) >> (31 - ((byte)complement - 126));
+                        if ((int)a < 0)
+                            f1 = ~f1 + 1;
+                        result = f1;
+                    }
+                    else
+                        result = 0;
+                }
+                else if ((int)a < 0)
+                    result = SIGNMASK;
+                else
+                    result = MAX_FLOATING_POINT_VALUE;
+            }
+
+            return (int)result;
         }
 
         /// <summary>
@@ -593,6 +471,15 @@ namespace EmotionEngine.Emulator
         /// </summary>
         private static int clz(int x)
         {
+            if (x == 0)
+                return 32; // Special case: all bits are zero.
+
+            if (Lzcnt.IsSupported)
+                // LZCNT contract is 0->32
+                return (int)Lzcnt.LeadingZeroCount((uint)x);
+            else if (ArmBase.IsSupported)
+                return ArmBase.LeadingZeroCount((uint)x);
+
             x |= x >> 1;
             x |= x >> 2;
             x |= x >> 4;
@@ -605,16 +492,6 @@ namespace EmotionEngine.Emulator
         private static int BitScanReverse8(int b)
         {
             return msb[b];
-        }
-
-        private static int GetMostSignificantBitPosition(uint value)
-        {
-            for (int i = 31; i >= 0; i--)
-            {
-                if (((value >> i) & 1) != 0)
-                    return i;
-            }
-            return -1;
         }
 
         public double ToDouble()
@@ -637,10 +514,6 @@ namespace EmotionEngine.Emulator
                 return $"Fmax({res:F6})";
             else if (value == MIN_FLOATING_POINT_VALUE)
                 return $"-Fmax({res:F6})";
-            else if (value == POSITIVE_INFINITY_VALUE)
-                return $"Inf({res:F6})";
-            else if (value == NEGATIVE_INFINITY_VALUE)
-                return $"-Inf({res:F6})";
 
             return $"PS2Float({res:F6})";
         }

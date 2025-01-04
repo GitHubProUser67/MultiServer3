@@ -29,6 +29,41 @@ namespace EmotionEngine.Emulator
 
         public FpgaDiv(bool divMode, uint f1, uint f2)
         {
+            this.divMode = divMode;
+
+            if (divMode)
+            {
+                if (((f1 & 0x7F800000) == 0) && ((f2 & 0x7F800000) != 0))
+                {
+                    floatResult = 0;
+                    floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult |= (uint)(((int)(f2 >> 31) != (int)(f1 >> 31)) ? 1 : 0 & 1) << 31;
+                    return;
+                }
+                if (((f1 & 0x7F800000) != 0) && ((f2 & 0x7F800000) == 0))
+                {
+                    dz = true;
+                    floatResult = PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult |= (uint)(((int)(f2 >> 31) != (int)(f1 >> 31)) ? 1 : 0 & 1) << 31;
+                    return;
+                }
+                if (((f1 & 0x7F800000) == 0) && ((f2 & 0x7F800000) == 0))
+                {
+                    iv = true;
+                    floatResult = PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult |= (uint)(((int)(f2 >> 31) != (int)(f1 >> 31)) ? 1 : 0 & 1) << 31;
+                    return;
+                }
+            }
+            else if ((f2 & 0x7F800000) == 0)
+            {
+                floatResult = 0;
+                iv = ((f2 >> 31) & 1) != 0;
+                return;
+            }
+
             uint floatDivisor, floatDividend;
             int i, j, csaRes;
             int man = 0;
@@ -36,8 +71,6 @@ namespace EmotionEngine.Emulator
 
             Product[0] = 1;
             Carry[25] = 1;
-
-            this.divMode = divMode;
 
             if (divMode)
             {
@@ -219,7 +252,7 @@ namespace EmotionEngine.Emulator
             }
 
             floatResult = 0;
-            floatResult &= 0x7FFFFFFF;
+            floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
             floatResult |= (uint)(sign & 1) << 31;
             floatResult &= 0x807FFFFF;
             floatResult |= (uint)(exp & 0xFF) << 23;
@@ -296,20 +329,20 @@ namespace EmotionEngine.Emulator
 
         private int QSLAdder(int[] SumArray, int[] CarryArray)
         {
-            bool specialCondition = false;
+            int specialCondition = 0;
             int result;
             int claResult = CLAAdder(SumArray, CarryArray);
 
             if (SumArray[3] == 1 || CarryArray[3] == 1 || (claResult % 2 != 0))
-                specialCondition = true;
+                specialCondition = 1;
 
             switch (claResult)
             {
                 case 0:
-                    result = specialCondition ? 1 : 0;
+                    result = specialCondition;
                     break;
                 case 1:
-                    result = specialCondition ? 1 : 0;
+                    result = specialCondition;
                     break;
                 case 2:
                 case 3:
