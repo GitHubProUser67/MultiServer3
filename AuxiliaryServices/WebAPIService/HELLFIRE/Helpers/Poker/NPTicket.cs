@@ -1,19 +1,17 @@
-using CustomLogger;
+﻿using CustomLogger;
 using HttpMultipartParser;
 using WebAPIService.SSFW;
 using System.Text;
 using System.IO;
 using System;
 using NetworkLibrary.Extension;
-using HashLib;
-using WebAPIService.HELLFIRE.HFProcessors;
-using WebAPIService.HELLFIRE.Helpers.Poker;
+using NetHasher;
 
 namespace WebAPIService.HELLFIRE.Helpers.Poker
 {
     public class NPTicket
     {
-        public static string RequestNPTicket(byte[] PostData, string boundary, bool poker)
+        public static string RequestNPTicket(byte[] PostData, string boundary)
         {
             string userid = string.Empty;
             string sessionid = string.Empty;
@@ -65,9 +63,9 @@ namespace WebAPIService.HELLFIRE.Helpers.Poker
                         extractedData[i] = 0x20;
                 }
 
-                if (OtherExtensions.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                if (ByteUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
-                    LoggerAccessor.LogInfo($"[HFGames] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                    LoggerAccessor.LogInfo($"[HFGames] - Poker: User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData) + "RPCN";
@@ -75,7 +73,7 @@ namespace WebAPIService.HELLFIRE.Helpers.Poker
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
+                    string hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "Pok3r!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 10);
@@ -87,7 +85,7 @@ namespace WebAPIService.HELLFIRE.Helpers.Poker
                 }
                 else
                 {
-                    LoggerAccessor.LogInfo($"[HFGames] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                    LoggerAccessor.LogInfo($"[HFGames] - Poker: {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData);
@@ -95,7 +93,7 @@ namespace WebAPIService.HELLFIRE.Helpers.Poker
                     userid = resultString.Replace(" ", string.Empty);
 
                     // Calculate the MD5 hash of the result
-                    string hash = NetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "H0mETyc00n!"));
+                    string hash = DotNetHasher.ComputeMD5String(Encoding.ASCII.GetBytes(resultString + "Il0vep0K3r!"));
 
                     // Trim the hash to a specific length
                     hash = hash.Substring(0, 14);
@@ -104,20 +102,6 @@ namespace WebAPIService.HELLFIRE.Helpers.Poker
                     resultString += hash;
 
                     sessionid = GuidGenerator.SSFWGenerateGuid(hash, resultString);
-                }
-
-                if(poker == true)
-                {
-                    /*
-                    PokerServerRequestProcessor pokerServerRequestProcessor = new PokerServerRequestProcessor();
-                    PokerPlayer pokerPlayerToAdd = new PokerPlayer()
-                    {
-                        PlayerName = userid,
-                        SessionID = sessionid
-                    };
-
-                    pokerServerRequestProcessor.pokerPlayers.Add(pokerPlayerToAdd);
-                    */
                 }
 
                 return $"<response><Thing>{userid};{sessionid}</Thing></response>";

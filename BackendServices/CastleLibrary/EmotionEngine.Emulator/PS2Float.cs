@@ -8,12 +8,12 @@ namespace EmotionEngine.Emulator
     public class PS2Float : IComparable<PS2Float>
     {
         public const byte BIAS = 127;
+        public const byte MANTISSA_BITS = 23;
         public const uint SIGNMASK = 0x80000000;
         public const uint MAX_FLOATING_POINT_VALUE = 0x7FFFFFFF;
         public const uint MIN_FLOATING_POINT_VALUE = uint.MaxValue;
         public const uint ONE = 0x3F800000;
         public const uint MIN_ONE = 0xBF800000;
-        public const int IMPLICIT_LEADING_BIT_POS = 23;
 
         private static readonly sbyte[] msb = new sbyte[256]
         {
@@ -43,7 +43,7 @@ namespace EmotionEngine.Emulator
         public uint Raw { get; private set; }
 
         public uint Mantissa => Raw & 0x7FFFFF;
-        public byte Exponent => (byte)((Raw >> 23) & 0xFF);
+        public byte Exponent => (byte)((Raw >> MANTISSA_BITS) & 0xFF);
         public bool Sign => ((Raw >> 31) & 1) != 0;
 
         public bool dz = false;
@@ -65,7 +65,7 @@ namespace EmotionEngine.Emulator
         {
             Raw = 0;
             Raw |= (sign ? 1u : 0u) << 31;
-            Raw |= (uint)(exponent << 23);
+            Raw |= (uint)(exponent << MANTISSA_BITS);
             Raw |= mantissa & 0x7FFFFF;
         }
 
@@ -212,11 +212,11 @@ namespace EmotionEngine.Emulator
 
             int rawExp = selfExponent - roundingMultiplier;
 
-            int amount = normalizeAmounts[clz(absMan)];
+            int amount = normalizeAmounts[CountLeadingSignBits(absMan)];
             rawExp -= amount;
             absMan <<= amount;
 
-            int msbIndex = BitScanReverse8(absMan >> 23);
+            int msbIndex = BitScanReverse8(absMan >> MANTISSA_BITS);
             rawExp += msbIndex;
             absMan >>= msbIndex;
 
@@ -232,7 +232,7 @@ namespace EmotionEngine.Emulator
                     uf = true
                 };
 
-            return new PS2Float((uint)man & SIGNMASK | (uint)rawExp << 23 | ((uint)absMan & 0x7FFFFF));
+            return new PS2Float((uint)man & SIGNMASK | (uint)rawExp << MANTISSA_BITS | ((uint)absMan & 0x7FFFFF));
         }
 
         private PS2Float DoMul(PS2Float other)
@@ -244,7 +244,7 @@ namespace EmotionEngine.Emulator
             uint sign = (Raw ^ other.Raw) & SIGNMASK;
 
             int resExponent = selfExponent + otherExponent - BIAS;
-            uint resMantissa = (uint)(BoothMultiplier.MulMantissa(selfMantissa, otherMantissa) >> 23);
+            uint resMantissa = (uint)(BoothMultiplier.MulMantissa(selfMantissa, otherMantissa) >> MANTISSA_BITS);
 
             if (resMantissa > 0xFFFFFF)
             {
@@ -263,7 +263,7 @@ namespace EmotionEngine.Emulator
                     uf = true
                 };
 
-            return new PS2Float(sign | (uint)(resExponent << 23) | (resMantissa & 0x7FFFFF));
+            return new PS2Float(sign | (uint)(resExponent << MANTISSA_BITS) | (resMantissa & 0x7FFFFF));
         }
 
         /// <summary>
@@ -396,41 +396,49 @@ namespace EmotionEngine.Emulator
             return a.CompareTo(b) >= 0 ? a.Sign : !b.Sign;
         }
 
-        public static uint Itof(int complement, int f1)
+        public static PS2Float Itof(int complement, int f1)
         {
-            byte specialCondition;
-            uint result;
-            int subExponent, newExponent, floatResult;
+            if (f1 == 0)
+                return new PS2Float(0);
 
-            if (f1 != 0)
+            int resExponent;
+
+            if (f1 == int.MinValue)
             {
-                specialCondition = 0;
-                subExponent = 158;
-                if (f1 < 0)
-                {
-                    f1 = ~(f1 - 1);
-                    specialCondition = 1;
-                }
-                while (f1 >= 0)
-                {
-                    f1 *= 2;
-                    --subExponent;
-                }
-                floatResult = (2 * f1) >> 9;
-                newExponent = subExponent - complement;
-                if (newExponent >= 0)
-                {
-                    floatResult = (((byte)newExponent << 7) | ((floatResult >> 16) & 0x807F)) << 16 | (floatResult & 0xFFFF);
-                    floatResult = (((specialCondition << 7) | ((floatResult >> 24) & 0x7F)) << 24) | (floatResult & 0xFFFFFF);
-                    result = (uint)floatResult;
-                }
-                else
-                    result = 0;
+                // special case
+                resExponent = 158 - complement;
+
+                if (resExponent >= 0)
+                    return new PS2Float(true, (byte)resExponent, 0);
+
+                return new PS2Float(0);
+            }
+
+            bool negative = f1 < 0;
+            int u = Math.Abs(f1);
+
+            int shifts;
+
+            int lzcnt = CountLeadingSignBits(u);
+            if (lzcnt < 8)
+            {
+                int count = 8 - lzcnt;
+                u >>= count;
+                shifts = -count;
             }
             else
-                result = 0;
+            {
+                int count = lzcnt - 8;
+                u <<= count;
+                shifts = count;
+            }
 
-            return result;
+            resExponent = BIAS + MANTISSA_BITS - shifts - complement;
+
+            if (resExponent >= 0)
+                return new PS2Float(negative, (byte)resExponent, (uint)u);
+
+            return new PS2Float(0);
         }
 
         public static int Ftoi(int complement, uint f1)
@@ -442,7 +450,7 @@ namespace EmotionEngine.Emulator
                 result = 0;
             else
             {
-                complement = (int)(f1 >> 23 & 0xFF) + complement;
+                complement = (int)(f1 >> MANTISSA_BITS & 0xFF) + complement;
                 f1 &= 0x7FFFFF;
                 f1 |= 0x800000;
                 if (complement < 158)
@@ -469,24 +477,29 @@ namespace EmotionEngine.Emulator
         /// <summary>
         /// Returns the leading zero count of the given 32-bit integer
         /// </summary>
-        private static int clz(int x)
+        private static int CountLeadingSignBits(int n)
         {
-            if (x == 0)
-                return 32; // Special case: all bits are zero.
+            // If the sign bit is 1, we invert the bits to 0 for count-leading-zero.
+            if (n < 0)
+                n = ~n;
+
+            // If BSR is used directly, it would have an undefined value for 0.
+            if (n == 0)
+                return 32;
 
             if (Lzcnt.IsSupported)
                 // LZCNT contract is 0->32
-                return (int)Lzcnt.LeadingZeroCount((uint)x);
+                return (int)Lzcnt.LeadingZeroCount((uint)n);
             else if (ArmBase.IsSupported)
-                return ArmBase.LeadingZeroCount((uint)x);
+                return ArmBase.LeadingZeroCount((uint)n);
 
-            x |= x >> 1;
-            x |= x >> 2;
-            x |= x >> 4;
-            x |= x >> 8;
-            x |= x >> 16;
+            n |= n >> 1;
+            n |= n >> 2;
+            n |= n >> 4;
+            n |= n >> 8;
+            n |= n >> 16;
 
-            return debruijn32[(uint)x * 0x8c0b2891u >> 26];
+            return debruijn32[(uint)n * 0x8c0b2891u >> 26];
         }
 
         private static int BitScanReverse8(int b)
@@ -496,7 +509,7 @@ namespace EmotionEngine.Emulator
 
         public double ToDouble()
         {
-            double res = (Mantissa / Math.Pow(2, 23) + 1.0) * Math.Pow(2, Exponent - 127.0);
+            double res = (Mantissa / Math.Pow(2, MANTISSA_BITS) + 1.0) * Math.Pow(2, Exponent - 127.0);
             if (Sign)
                 res *= -1.0;
 
