@@ -234,7 +234,7 @@ namespace HomeTools.SDAT
         private static int CheckHeader(byte[] rifKey, EDATData data, NPD npd, FileStream i)
         {
             i.Seek(0L, 0);
-            byte[] numArray = new byte[160];
+            byte[] Header = new byte[160];
             byte[] o1 = new byte[160];
             byte[] expectedHash = new byte[16];
             int version = 0;
@@ -267,13 +267,13 @@ namespace HomeTools.SDAT
                 default:
                     return STATUS_ERROR_INCORRECT_VERSION;
             }
-            i.Read(numArray, 0, numArray.Length);
+            i.Read(Header, 0, Header.Length);
             i.Read(expectedHash, 0, expectedHash.Length);
             AppLoader appLoader1 = new AppLoader();
             int hashFlag = (data.GetFlags() & FLAG_KEYENCRYPTED) == 0L ? 2 : 268435458;
             if ((data.GetFlags() & FLAG_DEBUG) != 0L)
                 hashFlag |= 16777216;
-            if (!appLoader1.DoAll(hashFlag, version, 1, numArray, 0, o1, 0, numArray.Length, new byte[16], new byte[16], rifKey, expectedHash, 0))
+            if (!appLoader1.DoAll(hashFlag, version, 1, Header, 0, o1, 0, Header.Length, new byte[16], new byte[16], rifKey, expectedHash, 0))
                 return STATUS_ERROR_HEADERCHECK;
             if ((data.GetFlags() & FLAG_0x20) == 0L)
             {
@@ -295,7 +295,7 @@ namespace HomeTools.SDAT
                     appLoader2.DoUpdate(i1, 0, o2, 0, len);
                     num3 += len;
                 }
-                if (!appLoader2.DoFinal(numArray, 144))
+                if (!appLoader2.DoFinal(Header, 144))
                     return STATUS_ERROR_HEADERCHECK;
             }
             return STATUS_OK;
