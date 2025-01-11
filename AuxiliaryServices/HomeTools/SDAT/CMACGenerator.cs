@@ -1,16 +1,14 @@
 using System;
-using System.Numerics;
+using Org.BouncyCastle.Crypto.Macs;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace HomeTools.SDAT
 {
     internal class CMACGenerator : HashGenerator
     {
         private int hashLen;
-        private byte[] key;
-        private byte[] K1;
-        private byte[] K2;
-        private byte[] nonProcessed;
-        private byte[] previous;
+        private CMac mac;
+        private byte[] result;
 
         public CMACGenerator() => hashLen = 16;
 
@@ -18,79 +16,27 @@ namespace HomeTools.SDAT
 
         public override void DoInit(byte[] key)
         {
-            this.key = key;
-            K1 = new byte[16];
-            K2 = new byte[16];
-            CalculateSubkey(key, K1, K2);
-            nonProcessed = null;
-            previous = new byte[16];
-        }
+            try
+            {
+                mac = new CMac(new Org.BouncyCastle.Crypto.Engines.AesEngine());
+                mac.Init(new KeyParameter(key));
 
-        private static void CalculateSubkey(byte[] key, byte[] K1, byte[] K2)
-        {
-            byte[] numArray1 = new byte[16];
-            byte[] numArray2 = new byte[16];
-            CryptUtils.AesecbEncrypt(key, numArray1, 0, numArray2, 0, numArray1.Length);
-            BigInteger bigInteger1 = new BigInteger(ConversionUtils.ReverseByteWithSizeFIX(numArray2));
-            BigInteger bigInteger2 = (numArray2[0] & 128) == 0 ? bigInteger1 << 1 : bigInteger1 << 1 ^ new BigInteger(135);
-            byte[] src1 = ConversionUtils.ReverseByteWithSizeFIX(bigInteger2.ToByteArray());
-            if (src1.Length >= 16)
-                ConversionUtils.Arraycopy(src1, src1.Length - 16, K1, 0L, 16);
-            else
-            {
-                ConversionUtils.Arraycopy(numArray1, 0, K1, 0L, numArray1.Length);
-                ConversionUtils.Arraycopy(src1, 0, K1, 16 - src1.Length, src1.Length);
+                result = new byte[hashLen];
             }
-            bigInteger2 = new BigInteger(ConversionUtils.ReverseByteWithSizeFIX(K1));
-            byte[] src2 = ConversionUtils.ReverseByteWithSizeFIX(((K1[0] & 128) == 0 ? bigInteger2 << 1 : bigInteger2 << 1 ^ new BigInteger(135)).ToByteArray());
-            if (src2.Length >= 16)
-                ConversionUtils.Arraycopy(src2, src2.Length - 16, K2, 0L, 16);
-            else
+            catch
             {
-                ConversionUtils.Arraycopy(numArray1, 0, K2, 0L, numArray1.Length);
-                ConversionUtils.Arraycopy(src2, 0, K2, 16 - src2.Length, src2.Length);
             }
         }
 
         public override void DoUpdate(byte[] i, int inOffset, int len)
         {
-            byte[] numArray1;
-            if (nonProcessed != null)
-            {
-                numArray1 = new byte[len + nonProcessed.Length];
-                ConversionUtils.Arraycopy(nonProcessed, 0, numArray1, 0L, nonProcessed.Length);
-                ConversionUtils.Arraycopy(i, inOffset, numArray1, nonProcessed.Length, len);
-            }
-            else
-            {
-                numArray1 = new byte[len];
-                ConversionUtils.Arraycopy(i, inOffset, numArray1, 0L, len);
-            }
-            int srcPos;
-            for (srcPos = 0; srcPos < numArray1.Length - 16; srcPos += 16)
-            {
-                byte[] numArray2 = new byte[16];
-                ConversionUtils.Arraycopy(numArray1, srcPos, numArray2, 0L, numArray2.Length);
-                CryptUtils.XOR(numArray2, numArray2, previous);
-                CryptUtils.AesecbEncrypt(key, numArray2, 0, previous, 0, numArray2.Length);
-            }
-            nonProcessed = new byte[numArray1.Length - srcPos];
-            ConversionUtils.Arraycopy(numArray1, srcPos, nonProcessed, 0L, nonProcessed.Length);
+            mac.BlockUpdate(i, inOffset, len);
         }
 
-        public override bool DoFinal(byte[] generateHash)
+        public override bool DoFinal(byte[] generatedHash)
         {
-            byte[] numArray = new byte[16];
-            ConversionUtils.Arraycopy(nonProcessed, 0, numArray, 0L, nonProcessed.Length);
-            if (nonProcessed.Length == 16)
-                CryptUtils.XOR(numArray, numArray, K1);
-            else
-            {
-                numArray[nonProcessed.Length] = 128;
-                CryptUtils.XOR(numArray, numArray, K2);
-            }
-            CryptUtils.XOR(numArray, numArray, previous);
-            CryptUtils.AesecbEncrypt(key, numArray, 0, generateHash, 0, numArray.Length);
+            mac.DoFinal(result, 0);
+            ConversionUtils.Arraycopy(result, 0, generatedHash, 0L, result.Length);
             return true;
         }
     }

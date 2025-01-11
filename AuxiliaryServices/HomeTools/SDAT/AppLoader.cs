@@ -30,15 +30,15 @@ namespace HomeTools.SDAT
 
         public void DoInit(int hashFlag, int version, int cryptoFlag, byte[] key, byte[] iv, byte[] hashKey)
         {
-            byte[] numArray1 = new byte[key.Length];
-            byte[] numArray2 = new byte[iv.Length];
-            byte[] numArray3 = new byte[hashKey.Length];
-            GetCryptoKeys(cryptoFlag, version, numArray1, numArray2, key, iv);
-            GetHashKeys(hashFlag, version, numArray3, hashKey);
+            byte[] calculatedKey = new byte[key.Length];
+            byte[] calculatedIV = new byte[iv.Length];
+            byte[] calculatedHash = new byte[hashKey.Length];
+            GetCryptoKeys(cryptoFlag, version, calculatedKey, calculatedIV, key, iv);
+            GetHashKeys(hashFlag, version, calculatedHash, hashKey);
             SetDecryptor(cryptoFlag);
             SetHash(hashFlag);
-            dec.DoInit(numArray1, numArray2);
-            hash.DoInit(numArray3);
+            dec.DoInit(calculatedKey, calculatedIV);
+            hash.DoInit(calculatedHash);
         }
 
         public void DoUpdate(byte[] i, int inOffset, byte[] o, int outOffset, int len)
