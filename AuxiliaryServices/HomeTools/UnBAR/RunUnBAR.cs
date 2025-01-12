@@ -1,9 +1,7 @@
 using CustomLogger;
 using HomeTools.BARFramework;
 using HomeTools.Crypto;
-#if MAKE_NP_DATA_MODE
 using System.Diagnostics;
-#endif
 using EndianTools;
 using System.Threading.Tasks;
 using System;
@@ -27,29 +25,7 @@ namespace HomeTools.UnBAR
             GC.WaitForPendingFinalizers();
             GC.Collect(); // We have no choice and it's not possible to remove them, HomeTools create a BUNCH of necessary objects.
         }
-#if MAKE_NP_DATA_MODE
-        public static void RunEncrypt(string converterPath, string filePath, string sdatfilePath, ushort version)
-        {
-            using (Process process = Process.Start(new ProcessStartInfo()
-            {
-                FileName = converterPath + "/make_npdata",
-                Arguments = $"-e \"{filePath}\" \"{sdatfilePath}\" 0 1 {version} 1 4 3 00 \"\" 0",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                WorkingDirectory = converterPath, // Can load various config files.
-                CreateNoWindow = true
-            }))
-            {
-                process?.WaitForExit();
 
-                int? ExitCode = process?.ExitCode;
-
-                if (ExitCode != 0)
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
-            }
-        }
-#else
         public static void RunEncrypt(string filePath, string sdatfilePath)
         {
             try
@@ -64,39 +40,47 @@ namespace HomeTools.UnBAR
                 LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with assertion : {ex}");
             }
         }
-#endif
+
         private static async Task RunDecrypt(string converterPath, string sdatfilePath, string outDir, ushort cdnMode)
         {
             string datfilePath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(sdatfilePath) + ".dat");
 
-#if MAKE_NP_DATA_MODE
-            using (Process process = Process.Start(new ProcessStartInfo()
-            {
-                FileName = converterPath + "/make_npdata",
-                Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                WorkingDirectory = converterPath, // Can load various config files.
-                CreateNoWindow = true
-            }))
-            {
-                process?.WaitForExit();
-
-                int? ExitCode = process?.ExitCode;
-
-                if (ExitCode != 0)
-                    LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
-                else
-                    await RunExtract(datfilePath, outDir, cdnMode);
-            }
-#else
             try
             {
                 int ExitCode = EDAT.DecryptFile(sdatfilePath, datfilePath);
 
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
+                else if (ExitCode == sbyte.MinValue)
+                {
+                    string makeNpExePath = converterPath + "/make_npdata/" + (!NetworkLibrary.Extension.Windows.Win32API.IsWindows ? "make_npdata_win32.exe" : "make_npdata");
+
+                    if (File.Exists(makeNpExePath))
+                    {
+                        using (Process process = Process.Start(new ProcessStartInfo()
+                        {
+                            FileName = makeNpExePath,
+                            Arguments = $"-d \"{sdatfilePath}\" \"{datfilePath}\" 0",
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                            WorkingDirectory = converterPath, // Can load various config files.
+                            CreateNoWindow = true
+                        }))
+                        {
+                            process.WaitForExit();
+
+                            ExitCode = process.ExitCode;
+
+                            if (ExitCode != 0)
+                                LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with makenpdata process status code : {ExitCode}");
+                            else
+                                await RunExtract(datfilePath, outDir, cdnMode);
+                        }
+                    }
+                    else
+                        LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt dectected LZ compressed data, but no makenpdata executable were found at path: {makeNpExePath}");
+                }
                 else
                     await RunExtract(datfilePath, outDir, cdnMode);
             }
@@ -104,7 +88,6 @@ namespace HomeTools.UnBAR
             {
                 LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with assertion : {ex}");
             }
-#endif
         }
 
         private static Task RunExtract(string filePath, string outDir, ushort cdnMode)

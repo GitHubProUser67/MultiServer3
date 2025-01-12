@@ -6,17 +6,18 @@ namespace HomeTools.SDAT
 {
     internal class EDAT
     {
-        public static int STATUS_ERROR_OUPUTFILE_IO = -101;
-        public static int STATUS_ERROR_INPUTFILE_IO = -100;
-        public static int STATUS_ERROR_HASHTITLEIDNAME = -1;
-        public static int STATUS_ERROR_HASHDEVKLIC = -2;
-        public static int STATUS_ERROR_MISSINGKEY = -3;
-        public static int STATUS_ERROR_HEADERCHECK = -4;
-        public static int STATUS_ERROR_DECRYPTING = -5;
-        public static int STATUS_ERROR_INCORRECT_FLAGS = -6;
-        public static int STATUS_ERROR_INCORRECT_VERSION = -7;
-        public static int STATUS_ERROR_NOT_A_SDAT = -8;
-        public static int STATUS_OK = 0;
+        public static sbyte COMPRESSION_UNSUPPORTED = sbyte.MinValue;
+        public static sbyte STATUS_ERROR_OUPUTFILE_IO = -101;
+        public static sbyte STATUS_ERROR_INPUTFILE_IO = -100;
+        public static sbyte STATUS_ERROR_HASHTITLEIDNAME = -1;
+        public static sbyte STATUS_ERROR_HASHDEVKLIC = -2;
+        public static sbyte STATUS_ERROR_MISSINGKEY = -3;
+        public static sbyte STATUS_ERROR_HEADERCHECK = -4;
+        public static sbyte STATUS_ERROR_DECRYPTING = -5;
+        public static sbyte STATUS_ERROR_INCORRECT_FLAGS = -6;
+        public static sbyte STATUS_ERROR_INCORRECT_VERSION = -7;
+        public static sbyte STATUS_ERROR_NOT_A_SDAT = -8;
+        public static byte STATUS_OK = 0;
         public static long FLAG_COMPRESSED = 1;
         public static long FLAG_0x02 = 2;
         public static long FLAG_KEYENCRYPTED = 8;
@@ -224,6 +225,7 @@ namespace HomeTools.SDAT
             if (num3 < 0)
             {
                 fileStream.Close();
+                o.Close();
                 return num3;
             }
             fileStream.Close();
@@ -303,22 +305,22 @@ namespace HomeTools.SDAT
 
         private static byte[] DecryptMetadataSection(byte[] metadata) => new byte[16]
         {
-          (byte) ( metadata[12] ^ (uint) metadata[8] ^  metadata[16]),
-          (byte) ( metadata[13] ^ (uint) metadata[9] ^  metadata[17]),
-          (byte) ( metadata[14] ^ (uint) metadata[10] ^  metadata[18]),
-          (byte) ( metadata[15] ^ (uint) metadata[11] ^  metadata[19]),
-          (byte) ( metadata[4] ^ (uint) metadata[8] ^  metadata[20]),
-          (byte) ( metadata[5] ^ (uint) metadata[9] ^  metadata[21]),
-          (byte) ( metadata[6] ^ (uint) metadata[10] ^  metadata[22]),
-          (byte) ( metadata[7] ^ (uint) metadata[11] ^  metadata[23]),
-          (byte) ( metadata[12] ^ (uint) metadata[0] ^  metadata[24]),
-          (byte) ( metadata[13] ^ (uint) metadata[1] ^  metadata[25]),
-          (byte) ( metadata[14] ^ (uint) metadata[2] ^  metadata[26]),
-          (byte) ( metadata[15] ^ (uint) metadata[3] ^  metadata[27]),
-          (byte) ( metadata[4] ^ (uint) metadata[0] ^  metadata[28]),
-          (byte) ( metadata[5] ^ (uint) metadata[1] ^  metadata[29]),
-          (byte) ( metadata[6] ^ (uint) metadata[2] ^  metadata[30]),
-          (byte) ( metadata[7] ^ (uint) metadata[3] ^  metadata[31])
+          (byte) ( metadata[12] ^ metadata[8] ^  metadata[16]),
+          (byte) ( metadata[13] ^ metadata[9] ^  metadata[17]),
+          (byte) ( metadata[14] ^ metadata[10] ^  metadata[18]),
+          (byte) ( metadata[15] ^ metadata[11] ^  metadata[19]),
+          (byte) ( metadata[4] ^ metadata[8] ^  metadata[20]),
+          (byte) ( metadata[5] ^ metadata[9] ^  metadata[21]),
+          (byte) ( metadata[6] ^ metadata[10] ^  metadata[22]),
+          (byte) ( metadata[7] ^ metadata[11] ^  metadata[23]),
+          (byte) ( metadata[12] ^ metadata[0] ^  metadata[24]),
+          (byte) ( metadata[13] ^ metadata[1] ^  metadata[25]),
+          (byte) ( metadata[14] ^ metadata[2] ^  metadata[26]),
+          (byte) ( metadata[15] ^ metadata[3] ^  metadata[27]),
+          (byte) ( metadata[4] ^ metadata[0] ^  metadata[28]),
+          (byte) ( metadata[5] ^ metadata[1] ^  metadata[29]),
+          (byte) ( metadata[6] ^ metadata[2] ^  metadata[30]),
+          (byte) ( metadata[7] ^ metadata[3] ^  metadata[31])
         };
 
         private static EDATData GetEDATData(FileStream i)
@@ -490,7 +492,7 @@ namespace HomeTools.SDAT
                     num8 |= 16777216;
                     num9 |= 16777216;
                     if ((data.GetFlags() & FLAG_COMPRESSED) != 0L && compressionEnd != 0)
-                        throw new Exception("LZMA Compressed EDAT data is not supported yet!");
+                        return COMPRESSION_UNSUPPORTED;
                     else
                         o.Write(numArray1, 0, length);
                 }
@@ -506,7 +508,7 @@ namespace HomeTools.SDAT
                     byte[] expectedHash = dest;
                     new AppLoader().DoAll(hashFlag, version, cryptoFlag, i, 0, o1, 0, i.Length, key, iv, hash, expectedHash, 0);
                     if ((data.GetFlags() & FLAG_COMPRESSED) != 0L && compressionEnd != 0)
-                        throw new Exception("LZMA Compressed EDAT data is not supported yet!");
+                        return COMPRESSION_UNSUPPORTED;
                     else
                         o.Write(numArray2, 0, length);
                 }
