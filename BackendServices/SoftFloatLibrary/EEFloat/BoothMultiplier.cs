@@ -1,4 +1,4 @@
-﻿namespace EmotionEngine.Emulator
+﻿namespace EEFloat
 {
     // From the PCSX2 Team (TellowKrinkle)
     public class BoothMultiplier

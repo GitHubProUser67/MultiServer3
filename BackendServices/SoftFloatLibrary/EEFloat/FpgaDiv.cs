@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EmotionEngine.Emulator
+namespace EEFloat
 {
     public class FpgaDiv
     {
@@ -36,23 +36,23 @@ namespace EmotionEngine.Emulator
                 if (((f1 & 0x7F800000) == 0) && ((f2 & 0x7F800000) != 0))
                 {
                     floatResult = 0;
-                    floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult &= ps2float.MAX_FLOATING_POINT_VALUE;
                     floatResult |= (uint)(((int)(f2 >> 31) != (int)(f1 >> 31)) ? 1 : 0 & 1) << 31;
                     return;
                 }
                 if (((f1 & 0x7F800000) != 0) && ((f2 & 0x7F800000) == 0))
                 {
                     dz = true;
-                    floatResult = PS2Float.MAX_FLOATING_POINT_VALUE;
-                    floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult = ps2float.MAX_FLOATING_POINT_VALUE;
+                    floatResult &= ps2float.MAX_FLOATING_POINT_VALUE;
                     floatResult |= (uint)(((int)(f2 >> 31) != (int)(f1 >> 31)) ? 1 : 0 & 1) << 31;
                     return;
                 }
                 if (((f1 & 0x7F800000) == 0) && ((f2 & 0x7F800000) == 0))
                 {
                     iv = true;
-                    floatResult = PS2Float.MAX_FLOATING_POINT_VALUE;
-                    floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
+                    floatResult = ps2float.MAX_FLOATING_POINT_VALUE;
+                    floatResult &= ps2float.MAX_FLOATING_POINT_VALUE;
                     floatResult |= (uint)(((int)(f2 >> 31) != (int)(f1 >> 31)) ? 1 : 0 & 1) << 31;
                     return;
                 }
@@ -252,7 +252,7 @@ namespace EmotionEngine.Emulator
             }
 
             floatResult = 0;
-            floatResult &= PS2Float.MAX_FLOATING_POINT_VALUE;
+            floatResult &= ps2float.MAX_FLOATING_POINT_VALUE;
             floatResult |= (uint)(sign & 1) << 31;
             floatResult &= 0x807FFFFF;
             floatResult |= (uint)(exp & 0xFF) << 23;
