@@ -17,7 +17,7 @@ namespace HTTPServer.Models
         public HttpStatusCode HttpStatusCode { get; set; }
         [JsonIgnore]
         public Stream? ContentStream { get; set; }
-        public Dictionary<string, string> Headers { get; set; }
+        public Dictionary<string, string>? Headers { get; set; }
         private string HttpVersion { get; set; }
         #endregion
 
@@ -49,9 +49,9 @@ namespace HTTPServer.Models
                 HttpStatusCode = statuscode
             };
             if (lowerCaseContentType)
-                response.Headers["content-type"] = mimetype;
+                response.Headers!["content-type"] = mimetype;
             else
-                response.Headers["Content-Type"] = mimetype;
+                response.Headers!["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (string[] innerArray in HeaderInput)
@@ -77,9 +77,9 @@ namespace HTTPServer.Models
                 HttpStatusCode = statuscode
             };
             if (lowerCaseContentType)
-                response.Headers["content-type"] = mimetype;
+                response.Headers!["content-type"] = mimetype;
             else
-                response.Headers["Content-Type"] = mimetype;
+                response.Headers!["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (var innerArray in HeaderInput)
@@ -109,9 +109,9 @@ namespace HTTPServer.Models
                 HttpStatusCode = statuscode
             };
             if (lowerCaseContentType)
-                response.Headers["content-type"] = mimetype;
+                response.Headers!["content-type"] = mimetype;
             else
-                response.Headers["Content-Type"] = mimetype;
+                response.Headers!["Content-Type"] = mimetype;
             if (HeaderInput != null)
             {
                 foreach (string[]? innerArray in HeaderInput)
@@ -183,6 +183,7 @@ namespace HTTPServer.Models
             {
                 if (disposing)
                 {
+                    Headers = null;
                     try
                     {
                         ContentStream?.Close();

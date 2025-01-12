@@ -9,7 +9,7 @@ using WatsonWebserver.Core;
 
 namespace HTTPSecureServerLite.Extensions
 {
-    public class Mp4TranscodeHandler
+    public class MP4TranscodeHandler
     {
         private static int _httpPort = 8081;
         private readonly string filePath;
@@ -22,7 +22,7 @@ namespace HTTPSecureServerLite.Extensions
 
         public (HttpContextBase, Process)? HandlersCache = null;
 
-        public Mp4TranscodeHandler(string filePath, string convertersPath)
+        public MP4TranscodeHandler(string filePath, string convertersPath)
         {
             this.filePath = filePath;
             this.convertersPath = convertersPath;
@@ -73,7 +73,10 @@ namespace HTTPSecureServerLite.Extensions
                     {
                         RemoveCacheEntry();
 
+                        bool isNvidia = CheckForNvidiaGpu();
+                        string bitrate = httpContext.Request.RetrieveQueryValue("vbitrate");
                         string offset = httpContext.Request.RetrieveQueryValue("offset");
+
                         if (string.IsNullOrEmpty(offset))
                             offset = "00:00:00";
                         else
@@ -86,12 +89,14 @@ namespace HTTPSecureServerLite.Extensions
                         HandlersCache = (context, proc);
 
                         proc.StartInfo = new ProcessStartInfo($"{convertersPath}/ffmpeg",
-                            string.Format(@"-ss {1} -i ""{0}"" {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(needToTranscode), _httpPort))
+                            string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-ss {1} -i ""{0}"" -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
+                            offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvidia), _httpPort, bitrate, httpContext.Request.RetrieveQueryValue("vframerate"), isNvidia ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty) :
+                            string.Format(@"{5}-ss {1} -i ""{0}"" -r {4} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvidia), _httpPort,
+                            httpContext.Request.RetrieveQueryValue("vframerate"), isNvidia ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty))
                         {
-                            //pr.UseShellExecute = true;
-                            //pr.RedirectStandardOutput = false;
                             UseShellExecute = false,
-                            RedirectStandardOutput = true
+                            RedirectStandardOutput = true,
+                            CreateNoWindow = true
                         };
 
                         proc.Start();
@@ -219,10 +224,15 @@ namespace HTTPSecureServerLite.Extensions
             _waitCompletation.Set();
         }
 
-        private static string GetBrowserSupportedFFMpegFormat(bool needToTranscode)
+        private static string GetBrowserSupportedFFMpegFormat(bool needToTranscode, bool isNvidia)
         {
             if (needToTranscode)
-                return "-vcodec libx264 -preset ultrafast -acodec aac -strict -2 -b:a 192k -threads 4 -movflags frag_keyframe -f mp4";
+            {
+                if (isNvidia)
+                    return $"-c:v h264_nvenc -preset fast -acodec aac -strict -2 -b:a 192k -threads {Environment.ProcessorCount} -movflags frag_keyframe -f mp4";
+                else
+                    return $"-vcodec libx264 -preset ultrafast -acodec aac -strict -2 -b:a 192k -threads {Environment.ProcessorCount} -movflags frag_keyframe -f mp4";
+            }
 
             return "-vcodec copy -preset ultrafast -acodec aac -strict -2 -b:a 192k -movflags frag_keyframe -f mp4";
         }
@@ -232,6 +242,37 @@ namespace HTTPSecureServerLite.Extensions
             int hours = (int)Math.Floor(offset / 3600);
             int minutes = (int)Math.Floor((offset - hours * 3600) / 60);
             return hours + ":" + minutes + ":" + (int)Math.Floor(offset - hours * 3600 - minutes * 60);
+        }
+
+        private static bool CheckForNvidiaGpu()
+        {
+            try
+            {
+                // Check if "nvidia-smi" is available and can detect a GPU
+                using (Process process = new Process())
+                {
+                    process.StartInfo.FileName = "nvidia-smi";
+                    process.StartInfo.Arguments = "-L"; // List GPUs
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
+
+                    process.Start();
+
+                    string output = process.StandardOutput.ReadToEnd();
+
+                    process.WaitForExit();
+
+                    // If output contains GPU information, we have an Nvidia GPU
+                    return output.Contains("GPU");
+                }
+            }
+            catch
+            {
+            }
+
+            // If "nvidia-smi" isn't found or fails, assume no Nvidia GPU
+            return false;
         }
     }
 }
