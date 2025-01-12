@@ -723,6 +723,19 @@ namespace NetworkLibrary.HTTP
 
         // http://stackoverflow.com/questions/1029740/get-mime-type-from-filename-extension
 
+        public static string GetMimeType(string extension)
+        {
+            if (string.IsNullOrEmpty(extension))
+                return "application/octet-stream";
+            else
+            {
+                if (!extension.StartsWith("."))
+                    extension = "." + extension;
+
+                return _mimeTypes.TryGetValue(extension, out string mime) ? mime : "application/octet-stream";
+            }
+        }
+
         public static string GetMimeType(string extension, Dictionary<string, string> mimeTypesDic)
         {
             if (string.IsNullOrEmpty(extension))
@@ -821,6 +834,17 @@ namespace NetworkLibrary.HTTP
 #else
             return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value));
 #endif
+        }
+
+        public static NameValueCollection ExtractQueryString(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            if (input.StartsWith("http", StringComparison.InvariantCultureIgnoreCase) && input.Contains("://"))
+                return HttpUtility.ParseQueryString(input);
+
+            return HttpUtility.ParseQueryString(new Uri("http://test.com" + input).Query);
         }
 
         public static string RemoveQueryString(string input)

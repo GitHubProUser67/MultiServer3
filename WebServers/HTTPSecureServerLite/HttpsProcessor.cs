@@ -35,6 +35,8 @@ using WatsonWebserver;
 using NetworkLibrary.Extension;
 using WebAPIService.WebArchive;
 using Newtonsoft.Json;
+using WebAPIService.JsWebMedia;
+using System.Threading;
 
 namespace HTTPSecureServerLite
 {
@@ -1000,6 +1002,64 @@ namespace HTTPSecureServerLite
                             }
                             #endregion
 
+                            #region JsWebMedia
+                            else if (absolutepath == "/browse/get/")
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a JsWebMedia|Browse method : {absolutepath}");
+
+                                MediaBrowse webmedia = new MediaBrowse(!HTTPSServerConfiguration.DomainFolder ? HTTPSServerConfiguration.HTTPSStaticFolder : HTTPSServerConfiguration.HTTPSStaticFolder + '/' + Host, fulluripath, filePath);
+
+                                if (webmedia.IsSupported())
+                                {
+                                    (ushort, string, string) webmediaBrowseOutput = webmedia.ListDirectoriesHandler();
+                                    response.StatusCode = webmediaBrowseOutput.Item1;
+                                    response.ContentType = webmediaBrowseOutput.Item2;
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(webmediaBrowseOutput.Item3));
+                                    else
+                                        sent = await response.Send(webmediaBrowseOutput.Item3);
+                                }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.Forbidden;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/plain";
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("Browser is incompatible with the API!"));
+                                    else
+                                        sent = await response.Send("Browser is incompatible with the API!");
+                                }
+                            }
+
+                            else if (absolutepath == "/media/info")
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a JsWebMedia|Info method : {absolutepath}");
+
+                                MediaInfo webmedia = new MediaInfo(!HTTPSServerConfiguration.DomainFolder ? HTTPSServerConfiguration.HTTPSStaticFolder : HTTPSServerConfiguration.HTTPSStaticFolder + '/' + Host, HTTPSServerConfiguration.ConvertersFolder, fulluripath, filePath);
+
+                                if (webmedia.IsSupported())
+                                {
+                                    (ushort, string, string) webmediaBrowseOutput = webmedia.StartFFProbe();
+                                    response.StatusCode = webmediaBrowseOutput.Item1;
+                                    response.ContentType = webmediaBrowseOutput.Item2;
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(webmediaBrowseOutput.Item3));
+                                    else
+                                        sent = await response.Send(webmediaBrowseOutput.Item3);
+                                }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.Forbidden;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/plain";
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes("Browser is incompatible with the API!"));
+                                    else
+                                        sent = await response.Send("Browser is incompatible with the API!");
+                                }
+                            }
+                            #endregion
+
                             else
                             {
                                 string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
@@ -1398,17 +1458,9 @@ namespace HTTPSecureServerLite
 
                                                         bool isVideo = ContentType.StartsWith("video/");
                                                         bool isAudio = ContentType.StartsWith("audio/");
-                                                        string? UserAgent = null;
 
-                                                        if (!string.IsNullOrEmpty(request.Useragent))
-                                                            UserAgent = request.Useragent.ToLower();
-
-                                                        if (HTTPSServerConfiguration.EnableLiveTranscoding
-                                                            && ((isVideo && !ContentType.Contains("mp4"))
-                                                            || isAudio) && !ContentType.Contains("mpeg")
-                                                            && !string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox")
-                                                            || UserAgent.Contains("chrome") || UserAgent.Contains("trident")))
-                                                            sent = await new Mp4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx);
+                                                        if (request.QuerystringExists("offset") && request.RetrieveQueryValue("format") != "mp4" && (isVideo || isAudio))
+                                                            sent = await new MP4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
                                                         else if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
                                                             sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType, noCompressCacheControl);
                                                         else
@@ -1416,7 +1468,8 @@ namespace HTTPSecureServerLite
                                                             // send file
                                                             LoggerAccessor.LogInfo($"[HTTPS] - {clientip} Requested a file : {absolutepath}");
 
-                                                            sent = await SendFile(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, response.ChunkedTransfer, noCompressCacheControl);
+                                                            sent = await SendFile(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio,
+                                                                isHtmlCompatible, response.ChunkedTransfer, noCompressCacheControl);
                                                         }
                                                     }
                                                     else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
