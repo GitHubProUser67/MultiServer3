@@ -10,7 +10,7 @@ namespace QuazalServer.RDVServices
 		public static void RegisterRDVServices(this RMCServiceFactory factory, string namespaceString)
 		{
 			foreach (Type? protoClass in Assembly.GetExecutingAssembly().GetTypes()
-										  .Where(t => string.Equals(t.Namespace, $"QuazalServer.RDVServices.{namespaceString}", StringComparison.Ordinal))
+										  .Where(t => string.Equals(t.Namespace, $"QuazalServer.RDVServices.GameServices.{namespaceString}", StringComparison.Ordinal))
 										  .ToArray())
 			{
                 factory.RegisterService(protoClass, namespaceString);
