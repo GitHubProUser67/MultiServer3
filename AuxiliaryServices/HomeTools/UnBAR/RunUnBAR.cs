@@ -1,14 +1,15 @@
-using CustomLogger;
-using HomeTools.BARFramework;
-using HomeTools.Crypto;
-using System.Diagnostics;
-using EndianTools;
-using System.Threading.Tasks;
 using System;
 using System.IO;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Linq;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
+using HomeTools.BARFramework;
+using HomeTools.Crypto;
 using HomeTools.SDAT;
+using EndianTools;
+using CustomLogger;
 
 namespace HomeTools.UnBAR
 {
@@ -265,7 +266,30 @@ namespace HomeTools.UnBAR
                         archive.Load();
                         //archive.WriteMap(filePath);
                         File.WriteAllText(barDirectoryPath + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
+#if NETCOREAPP || NETSTANDARD1_0_OR_GREATER || NET40_OR_GREATER
+                        // Process Environment.ProcessorCount patherns at a time, removing the limit is not tolerable as CPU usage can go high.
+                        Parallel.ForEach(archive.TableOfContents.Cast<TOCEntry>(), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, tableOfContent =>
+                        {
+                            byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
 
+                            try
+                            {
+                                if (archive.GetHeader().Version == 512)
+                                    ExtractToFileBarVersion2(archive.GetHeader().Key, FileData, archive, tableOfContent.FileName, barDirectoryPath);
+                                else
+                                    ExtractToFileBarVersion1(RawBarData, FileData, archive, tableOfContent.FileName, barDirectoryPath, cdnMode);
+                            }
+                            catch (Exception ex)
+                            {
+                                LoggerAccessor.LogWarn($"[RunUnBAR] - RunExtract Errored out on file:{tableOfContent.FileName} (Exception: {ex})");
+
+                                if (archive.GetHeader().Version == 512)
+                                    ExtractToFileBarVersion2(archive.GetHeader().Key, FileData, archive, tableOfContent.FileName, barDirectoryPath);
+                                else
+                                    ExtractToFileBarVersion1(RawBarData, FileData, archive, tableOfContent.FileName, barDirectoryPath, cdnMode);
+                            }
+                        });
+#else
                         foreach (TOCEntry tableOfContent in archive.TableOfContents)
                         {
                             byte[] FileData = tableOfContent.GetData(archive.GetHeader().Flags);
@@ -287,7 +311,7 @@ namespace HomeTools.UnBAR
                                     ExtractToFileBarVersion1(RawBarData, FileData, archive, tableOfContent.FileName, barDirectoryPath, cdnMode);
                             }
                         }
-
+#endif
                         if (File.Exists(filePath + ".map"))
                             File.Move(filePath + ".map", barDirectoryPath + $"/{Path.GetFileName(filePath)}.map");
                         else if (filePath.Length > 4 && File.Exists(filePath.Substring(0, filePath.Length - 4) + ".sharc.map"))
