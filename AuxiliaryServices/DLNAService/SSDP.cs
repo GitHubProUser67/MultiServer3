@@ -78,7 +78,7 @@ namespace DLNAService
                         if (Data.ToUpper().IndexOf("LOCATION: ") > -1)
                         {
                             // ChopOffAfter is an extended string method added in Helper.cs
-                            Data = Data.ChopOffBefore("LOCATION: ").ChopOffAfter(Environment.NewLine);
+                            Data = Data.ChopOffBefore("LOCATION: ").ChopOffAfter("\r\n");
                             if (NewServer.ToLower().IndexOf(Data.ToLower()) == -1)
                                 NewServer += " " + Data;
                         }

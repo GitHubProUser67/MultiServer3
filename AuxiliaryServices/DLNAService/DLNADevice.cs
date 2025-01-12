@@ -16,21 +16,21 @@ namespace DLNAService
         public static string MakeRequest(string Method, string Url, int ContentLength, string SOAPAction, string IP, int Port)
         {
             // Make a request that is sent out to the DLNA server on the LAN using TCP
-            string R = Method.ToUpper() + " /" + Url + " HTTP/1.1" + Environment.NewLine;
-            R += "Cache-Control: no-cache" + Environment.NewLine;
-            R += "Connection: Close" + Environment.NewLine;
-            R += "Pragma: no-cache" + Environment.NewLine;
-            R += "Host: " + IP + ":" + Port + Environment.NewLine;
-            R += "User-Agent: Microsoft-Windows/6.3 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50" + Environment.NewLine;
-            R += "FriendlyName.DLNA.ORG: " + Environment.MachineName + Environment.NewLine;
+            string R = Method.ToUpper() + " /" + Url + " HTTP/1.1\r\n";
+            R += "Cache-Control: no-cache\r\n";
+            R += "Connection: Close\r\n";
+            R += "Pragma: no-cache\r\n";
+            R += "Host: " + IP + ":" + Port + "\r\n";
+            R += "User-Agent: Microsoft-Windows/6.3 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50\r\n";
+            R += "FriendlyName.DLNA.ORG: " + Environment.MachineName + "\r\n";
             if (ContentLength > 0)
             {
-                R += "Content-Length: " + ContentLength + Environment.NewLine;
-                R += "Content-Type: text/xml; charset=\"utf-8\"" + Environment.NewLine;
+                R += "Content-Length: " + ContentLength + "\r\n";
+                R += "Content-Type: text/xml; charset=\"utf-8\"\r\n";
             }
             if (SOAPAction.Length > 0)
-                R += "SOAPAction: \"" + SOAPAction + "\"" + Environment.NewLine;
-            return R + Environment.NewLine;
+                R += "SOAPAction: \"" + SOAPAction + "\"\r\n";
+            return R + "\r\n";
         }
 
         public static Socket MakeSocket(string ip, int port)
@@ -53,36 +53,38 @@ namespace DLNAService
             int ContentLength = 0;
             int HeadLength = 0;
             byte[] buffer = new byte[8000];
-            MemoryStream ms = new MemoryStream();
-            Thread.Sleep(300);
-            while (Count < 8)
+            using (MemoryStream ms = new MemoryStream())
             {
-                Count++;
-                if (Soc.Available > 0)
+                Thread.Sleep(300);
+                while (Count < 8)
                 {
-                    int Size = Soc.Receive(buffer);
-                    string Head = Encoding.UTF32.GetString(buffer).ToLower();
-                    if (ContentLength == 0 && Head.IndexOf(Environment.NewLine + Environment.NewLine) > -1 && Head.IndexOf("content-length:") > -1)
+                    Count++;
+                    if (Soc.Available > 0)
                     {
-                        // We have a contant length so we can test if we have all the page data.
-                        HeadLength = Head.LastIndexOf(Environment.NewLine + Environment.NewLine);
-                        string StrCL = Head.ChopOffBefore("content-length:").ChopOffAfter(Environment.NewLine);
-                        _ = int.TryParse(StrCL, out ContentLength);
+                        int Size = Soc.Receive(buffer);
+                        string Head = Encoding.UTF32.GetString(buffer).ToLower();
+                        if (ContentLength == 0 && Head.IndexOf("\r\n\r\n") > -1 && Head.IndexOf("content-length:") > -1)
+                        {
+                            // We have a contant length so we can test if we have all the page data.
+                            HeadLength = Head.LastIndexOf("\r\n\r\n");
+                            string StrCL = Head.ChopOffBefore("content-length:").ChopOffAfter("\r\n");
+                            _ = int.TryParse(StrCL, out ContentLength);
+                        }
+                        ms.Write(buffer, 0, Size);
+                        if (ContentLength > 0 && ms.Length >= HeadLength + ContentLength)
+                        {
+                            if (CloseOnExit) Soc.Close();
+                            return Encoding.UTF8.GetString(ms.ToArray());
+                        }
                     }
-                    ms.Write(buffer, 0, Size);
-                    if (ContentLength > 0 && ms.Length >= HeadLength + ContentLength)
-                    {
-                        if (CloseOnExit) Soc.Close();
-                        return Encoding.UTF8.GetString(ms.ToArray());
-                    }
+                    Thread.Sleep(200);
                 }
-                Thread.Sleep(200);
+                if (CloseOnExit) Soc.Close();
+                string HTML = Encoding.UTF8.GetString(ms.ToArray());
+                string Code = HTML.ChopOffBefore("HTTP/1.1").Trim().ChopOffAfter(" ");
+                _ = int.TryParse(Code, out ReturnCode);
+                return HTML;
             }
-            if (CloseOnExit) Soc.Close();
-            string HTML = Encoding.UTF8.GetString(ms.ToArray());
-            string Code = HTML.ChopOffBefore("HTTP/1.1").Trim().ChopOffAfter(" ");
-            _ = int.TryParse(Code, out ReturnCode);
-            return HTML;
         }
     }
     #endregion
@@ -149,8 +151,11 @@ namespace DLNAService
         public string FriendlyName = string.Empty;
         public Dictionary<string, DLNAService> Services = null;
 
-        private readonly string XMLHead = "<?xml version=\"1.0\"?>" + Environment.NewLine + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + Environment.NewLine + "<SOAP-ENV:Body>" + Environment.NewLine;
-        private readonly string XMLFoot = "</SOAP-ENV:Body>" + Environment.NewLine + "</SOAP-ENV:Envelope>" + Environment.NewLine;
+        private readonly string XMLHead = "<?xml version=\"1.0\"?>\r\n" +
+            "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\r\n" +
+            "<SOAP-ENV:Body>\r\n";
+        private readonly string XMLFoot = "</SOAP-ENV:Body>\r\n" +
+            "</SOAP-ENV:Envelope>\r\n";
 
         public bool IsConnected()
         {
@@ -214,7 +219,7 @@ namespace DLNAService
         private string GetPosition(string ControlURL)
         {
             // Returns the current position for the track that is playing on the DLNA server
-            string XML = XMLHead + "<m:GetPositionInfo xmlns:m=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui4\">0</InstanceID></m:GetPositionInfo>" + XMLFoot + Environment.NewLine;
+            string XML = XMLHead + "<m:GetPositionInfo xmlns:m=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"ui4\">0</InstanceID></m:GetPositionInfo>" + XMLFoot + "\r\n";
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
             SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
@@ -223,13 +228,13 @@ namespace DLNAService
         public string Desc()
         {
             // Gets a description of the DLNA server
-            string XML="<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\" xmlns:r=\"urn:schemas-rinconnetworks-com:metadata-1-0/\" xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\">" + Environment.NewLine ;
-            XML+="<item>"  + Environment.NewLine ;
-            XML+="<dc:title>Capital Edinburgh "  + DateTime.Now.Millisecond + "</dc:title>" + Environment.NewLine ;
-            XML+="<upnp:class>object.item.audioItem.audioBroadcast</upnp:class>"  + Environment.NewLine ;
-            XML+="<desc id=\"cdudn\" nameSpace=\"urn:schemas-rinconnetworks-com:metadata-1-0/\">SA_RINCON65031_</desc>" + Environment.NewLine ;
-            XML+="</item>"  + Environment.NewLine ;
-            XML += "</DIDL-Lite>" + Environment.NewLine;
+            string XML= "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\" xmlns:r=\"urn:schemas-rinconnetworks-com:metadata-1-0/\" xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\">\r\n";
+            XML+= "<item>\r\n";
+            XML+="<dc:title>Capital Edinburgh "  + DateTime.Now.Millisecond + "</dc:title>\r\n";
+            XML+= "<upnp:class>object.item.audioItem.audioBroadcast</upnp:class>\r\n";
+            XML+= "<desc id=\"cdudn\" nameSpace=\"urn:schemas-rinconnetworks-com:metadata-1-0/\">SA_RINCON65031_</desc>\r\n";
+            XML+= "</item>\r\n";
+            XML += "</DIDL-Lite>\r\n";
             return XML;
         }
 
@@ -245,8 +250,8 @@ namespace DLNAService
         {
             // Start playing the new upload film or music track 
             string XML = XMLHead;
-            XML += "<u:Play xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>"+ Instance + "</InstanceID><Speed>1</Speed></u:Play>" + Environment.NewLine;
-            XML += XMLFoot + Environment.NewLine;
+            XML += "<u:Play xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>"+ Instance + "</InstanceID><Speed>1</Speed></u:Play>\r\n";
+            XML += XMLFoot + "\r\n";
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
             SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Play", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
@@ -270,8 +275,8 @@ namespace DLNAService
         {
             // Called to stop playing a movie or a music track
             string XML = XMLHead;
-            XML += "<u:Stop xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>" + Instance + "</InstanceID></u:Stop>" + Environment.NewLine;
-            XML += XMLFoot + Environment.NewLine;
+            XML += "<u:Stop xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>" + Instance + "</InstanceID></u:Stop>\r\n";
+            XML += XMLFoot + "\r\n";
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
             SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Stop", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
@@ -281,8 +286,8 @@ namespace DLNAService
         {
             // Called to pause playing a movie or a music track
             string XML = XMLHead;
-            XML += "<u:Pause xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>" + Instance + "</InstanceID></u:Pause>" + Environment.NewLine;
-            XML += XMLFoot + Environment.NewLine;
+            XML += "<u:Pause xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\"><InstanceID>" + Instance + "</InstanceID></u:Pause>\r\n";
+            XML += XMLFoot + "\r\n";
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
             SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#Pause", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
@@ -384,12 +389,12 @@ namespace DLNAService
         {
             // Later we will send a message to the DLNA server to start the file playing
             string XML = XMLHead;
-            XML += "<u:SetAVTransportURI xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\">" + Environment.NewLine;
-            XML += "<InstanceID>0</InstanceID>" + Environment.NewLine;
-            XML += "<CurrentURI>" + UrlToPlay.Replace(" ", "%20") + "</CurrentURI>" + Environment.NewLine;
-            XML += "<CurrentURIMetaData>" + Desc() + "</CurrentURIMetaData>" + Environment.NewLine;
-            XML += "</u:SetAVTransportURI>" + Environment.NewLine;
-            XML += XMLFoot + Environment.NewLine;
+            XML += "<u:SetAVTransportURI xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\">\r\n";
+            XML += "<InstanceID>0</InstanceID>\r\n";
+            XML += "<CurrentURI>" + UrlToPlay.Replace(" ", "%20") + "</CurrentURI>\r\n";
+            XML += "<CurrentURIMetaData>" + Desc() + "</CurrentURIMetaData>\r\n";
+            XML += "</u:SetAVTransportURI>\r\n";
+            XML += XMLFoot + "\r\n";
             Socket SocWeb = HelperDLNA.MakeSocket(IP, Port);
             SocWeb.Send(Encoding.UTF8.GetBytes(HelperDLNA.MakeRequest("POST", ControlURL, XML.Length, "urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI", IP, Port) + XML), SocketFlags.None);
             return HelperDLNA.ReadSocket(SocWeb, true, ref ReturnCode);
