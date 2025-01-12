@@ -24,7 +24,7 @@ namespace QuazalServer.RDVServices.RMC
         LocalizationService = 39,
         GameSessionService = 42,
         MatchMakingProtocolExtClient = 50,
-        GhostbustersPS3CustService = 60,
+        GhostbustersPS3Service = 60,
         OfflineGameNotificationsService = 71,
         LSPService = 81,
         ChallengeStoreProtocol = 102,
