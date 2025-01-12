@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace HomeTools.BARFramework
 {
-    public class TOC
+    public class TOC : IEnumerable
     {
         public TOC(BARArchive parentArchive)
         {
