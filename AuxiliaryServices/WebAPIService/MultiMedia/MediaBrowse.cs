@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Web;
 
-namespace WebAPIService.JsWebMedia
+namespace WebAPIService.MultiMedia
 {
     // From: https://www.codeproject.com/Articles/1079119/Video-Transcoding-and-Streaming-on-the-fly
     public class MediaBrowse

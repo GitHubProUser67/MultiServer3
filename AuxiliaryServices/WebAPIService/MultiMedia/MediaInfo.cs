@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Web;
 
-namespace WebAPIService.JsWebMedia
+namespace WebAPIService.MultiMedia
 {
     // From: https://www.codeproject.com/Articles/1079119/Video-Transcoding-and-Streaming-on-the-fly
     public class MediaInfo
@@ -24,10 +24,18 @@ namespace WebAPIService.JsWebMedia
 
         public bool IsSupported()
         {
-            if (File.Exists(string.Format(@"{0}/{1}", workpath,
+            string path = string.Format(@"{0}/{1}", workpath,
                 HttpUtility.UrlDecode(MediaBrowse.GetQueryParameter(HTTPProcessor.ExtractQueryString(fullurl), "item")))
-                .Replace(@"\\", @"\").Replace("//", "/")))
+                .Replace(@"\\", @"\").Replace("//", "/");
+
+            if (File.Exists(path))
+            {
+                if (path.EndsWith(".isoimg", StringComparison.InvariantCultureIgnoreCase)
+                    || path.EndsWith(".iso", StringComparison.InvariantCultureIgnoreCase))
+                    return false;
+
                 return true;
+            }
 
             return false;
         }
@@ -36,25 +44,33 @@ namespace WebAPIService.JsWebMedia
         {
             try
             {
+                const string seekingTypeJson = "{ \"seeking_type\": \"";
+                const string mediaInfoJson = "\", \"media_info\": ";
+
+                string output = seekingTypeJson;
                 string path = string.Format(@"{0}/{1}", workpath,
                     HttpUtility.UrlDecode(MediaBrowse.GetQueryParameter(HTTPProcessor.ExtractQueryString(fullurl), "item")))
                     .Replace(@"\\", @"\").Replace("//", "/");
 
                 ProcessStartInfo pr = new ProcessStartInfo(convertersPath + "/ffprobe",
-                    string.Format(@"-i ""{0}"" -show_streams -show_format -print_format json", path));
+                        string.Format(@"-i ""{0}"" -show_streams -show_format -print_format json", path));
+
                 pr.UseShellExecute = false;
                 pr.RedirectStandardOutput = true;
                 pr.CreateNoWindow = true;
 
-                Process proc = new Process();
-                proc.StartInfo = pr;
-                proc.Start();
+                using (Process proc = new Process())
+                {
+                    proc.StartInfo = pr;
 
-                string output = "{ \"seeking_type\": \"" + GetSeekingType(new FileInfo(path).Extension) + "\", \"media_info\": " + proc.StandardOutput.ReadToEnd() + " }";
+                    proc.Start();
 
-                proc.WaitForExit();
+                    output += GetSeekingType(new FileInfo(path).Extension) + mediaInfoJson + proc.StandardOutput.ReadToEnd() + " }";
 
-                return (200, "text/plain", output);
+                    proc.WaitForExit();
+
+                    return (200, "text/plain", output);
+                }
             }
             catch (Exception e)
             {

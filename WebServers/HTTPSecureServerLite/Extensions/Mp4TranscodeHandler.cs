@@ -3,6 +3,7 @@ using SpaceWizards.HttpListener;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
@@ -73,7 +74,7 @@ namespace HTTPSecureServerLite.Extensions
                     {
                         RemoveCacheEntry();
 
-                        bool isNvidia = CheckForNvidiaGpu();
+                        bool isNvenc = CheckForNvencGpu();
                         string bitrate = httpContext.Request.RetrieveQueryValue("vbitrate");
                         string offset = httpContext.Request.RetrieveQueryValue("offset");
 
@@ -89,10 +90,10 @@ namespace HTTPSecureServerLite.Extensions
                         HandlersCache = (context, proc);
 
                         proc.StartInfo = new ProcessStartInfo($"{convertersPath}/ffmpeg",
-                            string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-ss {1} -i ""{0}"" -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
-                            offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvidia), _httpPort, bitrate, httpContext.Request.RetrieveQueryValue("vframerate"), isNvidia ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty) :
-                            string.Format(@"{5}-ss {1} -i ""{0}"" -r {4} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvidia), _httpPort,
-                            httpContext.Request.RetrieveQueryValue("vframerate"), isNvidia ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty))
+                            string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-i ""{0}"" -ss {1} -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
+                            offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvenc), _httpPort, bitrate, httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty) :
+                            string.Format(@"{5}-i ""{0}"" -ss {1} -r {4} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvenc), _httpPort,
+                            httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty))
                         {
                             UseShellExecute = false,
                             RedirectStandardOutput = true,
@@ -244,35 +245,64 @@ namespace HTTPSecureServerLite.Extensions
             return hours + ":" + minutes + ":" + (int)Math.Floor(offset - hours * 3600 - minutes * 60);
         }
 
-        private static bool CheckForNvidiaGpu()
+        private static bool CheckForNvencGpu()
         {
             try
             {
                 // Check if "nvidia-smi" is available and can detect a GPU
-                using (Process process = new Process())
+                using (Process proc = new Process())
                 {
-                    process.StartInfo.FileName = "nvidia-smi";
-                    process.StartInfo.Arguments = "-L"; // List GPUs
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.CreateNoWindow = true;
+                    proc.StartInfo.FileName = "nvidia-smi";
+                    proc.StartInfo.Arguments = "-L"; // List GPUs
+                    proc.StartInfo.RedirectStandardOutput = true;
+                    proc.StartInfo.UseShellExecute = false;
+                    proc.StartInfo.CreateNoWindow = true;
 
-                    process.Start();
+                    proc.Start();
 
-                    string output = process.StandardOutput.ReadToEnd();
+                    string output = proc.StandardOutput.ReadToEnd();
 
-                    process.WaitForExit();
+                    proc.WaitForExit();
 
-                    // If output contains GPU information, we have an Nvidia GPU
-                    return output.Contains("GPU");
+                    if (output.Contains("GPU"))
+                    {
+                        const string pattern = @"CUDA Version:\s*([\d.]+)";
+
+                        proc.StartInfo.Arguments = string.Empty;
+
+                        proc.Start();
+
+                        output = proc.StandardOutput.ReadToEnd();
+
+                        proc.WaitForExit();
+
+                        Match match = Regex.Match(output, pattern);
+
+                        if (match.Success)
+                        {
+                            const string minRequiredVersionStr = "9.0";
+
+                            if (CompareVersions(match.Groups[1].Value, minRequiredVersionStr) > 0)
+                                // If output contains GPU information and we have a valid CUDA revision, we can use NVENC
+                                return true;
+                        }
+                    }
                 }
             }
             catch
             {
             }
 
-            // If "nvidia-smi" isn't found or fails, assume no Nvidia GPU
+            // If "nvidia-smi" isn't found or fails, assume no NVENC
             return false;
+        }
+
+        private static int CompareVersions(string version1, string version2)
+        {
+            Version v1 = Version.Parse(version1);
+            Version v2 = Version.Parse(version2);
+
+            return v1.CompareTo(v2);
         }
     }
 }

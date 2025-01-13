@@ -35,8 +35,6 @@ using WatsonWebserver;
 using NetworkLibrary.Extension;
 using WebAPIService.WebArchive;
 using Newtonsoft.Json;
-using WebAPIService.JsWebMedia;
-using System.Threading;
 
 namespace HTTPSecureServerLite
 {
