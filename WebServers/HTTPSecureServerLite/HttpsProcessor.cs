@@ -1458,7 +1458,18 @@ namespace HTTPSecureServerLite
                                                         bool isAudio = ContentType.StartsWith("audio/");
 
                                                         if (request.QuerystringExists("offset") && request.RetrieveQueryValue("format") != "mp4" && (isVideo || isAudio))
-                                                            sent = await new MP4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
+                                                        {
+                                                            string? UserAgent = null;
+
+                                                            if (!string.IsNullOrEmpty(request.Useragent))
+                                                                UserAgent = request.Useragent.ToLower();
+
+                                                            // This is a little gross, but I am gonna assume peoples uses decently updated browsers with this function.
+                                                            if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("edge") || UserAgent.Contains("opera")))
+                                                                sent = await new WebmTranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
+                                                            else
+                                                                sent = await new MP4TranscodeHandler(filePath, HTTPSServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
+                                                        }
                                                         else if (!string.IsNullOrEmpty(request.RetrieveHeaderValue("Range"))) // Mmm, is it possible to have more?
                                                             sent = LocalFileStreamHelper.Handle_LocalFile_Stream(ctx, filePath, ContentType, noCompressCacheControl);
                                                         else

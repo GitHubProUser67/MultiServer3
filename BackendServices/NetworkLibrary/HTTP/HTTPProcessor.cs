@@ -529,6 +529,7 @@ namespace NetworkLibrary.HTTP
             {".wdb", "application/vnd.ms-works"},
             {".wdp", "image/vnd.ms-photo"},
             {".webarchive", "application/x-safari-webarchive"},
+            {".webm", "video/webm"},
             {".webtest", "application/xml"},
             {".wiq", "application/xml"},
             {".wiz", "application/msword"},

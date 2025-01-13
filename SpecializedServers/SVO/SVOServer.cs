@@ -155,7 +155,8 @@ namespace SVO
                     if (!string.IsNullOrEmpty(ctx.Request.UserAgent))
                         UserAgent = ctx.Request.UserAgent.ToLower();
 
-                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("trident") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
+                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("edge")
+                        || UserAgent.Contains("trident") || UserAgent.Contains("opera") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
                     {
                         ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                         LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
