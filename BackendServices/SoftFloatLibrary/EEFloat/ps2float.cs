@@ -173,8 +173,6 @@ namespace EEFloat
 
         private ps2float DoAdd(ps2float other)
         {
-            const byte roundingMultiplier = 6;
-
             byte selfExponent = Exponent;
             int resExponent = selfExponent - other.Exponent;
 
@@ -182,6 +180,8 @@ namespace EEFloat
                 return other.DoAdd(this);
             else if (resExponent >= 25)
                 return this;
+
+            const byte roundingMultiplier = 6;
 
             // http://graphics.stanford.edu/~seander/bithacks.html#ConditionalNegate
             uint sign1 = (uint)((int)raw >> 31);
@@ -192,7 +192,7 @@ namespace EEFloat
             int man = (selfMantissa << roundingMultiplier) + ((otherMantissa << roundingMultiplier) >> resExponent);
             int absMan = Math.Abs(man);
             if (absMan == 0)
-                return new ps2float(0);
+                return Zero;
 
             int rawExp = selfExponent - roundingMultiplier;
 
@@ -349,10 +349,33 @@ namespace EEFloat
         /// </summary>
         public static ps2float Max(ps2float val1, ps2float val2)
         {
-            if (val1 > val2)
-                return val1;
+            uint f1Raw = val1.raw;
+            uint f2Raw = val2.raw;
+            uint a, b, rest;
 
-            return val2;
+            b = f1Raw & MAX_FLOATING_POINT_VALUE;
+            a = f2Raw & MAX_FLOATING_POINT_VALUE;
+
+            if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) == 0))
+            {
+                if (a < b)
+                    f2Raw = f1Raw;
+
+                rest = f2Raw;
+            }
+            else if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) != 0))
+                rest = f1Raw;
+            else if (((f1Raw & SIGNMASK) == 0) || ((f2Raw & SIGNMASK) != 0))
+            {
+                if (b < a)
+                    f2Raw = f1Raw;
+
+                rest = f2Raw;
+            }
+            else
+                rest = f2Raw;
+
+            return new ps2float(rest);
         }
 
         /// <summary>
@@ -360,26 +383,65 @@ namespace EEFloat
         /// </summary>
         public static ps2float Min(ps2float val1, ps2float val2)
         {
-            if (val1 < val2)
-                return val1;
+            uint f1Raw = val1.raw;
+            uint f2Raw = val2.raw;
+            uint a, b, rest;
 
-            return val2;
+            b = f1Raw & MAX_FLOATING_POINT_VALUE;
+            a = f2Raw & MAX_FLOATING_POINT_VALUE;
+
+            if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) == 0))
+            {
+                if (b < a)
+                    f2Raw = f1Raw;
+
+                rest = f2Raw;
+            }
+            else if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) != 0))
+                rest = f2Raw;
+            else if (((f1Raw & SIGNMASK) == 0) || ((f2Raw & SIGNMASK) != 0))
+            {
+                if (a < b)
+                    f2Raw = f1Raw;
+
+                rest = f2Raw;
+            }
+            else
+                rest = f1Raw;
+
+            return new ps2float(rest);
         }
 
-        /// <summary>
-        /// Returns the maximum of the two given PS2Float values as a raw format.
-        /// </summary>
-        public static uint MaxRaw(ps2float val1, ps2float val2)
+        public static void Clip(uint f1, uint f2, out int cplus, out int cminus)
         {
-            return (uint)(((int)val1.raw < 0 && (int)val2.raw < 0) ? Math.Min((int)val1.raw, (int)val2.raw) : Math.Max((int)val1.raw, (int)val2.raw));
-        }
+            int resultPlus = 0;
+            int resultMinus = 0;
+            uint a;
 
-        /// <summary>
-        /// Returns the minimum of the two given PS2Float values as a raw format.
-        /// </summary>
-        public static uint MinRaw(ps2float val1, ps2float val2)
-        {
-            return (uint)(((int)val1.raw < 0 && (int)val2.raw < 0) ? Math.Max((int)val1.raw, (int)val2.raw) : Math.Min((int)val1.raw, (int)val2.raw));
+            if ((f1 & 0x7F800000) == 0)
+            {
+                f1 &= 0xFF800000;
+            }
+
+            a = f1;
+
+            if ((f2 & 0x7F800000) == 0)
+            {
+                f2 &= 0xFF800000;
+            }
+
+            f1 = f1 & MAX_FLOATING_POINT_VALUE;
+            f2 = f2 & MAX_FLOATING_POINT_VALUE;
+
+            if ((-1 < (int)a) && (f2 < f1))
+                resultPlus = 1;
+
+            cplus = resultPlus;
+
+            if (((int)a < 0) && (f2 < f1))
+                resultMinus = 1;
+
+            cminus = resultMinus;
         }
 
         public uint Abs()

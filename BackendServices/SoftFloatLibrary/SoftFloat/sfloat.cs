@@ -213,7 +213,7 @@ namespace SoftFloat
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static sfloat operator -(sfloat f) => new sfloat(f.rawValue ^ 0x80000000);
+        public static sfloat operator -(sfloat f) => new sfloat(f.rawValue ^ SignMask);
 
         private static sfloat InternalAdd(sfloat f1, sfloat f2)
         {
@@ -228,6 +228,8 @@ namespace SoftFloat
                 {
                     return f1;
                 }
+
+                const byte roundingMultiplier = 6;
 
                 int man1;
                 int man2;
@@ -259,14 +261,14 @@ namespace SoftFloat
                     deltaExp = rawExp1 - rawExp2;
                 }
 
-                int man = (man1 << 6) + ((man2 << 6) >> deltaExp);
+                int man = (man1 << roundingMultiplier) + ((man2 << roundingMultiplier) >> deltaExp);
                 int absMan = Math.Abs(man);
                 if (absMan == 0)
                 {
                     return Zero;
                 }
 
-                int rawExp = rawExp1 - 6;
+                int rawExp = rawExp1 - roundingMultiplier;
 
                 int amount = BitUtils.normalizeAmounts[BitUtils.CountLeadingSignBits(absMan)];
                 rawExp -= amount;
@@ -277,7 +279,7 @@ namespace SoftFloat
                 absMan >>= msbIndex;
                 if ((uint)(rawExp - 1) < 254)
                 {
-                    uint raw = (uint)man & 0x80000000 | (uint)rawExp << MantissaBits | ((uint)absMan & 0x7FFFFF);
+                    uint raw = (uint)man & SignMask | (uint)rawExp << MantissaBits | ((uint)absMan & 0x7FFFFF);
                     return new sfloat(raw);
                 }
                 else
@@ -290,7 +292,7 @@ namespace SoftFloat
 
                     if (rawExp >= -24)
                     {
-                        uint raw = (uint)man & 0x80000000 | (uint)(absMan >> (-rawExp + 1));
+                        uint raw = (uint)man & SignMask | (uint)(absMan >> (-rawExp + 1));
                         return new sfloat(raw);
                     }
 
@@ -500,7 +502,7 @@ namespace SoftFloat
             //Debug.Assert(man != 0);
             uint absMan = (uint)Math.Abs(man);
             int rawExp = rawExp1 + rawExp2 - ExponentBias;
-            uint sign = (uint)man & 0x80000000;
+            uint sign = (uint)man & SignMask;
             if ((absMan & 0x1000000) != 0)
             {
                 absMan >>= 1;
@@ -684,7 +686,7 @@ namespace SoftFloat
             //Debug.Assert(man != 0);
             uint absMan = (uint)Math.Abs(man);
             int rawExp = rawExp1 - rawExp2 + ExponentBias;
-            uint sign = (uint)man & 0x80000000;
+            uint sign = (uint)man & SignMask;
 
             if ((absMan & 0x800000) == 0)
             {
@@ -904,13 +906,13 @@ namespace SoftFloat
         /// Returns true if the sfloat number has a positive sign.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsPositive() => (rawValue & 0x80000000) == 0;
+        public bool IsPositive() => (rawValue & SignMask) == 0;
 
         /// <summary>
         /// Returns true if the sfloat number has a negative sign.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsNegative() => (rawValue & 0x80000000) != 0;
+        public bool IsNegative() => (rawValue & SignMask) != 0;
 
         public int Sign()
         {
