@@ -1,8 +1,10 @@
 using CustomLogger;
+using NetworkLibrary.HTTP;
 using SpaceWizards.HttpListener;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +77,7 @@ namespace HTTPSecureServerLite.Extensions
                         RemoveCacheEntry();
 
                         bool isNvenc = CheckForNvencGpu();
+                        bool ismp4Source = HTTPProcessor.GetMimeType(Path.GetExtension(filePath)) == "video/mp4";
                         string bitrate = httpContext.Request.RetrieveQueryValue("vbitrate");
                         string offset = httpContext.Request.RetrieveQueryValue("offset");
 
@@ -91,8 +94,8 @@ namespace HTTPSecureServerLite.Extensions
 
                         proc.StartInfo = new ProcessStartInfo($"{convertersPath}/ffmpeg",
                             string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-i ""{0}"" -ss {1} -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
-                            offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvenc), _httpPort, bitrate, httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty) :
-                            string.Format(@"{5}-i ""{0}"" -ss {1} -r {4} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(needToTranscode, isNvenc), _httpPort,
+                            offset, GetBrowserSupportedFFMpegFormat(ismp4Source, needToTranscode, isNvenc), _httpPort, bitrate, httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty) :
+                            string.Format(@"{5}-i ""{0}"" -ss {1} -r {4} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(ismp4Source, needToTranscode, isNvenc), _httpPort,
                             httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty))
                         {
                             UseShellExecute = false,
@@ -225,8 +228,11 @@ namespace HTTPSecureServerLite.Extensions
             _waitCompletation.Set();
         }
 
-        private static string GetBrowserSupportedFFMpegFormat(bool needToTranscode, bool isNvidia)
+        private static string GetBrowserSupportedFFMpegFormat(bool ismp4Source, bool needToTranscode, bool isNvidia)
         {
+            if (!ismp4Source) // We prefer the safer approach, and assume other-than-mp4 data is not compatible with a straight copy.
+                needToTranscode = true;
+
             if (needToTranscode)
             {
                 if (isNvidia)
