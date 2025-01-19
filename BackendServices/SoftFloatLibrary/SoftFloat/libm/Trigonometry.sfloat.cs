@@ -1,7 +1,7 @@
 ﻿
-namespace SoftFloat
+namespace SoftFloatLibrary
 {
-    public static partial class libm
+    public static partial class libm_sfloat
     {
         const uint pi = 0x40490fdb; // 3.1415926535897932384626433832795
         const uint half_pi = 0x3fc90fdb; // 1.5707963267948966192313216916398

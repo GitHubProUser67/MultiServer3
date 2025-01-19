@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using SoftFloat;
-using SoftFloatLibrary;
 
-namespace EEFloat
+namespace SoftFloatLibrary
 {
     public struct ps2float : IEquatable<ps2float>, IComparable<ps2float>, IComparable
     {

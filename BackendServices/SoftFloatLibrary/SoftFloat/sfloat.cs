@@ -25,10 +25,8 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using EEFloat;
-using SoftFloatLibrary;
 
-namespace SoftFloat
+namespace SoftFloatLibrary
 {
     // Internal representation is identical to IEEE binary32 floating point numbers
     [DebuggerDisplay("{ToStringInv()}")]
@@ -56,8 +54,8 @@ namespace SoftFloat
 
         public uint RawValue => rawValue;
 
-        private uint RawMantissa { get { return rawValue & 0x7FFFFF; } }
-        private int Mantissa
+        public uint RawMantissa { get { return rawValue & 0x7FFFFF; } }
+        public int Mantissa
         {
             get
             {
@@ -74,8 +72,8 @@ namespace SoftFloat
             }
         }
 
-        private sbyte Exponent => (sbyte)(RawExponent - ExponentBias);
-        private byte RawExponent => (byte)(rawValue >> MantissaBits);
+        public sbyte Exponent => (sbyte)(RawExponent - ExponentBias);
+        public byte RawExponent => (byte)(rawValue >> MantissaBits);
 
 
         private const uint SignMask = 0x80000000;
@@ -83,16 +81,16 @@ namespace SoftFloat
         private const int ExponentBits = 8;
         private const int ExponentBias = 127;
 
-        public const uint RawZero = 0;
-        public const uint RawNaN = 0xFFC00000; // Same as float.NaN
-        public const uint RawPositiveInfinity = 0x7F800000;
-        public const uint RawNegativeInfinity = 0xFF800000;
-        public const uint RawOne = 0x3F800000;
-        public const uint RawMinusOne = 0xBF800000;
-        public const uint RawMaxValue = 0x7F7FFFFF;
-        public const uint RawMinValue = 0xFF7FFFFF;
-        public const uint RawEpsilon = 0x00000001;
-        public const uint RawLog2OfE = 0;
+        private const uint RawZero = 0;
+        private const uint RawNaN = 0xFFC00000; // Same as float.NaN
+        private const uint RawPositiveInfinity = 0x7F800000;
+        private const uint RawNegativeInfinity = 0xFF800000;
+        private const uint RawOne = 0x3F800000;
+        private const uint RawMinusOne = 0xBF800000;
+        private const uint RawMaxValue = 0x7F7FFFFF;
+        private const uint RawMinValue = 0xFF7FFFFF;
+        private const uint RawEpsilon = 0x00000001;
+        private const uint RawLog2OfE = 0;
 
 
         public static sfloat Zero => new sfloat(0);
@@ -718,7 +716,7 @@ namespace SoftFloat
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static sfloat operator %(sfloat f1, sfloat f2) => libm.fmodf(f1, f2);
+        public static sfloat operator %(sfloat f1, sfloat f2) => libm_sfloat.fmodf(f1, f2);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe uint ReinterpretFloatToInt32(float f) => *(uint*)&f;

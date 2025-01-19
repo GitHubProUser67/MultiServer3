@@ -1,26 +1,26 @@
-﻿
-namespace SoftFloat
+﻿namespace SoftFloatLibrary
 {
-    public static partial class libm
+    public static partial class libm_sdouble
     {
+#if NET7_0_OR_GREATER
         /// <summary>
         /// Returns the remainder and the quotient when dividing x by y, so that x == y * quotient + remainder
         /// </summary>
-        public static void remquof(sfloat x, sfloat y, out sfloat remainder, out int quotient)
+        public static void remquo(sdouble x, sdouble y, out sdouble remainder, out int quotient)
         {
-            uint ux = x.RawValue;
-            uint uy = y.RawValue;
-            int ex = (int)((ux >> 23) & 0xff);
-            int ey = (int)((uy >> 23) & 0xff);
-            bool sx = (ux >> 31) != 0;
-            bool sy = (uy >> 31) != 0;
-            uint q;
-            uint i;
+            ulong ux = x.RawValue;
+            ulong uy = y.RawValue;
+            int ex = (int)((ux >> 52) & 0x7ff);
+            int ey = (int)((uy >> 52) & 0x7ff);
+            bool sx = (ux >> 63) != 0;
+            bool sy = (uy >> 63) != 0;
+            ulong q;
+            ulong i;
             var uxi = ux;
 
-            if ((uy << 1) == 0 || y.IsNaN() || ex == 0xff)
+            if ((uy << 1) == 0 || y.IsNaN() || ex == 0x7ff)
             {
-                sfloat m = (x * y);
+                sdouble m = (x * y);
                 remainder = m / m;
                 quotient = 0;
                 return;
@@ -36,8 +36,8 @@ namespace SoftFloat
             /* normalize x and y */
             if (ex == 0)
             {
-                i = uxi << 9;
-                while ((i >> 31) == 0)
+                i = uxi << 11;
+                while ((i >> 63) == 0)
                 {
                     ex -= 1;
                     i <<= 1;
@@ -47,14 +47,14 @@ namespace SoftFloat
             }
             else
             {
-                uxi &= (~0u) >> 9;
-                uxi |= 1 << 23;
+                uxi &= (~0UL) >> 11;
+                uxi |= 1UL << 52;
             }
 
             if (ey == 0)
             {
-                i = uy << 9;
-                while ((i >> 31) == 0)
+                i = uy << 11;
+                while ((i >> 63) == 0)
                 {
                     ey -= 1;
                     i <<= 1;
@@ -64,8 +64,8 @@ namespace SoftFloat
             }
             else
             {
-                uy &= (~0u) >> 9;
-                uy |= 1 << 23;
+                uy &= (~0UL) >> 11;
+                uy |= 1UL << 52;
             }
 
             q = 0;
@@ -82,7 +82,7 @@ namespace SoftFloat
                 while (ex > ey)
                 {
                     i = uxi - uy;
-                    if ((i >> 31) == 0)
+                    if ((i >> 63) == 0)
                     {
                         uxi = i;
                         q += 1;
@@ -94,7 +94,7 @@ namespace SoftFloat
                 }
 
                 i = uxi - uy;
-                if ((i >> 31) == 0)
+                if ((i >> 63) == 0)
                 {
                     uxi = i;
                     q += 1;
@@ -102,11 +102,11 @@ namespace SoftFloat
 
                 if (uxi == 0)
                 {
-                    ex = -30;
+                    ex = -60;
                 }
                 else
                 {
-                    while ((uxi >> 23) == 0)
+                    while ((uxi >> 52) == 0)
                     {
                         uxi <<= 1;
                         ex -= 1;
@@ -117,27 +117,27 @@ namespace SoftFloat
             /* scale result and decide between |x| and |x|-|y| */
             if (ex > 0)
             {
-                uxi -= 1 << 23;
-                uxi |= ((uint)ex) << 23;
+                uxi -= 1UL << 52;
+                uxi |= ((ulong)ex) << 52;
             }
             else
             {
                 uxi >>= -ex + 1;
             }
 
-            x = sfloat.FromRaw(uxi);
+            x = sdouble.FromRaw(uxi);
             if (sy)
             {
                 y = -y;
             }
 
-            if ((ex == ey || (ex + 1 == ey && ((sfloat)2.0f * x > y || ((sfloat)2.0f * x == y && (q % 2) != 0)))) && x > y)
+            if ((ex == ey || (ex + 1 == ey && ((sdouble)2.0 * x > y || ((sdouble)2.0 * x == y && (q % 2) != 0)))) && x > y)
             {
                 x -= y;
                 q += 1;
             }
 
-            q &= 0x7fffffff;
+            q &= 0x7fffffffffffffffUL;
             int quo = sx ^ sy ? -(int)q : (int)q;
             remainder = sx ? -x : x;
             quotient = quo;
@@ -146,25 +146,25 @@ namespace SoftFloat
         /// <summary>
         /// Returns the remainder when dividing x by y
         /// </summary>
-        public static sfloat remainderf(sfloat x, sfloat y)
+        public static sdouble remainder(sdouble x, sdouble y)
         {
-            remquof(x, y, out sfloat remainder, out _);
+            remquo(x, y, out sdouble remainder, out _);
             return remainder;
         }
 
         /// <summary>
         /// Returns x modulo y
         /// </summary>
-        public static sfloat fmodf(sfloat x, sfloat y)
+        public static sdouble fmod(sdouble x, sdouble y)
         {
-            uint uxi = x.RawValue;
-            uint uyi = y.RawValue;
-            int ex = (int)(uxi >> 23 & 0xff);
-            int ey = (int)(uyi >> 23 & 0xff);
-            uint sx = uxi & 0x80000000;
-            uint i;
+            ulong uxi = x.RawValue;
+            ulong uyi = y.RawValue;
+            int ex = (int)(uxi >> 52 & 0x7ff);
+            int ey = (int)(uyi >> 52 & 0x7ff);
+            ulong sx = uxi & 0x8000000000000000UL;
+            ulong i;
 
-            if (uyi << 1 == 0 || y.IsNaN() || ex == 0xff)
+            if (uyi << 1 == 0 || y.IsNaN() || ex == 0x7ff)
             {
                 return (x * y) / (x * y);
             }
@@ -173,8 +173,8 @@ namespace SoftFloat
             {
                 if (uxi << 1 == uyi << 1)
                 {
-                    //return 0.0 * x;
-                    return sfloat.Zero;
+                    // return 0.0 * x;
+                    return sdouble.Zero;
                 }
 
                 return x;
@@ -183,8 +183,8 @@ namespace SoftFloat
             /* normalize x and y */
             if (ex == 0)
             {
-                i = uxi << 9;
-                while (i >> 31 == 0)
+                i = uxi << 11;
+                while (i >> 63 == 0)
                 {
                     ex -= 1;
                     i <<= 1;
@@ -194,14 +194,14 @@ namespace SoftFloat
             }
             else
             {
-                uxi &= uint.MaxValue >> 9;
-                uxi |= 1 << 23;
+                uxi &= ulong.MaxValue >> 11;
+                uxi |= 1UL << 52;
             }
 
             if (ey == 0)
             {
-                i = uyi << 9;
-                while (i >> 31 == 0)
+                i = uyi << 11;
+                while (i >> 63 == 0)
                 {
                     ey -= 1;
                     i <<= 1;
@@ -211,20 +211,20 @@ namespace SoftFloat
             }
             else
             {
-                uyi &= uint.MaxValue >> 9;
-                uyi |= 1 << 23;
+                uyi &= ulong.MaxValue >> 11;
+                uyi |= 1UL << 52;
             }
 
             /* x mod y */
             while (ex > ey)
             {
                 i = uxi - uyi;
-                if (i >> 31 == 0)
+                if (i >> 63 == 0)
                 {
                     if (i == 0)
                     {
-                        //return 0.0 * x;
-                        return sfloat.Zero;
+                        // return 0.0 * x;
+                        return sdouble.Zero;
                     }
 
                     uxi = i;
@@ -236,18 +236,18 @@ namespace SoftFloat
             }
 
             i = uxi - uyi;
-            if (i >> 31 == 0)
+            if (i >> 63 == 0)
             {
                 if (i == 0)
                 {
-                    //return 0.0 * x;
-                    return sfloat.Zero;
+                    // return 0.0 * x;
+                    return sdouble.Zero;
                 }
 
                 uxi = i;
             }
 
-            while (uxi >> 23 == 0)
+            while (uxi >> 52 == 0)
             {
                 uxi <<= 1;
                 ex -= 1;
@@ -256,8 +256,8 @@ namespace SoftFloat
             /* scale result up */
             if (ex > 0)
             {
-                uxi -= 1 << 23;
-                uxi |= ((uint)ex) << 23;
+                uxi -= 1UL << 52;
+                uxi |= ((ulong)ex) << 52;
             }
             else
             {
@@ -265,76 +265,76 @@ namespace SoftFloat
             }
 
             uxi |= sx;
-            return sfloat.FromRaw(uxi);
+            return sdouble.FromRaw(uxi);
         }
-
+#endif
         /// <summary>
         /// Rounds x to the nearest integer
         /// </summary>
-        public static sfloat roundf(sfloat x)
+        public static sdouble round(sdouble x)
         {
-            sfloat TOINT = (sfloat)8388608.0f;
+            sdouble TOINT = (sdouble)4503599627370496.0; // 2^52
 
-            uint i = x.RawValue;
-            uint e = i >> 23 & 0xff;
-            sfloat y;
+            ulong i = x.RawValue;
+            ulong e = (i >> 52) & 0x7ff;
+            sdouble y;
 
-            if (e >= 0x7f + 23)
+            if (e >= 0x3ff + 52)
             {
                 return x;
             }
 
-            if (e < 0x7f - 1)
+            if (e < 0x3ff - 1)
             {
-                //force_eval!(x + TOINT);
-                //return 0.0 * x;
-                return sfloat.Zero;
+                // force_eval!(x + TOINT);
+                // return 0.0 * x;
+                return sdouble.Zero;
             }
 
-            if (i >> 31 != 0)
+            if (i >> 63 != 0)
             {
                 x = -x;
             }
 
             y = x + TOINT - TOINT - x;
 
-            if (y > (sfloat)0.5f)
+            if (y > (sdouble)0.5)
             {
-                y = y + x - sfloat.One;
+                y = y + x - sdouble.One;
             }
-            else if (y <= (sfloat)(-0.5f))
+            else if (y <= (sdouble)(-0.5))
             {
-                y = y + x + sfloat.One;
+                y = y + x + sdouble.One;
             }
             else
             {
                 y += x;
             }
 
-            return i >> 31 != 0 ? -y : y;
+            return i >> 63 != 0 ? -y : y;
         }
 
         /// <summary>
         /// Rounds x down to the nearest integer
         /// </summary>
-        public static sfloat floorf(sfloat x)
+        public static sdouble floor(sdouble x)
         {
-            uint ui = x.RawValue;
-            int e = (((int)(ui >> 23)) & 0xff) - 0x7f;
+            ulong ui = x.RawValue;
+            int e = (((int)(ui >> 52)) & 0x7ff) - 0x3ff;
 
-            if (e >= 23)
+            if (e >= 52)
             {
                 return x;
             }
 
             if (e >= 0)
             {
-                uint m = 0x007fffffu >> e;
+                ulong m = 0x000fffffffffffffUL >> e;
                 if ((ui & m) == 0)
                 {
                     return x;
                 }
-                if (ui >> 31 != 0)
+                if (ui >> 63 != 0)
                 {
                     ui += m;
                 }
@@ -342,40 +342,40 @@ namespace SoftFloat
             }
             else
             {
-                if (ui >> 31 == 0)
+                if (ui >> 63 == 0)
                 {
                     ui = 0;
                 }
                 else if (ui << 1 != 0)
                 {
-                    return (sfloat)(-1.0f);
+                    return (sdouble)(-1.0);
                 }
             }
 
-            return sfloat.FromRaw(ui);
+            return sdouble.FromRaw(ui);
         }
 
         /// <summary>
         /// Rounds x up to the nearest integer
         /// </summary>
-        public static sfloat ceilf(sfloat x)
+        public static sdouble ceil(sdouble x)
         {
-            uint ui = x.RawValue;
-            int e = (int)(((ui >> 23) & 0xff) - (0x7f));
+            ulong ui = x.RawValue;
+            int e = (int)(((ui >> 52) & 0x7ff) - (0x3ff));
 
-            if (e >= 23)
+            if (e >= 52)
             {
                 return x;
             }
 
             if (e >= 0)
             {
-                uint m = 0x007fffffu >> e;
+                ulong m = 0x000fffffffffffffUL >> e;
                 if ((ui & m) == 0)
                 {
                     return x;
                 }
-                if (ui >> 31 == 0)
+                if (ui >> 63 == 0)
                 {
                     ui += m;
                 }
@@ -383,75 +383,75 @@ namespace SoftFloat
             }
             else
             {
-                if (ui >> 31 != 0)
+                if (ui >> 63 != 0)
                 {
-                    return (sfloat)(-0.0f);
+                    return (sdouble)(-0.0);
                 }
                 else if (ui << 1 != 0)
                 {
-                    return sfloat.One;
+                    return sdouble.One;
                 }
             }
 
-            return sfloat.FromRaw(ui);
+            return sdouble.FromRaw(ui);
         }
 
         /// <summary>
         /// Truncates x, removing its fractional parts
         /// </summary>
-        public static sfloat truncf(sfloat x)
+        public static sdouble trunc(sdouble x)
         {
-            uint i = x.RawValue;
-            int e = (int)(i >> 23 & 0xff) - 0x7f + 9;
-            uint m;
+            ulong i = x.RawValue;
+            int e = (int)(i >> 52 & 0x7ff) - 0x3ff + 12;
+            ulong m;
 
-            if (e >= 23 + 9)
+            if (e >= 52 + 12)
             {
                 return x;
             }
 
-            if (e < 9)
+            if (e < 12)
             {
                 e = 1;
             }
 
-            m = unchecked((uint)-1) >> e;
+            m = unchecked((ulong)-1) >> e;
             if ((i & m) == 0)
             {
                 return x;
             }
 
             i &= ~m;
-            return sfloat.FromRaw(i);
+            return sdouble.FromRaw(i);
         }
 
         /// <summary>
         /// Returns the square root of x
         /// </summary>
-        public static sfloat sqrtf(sfloat x)
+        public static sdouble sqrt(sdouble x)
         {
-            int sign = unchecked((int)0x80000000);
-            int ix;
-            int s;
-            int q;
-            int m;
-            int t;
-            int i;
-            uint r;
+            int sign = unchecked((int)0x8000000000000000);
+            long ix;
+            long s;
+            long q;
+            long m;
+            long t;
+            long i;
+            ulong r;
 
-            ix = (int)x.RawValue;
+            ix = (long)x.RawValue;
 
             /* take care of Inf and NaN */
-            if (((uint)ix & 0x7f800000) == 0x7f800000)
+            if (((ulong)ix & 0x7ff0000000000000) == 0x7ff0000000000000)
             {
-                //return x * x + x; /* sqrt(NaN)=NaN, sqrt(+inf)=+inf, sqrt(-inf)=sNaN */
+                // return x * x + x; /* sqrt(NaN)=NaN, sqrt(+inf)=+inf, sqrt(-inf)=sNaN */
                 if (x.IsNaN() || x.IsNegativeInfinity())
                 {
-                    return sfloat.NaN;
+                    return sdouble.NaN;
                 }
                 else // if (x.IsPositiveInfinity())
                 {
-                    return sfloat.PositiveInfinity;
+                    return sdouble.PositiveInfinity;
                 }
             }
 
@@ -465,18 +465,18 @@ namespace SoftFloat
 
                 if (ix < 0)
                 {
-                    //return (x - x) / (x - x); /* sqrt(-ve) = sNaN */
-                    return sfloat.NaN;
+                    // return (x - x) / (x - x); /* sqrt(-ve) = sNaN */
+                    return sdouble.NaN;
                 }
             }
 
             /* normalize x */
-            m = ix >> 23;
+            m = ix >> 52;
             if (m == 0)
             {
                 /* subnormal x */
                 i = 0;
-                while ((ix & 0x00800000) == 0)
+                while ((ix & 0x0010000000000000) == 0)
                 {
                     ix <<= 1;
                     i += 1;
@@ -485,8 +485,8 @@ namespace SoftFloat
                 m -= i - 1;
             }
 
-            m -= 127; /* unbias exponent */
-            ix = (ix & 0x007fffff) | 0x00800000;
+            m -= 1023; /* unbias exponent */
+            ix = (ix & 0x000fffffffffffff) | 0x0010000000000000;
             if ((m & 1) == 1)
             {
                 /* odd m, double x to make it even */
@@ -499,16 +499,16 @@ namespace SoftFloat
             ix += ix;
             q = 0;
             s = 0;
-            r = 0x01000000; /* r = moving bit from right to left */
+            r = 0x0010000000000000; /* r = moving bit from right to left */
 
             while (r != 0)
             {
-                t = s + (int)r;
+                t = s + (long)r;
                 if (t <= ix)
                 {
-                    s = t + (int)r;
+                    s = t + (long)r;
                     ix -= t;
-                    q += (int)r;
+                    q += (long)r;
                 }
 
                 ix += ix;
@@ -521,9 +521,9 @@ namespace SoftFloat
                 q += q & 1;
             }
 
-            ix = (q >> 1) + 0x3f000000;
-            ix += m << 23;
-            return sfloat.FromRaw((uint)ix);
+            ix = (q >> 1) + 0x3fe0000000000000;
+            ix += m << 52;
+            return sdouble.FromRaw((ulong)ix);
         }
     }
 }

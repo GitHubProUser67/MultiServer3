@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EEFloat
+namespace SoftFloatLibrary
 {
     public class FpgaDiv
     {
@@ -83,8 +83,8 @@ namespace EEFloat
                 floatDivisor = f1;
             }
 
-            byte Dvdtexp = (byte)((floatDividend >> 23) & 0xFF);
-            byte Dvsrexp = (byte)((floatDivisor >> 23) & 0xFF);
+            byte Dvdtexp = (byte)((floatDividend >> 23) & byte.MaxValue);
+            byte Dvsrexp = (byte)((floatDivisor >> 23) & byte.MaxValue);
             int Dvdtsign = (int)(floatDividend >> 31);
             int Dvsrsign = (int)(floatDivisor >> 31);
 
@@ -255,7 +255,7 @@ namespace EEFloat
             floatResult &= ps2float.MAX_FLOATING_POINT_VALUE;
             floatResult |= (uint)(sign & 1) << 31;
             floatResult &= 0x807FFFFF;
-            floatResult |= (uint)(exp & 0xFF) << 23;
+            floatResult |= (uint)(exp & byte.MaxValue) << 23;
             floatResult &= 0xFF800000;
             floatResult |= (uint)man & 0x7FFFFF;
         }
