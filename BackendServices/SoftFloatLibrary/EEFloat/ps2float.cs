@@ -578,18 +578,17 @@ namespace SoftFloatLibrary
 
             int resExponent;
 
+            bool negative = value < 0;
+
             if (value == int.MinValue)
             {
-                // special case
-                resExponent = 158 - complement;
-
-                if (resExponent >= 0)
-                    return new ps2float(true, (byte)resExponent, 0);
-
-                return Zero;
+                if (complement <= 0)
+                    // special case
+                    return new ps2float(0xcf000000);
+                else
+                    value = int.MaxValue;
             }
 
-            bool negative = value < 0;
             int u = Math.Abs(value);
 
             int shifts;
@@ -610,7 +609,9 @@ namespace SoftFloatLibrary
 
             resExponent = BIAS + MANTISSA_BITS - shifts - complement;
 
-            if (resExponent >= 0)
+            if (resExponent >= 158)
+                return negative ? new ps2float(0xcf000000) : new ps2float(0x4f000000);
+            else if (resExponent >= 0)
                 return new ps2float(negative, (byte)resExponent, (uint)u);
 
             return Zero;
@@ -630,7 +631,7 @@ namespace SoftFloatLibrary
                 f |= 0x800000;
                 if (complement < 158)
                 {
-                    if (complement >= 126)
+                    if (complement > 126)
                     {
                         f = (f << 7) >> (31 - ((byte)complement - 126));
                         if ((int)a < 0)
