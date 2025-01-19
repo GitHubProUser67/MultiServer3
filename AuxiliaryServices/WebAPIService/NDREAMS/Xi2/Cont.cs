@@ -88,6 +88,13 @@ namespace WebAPIService.NDREAMS.Xi2
         // Function to retrieve the day value by index
         private static string GetDayValueByIndex(int index)
         {
+            int minIndex = dayDictionary.Keys.Min();
+
+            if (index < minIndex) // Wrap up to debug.
+                index = minIndex;
+            else if (index > dayDictionary.Keys.Max()) // Wrap up to new game+
+                index = 0;
+
             return dayDictionary.TryGetValue(index, out string value) ? value : string.Empty;
         }
 
