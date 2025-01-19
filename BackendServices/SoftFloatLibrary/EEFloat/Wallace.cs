@@ -3817,7 +3817,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_4 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_3 == 0 ? 1 : 0;
             vdmmbooth_siga = yin_5 == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_4, yin_3) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_4, yin_3) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_4 & yin_3) == 0 ? 1 : 0;
             if (yin_3 != 0)
                 vdmmbooth_sglo = yin_4;
@@ -4484,7 +4484,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_6 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_5 == 0 ? 1 : 0;
             vdmmbooth_siga = yin_7 == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_6, yin_5) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_6, yin_5) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_6 & yin_5) == 0 ? 1 : 0;
             if (yin_5 != 0)
                 vdmmbooth_sglo = yin_6;
@@ -6633,7 +6633,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_8 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_7 == 0 ? 1 : 0;
             vdmmbooth_siga = yin_9 == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_8, yin_7) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_8, yin_7) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_8 & yin_7) == 0 ? 1 : 0;
             if (yin_7 != 0)
                 vdmmbooth_sglo = yin_8;
@@ -7975,7 +7975,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_12 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_11 == 0 ? 1 : 0;
             vdmmbooth_siga = yin_13 == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_12, yin_11) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_12, yin_11) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_12 & yin_11) == 0 ? 1 : 0;
             if (yin_11 != 0)
                 vdmmbooth_sglo = yin_12;
@@ -8642,7 +8642,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_14 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_13 == 0 ? 1 : 0;
             vdmmbooth_siga = yin_15 == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_14, yin_13) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_14, yin_13) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_14 & yin_13) == 0 ? 1 : 0;
             if (yin_13 != 0)
                 vdmmbooth_sglo = yin_14;
@@ -9317,7 +9317,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_16 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_15 == 0 ? 1 : 0;
             vdmmbooth_siga = yin_17 == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_16, yin_15) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_16, yin_15) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_16 & yin_15) == 0 ? 1 : 0;
             if (yin_15 != 0)
                 vdmmbooth_sglo = yin_16;
@@ -9984,7 +9984,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_18 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_17 == 0 ? 1 : 0;
             vdmmbooth_siga = yin_19 == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_18, yin_17) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_18, yin_17) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_18 & yin_17) == 0 ? 1 : 0;
             if (yin_17 != 0)
                 vdmmbooth_sglo = yin_18;
@@ -11326,7 +11326,7 @@ namespace SoftFloatLibrary
             vdmmbooth_y1ab = yin_22 == 0 ? 1 : 0;
             vdmmbooth_y0ab = yin_21 == 0 ? 1 : 0;
             vdmmbooth_siga = vdd == 0 ? 1 : 0;
-            vdmmbooth_nro = CombineTo64Bit(yin_22, yin_21) == 0 ? 1 : 0;
+            vdmmbooth_nro = BitUtils.CombineTo64Bit(yin_22, yin_21) == 0 ? 1 : 0;
             vdmmbooth_ndo = (yin_22 & yin_21) == 0 ? 1 : 0;
             if (yin_21 != 0)
                 vdmmbooth_sglo = yin_22;
@@ -19773,12 +19773,6 @@ namespace SoftFloatLibrary
             }
             cfs_47 = jvmvm42cmp_sumxx == 0 ? 1 : 0;
             vdmmcsa5_net147 = jvmvm42cmp_cobxx == 0 ? 1 : 0;
-        }
-
-        private long CombineTo64Bit(int left, int right)
-        {
-            // Combine left (high 32 bits) and right (low 32 bits) into a single 64-bit signed value
-            return ((long)left << 32) | ((long)right & 0xFFFFFFFFL);
         }
     }
 }

@@ -88,6 +88,12 @@ namespace SoftFloatLibrary
         {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24
         };
+		
+        public static long CombineTo64Bit(int left, int right)
+        {
+            // Combine left (high 32 bits) and right (low 32 bits) into a single 64-bit signed value
+            return (long)left << 32 | (long)(uint)right;
+        }
 
         public static ulong ConvertToUInt64(this uint[] array)
         {
