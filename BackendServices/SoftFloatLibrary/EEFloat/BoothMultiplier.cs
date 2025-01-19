@@ -1,4 +1,4 @@
-﻿namespace EEFloat
+﻿namespace SoftFloatLibrary
 {
     // From the PCSX2 Team (TellowKrinkle)
     public class BoothMultiplier
@@ -36,7 +36,8 @@
 
         public static ulong MulMantissa(uint a, uint b)
         {
-            ulong full = (ulong)a * (ulong)b;
+            Wallace wallace = new Wallace(a, b);
+            ulong full = sdouble.FromRaw(wallace.fs_multiplier).RawMantissa + sdouble.FromRaw(wallace.ft_multiplier).RawMantissa;
             BoothRecode b0 = Booth(a, b, 0);
             BoothRecode b1 = Booth(a, b, 1);
             BoothRecode b2 = Booth(a, b, 2);

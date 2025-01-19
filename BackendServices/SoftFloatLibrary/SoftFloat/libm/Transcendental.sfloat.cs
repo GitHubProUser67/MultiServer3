@@ -1,7 +1,7 @@
 ﻿
-namespace SoftFloat
+namespace SoftFloatLibrary
 {
-    public static partial class libm
+    public static partial class libm_sfloat
     {
         private static sfloat scalbnf(sfloat x, int n)
         {
