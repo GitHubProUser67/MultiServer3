@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
+using HomeTools.AFS;
 
 namespace HomeTools.BARFramework
 {
@@ -626,7 +627,7 @@ namespace HomeTools.BARFramework
                 LoggerAccessor.LogError(string.Format("File paths cannot contain whitespace: {0}", text));
                 return null;
             }
-            AfsHash afsHash = new AfsHash(text);
+            AFSHash afsHash = new AFSHash(text);
             bool flag = false;
             if (Path.GetExtension(filePath) == string.Empty && int.TryParse(Path.GetFileName(filePath), out _))
                 flag = true;
@@ -843,7 +844,7 @@ namespace HomeTools.BARFramework
         public bool ContainsFile(string filePath)
         {
             string inBARPath = GetInBARPath(filePath);
-            AfsHash afsHash = new AfsHash(inBARPath);
+            AFSHash afsHash = new AFSHash(inBARPath);
             HashedFileName filename = new HashedFileName(afsHash.Value);
             TOCEntry tocentry = m_toc[filename];
             return tocentry != null;
@@ -852,7 +853,7 @@ namespace HomeTools.BARFramework
         public void ReplaceFile(string filePath, BARAddFileOptions options)
         {
             string inBARPath = GetInBARPath(filePath);
-            AfsHash afsHash = new AfsHash(inBARPath);
+            AFSHash afsHash = new AFSHash(inBARPath);
             HashedFileName filename = (HashedFileName)afsHash.Value;
             TOCEntry tocEntry = m_toc[filename];
             FileStream inStream = File.OpenRead(filePath);
@@ -1099,7 +1100,7 @@ namespace HomeTools.BARFramework
 
         public byte[] GetFileData(string FileName)
         {
-            return GetFileData(new HashedFileName(new AfsHash(FileName).Value));
+            return GetFileData(new HashedFileName(new AFSHash(FileName).Value));
         }
 
         public byte[] GetFileData(HashedFileName FileName)
@@ -1169,7 +1170,7 @@ namespace HomeTools.BARFramework
 
         public byte[] GetRawFileData(string FileName)
         {
-            return GetRawFileData(new HashedFileName(new AfsHash(GetInBARPath(FileName)).Value));
+            return GetRawFileData(new HashedFileName(new AFSHash(GetInBARPath(FileName)).Value));
         }
 
         public byte[] GetRawFileData(HashedFileName FileName)

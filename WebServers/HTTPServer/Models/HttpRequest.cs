@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using NetworkLibrary.HTTP;
 using Newtonsoft.Json;
 
 namespace HTTPServer.Models
@@ -65,21 +66,28 @@ namespace HTTPServer.Models
 
         public string? GetPath()
         {
-            if (Route != null && Route.UrlRegex != null && RawUrlWithQuery != null)
+            if (!string.IsNullOrEmpty(RawUrlWithQuery))
             {
-                Match match = Regex.Match(RawUrlWithQuery, Route.UrlRegex);
-                if (match.Groups.Count > 1)
-                    return match.Groups[1].Value;
+                string url = HTTPProcessor.DecodeUrl(RawUrlWithQuery);
+
+                if (Route != null && Route.UrlRegex != null)
+                {
+                    Match match = Regex.Match(url, Route.UrlRegex);
+                    if (match.Groups.Count > 1)
+                        return match.Groups[1].Value;
+                }
+
+                return url;
             }
 
-            return RawUrlWithQuery;
+            return null;
         }
 
         public Dictionary<string, string>? QueryParameters
         {
             get
             {
-                if (RawUrlWithQuery != null)
+                if (!string.IsNullOrEmpty(RawUrlWithQuery))
                 {
                     Dictionary<string, string> parameterDictionary = new();
 

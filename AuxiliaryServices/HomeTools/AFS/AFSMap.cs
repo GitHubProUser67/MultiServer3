@@ -1,4 +1,3 @@
-using CustomLogger;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,7 +24,7 @@ namespace HomeTools.AFS
 
                             // Search for files with names matching the CRC hash, regardless of the extension
                             foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                              .Where(path => new Regex($"(?:0X)?{AFSHash.ComputeAFSHash(cdatapath)}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
+                              .Where(path => new Regex($"(?:0X)?{new AFSHash(cdatapath).Value.ToString("X8")}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
                               .ToArray())
                             {
                                 string NewfilePath = CurrentFolder + $"/{cdatapath}";
@@ -41,7 +40,7 @@ namespace HomeTools.AFS
 
                         // Search for files with names matching the CRC hash, regardless of the extension
                         foreach (string filePath in Directory.GetFiles(CurrentFolder)
-                          .Where(path => new Regex($"(?:0X)?{AFSHash.ComputeAFSHash(prefix + text)}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
+                          .Where(path => new Regex($"(?:0X)?{new AFSHash(prefix + text).Value.ToString("X8")}(?:\\.\\w+)?$").IsMatch(Path.GetFileNameWithoutExtension(path)))
                           .ToArray())
                         {
                             string NewfilePath = CurrentFolder + $"/{text}";
@@ -57,25 +56,7 @@ namespace HomeTools.AFS
                             || NewfilePath.ToLower().EndsWith(".efx") || NewfilePath.ToLower().EndsWith(".xml") || NewfilePath.ToLower().EndsWith(".scene")
                             || NewfilePath.ToLower().EndsWith(".map") || NewfilePath.ToLower().EndsWith(".lua") || NewfilePath.ToLower().EndsWith(".luac")
                             || NewfilePath.ToLower().EndsWith(".unknown") || NewfilePath.ToLower().EndsWith(".txt")))
-                            {
-                                const byte maxRetries = 3;
-
-                                for (byte attempt = 0; attempt <= maxRetries; attempt++)
-                                {
-                                    try
-                                    {
-                                        await SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
-                                        break;
-                                    }
-                                    catch (IOException ex)
-                                    {
-                                        if (attempt == maxRetries)
-                                            LoggerAccessor.LogError($"[AFSMap] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
-                                        else
-                                            await Task.Delay(100).ConfigureAwait(false);
-                                    }
-                                }
-                            }
+                                await SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
                         }
                     }
                 }

@@ -31,7 +31,7 @@ namespace NetworkLibrary.Extension.Csharp
         public HugeMemoryStream(Stream st, long BufferSize)
         {
             int bytesRead = 0;
-#if NET5_0_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> buffer = new byte[BufferSize];
             while ((bytesRead = st.Read(buffer)) > 0)
             {
@@ -50,7 +50,7 @@ namespace NetworkLibrary.Extension.Csharp
         {
             Write(ByteArrayToMem, 0, ByteArrayToMem.Length);
         }
-#if NET5_0_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public HugeMemoryStream(Span<byte> SpanToMem)
         {
             Write(SpanToMem);

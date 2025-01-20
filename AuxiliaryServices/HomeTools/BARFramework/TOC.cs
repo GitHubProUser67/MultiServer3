@@ -83,7 +83,7 @@ namespace HomeTools.BARFramework
         {
             get
             {
-                return this[new HashedFileName(new AfsHash(path).Value)];
+                return this[new HashedFileName(new AFS.AFSHash(path).Value)];
             }
         }
 

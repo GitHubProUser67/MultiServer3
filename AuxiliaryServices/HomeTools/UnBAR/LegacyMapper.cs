@@ -54,10 +54,7 @@ namespace HomeTools.UnBAR
                 {
                     if (!string.IsNullOrEmpty(mappedList.file))
                     {
-                        string text = Regex.Replace(mappedList.file, "file:(\\/+)resource_root\\/build\\/", string.Empty, RegexOptions.IgnoreCase);
-                        text = Regex.Replace(text, "file:", string.Empty, RegexOptions.IgnoreCase);
-                        text = Regex.Replace(text, "///", string.Empty, RegexOptions.IgnoreCase);
-                        text = Regex.Replace(text, "/", "\\", RegexOptions.IgnoreCase);
+                        string text = AFSHash.EscapeString(mappedList.file);
                         text = Regex.Replace(text, "reward//ConfederateGeneral_M_Reward.dds", "reward/ConfederateGeneral_M_Reward.dds", RegexOptions.IgnoreCase);
                         text = Regex.Replace(text, "NATGParticles", "ATGParticles", RegexOptions.IgnoreCase);
                         text = Regex.Replace(text, "xenvironments", "environments", RegexOptions.IgnoreCase);
@@ -81,7 +78,7 @@ namespace HomeTools.UnBAR
                         text = Regex.Replace(text, "update.svml", "host_svml\\update.svml", RegexOptions.IgnoreCase);
                         text = Regex.Replace(text, "nekomuis.svml", "host_svml\\nekomuis.svml", RegexOptions.IgnoreCase);
 
-                        foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(new BARFramework.AfsHash(prefix + text).Value.ToString("X8") + ".*"))
+                        foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(new AFSHash(prefix + text).Value.ToString("X8") + ".*"))
                         {
                             if (File.Exists(Path.Combine(foldertomap, file.Name)))
                             {
@@ -100,7 +97,7 @@ namespace HomeTools.UnBAR
                         {
                             string cdatafromatmos = text.Remove(text.Length - 6) + ".cdata";
 
-                            foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(new BARFramework.AfsHash(cdatafromatmos).Value.ToString("X8") + ".*"))
+                            foreach (FileInfo file in new DirectoryInfo(foldertomap).GetFiles(new AFSHash(cdatafromatmos).Value.ToString("X8") + ".*"))
                             {
                                 if (File.Exists(Path.Combine(foldertomap, file.Name)))
                                 {
