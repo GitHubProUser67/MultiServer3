@@ -378,21 +378,13 @@ namespace WatsonWebserver
             {
                 int read;
 
-                try
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        ms.Write(buffer, 0, read);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[WatsonWebserver] - ReadStreamFully(Stream input) Errored out while copying inputStream to the request object. (Exception: {ex})");
-
-                    ms.Clear();
+                    ms.Write(buffer, 0, read);
                 }
 
-                return ms.ToArray();
+                byte[] ret = ms.ToArray();
+                return ret;
             }
         }
 

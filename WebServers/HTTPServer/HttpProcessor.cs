@@ -2095,24 +2095,10 @@ namespace HTTPServer
 
             if (request.Data != null && request.Data.CanSeek)
             {
-                try
-                {
-                    // Seek to the end of the target stream, and copy from there.
-                    long CurrentPosition = request.Data.Seek(0, SeekOrigin.End);
-                    inputStream.CopyTo(request.Data);
-                    request.Data.Position = CurrentPosition;
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[HTTPProcessor] - AppendRequestOrInputStream Errored out while copying inputStream to the request object. (Exception: {ex})");
-
-                    if (request.Data is MemoryStream ms)
-                        ms.Clear();
-                    else if (request.Data is HugeMemoryStream hms)
-                    {
-                        // TODO, clear HugeMemoryStream when the disposing is implemented.
-                    }
-                }
+                // Seek to the end of the target stream, and copy from there.
+                long CurrentPosition = request.Data.Seek(0, SeekOrigin.End);
+                inputStream.CopyTo(request.Data);
+                request.Data.Position = CurrentPosition;
             }
             else
             {
@@ -2123,21 +2109,12 @@ namespace HTTPServer
 
                 request.Data = new HugeMemoryStream(); // We can't predict stream size, so take safer option.
 
-                try
+                while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        request.Data.Write(buffer, 0, bytesRead);
-                    }
-
-                    request.Data.Position = 0;
+                    request.Data.Write(buffer, 0, bytesRead);
                 }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[HTTPProcessor] - AppendRequestOrInputStream Errored out while copying inputStream to the request object. (Exception: {ex})");
 
-                    // TODO, clear HugeMemoryStream when the disposing is implemented.
-                }
+                request.Data.Position = 0;
             }
 
             return request;
@@ -2199,22 +2176,13 @@ namespace HTTPServer
 
                     request.Data = new MemoryStream();
 
-                    try
+                    while (totalBytesCopied < bytesToCopy && (bytesRead = inputStream.Read(buffer, 0, (int)Math.Min(bufferSize, bytesToCopy - totalBytesCopied))) > 0)
                     {
-                        while (totalBytesCopied < bytesToCopy && (bytesRead = inputStream.Read(buffer, 0, (int)Math.Min(bufferSize, bytesToCopy - totalBytesCopied))) > 0)
-                        {
-                            request.Data.Write(buffer, 0, bytesRead);
-                            totalBytesCopied += bytesRead;
-                        }
-
-                        request.Data.Position = 0;
+                        request.Data.Write(buffer, 0, bytesRead);
+                        totalBytesCopied += bytesRead;
                     }
-                    catch (Exception ex)
-                    {
-                        LoggerAccessor.LogError($"[HTTPProcessor] - GetRequest Errored out while copying inputStream to the request object. (Exception: {ex})");
 
-                        ((MemoryStream)request.Data).Clear();
-                    }
+                    request.Data.Position = 0;
                 }
 
                 return request;
