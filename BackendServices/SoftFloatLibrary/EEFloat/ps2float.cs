@@ -336,78 +336,29 @@ namespace SoftFloatLibrary
 
         public int CompareOperands(ps2float other)
         {
-            int selfTwoComplementVal = (int)Abs();
-            int otherTwoComplementVal = (int)other.Abs();
-
-            return selfTwoComplementVal.CompareTo(otherTwoComplementVal);
+            return Abs().CompareTo(other.Abs());
         }
 
         /// <summary>
         /// Returns the maximum of the two given PS2Float values.
         /// </summary>
-        public static ps2float Max(ps2float val1, ps2float val2)
+        public static ps2float Max(ps2float f1, ps2float f2)
         {
-            uint f1Raw = val1.raw;
-            uint f2Raw = val2.raw;
-            uint a, b, rest;
+            int a = (int)f1.raw;
+            int b = (int)f2.raw;
 
-            b = f1Raw & MAX_FLOATING_POINT_VALUE;
-            a = f2Raw & MAX_FLOATING_POINT_VALUE;
-
-            if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) == 0))
-            {
-                if (a < b)
-                    f2Raw = f1Raw;
-
-                rest = f2Raw;
-            }
-            else if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) != 0))
-                rest = f1Raw;
-            else if (((f1Raw & SIGNMASK) == 0) || ((f2Raw & SIGNMASK) != 0))
-            {
-                if (b < a)
-                    f2Raw = f1Raw;
-
-                rest = f2Raw;
-            }
-            else
-                rest = f2Raw;
-
-            return new ps2float(rest);
+            return new ps2float((a < 0 && b < 0) ? (uint)Math.Min(a, b) : (uint)Math.Max(a, b));
         }
 
         /// <summary>
         /// Returns the minimum of the two given PS2Float values.
         /// </summary>
-        public static ps2float Min(ps2float val1, ps2float val2)
+        public static ps2float Min(ps2float f1, ps2float f2)
         {
-            uint f1Raw = val1.raw;
-            uint f2Raw = val2.raw;
-            uint a, b, rest;
+            int a = (int)f1.raw;
+            int b = (int)f2.raw;
 
-            b = f1Raw & MAX_FLOATING_POINT_VALUE;
-            a = f2Raw & MAX_FLOATING_POINT_VALUE;
-
-            if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) == 0))
-            {
-                if (b < a)
-                    f2Raw = f1Raw;
-
-                rest = f2Raw;
-            }
-            else if (((f1Raw & SIGNMASK) == 0) && ((f2Raw & SIGNMASK) != 0))
-                rest = f2Raw;
-            else if (((f1Raw & SIGNMASK) == 0) || ((f2Raw & SIGNMASK) != 0))
-            {
-                if (a < b)
-                    f2Raw = f1Raw;
-
-                rest = f2Raw;
-            }
-            else
-                rest = f1Raw;
-
-            return new ps2float(rest);
+            return new ps2float((a < 0 && b < 0) ? (uint)Math.Max(a, b) : (uint)Math.Min(a, b));
         }
 
         public static void Clip(uint f1, uint f2, out int cplus, out int cminus)
