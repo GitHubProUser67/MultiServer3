@@ -187,9 +187,9 @@ namespace HTTPServer
                             if (tcpClient.Available > 0 && outputStream.CanWrite)
                             {
                                 if (request == null)
-                                    request = GetRequest(inputStream, clientip, clientport.ToString(), ListenerPort);
+                                    request = GetRequest(inputStream, clientip, clientport.ToString()!, ListenerPort);
                                 else
-                                    request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString(), ListenerPort);
+                                    request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString()!, ListenerPort);
 
                                 if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery))
                                 {
@@ -2083,7 +2083,7 @@ namespace HTTPServer
             return null;
         }
 
-        protected virtual HttpRequest AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string? clientport, ushort ListenerPort)
+        protected virtual HttpRequest AppendRequestOrInputStream(Stream inputStream, HttpRequest request, string clientip, string clientport, ushort ListenerPort)
 		{
             HttpRequest? newRequest = GetRequest(inputStream, clientip, clientport, ListenerPort);
 
@@ -2095,31 +2095,56 @@ namespace HTTPServer
 
             if (request.Data != null && request.Data.CanSeek)
             {
-                // Seek to the end of the target stream, and copy from there.
-                long CurrentPosition = request.Data.Seek(0, SeekOrigin.End);
-                inputStream.CopyTo(request.Data);
-                request.Data.Position = CurrentPosition;
+                try
+                {
+                    // Seek to the end of the target stream, and copy from there.
+                    long CurrentPosition = request.Data.Seek(0, SeekOrigin.End);
+                    inputStream.CopyTo(request.Data);
+                    request.Data.Position = CurrentPosition;
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[HTTPProcessor] - AppendRequestOrInputStream Errored out while copying inputStream to the request object. (Exception: {ex})");
+
+                    if (request.Data is MemoryStream ms)
+                        ms.Clear();
+                    else if (request.Data is HugeMemoryStream hms)
+                    {
+                        // TODO, clear HugeMemoryStream when the disposing is implemented.
+                    }
+                }
             }
             else
             {
+                const int bufferSize = 16 * 1024;
+
                 int bytesRead;
-                byte[] buffer = new byte[8192];
+                byte[] buffer = new byte[bufferSize];
 
                 request.Data = new HugeMemoryStream(); // We can't predict stream size, so take safer option.
 
-                while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                try
                 {
-                    request.Data.Write(buffer, 0, bytesRead);
-                }
+                    while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        request.Data.Write(buffer, 0, bytesRead);
+                    }
 
-                request.Data.Position = 0;
+                    request.Data.Position = 0;
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[HTTPProcessor] - AppendRequestOrInputStream Errored out while copying inputStream to the request object. (Exception: {ex})");
+
+                    // TODO, clear HugeMemoryStream when the disposing is implemented.
+                }
             }
 
             return request;
         }
 
 
-        protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string? clientport, ushort ListenerPort)
+        protected virtual HttpRequest? GetRequest(Stream inputStream, string clientip, string clientport, ushort ListenerPort)
 		{
             // Read Request Line and check if valid.
             string[] tokens = Readline(inputStream).Split(' ');
@@ -2153,7 +2178,7 @@ namespace HTTPServer
                 HttpRequest request = new()
                 {
                     Method = tokens[0].ToUpper(),
-                    RawUrlWithQuery = HTTPProcessor.DecodeUrl(tokens[1]),
+                    RawUrlWithQuery = tokens[1],
                     Headers = headers,
                     IP = clientip,
                     Port = clientport,
@@ -2174,13 +2199,22 @@ namespace HTTPServer
 
                     request.Data = new MemoryStream();
 
-                    while (totalBytesCopied < bytesToCopy && (bytesRead = inputStream.Read(buffer, 0, (int)Math.Min(bufferSize, bytesToCopy - totalBytesCopied))) > 0)
+                    try
                     {
-                        request.Data.Write(buffer, 0, bytesRead);
-                        totalBytesCopied += bytesRead;
-                    }
+                        while (totalBytesCopied < bytesToCopy && (bytesRead = inputStream.Read(buffer, 0, (int)Math.Min(bufferSize, bytesToCopy - totalBytesCopied))) > 0)
+                        {
+                            request.Data.Write(buffer, 0, bytesRead);
+                            totalBytesCopied += bytesRead;
+                        }
 
-                    request.Data.Position = 0;
+                        request.Data.Position = 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerAccessor.LogError($"[HTTPProcessor] - GetRequest Errored out while copying inputStream to the request object. (Exception: {ex})");
+
+                        ((MemoryStream)request.Data).Clear();
+                    }
                 }
 
                 return request;

@@ -1,5 +1,3 @@
-using CustomLogger;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,7 +26,7 @@ namespace HomeTools.AFS
                 foreach (string ObjectMetaDataRelativePath in new List<string>() { $"{Objectprefix}object.xml", $"{Objectprefix}resources.xml", $"{Objectprefix}localisation.xml" })
                 {
                     string text = AFSHash.EscapeString(ObjectMetaDataRelativePath);
-                    string CrcHash = AFSHash.ComputeAFSHash(text);
+                    string CrcHash = new AFSHash(text).Value.ToString("X8");
 
                     // Search for files with names matching the CRC hash, regardless of the extension
                     foreach (string filePath in Directory.GetFiles(CurrentFolder)
@@ -45,25 +43,7 @@ namespace HomeTools.AFS
                             File.Move(filePath, NewfilePath.ToUpper());
 
                         if (File.Exists(NewfilePath))
-                        {
-                            const byte maxRetries = 3;
-
-                            for (byte attempt = 0; attempt <= maxRetries; attempt++)
-                            {
-                                try
-                                {
-                                    await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
-                                    break;
-                                }
-                                catch (IOException ex)
-                                {
-                                    if (attempt == maxRetries)
-                                        LoggerAccessor.LogError($"[AFSClass] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
-                                    else
-                                        await Task.Delay(100).ConfigureAwait(false);
-                                }
-                            }
-                        }
+                            await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
                     }
                 }
             }
@@ -89,7 +69,7 @@ namespace HomeTools.AFS
                                 foreach (string ObjectMetaDataRelativePath in new List<string>() { $"{Objectprefix}object.xml", $"{Objectprefix}resources.xml", $"{Objectprefix}localisation.xml" })
                                 {
                                     string text = AFSHash.EscapeString(ObjectMetaDataRelativePath);
-                                    string CrcHash = AFSHash.ComputeAFSHash(text);
+                                    string CrcHash = new AFSHash(text).Value.ToString("X8");
 
                                     // Search for files with names matching the CRC hash, regardless of the extension
                                     foreach (string filePath in Directory.GetFiles(CurrentFolder)
@@ -106,25 +86,7 @@ namespace HomeTools.AFS
                                             File.Move(filePath, NewfilePath.ToUpper());
 
                                         if (File.Exists(NewfilePath))
-                                        {
-                                            const byte maxRetries = 3;
-
-                                            for (byte attempt = 0; attempt <= maxRetries; attempt++)
-                                            {
-                                                try
-                                                {
-                                                    await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
-                                                    break;
-                                                }
-                                                catch (IOException ex)
-                                                {
-                                                    if (attempt == maxRetries)
-                                                        LoggerAccessor.LogError($"[AFSClass] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
-                                                    else
-                                                        await Task.Delay(100).ConfigureAwait(false);
-                                                }
-                                            }
-                                        }
+                                            await AFSMap.SubHashMapBatch(CurrentFolder, Objectprefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
                                     }
                                 }
                             }
@@ -155,25 +117,7 @@ namespace HomeTools.AFS
                                 File.Move(filePath, NewfilePath.ToUpper());
 
                             if (File.Exists(NewfilePath))
-                            {
-                                const byte maxRetries = 3;
-
-                                for (byte attempt = 0; attempt <= maxRetries; attempt++)
-                                {
-                                    try
-                                    {
-                                        await AFSMap.SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
-                                        break;
-                                    }
-                                    catch (IOException ex)
-                                    {
-                                        if (attempt == maxRetries)
-                                            LoggerAccessor.LogError($"[AFSClass] - Failed to real file at Path: {NewfilePath} (Exception: {ex})");
-                                        else
-                                            await Task.Delay(100).ConfigureAwait(false);
-                                    }
-                                }
-                            }
+                                await AFSMap.SubHashMapBatch(CurrentFolder, prefix, File.ReadAllText(NewfilePath)).ConfigureAwait(false);
                         }
                     }));
                 }
@@ -250,7 +194,7 @@ namespace HomeTools.AFS
                         if (!string.IsNullOrEmpty(match.file))
                         {
                             string text = AFSHash.EscapeString(match.file);
-                            string CrcHash = AFSHash.ComputeAFSHash(text);
+                            string CrcHash = new AFSHash(text).Value.ToString("X8");
                             lock (MappedAFSHashesCache)
                             {
                                 if (!MappedAFSHashesCache.ContainsKey(CrcHash))
@@ -269,7 +213,7 @@ namespace HomeTools.AFS
                         if (!string.IsNullOrEmpty(match.file))
                         {
                             string text = AFSHash.EscapeString(match.file);
-                            string CrcHash = AFSHash.ComputeAFSHash(text);
+                            string CrcHash = new AFSHash(text).Value.ToString("X8");
                             lock (MappedAFSHashesCache)
                             {
                                 if (!MappedAFSHashesCache.ContainsKey(CrcHash))
@@ -288,7 +232,7 @@ namespace HomeTools.AFS
                         if (!string.IsNullOrEmpty(match.file))
                         {
                             string text = AFSHash.EscapeString(match.file);
-                            string CrcHash = AFSHash.ComputeAFSHash(text);
+                            string CrcHash = new AFSHash(text).Value.ToString("X8");
                             lock (MappedAFSHashesCache)
                             {
                                 if (!MappedAFSHashesCache.ContainsKey(CrcHash))

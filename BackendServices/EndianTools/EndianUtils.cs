@@ -18,6 +18,13 @@ namespace EndianTools
         /// <returns>A byte array.</returns>
         public static byte[] EndianSwap(byte[] dataIn)
         {
+            if (dataIn == null)
+                return null;
+            else if (dataIn.Length == 0)
+                return Array.Empty<byte>();
+            else if (dataIn.Length < 2)
+                return new byte[] { dataIn[0] };
+
             const byte chunkSize = 4;
 
 #if NETCOREAPP || NETSTANDARD1_0_OR_GREATER || NET40_OR_GREATER
@@ -60,6 +67,9 @@ namespace EndianTools
         /// <returns>A byte array.</returns>
         public static byte[] ReverseArray(byte[] dataIn)
         {
+            if (dataIn == null)
+                return null;
+			
             // Clone the input array to avoid modifying the original array
             byte[] reversedArray = (byte[])dataIn.Clone();
             Array.Reverse(reversedArray);
@@ -74,7 +84,7 @@ namespace EndianTools
         /// <returns>A int.</returns>
         public static int ReverseInt(int dataIn)
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
 #else
             byte[] bytes = BitConverter.GetBytes(dataIn);
@@ -91,7 +101,7 @@ namespace EndianTools
         /// <returns>A uint.</returns>
         public static uint ReverseUint(uint dataIn)
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
 #else
             return ((dataIn & 0x000000ff) << 24) +
@@ -109,7 +119,7 @@ namespace EndianTools
         /// <returns>A long.</returns>
         public static long ReverseLong(long dataIn)
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
 #else
             byte[] bytes = BitConverter.GetBytes(dataIn);
@@ -126,7 +136,7 @@ namespace EndianTools
         /// <returns>A ulong.</returns>
         public static ulong ReverseUlong(ulong dataIn)
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
 #else
             return (0x00000000000000FF) & (dataIn >> 56)
@@ -174,7 +184,7 @@ namespace EndianTools
         /// <returns>A short.</returns>
         public static short ReverseShort(short dataIn)
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
 #else
             byte[] bytes = BitConverter.GetBytes(dataIn);
@@ -191,7 +201,7 @@ namespace EndianTools
         /// <returns>A ushort.</returns>
         public static ushort ReverseUshort(ushort dataIn)
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return BinaryPrimitives.ReverseEndianness(dataIn);
 #else
             // Use bitwise operations to swap the bytes

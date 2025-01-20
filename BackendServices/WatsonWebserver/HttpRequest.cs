@@ -1,4 +1,6 @@
+using CustomLogger;
 using NetworkLibrary.Extension;
+using NetworkLibrary.Extension.Csharp;
 using SpaceWizards.HttpListener;
 using System;
 using System.Collections.Specialized;
@@ -376,13 +378,21 @@ namespace WatsonWebserver
             {
                 int read;
 
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                try
                 {
-                    ms.Write(buffer, 0, read);
+                    while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        ms.Write(buffer, 0, read);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerAccessor.LogError($"[WatsonWebserver] - ReadStreamFully(Stream input) Errored out while copying inputStream to the request object. (Exception: {ex})");
+
+                    ms.Clear();
                 }
 
-                byte[] ret = ms.ToArray();
-                return ret;
+                return ms.ToArray();
             }
         }
 

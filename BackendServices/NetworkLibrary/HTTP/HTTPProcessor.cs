@@ -1046,7 +1046,7 @@ namespace NetworkLibrary.HTTP
 
             try
             {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 if (lockTaken) // Lock is free.
                 {
                     Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommanded value for stackalloc).
@@ -1131,7 +1131,7 @@ namespace NetworkLibrary.HTTP
 
             try
             {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 if (lockTaken) // Lock is free.
                 {
                     Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommended value for stackalloc).
