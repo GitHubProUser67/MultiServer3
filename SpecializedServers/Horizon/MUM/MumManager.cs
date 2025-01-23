@@ -10,6 +10,8 @@ using Horizon.HTTPSERVICE;
 using Horizon.SERVER;
 using Horizon.SERVER.Medius;
 using Horizon.MUM.Models;
+using System.Threading;
+using System;
 
 namespace Horizon.MUM
 {
@@ -32,7 +34,16 @@ namespace Horizon.MUM
             public Dictionary<string, Clan> ClanNameToClan = new();
         }
 
+        private const int gameJoinDelay = 2500;
+
         private Dictionary<string, int[]> _appIdGroups = new();
+
+        private readonly ConcurrentDictionary<(int, int), SemaphoreSlim> _gameJoinSemaphores = new ConcurrentDictionary<(int, int), SemaphoreSlim>();
+        private readonly ConcurrentDictionary<(int, int), SemaphoreSlim> _gameJoin0Semaphores = new ConcurrentDictionary<(int, int), SemaphoreSlim>();
+
+        private readonly ConcurrentDictionary<(int, int), ConcurrentQueue<Func<Task>>> _gameJoinRequestQueue = new ConcurrentDictionary<(int, int), ConcurrentQueue<Func<Task>>>();
+        private readonly ConcurrentDictionary<(int, int), ConcurrentQueue<Func<Task>>> _gameJoin0RequestQueue = new ConcurrentDictionary<(int, int), ConcurrentQueue<Func<Task>>>();
+
         private readonly ConcurrentDictionary<int, QuickLookup> _lookupsByAppId = new();
 
         private readonly List<MediusFile> _mediusFiles = new();
@@ -1021,77 +1032,79 @@ namespace Horizon.MUM
 
             else
             {
-                //Program.AntiCheatPlugin.mc_anticheat_event_msg(AnticheatEventCode.anticheatJOINGAME, request.MediusWorldID, client.AccountId, Program.AntiCheatClient, request, 4);
-
-                // if This is a Peer to Peer Player Host as DME we treat differently
-                if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
-                    && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
+                _ = EnqueueJoinGameAsync(client.ApplicationId, game.MediusWorldId, () =>
                 {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                    //MediusClass.AntiCheatPlugin.mc_anticheat_event_msg(AnticheatEventCode.anticheatJOINGAME, request.MediusWorldID, client.AccountId, Program.AntiCheatClient, request, 4);
+
+                    // if This is a Peer to Peer Player Host as DME we treat differently
+                    if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
+                        && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
                     {
-                        MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        ConnectInfo = new NetConnectionInfo()
+                        game.Host?.Queue(new MediusServerJoinGameRequest()
                         {
-                            Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
-                            AccessKey = client.AccessToken,
-                            SessionKey = client.SessionKey,
-                            TargetWorldID = game.MediusWorldId,
-                            ServerKey = MediusClass.GlobalAuthPublic,
-                            AddressList = new NetAddressList()
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                            ConnectInfo = new NetConnectionInfo()
                             {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
+                                AccessKey = client.AccessToken,
+                                SessionKey = client.SessionKey,
+                                TargetWorldID = game.MediusWorldId,
+                                ServerKey = MediusClass.GlobalAuthPublic,
+                                AddressList = new NetAddressList()
                                 {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                    {
                                     new NetAddress() { Address = request.AddressList?.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
                                     new NetAddress() { AddressType = NetAddressType.NetAddressNone},
-                                }
-                            },
-                        }
-                    });
-                }
-                else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
-                        && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeExternal
-                        && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeInternal)
-                {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                                    }
+                                },
+                            }
+                        });
+                    }
+                    else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
+                            && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeExternal
+                            && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeInternal)
                     {
-                        MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        ConnectInfo = new NetConnectionInfo()
+                        game.Host?.Queue(new MediusServerJoinGameRequest()
                         {
-                            Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
-                            AccessKey = client.AccessToken,
-                            SessionKey = client.SessionKey,
-                            TargetWorldID = game.MediusWorldId,
-                            ServerKey = MediusClass.GlobalAuthPublic,
-                            AddressList = new NetAddressList()
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                            ConnectInfo = new NetConnectionInfo()
                             {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
+                                AccessKey = client.AccessToken,
+                                SessionKey = client.SessionKey,
+                                TargetWorldID = game.MediusWorldId,
+                                ServerKey = MediusClass.GlobalAuthPublic,
+                                AddressList = new NetAddressList()
                                 {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                    {
                                     new NetAddress() { Address = request.AddressList?.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() { Address = request.AddressList?.AddressList?[1].Address, Port = request.AddressList.AddressList[1].Port, AddressType = NetAddressType.NetAddressTypeInternal},
-                                }
-                            },
-                        }
-                    });
-                }
+                                    }
+                                },
+                            }
+                        });
+                    }
 
-                else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
-                        && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
-                        && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
-                {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                    else if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
+                            && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+                            && game.netAddressList?.AddressList?[1].AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
                     {
-                        MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}"),
-                        ConnectInfo = new NetConnectionInfo()
+                        game.Host?.Queue(new MediusServerJoinGameRequest()
                         {
-                            Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
-                            AccessKey = client.AccessToken,
-                            SessionKey = client.SessionKey,
-                            TargetWorldID = game.MediusWorldId,
-                            ServerKey = MediusClass.GlobalAuthPublic,
-                            AddressList = new NetAddressList()
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}"),
+                            ConnectInfo = new NetConnectionInfo()
                             {
-                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
+                                AccessKey = client.AccessToken,
+                                SessionKey = client.SessionKey,
+                                TargetWorldID = game.MediusWorldId,
+                                ServerKey = MediusClass.GlobalAuthPublic,
+                                AddressList = new NetAddressList()
                                 {
+                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                    {
                                     new NetAddress() { IPBinaryBitOne = request.AddressList.AddressList[0].IPBinaryBitOne,
                                         IPBinaryBitTwo = request.AddressList.AddressList[0].IPBinaryBitTwo,
                                         IPBinaryBitThree = request.AddressList.AddressList[0].IPBinaryBitThree,
@@ -1104,45 +1117,48 @@ namespace Horizon.MUM
                                         IPBinaryBitFour = request.AddressList.AddressList[1].IPBinaryBitFour,
                                         BinaryPort = request.AddressList.AddressList[1].BinaryPort,
                                         AddressType = NetAddressType.NetAddressTypeBinaryInternalVport},
-                                }
-                            },
-                        }
-                    });
-
-                }
-
-                // Else send normal Connection type to DME
-                else
-                {
-                    ClientObject? dme = game.DMEServer;
-
-                    if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10680 || client.ApplicationId == 10681 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
-                        dme?.Queue(new MediusServerJoinGameRequest()
-                        {
-                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCPAuxUDP,
-                                TargetWorldID = game.MediusWorldId,
-                                AccessKey = client.AccessToken,
-                                SessionKey = client.SessionKey,
-                                ServerKey = MediusClass.GlobalAuthPublic
+                                    }
+                                },
                             }
                         });
+
+                    }
+
+                    // Else send normal Connection type to DME
                     else
-                        dme?.Queue(new MediusServerJoinGameRequest()
-                        {
-                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                            ConnectInfo = new NetConnectionInfo()
+                    {
+                        ClientObject? dme = game.DMEServer;
+
+                        if (client.MediusVersion > 108 && client.ApplicationId != 10994 || client.ApplicationId == 10680 || client.ApplicationId == 10681 || client.ApplicationId == 10683 || client.ApplicationId == 10684)
+                            dme?.Queue(new MediusServerJoinGameRequest()
                             {
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP,
-                                TargetWorldID = game.MediusWorldId,
-                                AccessKey = client.AccessToken,
-                                SessionKey = client.SessionKey,
-                                ServerKey = MediusClass.GlobalAuthPublic
-                            }
-                        });
-                }
+                                MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                                ConnectInfo = new NetConnectionInfo()
+                                {
+                                    Type = NetConnectionType.NetConnectionTypeClientServerTCPAuxUDP,
+                                    TargetWorldID = game.MediusWorldId,
+                                    AccessKey = client.AccessToken,
+                                    SessionKey = client.SessionKey,
+                                    ServerKey = MediusClass.GlobalAuthPublic
+                                }
+                            });
+                        else
+                            dme?.Queue(new MediusServerJoinGameRequest()
+                            {
+                                MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                                ConnectInfo = new NetConnectionInfo()
+                                {
+                                    Type = NetConnectionType.NetConnectionTypeClientServerTCP,
+                                    TargetWorldID = game.MediusWorldId,
+                                    AccessKey = client.AccessToken,
+                                    SessionKey = client.SessionKey,
+                                    ServerKey = MediusClass.GlobalAuthPublic
+                                }
+                            });
+                    }
+
+                    return Task.CompletedTask;
+                });
             }
 
             return Task.CompletedTask;
@@ -1187,43 +1203,117 @@ namespace Horizon.MUM
             }
             else
             {
-                // if This is a Peer to Peer Player Host as DME we treat differently
-                if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+                _ = EnqueueJoinGame0Async(client.ApplicationId, game.MediusWorldId, () =>
                 {
-                    game.Host?.Queue(new MediusServerJoinGameRequest()
+                    // if This is a Peer to Peer Player Host as DME we treat differently
+                    if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
                     {
-                        MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        ConnectInfo = new NetConnectionInfo()
+                        game.Host?.Queue(new MediusServerJoinGameRequest()
                         {
-                            Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
-                            TargetWorldID = game.MediusWorldId,
-                            AccessKey = client.AccessToken,
-                            SessionKey = client.SessionKey,
-                            ServerKey = MediusClass.GlobalAuthPublic
-                        }
-                    });
-                }
-                // Else send normal Connection type
-                else
-                {
-                    game.DMEServer?.Queue(new MediusServerJoinGameRequest()
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                            ConnectInfo = new NetConnectionInfo()
+                            {
+                                Type = NetConnectionType.NetConnectionTypePeerToPeerUDP,
+                                TargetWorldID = game.MediusWorldId,
+                                AccessKey = client.AccessToken,
+                                SessionKey = client.SessionKey,
+                                ServerKey = MediusClass.GlobalAuthPublic
+                            }
+                        });
+                    }
+                    // Else send normal Connection type
+                    else
                     {
-                        MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
-                        ConnectInfo = new NetConnectionInfo()
+                        game.DMEServer?.Queue(new MediusServerJoinGameRequest()
                         {
-                            Type = NetConnectionType.NetConnectionTypeClientServerTCP,
-                            TargetWorldID = game.MediusWorldId,
-                            AccessKey = client.AccessToken,
-                            SessionKey = client.SessionKey,
-                            ServerKey = MediusClass.GlobalAuthPublic
-                        }
-                    });
-                }
+                            MessageID = new MessageId($"{game.MediusWorldId}-{client.AccountId}-{request.MessageID}-{0}"),
+                            ConnectInfo = new NetConnectionInfo()
+                            {
+                                Type = NetConnectionType.NetConnectionTypeClientServerTCP,
+                                TargetWorldID = game.MediusWorldId,
+                                AccessKey = client.AccessToken,
+                                SessionKey = client.SessionKey,
+                                ServerKey = MediusClass.GlobalAuthPublic
+                            }
+                        });
+                    }
+
+                    return Task.CompletedTask;
+                });
             }
         }
+
+        private async Task EnqueueJoinGameAsync(int applicationId, int gameId, Func<Task> taskFunc)
+        {
+            SemaphoreSlim semaphore = _gameJoinSemaphores.GetOrAdd((applicationId, gameId), _ => new SemaphoreSlim(1, 1));
+
+            ConcurrentQueue<Func<Task>> queue = _gameJoinRequestQueue.GetOrAdd((applicationId, gameId), _ => new ConcurrentQueue<Func<Task>>());
+
+            Task enqueueJob = Task.Run(() => { queue.Enqueue(taskFunc); });
+
+            if (!semaphore.Wait(0))
+                return;
+            else
+                await enqueueJob.ConfigureAwait(false);
+
+            try
+            {
+                while (queue.TryDequeue(out var taskToExecute))
+                {
+                    try
+                    {
+                        await taskToExecute().ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                    }
+                    
+                    await Task.Delay(gameJoinDelay).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        private async Task EnqueueJoinGame0Async(int applicationId, int gameId, Func<Task> taskFunc)
+        {
+            SemaphoreSlim semaphore = _gameJoin0Semaphores.GetOrAdd((applicationId, gameId), _ => new SemaphoreSlim(1, 1));
+
+            ConcurrentQueue<Func<Task>> queue = _gameJoin0RequestQueue.GetOrAdd((applicationId, gameId), _ => new ConcurrentQueue<Func<Task>>());
+
+            Task enqueueJob = Task.Run(() => { queue.Enqueue(taskFunc); });
+
+            if (!semaphore.Wait(0))
+                return;
+            else
+                await enqueueJob.ConfigureAwait(false);
+
+            try
+            {
+                while (queue.TryDequeue(out var taskToExecute))
+                {
+                    try
+                    {
+                        await taskToExecute().ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                    }
+
+                    await Task.Delay(gameJoinDelay).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
         #endregion
 
-#endregion
+        #endregion
 
         #region Channels
 
