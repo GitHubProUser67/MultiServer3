@@ -79,6 +79,8 @@ namespace Horizon.HTTPSERVICE
                         || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
                             IsAdmin = true;
 
+                        string managerPayload = RoomManager.ToJson(IsAdmin);
+
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         ctx.Response.ContentType = "application/json; charset=UTF-8";
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
@@ -88,28 +90,28 @@ namespace Horizon.HTTPSERVICE
                             if (encoding.Contains("zstd"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                                await ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(managerPayload)));
                             }
                             else if (encoding.Contains("br"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "br");
-                                await ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(managerPayload)));
                             }
                             else if (encoding.Contains("gzip"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                await ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(managerPayload)));
                             }
                             else if (encoding.Contains("deflate"))
                             {
                                 ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                                await ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(RoomManager.ToJson())));
+                                await ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(managerPayload)));
                             }
                             else
-                                await ctx.Response.Send(RoomManager.ToJson());
+                                await ctx.Response.Send(managerPayload);
                         }
                         else
-                            await ctx.Response.Send(RoomManager.ToJson());
+                            await ctx.Response.Send(managerPayload);
                     }
                 });
 
@@ -258,11 +260,44 @@ namespace Horizon.HTTPSERVICE
                                 await ctx.Response.Send();
                             }
                         }
+                        else if (File.Exists(Directory.GetCurrentDirectory() + "/static/creepy_iga_fallback.mp4"))
+                        {
+                            byte[] videoData = File.ReadAllBytes(Directory.GetCurrentDirectory() + "/static/creepy_iga_fallback.mp4");
+
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.ContentType = "video/mp4";
+                            string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                            if (!string.IsNullOrEmpty(encoding))
+                            {
+                                if (encoding.Contains("zstd"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                    await ctx.Response.Send(HTTPProcessor.CompressZstd(videoData));
+                                }
+                                else if (encoding.Contains("br"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "br");
+                                    await ctx.Response.Send(HTTPProcessor.CompressBrotli(videoData));
+                                }
+                                else if (encoding.Contains("gzip"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                    await ctx.Response.Send(HTTPProcessor.CompressGzip(videoData));
+                                }
+                                else if (encoding.Contains("deflate"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                    await ctx.Response.Send(HTTPProcessor.Inflate(videoData));
+                                }
+                                else
+                                    await ctx.Response.Send(videoData);
+                            }
+                            else
+                                await ctx.Response.Send(videoData);
+                        }
                         else
                         {
-                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                            ctx.Response.ContentType = "text/html";
-                            await ctx.Response.Send("<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n" +
+                            string htmlPayload = "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n" +
                                 "    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n" +
                                 "    <title>DARK WEB</title>\r\n    <style>\r\n        body {\r\n            margin: 0;\r\n            padding: 0;\r\n" +
                                 "            display: flex;\r\n            justify-content: center;\r\n            align-items: center;\r\n" +
@@ -272,7 +307,38 @@ namespace Horizon.HTTPSERVICE
                                 "            text-shadow: 4px 4px 8px black;\r\n        }\r\n    </style>\r\n</head>\r\n<body>\r\n" +
                                 "    <iframe width=\"0\" height=\"0\" src=\"https://www.youtube.com/embed/XfQrgDbisAo?autoplay=1&loop=1\"\r\n    frameborder=\"0\" allowfullscreen></iframe>" +
                                 $"    <h1>BEWARE! {$"We know your IP {clientip} and where you live {GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip)) ?? "Earth"}"}</h1>\r\n</body>\r\n" +
-                                "</html>");
+                                "</html>";
+
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.ContentType = "text/html";
+                            string? encoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                            if (!string.IsNullOrEmpty(encoding))
+                            {
+                                if (encoding.Contains("zstd"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                    await ctx.Response.Send(HTTPProcessor.CompressZstd(Encoding.UTF8.GetBytes(htmlPayload)));
+                                }
+                                else if (encoding.Contains("br"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "br");
+                                    await ctx.Response.Send(HTTPProcessor.CompressBrotli(Encoding.UTF8.GetBytes(htmlPayload)));
+                                }
+                                else if (encoding.Contains("gzip"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                    await ctx.Response.Send(HTTPProcessor.CompressGzip(Encoding.UTF8.GetBytes(htmlPayload)));
+                                }
+                                else if (encoding.Contains("deflate"))
+                                {
+                                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                    await ctx.Response.Send(HTTPProcessor.Inflate(Encoding.UTF8.GetBytes(htmlPayload)));
+                                }
+                                else
+                                    await ctx.Response.Send(htmlPayload);
+                            }
+                            else
+                                await ctx.Response.Send(htmlPayload);
                         }
                     }
                 });
@@ -324,7 +390,7 @@ namespace Horizon.HTTPSERVICE
 
                                 ctx.Response.ContentType = "application/json; charset=utf-8";
 
-                                foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split(','))
+                                foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split('|'))
                                 {
                                     if (st.Length > 1)
                                         st.Append($",\"{tmpCommand}\":\"" + (await HomeRTMTools.BroadcastRemoteCommand(tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
@@ -355,7 +421,7 @@ namespace Horizon.HTTPSERVICE
                             if (ctx.Request.QuerystringExists("AccessToken"))
                                 AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
 
-                            foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split(','))
+                            foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split('|'))
                             {
                                 if (st.Length > 1)
                                     st.Append($",\"{tmpCommand}\":\"" + (await HomeRTMTools.SendRemoteCommand(clientip, AccessToken, tmpCommand, Retail) ? "Requested Command sent successfully!" : "Error while sending the Requested Command!") + '\"');
