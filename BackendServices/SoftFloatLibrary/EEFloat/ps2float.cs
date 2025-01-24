@@ -361,10 +361,10 @@ namespace SoftFloatLibrary
             return new ps2float((a < 0 && b < 0) ? (uint)Math.Max(a, b) : (uint)Math.Min(a, b));
         }
 
-        public static void Clip(uint f1, uint f2, out int cplus, out int cminus)
+        public static void Clip(uint f1, uint f2, out bool cplus, out bool cminus)
         {
-            int resultPlus = 0;
-            int resultMinus = 0;
+            bool resultPlus = false;
+            bool resultMinus = false;
             uint a;
 
             if ((f1 & 0x7F800000) == 0)
@@ -383,12 +383,12 @@ namespace SoftFloatLibrary
             f2 = f2 & MAX_FLOATING_POINT_VALUE;
 
             if ((-1 < (int)a) && (f2 < f1))
-                resultPlus = 1;
+                resultPlus = true;
 
             cplus = resultPlus;
 
             if (((int)a < 0) && (f2 < f1))
-                resultMinus = 1;
+                resultMinus = true;
 
             cminus = resultMinus;
         }
@@ -470,9 +470,26 @@ namespace SoftFloatLibrary
         /// Creates a float number from a ps2float value
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator float(ps2float f)
+        public unsafe static explicit operator float(ps2float f)
         {
-            return BitConverter.ToSingle(BitConverter.GetBytes(f.raw));
+            // vuDouble hack from: https://github.com/PCSX2/pcsx2/blob/master/pcsx2/VUops.cpp
+
+            uint rawf = f.raw;
+
+            switch (rawf & 0x7F800000)
+            {
+                case 0x0:
+                    rawf &= 0x80000000;
+                    return *(float*)&rawf;
+                case 0x7F800000:
+                    if (f.of)
+                    {
+                        uint d = (rawf & 0x80000000) | 0x7F7FFFFF;
+                        return *(float*)&d;
+                    }
+                    break;
+            }
+            return *(float*)&rawf;
         }
 
         /// <summary>
@@ -490,7 +507,21 @@ namespace SoftFloatLibrary
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator sfloat(ps2float f)
         {
-            return sfloat.FromRaw(f.raw);
+            // vuDouble hack from: https://github.com/PCSX2/pcsx2/blob/master/pcsx2/VUops.cpp
+
+            uint rawf = f.raw;
+
+            switch (rawf & 0x7F800000)
+            {
+                case 0x0:
+                    rawf &= 0x80000000;
+                    return sfloat.FromRaw(rawf);
+                case 0x7F800000:
+                    if (f.of)
+                        return sfloat.FromRaw((rawf & 0x80000000) | 0x7F7FFFFF);
+                    break;
+            }
+            return sfloat.FromRaw(rawf);
         }
 
         /// <summary>
@@ -500,6 +531,15 @@ namespace SoftFloatLibrary
         public static explicit operator double(ps2float f)
         {
             return f.ToDouble();
+        }
+
+        /// <summary>
+        /// Creates a double number from a ps2float value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator sdouble(ps2float f)
+        {
+            return (sdouble)f.ToDouble();
         }
 
         /// <summary>

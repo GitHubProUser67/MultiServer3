@@ -596,11 +596,7 @@ namespace HTTPSecureServerLite
                             {
                                 LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
 
-                                #region OHS API Version
-                                int version = 0;
-                                #endregion
-
-                                string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPathWithURIPath);
+                                string? res = new OHSClass(request.Method.ToString(), absolutepath, 0).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPathWithURIPath);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
