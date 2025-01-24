@@ -498,6 +498,7 @@ namespace WebAPIService.OHS
                                             //DateTime.Now.ToString("yyyyMMddHHmmss");
                                             output = "{ [\"unlocks\"] = { [\"week1\"] = { [\"unlocked\"] = \"20241112120000\" } } }";
                                         #endregion
+
                                         #region Uncharted3 Waves
                                         else if (directorypath.Contains("Uncharted3"))
                                             output = "{ [\"unlocks\"] = \"WAVE3\",[\"community_score\"] = 1,[\"challenges\"] = { [\"accuracy\"] = 1 } }";
@@ -517,6 +518,14 @@ namespace WebAPIService.OHS
                                                 "[\"wave_3\"] = { [\"unlocked\"] = \"2011-09-01T00:00:00\", [\"date\"] = \"01-09-2011\", [\"override\"] = false }, [\"receipe3\"] = { [\"unlocked\"] = \"2011-08-25T00:00:00\", [\"date\"] = \"25-08-2011\", [\"override\"] = false }, " +
                                                 "[\"receipe5\"] = { [\"unlocked\"] = \"2011-09-01T00:00:00\", [\"date\"] = \"01-09-2011\", [\"override\"] = false } }, [\"minDropInterval\"] = 10, [\"maxDropInterval\"] = 15, [\"maxDrops\"] = 4, [\"enableCheats\"] = false }";
                                         #endregion
+
+                                        #region SFxT Globals
+                                        else if (directorypath.Contains("SFxT"))
+                                            output = "{ [\"unlocks\"] = { [\"week1\"] = { [\"unlocked\"] = \"20250124000000\" }, [\"week2\"] = { [\"unlocked\"] = \"20250125000000\" }, [\"week3\"] = { [\"unlocked\"] = \"20250126000000\" } } }";
+                                        #endregion
+
+                                        else
+                                            LoggerAccessor.LogWarn($"[User] - Unknown global_data project requested in url: {directorypath}");
                                         break;
                                     case "unlock_data":
                                         if (directorypath.Contains("killzone_3"))

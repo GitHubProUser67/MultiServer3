@@ -138,24 +138,6 @@ namespace SoftFloatLibrary
         }
 
         /// <summary>
-        /// Creates an sfloat number from a ps2float value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator sfloat(ps2float f)
-        {
-            return FromRaw(f.raw);
-        }
-
-        /// <summary>
-        /// Converts an sfloat number to a ps2float value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ps2float(sfloat f)
-        {
-            return new ps2float(f.RawValue);
-        }
-
-        /// <summary>
         /// Converts an sfloat number to an integer
         /// </summary>
         public static explicit operator int(sfloat f)
