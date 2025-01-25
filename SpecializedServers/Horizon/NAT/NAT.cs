@@ -74,12 +74,14 @@ namespace Horizon.NAT
                                     buffer.WriteBytes(senderAddress);
                                     buffer.WriteUnsignedShort(DestPort);
 
-                                    // send response message 3 times.
-                                    DatagramPacket packet = new(buffer, sender);
-                                    for (byte i = 0; i < 3; i++)
+                                    // send response message 3 times
+                                    for (int i = 0; i < 3; i++)
                                     {
-                                        channel.WriteAndFlushAsync(packet);
+                                        channel.WriteAsync(new DatagramPacket(buffer.Copy(), sender));
                                     }
+
+                                    // flush channel
+                                    channel.Flush();
                                     break;
                             }
                         }
