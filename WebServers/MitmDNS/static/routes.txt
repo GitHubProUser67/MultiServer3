@@ -283,7 +283,7 @@ blastfactor.ps3.online.scea.com,Redirect,IP
 buzzps3.online.scee.com,Redirect,IP
 buzzps3.mas.online.scee.com,Redirect,IP
 buzzps3.svo.online.scee.com,Redirect,IP
-bwps02.online.scee.com,Redirect,54.85.199.52
+bwps02.online.scee.com,Redirect,IP
 callingallcars.ps3.online.scea.com,Redirect,IP
 f12006.ps3.online.scea.com,Redirect,IP
 ratchetps3.ps3.online.scea.com,Redirect,IP
@@ -331,7 +331,7 @@ warhawk-pubeta.ps3.online.scea.com,Redirect,IP
 warhawk-pubeta.mas.online.scea.com,Redirect,IP
 warhawk-pubeta.svo.online.scea.com,Redirect,IP
 warhawk-prod3.svo.online.scea.com,Redirect,IP
-warhawk.bwps.online.scee.com,Redirect,54.85.199.52
+warhawk.bwps.online.scee.com,Redirect,IP
 wipeout2048.muis.online.scee.com,Redirect,IP
 wipeout2048.online.scee.com,Redirect,IP
 
