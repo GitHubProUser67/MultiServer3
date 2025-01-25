@@ -54,12 +54,14 @@ namespace Horizon.BWPS
                             buffer.WriteIntLE(50982); // SequenceId
                             buffer.WriteBytes("03 03 02 00 00 00 00 00 02 03".HexStringToByteArray());
 
-                            // send response message 3 times.
-                            DatagramPacket packet = new(buffer, sender);
-                            for (byte i = 0; i < 3; i++)
+                            // send response message 3 times
+                            for (int i = 0; i < 3; i++)
                             {
-                                channel.WriteAndFlushAsync(packet);
+                                channel.WriteAsync(new DatagramPacket(buffer.Copy(), sender));
                             }
+
+                            // flush channel
+                            channel.Flush();
                         }
                         else if (MsgArray.Length == 6)
                         {
@@ -74,12 +76,14 @@ namespace Horizon.BWPS
                             buffer.WriteByte(MsgArray[3]);
                             buffer.WriteIntLE(58595); // SequenceId
 
-                            // send response message 3 times.
-                            DatagramPacket packet = new(buffer, sender);
-                            for (byte i = 0; i < 3; i++)
+                            // send response message 3 times
+                            for (int i = 0; i < 3; i++)
                             {
-                                channel.WriteAndFlushAsync(packet);
+                                channel.WriteAsync(new DatagramPacket(buffer.Copy(), sender));
                             }
+
+                            // flush channel
+                            channel.Flush();
                         }
                     }
                 }
