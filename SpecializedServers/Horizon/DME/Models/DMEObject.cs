@@ -6,7 +6,6 @@ using Horizon.LIBRARY.Pipeline.Udp;
 using System.Collections.Concurrent;
 using System.Net;
 using CustomLogger;
-using Microsoft.Extensions.Logging;
 using Horizon.RT.Cryptography;
 
 namespace Horizon.DME.Models
