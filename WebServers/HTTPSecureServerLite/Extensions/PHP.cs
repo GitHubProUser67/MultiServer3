@@ -4,6 +4,8 @@ using System.IO;
 using System;
 using NetworkLibrary.Extension;
 using System.Text;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 
 namespace HTTPSecureServerLite.Extensions
 {
@@ -51,8 +53,7 @@ namespace HTTPSecureServerLite.Extensions
 
             // Set environment variables for PHP
             proc.StartInfo.EnvironmentVariables.Add("GATEWAY_INTERFACE", "CGI/1.1");
-            proc.StartInfo.EnvironmentVariables.Add("SERVER_PROTOCOL", "HTTP/1.1");
-            proc.StartInfo.EnvironmentVariables.Add("REDIRECT_STATUS", "200");
+            proc.StartInfo.EnvironmentVariables.Add("SERVER_PROTOCOL", $"HTTP/{HTTPSServerConfiguration.HttpVersion}");
             proc.StartInfo.EnvironmentVariables.Add("DOCUMENT_ROOT", documentRootPath);
             proc.StartInfo.EnvironmentVariables.Add("SCRIPT_NAME", scriptFileName);
             proc.StartInfo.EnvironmentVariables.Add("SCRIPT_FILENAME", scriptFilePath);
@@ -64,12 +65,11 @@ namespace HTTPSecureServerLite.Extensions
             proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ctx.Request.Source.IpAddress);
             proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", ctx.Request.Source.Port.ToString());
             proc.StartInfo.EnvironmentVariables.Add("REFERER", ctx.Request.RetrieveHeaderValue("Referer"));
-            proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{ctx.Request.Destination.IpAddress}:{ctx.Request.Destination.Port}{ctx.Request.Url.RawWithQuery}");
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", ctx.Request.RetrieveHeaderValue("Cookie"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", ctx.Request.RetrieveHeaderValue("Accept"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_CHARSET", ctx.Request.RetrieveHeaderValue("Accept-Charset"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_ENCODING", ctx.Request.RetrieveHeaderValue("Accept-Encoding"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_LANGUAGE", ctx.Request.RetrieveHeaderValue("Accept-Language"));
+            proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"https://{ctx.Request.Destination.IpAddress}:{ctx.Request.Destination.Port}{ctx.Request.Url.RawWithQuery}");
+            foreach (var headerKeyPair in ConvertHeadersToPhpFriendly(ctx.Request.Headers))
+            {
+                proc.StartInfo.EnvironmentVariables.Add(headerKeyPair.Key, headerKeyPair.Value);
+            }
             proc.StartInfo.EnvironmentVariables.Add("TMPDIR", tempPath);
             proc.StartInfo.EnvironmentVariables.Add("TEMP", tempPath);
 
@@ -121,6 +121,34 @@ namespace HTTPSecureServerLite.Extensions
             proc.WaitForExit(); // Wait for the PHP process to complete
 
             return (returndata, HeadersLocal);
+        }
+
+        private static List<KeyValuePair<string, string>> ConvertHeadersToPhpFriendly(NameValueCollection headers)
+        {
+            List<KeyValuePair<string, string>> phpFriendlyHeaders = new List<KeyValuePair<string, string>>();
+
+            if (headers != null)
+            {
+                foreach (string headerKey in headers)
+                {
+                    // Get all values for this header (they can be multiple)
+                    string[]? headerValues = headers.GetValues(headerKey);
+
+                    // Convert header name to uppercase, replace dashes with underscores, and prefix with "HTTP_"
+                    string phpHeaderName = "HTTP_" + headerKey.ToUpper().Replace("-", "_");
+
+                    if (headerValues != null)
+                    {
+                        // If there are multiple values for the same header, add each as a separate entry
+                        foreach (var value in headerValues)
+                        {
+                            phpFriendlyHeaders.Add(new KeyValuePair<string, string>(phpHeaderName, value));
+                        }
+                    }
+                }
+            }
+
+            return phpFriendlyHeaders;
         }
     }
 }

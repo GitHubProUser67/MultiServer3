@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
 
 namespace HTTPServer.Extensions
 {
@@ -56,8 +57,7 @@ namespace HTTPServer.Extensions
 
             // Set environment variables for PHP
             proc.StartInfo.EnvironmentVariables.Add("GATEWAY_INTERFACE", "CGI/1.1");
-            proc.StartInfo.EnvironmentVariables.Add("SERVER_PROTOCOL", "HTTP/1.1");
-            proc.StartInfo.EnvironmentVariables.Add("REDIRECT_STATUS", "200");
+            proc.StartInfo.EnvironmentVariables.Add("SERVER_PROTOCOL", $"HTTP/{HTTPServerConfiguration.HttpVersion}");
             proc.StartInfo.EnvironmentVariables.Add("DOCUMENT_ROOT", documentRootPath);
             proc.StartInfo.EnvironmentVariables.Add("SCRIPT_NAME", scriptFileName);
             proc.StartInfo.EnvironmentVariables.Add("SCRIPT_FILENAME", scriptFilePath);
@@ -70,11 +70,10 @@ namespace HTTPServer.Extensions
             proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", request.Port);
             proc.StartInfo.EnvironmentVariables.Add("REFERER", request.RetrieveHeaderValue("Referer"));
             proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{request.ServerIP}:{request.ServerPort}{request.RawUrlWithQuery}");
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_COOKIE", request.RetrieveHeaderValue("Cookie"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT", request.RetrieveHeaderValue("Accept"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_CHARSET", request.RetrieveHeaderValue("Accept-Charset"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_ENCODING", request.RetrieveHeaderValue("Accept-Encoding"));
-            proc.StartInfo.EnvironmentVariables.Add("HTTP_ACCEPT_LANGUAGE", request.RetrieveHeaderValue("Accept-Language"));
+            foreach (var headerKeyPair in ConvertHeadersToPhpFriendly(request.Headers))
+            {
+                proc.StartInfo.EnvironmentVariables.Add(headerKeyPair.Key, headerKeyPair.Value);
+            }
             proc.StartInfo.EnvironmentVariables.Add("TMPDIR", tempPath);
             proc.StartInfo.EnvironmentVariables.Add("TEMP", tempPath);
 
@@ -126,6 +125,25 @@ namespace HTTPServer.Extensions
             proc.WaitForExit(); // Wait for the PHP process to complete
 
             return (returndata, HeadersLocal);
+        }
+
+        private static List<KeyValuePair<string, string>> ConvertHeadersToPhpFriendly(List<KeyValuePair<string, string>>? headers)
+        {
+            List<KeyValuePair<string, string>> phpFriendlyHeaders = new List<KeyValuePair<string, string>>();
+
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                {
+                    // Convert header name to uppercase, replace dashes with underscores, and prefix with "HTTP_"
+                    string phpHeaderName = "HTTP_" + header.Key.ToUpper().Replace("-", "_");
+
+                    // Add the transformed header name and its value to the list
+                    phpFriendlyHeaders.Add(new KeyValuePair<string, string>(phpHeaderName, header.Value));
+                }
+            }
+
+            return phpFriendlyHeaders;
         }
     }
 }
