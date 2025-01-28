@@ -1,34 +1,12 @@
 using Horizon.SERVER;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using NetworkLibrary.Crypto;
 using NetworkLibrary.Extension.Csharp;
 using Newtonsoft.Json;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Horizon.HTTPSERVICE
 {
     public class RoomManager
     {
-        private const string GenerateRoomsIV = "mvIkdXFdieqjwIEmsNisg..Tuu|:nhVd2wwNEx\\78oS<q{Zxmo8GKLTuhoHlxiju" +
-            "WH.qoi2Oq;m]8;3vgFZDGfDdt:uIk}HEf}uT2z}tY{miqr6S5NQPLyYlf9PHTNNuVD.T3Y]4yxQz{qoPoQVFpWhquFR;y|2xiQ{n" +
-            "PWQW45dfXMX<<\\PiuXgiT2t48gpttN<xRmWt<<y<}v}m;e:FKRWEdXgsnqVk5N{kWQpk3[}qrfRvsMGxpROwfgqSRi{x:8\\Pn]" +
-            "QmSk|HN6sULuq7N3{Sn\\x349OZE\\}XOG;UYzqDUNx9vOIEE\\X992oN3HvKpQ9}:P|iMWZ}jH9j2GJKx5;rxxgLfNejdOQz[Ny" +
-            "Yjsnmo]jkte;y:q}f]GH}X<gpqIFYSiZGK94}kT3F<.Gqnudfemst:x:P2ynE.xp:lE:n3q8yesg<xhF3do6Ntxo6:8FX{xxT8Mu" +
-            "l:[K]}}q;ex.ZGMJWhVzhe{4tdVNK2UP]gMZv.jVk4eOG3Fz8M[D4zFltyv[7QDJFQ2urFhxDFM[svRqNvWfPzq4yrzUDrtwLG8G" +
-            "UYqZn6X}YjH|X4LN]L8Z\\Ldp2O.8;6K7qj3Wfivo}s|WvWGht]I\\]5:GLEOx{34DjPzRQEiqKDyxsx8je8RjQi\\JRhddVuZ{P" +
-            "}<uW\\TF]6ddwoSuDn.|E3wH7:K3JzWJxrp\\.KLTuhoHlxijuWH.qoi2OxgLIpR75UFVDGfDdt:uIk}HEf}ut.Y}xWUtd48uq5\\" +
-            "r9QSQdWe:<E:trJ||X3Ug4uywzoK{LoPRGpUNXpG96qGSviRT3FF4Z45dfXMX<<\\PiuXgiKTDF9.d3.M4.PENd2jR.{;mNEPNkF8" +
-            "Kw\\[f6mj9z3t{2WMxyDJuHEQ5oqtGQzjevjgOSUiY:{tnyp\\gVNnYt\\5UjGf6vR5MlvsXF.N:ivPSqSKTojD6DJtx9{\\f{D[P" +
-            "99ypDDnrK5x6E6hFsQmF;iIp72YVpt|\\Stx8igN:Xf9<<e.eQksnmo]jkte;y:q}f]GH}XzIf}IJYSiZGK94K[{3D6xfFuMl\\hF" +
-            "g{8.DI;uuL4RJ:pD6i76sPSNM8xgxKerOWw8ok:7|9sNhL3P[V:KK]}}q;ex.ZGMJqgXPfkFw9XW:E;W8l]txw:2GN7yRQ:HIKMHr" +
-            "}t{xqq:tNI2JFHgWsFwIpJL6slv;IllDZ;J\\iyxsEx;M}FsqjWqV}.4KGdY5K3\\d2FNFPROWWGiUj:oHLOpdqiP8Qnm6xG{RY]I" +
-            "]F.j@@";
-
-        private static byte[]? RoomsIV = null;
-
         private static readonly ConcurrentList<Room> rooms = new ConcurrentList<Room>();
 
         // Update or Create a Room based on the provided parameters
@@ -206,9 +184,7 @@ namespace Horizon.HTTPSERVICE
         {
             byte[] secSalt = NetObfuscator.SecSalt;
 
-            RoomsIV ??= ConstructIV();
-
-            return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCrypto.EncryptCBC(input, key, RoomsIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";
+            return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCrypto.EncryptCBC(input, key, WebCrypto.IdentIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";
         }
 
         #region Anonymizer
@@ -252,27 +228,6 @@ namespace Horizon.HTTPSERVICE
             };
         }
         #endregion
-
-        private static byte[] ConstructIV()
-        {
-            using MemoryStream ms = new MemoryStream();
-
-            if (!CSharpCompilation.Create(
-                "DynamicAssembly",
-                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(Encoding.UTF8.GetString(Convert.FromBase64String(NetObfuscator.Decrypt(GenerateRoomsIV, NetObfuscator.GenSalt, 0xAA)))) },
-                references: new[]
-                {
-                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
-                },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            ).Emit(ms).Success)
-                return RandomNumberGenerator.GetBytes(16);
-
-            ms.Seek(0, SeekOrigin.Begin);
-
-            return Assembly.Load(ms.ToArray()).GetType(Encoding.UTF8.GetString(Convert.FromBase64String(NetObfuscator.Decrypt("KEpd769y\\6dQ97d2HrmJRLttUDUxEo3QUH:lVt{uuVSv[FRW[o8IDD@@", NetObfuscator.GenSalt, 0xAA))))?
-                .GetMethod(Encoding.UTF8.GetString(Convert.FromBase64String(NetObfuscator.Decrypt("iWi:U:<onVOrijt;ZY]x9T@@", NetObfuscator.GenSalt, 0xAA))))?.Invoke(null, null) as byte[] ?? RandomNumberGenerator.GetBytes(16);
-        }
     }
 
     public class Room
