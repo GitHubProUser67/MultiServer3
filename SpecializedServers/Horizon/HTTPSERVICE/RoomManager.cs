@@ -153,12 +153,9 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Get a list of all Rooms
-        public static IEnumerable<Room> GetAllRooms(bool extraDetails)
+        public static List<Room> GetAllRooms()
         {
-            if (extraDetails)
-                return rooms;
-
-            return rooms.AsParallel().Select(AnonymizeRoom);
+            return rooms.ToList();
         }
 
         public static List<KeyValuePair<string, int>> GetAllLoggedInUsers()
@@ -175,9 +172,9 @@ namespace Horizon.HTTPSERVICE
         }
 
         // Serialize the RoomConfig to JSON
-        public static string ToJson(bool extraDetails)
+        public static string ToJson()
         {
-            return "{\"usernames\":" + JsonConvert.SerializeObject(GetAllLoggedInUsers()) + ",\"rooms\":" + JsonConvert.SerializeObject(GetAllRooms(extraDetails)) + "}";
+            return "{\"usernames\":" + JsonConvert.SerializeObject(GetAllLoggedInUsers()) + ",\"rooms\":" + JsonConvert.SerializeObject(GetAllRooms()) + "}";
         }
 
         private static string CipherString(string input, string key)
@@ -186,48 +183,6 @@ namespace Horizon.HTTPSERVICE
 
             return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCrypto.EncryptCBC(input, key, WebCrypto.IdentIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";
         }
-
-        #region Anonymizer
-        private static Room AnonymizeRoom(Room room)
-        {
-            return new Room
-            {
-                AppId = room.AppId,
-                Worlds = room.Worlds?.Select(AnonymizeWorld).ToList()
-            };
-        }
-
-        private static World AnonymizeWorld(World world)
-        {
-            return new World
-            {
-                WorldId = world.WorldId,
-                GameSessions = world.GameSessions?.Select(AnonymizeGameList).ToList()
-            };
-        }
-
-        private static GameList AnonymizeGameList(GameList game)
-        {
-            return new GameList
-            {
-                DmeWorldId = -1,
-                Name = game.Name,
-                CreationDate = game.CreationDate,
-                Clients = game.Clients?.Select(AnonymizePlayer).ToList()
-            };
-        }
-
-        private static Player AnonymizePlayer(Player player)
-        {
-            return new Player
-            {
-                DmeId = -1,
-                Host = player.Host,
-                Name = player.Name,
-                Languages = player.Languages
-            };
-        }
-        #endregion
     }
 
     public class Room

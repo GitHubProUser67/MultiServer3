@@ -71,15 +71,7 @@ namespace Horizon.HTTPSERVICE
                     }
                     else
                     {
-                        bool IsAdmin = false;
-
-                        string clientip = ctx.Request.Source.IpAddress;
-
-                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
-                        || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
-                            IsAdmin = true;
-
-                        string managerPayload = RoomManager.ToJson(IsAdmin);
+                        string managerPayload = RoomManager.ToJson();
 
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
                         ctx.Response.ContentType = "application/json; charset=UTF-8";
