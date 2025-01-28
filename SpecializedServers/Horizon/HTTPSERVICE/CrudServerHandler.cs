@@ -185,22 +185,16 @@ namespace Horizon.HTTPSERVICE
                         if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
                         || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
                         {
-                            if (!string.IsNullOrEmpty(Command)
+                            if (!string.IsNullOrEmpty(Command) && ctx.Request.QuerystringExists("DmeId") && short.TryParse(ctx.Request.RetrieveQueryValue("DmeId"), out short DmeId)
                              && ctx.Request.QuerystringExists("WorldId") && int.TryParse(ctx.Request.RetrieveQueryValue("WorldId"), out int WorldId)
                              && ctx.Request.QuerystringExists("DmeWorldId") && int.TryParse(ctx.Request.RetrieveQueryValue("DmeWorldId"), out int DmeWorldId))
                             {
-                                short DmeId = -1;
                                 bool Retail = true;
                                 string result = "Command Unknown!";
 
                                 if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
                                 {
                                     
-                                }
-
-                                if (ctx.Request.QuerystringExists("DmeId") && short.TryParse(ctx.Request.RetrieveQueryValue("DmeId"), out DmeId))
-                                {
-
                                 }
 
                                 LoggerAccessor.LogWarn($"[CrudServerHandler] - client:{clientip}:{ctx.Request.Source.Port} issued command: {Command}");
@@ -221,37 +215,6 @@ namespace Horizon.HTTPSERVICE
                                         break;
                                     case "Freeze":
                                         result = NewIGA.FreezeClient(DmeId, WorldId, DmeWorldId, Retail);
-                                        break;
-                                    case "RTM":
-                                        string HubCommand = ctx.Request.RetrieveQueryValue("Command");
-
-                                        if (!string.IsNullOrEmpty(HubCommand))
-                                        {
-                                            if (ctx.Request.QuerystringExists("SupplementalCommands") && !string.IsNullOrEmpty(ctx.Request.RetrieveQueryValue("SupplementalCommands")))
-                                            {
-                                                StringBuilder st = new("[");
-
-                                                foreach (string tmpCommand in ctx.Request.RetrieveQueryValue("SupplementalCommands").Split('|'))
-                                                {
-                                                    if (st.Length > 1)
-                                                        st.Append($",\"{tmpCommand}\":\"" + await HomeRTMTools.SendRemoteCommandToGame(WorldId, DmeWorldId, tmpCommand, Retail) + '\"');
-                                                    else
-                                                        st.Append($"\"{tmpCommand}\":\"" + await HomeRTMTools.SendRemoteCommandToGame(WorldId, DmeWorldId, tmpCommand, Retail) + '\"');
-                                                }
-
-                                                if (st.Length > 1)
-                                                    st.Append($",\"{Command}\":\"" + await HomeRTMTools.SendRemoteCommandToGame(WorldId, DmeWorldId, Command, Retail) + '\"');
-                                                else
-                                                    st.Append($"\"{Command}\":\"" + await HomeRTMTools.SendRemoteCommandToGame(WorldId, DmeWorldId, Command, Retail) + '\"');
-
-                                                result = st.ToString() + ']';
-                                            }
-                                            else
-                                                result = await HomeRTMTools.SendRemoteCommandToGame(WorldId, DmeWorldId, Command, Retail);
-                                        }
-                                        else
-                                            result = "Bad RTM request!";
-
                                         break;
                                     default:
                                         LoggerAccessor.LogWarn($"[CrudServerHandler] - Unknown Home IGA command: {Command}");
