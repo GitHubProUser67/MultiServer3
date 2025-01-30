@@ -43,6 +43,11 @@ namespace NetworkLibrary.Extension
             return Path.GetFileNameWithoutExtension(fileName).Trim() + Path.GetExtension(fileName);
         }
 
+        public static string GetSubstringByString(this string a, string b, string c)
+        {
+            return c.Substring(c.IndexOf(a), c.IndexOf(b) - c.IndexOf(a));
+        }
+
         /// <summary>
         /// Transform a string to it's hexadecimal representation.
         /// <para>Obtenir un string dans sa représentation hexadecimale.</para>

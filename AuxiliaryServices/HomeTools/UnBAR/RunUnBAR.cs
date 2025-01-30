@@ -7,7 +7,7 @@ using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
 using HomeTools.BARFramework;
 using HomeTools.Crypto;
-using HomeTools.SDAT;
+using HomeTools.PS3_Creator;
 using EndianTools;
 using CustomLogger;
 
@@ -31,7 +31,7 @@ namespace HomeTools.UnBAR
         {
             try
             {
-                int ExitCode = EDAT.EncryptFile(filePath, sdatfilePath);
+                int ExitCode = new EDAT().encryptFile(filePath, sdatfilePath, new byte[16], null, new byte[48], ConversionUtils.getByteArray("0C"), ConversionUtils.getByteArray("00"), ConversionUtils.getByteArray("03"));
 
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunEncrypt failed with status code : {ExitCode}");
@@ -48,7 +48,7 @@ namespace HomeTools.UnBAR
 
             try
             {
-                int ExitCode = EDAT.DecryptFile(sdatfilePath, datfilePath);
+                int ExitCode = new EDAT().decryptFile(sdatfilePath, datfilePath, new byte[16], null);
 
                 if (ExitCode != 0)
                     LoggerAccessor.LogError($"[RunUnBAR] - RunDecrypt failed with status code : {ExitCode}");
