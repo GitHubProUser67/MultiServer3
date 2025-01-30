@@ -1,6 +1,6 @@
-namespace HomeTools.SDAT
+﻿namespace HomeTools.PS3_Creator
 {
-    internal class EDATKeys
+    public static class EDATKeys
     {
         public static byte[] npdrm_rap_key = new byte[16]
         {
