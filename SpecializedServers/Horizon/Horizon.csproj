@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\AuxiliaryServices\HorizonService\HorizonService.csproj" />
+    <ProjectReference Include="..\..\BackendServices\SoftFloatLibrary\SoftFloatLibrary.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
 	<ProjectReference Include="..\..\BackendServices\WatsonWebserver\WatsonWebserver.csproj" />
   </ItemGroup>

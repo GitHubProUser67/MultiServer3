@@ -252,6 +252,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x00548378, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
                                                             break;
+                                                        case 0x1054e5c0:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -284,6 +289,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x00531e08, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
                                                             break;
+                                                        case 0x1053e160:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -309,6 +319,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x0054964c, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
                                                             break;
+                                                        case 0x1054e1c0:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
                                                     }
                                                     break;
                                                 case "01.86.09":
@@ -326,6 +341,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x00555cb4, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                                 PokeAddress(0x00556740, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
+                                                            break;
+                                                        case 0x1054e358:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
                                                     }
                                                     break;
@@ -362,6 +382,11 @@ namespace Horizon.SERVER.Medius
                                                             // 4096 character command line limit.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
                                                                 PokeAddress(0x00087080, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
+                                                            break;
+                                                        case 0x105c24c8:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
                                                     }
                                                     break;
@@ -2005,10 +2030,11 @@ namespace Horizon.SERVER.Medius
 
                                         if (r.IsCompletedSuccessfully && r.Result != null && data != null && data.ClientObject != null && data.ClientObject.IsConnected)
                                         {
+                                            bool isHomeRejected = !MediusClass.Settings.PlaystationHomeAllowAnyEboot && (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374) && data.ClientObject.ClientHomeData == null;
 
                                             LoggerAccessor.LogInfo($"Account found for AppId from Client: {data.ClientObject.ApplicationId}");
 
-                                            if (r.Result.IsBanned)
+                                            if (r.Result.IsBanned || isHomeRejected)
                                             {
                                                 // Account is banned
                                                 // Respond with Statuscode MediusAccountBanned
@@ -2019,7 +2045,7 @@ namespace Horizon.SERVER.Medius
                                                 });
 
                                                 // Then queue send ban message
-                                                await QueueBanMessage(data, "Your CID has been banned");
+                                                await QueueBanMessage(data, isHomeRejected ? "You was caught using an anti Poke/Query eboot" : "Your CID has been banned");
                                             }
                                             else
                                             {
@@ -2807,6 +2833,8 @@ namespace Horizon.SERVER.Medius
 
                                         CheatQuery(0x005478dc, 4, clientChannel);
                                     }
+
+                                    CheatQuery(0x1054e5c0, 4, clientChannel);
                                     break;
                                 default:
                                     break;
@@ -2829,6 +2857,8 @@ namespace Horizon.SERVER.Medius
 
                                         CheatQuery(0x00531370, 4, clientChannel);
                                     }
+
+                                    CheatQuery(0x1053e160, 4, clientChannel);
                                     break;
                                 default:
                                     break;
@@ -2844,6 +2874,8 @@ namespace Horizon.SERVER.Medius
 
                                         CheatQuery(0x00548bc0, 4, clientChannel);
                                     }
+
+                                    CheatQuery(0x1054e1c0, 4, clientChannel);
                                     break;
                                 case "01.86.09":
                                     if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
@@ -2852,6 +2884,8 @@ namespace Horizon.SERVER.Medius
 
                                         CheatQuery(0x00555cb4, 4, clientChannel);
                                     }
+
+                                    CheatQuery(0x1054e358, 4, clientChannel);
                                     break;
                                 default:
                                     break;
@@ -2870,6 +2904,8 @@ namespace Horizon.SERVER.Medius
 
                                         CheatQuery(0x00087080, 4, clientChannel);
                                     }
+
+                                    CheatQuery(0x105c24c8, 4, clientChannel);
                                     break;
                                 default:
                                     break;

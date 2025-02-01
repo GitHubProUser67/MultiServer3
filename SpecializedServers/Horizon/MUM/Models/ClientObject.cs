@@ -50,6 +50,11 @@ namespace Horizon.MUM.Models
         /// <summary>
         /// 
         /// </summary>
+        public uint WorldCorePointer = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public string? SSFWid = null;
 
         /// <summary>
@@ -987,6 +992,11 @@ namespace Horizon.MUM.Models
         public void SetPointer(uint Pointer)
         {
             HomePointer = Pointer;
+        }
+
+        public void SetWorldCorePointer(uint Pointer)
+        {
+            WorldCorePointer = Pointer;
         }
         #endregion
 

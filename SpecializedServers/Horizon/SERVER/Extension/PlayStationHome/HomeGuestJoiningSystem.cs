@@ -3,6 +3,7 @@ using CustomLogger;
 using Horizon.MUM.Models;
 using NetworkLibrary.Extension;
 using NetworkLibrary.HTTP;
+using SoftFloatLibrary;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -52,6 +53,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         continue;
 
                                     client.LobbyKeyOverride = SceneCrc;
+
                                     if (!string.IsNullOrEmpty(client.ClientHomeData?.Type) && (client.ClientHomeData.Type.Contains("HDK") || client.ClientHomeData.Type == "Online Debug"))
                                         _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
                                     else
@@ -143,6 +145,19 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 
             return TimeZoneInfo.Local.IsDaylightSavingTime(dateSalt) ? ((res1 ^ dateSalt.Minute).ToString("X8") + (dateSalt.Day ^ dateSalt.DayOfYear ^ res2).ToString("X8"))
                 : ((dateSalt.Minute ^ res2).ToString("X8") + (dateSalt.Hour ^ res1 ^ dateSalt.Month).ToString("X8"));
+        }
+
+        public static uint IsInOwnApartment(int offsetValue)
+        {
+            uint uVar2;
+
+            uVar2 = 0;
+            if (offsetValue != 0)
+            {
+                int uVar1 = BitUtils.CountLeadingSignBits(offsetValue ^ 5);
+                uVar2 = (uint)uVar1 >> 5;
+            }
+            return uVar2;
         }
     }
 }
