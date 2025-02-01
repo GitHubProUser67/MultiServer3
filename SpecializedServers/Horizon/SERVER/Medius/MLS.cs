@@ -258,6 +258,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x00548378, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
                                                             break;
+                                                        case 0x1054e5c0:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -290,6 +295,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x00531e08, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
                                                             break;
+                                                        case 0x1053e160:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -315,6 +325,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x0054964c, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
                                                             break;
+                                                        case 0x1054e1c0:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
                                                     }
                                                     break;
                                                 case "01.86.09":
@@ -332,6 +347,11 @@ namespace Horizon.SERVER.Medius
                                                                 PokeAddress(0x00555cb4, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                                 PokeAddress(0x00556740, new byte[] { 0x2b, 0x83, 0x0f, 0xff }, clientChannel);
                                                             }
+                                                            break;
+                                                        case 0x1054e358:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
                                                     }
                                                     break;
@@ -369,6 +389,11 @@ namespace Horizon.SERVER.Medius
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
                                                                 PokeAddress(0x00087080, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                             break;
+                                                        case 0x105c24c8:
+                                                            // Sets WorldCorePointer.
+                                                            if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
+                                                                data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -398,7 +423,7 @@ namespace Horizon.SERVER.Medius
                                                     {
                                                         if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83)
                                                         {
-                                                            if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
+                                                            if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
                                                                 _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
                                                             else
                                                                 _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "mlaaenable 0");
@@ -425,6 +450,8 @@ namespace Horizon.SERVER.Medius
 
                                                                             CheatQuery(0x005478dc, 4, clientChannel);
                                                                         }
+
+                                                                        CheatQuery(0x1054e5c0, 4, clientChannel);
                                                                         break;
                                                                     default:
                                                                         break;
@@ -449,6 +476,8 @@ namespace Horizon.SERVER.Medius
 
                                                                             CheatQuery(0x00531370, 4, clientChannel);
                                                                         }
+
+                                                                        CheatQuery(0x1053e160, 4, clientChannel);
                                                                         break;
                                                                     default:
                                                                         break;
@@ -466,6 +495,8 @@ namespace Horizon.SERVER.Medius
 
                                                                             CheatQuery(0x00548bc0, 4, clientChannel);
                                                                         }
+
+                                                                        CheatQuery(0x1054e1c0, 4, clientChannel);
                                                                         break;
                                                                     case "01.86.09":
                                                                         CheatQuery(0x10244428, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
@@ -476,6 +507,8 @@ namespace Horizon.SERVER.Medius
 
                                                                             CheatQuery(0x00555cb4, 4, clientChannel);
                                                                         }
+
+                                                                        CheatQuery(0x1054e358, 4, clientChannel);
                                                                         break;
                                                                     default:
                                                                         break;
@@ -496,6 +529,8 @@ namespace Horizon.SERVER.Medius
 
                                                                             CheatQuery(0x00087080, 4, clientChannel);
                                                                         }
+
+                                                                        CheatQuery(0x105c24c8, 4, clientChannel);
                                                                         break;
                                                                     default:
                                                                         break;
@@ -5525,6 +5560,70 @@ namespace Horizon.SERVER.Medius
                                                 PlayerCount = (ushort)homeLobby.PlayerCount,
                                                 EndOfList = true
                                             });
+
+                                            if (rClient.WorldCorePointer != 0 && rClient.ClientHomeData != null)
+                                            {
+                                                const uint guestPtrPrefix = 0x00020000;
+                                                uint guestPtr = 0;
+
+                                                switch (rClient.ClientHomeData.Type)
+                                                {
+                                                    case "HDK With Offline":
+                                                        switch (rClient.ClientHomeData.Version)
+                                                        {
+                                                            case "01.86.09":
+                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                        break;
+                                                    case "HDK Online Only":
+                                                        switch (rClient.ClientHomeData.Version)
+                                                        {
+                                                            default:
+                                                                break;
+                                                        }
+                                                        break;
+                                                    case "HDK Online Only (Dbg Symbols)":
+                                                        switch (rClient.ClientHomeData.Version)
+                                                        {
+                                                            case "01.82.09":
+                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x61a8;
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                        break;
+                                                    case "Online Debug":
+                                                        switch (rClient.ClientHomeData.Version)
+                                                        {
+                                                            case "01.83.12":
+                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
+                                                                break;
+                                                            case "01.86.09":
+                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                        break;
+                                                    case "Retail":
+                                                        switch (rClient.ClientHomeData.Version)
+                                                        {
+                                                            case "01.86.09":
+                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x62a4;
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                        break;
+                                                }
+
+                                                if (guestPtr != 0)
+                                                    // Set guest mode.
+                                                    PokeAddress(rClient, guestPtr, new byte[4] { 0x00, 0x00, 0x00, 0x06 });
+                                            }
 
                                             break;
                                         }
@@ -11148,6 +11247,28 @@ namespace Horizon.SERVER.Medius
                 Payload = Payload,
                 SkipEncryption = false,
             }, clientChannel);
+
+            // return patched
+            return true;
+        }
+
+        private static bool PokeAddress(ClientObject? client, uint patchLocation, byte[] Payload)
+        {
+            // patch location = 0, don't patch
+            if (patchLocation == 0)
+                return false;
+
+            // client is null, don't patch
+            if (client == null)
+                return false;
+
+            // poke client memory
+            client.Queue(new RT_MSG_SERVER_MEMORY_POKE()
+            {
+                start_Address = patchLocation,
+                Payload = Payload,
+                SkipEncryption = false,
+            });
 
             // return patched
             return true;
