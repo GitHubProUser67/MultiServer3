@@ -138,9 +138,11 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                                         {
                                                             CheatQuery(client.HomePointer + 5300U, 8, client, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY);
                                                             CheatQuery(client.HomePointer + 6928U, 84, client, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH);
+															
+                                                            Thread.Sleep(3500);
                                                         }
-
-                                                        Thread.Sleep(6000);
+                                                        else
+                                                            Thread.Sleep(6000);
                                                     }
 
                                                 }));
