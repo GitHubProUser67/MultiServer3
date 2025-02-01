@@ -156,1129 +156,1129 @@ namespace HTTPServer
             return Task.CompletedTask;
         }
 
-        public void HandleClient(TcpClient? tcpClient, ushort ListenerPort)
+        public void HandleMessage(string message)
         {
-            if (tcpClient == null)
-                return;
+            LoggerAccessor.LogInfo("[HTTP] - " + message);
+        }
 
-            using (tcpClient)
+        public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
+        {
+            bool IsInterlocked = false;
+            HttpRequest? request = null;
+            HttpResponse? response = null;
+
+            try
             {
-                bool IsInterlocked = false;
-                HttpRequest? request = null;
-                HttpResponse? response = null;
+                string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
 
-                try
+                int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
+
+                if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
+                    return;
+
+                IsInterlocked = Interlocked.Increment(ref KeepAliveClients) > 0;
+                bool AllowKeepAlive = KeepAliveClients < HTTPServerConfiguration.MaximumAllowedKeepAliveClients;
+
+                using Stream? inputStream = GetInputStream(tcpClient);
+                using (Stream? outputStream = GetOutputStream(tcpClient))
                 {
-                    string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
-
-                    int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
-
-                    if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
-                        return;
-
-                    IsInterlocked = Interlocked.Increment(ref KeepAliveClients) > 0;
-                    bool AllowKeepAlive = KeepAliveClients < HTTPServerConfiguration.MaximumAllowedKeepAliveClients;
-
-                    using Stream? inputStream = GetInputStream(tcpClient);
-                    using (Stream? outputStream = GetOutputStream(tcpClient))
+                    while (tcpClient.IsConnected())
                     {
-                        while (tcpClient.IsConnected())
+                        if (tcpClient.Available > 0 && outputStream.CanWrite)
                         {
-                            if (tcpClient.Available > 0 && outputStream.CanWrite)
+                            if (request == null)
+                                request = GetRequest(inputStream, clientip, clientport.ToString()!, ListenerPort);
+                            else
+                                request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString()!, ListenerPort);
+
+                            if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery))
                             {
-                                if (request == null)
-                                    request = GetRequest(inputStream, clientip, clientport.ToString()!, ListenerPort);
-                                else
-                                    request = AppendRequestOrInputStream(inputStream, request, clientip, clientport.ToString()!, ListenerPort);
+                                string UserAgent = request.RetrieveHeaderValue("User-Agent");
 
-                                if (request != null && !string.IsNullOrEmpty(request.RawUrlWithQuery))
+                                if (UserAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
                                 {
-                                    string UserAgent = request.RetrieveHeaderValue("User-Agent");
+                                    WriteResponse(outputStream, request, HttpBuilder.NotAllowed(), null, false, false);
+                                    continue;
+                                }
+                                else if (response != null)
+                                {
+                                    response.Dispose();
+                                    response = null;
+                                }
 
-                                    if (UserAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                                bool EtagCompatible = false;
+                                DateTime CurrentDate = DateTime.UtcNow;
+                                string Method = request.Method;
+                                string Host = request.RetrieveHeaderValue("host", false);
+                                string Accept = request.RetrieveHeaderValue("Accept");
+                                string cacheControl = request.RetrieveHeaderValue("Cache-Control");
+                                bool noCompressCacheControl = !string.IsNullOrEmpty(cacheControl) && cacheControl == "no-transform";
+                                string SuplementalMessage = string.Empty;
+                                string fullurl = HTTPProcessor.DecodeUrl(request.RawUrlWithQuery);
+                                string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+
+                                if (!string.IsNullOrEmpty(GeoCodeString))
+                                {
+                                    // Split the input string by the '-' character
+                                    string[] parts = GeoCodeString.Split('-');
+
+                                    // Check if there are exactly two parts
+                                    if (parts.Length == 2)
                                     {
-                                        WriteResponse(outputStream, request, HttpBuilder.NotAllowed(), null, false, false);
-                                        continue;
+                                        string CountryCode = parts[0];
+
+                                        SuplementalMessage = " Located at " + CountryCode + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+
+                                        if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
+                                            CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset[CountryCode]);
+                                        else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
+                                            CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
                                     }
-                                    else if (response != null)
-                                    {
-                                        response.Dispose();
-                                        response = null;
-                                    }
-
-                                    bool EtagCompatible = false;
-                                    DateTime CurrentDate = DateTime.UtcNow;
-                                    string Method = request.Method;
-                                    string Host = request.RetrieveHeaderValue("host", false);
-                                    string Accept = request.RetrieveHeaderValue("Accept");
-                                    string cacheControl = request.RetrieveHeaderValue("Cache-Control");
-                                    bool noCompressCacheControl = !string.IsNullOrEmpty(cacheControl) && cacheControl == "no-transform";
-                                    string SuplementalMessage = string.Empty;
-                                    string fullurl = HTTPProcessor.DecodeUrl(request.RawUrlWithQuery);
-                                    string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
-
-                                    if (!string.IsNullOrEmpty(GeoCodeString))
-                                    {
-                                        // Split the input string by the '-' character
-                                        string[] parts = GeoCodeString.Split('-');
-
-                                        // Check if there are exactly two parts
-                                        if (parts.Length == 2)
-                                        {
-                                            string CountryCode = parts[0];
-
-                                            SuplementalMessage = " Located at " + CountryCode + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
-
-                                            if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
-                                                CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset[CountryCode]);
-                                            else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
-                                                CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
-                                        }
-                                    }
-                                    else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
-                                        CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
+                                }
+                                else if (HTTPServerConfiguration.DateTimeOffset != null && HTTPServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
+                                    CurrentDate = CurrentDate.AddDays(HTTPServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 
 #if DEBUG
-                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl} (Details: \n" + JsonConvert.SerializeObject(request, Formatting.Indented) + ')');
+                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl} (Details: \n" + JsonConvert.SerializeObject(request, Formatting.Indented) + ')');
 #else
 									LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
 #endif
 
-                                    string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
-                                    string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
+                                string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
+                                string fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
 
-                                    if (HTTPServerConfiguration.RedirectRules != null)
+                                if (HTTPServerConfiguration.RedirectRules != null)
+                                {
+                                    foreach (string? rule in HTTPServerConfiguration.RedirectRules)
                                     {
-                                        foreach (string? rule in HTTPServerConfiguration.RedirectRules)
+                                        if (!string.IsNullOrEmpty(rule) && rule.StartsWith("Redirect") && rule.Length >= 9) // Redirect + whitespace is minimum 9 in length.
                                         {
-                                            if (!string.IsNullOrEmpty(rule) && rule.StartsWith("Redirect") && rule.Length >= 9) // Redirect + whitespace is minimum 9 in length.
-                                            {
-                                                string RouteRule = rule[8..];
+                                            string RouteRule = rule[8..];
 
-                                                if (RouteRule.StartsWith("Match "))
-                                                {
+                                            if (RouteRule.StartsWith("Match "))
+                                            {
 #if NET6_0
-                                                    Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
+                                                Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
 #elif NET7_0_OR_GREATER
 													Match match = ApacheMatchRegex().Match(RouteRule);
 #endif
-                                                    if (match.Success && match.Groups.Count == 3)
-                                                    {
-                                                        // Compare the regex rule against the test URL
-                                                        if (Regex.IsMatch(absolutepath, match.Groups[2].Value))
-                                                            response = HttpBuilder.RedirectFromApacheRules(match.Groups[3].Value, int.Parse(match.Groups[1].Value));
-                                                    }
-                                                }
-                                                else if (RouteRule.StartsWith("Permanent "))
+                                                if (match.Success && match.Groups.Count == 3)
                                                 {
-                                                    string[] parts = RouteRule.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                                    if (parts.Length == 3 && (parts[1] == "/" || parts[1] == absolutepath))
-                                                        response = HttpBuilder.PermanantRedirect(parts[2]);
+                                                    // Compare the regex rule against the test URL
+                                                    if (Regex.IsMatch(absolutepath, match.Groups[2].Value))
+                                                        response = HttpBuilder.RedirectFromApacheRules(match.Groups[3].Value, int.Parse(match.Groups[1].Value));
                                                 }
-                                                else if (RouteRule.StartsWith(' '))
-                                                {
-                                                    string[] parts = RouteRule[1..].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                            }
+                                            else if (RouteRule.StartsWith("Permanent "))
+                                            {
+                                                string[] parts = RouteRule.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-                                                    if (parts.Length == 3 && (parts[1] == "/" || parts[1] == absolutepath))
-                                                    {
-                                                        // Check if the input string contains an HTTP method
+                                                if (parts.Length == 3 && (parts[1] == "/" || parts[1] == absolutepath))
+                                                    response = HttpBuilder.PermanantRedirect(parts[2]);
+                                            }
+                                            else if (RouteRule.StartsWith(' '))
+                                            {
+                                                string[] parts = RouteRule[1..].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                                if (parts.Length == 3 && (parts[1] == "/" || parts[1] == absolutepath))
+                                                {
+                                                    // Check if the input string contains an HTTP method
 #if NET6_0
-                                                        if (new Regex(@"^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)").Match(parts[0]).Success && Method == parts[0])
+                                                    if (new Regex(@"^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)").Match(parts[0]).Success && Method == parts[0])
 #elif NET7_0_OR_GREATER
 														if (HttpMethodRegex().Match(parts[0]).Success && Method == parts[0])
 #endif
-                                                            response = HttpBuilder.Found(parts[2]);
-                                                        // Check if the input string contains a status code
+                                                        response = HttpBuilder.Found(parts[2]);
+                                                    // Check if the input string contains a status code
 #if NET6_0
-                                                        else if (new Regex(@"\\b\\d{3}\\b").Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
+                                                    else if (new Regex(@"\\b\\d{3}\\b").Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
 #elif NET7_0_OR_GREATER
 														else if (HttpStatusCodeRegex().Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
 #endif
-                                                            response = HttpBuilder.RedirectFromApacheRules(parts[2], statuscode);
-                                                        else if (parts[1] == "permanent")
-                                                            response = HttpBuilder.PermanantRedirect(parts[2]);
-                                                    }
-                                                    else if (parts.Length == 2 && (parts[0] == "/" || parts[0] == absolutepath))
-                                                        response = HttpBuilder.Found(parts[1]);
+                                                        response = HttpBuilder.RedirectFromApacheRules(parts[2], statuscode);
+                                                    else if (parts[1] == "permanent")
+                                                        response = HttpBuilder.PermanantRedirect(parts[2]);
                                                 }
+                                                else if (parts.Length == 2 && (parts[0] == "/" || parts[0] == absolutepath))
+                                                    response = HttpBuilder.Found(parts[1]);
                                             }
                                         }
                                     }
+                                }
 
-                                    // Split the URL into segments
-                                    string[] segments = absolutepath.Trim('/').Split('/');
+                                // Split the URL into segments
+                                string[] segments = absolutepath.Trim('/').Split('/');
 
-                                    // Combine the folder segments into a directory path
-                                    string directoryPath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
+                                // Combine the folder segments into a directory path
+                                string directoryPath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
-                                    // Process the request based on the HTTP method
-                                    string filePath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
+                                // Process the request based on the HTTP method
+                                string filePath = Path.Combine(!HTTPServerConfiguration.DomainFolder ? HTTPServerConfiguration.HTTPStaticFolder : HTTPServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
 
-                                    //For HF to trim the url path out the combine, we don't need it for that api
-                                    string apiRootPath = HTTPServerConfiguration.APIStaticFolder;
+                                //For HF to trim the url path out the combine, we don't need it for that api
+                                string apiRootPath = HTTPServerConfiguration.APIStaticFolder;
 
-                                    string apiRootPathWithURIPath = Path.Combine(apiRootPath, absolutepath[1..]);
+                                string apiRootPathWithURIPath = Path.Combine(apiRootPath, absolutepath[1..]);
 
-                                    if (response == null && HTTPServerConfiguration.plugins.Count > 0)
+                                if (response == null && HTTPServerConfiguration.plugins.Count > 0)
+                                {
+                                    foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins.Values)
                                     {
-                                        foreach (HTTPPlugin plugin in HTTPServerConfiguration.plugins.Values)
+                                        try
                                         {
-                                            try
-                                            {
-                                                object? objReturn = plugin.ProcessPluginMessage(request);
-                                                if (objReturn != null && objReturn is HttpResponse v)
-                                                    response = v;
-                                                if (response != null)
-                                                    break;
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                LoggerAccessor.LogError($"[HTTP] - Plugin {plugin.GetHashCode()} thrown an assertion: {ex}");
-                                            }
+                                            object? objReturn = plugin.ProcessPluginMessage(request);
+                                            if (objReturn != null && objReturn is HttpResponse v)
+                                                response = v;
+                                            if (response != null)
+                                                break;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            LoggerAccessor.LogError($"[HTTP] - Plugin {plugin.GetHashCode()} thrown an assertion: {ex}");
                                         }
                                     }
+                                }
 
-                                    response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
+                                response ??= RouteRequest(inputStream, outputStream, request, absolutepath, Host);
 
-                                    if (response == null)
+                                if (response == null)
+                                {
+                                    switch (Host)
                                     {
-                                        switch (Host)
-                                        {
-                                            default:
+                                        default:
 
-                                                #region Dust 514 dcrest
-                                                if (request.ServerPort == 26004 //Check for Dust514 specific Port!!
-                                                    && !string.IsNullOrEmpty(Method)
-                                                    && request.RetrieveHeaderValue("X-CCP-User-Agent", true).Contains("CCPGamesCrestClient"))
+                                            #region Dust 514 dcrest
+                                            if (request.ServerPort == 26004 //Check for Dust514 specific Port!!
+                                                && !string.IsNullOrEmpty(Method)
+                                                && request.RetrieveHeaderValue("X-CCP-User-Agent", true).Contains("CCPGamesCrestClient"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a Dust514  method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
                                                 {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a Dust514  method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new Dust514Class(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), request.Headers, false);
-                                                        postdata.Flush();
-                                                    }
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/plain");
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new Dust514Class(request.Method, absolutepath, HTTPServerConfiguration.APIStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType(), request.Headers, false);
+                                                    postdata.Flush();
                                                 }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/plain");
+                                            }
 
+                                            #endregion
+
+                                            #region Outso OHS API
+                                            else if ((Host == "stats.outso-srv1.com"
+                                                || Host == "www.outso-srv1.com") &&
+                                                request.GetDataStream != null &&
+                                                (absolutepath.Contains("/ohs_") ||
+                                                absolutepath.Contains("/ohs/") ||
+                                                absolutepath.Contains("/statistic/") ||
+                                                absolutepath.Contains("/Konami/") ||
+                                                absolutepath.Contains("/tracker/")) && absolutepath.EndsWith("/"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
+
+                                                string? res = null;
+
+                                                #region OHS API Version
+                                                int version = 0;
+                                                if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
+                                                    version = 2;
+                                                else if (absolutepath.Contains("/SCEA/SaucerPop/"))
+                                                    version = 2;
+                                                else if (absolutepath.Contains("/AirRace/"))
+                                                    version = 2;
+                                                else if (absolutepath.Contains("/Flugtag/"))
+                                                    version = 2;
+                                                else if (absolutepath.Contains("/SCEA/op4_"))
+                                                    version = 1;
+                                                else if (absolutepath.Contains("/uncharted2"))
+                                                    version = 1;
+                                                else if (absolutepath.Contains("/Uncharted2"))
+                                                    version = 1;
+                                                else if (absolutepath.Contains("/Infamous/"))
+                                                    version = 1;
+                                                else if (absolutepath.Contains("/warhawk_shooter/"))
+                                                    version = 1;
                                                 #endregion
 
-                                                #region Outso OHS API
-                                                else if ((Host == "stats.outso-srv1.com"
-                                                    || Host == "www.outso-srv1.com") &&
-                                                    request.GetDataStream != null &&
-                                                    (absolutepath.Contains("/ohs_") ||
-                                                    absolutepath.Contains("/ohs/") ||
-                                                    absolutepath.Contains("/statistic/") ||
-                                                    absolutepath.Contains("/Konami/") ||
-                                                    absolutepath.Contains("/tracker/")) && absolutepath.EndsWith("/"))
+                                                using (MemoryStream postdata = new())
                                                 {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a OHS method : {absolutepath}");
+                                                    request.GetDataStream?.CopyTo(postdata);
+                                                    res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
+                                                    postdata.Flush();
+                                                }
 
-                                                    string? res = null;
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
+                                            }
+                                            #endregion
 
-                                                    #region OHS API Version
-                                                    int version = 0;
-                                                    if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
-                                                        version = 2;
-                                                    else if (absolutepath.Contains("/SCEA/SaucerPop/"))
-                                                        version = 2;
-                                                    else if (absolutepath.Contains("/AirRace/"))
-                                                        version = 2;
-                                                    else if (absolutepath.Contains("/Flugtag/"))
-                                                        version = 2;
-                                                    else if (absolutepath.Contains("/SCEA/op4_"))
-                                                        version = 1;
-                                                    else if (absolutepath.Contains("/uncharted2"))
-                                                        version = 1;
-                                                    else if (absolutepath.Contains("/Uncharted2"))
-                                                        version = 1;
-                                                    else if (absolutepath.Contains("/Infamous/"))
-                                                        version = 1;
-                                                    else if (absolutepath.Contains("/warhawk_shooter/"))
-                                                        version = 1;
-                                                    #endregion
+                                            #region Outso OUWF Debug API
+                                            else if (Host == "ouwf.outso-srv1.com"
+                                                && request.GetDataStream != null
+                                                && !string.IsNullOrEmpty(Method)
+                                                && request.GetContentType().StartsWith("multipart/form-data"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a OuWF method : {absolutepath}");
 
-                                                    using (MemoryStream postdata = new())
-                                                    {
-                                                        request.GetDataStream?.CopyTo(postdata);
-                                                        res = new OHSClass(Method, absolutepath, version).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
-                                                        postdata.Flush();
-                                                    }
+                                                string? res = null;
+                                                using (MemoryStream postdata = new())
+                                                {
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new OuWFClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
 
-                                                    if (string.IsNullOrEmpty(res))
+                                            #region Ubisoft Build API
+                                            else if (Host == "builddatabasepullapi"
+                                                && request.GetDataStream != null
+                                                && !string.IsNullOrEmpty(Method)
+                                                && request.GetContentType().StartsWith("application/soap+xml"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a Ubisoft Build API method : {absolutepath}");
+
+                                                string? res = null;
+                                                using (MemoryStream postdata = new())
+                                                {
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new SoapBuildAPIClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region VEEMEE API
+                                            else if ((Host == "away.veemee.com"
+                                                || Host == "home.veemee.com"
+                                                || Host == "ww-prod-sec.destinations.scea.com"
+                                                || Host == "ww-prod.destinations.scea.com") &&
+                                                !string.IsNullOrEmpty(Method) &&
+                                                (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a VEEMEE  method : {absolutepath}");
+
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    (byte[]?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
+                                                    postdata.Flush();
+
+                                                    if (res.Item1 == null || res.Item1.Length == 0)
                                                         response = HttpBuilder.InternalServerError();
                                                     else
-                                                        response = HttpResponse.Send($"<ohs>{res}</ohs>", "application/xml;charset=UTF-8");
-                                                }
-                                                #endregion
-
-                                                #region Outso OUWF Debug API
-                                                else if (Host == "ouwf.outso-srv1.com"
-                                                    && request.GetDataStream != null
-                                                    && !string.IsNullOrEmpty(Method)
-                                                    && request.GetContentType().StartsWith("multipart/form-data"))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a OuWF method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    using (MemoryStream postdata = new())
                                                     {
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new OuWFClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region Ubisoft Build API
-                                                else if (Host == "builddatabasepullapi"
-                                                    && request.GetDataStream != null
-                                                    && !string.IsNullOrEmpty(Method)
-                                                    && request.GetContentType().StartsWith("application/soap+xml"))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a Ubisoft Build API method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    using (MemoryStream postdata = new())
-                                                    {
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new SoapBuildAPIClass(Method, absolutepath, HTTPServerConfiguration.HTTPStaticFolder).ProcessRequest(postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region VEEMEE API
-                                                else if ((Host == "away.veemee.com"
-                                                    || Host == "home.veemee.com"
-                                                    || Host == "ww-prod-sec.destinations.scea.com"
-                                                    || Host == "ww-prod.destinations.scea.com") &&
-                                                    !string.IsNullOrEmpty(Method) &&
-                                                    (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a VEEMEE  method : {absolutepath}");
-
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        (byte[]?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(postdata.ToArray(), request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
-                                                        postdata.Flush();
-
-                                                        if (res.Item1 == null || res.Item1.Length == 0)
-                                                            response = HttpBuilder.InternalServerError();
+                                                        if (!string.IsNullOrEmpty(res.Item2))
+                                                            response = HttpResponse.Send(res.Item1, res.Item2);
                                                         else
-                                                        {
-                                                            if (!string.IsNullOrEmpty(res.Item2))
-                                                                response = HttpResponse.Send(res.Item1, res.Item2);
-                                                            else
-                                                                response = HttpResponse.Send(res.Item1, "text/plain");
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        (byte[]?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(null, request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
-
-                                                        if (res.Item1 == null || res.Item1.Length == 0)
-                                                            response = HttpBuilder.InternalServerError();
-                                                        else
-                                                        {
-                                                            if (!string.IsNullOrEmpty(res.Item2))
-                                                                response = HttpResponse.Send(res.Item1, res.Item2);
-                                                            else
-                                                                response = HttpResponse.Send(res.Item1, "text/plain");
-                                                        }
+                                                            response = HttpResponse.Send(res.Item1, "text/plain");
                                                     }
                                                 }
-                                                #endregion
-
-                                                #region nDreams API
-                                                else if (nDreamsDomains.Contains(Host)
-                                                    && !string.IsNullOrEmpty(Method)
-                                                    && (absolutepath.EndsWith(".php")
-                                                    || absolutepath.Contains("/NDREAMS/")
-                                                    || absolutepath.Contains("/gateway/")))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    NDREAMSClass ndreams = new(CurrentDate, Method, apiRootPathWithURIPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, apiRootPath, Host);
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = ndreams.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    else
-                                                        res = ndreams.ProcessRequest(request.QueryParameters);
-
-                                                    ndreams.Dispose();
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region Hellfire Games API
-                                                else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php"))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
-
-                                                    string? res = string.Empty;
-
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
-                                                        postdata.Flush();
-                                                    }
-
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                    {
-                                                        //response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                                        response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
-                                                    }
-                                                }
-                                                #endregion
-
-                                                #region Juggernaut Games API
-                                                else if (Host == "juggernaut-games.com"
-                                                    && !string.IsNullOrEmpty(Method)
-                                                    && absolutepath.EndsWith(".php"))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    JUGGERNAUTClass juggernaut = new(Method, absolutepath);
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder, postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    else
-                                                        res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder);
-                                                    juggernaut.Dispose();
-                                                    if (res == null)
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else if (res == string.Empty)
-                                                        response = HttpBuilder.OK();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region LOOT API
-                                                else if ((Host == "server.lootgear.com"
-                                                    || Host == "alpha.lootgear.com")
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    LOOTClass loot = new(Method, absolutepath, apiRootPath);
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = loot.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    else
-                                                        res = loot.ProcessRequest(request.QueryParameters);
-
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
-                                                }
-                                                #endregion
-
-                                                #region PREMIUMAGENCY API
-                                                else if ((Host == "test.playstationhome.jp" ||
-                                                    Host == "playstationhome.jp" ||
-                                                    Host == "homeec.scej-nbs.jp" ||
-                                                    Host == "homeecqa.scej-nbs.jp" ||
-                                                    Host == "homect-scej.jp" ||
-                                                    Host == "qa-homect-scej.jp" ||
-                                                    Host == "home-eas.jp.playstation.com")
-                                                    && !string.IsNullOrEmpty(Method)
-                                                    && absolutepath.Contains("/eventController/"))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a PREMIUMAGENCY method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new PREMIUMAGENCYClass(Method, absolutepath, apiRootPath, fulluripath).ProcessRequest(postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region FROMSOFTWARE API
-                                                else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
-
-                                                    (byte[]?, string?, string[][]?) res = new();
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new FROMSOFTWAREClass(Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res.Item1, res.Item2, res.Item3);
-                                                }
-                                                #endregion
-
-                                                #region Ubisoft API
-                                                else if (Host.Contains("api-ubiservices.ubi.com")
-                                                    && UserAgent.Contains("UbiServices_SDK_HTTP_Client")
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
-
-                                                    string Authorization = request.RetrieveHeaderValue("Authorization");
-
-                                                    if (!string.IsNullOrEmpty(Authorization))
-                                                    {
-                                                        // TODO, verify ticket data for every platforms.
-
-                                                        if (Authorization.StartsWith("psn t="))
-                                                        {
-                                                            (bool, byte[]) base64Data = Authorization.Replace("psn t=", string.Empty).IsBase64();
-
-                                                            if (base64Data.Item1)
-                                                            {
-                                                                byte[] PSNTicket = base64Data.Item2;
-
-                                                                // Extract the desired portion of the binary data
-                                                                byte[] extractedData = new byte[0x63 - 0x54 + 1];
-
-                                                                // Copy it
-                                                                Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
-
-                                                                // Convert 0x00 bytes to 0x48 so FileSystem can support it
-                                                                for (int i = 0; i < extractedData.Length; i++)
-                                                                {
-                                                                    if (extractedData[i] == 0x00)
-                                                                        extractedData[i] = 0x48;
-                                                                }
-
-                                                                if (ByteUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
-                                                                    LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
-                                                                else
-                                                                    LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
-                                                            }
-                                                        }
-                                                        else if (Authorization.StartsWith("Ubi_v1 t="))
-                                                        {
-                                                            // Our JWT token is fake for now.
-                                                        }
-
-                                                        if (request.GetDataStream != null)
-                                                        {
-                                                            using MemoryStream postdata = new();
-                                                            request.GetDataStream.CopyTo(postdata);
-                                                            (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                                                request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), apiRootPath)
-                                                                .ProcessRequest(postdata.ToArray(), request.GetContentType());
-                                                            postdata.Flush();
-
-                                                            if (string.IsNullOrEmpty(res.Item1))
-                                                                response = HttpBuilder.InternalServerError();
-                                                            else
-                                                            {
-                                                                if (!string.IsNullOrEmpty(res.Item2))
-                                                                    response = HttpResponse.Send(res.Item1, res.Item2);
-                                                                else
-                                                                    response = HttpResponse.Send(res.Item1, "text/plain");
-
-                                                                response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
-                                                                response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
-
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                                                request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), apiRootPath)
-                                                                .ProcessRequest(null, request.GetContentType());
-
-                                                            if (string.IsNullOrEmpty(res.Item1))
-                                                                response = HttpBuilder.InternalServerError();
-                                                            else
-                                                            {
-                                                                if (!string.IsNullOrEmpty(res.Item2))
-                                                                    response = HttpResponse.Send(res.Item1, res.Item2);
-                                                                else
-                                                                    response = HttpResponse.Send(res.Item1, "text/plain");
-
-                                                                response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
-                                                                response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
-
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                        response = HttpBuilder.NotAllowed();
-                                                }
-                                                #endregion
-
-                                                #region gsconnect API
-                                                else if (Host == "gsconnect.ubisoft.com"
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
-
-                                                    (string?, string?, Dictionary<string, string>?) res;
-                                                    gsconnectClass gsconn = new(Method, absolutepath, apiRootPath);
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = gsconn.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
-                                                        postdata.Flush();
-                                                    }
-                                                    else
-                                                        res = gsconn.ProcessRequest(request.QueryParameters);
-
-                                                    if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                    {
-                                                        response = new("1.0")
-                                                        {
-                                                            HttpStatusCode = HttpStatusCode.OK
-                                                        };
-                                                        response.Headers["Content-Type"] = res.Item2;
-                                                        response.ContentAsUTF8 = res.Item1;
-
-                                                        if (res.Item3 != null)
-                                                        {
-                                                            foreach (KeyValuePair<string, string> headertoadd in res.Item3)
-                                                            {
-                                                                response.Headers.TryAdd(headertoadd.Key, headertoadd.Value);
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                #endregion
-
-                                                #region CentralDispatchManager API
-                                                else if (HPDDomains.Contains(Host)
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
-
-                                                    string? res = null;
-
-                                                    if (Method == "POST")
-                                                    {
-                                                        if (request.GetDataStream != null)
-                                                        {
-                                                            using MemoryStream postdata = new();
-                                                            request.GetDataStream.CopyTo(postdata);
-                                                            res = new CDMClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
-                                                            postdata.Flush();
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-
-                                                        using (MemoryStream postdata = new())
-                                                        {
-                                                            res = new CDMClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
-                                                            postdata.Flush();
-                                                        }
-                                                    }
-
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region CAPONE GriefReporter API
-                                                else if (CAPONEDomains.Contains(Host)
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CAPONE method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new CAPONEClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
-                                                        postdata.Flush();
-                                                    }
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region HTS Samples API
-                                                else if (HTSDomains.Contains(Host)
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a HTS Samples method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new HTSClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
-                                                        postdata.Flush();
-                                                    }
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/xml");
-                                                }
-                                                #endregion
-
-                                                #region ILoveSony API
-                                                else if (ILoveSonyDomains.Contains(Host)
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a IloveSony EULA method : {absolutepath}");
-
-                                                    string? res = null;
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = new ILoveSonyClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
-                                                        postdata.Flush();
-                                                    }
-                                                    if (string.IsNullOrEmpty(res))
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res, "text/plain");
-                                                }
-                                                #endregion
-
-                                                #region EA Demangler
-                                                else if (Host.Contains("demangler.ea.com")
-                                                    && !string.IsNullOrEmpty(Method))
-                                                {
-                                                    LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a EA Demangler method : {absolutepath}");
-
-                                                    (string?, string?)? res = null;
-                                                    if (request.GetDataStream != null)
-                                                    {
-                                                        using MemoryStream postdata = new();
-                                                        request.GetDataStream.CopyTo(postdata);
-                                                        res = DemanglerClass.ProcessDemanglerRequest(request.QueryParameters, absolutepath, clientip, postdata.ToArray());
-                                                        postdata.Flush();
-                                                    }
-                                                    if (res == null)
-                                                        response = HttpBuilder.InternalServerError();
-                                                    else
-                                                        response = HttpResponse.Send(res.Value.Item1, res.Value.Item2!, new string[][] { new string[] { "x-envoy-upstream-service-time", "0" }, new string[] { "server", "istio-envoy" }
-                                                        , new string[] { "content-length", res.Value.Item1!.Length.ToString() } }, HttpStatusCode.OK, true);
-                                                }
-                                                #endregion
-
                                                 else
                                                 {
-                                                    string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
+                                                    (byte[]?, string?) res = new VEEMEEClass(Method, absolutepath).ProcessRequest(null, request.GetContentType(), HTTPServerConfiguration.APIStaticFolder);
 
-                                                    switch (Method)
+                                                    if (res.Item1 == null || res.Item1.Length == 0)
+                                                        response = HttpBuilder.InternalServerError();
+                                                    else
                                                     {
-                                                        case "GET":
-                                                            switch (absolutepath)
+                                                        if (!string.IsNullOrEmpty(res.Item2))
+                                                            response = HttpResponse.Send(res.Item1, res.Item2);
+                                                        else
+                                                            response = HttpResponse.Send(res.Item1, "text/plain");
+                                                    }
+                                                }
+                                            }
+                                            #endregion
+
+                                            #region nDreams API
+                                            else if (nDreamsDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method)
+                                                && (absolutepath.EndsWith(".php")
+                                                || absolutepath.Contains("/NDREAMS/")
+                                                || absolutepath.Contains("/gateway/")))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a NDREAMS method : {absolutepath}");
+
+                                                string? res = null;
+                                                NDREAMSClass ndreams = new(CurrentDate, Method, apiRootPathWithURIPath, $"http://nDreams-multiserver-cdn/", $"http://{Host}{fullurl}", absolutepath, apiRootPath, Host);
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = ndreams.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                else
+                                                    res = ndreams.ProcessRequest(request.QueryParameters);
+
+                                                ndreams.Dispose();
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region Hellfire Games API
+                                            else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
+
+                                                string? res = string.Empty;
+
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    postdata.Flush();
+                                                }
+
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                {
+                                                    //response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                    response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
+                                                }
+                                            }
+                                            #endregion
+
+                                            #region Juggernaut Games API
+                                            else if (Host == "juggernaut-games.com"
+                                                && !string.IsNullOrEmpty(Method)
+                                                && absolutepath.EndsWith(".php"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
+
+                                                string? res = null;
+                                                JUGGERNAUTClass juggernaut = new(Method, absolutepath);
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder, postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                else
+                                                    res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder);
+                                                juggernaut.Dispose();
+                                                if (res == null)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else if (res == string.Empty)
+                                                    response = HttpBuilder.OK();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region LOOT API
+                                            else if ((Host == "server.lootgear.com"
+                                                || Host == "alpha.lootgear.com")
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a LOOT method : {absolutepath}");
+
+                                                string? res = null;
+                                                LOOTClass loot = new(Method, absolutepath, apiRootPath);
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = loot.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                else
+                                                    res = loot.ProcessRequest(request.QueryParameters);
+
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
+                                            }
+                                            #endregion
+
+                                            #region PREMIUMAGENCY API
+                                            else if ((Host == "test.playstationhome.jp" ||
+                                                Host == "playstationhome.jp" ||
+                                                Host == "homeec.scej-nbs.jp" ||
+                                                Host == "homeecqa.scej-nbs.jp" ||
+                                                Host == "homect-scej.jp" ||
+                                                Host == "qa-homect-scej.jp" ||
+                                                Host == "home-eas.jp.playstation.com")
+                                                && !string.IsNullOrEmpty(Method)
+                                                && absolutepath.Contains("/eventController/"))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a PREMIUMAGENCY method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new PREMIUMAGENCYClass(Method, absolutepath, apiRootPath, fulluripath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region FROMSOFTWARE API
+                                            else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp" && Method != null)
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
+
+                                                (byte[]?, string?, string[][]?) res = new();
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new FROMSOFTWAREClass(Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res.Item1, res.Item2, res.Item3);
+                                            }
+                                            #endregion
+
+                                            #region Ubisoft API
+                                            else if (Host.Contains("api-ubiservices.ubi.com")
+                                                && UserAgent.Contains("UbiServices_SDK_HTTP_Client")
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a UBISOFT method : {absolutepath}");
+
+                                                string Authorization = request.RetrieveHeaderValue("Authorization");
+
+                                                if (!string.IsNullOrEmpty(Authorization))
+                                                {
+                                                    // TODO, verify ticket data for every platforms.
+
+                                                    if (Authorization.StartsWith("psn t="))
+                                                    {
+                                                        (bool, byte[]) base64Data = Authorization.Replace("psn t=", string.Empty).IsBase64();
+
+                                                        if (base64Data.Item1)
+                                                        {
+                                                            byte[] PSNTicket = base64Data.Item2;
+
+                                                            // Extract the desired portion of the binary data
+                                                            byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+                                                            // Copy it
+                                                            Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
+
+                                                            // Convert 0x00 bytes to 0x48 so FileSystem can support it
+                                                            for (int i = 0; i < extractedData.Length; i++)
                                                             {
-                                                                #region PSN Network Test
-                                                                case "/networktest/get_2m":
-                                                                    response = HttpResponse.Send(new byte[2097152]);
-                                                                    break;
-                                                                #endregion
+                                                                if (extractedData[i] == 0x00)
+                                                                    extractedData[i] = 0x48;
+                                                            }
 
-                                                                #region WebVideo Player
-                                                                case "/!player":
-                                                                case "/!player/":
-                                                                    string ServerIP = serverIP;
-                                                                    if (ServerIP.Length > 15)
-                                                                        ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
-                                                                    WebVideoPlayer? WebPlayer = new((request.QueryParameters ?? new Dictionary<string, string>()).Aggregate(new NameValueCollection(),
-                                                                        (seed, current) =>
-                                                                        {
-                                                                            seed.Add(current.Key, current.Value);
-                                                                            return seed;
-                                                                        }), $"http://{ServerIP}/!webvideo/?");
-                                                                    response = HttpResponse.Send(WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
-                                                                    WebPlayer = null;
-                                                                    break;
-                                                                #endregion
+                                                            if (ByteUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                                                                LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                                                            else
+                                                                LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                                                        }
+                                                    }
+                                                    else if (Authorization.StartsWith("Ubi_v1 t="))
+                                                    {
+                                                        // Our JWT token is fake for now.
+                                                    }
 
-                                                                #region WebVideo
-                                                                case "/!webvideo":
-                                                                case "/!webvideo/":
-                                                                    if (UserAgent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
-                                                                        || UserAgent.Contains("trident", StringComparison.InvariantCultureIgnoreCase)
-                                                                        || UserAgent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase))
+                                                    if (request.GetDataStream != null)
+                                                    {
+                                                        using MemoryStream postdata = new();
+                                                        request.GetDataStream.CopyTo(postdata);
+                                                        (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), apiRootPath)
+                                                            .ProcessRequest(postdata.ToArray(), request.GetContentType());
+                                                        postdata.Flush();
+
+                                                        if (string.IsNullOrEmpty(res.Item1))
+                                                            response = HttpBuilder.InternalServerError();
+                                                        else
+                                                        {
+                                                            if (!string.IsNullOrEmpty(res.Item2))
+                                                                response = HttpResponse.Send(res.Item1, res.Item2);
+                                                            else
+                                                                response = HttpResponse.Send(res.Item1, "text/plain");
+
+                                                            response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                                            response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
+
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        (string?, string?) res = new HERMESClass(Method, absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), apiRootPath)
+                                                            .ProcessRequest(null, request.GetContentType());
+
+                                                        if (string.IsNullOrEmpty(res.Item1))
+                                                            response = HttpBuilder.InternalServerError();
+                                                        else
+                                                        {
+                                                            if (!string.IsNullOrEmpty(res.Item2))
+                                                                response = HttpResponse.Send(res.Item1, res.Item2);
+                                                            else
+                                                                response = HttpResponse.Send(res.Item1, "text/plain");
+
+                                                            response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                                            response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
+
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                    response = HttpBuilder.NotAllowed();
+                                            }
+                                            #endregion
+
+                                            #region gsconnect API
+                                            else if (Host == "gsconnect.ubisoft.com"
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
+
+                                                (string?, string?, Dictionary<string, string>?) res;
+                                                gsconnectClass gsconn = new(Method, absolutepath, apiRootPath);
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = gsconn.ProcessRequest(request.QueryParameters, postdata.ToArray(), request.GetContentType());
+                                                    postdata.Flush();
+                                                }
+                                                else
+                                                    res = gsconn.ProcessRequest(request.QueryParameters);
+
+                                                if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                {
+                                                    response = new("1.0")
+                                                    {
+                                                        HttpStatusCode = HttpStatusCode.OK
+                                                    };
+                                                    response.Headers["Content-Type"] = res.Item2;
+                                                    response.ContentAsUTF8 = res.Item1;
+
+                                                    if (res.Item3 != null)
+                                                    {
+                                                        foreach (KeyValuePair<string, string> headertoadd in res.Item3)
+                                                        {
+                                                            response.Headers.TryAdd(headertoadd.Key, headertoadd.Value);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            #endregion
+
+                                            #region CentralDispatchManager API
+                                            else if (HPDDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CentralDispatchManager method : {absolutepath}");
+
+                                                string? res = null;
+
+                                                if (Method == "POST")
+                                                {
+                                                    if (request.GetDataStream != null)
+                                                    {
+                                                        using MemoryStream postdata = new();
+                                                        request.GetDataStream.CopyTo(postdata);
+                                                        res = new CDMClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
+                                                        postdata.Flush();
+                                                    }
+                                                }
+                                                else
+                                                {
+
+                                                    using (MemoryStream postdata = new())
+                                                    {
+                                                        res = new CDMClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), apiRootPathWithURIPath);
+                                                        postdata.Flush();
+                                                    }
+                                                }
+
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region CAPONE GriefReporter API
+                                            else if (CAPONEDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a CAPONE method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new CAPONEClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region HTS Samples API
+                                            else if (HTSDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a HTS Samples method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new HTSClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/xml");
+                                            }
+                                            #endregion
+
+                                            #region ILoveSony API
+                                            else if (ILoveSonyDomains.Contains(Host)
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a IloveSony EULA method : {absolutepath}");
+
+                                                string? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = new ILoveSonyClass(request.Method, absolutepath, apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    postdata.Flush();
+                                                }
+                                                if (string.IsNullOrEmpty(res))
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res, "text/plain");
+                                            }
+                                            #endregion
+
+                                            #region EA Demangler
+                                            else if (Host.Contains("demangler.ea.com")
+                                                && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Identified a EA Demangler method : {absolutepath}");
+
+                                                (string?, string?)? res = null;
+                                                if (request.GetDataStream != null)
+                                                {
+                                                    using MemoryStream postdata = new();
+                                                    request.GetDataStream.CopyTo(postdata);
+                                                    res = DemanglerClass.ProcessDemanglerRequest(request.QueryParameters, absolutepath, clientip, postdata.ToArray());
+                                                    postdata.Flush();
+                                                }
+                                                if (res == null)
+                                                    response = HttpBuilder.InternalServerError();
+                                                else
+                                                    response = HttpResponse.Send(res.Value.Item1, res.Value.Item2!, new string[][] { new string[] { "x-envoy-upstream-service-time", "0" }, new string[] { "server", "istio-envoy" }
+                                                        , new string[] { "content-length", res.Value.Item1!.Length.ToString() } }, HttpStatusCode.OK, true);
+                                            }
+                                            #endregion
+
+                                            else
+                                            {
+                                                string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
+
+                                                switch (Method)
+                                                {
+                                                    case "GET":
+                                                        switch (absolutepath)
+                                                        {
+                                                            #region PSN Network Test
+                                                            case "/networktest/get_2m":
+                                                                response = HttpResponse.Send(new byte[2097152]);
+                                                                break;
+                                                            #endregion
+
+                                                            #region WebVideo Player
+                                                            case "/!player":
+                                                            case "/!player/":
+                                                                string ServerIP = serverIP;
+                                                                if (ServerIP.Length > 15)
+                                                                    ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
+                                                                WebVideoPlayer? WebPlayer = new((request.QueryParameters ?? new Dictionary<string, string>()).Aggregate(new NameValueCollection(),
+                                                                    (seed, current) =>
                                                                     {
-                                                                        Dictionary<string, string>? QueryDic = request.QueryParameters;
-                                                                        if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
-                                                                        {
-                                                                            WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
-                                                                            if (vid != null && vid.Available)
-                                                                                response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
-                                                                                    HttpStatusCode.OK);
-                                                                            else
-                                                                                response = new HttpResponse()
-                                                                                {
-                                                                                    HttpStatusCode = HttpStatusCode.OK,
-                                                                                    ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
-                                                                                            "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
-                                                                                    Headers = { { "Content-Type", "text/html" } }
-                                                                                };
-                                                                        }
+                                                                        seed.Add(current.Key, current.Value);
+                                                                        return seed;
+                                                                    }), $"http://{ServerIP}/!webvideo/?");
+                                                                response = HttpResponse.Send(WebPlayer.HtmlPage, "text/html", WebPlayer.HeadersToSet);
+                                                                WebPlayer = null;
+                                                                break;
+                                                            #endregion
+
+                                                            #region WebVideo
+                                                            case "/!webvideo":
+                                                            case "/!webvideo/":
+                                                                if (UserAgent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("trident", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase))
+                                                                {
+                                                                    Dictionary<string, string>? QueryDic = request.QueryParameters;
+                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
+                                                                    {
+                                                                        WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
+                                                                        if (vid != null && vid.Available)
+                                                                            response = HttpResponse.Send(vid.VideoStream, vid.ContentType, new string[][] { new string[] { "Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"" } },
+                                                                                HttpStatusCode.OK);
                                                                         else
                                                                             response = new HttpResponse()
                                                                             {
                                                                                 HttpStatusCode = HttpStatusCode.OK,
-                                                                                ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
-                                                                                        "<p>Manual use parameters:" +
-                                                                                        "<ul>" +
-                                                                                        "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
-                                                                                        "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
-                                                                                        "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
-                                                                                        "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
-                                                                                        "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
-                                                                                        "<li>Also you can use many <i>yt-dlp" +
-                                                                                        "</i> and <i>ffmpeg" +
-                                                                                        "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
-                                                                                        "</ul></p>",
+                                                                                ContentAsUTF8 = "<p>" + vid?.ErrorMessage + "</p>" +
+                                                                                        "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>",
                                                                                 Headers = { { "Content-Type", "text/html" } }
                                                                             };
                                                                     }
                                                                     else
-                                                                        response = HttpBuilder.NotAllowed();
-                                                                    break;
-                                                                #endregion
+                                                                        response = new HttpResponse()
+                                                                        {
+                                                                            HttpStatusCode = HttpStatusCode.OK,
+                                                                            ContentAsUTF8 = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
+                                                                                    "<p>Manual use parameters:" +
+                                                                                    "<ul>" +
+                                                                                    "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
+                                                                                    "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
+                                                                                    "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
+                                                                                    "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
+                                                                                    "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
+                                                                                    "<li>Also you can use many <i>yt-dlp" +
+                                                                                    "</i> and <i>ffmpeg" +
+                                                                                    "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
+                                                                                    "</ul></p>",
+                                                                            Headers = { { "Content-Type", "text/html" } }
+                                                                        };
+                                                                }
+                                                                else
+                                                                    response = HttpBuilder.NotAllowed();
+                                                                break;
+                                                            #endregion
 
-                                                                default:
-                                                                    if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
-                                                                        response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
-                                                                    else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                        response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
-                                                                    else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
-                                                                    {
-                                                                        (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
-                                                                        if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
-                                                                        {
-                                                                            if (encoding.Contains("zstd"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
-                                                                            else if (encoding.Contains("br"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
-                                                                            else if (encoding.Contains("gzip"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
-                                                                            else if (encoding.Contains("deflate"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
-                                                                            else
-                                                                                response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                        }
-                                                                        else
-                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        bool fileExists = File.Exists(filePath);
-
-                                                                        if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        {
-                                                                            Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
-                                                                            continue;
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
-                                                                                , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", fileExists, true, noCompressCacheControl);
-                                                                            EtagCompatible = handleResponse.Item1;
-                                                                            response = handleResponse.Item2;
-                                                                        }
-                                                                    }
-                                                                    break;
-                                                            }
-                                                            break;
-                                                        case "POST":
-                                                            switch (absolutepath)
-                                                            {
-                                                                #region PSN Network Test
-                                                                case "/networktest/post_128":
-                                                                    response = HttpBuilder.OK();
-                                                                    break;
-                                                                #endregion
-
-                                                                default:
-                                                                    if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
-                                                                        response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
-                                                                    else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
-                                                                        response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
-                                                                    else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
-                                                                    {
-                                                                        var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
-                                                                        if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
-                                                                        {
-                                                                            if (encoding.Contains("zstd"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
-                                                                            else if (encoding.Contains("br"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
-                                                                            else if (encoding.Contains("gzip"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
-                                                                            else if (encoding.Contains("deflate"))
-                                                                                response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
-                                                                            else
-                                                                                response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                        }
-                                                                        else
-                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        bool fileExists = File.Exists(filePath);
-
-                                                                        if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
-                                                                        {
-                                                                            Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
-                                                                            continue;
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
-                                                                                , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", fileExists, false, noCompressCacheControl);
-                                                                            EtagCompatible = handleResponse.Item1;
-                                                                            response = handleResponse.Item2;
-                                                                        }
-                                                                    }
-                                                                    break;
-                                                            }
-                                                            break;
-                                                        case "PUT":
-                                                            if (HTTPServerConfiguration.EnablePUTMethod)
-                                                            {
-                                                                string ContentType = request.GetContentType();
-                                                                if (request.GetDataStream != null && !string.IsNullOrEmpty(ContentType))
+                                                            default:
+                                                                if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                                                 {
-                                                                    string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
-                                                                    if (!string.IsNullOrEmpty(boundary))
+                                                                    (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                                                                     {
-                                                                        string UploadDirectoryPath = HTTPServerConfiguration.HTTPTempFolder + $"/DataUpload/{absolutepath[1..]}";
-                                                                        Directory.CreateDirectory(UploadDirectoryPath);
-                                                                        foreach (FilePart? multipartfile in MultipartFormDataParser.Parse(request.GetDataStream, boundary).Files)
-                                                                        {
-                                                                            if (multipartfile.Data.Length > 0)
-                                                                            {
-                                                                                using Stream filedata = multipartfile.Data;
-                                                                                int copyNumber = 0;
-                                                                                string UploadFilePath = UploadDirectoryPath + $"/{multipartfile.FileName}";
-
-                                                                                while (File.Exists(UploadFilePath))
-                                                                                {
-                                                                                    copyNumber++;
-                                                                                    UploadFilePath = Path.Combine(UploadDirectoryPath,
-                                                                                        $"{Path.GetFileNameWithoutExtension(multipartfile.FileName)} (Copy {copyNumber}){Path.GetExtension(multipartfile.FileName)}");
-                                                                                }
-
-                                                                                using (FileStream fileStream = File.Create(UploadFilePath))
-                                                                                {
-                                                                                    filedata.Seek(0, SeekOrigin.Begin);
-                                                                                    filedata.CopyTo(fileStream);
-                                                                                }
-
-                                                                                filedata.Flush();
-                                                                            }
-                                                                        }
-
-                                                                        response = HttpBuilder.OK();
+                                                                        if (encoding.Contains("zstd"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                                                        else if (encoding.Contains("br"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                                                        else if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else if (encoding.Contains("deflate"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                                                                     }
                                                                     else
-                                                                        response = HttpBuilder.BadRequest();
+                                                                        response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                }
+                                                                else
+                                                                {
+                                                                    bool fileExists = File.Exists(filePath);
+
+                                                                    if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
+                                                                    {
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
+                                                                        continue;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
+                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", fileExists, true, noCompressCacheControl);
+                                                                        EtagCompatible = handleResponse.Item1;
+                                                                        response = handleResponse.Item2;
+                                                                    }
+                                                                }
+                                                                break;
+                                                        }
+                                                        break;
+                                                    case "POST":
+                                                        switch (absolutepath)
+                                                        {
+                                                            #region PSN Network Test
+                                                            case "/networktest/post_128":
+                                                                response = HttpBuilder.OK();
+                                                                break;
+                                                            #endregion
+
+                                                            default:
+                                                                if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(HTTPServerConfiguration.ASPNETRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.ASPNETRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && !string.IsNullOrEmpty(HTTPServerConfiguration.PHPRedirectUrl))
+                                                                    response = HttpBuilder.PermanantRedirect($"{HTTPServerConfiguration.PHPRedirectUrl}{fullurl}");
+                                                                else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(HTTPServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
+                                                                {
+                                                                    var CollectPHP = PHP.ProcessPHPPage(filePath, HTTPServerConfiguration.PHPStaticFolder, HTTPServerConfiguration.PHPVersion, request);
+                                                                    if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
+                                                                    {
+                                                                        if (encoding.Contains("zstd"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                                                        else if (encoding.Contains("br"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                                                        else if (encoding.Contains("gzip"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                                                        else if (encoding.Contains("deflate"))
+                                                                            response = HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                                                        else
+                                                                            response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                    }
+                                                                    else
+                                                                        response = HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
+                                                                }
+                                                                else
+                                                                {
+                                                                    bool fileExists = File.Exists(filePath);
+
+                                                                    if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
+                                                                    {
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
+                                                                        continue;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        (bool, HttpResponse) handleResponse = FileSystemRouteHandler.Handle(request, absolutepath, fullurl, filePath, UserAgent
+                                                                            , Host, Accept, $"http://{request.ServerIP}:{request.ServerPort}{absolutepath[..^1]}", fileExists, false, noCompressCacheControl);
+                                                                        EtagCompatible = handleResponse.Item1;
+                                                                        response = handleResponse.Item2;
+                                                                    }
+                                                                }
+                                                                break;
+                                                        }
+                                                        break;
+                                                    case "PUT":
+                                                        if (HTTPServerConfiguration.EnablePUTMethod)
+                                                        {
+                                                            string ContentType = request.GetContentType();
+                                                            if (request.GetDataStream != null && !string.IsNullOrEmpty(ContentType))
+                                                            {
+                                                                string? boundary = HTTPProcessor.ExtractBoundary(ContentType);
+                                                                if (!string.IsNullOrEmpty(boundary))
+                                                                {
+                                                                    string UploadDirectoryPath = HTTPServerConfiguration.HTTPTempFolder + $"/DataUpload/{absolutepath[1..]}";
+                                                                    Directory.CreateDirectory(UploadDirectoryPath);
+                                                                    foreach (FilePart? multipartfile in MultipartFormDataParser.Parse(request.GetDataStream, boundary).Files)
+                                                                    {
+                                                                        if (multipartfile.Data.Length > 0)
+                                                                        {
+                                                                            using Stream filedata = multipartfile.Data;
+                                                                            int copyNumber = 0;
+                                                                            string UploadFilePath = UploadDirectoryPath + $"/{multipartfile.FileName}";
+
+                                                                            while (File.Exists(UploadFilePath))
+                                                                            {
+                                                                                copyNumber++;
+                                                                                UploadFilePath = Path.Combine(UploadDirectoryPath,
+                                                                                    $"{Path.GetFileNameWithoutExtension(multipartfile.FileName)} (Copy {copyNumber}){Path.GetExtension(multipartfile.FileName)}");
+                                                                            }
+
+                                                                            using (FileStream fileStream = File.Create(UploadFilePath))
+                                                                            {
+                                                                                filedata.Seek(0, SeekOrigin.Begin);
+                                                                                filedata.CopyTo(fileStream);
+                                                                            }
+
+                                                                            filedata.Flush();
+                                                                        }
+                                                                    }
+
+                                                                    response = HttpBuilder.OK();
                                                                 }
                                                                 else
                                                                     response = HttpBuilder.BadRequest();
                                                             }
                                                             else
-                                                                response = HttpBuilder.NotAllowed();
-                                                            break;
-                                                        case "DELETE":
+                                                                response = HttpBuilder.BadRequest();
+                                                        }
+                                                        else
                                                             response = HttpBuilder.NotAllowed();
-                                                            break;
-                                                        case "HEAD":
-                                                            switch (absolutepath)
-                                                            {
-                                                                #region WebVideo
-                                                                case "/!webvideo":
-                                                                case "/!webvideo/":
-                                                                    if (UserAgent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
-                                                                        || UserAgent.Contains("trident", StringComparison.InvariantCultureIgnoreCase)
-                                                                        || UserAgent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase))
+                                                        break;
+                                                    case "DELETE":
+                                                        response = HttpBuilder.NotAllowed();
+                                                        break;
+                                                    case "HEAD":
+                                                        switch (absolutepath)
+                                                        {
+                                                            #region WebVideo
+                                                            case "/!webvideo":
+                                                            case "/!webvideo/":
+                                                                if (UserAgent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("trident", StringComparison.InvariantCultureIgnoreCase)
+                                                                    || UserAgent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase))
+                                                                {
+                                                                    Dictionary<string, string>? QueryDic = request.QueryParameters;
+                                                                    if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
                                                                     {
-                                                                        Dictionary<string, string>? QueryDic = request.QueryParameters;
-                                                                        if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? value) && !string.IsNullOrEmpty(value))
+                                                                        WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
+                                                                        if (vid != null && vid.Available && vid.VideoStream != null)
                                                                         {
-                                                                            WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, HTTPServerConfiguration.ConvertersFolder);
-                                                                            if (vid != null && vid.Available && vid.VideoStream != null)
+                                                                            using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
+                                                                            response = new()
                                                                             {
-                                                                                using HugeMemoryStream ms = new(vid.VideoStream, HTTPServerConfiguration.BufferSize);
-                                                                                response = new()
-                                                                                {
-                                                                                    HttpStatusCode = HttpStatusCode.OK,
-                                                                                    ContentAsUTF8 = string.Empty
-                                                                                };
-                                                                                response.Headers.Add("Content-Type", vid.ContentType);
-                                                                                response.Headers.Add("Content-Length", ms.Length.ToString());
-                                                                                ms.Flush();
-                                                                            }
-                                                                            else
-                                                                                response = HttpBuilder.InternalServerError();
+                                                                                HttpStatusCode = HttpStatusCode.OK,
+                                                                                ContentAsUTF8 = string.Empty
+                                                                            };
+                                                                            response.Headers.Add("Content-Type", vid.ContentType);
+                                                                            response.Headers.Add("Content-Length", ms.Length.ToString());
+                                                                            ms.Flush();
                                                                         }
                                                                         else
-                                                                            response = HttpBuilder.BadRequest();
+                                                                            response = HttpBuilder.InternalServerError();
                                                                     }
                                                                     else
-                                                                        response = HttpBuilder.NotAllowed();
-                                                                    break;
-                                                                #endregion
+                                                                        response = HttpBuilder.BadRequest();
+                                                                }
+                                                                else
+                                                                    response = HttpBuilder.NotAllowed();
+                                                                break;
+                                                            #endregion
 
-                                                                default:
-                                                                    response = FileSystemRouteHandler.HandleHEAD(request, absolutepath, filePath, Host, Accept);
-                                                                    break;
-                                                            }
-                                                            break;
-                                                        case "OPTIONS":
-                                                            response = HttpBuilder.OK();
-                                                            response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST, PROPFIND");
-                                                            break;
-                                                        case "PROPFIND":
-                                                            if (File.Exists(filePath))
+                                                            default:
+                                                                response = FileSystemRouteHandler.HandleHEAD(request, absolutepath, filePath, Host, Accept);
+                                                                break;
+                                                        }
+                                                        break;
+                                                    case "OPTIONS":
+                                                        response = HttpBuilder.OK();
+                                                        response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST, PROPFIND");
+                                                        break;
+                                                    case "PROPFIND":
+                                                        if (File.Exists(filePath))
+                                                        {
+                                                            string ServerIP = serverIP;
+                                                            if (ServerIP.Length > 15)
+                                                                ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
+
+                                                            string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+                                                            if (ContentType == "application/octet-stream")
                                                             {
-                                                                string ServerIP = serverIP;
-                                                                if (ServerIP.Length > 15)
-                                                                    ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
-
-                                                                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), HTTPServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
-                                                                if (ContentType == "application/octet-stream")
+                                                                byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
+                                                                foreach (var entry in HTTPProcessor._PathernDictionary)
                                                                 {
-                                                                    byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
-                                                                    foreach (var entry in HTTPProcessor._PathernDictionary)
+                                                                    if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                                     {
-                                                                        if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
-                                                                        {
-                                                                            ContentType = entry.Key;
-                                                                            break;
-                                                                        }
+                                                                        ContentType = entry.Key;
+                                                                        break;
                                                                     }
                                                                 }
-
-                                                                response = HttpResponse.Send("<?xml version=\"1.0\"?>\r\n" +
-                                                                    "<a:multistatus\r\n" +
-                                                                    $"  xmlns:b=\"urn:uuid:{Guid.NewGuid()}/\"\r\n" +
-                                                                    "  xmlns:a=\"DAV:\">\r\n" +
-                                                                    " <a:response>\r\n" +
-                                                                    $"   <a:href>http://{ServerIP}:{request.ServerPort}{absolutepath}</a:href>\r\n" +
-                                                                    "   <a:propstat>\r\n" +
-                                                                    "    <a:status>HTTP/1.1 200 OK</a:status>\r\n" +
-                                                                    "       <a:prop>\r\n" +
-                                                                    $"        <a:getcontenttype>{ContentType}</a:getcontenttype>\r\n" +
-                                                                    $"        <a:getcontentlength b:dt=\"int\">{new FileInfo(filePath).Length}</a:getcontentlength>\r\n" +
-                                                                    "       </a:prop>\r\n" +
-                                                                    "   </a:propstat>\r\n" +
-                                                                    " </a:response>\r\n" +
-                                                                    "</a:multistatus>", "text/xml", null, HttpStatusCode.MultiStatus);
                                                             }
-                                                            else
-                                                                response = HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
-                                                            break;
-                                                        default:
-                                                            response = HttpBuilder.NotAllowed();
-                                                            break;
-                                                    }
+
+                                                            response = HttpResponse.Send("<?xml version=\"1.0\"?>\r\n" +
+                                                                "<a:multistatus\r\n" +
+                                                                $"  xmlns:b=\"urn:uuid:{Guid.NewGuid()}/\"\r\n" +
+                                                                "  xmlns:a=\"DAV:\">\r\n" +
+                                                                " <a:response>\r\n" +
+                                                                $"   <a:href>http://{ServerIP}:{request.ServerPort}{absolutepath}</a:href>\r\n" +
+                                                                "   <a:propstat>\r\n" +
+                                                                "    <a:status>HTTP/1.1 200 OK</a:status>\r\n" +
+                                                                "       <a:prop>\r\n" +
+                                                                $"        <a:getcontenttype>{ContentType}</a:getcontenttype>\r\n" +
+                                                                $"        <a:getcontentlength b:dt=\"int\">{new FileInfo(filePath).Length}</a:getcontentlength>\r\n" +
+                                                                "       </a:prop>\r\n" +
+                                                                "   </a:propstat>\r\n" +
+                                                                " </a:response>\r\n" +
+                                                                "</a:multistatus>", "text/xml", null, HttpStatusCode.MultiStatus);
+                                                        }
+                                                        else
+                                                            response = HttpBuilder.NotFound(request, absolutepath, Host, !string.IsNullOrEmpty(Accept) && Accept.Contains("html"));
+                                                        break;
+                                                    default:
+                                                        response = HttpBuilder.NotAllowed();
+                                                        break;
                                                 }
-                                                break;
-                                        }
+                                            }
+                                            break;
                                     }
-
-                                    WriteResponse(outputStream, request, response, filePath, AllowKeepAlive, EtagCompatible);
                                 }
+
+                                WriteResponse(outputStream, request, response, filePath, AllowKeepAlive, EtagCompatible);
                             }
-
-                            Thread.Sleep(1);
                         }
-                        outputStream.Flush();
-                    }
-                    inputStream.Flush();
-                }
-                catch (IOException ex)
-                {
-                    if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
-                        socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
-                        && socketException.SocketErrorCode != SocketError.ConnectionRefused)
-                        LoggerAccessor.LogError($"[HTTP] - HandleClient - IO-Socket thrown an exception : {ex}");
-                }
-                catch (SocketException ex)
-                {
-                    if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted && ex.SocketErrorCode != SocketError.ConnectionRefused)
-                        LoggerAccessor.LogError($"[HTTP] - HandleClient - Socket thrown an exception : {ex}");
-                }
-                catch (Exception ex)
-                {
-                    LoggerAccessor.LogError($"[HTTP] - HandleClient thrown an exception : {ex}");
-                }
-                finally
-                {
-                    if (IsInterlocked)
-                        Interlocked.Decrement(ref KeepAliveClients);
 
-                    request?.Dispose();
-                    response?.Dispose();
+                        Thread.Sleep(1);
+                    }
+                    outputStream.Flush();
                 }
+                inputStream.Flush();
+            }
+            catch (IOException ex)
+            {
+                if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
+                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
+                    && socketException.SocketErrorCode != SocketError.ConnectionRefused)
+                    LoggerAccessor.LogError($"[HTTP] - HandleClient - IO-Socket thrown an exception : {ex}");
+            }
+            catch (SocketException ex)
+            {
+                if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted && ex.SocketErrorCode != SocketError.ConnectionRefused)
+                    LoggerAccessor.LogError($"[HTTP] - HandleClient - Socket thrown an exception : {ex}");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[HTTP] - HandleClient thrown an exception : {ex}");
+            }
+            finally
+            {
+                if (IsInterlocked)
+                    Interlocked.Decrement(ref KeepAliveClients);
+
+                request?.Dispose();
+                response?.Dispose();
             }
         }
 
         public void AddRoute(Route route)
         {
-            Routes.Add(route);
+            if (!Routes.Contains(route))
+                Routes.Add(route);
         }
 
 #endregion
