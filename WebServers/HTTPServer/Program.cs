@@ -218,7 +218,7 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "http.json";
     private static Timer? FilesystemTree = null;
-    private static ConcurrentBag<HttpServer>? HTTPBag = null;
+    private static ConcurrentDictionary<ushort, Server>? HTTPBag = null;
     private static readonly HttpProcessor Processor = InitializeProcessor();
 
     private static HttpProcessor InitializeProcessor()
@@ -234,9 +234,9 @@ class Program
     {
         if (HTTPBag != null)
         {
-            foreach (HttpServer httpBag in HTTPBag)
+            foreach (var httpBag in HTTPBag.Values)
             {
-                httpBag.Stop();
+                httpBag.ExitSignal = true;
             }
         }
 
@@ -263,15 +263,27 @@ class Program
 
         if (HTTPServerConfiguration.Ports != null && HTTPServerConfiguration.Ports.Count > 0)
         {
-            HTTPBag = new();
+            HTTPBag ??= new();
 
             _ = Processor.TryGetServerIP(HTTPServerConfiguration.Ports.First());
 
-            Parallel.ForEach(HTTPServerConfiguration.Ports, port =>
+            new List<HTTPServer.Models.Route> { } /*TODO: Make it so we can input custom routes*/.ForEach(route => Processor.AddRoute(route));
+
+            foreach (ushort port in HTTPServerConfiguration.Ports)
             {
-                if (TCPUtils.IsTCPPortAvailable(port))
-                    HTTPBag.Add(new HttpServer(port, new List<HTTPServer.Models.Route> { } /*TODO: Make it so we can input custom routes*/, Processor, new CancellationTokenSource().Token));
-            });
+                new Thread(() => {
+                    if (HTTPBag.ContainsKey(port))
+                        HTTPBag[port].Run(port); //Server runs in a dedicated thread seperate from mains thread
+                    else if (TCPUtils.IsTCPPortAvailable(port))
+                    {
+                        var BLL = new Server(Processor.HandleMessage, Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
+
+                        BLL.Run(port); //Server runs in a dedicated thread seperate from mains thread
+
+                        HTTPBag.TryAdd(port, BLL);
+                    }
+                }).Start();
+            }
         }
         else
         {
