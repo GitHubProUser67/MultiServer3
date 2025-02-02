@@ -156,11 +156,6 @@ namespace HTTPServer
             return Task.CompletedTask;
         }
 
-        public void HandleMessage(string message)
-        {
-            LoggerAccessor.LogInfo("[HTTP] - " + message);
-        }
-
         public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
         {
             bool IsInterlocked = false;
