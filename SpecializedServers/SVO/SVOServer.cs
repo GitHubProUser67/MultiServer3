@@ -21,10 +21,13 @@ namespace SVO
         private HttpListener? listener;
         private readonly string ip;
 
-        public SVOServer(string ip, X509Certificate2? certificate = null)
+        private int MaxConcurrentListeners;
+
+        public SVOServer(string ip, X509Certificate2? certificate = null, int MaxConcurrentListeners = 10)
         {
             this.ip = ip;
             this.certificate = certificate;
+            this.MaxConcurrentListeners = MaxConcurrentListeners;
 
             Start();
         }
@@ -104,6 +107,10 @@ namespace SVO
                 listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, securePort));
                 listener.Start();
 
+                HashSet<Task> requests = new();
+                for (int i = 0; i < MaxConcurrentListeners; i++)
+                    requests.Add(listener.GetContextAsync());
+
                 // wait for requests
                 while (threadActive)
                 {
@@ -111,9 +118,34 @@ namespace SVO
                     {
                         if (!threadActive) break;
 
-                        HttpListenerContext? ctx = await listener.GetContextAsync().ConfigureAwait(false);
+                        Task t = await Task.WhenAny(requests);
 
-                        _ = Task.Run(() => ProcessContext(ctx));
+                        if (t is Task<HttpListenerContext>)
+                        {
+                            HttpListenerContext? ctx = null;
+
+                            try
+                            {
+                                ctx = (t as Task<HttpListenerContext>)?.Result;
+                            }
+                            catch (AggregateException ex)
+                            {
+                                ex.Handle(innerEx =>
+                                {
+                                    if (innerEx is TaskCanceledException)
+                                        return true; // Indicate that the exception was handled
+
+                                    LoggerAccessor.LogWarn($"[SVO] - HttpListenerContext Task thrown an AggregateException: {ex}");
+
+                                    return false;
+                                });
+                            }
+
+                            _ = ProcessContext(ctx);
+                        }
+
+                        requests.Remove(t);
+                        requests.Add(listener.GetContextAsync());
                     }
                     catch (HttpListenerException e)
                     {
@@ -124,6 +156,8 @@ namespace SVO
                         LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     }
                 }
+				
+                requests.Clear();
             }
             catch (Exception e)
             {

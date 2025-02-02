@@ -218,7 +218,7 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "http.json";
     private static Timer? FilesystemTree = null;
-    private static ConcurrentDictionary<ushort, Server>? HTTPBag = null;
+    private static ConcurrentDictionary<ushort, HTTPServer.HTTPServer>? HTTPBag = null;
     private static readonly HttpProcessor Processor = InitializeProcessor();
 
     private static HttpProcessor InitializeProcessor()
@@ -271,18 +271,22 @@ class Program
 
             foreach (ushort port in HTTPServerConfiguration.Ports)
             {
-                new Thread(() => {
-                    if (HTTPBag.ContainsKey(port))
+                if (HTTPBag.ContainsKey(port))
+                {
+                    new Thread(() => {
                         HTTPBag[port].Run(port); //Server runs in a dedicated thread seperate from mains thread
-                    else if (TCPUtils.IsTCPPortAvailable(port))
-                    {
-                        var BLL = new Server(Processor.HandleMessage, Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
+                    }).Start();
+                }
+                else if (TCPUtils.IsTCPPortAvailable(port))
+                {
+                    var BLL = new HTTPServer.HTTPServer(Processor.HandleMessage, Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
 
+                    new Thread(() => {
                         BLL.Run(port); //Server runs in a dedicated thread seperate from mains thread
+                    }).Start();
 
-                        HTTPBag.TryAdd(port, BLL);
-                    }
-                }).Start();
+                    HTTPBag.TryAdd(port, BLL);
+                }
             }
         }
         else
