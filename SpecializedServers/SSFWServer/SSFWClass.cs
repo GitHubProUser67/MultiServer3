@@ -29,6 +29,8 @@ namespace SSFWServer
         private static SSFWServer? _Server;
         private static HttpSSFWServer? _HttpServer;
 
+        private static Dictionary<string, string> LayoutGetOverrides = new();
+
         private string certpath;
         private string certpass;
 
@@ -175,8 +177,61 @@ namespace SSFWServer
                                 #region LayoutService
                                 if (absolutepath.Contains($"/LayoutService/{env}/person/") && IsSSFWRegistered(sessionid))
                                 {
+                                    string? res = null;
                                     SSFWLayoutService layout = new(legacykey);
-                                    string? res = layout.HandleLayoutServiceGET(directoryPath, filePath);
+
+                                    if (LayoutGetOverrides.ContainsKey(sessionid))
+                                    {
+                                        string layoutNewUser = LayoutGetOverrides[sessionid];
+                                        bool isRpcnUser = layoutNewUser.Contains("@RPCN");
+                                        string LayoutDirectoryPath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"LayoutService/{env}/person/");
+
+                                        if (Directory.Exists(LayoutDirectoryPath))
+                                        {
+                                            string? matchingDirectory = null;
+                                            string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionid);
+                                            string? clientVersion = username?.Substring(username.Length - 6, 6);
+
+                                            if (!string.IsNullOrEmpty(clientVersion))
+                                            {
+                                                if (isRpcnUser)
+                                                {
+                                                    string[] nameParts = layoutNewUser.Split('@');
+
+                                                    if (nameParts.Length == 2 && !SSFWServerConfiguration.SSFWCrossSave)
+                                                    {
+                                                        matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                           .Where(dir =>
+                                                               Path.GetFileName(dir).StartsWith(nameParts[0]) &&
+                                                               Path.GetFileName(dir).Contains(nameParts[1]) &&
+                                                               Path.GetFileName(dir).Contains(clientVersion)
+                                                           ).FirstOrDefault();
+                                                    }
+                                                    else
+                                                        matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                          .Where(dir =>
+                                                              Path.GetFileName(dir).StartsWith(layoutNewUser.Replace("@RPCN", string.Empty)) &&
+                                                              Path.GetFileName(dir).Contains(clientVersion)
+                                                          ).FirstOrDefault();
+                                                }
+                                                else
+                                                    matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                      .Where(dir =>
+                                                          Path.GetFileName(dir).StartsWith(layoutNewUser) &&
+                                                          !Path.GetFileName(dir).Contains("RPCN") &&
+                                                          Path.GetFileName(dir).Contains(clientVersion)
+                                                      ).FirstOrDefault();
+                                            }
+
+                                            res = layout.HandleLayoutServiceGET(!string.IsNullOrEmpty(matchingDirectory) ? matchingDirectory : directoryPath, filePath);
+
+                                        } // if the dir not exists, we return 403.
+
+                                        lock (LayoutGetOverrides)
+                                            LayoutGetOverrides.Remove(sessionid);
+                                    }
+                                    else
+                                        res = layout.HandleLayoutServiceGET(directoryPath, filePath);
 
                                     if (res == null)
                                     {
@@ -642,6 +697,53 @@ namespace SSFWServer
                                         {
                                             Response.SetBegin(403);
                                             Response.SetBody("Invalid like attribute was used!", encoding);
+                                        }
+                                        break;
+                                    case "/WebService/ApplyLayoutOverride/":
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+                                        string targetUserName = GetHeaderValue(Headers, "targetUserName", false);
+
+                                        Response.Clear();
+
+                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName) && IsSSFWRegistered(sessionId))
+                                        {
+                                            lock (LayoutGetOverrides)
+                                            {
+                                                if (!LayoutGetOverrides.ContainsKey(sessionId))
+                                                    LayoutGetOverrides.Add(sessionId, targetUserName);
+                                                else
+                                                    LayoutGetOverrides[sessionId] = targetUserName;
+                                            }
+
+                                            Response.SetBegin(200);
+                                            Response.SetBody($"Override set for {sessionId}.", encoding);
+                                        }
+                                        else
+                                        {
+                                            Response.SetBegin(403);
+                                            Response.SetBody("Invalid sessionid or targetUserName attribute was used!", encoding);
+                                        }
+                                        break;
+                                    case "/WebService/R3moveLayoutOverride/":
+                                        sessionId = GetHeaderValue(Headers, "sessionid", false);
+
+                                        Response.Clear();
+
+                                        if (!string.IsNullOrEmpty(sessionId) && IsSSFWRegistered(sessionId))
+                                        {
+                                            lock (LayoutGetOverrides)
+                                            {
+                                                if (LayoutGetOverrides.ContainsKey(sessionId))
+                                                    LayoutGetOverrides.Remove(sessionId);
+                                            }
+
+                                            Response.SetBegin(200);
+                                            Response.SetBody($"Override removed for {sessionId}.", encoding);
+                                        }
+                                        else
+                                        {
+                                            Response.SetBegin(403);
+                                            Response.SetBody("Invalid sessionid attribute was used!", encoding);
                                         }
                                         break;
                                     case "/WebService/GetMini/":

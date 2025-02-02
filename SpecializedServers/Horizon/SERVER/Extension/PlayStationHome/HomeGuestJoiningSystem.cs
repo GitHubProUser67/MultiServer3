@@ -58,6 +58,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
                                     else
                                         _ = HomeRTMTools.SendRemoteCommand(client, $"map {ssfwSceneNameResult}");
+                                    if (!string.IsNullOrEmpty(client.SSFWid) && !string.IsNullOrEmpty(homeLobby.Host.AccountName))
+                                        HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/ApplyLayoutOverride/", new Dictionary<string, string>() { { "sessionid", client.SSFWid }, { "targetUserName", homeLobby.Host.AccountName } }, string.Empty, "text/plain");
                                 }
 
                                 return Task.FromResult(true);

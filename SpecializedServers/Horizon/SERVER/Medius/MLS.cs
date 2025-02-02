@@ -5621,8 +5621,30 @@ namespace Horizon.SERVER.Medius
                                                 }
 
                                                 if (guestPtr != 0)
-                                                    // Set guest mode.
-                                                    PokeAddress(rClient, guestPtr, new byte[4] { 0x00, 0x00, 0x00, 0x06 });
+                                                {
+                                                    rClient.Tasks.TryAdd("GJS GUEST BRUTEFORCE", Task.Run(() =>
+                                                    {
+                                                        int patchedLobbyId = homeLobby.MediusWorldId;
+
+                                                        while (true)
+                                                        {
+                                                            if (rClient.IsInGame)
+                                                            {
+                                                                while (rClient.CurrentGame != null && patchedLobbyId == rClient.CurrentGame.MediusWorldId)
+                                                                {
+                                                                    // Set guest mode.
+                                                                    PokeAddress(rClient, guestPtr, new byte[4] { 0x00, 0x00, 0x00, 0x06 });
+
+                                                                    Thread.Sleep(6000);
+                                                                }
+
+                                                                break;
+                                                            }
+                                                            else
+                                                                Thread.Sleep(3500);
+                                                        }
+                                                    }));
+                                                }
                                             }
 
                                             break;
@@ -5632,6 +5654,8 @@ namespace Horizon.SERVER.Medius
 
                                 if (foundLobby)
                                     return Task.CompletedTask;
+                                else if (!string.IsNullOrEmpty(rClient.SSFWid))
+                                    NetworkLibrary.HTTP.HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/R3moveLayoutOverride/", new Dictionary<string, string>() { { "sessionid", rClient.SSFWid } }, string.Empty, "text/plain");
                             }
 
                             if (rClient.ApplicationId == 10538 || rClient.ApplicationId == 10190)
