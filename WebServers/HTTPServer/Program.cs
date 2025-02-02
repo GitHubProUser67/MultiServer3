@@ -272,18 +272,12 @@ class Program
             foreach (ushort port in HTTPServerConfiguration.Ports)
             {
                 if (HTTPBag.ContainsKey(port))
-                {
-                    new Thread(() => {
-                        HTTPBag[port].Run(port); //Server runs in a dedicated thread seperate from mains thread
-                    }).Start();
-                }
+                    _ = HTTPBag[port].Run(port); //Server runs in a dedicated thread seperate from mains thread
                 else if (TCPUtils.IsTCPPortAvailable(port))
                 {
                     var BLL = new HTTPServer.HTTPServer(Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
 
-                    new Thread(() => {
-                        BLL.Run(port); //Server runs in a dedicated thread seperate from mains thread
-                    }).Start();
+                    _ = BLL.Run(port); //Server runs in a dedicated thread seperate from mains thread
 
                     HTTPBag.TryAdd(port, BLL);
                 }
