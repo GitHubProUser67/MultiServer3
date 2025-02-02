@@ -279,7 +279,7 @@ class Program
                 }
                 else if (TCPUtils.IsTCPPortAvailable(port))
                 {
-                    var BLL = new HTTPServer.HTTPServer(Processor.HandleMessage, Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
+                    var BLL = new HTTPServer.HTTPServer(Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
 
                     new Thread(() => {
                         BLL.Run(port); //Server runs in a dedicated thread seperate from mains thread
