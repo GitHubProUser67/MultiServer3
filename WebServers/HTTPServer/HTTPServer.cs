@@ -56,7 +56,7 @@ namespace HTTPServer
         #endregion
 
         #region Public Functions
-        public virtual void Run(ushort ListenerPort)
+        public virtual async Task Run(ushort ListenerPort)
         {
             if (IsRunning)
                 return; //Already running, only one running instance allowed.
@@ -66,7 +66,7 @@ namespace HTTPServer
             ExitSignal = false;
 
             while (!ExitSignal)
-                ConnectionLooper(ListenerPort);
+                await ConnectionLooper(ListenerPort).ConfigureAwait(false);
 
             TcpClientTasks.Clear();
 
@@ -76,51 +76,45 @@ namespace HTTPServer
         #endregion
 
         #region Protected Functions
-        protected virtual void ConnectionLooper(ushort ListenerPort)
+        protected virtual async Task ConnectionLooper(ushort ListenerPort)
         {
+            while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+            {
+                TcpClientTasks.Add(Task.Run(async () =>
+                {
+                    LoggerAccessor.LogInfo($"[HTTP] - Listening on port {ListenerPort}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                    return ProcessMessagesFromClient(await Listener.AcceptTcpClientAsync().ConfigureAwait(false), ListenerPort);
+                }));
+            }
+
             try
             {
-                while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                // Only wait for valid Tasks, Parallel is faster on a Array (https://stackoverflow.com/questions/9138540/parallel-linq-query-optimization).
+                Task t = await Task.WhenAny(TcpClientTasks.ToArray().AsParallel().AsUnordered().Where(x => x != null)).ConfigureAwait(false);
+
+                if (t is Task<bool>)
                 {
-                    TcpClientTasks.Add(Task.Run(async () =>
+                    bool? result = null;
+
+                    try
                     {
-                        LoggerAccessor.LogInfo($"[HTTP] - Listening on port {ListenerPort}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-                        return ProcessMessagesFromClient(await Listener.AcceptTcpClientAsync(), ListenerPort);
-                    }));
-                }
-
-                // Lock here to prevents concurrent modifications to the queue.
-                lock (TcpClientTasks)
-                {
-                    // Removes crashed threads.
-                    TcpClientTasks = TcpClientTasks.AsParallel().AsUnordered().Where(x => x != null).ToList();
-
-                    Task t = Task.WhenAny(TcpClientTasks).Result;
-
-                    if (t is Task<bool>)
-                    {
-                        bool? result = null;
-
-                        try
-                        {
-                            result = (t as Task<bool>)?.Result;
-                        }
-                        catch (AggregateException ex)
-                        {
-                            ex.Handle(innerEx =>
-                            {
-                                if (innerEx is TaskCanceledException)
-                                    return true; // Indicate that the exception was handled
-
-                                LoggerAccessor.LogWarn($"[HTTP] - TcpClient Task thrown an AggregateException: {ex}");
-
-                                return false;
-                            });
-                        }
+                        result = (t as Task<bool>)?.Result;
                     }
+                    catch (AggregateException ex)
+                    {
+                        ex.Handle(innerEx =>
+                        {
+                            if (innerEx is TaskCanceledException)
+                                return true; // Indicate that the exception was handled
 
-                    TcpClientTasks.Remove(t);
+                            LoggerAccessor.LogWarn($"[HTTP] - TcpClient Task thrown an AggregateException: {ex}");
+
+                            return false;
+                        });
+                    }
                 }
+
+                TcpClientTasks.Remove(t);
             }
             catch (IOException ex)
             {
@@ -137,6 +131,10 @@ namespace HTTPServer
             catch (Exception ex)
             {
                 if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTP] - ConnectionLooper thrown an assertion: {ex}");
+            }
+            finally
+            {
+                TcpClientTasks.RemoveAll(x => x == null); // Cleans up functions where an assert was thrown.
             }
         }
 
