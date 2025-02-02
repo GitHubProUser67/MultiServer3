@@ -168,7 +168,7 @@ class Program
         MediusDatabaseLoop ??= Task.Run(SVOManager.StartTickPooling);
 
         if (HttpListener.IsSupported)
-            _SVOServer = new SVOServer("*", new System.Security.Cryptography.X509Certificates.X509Certificate2(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword));
+            _SVOServer = new SVOServer("*", new System.Security.Cryptography.X509Certificates.X509Certificate2(SVOServerConfiguration.HTTPSCertificateFile, SVOServerConfiguration.HTTPSCertificatePassword), Environment.ProcessorCount * 4);
         else
             LoggerAccessor.LogError("Windows XP SP2 or Server 2003 is required to use the HttpListener class, so SVO Server not started!");
 
