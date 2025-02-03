@@ -5622,26 +5622,22 @@ namespace Horizon.SERVER.Medius
 
                                                 if (guestPtr != 0)
                                                 {
+                                                    const int guestMode = 6;
+                                                    int patchedLobbyId = homeLobby.MediusWorldId;
+
                                                     rClient.Tasks.TryAdd("GJS GUEST BRUTEFORCE", Task.Run(() =>
                                                     {
-                                                        int patchedLobbyId = homeLobby.MediusWorldId;
-
                                                         while (true)
                                                         {
-                                                            if (rClient.IsInGame)
+                                                            if (rClient.IsInGame && patchedLobbyId == rClient.CurrentGame!.MediusWorldId)
                                                             {
-                                                                while (rClient.CurrentGame != null && patchedLobbyId == rClient.CurrentGame.MediusWorldId)
-                                                                {
-                                                                    // Set guest mode.
-                                                                    PokeAddress(rClient, guestPtr, new byte[4] { 0x00, 0x00, 0x00, 0x06 });
-
-                                                                    Thread.Sleep(6000);
-                                                                }
+                                                                // Set guest mode.
+                                                                PokeAddress(rClient, guestPtr, BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(guestMode) : guestMode));
 
                                                                 break;
                                                             }
                                                             else
-                                                                Thread.Sleep(3500);
+                                                                Thread.Sleep(6000);
                                                         }
                                                     }));
                                                 }

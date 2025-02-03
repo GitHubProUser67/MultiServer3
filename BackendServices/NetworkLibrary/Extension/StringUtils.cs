@@ -1,5 +1,9 @@
+using Newtonsoft.Json.Linq;
+using SimdJsonSharp;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -165,6 +169,81 @@ namespace NetworkLibrary.Extension
             });
             newArray[newSize - 1] = newElement;
             return newArray;
+        }
+
+        public unsafe static List<string> ParseJsonStringProperty(this string jsonText, string property)
+        {
+            List<string> result = new List<string>();
+
+            if (string.IsNullOrEmpty(jsonText))
+                return result;
+
+            // Uses SIMD Json when possible.
+            if (Avx2.IsSupported)
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(jsonText);
+                fixed (byte* ptr = bytes) // pin bytes while we are working on them
+                    using (ParsedJson doc = SimdJson.ParseJson(ptr, bytes.Length))
+                    {
+                        if (!doc.IsValid)
+                            return result;
+
+                        // Open iterator
+                        using (ParsedJsonIterator iterator = doc.CreateIterator())
+                        {
+                            while (iterator.MoveForward())
+                            {
+                                if (iterator.IsString && iterator.GetUtf16String() == property)
+                                {
+                                    if (iterator.MoveForward())
+                                        result.Add(iterator.GetUtf16String());
+                                }
+                            }
+                        }
+
+                        return result;
+                    }
+            }
+            else
+            {
+                try
+                {
+                    FindPropertyValuesNested(JObject.Parse(jsonText), result, property);
+                }
+                catch 
+                {
+                }
+
+                return result;
+            }
+        }
+
+        // Recursive method to find all the requested property values in any nested structure
+        private static void FindPropertyValuesNested(JToken token, List<string> output, string property)
+        {
+            if (token == null) return;
+
+            // If the token is an object, traverse through its properties
+            if (token.Type == JTokenType.Object)
+            {
+                foreach (JProperty nestedProperty in token)
+                {
+                    // Check if the property contains a the requested key
+                    if (nestedProperty.Name == property)
+                        output.Add(nestedProperty.Value.ToString());
+
+                    // Recurse on the value of this nestedProperty
+                    FindPropertyValuesNested(nestedProperty.Value, output, property);
+                }
+            }
+            // If the token is an array, process each element in the array
+            else if (token.Type == JTokenType.Array)
+            {
+                foreach (JToken nestedArrayItem in token)
+                {
+                    FindPropertyValuesNested(nestedArrayItem, output, property);
+                }
+            }
         }
     }
 }

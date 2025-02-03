@@ -8,9 +8,9 @@ namespace SSFWServer
     {
         public static ConcurrentDictionary<string, string> sceneDictionary = new();
 
-        public static string? GetSceneNameLike(string nameToFind)
+        public static KeyValuePair<string, string>? GetSceneNameLike(string nameToFind)
         {
-            return sceneDictionary.Keys.FirstOrDefault(x => x.Contains(nameToFind));
+            return sceneDictionary.FirstOrDefault(x => x.Key.Contains(nameToFind));
         }
 
         public static void UpdateSceneDictionary(object? state)
