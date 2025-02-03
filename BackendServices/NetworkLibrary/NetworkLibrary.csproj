@@ -9,7 +9,8 @@
   <ItemGroup>
     <PackageReference Include="MaxMind.GeoIP2" Version="5.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="ZstdSharp.Port" Version="0.8.3" />
+    <PackageReference Include="SimdJsonSharp.Managed" Version="1.5.0" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">

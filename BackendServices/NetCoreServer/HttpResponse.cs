@@ -13,6 +13,10 @@ namespace NetCoreServer
     /// <remarks>Not thread-safe.</remarks>
     public class HttpResponse
     {
+        public const string allowedMethods = "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH";
+
+        public static List<string> allowedOrigins = new() { };
+
         static HttpResponse()
         {
             _mimeTable = new Dictionary<string, string>
@@ -151,6 +155,29 @@ namespace NetCoreServer
 
             return _headers[i];
         }
+
+        #region Global CORS Handling
+
+        private void SetCorsHeaders(string origin)
+        {
+            if (string.IsNullOrEmpty(origin) || allowedOrigins.Count == 0)
+                // Allow requests with no Origin header (e.g., direct server-to-server requests) or if we not set any CORS rules.
+                SetHeader("Access-Control-Allow-Origin", "*");
+            else if (allowedOrigins.Contains(origin))
+                // Allow requests with a valid Origin
+                SetHeader("Access-Control-Allow-Origin", origin);
+            else
+            {
+                // Not write any CORS header if denied.
+                return;
+            }
+
+            SetHeader("Access-Control-Allow-Methods", allowedMethods);
+            SetHeader("Access-Control-Allow-Headers", "*");
+            SetHeader("Access-Control-Expose-Headers", string.Empty);
+        }
+
+        #endregion
 
         /// <summary>
         /// Get the HTTP response body as string
@@ -437,21 +464,18 @@ namespace NetCoreServer
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body string content (default is "")</param>
-        public HttpResponse SetBody(string body = "", string encoding = null) => SetBody(body.AsSpan(), encoding);
+        public HttpResponse SetBody(string body = "", string encoding = null, string origin = null) => SetBody(body.AsSpan(), encoding, origin);
 
         /// <summary>
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body string content as a span of characters</param>
-        public HttpResponse SetBody(ReadOnlySpan<char> body, string encoding = null)
+        public HttpResponse SetBody(ReadOnlySpan<char> body, string encoding = null, string origin = null)
         {
             int length = body.IsEmpty ? 0 : Encoding.UTF8.GetByteCount(body);
 
             // Append CORS header
-            SetHeader("Access-Control-Allow-Origin", "*");
-            SetHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
-            SetHeader("Access-Control-Allow-Headers", "*");
-            SetHeader("Access-Control-Expose-Headers", string.Empty);
+            SetCorsHeaders(origin);
 
             if (!string.IsNullOrEmpty(encoding) && length > 0)
             {
@@ -519,21 +543,18 @@ namespace NetCoreServer
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body binary content</param>
-        public HttpResponse SetBody(byte[] body, string encoding = null) => SetBody(body.AsSpan(), encoding);
+        public HttpResponse SetBody(byte[] body, string encoding = null, string origin = null) => SetBody(body.AsSpan(), encoding, origin);
 
         /// <summary>
         /// Set the HTTP response body
         /// </summary>
         /// <param name="body">Body binary content as a span of bytes</param>
-        public HttpResponse SetBody(ReadOnlySpan<byte> body, string encoding = null)
+        public HttpResponse SetBody(ReadOnlySpan<byte> body, string encoding = null, string origin = null)
         {
             int length = body.Length;
 
             // Append CORS header
-            SetHeader("Access-Control-Allow-Origin", "*");
-            SetHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
-            SetHeader("Access-Control-Allow-Headers", "*");
-            SetHeader("Access-Control-Expose-Headers", string.Empty);
+            SetCorsHeaders(origin);
 
             if (!string.IsNullOrEmpty(encoding) && length > 0)
             {

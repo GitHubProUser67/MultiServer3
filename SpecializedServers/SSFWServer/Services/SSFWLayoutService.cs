@@ -1,6 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 
 namespace SSFWServer.Services
@@ -97,15 +98,21 @@ namespace SSFWServer.Services
             return false;
         }
 
-        public string? HandleLayoutServiceGET(string directorypath, string absolutepath)
+        public string? HandleLayoutServiceGET(string directorypath, string sceneIdString)
         {
-            string sceneid = absolutepath;
+            string sceneid = sceneIdString;
             string[] words = sceneid.Split('/');
 
             if (words.Length > 0)
                 sceneid = words[^1];
 
-            if (sceneid != absolutepath) // If ends with UUID Ok.
+#if NET7_0_OR_GREATER
+            Match match = UUIDRegex().Match(sceneid);
+#else
+            Match match = new Regex(@"[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}").Match(sceneid);
+#endif
+
+            if (match.Success) // If is UUID Ok.
             {
                 if (File.Exists(SSFWServerConfiguration.ScenelistFile))
                 {
@@ -242,6 +249,11 @@ namespace SSFWServer.Services
 
             return outputDictionary;
         }
+
+#if NET7_0_OR_GREATER
+        [GeneratedRegex("[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}")]
+        private static partial Regex UUIDRegex();
+#endif
 
         protected virtual void Dispose(bool disposing)
         {

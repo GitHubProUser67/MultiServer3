@@ -9,8 +9,10 @@ using NetCoreServer;
 using CustomLogger;
 using SSFWServer.Services;
 using SSFWServer.SaveDataHelper;
+using NetworkLibrary.Extension;
 using Newtonsoft.Json;
 using NetworkLibrary.HTTP;
+using System.Collections.Concurrent;
 
 namespace SSFWServer
 {
@@ -29,7 +31,7 @@ namespace SSFWServer
         private static SSFWServer? _Server;
         private static HttpSSFWServer? _HttpServer;
 
-        private static Dictionary<string, string> LayoutGetOverrides = new();
+        private static ConcurrentDictionary<string, string> LayoutGetOverrides = new();
 
         private string certpath;
         private string certpass;
@@ -181,55 +183,7 @@ namespace SSFWServer
                                     SSFWLayoutService layout = new(legacykey);
 
                                     if (LayoutGetOverrides.ContainsKey(sessionid))
-                                    {
-                                        string layoutNewUser = LayoutGetOverrides[sessionid];
-                                        bool isRpcnUser = layoutNewUser.Contains("@RPCN");
-                                        string LayoutDirectoryPath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"LayoutService/{env}/person/");
-
-                                        if (Directory.Exists(LayoutDirectoryPath))
-                                        {
-                                            string? matchingDirectory = null;
-                                            string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionid);
-                                            string? clientVersion = username?.Substring(username.Length - 6, 6);
-
-                                            if (!string.IsNullOrEmpty(clientVersion))
-                                            {
-                                                if (isRpcnUser)
-                                                {
-                                                    string[] nameParts = layoutNewUser.Split('@');
-
-                                                    if (nameParts.Length == 2 && !SSFWServerConfiguration.SSFWCrossSave)
-                                                    {
-                                                        matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
-                                                           .Where(dir =>
-                                                               Path.GetFileName(dir).StartsWith(nameParts[0]) &&
-                                                               Path.GetFileName(dir).Contains(nameParts[1]) &&
-                                                               Path.GetFileName(dir).Contains(clientVersion)
-                                                           ).FirstOrDefault();
-                                                    }
-                                                    else
-                                                        matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
-                                                          .Where(dir =>
-                                                              Path.GetFileName(dir).StartsWith(layoutNewUser.Replace("@RPCN", string.Empty)) &&
-                                                              Path.GetFileName(dir).Contains(clientVersion)
-                                                          ).FirstOrDefault();
-                                                }
-                                                else
-                                                    matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
-                                                      .Where(dir =>
-                                                          Path.GetFileName(dir).StartsWith(layoutNewUser) &&
-                                                          !Path.GetFileName(dir).Contains("RPCN") &&
-                                                          Path.GetFileName(dir).Contains(clientVersion)
-                                                      ).FirstOrDefault();
-                                            }
-
-                                            res = layout.HandleLayoutServiceGET(!string.IsNullOrEmpty(matchingDirectory) ? matchingDirectory : directoryPath, filePath);
-
-                                        } // if the dir not exists, we return 403.
-
-                                        lock (LayoutGetOverrides)
-                                            LayoutGetOverrides.Remove(sessionid);
-                                    }
+                                        LayoutGetOverrides.Remove(sessionid, out res);
                                     else
                                         res = layout.HandleLayoutServiceGET(directoryPath, filePath);
 
@@ -634,34 +588,34 @@ namespace SSFWServer
                                             Response.Clear();
                                             Response.SetBegin(200);
                                             Response.SetContentType(HTTPProcessor.GetMimeType(extension, HTTPProcessor._mimeTypes));
-                                            Response.SetBody(File.ReadAllBytes(filePath), encoding);
+                                            Response.SetBody(File.ReadAllBytes(filePath), encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(404);
-                                            Response.SetBody();
+                                            Response.SetBody(string.Empty, null, GetHeaderValue(Headers, "Origin"));
                                         }
                                     }
                                     else
                                     {
                                         Response.Clear();
                                         Response.SetBegin(403);
-                                        Response.SetBody();
+                                        Response.SetBody(string.Empty, null, GetHeaderValue(Headers, "Origin"));
                                     }
                                 }
                                 catch
                                 {
                                     Response.Clear();
                                     Response.SetBegin(500);
-                                    Response.SetBody();
+                                    Response.SetBody(string.Empty, null, GetHeaderValue(Headers, "Origin"));
                                 }
                                 break;
                             case "OPTIONS":
                                 Response.Clear();
                                 Response.SetBegin(200);
-                                Response.SetHeader("Allow", "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH");
-                                Response.SetBody();
+                                Response.SetHeader("Allow", HttpResponse.allowedMethods);
+                                Response.SetBody(string.Empty, null, GetHeaderValue(Headers, "Origin"));
                                 break;
                             case "POST":
                                 byte InventoryEntryType = 0;
@@ -680,48 +634,110 @@ namespace SSFWServer
 
                                         if (!string.IsNullOrEmpty(sceneNameLike))
                                         {
-                                            string? sceneName = ScenelistParser.GetSceneNameLike(sceneNameLike);
+                                            KeyValuePair<string, string>? sceneData = ScenelistParser.GetSceneNameLike(sceneNameLike);
 
-                                            if (!string.IsNullOrEmpty(sceneName))
+                                            if (sceneData != null && int.TryParse(sceneData.Value.Value, out int extractedId))
                                             {
                                                 Response.SetBegin(200);
-                                                Response.SetBody(sceneName, encoding);
+                                                Response.SetBody(sceneData.Value.Key + ',' + extractedId.ToUuid(), encoding, GetHeaderValue(Headers, "Origin"));
                                             }
                                             else
                                             {
                                                 Response.SetBegin(500);
-                                                Response.SetBody("SceneNameLike returned a null or empty sceneName!", encoding);
+                                                Response.SetBody("SceneNameLike returned a null or empty sceneName!", encoding, GetHeaderValue(Headers, "Origin"));
                                             }
                                         }
                                         else
                                         {
                                             Response.SetBegin(403);
-                                            Response.SetBody("Invalid like attribute was used!", encoding);
+                                            Response.SetBody("Invalid like attribute was used!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     case "/WebService/ApplyLayoutOverride/":
                                         sessionId = GetHeaderValue(Headers, "sessionid", false);
                                         string targetUserName = GetHeaderValue(Headers, "targetUserName", false);
+                                        string sceneId = GetHeaderValue(Headers, "sceneId", false);
+                                        env = GetHeaderValue(Headers, "env", false);
+
+                                        if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
+                                            env = "cprod";
 
                                         Response.Clear();
 
-                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName) && IsSSFWRegistered(sessionId))
+                                        if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(targetUserName) && !string.IsNullOrEmpty(sceneId) && IsSSFWRegistered(sessionId))
                                         {
-                                            lock (LayoutGetOverrides)
-                                            {
-                                                if (!LayoutGetOverrides.ContainsKey(sessionId))
-                                                    LayoutGetOverrides.Add(sessionId, targetUserName);
-                                                else
-                                                    LayoutGetOverrides[sessionId] = targetUserName;
-                                            }
+                                            string? res = null;
+                                            bool isRpcnUser = targetUserName.Contains("@RPCN");
+                                            string LayoutDirectoryPath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, $"LayoutService/{env}/person/");
 
-                                            Response.SetBegin(200);
-                                            Response.SetBody($"Override set for {sessionId}.", encoding);
+                                            if (Directory.Exists(LayoutDirectoryPath))
+                                            {
+                                                string? matchingDirectory = null;
+                                                string? username = SSFWUserSessionManager.GetUsernameBySessionId(sessionId);
+                                                string? clientVersion = username?.Substring(username.Length - 6, 6);
+
+                                                if (!string.IsNullOrEmpty(clientVersion))
+                                                {
+                                                    if (isRpcnUser)
+                                                    {
+                                                        string[] nameParts = targetUserName.Split('@');
+
+                                                        if (nameParts.Length == 2 && !SSFWServerConfiguration.SSFWCrossSave)
+                                                        {
+                                                            matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                               .Where(dir =>
+                                                                   Path.GetFileName(dir).StartsWith(nameParts[0]) &&
+                                                                   Path.GetFileName(dir).Contains(nameParts[1]) &&
+                                                                   Path.GetFileName(dir).Contains(clientVersion)
+                                                               ).FirstOrDefault();
+                                                        }
+                                                        else
+                                                            matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                              .Where(dir =>
+                                                                  Path.GetFileName(dir).StartsWith(targetUserName.Replace("@RPCN", string.Empty)) &&
+                                                                  Path.GetFileName(dir).Contains(clientVersion)
+                                                              ).FirstOrDefault();
+                                                    }
+                                                    else
+                                                        matchingDirectory = Directory.GetDirectories(LayoutDirectoryPath)
+                                                          .Where(dir =>
+                                                              Path.GetFileName(dir).StartsWith(targetUserName) &&
+                                                              !Path.GetFileName(dir).Contains("RPCN") &&
+                                                              Path.GetFileName(dir).Contains(clientVersion)
+                                                          ).FirstOrDefault();
+                                                }
+
+                                                if (!string.IsNullOrEmpty(matchingDirectory))
+                                                    res = new SSFWLayoutService(legacykey).HandleLayoutServiceGET(matchingDirectory, sceneId);
+
+                                            } // if the dir not exists, we return 403.
+
+                                            if (res == null)
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(403);
+                                                Response.SetBody($"Override set for {sessionId}, but no layout was found for this scene.", encoding, GetHeaderValue(Headers, "Origin"));
+                                            }
+                                            else if (res == string.Empty)
+                                            {
+                                                Response.Clear();
+                                                Response.SetBegin(404);
+                                                Response.SetBody($"Override set for {sessionId}, but layout data was empty.", encoding, GetHeaderValue(Headers, "Origin"));
+                                            }
+                                            else
+                                            {
+                                                if (!LayoutGetOverrides.TryAdd(sessionId, res))
+                                                    LayoutGetOverrides[sessionId] = res;
+
+                                                Response.SetBegin(200);
+                                                Response.SetContentType("application/json; charset=utf-8");
+                                                Response.SetBody(res, encoding, GetHeaderValue(Headers, "Origin"));
+                                            }
                                         }
                                         else
                                         {
                                             Response.SetBegin(403);
-                                            Response.SetBody("Invalid sessionid or targetUserName attribute was used!", encoding);
+                                            Response.SetBody("Invalid sessionid or targetUserName attribute was used!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     case "/WebService/R3moveLayoutOverride/":
@@ -731,24 +747,30 @@ namespace SSFWServer
 
                                         if (!string.IsNullOrEmpty(sessionId) && IsSSFWRegistered(sessionId))
                                         {
-                                            lock (LayoutGetOverrides)
+                                            if (LayoutGetOverrides.Remove(sessionId, out _))
                                             {
-                                                if (LayoutGetOverrides.ContainsKey(sessionId))
-                                                    LayoutGetOverrides.Remove(sessionId);
+                                                Response.SetBegin(200);
+                                                Response.SetBody($"Override removed for {sessionId}.", encoding, GetHeaderValue(Headers, "Origin"));
                                             }
-
-                                            Response.SetBegin(200);
-                                            Response.SetBody($"Override removed for {sessionId}.", encoding);
+                                            else
+                                            {
+                                                Response.SetBegin(404);
+                                                Response.SetBody($"Override not found for {sessionId}.", encoding, GetHeaderValue(Headers, "Origin"));
+                                            }
                                         }
                                         else
                                         {
                                             Response.SetBegin(403);
-                                            Response.SetBody("Invalid sessionid attribute was used!", encoding);
+                                            Response.SetBody("Invalid sessionid attribute was used!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     case "/WebService/GetMini/":
                                         sessionId = GetHeaderValue(Headers, "sessionid", false);
                                         env = GetHeaderValue(Headers, "env", false);
+
+                                        if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
+                                            env = "cprod";
+
                                         userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
 
                                         if (!string.IsNullOrEmpty(userId))
@@ -763,32 +785,36 @@ namespace SSFWServer
                                                 {
                                                     Response.SetBegin(200);
                                                     Response.SetContentType("application/json; charset=utf-8");
-                                                    Response.SetBody(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty, encoding);
+                                                    Response.SetBody(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty, encoding, GetHeaderValue(Headers, "Origin"));
                                                 }
                                                 catch
                                                 {
                                                     Response.SetBegin(500);
-                                                    Response.SetBody($"Error while reading the mini file for User: {sessionId} on env:{env}!", encoding);
+                                                    Response.SetBody($"Error while reading the mini file for User: {sessionId} on env:{env}!", encoding, GetHeaderValue(Headers, "Origin"));
                                                 }
                                             }
                                             else
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding, GetHeaderValue(Headers, "Origin"));
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected!", encoding);
+                                            Response.SetBody($"User: {sessionId} is not connected!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     case "/WebService/AddMiniItem/":
                                         uuid = GetHeaderValue(Headers, "uuid", false);
                                         sessionId = GetHeaderValue(Headers, "sessionid", false);
                                         env = GetHeaderValue(Headers, "env", false);
+
+                                        if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
+                                            env = "cprod";
+
                                         userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
 
                                         if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(uuid) && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
@@ -812,19 +838,23 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding);
+                                                        Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                     }
                                                     catch (Exception ex)
                                                     {
                                                         string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.MakeErrorResponse(errMsg);
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                         LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                     }
                                                 }
                                                 else
                                                 {
                                                     string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
-                                                    Response.MakeErrorResponse(errMsg);
+                                                    Response.Clear();
+                                                    Response.SetBegin(500);
+                                                    Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                     LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                 }
                                             }
@@ -832,20 +862,24 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding, GetHeaderValue(Headers, "Origin"));
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     case "/WebService/AddMiniItems/":
                                         uuids = GetHeaderValue(Headers, "uuids", false).Split(',');
                                         sessionId = GetHeaderValue(Headers, "sessionid", false);
                                         env = GetHeaderValue(Headers, "env", false);
+
+                                        if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
+                                            env = "cprod";
+
                                         userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
 
                                         if (!string.IsNullOrEmpty(userId) && uuids != null && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
@@ -876,19 +910,23 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding);
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                     }
                                                     catch (Exception ex)
                                                     {
                                                         string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.MakeErrorResponse(errMsg);
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                         LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                     }
                                                 }
                                                 else
                                                 {
                                                     string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
-                                                    Response.MakeErrorResponse(errMsg);
+                                                    Response.Clear();
+                                                    Response.SetBegin(500);
+                                                    Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                     LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                 }
                                             }
@@ -896,20 +934,24 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding, GetHeaderValue(Headers, "Origin"));
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     case "/WebService/RemoveMiniItem/":
                                         uuid = GetHeaderValue(Headers, "uuid", false);
                                         sessionId = GetHeaderValue(Headers, "sessionid", false);
                                         env = GetHeaderValue(Headers, "env", false);
+
+                                        if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
+                                            env = "cprod";
+
                                         userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
 
                                         if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(uuid) && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
@@ -933,19 +975,23 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding);
+                                                        Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                     }
                                                     catch (Exception ex)
                                                     {
                                                         string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.MakeErrorResponse(errMsg);
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                         LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                     }
                                                 }
                                                 else
                                                 {
                                                     string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
-                                                    Response.MakeErrorResponse(errMsg);
+                                                    Response.Clear();
+                                                    Response.SetBegin(500);
+                                                    Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                     LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                 }
                                             }
@@ -953,20 +999,24 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding, GetHeaderValue(Headers, "Origin"));
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     case "/WebService/RemoveMiniItems/":
                                         uuids = GetHeaderValue(Headers, "uuids", false).Split(',');
                                         sessionId = GetHeaderValue(Headers, "sessionid", false);
                                         env = GetHeaderValue(Headers, "env", false);
+
+                                        if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
+                                            env = "cprod";
+
                                         userId = SSFWUserSessionManager.GetIdBySessionId(sessionId);
 
                                         if (!string.IsNullOrEmpty(userId) && uuids != null && byte.TryParse(GetHeaderValue(Headers, "invtype", false), out InventoryEntryType))
@@ -997,19 +1047,23 @@ namespace SSFWServer
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
                                                         Response.Clear();
                                                         Response.SetBegin(200);
-                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding);
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                     }
                                                     catch (Exception ex)
                                                     {
                                                         string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.MakeErrorResponse(errMsg);
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                         LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                     }
                                                 }
                                                 else
                                                 {
                                                     string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
-                                                    Response.MakeErrorResponse(errMsg);
+                                                    Response.Clear();
+                                                    Response.SetBegin(500);
+                                                    Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
                                                     LoggerAccessor.LogError($"[SSFW] - {errMsg}");
                                                 }
                                             }
@@ -1017,27 +1071,27 @@ namespace SSFWServer
                                             {
                                                 Response.Clear();
                                                 Response.SetBegin(403);
-                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding);
+                                                Response.SetBody($"User: {sessionId} on env:{env} doesn't have a ssfw mini file!", encoding, GetHeaderValue(Headers, "Origin"));
                                             }
                                         }
                                         else
                                         {
                                             Response.Clear();
                                             Response.SetBegin(403);
-                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding);
+                                            Response.SetBody($"User: {sessionId} is not connected or sent invalid InventoryEntryType!", encoding, GetHeaderValue(Headers, "Origin"));
                                         }
                                         break;
                                     default:
                                         Response.Clear();
                                         Response.SetBegin(403);
-                                        Response.SetBody();
+                                        Response.SetBody(string.Empty, null, GetHeaderValue(Headers, "Origin"));
                                         break;
                                 }
                                 break;
                             default:
                                 Response.Clear();
                                 Response.SetBegin(403);
-                                Response.SetBody();
+                                Response.SetBody(string.Empty, null, GetHeaderValue(Headers, "Origin"));
                                 break;
                         }
                     }

@@ -14,9 +14,10 @@ namespace Horizon.SERVER.Extension.PlayStationHome
         private static readonly byte[] RandCRCKey = ByteUtils.GenerateRandomBytes(24);
         private static readonly byte[] RandCRCIV = ByteUtils.GenerateRandomBytes(8);
 
-        public static Task<bool> SendCrcOverride(string targetClientIp, string? AccessToken, string SceneCrc, bool Retail)
+        public static Task<bool> SendCrcOverride(string targetClientIp, string? AccessToken, string SceneCrc, bool Retail, string env)
         {
             bool AccessTokenProvided = !string.IsNullOrEmpty(AccessToken);
+
             List<ClientObject>? clients = null;
 
             if (AccessTokenProvided)
@@ -45,8 +46,10 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                         {
                             string ssfwSceneNameResult = HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/GetSceneLike/", new Dictionary<string, string>() { { "like", LobbyName } }, string.Empty, "text/plain");
 
-                            if (!string.IsNullOrEmpty(ssfwSceneNameResult))
+                            if (!string.IsNullOrEmpty(ssfwSceneNameResult) && ssfwSceneNameResult.Contains(','))
                             {
+                                string[] sceneData = ssfwSceneNameResult.Split(',');
+
                                 foreach (ClientObject client in clients)
                                 {
                                     if (client.CurrentGame == homeLobby)
@@ -54,12 +57,32 @@ namespace Horizon.SERVER.Extension.PlayStationHome
 
                                     client.LobbyKeyOverride = SceneCrc;
 
-                                    if (!string.IsNullOrEmpty(client.ClientHomeData?.Type) && (client.ClientHomeData.Type.Contains("HDK") || client.ClientHomeData.Type == "Online Debug"))
-                                        _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {ssfwSceneNameResult}' )");
-                                    else
-                                        _ = HomeRTMTools.SendRemoteCommand(client, $"map {ssfwSceneNameResult}");
+                                    bool isLcCompatible = !string.IsNullOrEmpty(client.ClientHomeData?.Type) && (client.ClientHomeData.Type.Contains("HDK") || client.ClientHomeData.Type == "Online Debug");
+
                                     if (!string.IsNullOrEmpty(client.SSFWid) && !string.IsNullOrEmpty(homeLobby.Host.AccountName))
-                                        HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/ApplyLayoutOverride/", new Dictionary<string, string>() { { "sessionid", client.SSFWid }, { "targetUserName", homeLobby.Host.AccountName } }, string.Empty, "text/plain");
+                                    {
+                                        Dictionary<string, string> headersToSend;
+
+                                        if (!string.IsNullOrEmpty(env))
+                                            headersToSend = new Dictionary<string, string>() { { "sessionid", client.SSFWid }, { "targetUserName", homeLobby.Host.AccountName }, { "sceneId", sceneData[1] }, { "env", env } };
+                                        else
+                                            headersToSend = new Dictionary<string, string>() { { "sessionid", client.SSFWid }, { "targetUserName", homeLobby.Host.AccountName }, { "sceneId", sceneData[1] } };
+
+                                        // Process Environment.ProcessorCount uuids at a time, removing the limit is not tolerable as CPU usage goes way too high.
+                                        Parallel.ForEach(HTTPProcessor.RequestURLPOST($"{HorizonServerConfiguration.SSFWUrl}/WebService/ApplyLayoutOverride/", headersToSend, string.Empty, "text/plain").ParseJsonStringProperty("furnitureObjectId"),
+                                            new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (uuidToAdd, stateInner) =>
+                                        {
+                                            if (isLcCompatible)
+                                                _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'inv adduserobj {uuidToAdd}' )");
+                                            else
+                                                _ = HomeRTMTools.SendRemoteCommand(client, $"inv adduserobj {uuidToAdd}");
+                                        });
+                                    }
+
+                                    if (isLcCompatible)
+                                        _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {sceneData[0]}' )");
+                                    else
+                                        _ = HomeRTMTools.SendRemoteCommand(client, $"map {sceneData[0]}");
                                 }
 
                                 return Task.FromResult(true);
