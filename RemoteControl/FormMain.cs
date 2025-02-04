@@ -1,5 +1,6 @@
 using CompressionLibrary.NetChecksummer;
 using System.Text;
+using System.Windows.Forms;
 
 namespace RemoteControl
 {
@@ -23,6 +24,9 @@ namespace RemoteControl
         public FormMain()
         {
             InitializeComponent();
+
+            richTextBoxLicense.SelectAll();
+            richTextBoxLicense.SelectionAlignment = HorizontalAlignment.Center;
 
             // Settings programs path.
             textBoxHTTPPath.Text = Program.currentDir + "/HTTPServer" + exeExtension;
