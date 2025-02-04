@@ -30,6 +30,7 @@ namespace HTTPServer
         #region Variables
 
         #region Init/State
+        protected readonly int AwaiterTimeoutInMS; //The max time to wait between ExitSignal checks
         protected readonly string Host;
         protected readonly int Port;
         protected readonly int MaxConcurrentListeners;
@@ -45,18 +46,19 @@ namespace HTTPServer
         #endregion
 
         #region Constructor
-        public HTTPServer(ConnectionHandlerDelegate connectionHandler, string host = "0.0.0.0", int port = 8080, int maxConcurrentListeners = 10)
+        public HTTPServer(ConnectionHandlerDelegate connectionHandler, string host = "0.0.0.0", int port = 8080, int maxConcurrentListeners = 10, int awaiterTimeoutInMS = 500)
         {
             OnHandleConnection = connectionHandler ?? throw new ArgumentNullException(nameof(connectionHandler));
             Host = host ?? throw new ArgumentNullException(nameof(host));
             Port = port;
             MaxConcurrentListeners = maxConcurrentListeners;
+            AwaiterTimeoutInMS = awaiterTimeoutInMS;
             Listener = new TcpListener(IPAddress.Parse(Host), Port);
         }
         #endregion
 
         #region Public Functions
-        public virtual async Task Run(ushort ListenerPort)
+        public virtual void Run()
         {
             if (IsRunning)
                 return; //Already running, only one running instance allowed.
@@ -66,7 +68,7 @@ namespace HTTPServer
             ExitSignal = false;
 
             while (!ExitSignal)
-                await ConnectionLooper(ListenerPort).ConfigureAwait(false);
+                ConnectionLooper();
 
             TcpClientTasks.Clear();
 
@@ -76,82 +78,36 @@ namespace HTTPServer
         #endregion
 
         #region Protected Functions
-        protected virtual async Task ConnectionLooper(ushort ListenerPort)
+        protected virtual void ConnectionLooper()
         {
             while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
             {
                 TcpClientTasks.Add(Task.Run(async () =>
                 {
-                    LoggerAccessor.LogInfo($"[HTTP] - Listening on port {ListenerPort}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-                    return ProcessMessagesFromClient(await Listener.AcceptTcpClientAsync().ConfigureAwait(false), ListenerPort);
+                    LoggerAccessor.LogInfo($"[HTTP] - Listening on port {Port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                    return ProcessMessagesFromClient(await Listener.AcceptTcpClientAsync().ConfigureAwait(false));
                 }));
             }
 
-            try
-            {
-                // Only wait for valid Tasks, Parallel is faster on a Array (https://stackoverflow.com/questions/9138540/parallel-linq-query-optimization).
-                Task t = await Task.WhenAny(TcpClientTasks.ToArray().AsParallel().AsUnordered().Where(x => x != null)).ConfigureAwait(false);
-
-                if (t is Task<bool>)
-                {
-                    bool? result = null;
-
-                    try
-                    {
-                        result = (t as Task<bool>)?.Result;
-                    }
-                    catch (AggregateException ex)
-                    {
-                        ex.Handle(innerEx =>
-                        {
-                            if (innerEx is TaskCanceledException)
-                                return true; // Indicate that the exception was handled
-
-                            LoggerAccessor.LogWarn($"[HTTP] - TcpClient Task thrown an AggregateException: {ex}");
-
-                            return false;
-                        });
-                    }
-                }
-
-                TcpClientTasks.Remove(t);
-            }
-            catch (IOException ex)
-            {
-                if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
-                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
-                    && socketException.SocketErrorCode != SocketError.ConnectionRefused)
-                    LoggerAccessor.LogError($"[HTTP] - ConnectionLooper thrown an IOException: {ex}");
-            }
-            catch (SocketException ex)
-            {
-                if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted && ex.SocketErrorCode != SocketError.ConnectionRefused)
-                    LoggerAccessor.LogError($"[HTTP] - ConnectionLooper thrown a SocketException: {ex}");
-            }
-            catch (Exception ex)
-            {
-                if (ex.HResult != 995) LoggerAccessor.LogError($"[HTTP] - ConnectionLooper thrown an assertion: {ex}");
-            }
-            finally
-            {
-                TcpClientTasks.RemoveAll(x => x == null); // Cleans up functions where an assert was thrown.
-            }
+            int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+            if (RemoveAtIndex != -1) //Remove the completed task from the list
+                TcpClientTasks.RemoveAt(RemoveAtIndex);
         }
 
-        protected virtual bool ProcessMessagesFromClient(TcpClient? Connection, ushort ListenerPort)
+        protected virtual bool ProcessMessagesFromClient(TcpClient? Connection)
         {
             if (Connection == null)
                 return false;
 
             using (Connection) //Auto dispose of the cilent connection
             {
-                LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {ListenerPort} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
                 if (!Connection.Connected) //Abort if not connected
                     return false;
 
-                OnHandleConnection.Invoke(Connection, ListenerPort);
+                OnHandleConnection.Invoke(Connection, (ushort)Port);
             }
-            LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {ListenerPort} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+            LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 
             return true;
         }

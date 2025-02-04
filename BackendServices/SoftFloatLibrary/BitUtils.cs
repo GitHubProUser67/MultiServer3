@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Numerics;
-using System.Runtime.CompilerServices;
 #endif
 
 namespace SoftFloatLibrary

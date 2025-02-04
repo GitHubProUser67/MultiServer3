@@ -175,7 +175,7 @@ namespace NetCoreServer
                 Server.OnHandshakingInternal(this);
 
                 // Begin the SSL handshake
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER
 
                 if (IsHandshaked)
                     return;

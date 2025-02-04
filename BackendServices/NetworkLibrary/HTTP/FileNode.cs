@@ -59,7 +59,7 @@ namespace NetworkLibrary.HTTP
                     Childrens = new ConcurrentList<FileNode>()
                 };
 
-#if NETCOREAPP || NETSTANDARD1_0_OR_GREATER || NET40_OR_GREATER
+#if NETCOREAPP || NETSTANDARD1_0_OR_GREATER
                 await Task.WhenAll(
                     Parallel.ForEachAsync(directoryInfo.GetFiles(), new ParallelOptions { MaxDegreeOfParallelism = ProcessorCountLeft }, async (file, cancellationToken) =>
                     {

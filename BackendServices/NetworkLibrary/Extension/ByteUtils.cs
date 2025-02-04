@@ -179,8 +179,11 @@ namespace NetworkLibrary.Extension
 
             bool exceptionThrown = false;
             int totalLength = first.Length + second.Length;
-
+#if NET6_0_OR_GREATER
             if (totalLength > Array.MaxLength || totalLength < 0)
+#else
+            if (totalLength > 0X7FFFFFC7 || totalLength < 0)
+#endif
                 return first;
 
             byte[] bytes = new byte[totalLength];
@@ -230,8 +233,11 @@ namespace NetworkLibrary.Extension
 
             int firstLength = first?.Length ?? 0;
             int totalLength = firstLength + second.Sum(arr => arr.Length);
-
+#if NET6_0_OR_GREATER
             if (totalLength > Array.MaxLength || totalLength < 0)
+#else
+            if (totalLength > 0X7FFFFFC7 || totalLength < 0)
+#endif
                 return first;
 
             bool exceptionThrown = false;

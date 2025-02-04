@@ -15,7 +15,7 @@ namespace NetCoreServer
     {
         public const string allowedMethods = "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH";
 
-        public static List<string> allowedOrigins = new() { };
+        public static List<string> allowedOrigins = new List<string>() { };
 
         static HttpResponse()
         {
@@ -487,11 +487,13 @@ namespace NetCoreServer
                         SetHeader("Content-Encoding", "zstd");
                         payload = HTTPProcessor.CompressZstd(payload);
                     }
+#if NET5_0_OR_GREATER
                     else if (encoding.Contains("br"))
                     {
                         SetHeader("Content-Encoding", "br");
                         payload = HTTPProcessor.CompressBrotli(payload);
                     }
+#endif
                     else if (encoding.Contains("gzip"))
                     {
                         SetHeader("Content-Encoding", "gzip");
@@ -566,11 +568,13 @@ namespace NetCoreServer
                         SetHeader("Content-Encoding", "zstd");
                         payload = HTTPProcessor.CompressZstd(payload);
                     }
+#if NET5_0_OR_GREATER
                     else if (encoding.Contains("br"))
                     {
                         SetHeader("Content-Encoding", "br");
                         payload = HTTPProcessor.CompressBrotli(payload);
                     }
+#endif
                     else if (encoding.Contains("gzip"))
                     {
                         SetHeader("Content-Encoding", "gzip");
