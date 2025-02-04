@@ -21,23 +21,35 @@ namespace SoftFloatLibrary
         public byte Exponent => (byte)((raw >> MANTISSA_BITS) & byte.MaxValue);
         public bool Sign => ((raw >> 31) & 1) != 0;
 
-        public bool dz = false;
-        public bool iv = false;
-        public bool of = false;
-        public bool uf = false;
+        public bool dz;
+        public bool iv;
+        public bool of;
+        public bool uf;
 
         public ps2float(uint raw)
         {
+            dz = false;
+            iv = false;
+            of = false;
+            uf = false;
             this.raw = raw;
         }
 
         public ps2float(float value)
         {
-            raw = BitConverter.ToUInt32(BitConverter.GetBytes(value));
+            dz = false;
+            iv = false;
+            of = false;
+            uf = false;
+            raw = BitConverter.ToUInt32(BitConverter.GetBytes(value), 0);
         }
 
         public ps2float(bool sign, byte exponent, uint mantissa)
         {
+            dz = false;
+            iv = false;
+            of = false;
+            uf = false;
             raw = 0;
             raw |= (sign ? 1u : 0u) << 31;
             raw |= (uint)(exponent << MANTISSA_BITS);

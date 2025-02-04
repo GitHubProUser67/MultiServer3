@@ -3,7 +3,11 @@ using SimdJsonSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
+#else
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,6 +16,13 @@ namespace NetworkLibrary.Extension
 {
     public static class StringUtils
     {
+#if !NETCOREAPP3_0_OR_GREATER
+        private const int PF_AVX2_INSTRUCTIONS_AVAILABLE = 40;
+
+        [DllImport("kernel32.dll")]
+        private static extern bool IsProcessorFeaturePresent(int processorFeature);
+#endif
+
         public static string ChopOffBefore(this string s, string Before)
         {
             // Usefull function for chopping up strings
@@ -179,17 +190,21 @@ namespace NetworkLibrary.Extension
                 return result;
 
             // Uses SIMD Json when possible.
-            if (Avx2.IsSupported)
+#if NETCOREAPP3_0_OR_GREATER
+            if (Windows.Win32API.IsWindows && Avx2.IsSupported)
+#else
+            if (Windows.Win32API.IsWindows && IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE))
+#endif
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(jsonText);
                 fixed (byte* ptr = bytes) // pin bytes while we are working on them
-                    using (ParsedJson doc = SimdJson.ParseJson(ptr, bytes.Length))
+                    using (ParsedJsonN doc = SimdJsonN.ParseJson(ptr, bytes.Length))
                     {
                         if (!doc.IsValid)
                             return result;
 
                         // Open iterator
-                        using (ParsedJsonIterator iterator = doc.CreateIterator())
+                        using (ParsedJsonIteratorN iterator = doc.CreateIterator())
                         {
                             while (iterator.MoveForward())
                             {

@@ -269,19 +269,24 @@ class Program
 
             new List<HTTPServer.Models.Route> { } /*TODO: Make it so we can input custom routes*/.ForEach(route => Processor.AddRoute(route));
 
-            foreach (ushort port in HTTPServerConfiguration.Ports)
-            {
+            Parallel.ForEach(HTTPServerConfiguration.Ports, port => {
                 if (HTTPBag.ContainsKey(port))
-                    _ = HTTPBag[port].Run(port); //Server runs in a dedicated thread seperate from mains thread
+                {
+                    new Thread(() => {
+                        HTTPBag[port].Run(); //Server runs in a dedicated thread seperate from mains thread
+                    }).Start();
+                }
                 else if (TCPUtils.IsTCPPortAvailable(port))
                 {
-                    var BLL = new HTTPServer.HTTPServer(Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
+                    HTTPServer.HTTPServer BLL = new(Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
 
-                    _ = BLL.Run(port); //Server runs in a dedicated thread seperate from mains thread
+                    new Thread(() => {
+                        BLL.Run(); //Server runs in a dedicated thread seperate from mains thread
+                    }).Start();
 
                     HTTPBag.TryAdd(port, BLL);
                 }
-            }
+            });
         }
         else
         {

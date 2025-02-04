@@ -2,8 +2,10 @@
 #if NETCOREAPP || NETSTANDARD1_0_OR_GREATER || NET40_OR_GREATER
 using System.Threading.Tasks;
 #endif
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics.Arm;
+#endif
 using EndianTools;
 
 namespace CompressionLibrary.NetChecksummer
@@ -182,6 +184,7 @@ namespace CompressionLibrary.NetChecksummer
             uint crc = uint.MaxValue;
 
             // X86 SIMD uses the Castagnoli method only, ARM supports booth this and the IEEE compilant one.
+#if NETCOREAPP3_0_OR_GREATER
             if (Crc32.IsSupported)
             {
                 if (Crc32.Arm64.IsSupported)
@@ -256,7 +259,7 @@ namespace CompressionLibrary.NetChecksummer
 
                 return ~crc;
             }
-
+#endif
             for (int i = offset; length > 0; i++, length--)
                 crc = (crc >> 8) ^ castagnoli_hash[(byte)crc ^ data[i]];
 

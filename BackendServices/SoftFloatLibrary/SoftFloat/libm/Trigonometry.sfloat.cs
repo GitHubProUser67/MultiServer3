@@ -396,17 +396,6 @@ namespace SoftFloatLibrary
         {
             const uint PIO2_HI_U32 = 0x3fc90fda; // 1.5707962513e+00
             const uint PIO2_LO_U32 = 0x33a22168; // 7.5497894159e-08
-            const uint P_S0_U32 = 0x3e2aaa75; // 1.6666586697e-01
-            const uint P_S1_U32 = 0xbd2f13ba; // -4.2743422091e-02
-            const uint P_S2_U32 = 0xbc0dd36b; // -8.6563630030e-03
-            const uint Q_S1_U32 = 0xbf34e5ae; // - 7.0662963390e-01
-
-            static sfloat r(sfloat z)
-            {
-                sfloat p = z * (sfloat.FromRaw(P_S0_U32) + z * (sfloat.FromRaw(P_S1_U32) + z * sfloat.FromRaw(P_S2_U32)));
-                sfloat q = (sfloat)1.0f + z * sfloat.FromRaw(Q_S1_U32);
-                return p / q;
-            }
 
             sfloat x1p_120 = sfloat.FromRaw(0x03800000); // 0x1p-120 === 2 ^ (-120)
 
@@ -468,5 +457,20 @@ namespace SoftFloatLibrary
         /// Returns the arcsine of x
         /// </summary>
         public static sfloat asinf(sfloat x) => sfloat.FromRaw(half_pi) - acosf(x);
+
+        /// <summary>
+        /// Helper method for acosf
+        /// </summary>
+        private static sfloat r(sfloat z)
+        {
+            const uint P_S0_U32 = 0x3e2aaa75; // 1.6666586697e-01
+            const uint P_S1_U32 = 0xbd2f13ba; // -4.2743422091e-02
+            const uint P_S2_U32 = 0xbc0dd36b; // -8.6563630030e-03
+            const uint Q_S1_U32 = 0xbf34e5ae; // - 7.0662963390e-01
+
+            sfloat p = z * (sfloat.FromRaw(P_S0_U32) + z * (sfloat.FromRaw(P_S1_U32) + z * sfloat.FromRaw(P_S2_U32)));
+            sfloat q = (sfloat)1.0f + z * sfloat.FromRaw(Q_S1_U32);
+            return p / q;
+        }
     }
 }
