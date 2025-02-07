@@ -1280,7 +1280,7 @@ namespace HTTPSecureServerLite
                                                         response.StatusCode = (int)statusCode;
                                                         response.ContentType = "application/json";
                                                         if (response.ChunkedTransfer)
-                                                            sent = await response.Send(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes)));
+                                                            sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes)));
                                                         else
                                                             sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}", HTTPSServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                                     }
@@ -1293,7 +1293,7 @@ namespace HTTPSecureServerLite
                                                             response.StatusCode = (int)statusCode;
                                                             response.ContentType = "audio/x-mpegurl";
                                                             if (response.ChunkedTransfer)
-                                                                sent = await response.Send(Encoding.UTF8.GetBytes(m3ufile));
+                                                                sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(m3ufile));
                                                             else
                                                                 sent = await response.Send(m3ufile);
                                                         }
