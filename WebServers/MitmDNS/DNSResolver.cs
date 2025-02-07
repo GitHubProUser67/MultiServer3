@@ -10,7 +10,7 @@ namespace MitmDNS
 {
     public static class DNSResolver
     {
-        private static string publicServerIp = NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
+        public static string ServerIp = "127.0.0.1";
 
         public static AdGuardFilterChecker adChecker = new AdGuardFilterChecker();
 
@@ -81,7 +81,7 @@ namespace MitmDNS
                 }
 
                 if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, publicServerIp);
+                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIp);
 
                 IPAddress ip = IPAddress.None; // NXDOMAIN
                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")

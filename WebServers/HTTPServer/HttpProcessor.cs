@@ -32,7 +32,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Specialized;
-using System.Threading.Tasks;
 using NetworkLibrary.HTTP.PluginManager;
 using NetworkLibrary.Extension;
 using Newtonsoft.Json;
@@ -50,8 +49,9 @@ namespace HTTPServer
         #region Fields
 
         private readonly List<Route> Routes = new();
-        private string serverIP = "127.0.0.1";
         private int KeepAliveClients = 0;
+
+        public string ServerIp = "127.0.0.1";
 
         #endregion
 
@@ -125,35 +125,6 @@ namespace HTTPServer
             }
 
             return false;
-        }
-
-        public Task TryGetServerIP(ushort Port)
-        {
-            // We want to check if the router allows external IPs first.
-            string ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
-            try
-            {
-                using TcpClient client = new(ServerIP, Port);
-                client.Close();
-            }
-            catch // Failed to connect to public ip, so we fallback to local IP.
-            {
-                ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true).ToString();
-
-                try
-                {
-                    using TcpClient client = new(ServerIP, Port);
-                    client.Close();
-                }
-                catch // Failed to connect to local ip, trying IPV4 only as a last resort.
-                {
-                    ServerIP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(false).ToString();
-                }
-            }
-
-            serverIP = ServerIP;
-
-            return Task.CompletedTask;
         }
 
         public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
@@ -931,7 +902,7 @@ namespace HTTPServer
                                                             #region WebVideo Player
                                                             case "/!player":
                                                             case "/!player/":
-                                                                string ServerIP = serverIP;
+                                                                string ServerIP = this.ServerIp;
                                                                 if (ServerIP.Length > 15)
                                                                     ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
                                                                 WebVideoPlayer? WebPlayer = new((request.QueryParameters ?? new Dictionary<string, string>()).Aggregate(new NameValueCollection(),
@@ -1188,7 +1159,7 @@ namespace HTTPServer
                                                     case "PROPFIND":
                                                         if (File.Exists(filePath))
                                                         {
-                                                            string ServerIP = serverIP;
+                                                            string ServerIP = this.ServerIp;
                                                             if (ServerIP.Length > 15)
                                                                 ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
 
@@ -2155,7 +2126,7 @@ namespace HTTPServer
                     IP = clientip,
                     Port = clientport,
                     ServerPort = ListenerPort,
-                    ServerIP = serverIP
+                    ServerIP = ServerIp
                 };
 
                 string ContentLength = request.GetContentLength();

@@ -40,12 +40,9 @@ namespace HTTPSecureServerLite
 {
     public partial class HttpsProcessor
     {
-        private static string publicServerIp = NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
-
         public static AdGuardFilterChecker adChecker = new AdGuardFilterChecker();
 
         private Webserver? _Server;
-        private readonly string ip;
         private readonly ushort port;
 
         #region Domains
@@ -96,7 +93,6 @@ namespace HTTPSecureServerLite
 
         public HttpsProcessor(string certpath, string certpass, string ip, ushort port, bool secure)
         {
-            this.ip = ip;
             this.port = port;
             WebserverSettings settings = new()
             {
@@ -1193,7 +1189,7 @@ namespace HTTPSecureServerLite
                                                             }
 
                                                             if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, publicServerIp);
+                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                             IPAddress ip = IPAddress.None; // NXDOMAIN
                                                             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -1672,7 +1668,7 @@ namespace HTTPSecureServerLite
                                                         }
 
                                                         if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, publicServerIp);
+                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                         IPAddress ip = IPAddress.None; // NXDOMAIN
                                                         if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
