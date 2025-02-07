@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+#if NET7_0_OR_GREATER
 using System.Net.Http;
+#endif
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
@@ -45,6 +47,8 @@ namespace HTTPSecureServerLite
             }
             else if (File.Exists(HTTPSServerConfiguration.DNSConfig))
                 ParseRules(HTTPSServerConfiguration.DNSConfig);
+            else
+                Initiated = true;
         }
 
         public static void ParseRules(string Filename, bool IsFilename = true)

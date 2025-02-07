@@ -24,6 +24,8 @@ namespace MitmDNS
 
         public void StartServerAsync(CancellationToken cancellationToken)
         {
+            if (MitmDNSServerConfiguration.EnableAdguardFiltering)
+                _ = DNSResolver.adChecker.DownloadAndParseFilterListAsync();
             _ = Task.Run(() => UDPproc.Start(cancellationToken));
         }
 
@@ -59,6 +61,8 @@ namespace MitmDNS
             }
             else if (File.Exists(MitmDNSServerConfiguration.DNSConfig))
                 ParseRules(MitmDNSServerConfiguration.DNSConfig);
+            else
+                Initiated = true;
         }
 
         private static void ParseRules(string Filename, bool IsFilename = true)

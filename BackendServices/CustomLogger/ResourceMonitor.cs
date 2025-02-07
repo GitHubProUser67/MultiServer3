@@ -16,10 +16,10 @@ namespace CustomLogger
                 // Sleep for 1 minute (60,000 milliseconds)
                 Thread.Sleep(60000);
 
-                LoggerAccessor.LogInfo($"[ResourceMonitor] - Current percentage Used Physical Ram: {(100 - (((decimal)PerformanceInfo.GetPhysicalAvailableMemoryInMiB() / (decimal)PerformanceInfo.GetTotalMemoryInMiB()) * 100)).ToString("0.##")}%");
+                LoggerAccessor.LogDebug($"[ResourceMonitor] - Current percentage Used Physical Ram: {(100 - (((decimal)PerformanceInfo.GetPhysicalAvailableMemoryInMiB() / (decimal)PerformanceInfo.GetTotalMemoryInMiB()) * 100)).ToString("0.##")}%");
 
                 if (PerformanceInfo.GetSystemTimes(out idleTime, out kernelTime, out userTime))
-                    LoggerAccessor.LogInfo($"[ResourceMonitor] - Current CPU Load: {(100.0 - ((idleTime / (double)(kernelTime + userTime)) * 100.0)):0.##}%");
+                    LoggerAccessor.LogDebug($"[ResourceMonitor] - Current CPU Load: {(100.0 - ((idleTime / (double)(kernelTime + userTime)) * 100.0)):0.##}%");
             }
         }
     }

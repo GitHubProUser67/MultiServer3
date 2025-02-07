@@ -24,6 +24,7 @@ public static class HTTPSServerConfiguration
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
+    public static bool EnableAdguardFiltering { get; set; } = true;
     public static string HttpVersion { get; set; } = "1.1";
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPSStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
@@ -136,6 +137,7 @@ public static class HTTPSServerConfiguration
                 new JProperty("online_routes_config", DNSOnlineConfig),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
+                new JProperty("enable_adguard_filtering", EnableAdguardFiltering),
                 new JProperty("aspnet_redirect_url", ASPNETRedirectUrl),
                 new JProperty("php", new JObject(
                     new JProperty("redirect_url", PHPRedirectUrl),
@@ -183,6 +185,7 @@ public static class HTTPSServerConfiguration
             DNSOnlineConfig = GetValueOrDefault(config, "online_routes_config", DNSOnlineConfig);
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
+            EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
             APIStaticFolder = GetValueOrDefault(config, "api_static_folder", APIStaticFolder);
             ASPNETRedirectUrl = GetValueOrDefault(config, "aspnet_redirect_url", ASPNETRedirectUrl);
             PHPRedirectUrl = GetValueOrDefault(config.php, "redirect_url", PHPRedirectUrl);
@@ -349,6 +352,9 @@ class Program
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+
+        if (HTTPSServerConfiguration.EnableAdguardFiltering)
+            _ = HttpsProcessor.adChecker.DownloadAndParseFilterListAsync();
 
         WebAPIService.WebArchive.WebArchiveRequest.ArchiveDateLimit = HTTPSServerConfiguration.NotFoundWebArchiveDateLimit;
 

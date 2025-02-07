@@ -4,8 +4,6 @@ using System.IO;
 using System;
 using NetworkLibrary.Extension;
 using System.Text;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 
 namespace HTTPSecureServerLite.Extensions
 {
@@ -66,7 +64,7 @@ namespace HTTPSecureServerLite.Extensions
             proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", ctx.Request.Source.Port.ToString());
             proc.StartInfo.EnvironmentVariables.Add("REFERER", ctx.Request.RetrieveHeaderValue("Referer"));
             proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"https://{ctx.Request.Destination.IpAddress}:{ctx.Request.Destination.Port}{ctx.Request.Url.RawWithQuery}");
-            foreach (var headerKeyPair in ConvertHeadersToPhpFriendly(ctx.Request.Headers))
+            foreach (var headerKeyPair in ctx.Request.Headers.ConvertHeadersToPhpFriendly())
             {
                 proc.StartInfo.EnvironmentVariables.Add(headerKeyPair.Key, headerKeyPair.Value);
             }
@@ -121,34 +119,6 @@ namespace HTTPSecureServerLite.Extensions
             proc.WaitForExit(); // Wait for the PHP process to complete
 
             return (returndata, HeadersLocal);
-        }
-
-        private static List<KeyValuePair<string, string>> ConvertHeadersToPhpFriendly(NameValueCollection headers)
-        {
-            List<KeyValuePair<string, string>> phpFriendlyHeaders = new List<KeyValuePair<string, string>>();
-
-            if (headers != null)
-            {
-                foreach (string headerKey in headers)
-                {
-                    // Get all values for this header (they can be multiple)
-                    string[]? headerValues = headers.GetValues(headerKey);
-
-                    // Convert header name to uppercase, replace dashes with underscores, and prefix with "HTTP_"
-                    string phpHeaderName = "HTTP_" + headerKey.ToUpper().Replace("-", "_");
-
-                    if (headerValues != null)
-                    {
-                        // If there are multiple values for the same header, add each as a separate entry
-                        foreach (var value in headerValues)
-                        {
-                            phpFriendlyHeaders.Add(new KeyValuePair<string, string>(phpHeaderName, value));
-                        }
-                    }
-                }
-            }
-
-            return phpFriendlyHeaders;
         }
     }
 }

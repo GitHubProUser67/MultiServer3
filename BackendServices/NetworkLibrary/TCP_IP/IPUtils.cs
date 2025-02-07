@@ -24,12 +24,12 @@ namespace NetworkLibrary.TCP_IP
                 return;
             }
 
-            LoggerAccessor.LogInfo("Network Details:");
-            LoggerAccessor.LogInfo($"IP Address:{ipAddress}");
+            LoggerAccessor.LogDebug("[IPUtils] - Network Details:");
+            LoggerAccessor.LogDebug($"[IPUtils] - IP Address:{ipAddress}");
 
             byte[] ipBytes = IPAddress.Parse(ipAddress).GetAddressBytes();
 
-            LoggerAccessor.LogInfo($"Is Private:{IsPrivateIpAddress(ipBytes)}");
+            LoggerAccessor.LogDebug($"[IPUtils] - Is Private:{IsPrivateIpAddress(ipBytes)}");
 
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(ipBytes);
@@ -38,14 +38,14 @@ namespace NetworkLibrary.TCP_IP
             uint networkAddress = BitConverter.ToUInt32(ipBytes, 0) & subnetMask;
             uint broadcastAddress = networkAddress | ~subnetMask;
 
-            LoggerAccessor.LogInfo($"Subnet Mask:{ConvertToIpAddress(subnetMask)}");
+            LoggerAccessor.LogDebug($"[IPUtils] - Subnet Mask:{ConvertToIpAddress(subnetMask)}");
 
             if (detailed)
             {
-                LoggerAccessor.LogInfo($"CIDR Prefix Length:{cidrPrefixLength.Value}");
-                LoggerAccessor.LogInfo($"Network Address:{ConvertToIpAddress(networkAddress)}");
-                LoggerAccessor.LogInfo($"Broadcast Address:{ConvertToIpAddress(broadcastAddress)}");
-                LoggerAccessor.LogInfo($"Number of Hosts:{CalculateNumberOfHosts(subnetMask)}");
+                LoggerAccessor.LogDebug($"[IPUtils] - CIDR Prefix Length:{cidrPrefixLength.Value}");
+                LoggerAccessor.LogDebug($"[IPUtils] - Network Address:{ConvertToIpAddress(networkAddress)}");
+                LoggerAccessor.LogDebug($"[IPUtils] - Broadcast Address:{ConvertToIpAddress(broadcastAddress)}");
+                LoggerAccessor.LogDebug($"[IPUtils] - Number of Hosts:{CalculateNumberOfHosts(subnetMask)}");
             }
         }
 
@@ -171,7 +171,7 @@ namespace NetworkLibrary.TCP_IP
                 foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
                 {
                     // Get only IPv4 addresses
-                    if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
                         return (byte)SubnetMaskToCIDR(ip.IPv4Mask);
                 }
             }

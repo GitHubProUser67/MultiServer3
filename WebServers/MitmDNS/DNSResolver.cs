@@ -8,13 +8,17 @@ using System.Text.RegularExpressions;
 
 namespace MitmDNS
 {
-    public class DNSResolver
+    public static class DNSResolver
     {
+        private static string publicServerIp = NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
+
+        public static AdGuardFilterChecker adChecker = new AdGuardFilterChecker();
+
         public static byte[] ProcRequest(byte[] data)
         {
             try
             {
-                data = TrimArray(data);
+                data = DNSProcessor.TrimArray(data);
 
                 bool treated = false;
 
@@ -45,7 +49,13 @@ namespace MitmDNS
                 }
                 else
                 {
-                    if (MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.TryGetValue(fullname, out DnsSettings value))
+                    if (MitmDNSServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
+                    {
+                        url = "127.0.0.1";
+                        treated = true;
+                    }
+
+                    if (!treated && MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.TryGetValue(fullname, out DnsSettings value))
                     {
                         if (value.Mode == HandleMode.Allow) url = fullname;
                         else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
@@ -71,7 +81,7 @@ namespace MitmDNS
                 }
 
                 if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, publicServerIp);
 
                 IPAddress ip = IPAddress.None; // NXDOMAIN
                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -100,15 +110,6 @@ namespace MitmDNS
             }
             
             return null;
-        }
-
-        private static byte[] TrimArray(byte[] arr)
-        {
-            int i = arr.Length - 1;
-            while (arr[i] == 0) i--;
-            byte[] data = new byte[i + 1];
-            Array.Copy(arr, data, i + 1);
-            return data;
         }
     }
 }
