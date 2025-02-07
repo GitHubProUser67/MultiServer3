@@ -35,6 +35,7 @@ using WatsonWebserver;
 using NetworkLibrary.Extension;
 using WebAPIService.WebArchive;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace HTTPSecureServerLite
 {
@@ -1189,37 +1190,31 @@ namespace HTTPSecureServerLite
                                                             }
 
                                                             if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetActiveIPAddresses(fullname, ServerIP).First();
 
-                                                            IPAddress ip = IPAddress.None; // NXDOMAIN
                                                             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                             {
+                                                                ConcurrentBag<IPAddress> Ips = new();
+
                                                                 try
                                                                 {
-                                                                    if (!IPAddress.TryParse(url, out IPAddress? address))
-                                                                        ip = Dns.GetHostEntry(url).AddressList[0];
-                                                                    else ip = address;
+                                                                    if (!IPAddress.TryParse(url, out IPAddress? address)) Parallel.ForEach(Dns.GetHostEntry(url).AddressList, extractedIp => { Ips.Add(extractedIp); });
+                                                                    else Ips.Add(address);
                                                                 }
-                                                                catch (Exception)
+                                                                catch
                                                                 {
-                                                                    ip = IPAddress.None;
+                                                                    Ips.Clear();
                                                                 }
 
-                                                                LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {ip}");
+                                                                LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
 
-                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
+                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips.ToList());
                                                             }
                                                             else if (url == "NXDOMAIN")
-                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
+                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
 
-                                                            if (DnsReq != null && DnsReq.Length <= 512) // Https wire expect padding.
+                                                            if (DnsReq != null)
                                                             {
-                                                                // Create a new byte array with size 512
-                                                                byte[] paddedArray = new byte[512];
-
-                                                                // Copy the original array content to the padded array
-                                                                Array.Copy(DnsReq, paddedArray, DnsReq.Length);
-
                                                                 statusCode = HttpStatusCode.OK;
                                                                 response.StatusCode = (int)statusCode;
                                                                 response.ContentType = "application/dns-message";
@@ -1668,37 +1663,31 @@ namespace HTTPSecureServerLite
                                                         }
 
                                                         if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetActiveIPAddresses(fullname, ServerIP).First();
 
-                                                        IPAddress ip = IPAddress.None; // NXDOMAIN
                                                         if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                         {
+                                                            ConcurrentBag<IPAddress> Ips = new();
+
                                                             try
                                                             {
-                                                                if (!IPAddress.TryParse(url, out IPAddress? address))
-                                                                    ip = Dns.GetHostEntry(url).AddressList[0];
-                                                                else ip = address;
+                                                                if (!IPAddress.TryParse(url, out IPAddress? address)) Parallel.ForEach(Dns.GetHostEntry(url).AddressList, extractedIp => { Ips.Add(extractedIp); });
+                                                                else Ips.Add(address);
                                                             }
-                                                            catch (Exception)
+                                                            catch
                                                             {
-                                                                ip = IPAddress.None;
+                                                                Ips.Clear();
                                                             }
 
-                                                            LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {ip}");
+                                                            LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
 
-                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
+                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips.ToList());
                                                         }
                                                         else if (url == "NXDOMAIN")
-                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, ip);
+                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
 
-                                                        if (DnsReq != null && DnsReq.Length <= 512) // Https wire expect padding.
+                                                        if (DnsReq != null)
                                                         {
-                                                            // Create a new byte array with size 512
-                                                            byte[] paddedArray = new byte[512];
-
-                                                            // Copy the original array content to the padded array
-                                                            Array.Copy(DnsReq, paddedArray, DnsReq.Length);
-
                                                             statusCode = HttpStatusCode.OK;
                                                             response.StatusCode = (int)statusCode;
                                                             response.ContentType = "application/dns-message";
