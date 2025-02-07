@@ -40,6 +40,10 @@ namespace HTTPSecureServerLite
 {
     public partial class HttpsProcessor
     {
+        private static string publicServerIp = NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true);
+
+        public static AdGuardFilterChecker adChecker = new AdGuardFilterChecker();
+
         private Webserver? _Server;
         private readonly string ip;
         private readonly ushort port;
@@ -1128,7 +1132,7 @@ namespace HTTPSecureServerLite
                                                         {
                                                             bool treated = false;
 
-                                                            byte[]? DnsReq = Convert.FromBase64String(dnsRequestBase64Url);
+                                                            byte[] DnsReq = DNSProcessor.TrimArray(Convert.FromBase64String(dnsRequestBase64Url));
 
                                                             string fullname = string.Join(".", DNSProcessor.GetDnsName(DnsReq).ToArray());
 
@@ -1157,7 +1161,13 @@ namespace HTTPSecureServerLite
                                                             }
                                                             else
                                                             {
-                                                                if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
+                                                                if (HTTPSServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
+                                                                {
+                                                                    url = "127.0.0.1";
+                                                                    treated = true;
+                                                                }
+
+                                                                if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
                                                                 {
                                                                     if (value.Mode == HandleMode.Allow) url = fullname;
                                                                     else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
@@ -1183,7 +1193,7 @@ namespace HTTPSecureServerLite
                                                             }
 
                                                             if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, publicServerIp);
 
                                                             IPAddress ip = IPAddress.None; // NXDOMAIN
                                                             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
@@ -1600,7 +1610,7 @@ namespace HTTPSecureServerLite
                                                 {
                                                     try
                                                     {
-                                                        byte[]? DnsReq = request.DataAsBytes;
+                                                        byte[] DnsReq = DNSProcessor.TrimArray(request.DataAsBytes);
 
                                                         string fullname = string.Join(".", DNSProcessor.GetDnsName(DnsReq).ToArray());
 
@@ -1630,7 +1640,13 @@ namespace HTTPSecureServerLite
                                                         }
                                                         else
                                                         {
-                                                            if (SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
+                                                            if (HTTPSServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
+                                                            {
+                                                                url = "127.0.0.1";
+                                                                treated = true;
+                                                            }
+
+                                                            if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
                                                             {
                                                                 if (value.Mode == HandleMode.Allow) url = fullname;
                                                                 else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
@@ -1656,7 +1672,7 @@ namespace HTTPSecureServerLite
                                                         }
 
                                                         if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress(true));
+                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, publicServerIp);
 
                                                         IPAddress ip = IPAddress.None; // NXDOMAIN
                                                         if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")

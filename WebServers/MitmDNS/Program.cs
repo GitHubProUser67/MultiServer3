@@ -17,6 +17,7 @@ public static class MitmDNSServerConfiguration
     public static uint MaximumNumberOfRequests { get; set; } = 200;
     public static uint MinimumDeltaTimeMs { get; set; } = 1000;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
+    public static bool EnableAdguardFiltering { get; set; } = true;
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -39,7 +40,8 @@ public static class MitmDNSServerConfiguration
                 new JProperty("maximum_number_of_requests", MaximumNumberOfRequests),
                 new JProperty("minimum_delta_time_ms", MinimumDeltaTimeMs),
                 new JProperty("routes_config", DNSConfig),
-                new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests)
+                new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
+                new JProperty("enable_adguard_filtering", EnableAdguardFiltering)
             ).ToString());
 
             return;
@@ -55,6 +57,7 @@ public static class MitmDNSServerConfiguration
             MinimumDeltaTimeMs = GetValueOrDefault(config, "minimum_delta_time_ms", MinimumDeltaTimeMs);
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
+            EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
         }
         catch (Exception ex)
         {

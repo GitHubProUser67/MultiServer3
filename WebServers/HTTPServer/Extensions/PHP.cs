@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Collections.Generic;
 
 namespace HTTPServer.Extensions
 {
@@ -70,7 +69,7 @@ namespace HTTPServer.Extensions
             proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", request.Port);
             proc.StartInfo.EnvironmentVariables.Add("REFERER", request.RetrieveHeaderValue("Referer"));
             proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"http://{request.ServerIP}:{request.ServerPort}{request.RawUrlWithQuery}");
-            foreach (var headerKeyPair in ConvertHeadersToPhpFriendly(request.Headers))
+            foreach (var headerKeyPair in request.Headers.ConvertHeadersToPhpFriendly())
             {
                 proc.StartInfo.EnvironmentVariables.Add(headerKeyPair.Key, headerKeyPair.Value);
             }
@@ -125,25 +124,6 @@ namespace HTTPServer.Extensions
             proc.WaitForExit(); // Wait for the PHP process to complete
 
             return (returndata, HeadersLocal);
-        }
-
-        private static List<KeyValuePair<string, string>> ConvertHeadersToPhpFriendly(List<KeyValuePair<string, string>>? headers)
-        {
-            List<KeyValuePair<string, string>> phpFriendlyHeaders = new List<KeyValuePair<string, string>>();
-
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                {
-                    // Convert header name to uppercase, replace dashes with underscores, and prefix with "HTTP_"
-                    string phpHeaderName = "HTTP_" + header.Key.ToUpper().Replace("-", "_");
-
-                    // Add the transformed header name and its value to the list
-                    phpFriendlyHeaders.Add(new KeyValuePair<string, string>(phpHeaderName, header.Value));
-                }
-            }
-
-            return phpFriendlyHeaders;
         }
     }
 }

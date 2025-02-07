@@ -351,13 +351,13 @@ namespace HTTPServer.RouteHandlers
                             if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && CollectPHP.Item1 != null)
                             {
                                 if (encoding.Contains("zstd"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "zstd" }));
+                                    return HttpResponse.Send(HTTPProcessor.CompressZstd(CollectPHP.Item1), "text/html", CollectPHP.Item2.AddElementToLastPosition(new string[] { "Content-Encoding", "zstd" }));
                                 else if (encoding.Contains("br"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "br" }));
+                                    return HttpResponse.Send(HTTPProcessor.CompressBrotli(CollectPHP.Item1), "text/html", CollectPHP.Item2.AddElementToLastPosition(new string[] { "Content-Encoding", "br" }));
                                 else if (encoding.Contains("gzip"))
-                                    return HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "gzip" }));
+                                    return HttpResponse.Send(HTTPProcessor.CompressGzip(CollectPHP.Item1), "text/html", CollectPHP.Item2.AddElementToLastPosition(new string[] { "Content-Encoding", "gzip" }));
                                 else if (encoding.Contains("deflate"))
-                                    return HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", HttpMisc.AddElementToLastPosition(CollectPHP.Item2, new string[] { "Content-Encoding", "deflate" }));
+                                    return HttpResponse.Send(HTTPProcessor.Inflate(CollectPHP.Item1), "text/html", CollectPHP.Item2.AddElementToLastPosition(new string[] { "Content-Encoding", "deflate" }));
                                 else
                                     return HttpResponse.Send(CollectPHP.Item1, "text/html", CollectPHP.Item2);
                             }

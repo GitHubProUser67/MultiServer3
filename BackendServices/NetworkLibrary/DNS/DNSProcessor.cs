@@ -81,5 +81,14 @@ namespace NetworkLibrary.DNS
             /* else*/
             return Encoding.ASCII.GetString(str);
         }
+
+        public static byte[] TrimArray(byte[] arr)
+        {
+            int i = arr.Length - 1;
+            while (arr[i] == 0) i--;
+            byte[] data = new byte[i + 1];
+            Array.Copy(arr, data, i + 1);
+            return data;
+        }
     }
 }
