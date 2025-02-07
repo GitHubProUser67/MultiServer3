@@ -164,6 +164,8 @@ class Program
             }
         }
 
+        _ = IPUtils.TryGetServerIP(53, out DNSResolver.ServerIp);
+
         Server.StartServerAsync(new CancellationTokenSource().Token);
     }
 

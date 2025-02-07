@@ -10,6 +10,7 @@ using System.Net.Http;
 #endif
 #if NETCORE3_0_OR_GREATER || NET5_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
+using System.Threading.Tasks;
 #endif
 
 namespace NetworkLibrary.TCP_IP
@@ -136,6 +137,44 @@ namespace NetworkLibrary.TCP_IP
 
             // If no valid interface with the desired IP version is found.
             return IPAddress.Loopback;
+        }
+
+        public static Task TryGetServerIP(ushort Port, out string extractedIP)
+        {
+            // We want to check if the router allows external IPs first.
+            string ServerIP = GetPublicIPAddress(true);
+            try
+            {
+                using TcpClient client = new(ServerIP, Port);
+                client.Close();
+            }
+            catch // Failed to connect to public ip, so we fallback to IPV4 Public IP.
+            {
+                ServerIP = GetPublicIPAddress(false);
+                try
+                {
+                    using TcpClient client = new(ServerIP, Port);
+                    client.Close();
+                }
+                catch // Failed to connect to public ip, so we fallback to local IP.
+                {
+                    ServerIP = GetLocalIPAddress(true).ToString();
+
+                    try
+                    {
+                        using TcpClient client = new(ServerIP, Port);
+                        client.Close();
+                    }
+                    catch // Failed to connect to local ip, trying IPV4 only as a last resort.
+                    {
+                        ServerIP = GetLocalIPAddress(false).ToString();
+                    }
+                }
+            }
+
+            extractedIP = ServerIP;
+
+            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -405,7 +405,7 @@ class Program
             }
         }
 
-        if (HTTPSServerConfiguration.Ports != null)
+        if (HTTPSServerConfiguration.Ports != null && HTTPSServerConfiguration.Ports.Count > 0)
         {
             HTTPSBag = new();
 

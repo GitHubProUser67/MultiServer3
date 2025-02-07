@@ -265,7 +265,7 @@ class Program
         {
             HTTPBag ??= new();
 
-            _ = Processor.TryGetServerIP(HTTPServerConfiguration.Ports.First());
+            _ = IPUtils.TryGetServerIP(HTTPServerConfiguration.Ports.First(), out Processor.ServerIp);
 
             new List<HTTPServer.Models.Route> { } /*TODO: Make it so we can input custom routes*/.ForEach(route => Processor.AddRoute(route));
 
