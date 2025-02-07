@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace MitmDNS
 {
@@ -81,28 +84,28 @@ namespace MitmDNS
                 }
 
                 if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIp);
+                    url = NetworkLibrary.TCP_IP.IPUtils.GetActiveIPAddresses(fullname, ServerIp).First();
 
-                IPAddress ip = IPAddress.None; // NXDOMAIN
                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                 {
+                    ConcurrentBag<IPAddress> Ips = new();
+
                     try
                     {
-                        if (!IPAddress.TryParse(url, out IPAddress address))
-                            ip = Dns.GetHostEntry(url).AddressList[0];
-                        else ip = address;
+                        if (!IPAddress.TryParse(url, out IPAddress? address)) Parallel.ForEach(Dns.GetHostEntry(url).AddressList, extractedIp => { Ips.Add(extractedIp); });
+                        else Ips.Add(address);
                     }
-                    catch (Exception)
+                    catch
                     {
-                        ip = IPAddress.None;
+                        Ips.Clear();
                     }
 
-                    LoggerAccessor.LogInfo($"[DNSResolver] - Resolved: {fullname} to: {ip}");
+                    LoggerAccessor.LogInfo($"[DNSResolver] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
 
-                    return DNSProcessor.MakeDnsResponsePacket(data, ip);
+                    return DNSProcessor.MakeDnsResponsePacket(data, Ips.ToList());
                 }
                 else if (url == "NXDOMAIN")
-                    return DNSProcessor.MakeDnsResponsePacket(data, ip);
+                    return DNSProcessor.MakeDnsResponsePacket(data, new List<IPAddress> { });
             }
             catch (Exception ex)
             {

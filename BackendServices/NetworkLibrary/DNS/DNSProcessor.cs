@@ -8,27 +8,46 @@ namespace NetworkLibrary.DNS
 {
     public class DNSProcessor
     {
-        public static byte[] MakeDnsResponsePacket(byte[] Req, IPAddress Ip)
+        public static byte[] MakeDnsResponsePacket(byte[] Req, List<IPAddress> Ips)
         {
-            if (Req.Length < 12)
+            if (Req.Length < 12 || Ips == null)
                 return null;
 
             List<byte> ans = new List<byte>();
             //https://web.archive.org/web/20150326065952/http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf
             //Header
-            ans.AddRange(new byte[] { Req[0], Req[1] });//ID
-            if (Ip == IPAddress.None)
-                ans.AddRange(new byte[] { 0x81, 0x83 });
+            ans.AddRange(new byte[2] { Req[0], Req[1] });//ID
+            if (Ips.Count == 0)
+            {
+                ans.AddRange(new byte[2] { 0x81, 0x83 });
+                Ips.Add(IPAddress.None); // NXDOMAIN
+            }
             else
-                ans.AddRange(new byte[] { 0x81, 0x80 }); //OPCODE & RCODE etc...
-            ans.AddRange(new byte[8] { Req[4], Req[5], Req[4], Req[5], 0x00, 0x00, 0x00, 0x00 }); //QDCount/ANCount/NSCount & ARCount
+                ans.AddRange(new byte[2] { 0x81, 0x80 }); //OPCODE & RCODE etc...
+            ans.AddRange(new byte[2] { Req[4], Req[5] }); // QDCOUNT (copy from request)
+            ans.AddRange(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)IPAddress.HostToNetworkOrder((short)Ips.Count)) : (ushort)IPAddress.HostToNetworkOrder((short)Ips.Count))); // ANCOUNT (number of answers)
+            ans.AddRange(new byte[4]); // NSCOUNT & ARCOUNT (not used)
             for (int i = 12; i < Req.Length; i++) ans.Add(Req[i]);
-            ans.AddRange(new byte[] { 0xC0, 0xC });
-            if (Ip.AddressFamily == AddressFamily.InterNetworkV6)
-                ans.AddRange(new byte[] { 0, 0x1c, 0, 1, 0, 0, 0, 0x14, 0, 0x10 }); //20 seconds, 0x10 is ipv6 length
-            else
-                ans.AddRange(new byte[] { 0, 1, 0, 1, 0, 0, 0, 0x14, 0, 4 });
-            ans.AddRange(Ip.GetAddressBytes());
+            foreach (IPAddress ip in Ips)
+            {
+                byte[] addrBytes = ip.GetAddressBytes();
+
+                ans.AddRange(new byte[2] { 0xC0, 0x0C }); // Pointer to domain name in query
+
+                if (ip.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    ans.AddRange(new byte[4] { 0x00, 0x1C, 0x00, 0x01 }); // Type AAAA (IPv6), Class IN
+                    ans.AddRange(new byte[4] { 0x00, 0x00, 0x00, 0x14 }); // TTL (20 seconds)
+                }
+                else
+                {
+                    ans.AddRange(new byte[4] { 0x00, 0x01, 0x00, 0x01 }); // Type A (IPv4), Class IN
+                    ans.AddRange(new byte[4] { 0x00, 0x00, 0x00, 0x14 }); // TTL (20 seconds)
+                }
+
+                ans.AddRange(new byte[2] { 0x00, (byte)addrBytes.Length }); // Data length (4 bytes for IPv4, 16 bytes for IPv6)
+                ans.AddRange(addrBytes);
+            }
             return ans.ToArray();
         }
 

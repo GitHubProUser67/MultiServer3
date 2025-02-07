@@ -1,6 +1,8 @@
 using CustomLogger;
 using EndianTools;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -178,24 +180,29 @@ namespace NetworkLibrary.TCP_IP
         }
 
         /// <summary>
-        /// Get the first active IP of a given domain.
-        /// <para>Obtiens la première IP active disponible d'un domaine.</para>
+        /// Get the active IPs of a given domain.
+        /// <para>Obtiens les IPs disponible d'un domaine.</para>
         /// </summary>
         /// <param name="hostName">The domain on which we search.</param>
         /// <param name="fallback">The fallback IP if we fail to find any results</param>
-        /// <returns>A string.</returns>
-        public static string GetFirstActiveIPAddress(string hostName, string fallback)
+        /// <returns>A ConcurrentBag<string>.</returns>
+        public static ConcurrentBag<string> GetActiveIPAddresses(string hostName, string fallback)
         {
+            ConcurrentBag<string> Ips = new ConcurrentBag<string>();
+
             try
             {
-                return Dns.GetHostEntry(hostName).AddressList.FirstOrDefault()?.ToString() ?? fallback;
+                Parallel.ForEach(Dns.GetHostEntry(hostName).AddressList, extractedIp => { Ips.Add(extractedIp.ToString()); });
             }
             catch
             {
-                // Not Important.
+                Ips.Clear();
             }
+			
+            if (Ips.Count == 0)
+                Ips.Add(fallback);
 
-            return fallback;
+            return Ips;
         }
 
         public static byte? GetLocalSubnet()
