@@ -4,15 +4,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #endif
-#if NETCORE3_0_OR_GREATER || NET5_0_OR_GREATER
+#if NETCORE3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
-using System.Threading.Tasks;
 #endif
 
 namespace NetworkLibrary.TCP_IP
@@ -262,7 +262,7 @@ namespace NetworkLibrary.TCP_IP
         private static uint CountSetBits(uint value)
         {
             // Use the Popcnt intrinsic if available
-#if NETCORE3_0_OR_GREATER || NET5_0_OR_GREATER
+#if NETCORE3_0_OR_GREATER
             if (Popcnt.IsSupported)
                 return Popcnt.PopCount(value);
 #endif
