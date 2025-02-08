@@ -61,11 +61,16 @@ namespace HTTPServer
         public virtual void Run()
         {
             if (IsRunning)
+            {
+                LoggerAccessor.LogWarn("[HTTP] - Server already activeo n port {Port}.");
                 return; //Already running, only one running instance allowed.
+            }
 
             IsRunning = true;
             Listener.Start();
             ExitSignal = false;
+
+            LoggerAccessor.LogInfo($"[HTTP] - Server started on port {Port}...");
 
             while (!ExitSignal)
                 ConnectionLooper();
@@ -84,7 +89,9 @@ namespace HTTPServer
             {
                 TcpClientTasks.Add(Task.Run(async () =>
                 {
+#if DEBUG
                     LoggerAccessor.LogInfo($"[HTTP] - Listening on port {Port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
                     return ProcessMessagesFromClient(await Listener.AcceptTcpClientAsync().ConfigureAwait(false));
                 }));
             }
@@ -101,14 +108,17 @@ namespace HTTPServer
 
             using (Connection) //Auto dispose of the cilent connection
             {
+#if DEBUG
                 LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
                 if (!Connection.Connected) //Abort if not connected
                     return false;
 
                 OnHandleConnection.Invoke(Connection, (ushort)Port);
             }
+#if DEBUG
             LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-
+#endif
             return true;
         }
         #endregion

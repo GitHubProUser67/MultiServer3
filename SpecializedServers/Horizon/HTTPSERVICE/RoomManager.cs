@@ -1,5 +1,6 @@
 using Horizon.SERVER;
 using NetworkLibrary.Crypto;
+using NetworkLibrary.Extension;
 using NetworkLibrary.Extension.Csharp;
 using Newtonsoft.Json;
 
@@ -7,6 +8,8 @@ namespace Horizon.HTTPSERVICE
 {
     public class RoomManager
     {
+        private static readonly byte[] RandSecSaltKey = ByteUtils.GenerateRandomBytes((ushort)NetObfuscator.SecSalt.Length);
+
         private static readonly ConcurrentList<Room> rooms = new ConcurrentList<Room>();
 
         // Update or Create a Room based on the provided parameters
@@ -179,7 +182,21 @@ namespace Horizon.HTTPSERVICE
 
         private static string CipherString(string input, string key)
         {
-            byte[] secSalt = NetObfuscator.SecSalt;
+            int i;
+            byte[] secSalt = new byte[RandSecSaltKey.Length];
+
+            for (i = 0; i < RandSecSaltKey.Length; i++)
+            {
+                if (i == 0)
+                    secSalt[i] = (byte)(NetObfuscator.SecSalt[i] ^ RandSecSaltKey[i] ^ (i * 2));
+                else
+                    secSalt[i] = (byte)(NetObfuscator.SecSalt[i] ^ RandSecSaltKey[i] ^ secSalt[i - 1]);
+            }
+
+            for (i = 0; i < input.Length; i++)
+            {
+                secSalt[i % secSalt.Length] ^= (byte)input[i];
+            }
 
             return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCrypto.EncryptCBC(input, key, WebCrypto.IdentIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";
         }
