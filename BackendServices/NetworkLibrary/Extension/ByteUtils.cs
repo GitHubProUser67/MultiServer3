@@ -117,7 +117,12 @@ namespace NetworkLibrary.Extension
         /// <returns>A boolean.</returns>
         public static bool EqualsTo(this byte[] b1, byte[] b2)
         {
-            if (b1 == null || b2 == null)
+            bool isb1Null = b1 == null;
+            bool isb2Null = b2 == null;
+            
+            if (isb1Null && isb2Null)
+                return true;
+            else if (isb1Null || isb2Null)
                 return false;
 
             if (Windows.Win32API.IsWindows)
@@ -170,11 +175,14 @@ namespace NetworkLibrary.Extension
         /// <returns>A byte array.</returns>
         public static byte[] CombineByteArray(byte[] first, byte[] second)
         {
-            if (first == null && second == null)
+            bool isfirstNull = first == null;
+            bool issecondNull = second == null;
+            
+            if (isfirstNull && issecondNull)
                 return null;
-            else if (second == null)
+            else if (issecondNull || second.Length == 0)
                 return first;
-            else if (first == null)
+            else if (isfirstNull || first.Length == 0)
                 return second;
 
             bool exceptionThrown = false;
