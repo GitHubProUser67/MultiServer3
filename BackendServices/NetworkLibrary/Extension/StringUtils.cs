@@ -191,10 +191,61 @@ namespace NetworkLibrary.Extension
 
             // Uses SIMD Json when possible.
 #if NETCOREAPP3_0_OR_GREATER
-            if (Windows.Win32API.IsWindows && Avx2.IsSupported)
+            if (Avx2.IsSupported)
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(jsonText);
+
+                if (Windows.Win32API.IsWindows)
+                {
+                    fixed (byte* ptr = bytes) // pin bytes while we are working on them
+                        using (ParsedJsonN doc = SimdJsonN.ParseJson(ptr, bytes.Length))
+                        {
+                            if (!doc.IsValid)
+                                return result;
+
+                            // Open iterator
+                            using (ParsedJsonIteratorN iterator = doc.CreateIterator())
+                            {
+                                while (iterator.MoveForward())
+                                {
+                                    if (iterator.IsString && iterator.GetUtf16String() == property)
+                                    {
+                                        if (iterator.MoveForward())
+                                            result.Add(iterator.GetUtf16String());
+                                    }
+                                }
+                            }
+
+                            return result;
+                        }
+                }
+                else
+                {
+                    fixed (byte* ptr = bytes) // pin bytes while we are working on them
+                        using (ParsedJson doc = SimdJson.ParseJson(ptr, bytes.Length))
+                        {
+                            if (!doc.IsValid)
+                                return result;
+
+                            // Open iterator
+                            using (ParsedJsonIterator iterator = doc.CreateIterator())
+                            {
+                                while (iterator.MoveForward())
+                                {
+                                    if (iterator.IsString && iterator.GetUtf16String() == property)
+                                    {
+                                        if (iterator.MoveForward())
+                                            result.Add(iterator.GetUtf16String());
+                                    }
+                                }
+                            }
+
+                            return result;
+                        }
+                }
+            }
 #else
             if (Windows.Win32API.IsWindows && IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE))
-#endif
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(jsonText);
                 fixed (byte* ptr = bytes) // pin bytes while we are working on them
@@ -219,6 +270,7 @@ namespace NetworkLibrary.Extension
                         return result;
                     }
             }
+#endif
             else
             {
                 try

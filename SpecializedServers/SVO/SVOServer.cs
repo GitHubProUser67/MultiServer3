@@ -44,7 +44,7 @@ namespace SVO
         {
             if (thread != null)
             {
-                LoggerAccessor.LogWarn("SVO Server already active.");
+                LoggerAccessor.LogWarn("[SVO] - Server already active.");
                 return;
             }
             thread = new Thread(Listen);
