@@ -1,3 +1,5 @@
+using EndianTools;
+using NetworkLibrary.Extension;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -8,46 +10,77 @@ namespace NetworkLibrary.DNS
 {
     public class DNSProcessor
     {
-        public static byte[] MakeDnsResponsePacket(byte[] Req, List<IPAddress> Ips)
+        public static byte[] MakeDnsResponsePacket(byte[] Req, List<IPAddress> Ips, int maxResponseSize = 512, int timeToLeave = 180)
         {
-            if (Req.Length < 12 || Ips == null)
+            const byte dnsHeaderSize = 12;
+
+            if (Req.Length < dnsHeaderSize || Ips == null)
                 return null;
 
+            bool TruncateFlag = false;
+
             List<byte> ans = new List<byte>();
-            //https://web.archive.org/web/20150326065952/http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf
-            //Header
-            ans.AddRange(new byte[2] { Req[0], Req[1] });//ID
+
+            // https://web.archive.org/web/20150326065952/http://www.ccs.neu.edu/home/amislove/teaching/cs4700/fall09/handouts/project1-primer.pdf
+            // Header
+            ans.AddRange(new byte[2] { Req[0], Req[1] }); // ID
+
             if (Ips.Count == 0)
             {
                 ans.AddRange(new byte[2] { 0x81, 0x83 });
                 Ips.Add(IPAddress.None); // NXDOMAIN
             }
             else
-                ans.AddRange(new byte[2] { 0x81, 0x80 }); //OPCODE & RCODE etc...
+                ans.AddRange(new byte[2] { 0x81, 0x80 }); // OPCODE & RCODE etc...
+
             ans.AddRange(new byte[2] { Req[4], Req[5] }); // QDCOUNT (copy from request)
+
             ans.AddRange(BitConverter.GetBytes(!BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort((ushort)IPAddress.HostToNetworkOrder((short)Ips.Count)) : (ushort)IPAddress.HostToNetworkOrder((short)Ips.Count))); // ANCOUNT (number of answers)
+
             ans.AddRange(new byte[4]); // NSCOUNT & ARCOUNT (not used)
-            for (int i = 12; i < Req.Length; i++) ans.Add(Req[i]);
+
+            for (int i = 12; i < Req.Length; i++)
+                ans.Add(Req[i]);
+
+            int responseSize = ans.Count;
+
             foreach (IPAddress ip in Ips)
             {
                 byte[] addrBytes = ip.GetAddressBytes();
 
+                ushort addrSizeOf = (ushort)addrBytes.Length;
+                int payloadSize = dnsHeaderSize + addrSizeOf;
+
+                if (payloadSize + responseSize > maxResponseSize)
+                {
+                    if (maxResponseSize == 512)
+                        TruncateFlag = true;
+                    break;
+                }
+
                 ans.AddRange(new byte[2] { 0xC0, 0x0C }); // Pointer to domain name in query
 
                 if (ip.AddressFamily == AddressFamily.InterNetworkV6)
-                {
                     ans.AddRange(new byte[4] { 0x00, 0x1C, 0x00, 0x01 }); // Type AAAA (IPv6), Class IN
-                    ans.AddRange(new byte[4] { 0x00, 0x00, 0x00, 0x14 }); // TTL (20 seconds)
-                }
                 else
-                {
                     ans.AddRange(new byte[4] { 0x00, 0x01, 0x00, 0x01 }); // Type A (IPv4), Class IN
-                    ans.AddRange(new byte[4] { 0x00, 0x00, 0x00, 0x14 }); // TTL (20 seconds)
-                }
 
-                ans.AddRange(new byte[2] { 0x00, (byte)addrBytes.Length }); // Data length (4 bytes for IPv4, 16 bytes for IPv6)
+                ans.AddRange(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(timeToLeave) : timeToLeave)); // TTL
+                ans.AddRange(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseUshort(addrSizeOf) : addrSizeOf)); // Data length (4 bytes for IPv4, 16 bytes for IPv6)
                 ans.AddRange(addrBytes);
+
+                responseSize += payloadSize;
             }
+
+            if (TruncateFlag)
+            {
+                // Set the truncated (TC) flag in the header (6th bit of second byte)
+                ans[3] = (byte)(ans[3] | 0x02);
+            }
+
+            if (responseSize < maxResponseSize)
+                return ByteUtils.CombineByteArray(ans.ToArray(), new byte[maxResponseSize - responseSize]);
+
             return ans.ToArray();
         }
 
