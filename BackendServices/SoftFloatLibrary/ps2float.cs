@@ -156,13 +156,58 @@ namespace SoftFloatLibrary
 
         public ps2float Mul(ps2float mulend)
         {
-            if (IsDenormalized() || mulend.IsDenormalized())
-                return SolveMultiplicationDenormalizedOperation(this, mulend);
-
-            if (IsZero() || mulend.IsZero())
+            if (IsDenormalized() || mulend.IsDenormalized() || IsZero() || mulend.IsZero())
                 return new ps2float(DetermineMultiplicationDivisionOperationSign(this, mulend), 0, 0);
 
             return DoMul(mulend);
+        }
+
+        public ps2float MulAdd(ps2float opsend, ps2float optend)
+        {
+            ps2float mulres = opsend.Mul(optend);
+            ps2float addres = Add(mulres);
+            uint rawres = addres.raw;
+            bool oflw = addres.of;
+            bool uflw = addres.uf;
+            DetermineMacException(3, raw, of, mulres.of, mulres.Sign ? 1 : 0, ref rawres, ref oflw, ref uflw);
+            return new ps2float(rawres) { of = oflw, uf = uflw };
+        }
+
+        public ps2float MulAddAcc(ps2float opsend, ps2float optend)
+        {
+            ps2float mulres = opsend.Mul(optend);
+            ps2float addres = Add(mulres);
+            uint rawres = addres.raw;
+            bool oflw = addres.of;
+            bool uflw = addres.uf;
+            DetermineMacException(8, raw, of, mulres.of, mulres.Sign ? 1 : 0, ref rawres, ref oflw, ref uflw);
+            raw = rawres;
+            of = oflw;
+            return new ps2float(rawres) { of = oflw, uf = uflw };
+        }
+
+        public ps2float MulSub(ps2float opsend, ps2float optend)
+        {
+            ps2float mulres = opsend.Mul(optend);
+            ps2float subres = Sub(mulres);
+            uint rawres = subres.raw;
+            bool oflw = subres.of;
+            bool uflw = subres.uf;
+            DetermineMacException(4, raw, of, mulres.of, mulres.Sign ? 1 : 0, ref rawres, ref oflw, ref uflw);
+            return new ps2float(rawres) { of = oflw, uf = uflw };
+        }
+
+        public ps2float MulSubAcc(ps2float opsend, ps2float optend)
+        {
+            ps2float mulres = opsend.Mul(optend);
+            ps2float subres = Sub(mulres);
+            uint rawres = subres.raw;
+            bool oflw = subres.of;
+            bool uflw = subres.uf;
+            DetermineMacException(9, raw, of, mulres.of, mulres.Sign ? 1 : 0, ref rawres, ref oflw, ref uflw);
+            raw = rawres;
+            of = oflw;
+            return new ps2float(rawres) { of = oflw, uf = uflw };
         }
 
         public static ps2float operator /(ps2float f1, ps2float f2)
@@ -172,12 +217,12 @@ namespace SoftFloatLibrary
 
         public ps2float Div(ps2float divend)
         {
-            FpgaDiv fpga = new FpgaDiv(true, raw, divend.raw);
-            return new ps2float(fpga.floatResult) {
-                dz = fpga.dz,
-                iv = fpga.iv,
-                of = fpga.of,
-                uf = fpga.uf
+            RadixDivisor radix = new RadixDivisor(true, raw, divend.raw);
+            return new ps2float(radix.floatResult) {
+                dz = radix.dz,
+                iv = radix.iv,
+                of = radix.of,
+                uf = radix.uf
             };
         }
 
@@ -265,24 +310,24 @@ namespace SoftFloatLibrary
         /// </summary>
         public ps2float Sqrt()
         {
-            FpgaDiv fpga = new FpgaDiv(false, 0, new ps2float(false, Exponent, Mantissa).raw);
-            return new ps2float(fpga.floatResult)
+            RadixDivisor radix = new RadixDivisor(false, 0, new ps2float(false, Exponent, Mantissa).raw);
+            return new ps2float(radix.floatResult)
             {
-                dz = fpga.dz,
-                iv = fpga.iv,
+                dz = radix.dz,
+                iv = radix.iv,
             };
         }
 
         public ps2float Rsqrt(ps2float other)
         {
-            FpgaDiv fpgaSqrt = new FpgaDiv(false, 0, new ps2float(false, other.Exponent, other.Mantissa).raw);
-            FpgaDiv fpgaDiv = new FpgaDiv(true, raw, fpgaSqrt.floatResult);
-            return new ps2float(fpgaDiv.floatResult)
+            RadixDivisor radixSqrt = new RadixDivisor(false, 0, new ps2float(false, other.Exponent, other.Mantissa).raw);
+            RadixDivisor radixDiv = new RadixDivisor(true, raw, radixSqrt.floatResult);
+            return new ps2float(radixDiv.floatResult)
             {
-                dz = fpgaSqrt.dz || fpgaDiv.dz,
-                iv = fpgaSqrt.iv || fpgaDiv.iv,
-                of = fpgaDiv.of,
-                uf = fpgaDiv.uf
+                dz = radixSqrt.dz || radixDiv.dz,
+                iv = radixSqrt.iv || radixDiv.iv,
+                of = radixDiv.of,
+                uf = radixDiv.uf
             };
         }
 
@@ -415,11 +460,6 @@ namespace SoftFloatLibrary
             return new ps2float(raw ^ SIGNMASK);
         }
 
-        private static ps2float SolveMultiplicationDenormalizedOperation(ps2float a, ps2float b)
-        {
-            return new ps2float(DetermineMultiplicationDivisionOperationSign(a, b), 0, 0);
-        }
-
         private static ps2float SolveAddSubDenormalizedOperation(ps2float a, ps2float b, bool add)
         {
             bool sign = add ? DetermineAdditionOperationSign(a, b) : DetermineSubtractionOperationSign(a, b);
@@ -467,6 +507,58 @@ namespace SoftFloatLibrary
             }
 
             return a.CompareOperands(b) >= 0 ? a.Sign : !b.Sign;
+        }
+
+        private static void DetermineMacException(byte mode, uint acc, bool acc_oflw, bool moflw, int msign, ref uint addsubres, ref bool oflw, ref bool uflw)
+        {
+            bool roundToMax;
+
+            if ((mode == 3) || (mode == 8))
+                roundToMax = msign == 0;
+            else
+            {
+                if ((mode != 4) && (mode != 9))
+                    throw new InvalidOperationException("Unhandled MacFlag operation flags");
+
+                roundToMax = msign != 0;
+            }
+
+            if (!acc_oflw)
+            {
+                if (moflw)
+                {
+                    if (roundToMax)
+                    {
+                        addsubres = MAX_FLOATING_POINT_VALUE;
+                        uflw = false;
+                        oflw = true;
+                    }
+                    else
+                    {
+                        addsubres = MIN_FLOATING_POINT_VALUE;
+                        uflw = false;
+                        oflw = true;
+                    }
+                }
+            }
+            else if (!moflw)
+            {
+                addsubres = acc;
+                uflw = false;
+                oflw = true;
+            }
+            else if (roundToMax)
+            {
+                addsubres = MAX_FLOATING_POINT_VALUE;
+                uflw = false;
+                oflw = true;
+            }
+            else
+            {
+                addsubres = MIN_FLOATING_POINT_VALUE;
+                uflw = false;
+                oflw = true;
+            }
         }
 
         /// <summary>

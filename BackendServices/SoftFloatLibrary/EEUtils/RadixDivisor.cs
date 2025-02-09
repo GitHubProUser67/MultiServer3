@@ -2,7 +2,7 @@
 
 namespace SoftFloatLibrary
 {
-    public class FpgaDiv
+    public class RadixDivisor
     {
         public bool dz = false;
         public bool iv = false;
@@ -27,7 +27,7 @@ namespace SoftFloatLibrary
         private int SubSum0;
         private int SubMult;
 
-        public FpgaDiv(bool divMode, uint f1, uint f2)
+        public RadixDivisor(bool divMode, uint f1, uint f2)
         {
             this.divMode = divMode;
 
