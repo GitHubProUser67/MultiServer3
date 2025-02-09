@@ -350,16 +350,11 @@ namespace SoftFloatLibrary
 
         public bool Equals(ps2float other)
         {
-            // 0 == -0
-            return (raw == other.raw) || (Abs() == 0) && (other.Abs() == 0);
+            return raw == other.raw;
         }
 
         public override int GetHashCode()
         {
-            if (raw == SIGNMASK)
-                // +0 equals -0
-                return 0;
-
             return (int)raw;
         }
 
