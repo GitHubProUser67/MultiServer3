@@ -65,7 +65,7 @@ namespace WebAPIService.VEEMEE.audi_tech
 
                                         for (byte i = 0; i < 24; i++)
                                         {
-                                            double? score = GetTotalScore(document, $"{(i % 3) + 1} {Math.Floor((decimal)((i / 3) % 2)) + 1} {Math.Floor((decimal)((i / 6) + 1))}");
+                                            double? score = GetTotalScore(document, $"{(i % 3) + 1} {Math.Floor((double)((i / 3) % 2)) + 1} {Math.Floor((double)((i / 6) + 1))}");
 
                                             if (score.HasValue && score.Value > 0)
                                             {
