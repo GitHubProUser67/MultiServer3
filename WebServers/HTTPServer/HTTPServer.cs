@@ -62,18 +62,25 @@ namespace HTTPServer
         {
             if (IsRunning)
             {
-                LoggerAccessor.LogWarn("[HTTP] - Server already activeo n port {Port}.");
+                LoggerAccessor.LogWarn($"[HTTP] - Server already active on port {Port}.");
                 return; //Already running, only one running instance allowed.
             }
 
-            IsRunning = true;
-            Listener.Start();
-            ExitSignal = false;
+            try
+            {
+                IsRunning = true;
+                Listener.Start();
+                ExitSignal = false;
 
-            LoggerAccessor.LogInfo($"[HTTP] - Server started on port {Port}...");
+                LoggerAccessor.LogInfo($"[HTTP] - Server started on port {Port}...");
 
-            while (!ExitSignal)
-                ConnectionLooper();
+                while (!ExitSignal)
+                    ConnectionLooper();
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError("[HTTP] - An Exception Occured while starting the http server: " + e.Message);
+            }
 
             TcpClientTasks.Clear();
 
