@@ -176,7 +176,7 @@ namespace HTTPSecureServerLite
             try
             {
                 bool sent = false;
-                bool requestValid = false;
+                bool isAllowed = false;
                 HttpRequestBase request = ctx.Request;
                 DateTime CurrentDate = request.Timestamp.Start;
                 HttpResponseBase response = ctx.Response;
@@ -196,40 +196,35 @@ namespace HTTPSecureServerLite
                 int ServerPort = request.Destination.Port;
                 bool secure = ServerPort.ToString().EndsWith("443");
 
-                try
+                if (!string.IsNullOrEmpty(request.Useragent) && request.Useragent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with a ByteDance crawler!");
+                else if (!string.IsNullOrEmpty(request.Url.RawWithQuery))
                 {
-                    if (!string.IsNullOrEmpty(request.Url.RawWithQuery))
+                    fullurl = HTTPProcessor.DecodeUrl(request.Url.RawWithQuery);
+
+                    string SuplementalMessage = string.Empty;
+                    string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+
+                    if (!string.IsNullOrEmpty(GeoCodeString))
                     {
-                        if (!string.IsNullOrEmpty(request.Useragent) && request.Useragent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
-                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with a ByteDance crawler!");
-                        else
+                        // Split the input string by the '-' character
+                        string[] parts = GeoCodeString.Split('-');
+
+                        // Check if there are exactly two parts
+                        if (parts.Length == 2)
                         {
-                            fullurl = HTTPProcessor.DecodeUrl(request.Url.RawWithQuery);
+                            string CountryCode = parts[0];
 
-                            string SuplementalMessage = string.Empty;
-                            string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
+                            SuplementalMessage = " Located at " + CountryCode + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
 
-                            if (!string.IsNullOrEmpty(GeoCodeString))
-                            {
-                                // Split the input string by the '-' character
-                                string[] parts = GeoCodeString.Split('-');
-
-                                // Check if there are exactly two parts
-                                if (parts.Length == 2)
-                                {
-                                    string CountryCode = parts[0];
-
-                                    SuplementalMessage = " Located at " + CountryCode + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
-
-                                    if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
-                                        CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset[CountryCode]);
-                                    else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
-                                        CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
-                                }
-                            }
+                            if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
+                                CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset[CountryCode]);
                             else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
                                 CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
-
+                        }
+                    }
+                    else if (HTTPSServerConfiguration.DateTimeOffset != null && HTTPSServerConfiguration.DateTimeOffset.ContainsKey(string.Empty))
+                        CurrentDate = CurrentDate.AddDays(HTTPSServerConfiguration.DateTimeOffset.Where(entry => entry.Key == string.Empty).FirstOrDefault().Value);
 #if DEBUG
                             IEnumerable<string> HeadersValue;
                             try
@@ -253,23 +248,16 @@ namespace HTTPSecureServerLite
 #endif
                             }, Formatting.Indented) + ") (" + ctx.Timestamp.TotalMs + "ms)");
 #else
-                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl} (" + ctx.Timestamp.TotalMs + "ms)");
+                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTPS Server with URL : {fullurl} (" + ctx.Timestamp.TotalMs + "ms)");
 #endif
-
-                            absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
-                            fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
-                            requestValid = true;
-                        }
-                    }
-                    else
-                        LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with invalid parameters!");
+                    absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
+                    fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
+                    isAllowed = true;
                 }
-                catch
-                {
+                else
+                    LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested the HTTPS Server with invalid url!");
 
-                }
-
-                if (requestValid)
+                if (isAllowed)
                 {
                     if (HTTPSServerConfiguration.RedirectRules != null)
                     {

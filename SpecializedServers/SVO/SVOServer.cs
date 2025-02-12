@@ -172,13 +172,12 @@ namespace SVO
             if (ctx == null)
                 return;
 
-            bool isok = false;
-            string clientip = string.Empty;
-            string absolutepath = string.Empty;
-
             try
             {
-                clientip = ctx.Request.RemoteEndPoint?.Address.ToString() ?? string.Empty;
+
+                bool isAllowed = false;
+                string absolutepath = ctx.Request.Url.AbsolutePath;
+                string clientip = ctx.Request.RemoteEndPoint?.Address.ToString() ?? string.Empty;
 
                 if (IsIPBanned(clientip))
                     LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
@@ -189,35 +188,18 @@ namespace SVO
                     if (!string.IsNullOrEmpty(ctx.Request.UserAgent))
                         UserAgent = ctx.Request.UserAgent.ToLower();
 
-                    if (!string.IsNullOrEmpty(UserAgent) && (UserAgent.Contains("firefox") || UserAgent.Contains("chrome") || UserAgent.Contains("edge")
-                        || UserAgent.Contains("trident") || UserAgent.Contains("opera") || UserAgent.Contains("bytespider"))) // Get Away TikTok.
-                    {
-                        ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+                    if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("bytespider")) // Get Away TikTok.
                         LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
+                    else if (!string.IsNullOrEmpty(absolutepath))
+                    {
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+                        isAllowed = true;
                     }
                     else
-                    {
-                        if (ctx.Request.Url != null && !string.IsNullOrEmpty(ctx.Request.Url.AbsolutePath))
-                        {
-                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
-
-                            // get filename path
-                            absolutepath = ctx.Request.Url.AbsolutePath;
-                            isok = true;
-                        }
-                        else
-                            LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with invalid parameters!");
-                    }
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with invalid url!");
                 }
-            }
-            catch
-            {
-                // Not Important.
-            }
 
-            if (isok)
-            {
-                try
+                if (isAllowed)
                 {
                     if (absolutepath == "/dataloaderweb/queue")
                     {
@@ -326,22 +308,22 @@ namespace SVO
                             ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
                     }
                 }
-                catch (HttpListenerException e) when (e.ErrorCode == 64)
-                {
-                    // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
-                    // This will cause server to throw error 64 (network interface not openned anymore)
-                    // In that case, we send internalservererror so client try again.
-
-                    ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-                }
-                catch (Exception e)
-                {
-                    LoggerAccessor.LogError("[SVO] - REQUEST ERROR: " + e.Message);
-                    ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-                }
+                else
+                    ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
-            else
-                ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+            catch (HttpListenerException e) when (e.ErrorCode == 64)
+            {
+                // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
+                // This will cause server to throw error 64 (network interface not openned anymore)
+                // In that case, we send internalservererror so client try again.
+
+                ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError("[SVO] - REQUEST ERROR: " + e.Message);
+                ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
 
             try
             {
