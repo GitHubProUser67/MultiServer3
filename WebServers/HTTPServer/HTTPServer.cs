@@ -12,7 +12,6 @@ namespace HTTPServer
 {
     public class HTTPServer
     {
-
         #region Public Properties
         private volatile bool _ExitSignal;
         public virtual bool ExitSignal
@@ -112,20 +111,20 @@ namespace HTTPServer
         {
             if (Connection == null)
                 return false;
-
-            using (Connection) //Auto dispose of the cilent connection
-            {
 #if DEBUG
-                LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+            LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
-                if (!Connection.Connected) //Abort if not connected
-                    return false;
-
-                OnHandleConnection.Invoke(Connection, (ushort)Port);
-            }
+            _ = Task.Run(() => {
+                using (Connection) //Auto dispose of the cilent connection
+                {
+                    if (Connection.Connected)
+                        OnHandleConnection.Invoke(Connection, (ushort)Port);
+                }
 #if DEBUG
-            LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
+            });
+
             return true;
         }
         #endregion
