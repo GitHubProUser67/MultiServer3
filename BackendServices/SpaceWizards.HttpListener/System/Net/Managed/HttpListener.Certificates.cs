@@ -26,17 +26,17 @@ namespace SpaceWizards.HttpListener
                 // Actually load the certificate
                 try
                 {
-                    if (_certificateCache != null && _certificateCache.TryGetValue(port, out certificate))
+                    if (_certificateCache != null && _certificateCache.TryGetValue((addr, port), out certificate))
                     {
                         return certificate;
                     }
 
                     string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".mono");
                     path = Path.Combine(path, "httplistener");
-                    string cert_file = Path.Combine(path, String.Format("{0}.pfx", port));
+                    string cert_file = Path.Combine(path, String.Format("{0}.pfx", FormatAddressForFile(addr) + $"_{port}"));
                     if (File.Exists(cert_file))
                     {
-                        string pass_file = Path.Combine(path, String.Format("{0}.password.txt", port));
+                        string pass_file = Path.Combine(path, String.Format("{0}.password.txt", FormatAddressForFile(addr) + $"_{port}"));
                         if (File.Exists(pass_file))
                         {
                             certificate = new X509Certificate2(cert_file, File.ReadAllText(pass_file));
@@ -63,6 +63,18 @@ namespace SpaceWizards.HttpListener
             }
 
             return null;
+        }
+
+        private static string FormatAddressForFile(IPAddress addr)
+        {
+            if (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                return addr.ToString().Replace(".", "_");
+            }
+            else
+            {
+                return addr.ToString().Replace(":", "-").Replace("[", string.Empty).Replace("]", string.Empty);
+            }
         }
     }
 }

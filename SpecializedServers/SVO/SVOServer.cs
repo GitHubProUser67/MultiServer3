@@ -5,6 +5,7 @@ using System.Text;
 using SpaceWizards.HttpListener;
 using System.Security.Cryptography.X509Certificates;
 using SVO.Games.PS3;
+using NetworkLibrary.TCP_IP;
 
 namespace SVO
 {
@@ -101,7 +102,7 @@ namespace SVO
             {
                 listener = new HttpListener();
                 if (certificate != null)
-                    listener.SetCertificate(securePort, certificate);
+                    listener.SetCertificate(System.Net.IPAddress.Parse(IPUtils.GetActiveIPAddresses(ip, "0.0.0.0").First()), securePort, certificate);
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
                 listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, securePort));
