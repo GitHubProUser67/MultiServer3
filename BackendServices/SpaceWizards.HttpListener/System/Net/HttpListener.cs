@@ -34,7 +34,7 @@ namespace SpaceWizards.HttpListener
         private AuthenticationSchemes _authenticationScheme = AuthenticationSchemes.Anonymous;
         private ExtendedProtectionSelector _extendedProtectionSelectorDelegate;
         private string _realm;
-        private Dictionary<int, X509Certificate2> _certificateCache;
+        private Dictionary<(IPAddress, int), X509Certificate2> _certificateCache;
         private HashAlgorithmName _hashAlgorithm = HashAlgorithmName.SHA384;
 
         internal ICollection PrefixCollection => _uriPrefixes.Keys;
@@ -275,7 +275,7 @@ namespace SpaceWizards.HttpListener
                 this);
         }
 
-        public void SetCertificate(int port, X509Certificate2 certificate)
+        public void SetCertificate(IPAddress addr, int port, X509Certificate2 certificate)
         {
 #if !NETCOREAPP2_1_OR_GREATER || !NETSTANDARD2_1_OR_GREATER
             if (CertificateHelper.IsCertificateAuthority(certificate))
@@ -283,20 +283,22 @@ namespace SpaceWizards.HttpListener
                 throw new NotSupportedException("The certificate store will only accept Authorities with .NETCORE 2.1 and up or .NETSTANDARD 2.1 and up");
             }
 #endif
+            (IPAddress, int) cacheEntry = (addr, port);
+
             lock (_internalLock)
             {
                 if (_certificateCache == null)
                 {
-                    _certificateCache = new Dictionary<int, X509Certificate2>();
+                    _certificateCache = new Dictionary<(IPAddress, int), X509Certificate2>();
                 }
 
-                if (!_certificateCache.ContainsKey(port))
+                if (!_certificateCache.ContainsKey(cacheEntry))
                 {
-                    _certificateCache.Add(port, certificate);
+                    _certificateCache.Add(cacheEntry, certificate);
                 }
                 else
                 {
-                    _certificateCache[port] = certificate;
+                    _certificateCache[cacheEntry] = certificate;
                 }
             }
         }
