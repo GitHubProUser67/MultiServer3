@@ -1,7 +1,6 @@
 using CustomLogger;
 using NetworkLibrary.GeoLocalization;
 using NetworkLibrary.TCP_IP;
-using MultiSpy;
 using MultiSpy.Data;
 using MultiSpy.Servers;
 using Newtonsoft.Json.Linq;
@@ -19,7 +18,9 @@ public static class MultiSpyServerConfiguration
     public static bool EnableMaster { get; set; } = true;
     public static bool EnableList { get; set; } = true;
     public static string DatabasePath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/multispy.sqlite";
-    private static Dictionary<string, string> GamesKey = new() {
+    public static string ChatServerPath { get; set; } = $"{Directory.GetCurrentDirectory()}/Python_Scripts/gschatserver.py.EdgeZlib";
+
+    public static Dictionary<string, string> GamesKey = new() {
 		{ "1001MinigolfChalle", string.Empty },
 		{ "12irondsam", "RxXhtd" },
 		{ "12ironds", "RxXhtd" },
@@ -4735,6 +4736,9 @@ public static class MultiSpyServerConfiguration
                 new JProperty("enable_cdkey", EnableCdKey),
                 new JProperty("enable_master", EnableMaster),
                 new JProperty("enable_list", EnableList),
+                new JProperty("database_path", DatabasePath),
+                new JProperty("chat_server_path", ChatServerPath),
+                new JProperty("games_key", GamesKey),
                 SerializeGamesKey()
             ).ToString());
 
@@ -4751,8 +4755,9 @@ public static class MultiSpyServerConfiguration
             EnableNatNeg = GetValueOrDefault(config, "enable_natneg", EnableNatNeg);
             EnableCdKey = GetValueOrDefault(config, "enable_cdkey", EnableCdKey);
             EnableMaster = GetValueOrDefault(config, "enable_master", EnableMaster);
-            EnableMaster = GetValueOrDefault(config, "enable_master", EnableMaster);
+            EnableList = GetValueOrDefault(config, "enable_list", EnableList);
             DatabasePath = GetValueOrDefault(config, "database_path", DatabasePath);
+            ChatServerPath = GetValueOrDefault(config, "chat_server_path", ChatServerPath);
             GamesKey = GetValueOrDefault(config, "games_key", GamesKey);
         }
         catch (Exception ex)
@@ -4820,7 +4825,7 @@ class Program
     private static ServerListReport? serverListReport = null;
     private static ServerListRetrieve? serverListRetrieve = null;
     private static ServerNatNeg? serverNatNeg = null;
-    private static PythonExecEngine? serverChat = null;
+    private static ChatServer? serverChat = null;
     private static EventHandler? _closeHandler;
 
 
@@ -4834,7 +4839,7 @@ class Program
         serverListReport?.Dispose();
         serverListRetrieve?.Dispose();
         serverNatNeg?.Dispose();
-		serverChat?.ForceQuitPythonProcess();
+        serverChat?.Dispose();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -4861,15 +4866,11 @@ class Program
             serverNatNeg = new ServerNatNeg(bindAddr, 27901);
 
         if (MultiSpyServerConfiguration.EnablePeerChat)
-		{
-            LoggerAccessor.LogInfo("[ServerNatNeg] - Starting Peer Chat Listener");
-            serverChat = new PythonExecEngine(Directory.GetCurrentDirectory() + "/Python_Scripts/gschatserver.py", NetworkLibrary.Extension.Windows.Win32API.IsWindows);
-        }
+            serverChat = new ChatServer();
     }
 
     private static bool CloseHandler(LoginDatabase.CtrlType sig)
     {
-        serverChat?.ForceQuitPythonProcess();
         LoginDatabase._instance?.Dispose();
 
         switch (sig)
