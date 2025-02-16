@@ -4,12 +4,11 @@ using System.IO;
 
 namespace WebAPIService.UBISOFT.gsconnect
 {
-    public class gsconnectClass : IDisposable
+    public class gsconnectClass
     {
         private string absolutepath;
         private string method;
         private string apistaticpath;
-        private bool disposedValue;
 
         public gsconnectClass(string method, string absolutepath, string apiStaticpath)
         {
@@ -74,37 +73,6 @@ namespace WebAPIService.UBISOFT.gsconnect
             }
 
             return (null, null, null);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    absolutepath = string.Empty;
-                    method = string.Empty;
-                    apistaticpath = string.Empty;
-                }
-
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
-                // TODO: affecter aux grands champs une valeur null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~HERMESClass()
-        // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

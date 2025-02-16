@@ -36,6 +36,7 @@ using NetworkLibrary.Extension;
 using WebAPIService.WebArchive;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using WebAPIService.DIGITAL_LEISURE;
 
 namespace HTTPSecureServerLite
 {
@@ -164,6 +165,124 @@ namespace HTTPSecureServerLite
                         ctx.Response.ContentType = "text/plain";
                         await ctx.Response.Send();
                     }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/setDressing.xml", async (ctx) =>
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                    ctx.Response.ContentType = "text/xml";
+                    await ctx.Response.Send(LUA2XmlProcessor.TransformLuaTableToXml(@"setDressing = {
+		                profiles = {
+			                'Votertron',
+			                'Customisation',
+			                'Posertrons',
+			                'BackstagePass',
+		                },
+		                entities = {
+			                ['main_scene'] = {
+				                'Booth_1_Colour',
+				                'Booth_1_Back',
+				                'Booth_2_Colour',
+				                'Booth_2_Back',
+				                'Booth_3_Colour',
+				                'Booth_3_Back',
+				                'Booths_Outer',
+				                'Lobby_Gate_Internal',
+				                'Lobby_Gate_External',
+				                'Lobby_Gate_Base',
+				                'Lobby_Main_Walls',
+				                'Lobby_Short_Walls',
+				                'Lobby_Tall_Walls',
+				                --'Lobby_Bench_Top',
+				                --'Lobby_Bench_Bottom',
+				                'Bar_Top_Front',
+				                'Bar_Back',
+				                'Bar_Front',
+				                'Bar_Floor',
+				                --'Bar_Sofa_Bottom',
+				                --'Bar_Sofa_Top',
+				                'Vip_Back',
+				                'Vip_Floor_Tile',
+				                'Vip_StairWall',
+				                'Vip_Cloth',
+				                --'Vip_Back_Sofa',
+				                --'Vip_Sofa_Bottom',
+				                --'Vip_Sofa_Top',
+				                'Catwalk_Floor',
+				                'Catwalk_backboard',
+				                --'Catwalk_Scoreboard',
+				                'Backstage_Back_Wall',
+				                'Backstage_Walls',
+				                'Backstage_Ceiling',
+				                'Backstage_Floor',
+				                --'Backstage_Sofa_Bottom',
+				                --'Backstage_Sofa_Top',
+				                'Backstage_Tassles',
+				                'Backstage_wood_dark_veneer',
+				                'Backstage_wood_dark_veneer2',
+			                }
+		                }
+	                }
+
+		            local options = {
+			            profiles = {},
+			            entities = {},
+		            }
+		            if setDressing then
+			            for _, name in ipairs(setDressing.profiles) do
+				            options.profiles[name] = {}
+			            end
+		            end
+		            if  setDressing then
+			            for entName, entDef in pairs(setDressing.entities) do
+				            options.entities[entName] = {}
+				            for _, matName in ipairs(entDef) do
+					            options.entities[entName][matName] = {}
+				            end
+			            end
+		            end
+
+                    local TableFromInput = {
+					    options 	= options,
+					    setups 		= {
+						    ['default'] = {
+							    profiles 	= {},
+							    dressing 	= {
+								    entities 	= {},
+							    },
+						    },
+					    },
+					    schedule 	= {
+						    january 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    february 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    march 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    april 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    may 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    june 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    july 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    august 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    september 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    october 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    november 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+						    december 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
+					    },
+					    customisationGroups 	= {},
+					    customisation 			= {
+						    profiles 	= {},
+						    entities 	= {},
+					    }
+				    }
+
+                    return XmlConvert.LuaToXml(TableFromInput, 'root', 1)
+                    "));
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/camPath.xml", async (ctx) =>
+                {
+                    // For now this returns a default table, TODO: feed this with actual data.
+                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                    ctx.Response.ContentType = "text/xml";
+                    await ctx.Response.Send("<root></root>");
                 });
 
                 _Server.Start();
@@ -668,7 +787,6 @@ namespace HTTPSecureServerLite
                                 else
                                     res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath);
 
-                                juggernaut.Dispose();
                                 if (res == null)
                                     statusCode = HttpStatusCode.InternalServerError;
                                 else if (res == string.Empty)
@@ -677,6 +795,30 @@ namespace HTTPSecureServerLite
                                     response.ContentType = "text/plain";
                                     statusCode = HttpStatusCode.OK;
                                 }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(res != null ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Digital Leisure Casino API
+                            else if (Host == "root.pshomecasino.com" && absolutepath.EndsWith(".php"))
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Identified a DIGITAL LEISURE Casino method : {absolutepath}");
+
+                                string? res = new DLCasinoClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                
+                                if (res == null)
+                                    statusCode = HttpStatusCode.InternalServerError;
                                 else
                                 {
                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));

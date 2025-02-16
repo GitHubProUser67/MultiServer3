@@ -10,9 +10,8 @@ using WebAPIService.NDREAMS.Xi2;
 
 namespace WebAPIService.NDREAMS
 {
-    public partial class NDREAMSClass : IDisposable
+    public partial class NDREAMSClass
     {
-        private bool disposedValue;
         private DateTime currentdate;
         private string absolutepath;
         private string baseurl;
@@ -138,36 +137,6 @@ namespace WebAPIService.NDREAMS
             }
 
             return null;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    absolutepath = string.Empty;
-                    method = string.Empty;
-                }
-
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
-                // TODO: affecter aux grands champs une valeur null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~NDREAMSClass()
-        // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
 #if NET7_0_OR_GREATER
         [GeneratedRegex(@"blueprint_(\d+)\.xml")]

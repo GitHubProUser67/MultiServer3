@@ -408,6 +408,15 @@ namespace HTTPServer
                                             }
                                             #endregion
 
+                                            #region Playmetrix Stats API
+                                            else if (Host == "stats.playmetrix.com" && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip} Identified a Playmetrix Stats method : {absolutepath}");
+
+                                                response = HttpBuilder.OK();
+                                            }
+                                            #endregion
+
                                             #region Ubisoft Build API
                                             else if (Host == "builddatabasepullapi"
                                                 && request.GetDataStream != null
@@ -495,7 +504,6 @@ namespace HTTPServer
                                                 else
                                                     res = ndreams.ProcessRequest(request.QueryParameters);
 
-                                                ndreams.Dispose();
                                                 if (string.IsNullOrEmpty(res))
                                                     response = HttpBuilder.InternalServerError();
                                                 else
@@ -546,7 +554,7 @@ namespace HTTPServer
                                                 }
                                                 else
                                                     res = juggernaut.ProcessRequest(request.QueryParameters, HTTPServerConfiguration.APIStaticFolder);
-                                                juggernaut.Dispose();
+
                                                 if (res == null)
                                                     response = HttpBuilder.InternalServerError();
                                                 else if (res == string.Empty)
@@ -693,7 +701,7 @@ namespace HTTPServer
                                                             else
                                                                 response = HttpResponse.Send(res.Item1, "text/plain");
 
-                                                            response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                                            response.Headers!.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
                                                             response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
 
                                                         }
@@ -713,7 +721,7 @@ namespace HTTPServer
                                                             else
                                                                 response = HttpResponse.Send(res.Item1, "text/plain");
 
-                                                            response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                                            response.Headers!.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
                                                             response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
 
                                                         }
@@ -750,7 +758,7 @@ namespace HTTPServer
                                                     {
                                                         HttpStatusCode = HttpStatusCode.OK
                                                     };
-                                                    response.Headers["Content-Type"] = res.Item2;
+                                                    response.Headers!["Content-Type"] = res.Item2;
                                                     response.ContentAsUTF8 = res.Item1;
 
                                                     if (res.Item3 != null)
@@ -1132,7 +1140,7 @@ namespace HTTPServer
                                                                                 HttpStatusCode = HttpStatusCode.OK,
                                                                                 ContentAsUTF8 = string.Empty
                                                                             };
-                                                                            response.Headers.Add("Content-Type", vid.ContentType);
+                                                                            response.Headers!.Add("Content-Type", vid.ContentType);
                                                                             response.Headers.Add("Content-Length", ms.Length.ToString());
                                                                             ms.Flush();
                                                                         }
@@ -1154,7 +1162,7 @@ namespace HTTPServer
                                                         break;
                                                     case "OPTIONS":
                                                         response = HttpBuilder.OK();
-                                                        response.Headers.Add("Allow", "OPTIONS, GET, HEAD, POST, PROPFIND");
+                                                        response.Headers!.Add("Allow", "OPTIONS, GET, HEAD, POST, PROPFIND");
                                                         break;
                                                     case "PROPFIND":
                                                         if (File.Exists(filePath))
@@ -1282,7 +1290,7 @@ namespace HTTPServer
                         (isNoneMatchValid && string.IsNullOrEmpty(request.RetrieveHeaderValue("If-Modified-Since"))) ||
                         (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch))))
                     {
-                        response.Headers.Clear();
+                        response.Headers!.Clear();
 
                         if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
@@ -1313,7 +1321,7 @@ namespace HTTPServer
                         long totalBytes = response.ContentStream.Length;
                         string? encoding = null;
 
-                        if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
+                        if (!response.Headers!.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
 
                         if (KeepAlive)
@@ -1374,7 +1382,7 @@ namespace HTTPServer
                 }
                 else
                 {
-                    response.Headers.Clear();
+                    response.Headers!.Clear();
 
                     if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
@@ -1501,7 +1509,7 @@ namespace HTTPServer
                                 {
                                     HttpStatusCode = HttpStatusCode.RequestedRangeNotSatisfiable
                                 };
-                                response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                                response.Headers!.Add("Content-Range", string.Format("bytes */{0}", filesize));
                                 response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
                                 if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding))
                                 {
@@ -1543,7 +1551,7 @@ namespace HTTPServer
                                 {
                                     HttpStatusCode = HttpStatusCode.OK
                                 };
-                                response.Headers.Add("Accept-Ranges", "bytes");
+                                response.Headers!.Add("Accept-Ranges", "bytes");
                                 response.Headers.Add("Content-Type", ContentType);
 
                                 long FileLength = new FileInfo(filePath).Length;
@@ -1608,7 +1616,7 @@ namespace HTTPServer
                         {
                             HttpStatusCode = HttpStatusCode.PartialContent
                         };
-                        response.Headers.Add("Server", "Apache");
+                        response.Headers!.Add("Server", "Apache");
                         response.Headers.Add("Content-Type", "multipart/byteranges; boundary=multiserver_separator");
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -1694,7 +1702,7 @@ namespace HTTPServer
                         {
                             HttpStatusCode = HttpStatusCode.RequestedRangeNotSatisfiable
                         };
-                        response.Headers.Add("Content-Range", string.Format("bytes */{0}", filesize));
+                        response.Headers!.Add("Content-Range", string.Format("bytes */{0}", filesize));
                         response.Headers.Add("Content-Type", "text/html; charset=UTF-8");
                         if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(acceptencoding))
                         {
@@ -1744,7 +1752,7 @@ namespace HTTPServer
                         {
                                 HttpStatusCode = HttpStatusCode.OK
                         };
-                        response.Headers.Add("Accept-Ranges", "bytes");
+                        response.Headers!.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Type", ContentType);
 
                         long FileLength = new FileInfo(filePath).Length;
@@ -1804,7 +1812,7 @@ namespace HTTPServer
                             {
                                 HttpStatusCode = HttpStatusCode.PartialContent
                             };
-                        response.Headers.Add("Server", "Apache");
+                        response.Headers!.Add("Server", "Apache");
                         response.Headers.Add("Content-Type", ContentType);
                         response.Headers.Add("Accept-Ranges", "bytes");
                         response.Headers.Add("Content-Range", string.Format("bytes {0}-{1}/{2}", startByte, endByte - 1, filesize));
@@ -1872,7 +1880,7 @@ namespace HTTPServer
                             (isNoneMatchValid && string.IsNullOrEmpty(request.RetrieveHeaderValue("If-Modified-Since"))) ||
                             (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
                         {
-                            response.Headers.Clear();
+                            response.Headers!.Clear();
 
                             if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                                 response.Headers.Add("Server", "Apache");
@@ -1903,7 +1911,7 @@ namespace HTTPServer
                             long totalBytes = response.ContentStream.Length;
                             string? encoding = null;
 
-                            if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
+                            if (!response.Headers!.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                                 response.Headers.Add("Server", "Apache");
 
                             if (KeepAlive)
@@ -1963,7 +1971,7 @@ namespace HTTPServer
                     }
                     else
                     {
-                        response.Headers.Clear();
+                        response.Headers!.Clear();
 
                         if (!response.Headers.Keys.Any(key => key.Equals("server", StringComparison.OrdinalIgnoreCase)))
                             response.Headers.Add("Server", "Apache");
