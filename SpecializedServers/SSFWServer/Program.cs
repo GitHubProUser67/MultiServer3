@@ -10,7 +10,7 @@ public static class SSFWServerConfiguration
 {
     public static bool ForceOfficialRPCNSignature { get; set; } = false;
     public static bool SSFWCrossSave { get; set; } = true;
-    public static int SSFWTTL { get; set; } = 80;
+    public static int SSFWTTL { get; set; } = 60;
     public static string SSFWMinibase { get; set; } = "[]";
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
     public static string SSFWSessionIdKey { get; set; } = NetworkLibrary.Crypto.WebCrypto.GenerateRandomBase64KeyAsync().Result;
@@ -65,7 +65,7 @@ public static class SSFWServerConfiguration
                 new JProperty("minibase", SSFWMinibase),
                 new JProperty("legacyKey", SSFWLegacyKey),
                 new JProperty("sessionidKey", SSFWSessionIdKey),
-                new JProperty("time_to_leave", SSFWTTL),
+                new JProperty("time_to_live", SSFWTTL),
                 new JProperty("cross_save", SSFWCrossSave),
                 new JProperty("static_folder", SSFWStaticFolder),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
@@ -86,7 +86,7 @@ public static class SSFWServerConfiguration
 
             ForceOfficialRPCNSignature = GetValueOrDefault(config, "force_official_rpcn_signature", ForceOfficialRPCNSignature);
             SSFWMinibase = GetValueOrDefault(config, "minibase", SSFWMinibase);
-            SSFWTTL = GetValueOrDefault(config, "time_to_leave", SSFWTTL);
+            SSFWTTL = GetValueOrDefault(config, "time_to_live", SSFWTTL);
             SSFWLegacyKey = GetValueOrDefault(config, "legacyKey", SSFWLegacyKey);
             SSFWSessionIdKey = GetValueOrDefault(config, "sessionidKey", SSFWSessionIdKey);
             SSFWCrossSave = GetValueOrDefault(config, "cross_save", SSFWCrossSave);
