@@ -4,7 +4,7 @@ using WebAPIService.UBISOFT.HERMES_API.v2;
 
 namespace WebAPIService.UBISOFT.HERMES_API
 {
-    public class HERMESClass : IDisposable
+    public class HERMESClass
     {
         private string absolutepath;
         private string method;
@@ -15,7 +15,6 @@ namespace WebAPIService.UBISOFT.HERMES_API
         private string regioncode;
         private string ticket;
         private string apipath;
-        private bool disposedValue;
 
         public HERMESClass(string method, string absolutepath, string UbiAppId, string UbiRequestedPlatformType, string ubiappbuildid, string clientip, string regioncode, string ticket, string apipath)
         {
@@ -62,42 +61,6 @@ namespace WebAPIService.UBISOFT.HERMES_API
             }
 
             return (null, null);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    absolutepath = string.Empty;
-                    method = string.Empty;
-                    UbiAppId = string.Empty;
-                    UbiRequestedPlatformType = string.Empty;
-                    ubiappbuildid = string.Empty;
-                    clientip = string.Empty;
-                    regioncode = null;
-                    ticket = string.Empty;
-                    apipath = string.Empty;
-                }
-
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
-                // TODO: affecter aux grands champs une valeur null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~HERMESClass()
-        // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

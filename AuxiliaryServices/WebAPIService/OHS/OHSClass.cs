@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace WebAPIService.OHS
 {
-    public class OHSClass : IDisposable
+    public class OHSClass
     {
         private static string[] Commands = { "/batch/", "/community/getscore/", "/community/updatescore/",
             "/global/set/", "/global/getall/", "/global/get/",
@@ -18,7 +18,6 @@ namespace WebAPIService.OHS
         private string absolutepath;
         private string method;
         private int game;
-        private bool disposedValue;
 
         public OHSClass(string method, string absolutepath, int game)
         {
@@ -116,36 +115,6 @@ namespace WebAPIService.OHS
             }
 
             return modifiedInput;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    absolutepath = string.Empty;
-                    method = string.Empty;
-                }
-
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
-                // TODO: affecter aux grands champs une valeur null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~OHSClass()
-        // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }
