@@ -9,38 +9,36 @@ namespace MultiSocks.Blaze.Components.Redirector
 {
     internal class RedirectorComponent : RedirectorComponentBase.Server
     {
-        /// <summary>
-        /// You only need to override the base method to handle new requests.
-        /// If the request type or/and response type is NullStruct, you can change the request/response types in the Component Base.
-        /// </summary>
         public override Task<ServerInstanceInfo> GetServerInstanceAsync(ServerInstanceRequest request, BlazeRpcContext context)
         {
-            //if needded access underlying connection which issued the request and other stuff
-            ProtoFireConnection connection = context.Connection;
-
-            //manually displaying some data
-            LoggerAccessor.LogInfo($"[Blaze] - Redirector: Connection Id    : {connection.ID}");
-            LoggerAccessor.LogInfo($"[Blaze] - Redirector: Service Name     : {request.mName}");
+#if DEBUG
+            LoggerAccessor.LogInfo($"[Blaze] - Redirector: Connection Id    : {context.Connection.ID}");
+            LoggerAccessor.LogInfo($"[Blaze] - Redirector: Client Name  : {request.mClientName}");
             LoggerAccessor.LogInfo($"[Blaze] - Redirector: Client Type      : {request.mClientType}");
-            LoggerAccessor.LogInfo($"[Blaze] - Redirector: Client Platform  : {request.mPlatform}");
+            LoggerAccessor.LogInfo($"[Blaze] - Redirector: Client SkuId  : {request.mClientSkuId}");
+            LoggerAccessor.LogInfo($"[Blaze] - Redirector: Client Environment  : {request.mEnvironment}");
+#endif
+            bool secure = MultiSocksServerConfiguration.EnableBlazeEncryption;
+            ushort port;
 
-            //if something is wrong with request data - thrown an BlazeRpcException with error code and error data, which will be sent to client (in debug environment disable breaking on this exception)
-            if (request.mName == "someValueHere")
+            switch (request.mClientName)
             {
-                throw new BlazeRpcException(Blaze3RpcError.REDIRECTOR_UNKNOWN_SERVICE_NAME, new ServerInstanceError()
-                {
-                    mMessages = new List<string>() {
-                        "Unknown service name"
+                case "MassEffect3-ps3":
+                    secure = false;
+                    port = 33152;
+                    break;
+                default:
+                    throw new BlazeRpcException(Blaze3RpcError.REDIRECTOR_UNKNOWN_SERVICE_NAME, new ServerInstanceError()
+                    {
+                        mMessages = new List<string>() {
+                        "Unknown game requested! Please report to GITHUB."
                     }
-                });
+                    });
             }
 
-            //Connection details
-            bool secure = false; //insecure
-            string ip = "127.0.0.1";
-            ushort port = 33152;
+            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
 
-            ServerInstanceInfo responseData = new()
+            return Task.FromResult(new ServerInstanceInfo()
             {
                 //this is an union type, so we specify only one of the values
                 mAddress = new ServerAddress()
@@ -53,28 +51,9 @@ namespace MultiSocks.Blaze.Components.Redirector
                     },
                 },
 
-                //optionally address remaps can be specified
-                mAddressRemaps = new List<AddressRemapEntry>()
-                {
-
-                },
-
-                //optionally server messages can be specified
-                mMessages = new List<string>() {
-                    //"Hello, from Multiserver!"
-                },
-
-                //optionally name remaps can be specified
-                mNameRemaps = new List<NameRemapEntry>()
-                {
-
-                },
                 mSecure = secure,
                 mDefaultDnsAddress = 0
-            };
-
-            //return the response
-            return Task.FromResult(responseData);
+            });
         }
     }
 }

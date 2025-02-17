@@ -2,51 +2,56 @@
 using Blaze3SDK.Components;
 using BlazeCommon;
 using CustomLogger;
+using NetworkLibrary.Extension;
+using System.Text;
+using XI5;
 
 namespace MultiSocks.Blaze.Util
 {
     internal class AuthComponent : AuthenticationComponentBase.Server
     {
-        /// <summary>
-        /// You only need to override the base method to handle new requests.
-        /// If the request type or/and response type is NullStruct, you can change the request/response types in the Component Base.
-        /// </summary>
         public override Task<ConsoleLoginResponse> Ps3LoginAsync(PS3LoginRequest request, BlazeRpcContext context)
         {
-            //if needded access underlying connection which issued the request and other stuff
-            ProtoFireConnection connection = context.Connection;
-
-            //manually displaying some data
-            LoggerAccessor.LogInfo($"[Blaze] - Auth: Connection Id    : {connection.ID}");
+#if DEBUG
+            LoggerAccessor.LogInfo($"[Blaze] - Auth: Connection Id    : {context.Connection.ID}");
             LoggerAccessor.LogInfo($"[Blaze] - Auth: Email     : {request.mEmail}");
-            LoggerAccessor.LogInfo($"[Blaze] - Auth: Client Type      : {request.mPS3Ticket}");
+            LoggerAccessor.LogInfo($"[Blaze] - Auth: XI5Ticket Size      : {request.mPS3Ticket.Length}");
+#endif
+            uint unixTimeStamp = (uint)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
 
-            /*
-            //if something is wrong with request data - thrown an BlazeRpcException with error code and error data, which will be sent to client (in debug environment disable breaking on this exception)
-            if (request.mName == "someValueHere")
+            // Extract the desired portion of the binary data for a npticket 4.0
+            byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+            // Copy it
+            Array.Copy(request.mPS3Ticket, 0x54, extractedData, 0, extractedData.Length);
+
+            // Trim null bytes
+            int nullByteIndex = Array.IndexOf(extractedData, (byte)0x00);
+            if (nullByteIndex >= 0)
             {
-                throw new BlazeRpcException(Blaze3RpcError.REDIRECTOR_UNKNOWN_SERVICE_NAME, new ServerInstanceError()
-                {
-                    mMessages = new List<string>() {
-                        "Unknown service name"
-                    }
-                });
+                byte[] trimmedData = new byte[nullByteIndex];
+                Array.Copy(extractedData, trimmedData, nullByteIndex);
+                extractedData = trimmedData;
             }
-            */
 
+            string accountName = Encoding.UTF8.GetString(extractedData);
 
-            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
-            uint unixTimeStamp = (UInt32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            if (ByteUtils.FindBytePattern(request.mPS3Ticket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+            {
+                LoggerAccessor.LogInfo($"[Blaze] - Auth: User {accountName} logged in and is on RPCN");
 
+                accountName += "@RPCN";
+            }
+            else
+                LoggerAccessor.LogInfo($"[Blaze] - Auth: User {accountName} logged in and is on PSN");
 
-            
-            ConsoleLoginResponse consoleLoginResponse = new ConsoleLoginResponse()
+            return Task.FromResult(new ConsoleLoginResponse()
             {
                 mCanAgeUp = false,
                 mIsOfLegalContactAge = true,
-                mLegalDocHost = "",
+                mLegalDocHost = string.Empty,
                 mNeedsLegalDoc = false,
-                mPrivacyPolicyUri = "",
+                mPrivacyPolicyUri = string.Empty,
                 mSessionInfo = new SessionInfo()
                 {
                     mBlazeUserId = 1,
@@ -55,7 +60,7 @@ namespace MultiSocks.Blaze.Util
                     mLastLoginDateTime = unixTimeStamp,
                     mPersonaDetails = new PersonaDetails()
                     {
-                        mDisplayName = "Dust514JumpDev",
+                        mDisplayName = accountName,
                         mExtId = 1,
                         mExtType = ExternalRefType.BLAZE_EXTERNAL_REF_TYPE_PS3,
                         mLastAuthenticated = unixTimeStamp,
@@ -65,34 +70,18 @@ namespace MultiSocks.Blaze.Util
                     mSessionKey = "11229301_9b171d92cc562b293e602ee8325612e7",
                     mUserId = 1,
                 },
-                mTosHost = "",
-                mTermsOfServiceUri = "",
-                mTosUri = "",
-
-            };
-            
-
-            //return the response
-            return Task.FromResult(consoleLoginResponse);
+                mTosHost = string.Empty,
+                mTermsOfServiceUri = string.Empty,
+                mTosUri = string.Empty,
+            });
         }
 
-
-
-
-        /// <summary>
-        /// You only need to override the base method to handle new requests.
-        /// If the request type or/and response type is NullStruct, you can change the request/response types in the Component Base.
-        /// </summary>
         public override Task<NullStruct> LogoutAsync(NullStruct request, BlazeRpcContext context)
         {
-            //if needded access underlying connection which issued the request and other stuff
-            ProtoFireConnection connection = context.Connection;
+#if DEBUG
+            LoggerAccessor.LogWarn($"[Blaze] - Auth: Logout Connection Id    : {context.Connection.ID}");
+#endif
 
-            //manually displaying some data
-            LoggerAccessor.LogInfo($"[Blaze] - Auth: Logout Connection Id    : {connection.ID}");
-
-
-            //return the response
             return null;
         }
     }
