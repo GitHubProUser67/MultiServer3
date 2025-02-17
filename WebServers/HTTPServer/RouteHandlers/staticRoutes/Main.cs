@@ -1,5 +1,3 @@
-
-using WebAPIService.THQ;
 using HTTPServer.Extensions;
 using HTTPServer.Models;
 using NetworkLibrary.HTTP;
@@ -7,6 +5,7 @@ using NetworkLibrary.Extension;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using WebAPIService.THQ;
 
 namespace HTTPServer.RouteHandlers.staticRoutes
 {
@@ -135,14 +134,14 @@ namespace HTTPServer.RouteHandlers.staticRoutes
                      }
                 },
                 new() {
-                    Name = "UFC Home Connector",
+                    Name = "UFC Undisputed PS Home",
                     UrlRegex = "/index.php",
                     Method = "POST",
                     Host = "sonyhome.thqsandbox.com",
                     Callable = (HttpRequest request) => {
                         if (request.GetDataStream != null)
                         {
-                            string? UFCResult = THQ.ProcessUFCUserData(request.GetDataStream, HTTPProcessor.ExtractBoundary(request.GetContentType()), HTTPServerConfiguration.APIStaticFolder);
+                            string? UFCResult = UFC2010PsHomeClass.ProcessUFCUserData(request.GetDataStream, HTTPProcessor.ExtractBoundary(request.GetContentType()), HTTPServerConfiguration.APIStaticFolder);
                             if (!string.IsNullOrEmpty(UFCResult))
                                 return HttpResponse.Send(UFCResult, "text/xml");
                         }
