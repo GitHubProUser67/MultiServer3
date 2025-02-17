@@ -207,7 +207,7 @@ namespace HTTPServer
 #if DEBUG
                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl} (Details: \n" + JsonConvert.SerializeObject(request, Formatting.Indented) + ')');
 #else
-									LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
+								LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport}{SuplementalMessage} Requested the HTTP Server with URL : {fullurl}");
 #endif
 
                                 string absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
@@ -226,7 +226,7 @@ namespace HTTPServer
 #if NET6_0
                                                 Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
 #elif NET7_0_OR_GREATER
-													Match match = ApacheMatchRegex().Match(RouteRule);
+												Match match = ApacheMatchRegex().Match(RouteRule);
 #endif
                                                 if (match.Success && match.Groups.Count == 3)
                                                 {
