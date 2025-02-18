@@ -50,7 +50,6 @@ namespace SVO
             }
             thread = new Thread(Listen);
             thread.Start();
-            LoggerAccessor.LogInfo("[SVO] - Server started...");
             IsStarted = true;
         }
 
@@ -102,11 +101,13 @@ namespace SVO
             {
                 listener = new HttpListener();
                 if (certificate != null)
-                    listener.SetCertificate(System.Net.IPAddress.Parse(IPUtils.GetActiveIPAddresses(ip, "0.0.0.0").First()), securePort, certificate);
+                    listener.SetCertificate(System.Net.IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(ip, "0.0.0.0")), securePort, certificate);
 				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
                 listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, securePort));
                 listener.Start();
+
+                LoggerAccessor.LogInfo("[SVO] - Server started...");
 
                 HashSet<Task> requests = new();
                 for (int i = 0; i < MaxConcurrentListeners; i++)
@@ -157,14 +158,13 @@ namespace SVO
                         LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
                     }
                 }
-				
+
                 requests.Clear();
             }
             catch (Exception e)
             {
                 LoggerAccessor.LogError("[SVO] - An Exception Occured while starting the http server: " + e.Message);
                 threadActive = false;
-                return;
             }
         }
 
@@ -175,7 +175,6 @@ namespace SVO
 
             try
             {
-
                 bool isAllowed = false;
                 string absolutepath = ctx.Request.Url.AbsolutePath;
                 string clientip = ctx.Request.RemoteEndPoint?.Address.ToString() ?? string.Empty;

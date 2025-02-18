@@ -37,6 +37,7 @@ using WebAPIService.WebArchive;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using WebAPIService.DIGITAL_LEISURE;
+using NetworkLibrary.Upscalers;
 
 namespace HTTPSecureServerLite
 {
@@ -1320,15 +1321,21 @@ namespace HTTPSecureServerLite
                                                             }
 
                                                             if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetActiveIPAddresses(fullname, ServerIP).First();
+                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                             {
-                                                                ConcurrentBag<IPAddress> Ips = new();
+                                                                List<IPAddress> Ips = new();
 
                                                                 try
                                                                 {
-                                                                    if (!IPAddress.TryParse(url, out IPAddress? address)) Parallel.ForEach(Dns.GetHostEntry(url).AddressList, extractedIp => { Ips.Add(extractedIp); });
+                                                                    if (!IPAddress.TryParse(url, out IPAddress? address))
+                                                                    {
+                                                                        foreach (var extractedIp in Dns.GetHostEntry(url).AddressList)
+                                                                        {
+                                                                            Ips.Add(extractedIp);
+                                                                        }
+                                                                    }
                                                                     else Ips.Add(address);
                                                                 }
                                                                 catch
@@ -1338,7 +1345,7 @@ namespace HTTPSecureServerLite
 
                                                                 LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
 
-                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips.ToList());
+                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips);
                                                             }
                                                             else if (url == "NXDOMAIN")
                                                                 DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
@@ -1793,15 +1800,21 @@ namespace HTTPSecureServerLite
                                                         }
 
                                                         if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetActiveIPAddresses(fullname, ServerIP).First();
+                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                         if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                         {
-                                                            ConcurrentBag<IPAddress> Ips = new();
+                                                            List<IPAddress> Ips = new();
 
                                                             try
                                                             {
-                                                                if (!IPAddress.TryParse(url, out IPAddress? address)) Parallel.ForEach(Dns.GetHostEntry(url).AddressList, extractedIp => { Ips.Add(extractedIp); });
+                                                                if (!IPAddress.TryParse(url, out IPAddress? address))
+                                                                {
+                                                                    foreach (var extractedIp in Dns.GetHostEntry(url).AddressList)
+                                                                    {
+                                                                        Ips.Add(extractedIp);
+                                                                    }
+                                                                }
                                                                 else Ips.Add(address);
                                                             }
                                                             catch
@@ -1811,7 +1824,7 @@ namespace HTTPSecureServerLite
 
                                                             LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
 
-                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips.ToList());
+                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips);
                                                         }
                                                         else if (url == "NXDOMAIN")
                                                             DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
@@ -2215,7 +2228,7 @@ namespace HTTPSecureServerLite
             {
                 ctx.Response.ContentType = ContentType;
 
-                st = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(filePath))));
+                st = ImageOptimizer.OptimizeImage(HTTPSServerConfiguration.ConvertersFolder, filePath, Path.GetExtension(filePath));
             }
             else if (isHtmlCompatible && isVideoOrAudio)
             {

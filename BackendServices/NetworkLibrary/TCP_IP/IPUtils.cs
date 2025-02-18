@@ -147,16 +147,16 @@ namespace NetworkLibrary.TCP_IP
             string ServerIP = GetPublicIPAddress(true);
             try
             {
-                using TcpClient client = new(ServerIP, Port);
-                client.Close();
+                using (TcpClient client = new(ServerIP, Port))
+                    client.Close();
             }
             catch // Failed to connect to public ip, so we fallback to IPV4 Public IP.
             {
                 ServerIP = GetPublicIPAddress(false);
                 try
                 {
-                    using TcpClient client = new(ServerIP, Port);
-                    client.Close();
+                    using (TcpClient client = new(ServerIP, Port))
+                        client.Close();
                 }
                 catch // Failed to connect to public ip, so we fallback to local IP.
                 {
@@ -164,8 +164,8 @@ namespace NetworkLibrary.TCP_IP
 
                     try
                     {
-                        using TcpClient client = new(ServerIP, Port);
-                        client.Close();
+                        using (TcpClient client = new(ServerIP, Port))
+                            client.Close();
                     }
                     catch // Failed to connect to local ip, trying IPV4 only as a last resort.
                     {
@@ -180,29 +180,24 @@ namespace NetworkLibrary.TCP_IP
         }
 
         /// <summary>
-        /// Get the active IPs of a given domain.
-        /// <para>Obtiens les IPs disponible d'un domaine.</para>
+        /// Get the first active IP of a given domain.
+        /// <para>Obtiens la première IP active disponible d'un domaine.</para>
         /// </summary>
         /// <param name="hostName">The domain on which we search.</param>
         /// <param name="fallback">The fallback IP if we fail to find any results</param>
-        /// <returns>A ConcurrentBag<string>.</returns>
-        public static ConcurrentBag<string> GetActiveIPAddresses(string hostName, string fallback)
+        /// <returns>A string.</returns>
+        public static string GetFirstActiveIPAddress(string hostName, string fallback)
         {
-            ConcurrentBag<string> Ips = new ConcurrentBag<string>();
-
             try
             {
-                Parallel.ForEach(Dns.GetHostEntry(hostName).AddressList, extractedIp => { Ips.Add(extractedIp.ToString()); });
+                return Dns.GetHostEntry(hostName).AddressList.FirstOrDefault()?.ToString() ?? fallback;
             }
             catch
             {
-                Ips.Clear();
+                // Not Important.
             }
-			
-            if (Ips.Count == 0)
-                Ips.Add(fallback);
 
-            return Ips;
+            return fallback;
         }
 
         public static byte? GetLocalSubnet()
