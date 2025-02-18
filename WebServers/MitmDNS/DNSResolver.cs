@@ -84,15 +84,21 @@ namespace MitmDNS
                 }
 
                 if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                    url = NetworkLibrary.TCP_IP.IPUtils.GetActiveIPAddresses(fullname, ServerIp).First();
+                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIp);
 
                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                 {
-                    ConcurrentBag<IPAddress> Ips = new();
+                    List<IPAddress> Ips = new();
 
                     try
                     {
-                        if (!IPAddress.TryParse(url, out IPAddress? address)) Parallel.ForEach(Dns.GetHostEntry(url).AddressList, extractedIp => { Ips.Add(extractedIp); });
+                        if (!IPAddress.TryParse(url, out IPAddress address))
+                        {
+                            foreach (var extractedIp in Dns.GetHostEntry(url).AddressList)
+                            {
+                                Ips.Add(extractedIp);
+                            }
+                        }
                         else Ips.Add(address);
                     }
                     catch
@@ -102,7 +108,7 @@ namespace MitmDNS
 
                     LoggerAccessor.LogInfo($"[DNSResolver] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
 
-                    return DNSProcessor.MakeDnsResponsePacket(data, Ips.ToList());
+                    return DNSProcessor.MakeDnsResponsePacket(data, Ips);
                 }
                 else if (url == "NXDOMAIN")
                     return DNSProcessor.MakeDnsResponsePacket(data, new List<IPAddress> { });

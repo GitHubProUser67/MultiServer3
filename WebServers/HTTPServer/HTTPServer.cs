@@ -1,8 +1,7 @@
 ﻿using CustomLogger;
+using NetworkLibrary.TCP_IP;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -12,81 +11,96 @@ namespace HTTPServer
 {
     public class HTTPServer
     {
-        #region Public Properties
-        private volatile bool _ExitSignal;
-        public virtual bool ExitSignal
-        {
-            get => _ExitSignal;
-            set => _ExitSignal = value;
-        }
-        #endregion
-
         #region Public Delegates
         public delegate void ConnectionHandlerDelegate(TcpClient tcpClient, ushort ListenerPort);
-        public delegate void MessageDelegate(string message);
         #endregion
 
-        #region Variables
+        public static bool IsStarted = false;
 
-        #region Init/State
-        protected readonly int AwaiterTimeoutInMS; //The max time to wait between ExitSignal checks
-        protected readonly string Host;
-        protected readonly int Port;
-        protected readonly int MaxConcurrentListeners;
-        protected readonly TcpListener Listener;
-        
-        protected bool IsRunning;
-        protected List<Task> TcpClientTasks = new List<Task>();
-        #endregion
+        private Thread? thread;
+        private volatile bool threadActive;
+
+        private TcpListener? listener;
+
+        private readonly int AwaiterTimeoutInMS;
+        private readonly int MaxConcurrentListeners;
+
+        private readonly string host;
+        private readonly ushort port;
+
+        private List<Task> TcpClientTasks = new List<Task>();
 
         #region Callbacks
-        protected readonly ConnectionHandlerDelegate OnHandleConnection; //the connection handler logic will be performed by the consumer of class
-        #endregion
+        private readonly ConnectionHandlerDelegate OnHandleConnection;
         #endregion
 
-        #region Constructor
-        public HTTPServer(ConnectionHandlerDelegate connectionHandler, string host = "0.0.0.0", int port = 8080, int maxConcurrentListeners = 10, int awaiterTimeoutInMS = 500)
+        public HTTPServer(ConnectionHandlerDelegate connectionHandler, string host, ushort port, int MaxConcurrentListeners = 10, int awaiterTimeoutInMS = 500)
         {
             OnHandleConnection = connectionHandler ?? throw new ArgumentNullException(nameof(connectionHandler));
-            Host = host ?? throw new ArgumentNullException(nameof(host));
-            Port = port;
-            MaxConcurrentListeners = maxConcurrentListeners;
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.port = port;
+            this.MaxConcurrentListeners = MaxConcurrentListeners;
             AwaiterTimeoutInMS = awaiterTimeoutInMS;
-            Listener = new TcpListener(IPAddress.Parse(Host), Port);
-        }
-        #endregion
 
-        #region Public Functions
-        public virtual void Run()
+            Start();
+        }
+
+        public void Start()
         {
-            if (IsRunning)
+            if (thread != null)
             {
-                LoggerAccessor.LogWarn($"[HTTP] - Server already active on port {Port}.");
-                return; //Already running, only one running instance allowed.
+                LoggerAccessor.LogWarn("[HTTP] - Server already active.");
+                return;
+            }
+            thread = new Thread(Listen);
+            thread.Start();
+            IsStarted = true;
+        }
+
+        public void Stop()
+        {
+            // stop thread and listener
+            threadActive = false;
+            if (listener != null) listener.Stop();
+
+            // wait for thread to finish
+            if (thread != null)
+            {
+                thread.Join();
+                thread = null;
             }
 
+            // finish closing listener
+            if (listener != null)
+                listener = null;
+
+            IsStarted = false;
+        }
+
+        private void Listen()
+        {
+            threadActive = true;
+
+            // start listener
             try
             {
-                IsRunning = true;
-                Listener.Start();
-                ExitSignal = false;
+                listener = new TcpListener(IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(host, "0.0.0.0")), port);
+                listener.Start();
 
-                LoggerAccessor.LogInfo($"[HTTP] - Server started on port {Port}...");
+                LoggerAccessor.LogInfo($"[HTTP] - Server started on port {port}...");
 
-                while (!ExitSignal)
+                // wait for requests
+                while (threadActive)
                     ConnectionLooper();
             }
             catch (Exception e)
             {
                 LoggerAccessor.LogError("[HTTP] - An Exception Occured while starting the http server: " + e.Message);
+                threadActive = false;
             }
 
             TcpClientTasks.Clear();
-
-            IsRunning = false;
         }
-
-        #endregion
 
         #region Protected Functions
         protected virtual void ConnectionLooper()
@@ -96,9 +110,9 @@ namespace HTTPServer
                 TcpClientTasks.Add(Task.Run(async () =>
                 {
 #if DEBUG
-                    LoggerAccessor.LogInfo($"[HTTP] - Listening on port {Port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                    LoggerAccessor.LogInfo($"[HTTP] - Listening on port {port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
-                    return ProcessMessagesFromClient(await Listener.AcceptTcpClientAsync().ConfigureAwait(false));
+                    return ProcessMessagesFromClient(await listener!.AcceptTcpClientAsync().ConfigureAwait(false));
                 }));
             }
 
@@ -112,16 +126,16 @@ namespace HTTPServer
             if (Connection == null)
                 return false;
 #if DEBUG
-            LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+            LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
             _ = Task.Run(() => {
                 using (Connection) //Auto dispose of the cilent connection
                 {
                     if (Connection.Connected)
-                        OnHandleConnection.Invoke(Connection, (ushort)Port);
+                        OnHandleConnection.Invoke(Connection, port);
                 }
 #if DEBUG
-                LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {Port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
             });
 

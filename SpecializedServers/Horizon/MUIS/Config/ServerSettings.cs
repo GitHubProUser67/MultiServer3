@@ -1,7 +1,6 @@
 using Org.BouncyCastle.Math;
 using Horizon.RT.Cryptography.RSA;
 
-
 namespace Horizon.MUIS.Config
 {
     public class ServerSettings
@@ -46,7 +45,7 @@ namespace Horizon.MUIS.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string? NATIp { get; set; } = NetworkLibrary.TCP_IP.IPUtils.GetActiveIPAddresses("natservice.pdonline.scea.com", "34.199.94.233").First();
+        public string? NATIp { get; set; } = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
         /// <summary>
         /// Port of the NAT server.
         /// Provide the Port of the SCE-RT NAT Service

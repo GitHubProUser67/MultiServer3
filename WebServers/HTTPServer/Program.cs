@@ -236,7 +236,7 @@ class Program
         {
             foreach (var httpBag in HTTPBag.Values)
             {
-                httpBag.ExitSignal = true;
+                httpBag.Stop();
             }
         }
 
@@ -271,21 +271,9 @@ class Program
 
             Parallel.ForEach(HTTPServerConfiguration.Ports, port => {
                 if (HTTPBag.ContainsKey(port))
-                {
-                    new Thread(() => {
-                        HTTPBag[port].Run(); //Server runs in a dedicated thread seperate from mains thread
-                    }).Start();
-                }
+                    HTTPBag[port].Start();
                 else if (TCPUtils.IsTCPPortAvailable(port))
-                {
-                    HTTPServer.HTTPServer BLL = new(Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4);
-
-                    new Thread(() => {
-                        BLL.Run(); //Server runs in a dedicated thread seperate from mains thread
-                    }).Start();
-
-                    HTTPBag.TryAdd(port, BLL);
-                }
+                    HTTPBag.TryAdd(port, new HTTPServer.HTTPServer(Processor.HandleClient, "0.0.0.0", port, Environment.ProcessorCount * 4));
             });
         }
         else

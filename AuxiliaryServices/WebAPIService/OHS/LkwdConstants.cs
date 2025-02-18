@@ -14,7 +14,7 @@ namespace WebAPIService.OHS
             { "FAE204D3-40CA42AA-8055A1D3-8721EE08", 1180 }
         };
 
-        public static List<string> LockwoodLifeSceneList = new List<string>
+        public static readonly List<string> LockwoodLifeSceneList = new List<string>
         {
             "Dream_Yacht_Club_946D_7710",
             "Sunset_Lounge_EBEF_AD7C",

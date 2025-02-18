@@ -54,8 +54,7 @@ namespace WebAPIService.NDREAMS.Xi2
                                         profileData = BattleContProfileData.DeserializeProfileData(profilePath);
                                     else
                                     {
-                                        string defaultProfile = Convert.ToBase64String(BattleContProfileData.GenerateDefaultSaveData());
-                                        profileData = new BattleContProfileData() { SaveData = defaultProfile, Hash = NetHasher.DotNetHasher.ComputeSHA1String(Encoding.UTF8.GetBytes($"SAVE:{defaultProfile}:DATA")).ToLower(), Completed = 0, Wins = 0, Losses = 0, Conn_Lost = 0, Quits = 0, Best = 0, Average = 0, Packs = 0 };
+                                        profileData = new BattleContProfileData() { SaveData = "NEW PLAYER", Hash = "NEW PLAYER", Completed = 0, Wins = 0, Losses = 0, Conn_Lost = 0, Quits = 0, Best = 0, Average = 0, Packs = 0 };
 
                                         Directory.CreateDirectory(directoryPath);
                                         profileData.SerializeProfileData(profilePath);
@@ -351,66 +350,6 @@ namespace WebAPIService.NDREAMS.Xi2
             {
                 return (BattleContProfileData)serializer.Deserialize(reader);
             }
-        }
-
-        public static byte[] GenerateDefaultSaveData()
-        {
-            const short MAX_ASSOCIATES = 100;
-
-            using (MemoryStream memoryStream = new MemoryStream(1024))
-            using (BinaryWriter writer = new BinaryWriter(memoryStream))
-            {
-                // Write the initial data.
-                writer.Write("BattleData");
-                writer.Write(1.0f);
-                writer.Write("[A]");
-                writer.Write(MAX_ASSOCIATES);
-
-                long byteIndex = memoryStream.Position;
-
-                int bitIndex = 0;
-
-                for (short i = 0; i < MAX_ASSOCIATES; i++)
-                {
-                    bitIndex = SetBit(memoryStream, byteIndex, i, false);
-                }
-
-                byteIndex = (long)Math.Floor(byteIndex + (bitIndex + 7) / 8.0);
-
-                memoryStream.SetLength(byteIndex); // Set the used size.
-                memoryStream.Position = byteIndex; // Move to the end of used data.
-
-                writer.Write("[/A]None");
-                writer.Write((short)0);
-                writer.Write((short)0);
-                writer.Write((byte)0);
-                writer.Write((byte)0);
-                writer.Write((short)0);
-                writer.Write((short)0);
-                writer.Write((short)0);
-                writer.Write((byte)0);
-
-                return memoryStream.ToArray();
-            }
-        }
-
-        // Simulate Home Lua library function.
-        private static int SetBit(MemoryStream stream, long byteIndex, int bitPosition, bool value)
-        {
-            stream.Position = byteIndex;
-            int byteValue = stream.ReadByte();
-            if (byteValue == -1)
-                byteValue = 0;
-
-            if (value)
-                byteValue |= (1 << bitPosition);
-            else
-                byteValue &= ~(1 << bitPosition);
-
-            stream.Position = byteIndex;
-            stream.WriteByte((byte)byteValue);
-
-            return bitPosition;
         }
     }
 }

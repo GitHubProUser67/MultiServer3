@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using WebAPIService.WebArchive;
+using NetworkLibrary.Upscalers;
 
 namespace HTTPServer.RouteHandlers
 {
@@ -54,17 +55,17 @@ namespace HTTPServer.RouteHandlers
                         if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                         {
                             matched = true;
-                            response.Headers["Content-Type"] = entry.Key;
+                            response.Headers!["Content-Type"] = entry.Key;
                             break;
                         }
                     }
                     if (!matched)
-                        response.Headers["Content-Type"] = ContentType;
+                        response.Headers!["Content-Type"] = ContentType;
                 }
                 else
-                    response.Headers["Content-Type"] = ContentType;
+                    response.Headers!["Content-Type"] = ContentType;
 
-                response.Headers.Add("Content-Length", new FileInfo(filePath).Length.ToString());
+                response.Headers!.Add("Content-Length", new FileInfo(filePath).Length.ToString());
 
                 return response;
             }
@@ -98,10 +99,10 @@ namespace HTTPServer.RouteHandlers
                 }
             }
 
-            response.Headers.Add("Accept-Ranges", "bytes");
+            response.Headers!.Add("Accept-Ranges", "bytes");
 
             if (ContentType.StartsWith("image/") && HTTPServerConfiguration.EnableImageUpscale)
-                response.ContentStream = new MemoryStream(ImageOptimizer.OptimizeImage(filePath, CompressionLibrary.NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(filePath))));
+                response.ContentStream = ImageOptimizer.OptimizeImage(HTTPServerConfiguration.ConvertersFolder, filePath, Path.GetExtension(filePath));
             else if (isHtmlCompatible && (ContentType.StartsWith("audio/") || ContentType.StartsWith("video/")))
             {
                 // Generate an HTML page with the video element
@@ -227,7 +228,7 @@ namespace HTTPServer.RouteHandlers
 
             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
-            response.Headers.Add("Location", $"http://{(!string.IsNullOrEmpty(Host) ? Host : request.ServerIP)}{absolutepath}/");
+            response.Headers!.Add("Location", $"http://{(!string.IsNullOrEmpty(Host) ? Host : request.ServerIP)}{absolutepath}/");
             response.Headers.Add("Content-Type", "text/html; charset=iso-8859-1");
 
             if (HTTPServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
@@ -267,7 +268,7 @@ namespace HTTPServer.RouteHandlers
             {
                 HttpStatusCode = HttpStatusCode.OK,
             };
-            response.Headers["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
+            response.Headers!["Content-disposition"] = $"attachment; filename={Path.GetFileName(local_path)}";
             response.ContentStream = File.OpenRead(local_path);
 
             return response;
@@ -280,7 +281,7 @@ namespace HTTPServer.RouteHandlers
             if (Data != null)
             {
                 response.HttpStatusCode = HttpStatusCode.OK;
-                response.Headers["Content-disposition"] = $"attachment; filename={fileName}";
+                response.Headers!["Content-disposition"] = $"attachment; filename={fileName}";
                 response.ContentStream = new MemoryStream(Data);
             }
             else
