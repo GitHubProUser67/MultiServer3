@@ -1347,7 +1347,7 @@ namespace HTTPSecureServerLite
 
                                                                 DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips);
                                                             }
-                                                            else if (url == "NXDOMAIN")
+                                                            else
                                                                 DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
 
                                                             if (DnsReq != null)
@@ -1826,7 +1826,7 @@ namespace HTTPSecureServerLite
 
                                                             DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips);
                                                         }
-                                                        else if (url == "NXDOMAIN")
+                                                        else
                                                             DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
 
                                                         if (DnsReq != null)

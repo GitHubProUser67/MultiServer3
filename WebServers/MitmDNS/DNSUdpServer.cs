@@ -4,6 +4,7 @@ using System;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Generic;
+using System.Net;
 
 namespace MitmDNS
 {
@@ -25,6 +26,17 @@ namespace MitmDNS
             AwaiterTimeoutInMS = awaiterTimeoutInMS;
 
             Start();
+        }
+
+        public static bool IsIPBanned(string ipAddress, int? clientport)
+        {
+            if (MitmDNSServerConfiguration.BannedIPs != null && MitmDNSServerConfiguration.BannedIPs.Contains(ipAddress))
+            {
+                LoggerAccessor.LogError($"[SECURITY] - {ipAddress}:{clientport} Requested the DNS_UDP server while being banned!");
+                return true;
+            }
+
+            return false;
         }
 
         public void Start()
@@ -72,9 +84,9 @@ namespace MitmDNS
 
                 LoggerAccessor.LogInfo($"[DNS_UDP] - Server started on port 53...");
 
-                List<Task> TcpClientTasks = new();
+                List<Task> UdpTasks = new();
                 for (int i = 0; i < MaxConcurrentListeners; i++)
-                    TcpClientTasks.Add(listener.ReceiveAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                    UdpTasks.Add(listener.ReceiveAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
 
                 // wait for requests
                 while (threadActive)
@@ -87,12 +99,12 @@ namespace MitmDNS
                                 break;
                         }
 
-                        while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                            TcpClientTasks.Add(listener.ReceiveAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                        while (UdpTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                            UdpTasks.Add(listener.ReceiveAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
 
-                        int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                        int RemoveAtIndex = Task.WaitAny(UdpTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
                         if (RemoveAtIndex != -1) //Remove the completed task from the list
-                            TcpClientTasks.RemoveAt(RemoveAtIndex);
+                            UdpTasks.RemoveAt(RemoveAtIndex);
                     }
                     catch (Exception e)
                     {
@@ -145,6 +157,13 @@ namespace MitmDNS
             LoggerAccessor.LogInfo($"[DNS_UDP] - Connection received on port 53 (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
             UdpReceiveResult resultVal = result.Value;
+
+            string clientip = resultVal.RemoteEndPoint?.Address.ToString();
+            int? clientport = resultVal.RemoteEndPoint?.Port;
+
+            if (!clientport.HasValue || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
+                return;
+
             byte[] ResultBuffer = DNSResolver.ProcRequest(resultVal.Buffer);
             if (ResultBuffer != null)
             {

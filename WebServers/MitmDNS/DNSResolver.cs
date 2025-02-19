@@ -107,7 +107,7 @@ namespace MitmDNS
 
                     return DNSProcessor.MakeDnsResponsePacket(data, Ips);
                 }
-                else if (url == "NXDOMAIN")
+                else
                     return DNSProcessor.MakeDnsResponsePacket(data, new List<IPAddress> { });
             }
             catch (Exception ex)

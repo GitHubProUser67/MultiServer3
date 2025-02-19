@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 public static class MitmDNSServerConfiguration
 {
@@ -15,6 +16,7 @@ public static class MitmDNSServerConfiguration
     public static string DNSOnlineConfig { get; set; } = string.Empty;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
     public static bool EnableAdguardFiltering { get; set; } = false;
+    public static List<string> BannedIPs { get; set; }
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -36,7 +38,8 @@ public static class MitmDNSServerConfiguration
                 new JProperty("online_routes_config", DNSOnlineConfig),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
-                new JProperty("enable_adguard_filtering", EnableAdguardFiltering)
+                new JProperty("enable_adguard_filtering", EnableAdguardFiltering),
+                new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
             ).ToString());
 
             return;
@@ -51,6 +54,18 @@ public static class MitmDNSServerConfiguration
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
+            // Deserialize BannedIPs if it exists
+            try
+            {
+                JArray bannedIPsArray = config.BannedIPs;
+                // Deserialize BannedIPs if it exists
+                if (bannedIPsArray != null)
+                    BannedIPs = bannedIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
         catch (Exception ex)
         {
