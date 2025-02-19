@@ -15,28 +15,15 @@ using System.Threading.Tasks;
 
 namespace MitmDNS
 {
-    public partial class MitmDNSClass
+    public static partial class DNSConfigProcessor
     {
-        public static Dictionary<string, DnsSettings> DicRules = new Dictionary<string, DnsSettings>();
-        public static Dictionary<string, DnsSettings> StarRules = new Dictionary<string, DnsSettings>();
+        public static Dictionary<string, DnsSettings> DicRules = new();
+        public static Dictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
-        public MitmDNSUDPProcessor UDPproc = new MitmDNSUDPProcessor();
 
-        public void StartServerAsync(CancellationToken cancellationToken)
+        public static void InitDNSSubsystem()
         {
-            if (MitmDNSServerConfiguration.EnableAdguardFiltering)
-                _ = DNSResolver.adChecker.DownloadAndParseFilterListAsync();
-            _ = Task.Run(() => UDPproc.Start(cancellationToken));
-        }
-
-        public void StopServer()
-        {
-            UDPproc.Stop();
-        }
-
-        public async static void RenewConfig()
-        {
-            LoggerAccessor.LogWarn("[DNS] - DNS system configuration is initialising, service will be available when initialized...");
+            LoggerAccessor.LogWarn("[DNS] - DNS system configuration is initialising, endpoints will be available when initialized...");
 
             if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
             {
@@ -45,12 +32,12 @@ namespace MitmDNS
                 try
                 {
 #if NET7_0_OR_GREATER
-                        HttpResponseMessage response = new HttpClient().GetAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result;
-                        response.EnsureSuccessStatusCode();
-                        ParseRules(await response.Content.ReadAsStringAsync(), false);
+                    HttpResponseMessage response = new HttpClient().GetAsync(HTTPSServerConfiguration.DNSOnlineConfig).Result;
+                    response.EnsureSuccessStatusCode();
+                    ParseRules(response.Content.ReadAsStringAsync().Result, false);
 #else
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                    ParseRules(await new WebClient().DownloadStringTaskAsync(MitmDNSServerConfiguration.DNSOnlineConfig), false);
+                    ParseRules(new WebClient().DownloadStringTaskAsync(MitmDNSServerConfiguration.DNSOnlineConfig).Result, false);
 #pragma warning restore
 #endif
                 }
@@ -65,7 +52,7 @@ namespace MitmDNS
                 Initiated = true;
         }
 
-        private static void ParseRules(string Filename, bool IsFilename = true)
+        public static void ParseRules(string Filename, bool IsFilename = true)
         {
             DicRules.Clear();
             StarRules.Clear();
@@ -90,7 +77,7 @@ namespace MitmDNS
 
                         if (split.Length == 3)
                         {
-                            DnsSettings dns = new DnsSettings();
+                            DnsSettings dns = new();
                             switch (split[1].Trim().ToLower())
                             {
                                 case "deny":
@@ -168,7 +155,7 @@ namespace MitmDNS
             string[] lines = File.ReadAllLines(Filename);
 
             // Define a list to store extracted hostnames
-            List<string> hostnames = new List<string>();
+            List<string> hostnames = new();
 
             foreach (string line in lines)
             {
@@ -181,7 +168,7 @@ namespace MitmDNS
                     hostnames.Add(parts[1].Trim());
             }
 
-            DnsSettings dns = new DnsSettings();
+            DnsSettings dns = new();
 
             Parallel.ForEach(hostnames, hostname =>
             {
@@ -195,10 +182,10 @@ namespace MitmDNS
                         if (line.StartsWith("\t\tA"))
                         {
                             // Extract the IP address using a regular expression
-#if NET7_0_OR_GREATER
-                            Match match = SimpleDNSRegex().Match(line);
-#else
+#if NET6_0
                             Match match = new Regex(@"A\\s+(\\S+)").Match(line);
+#elif NET7_0_OR_GREATER
+                            Match match = SimpleDNSRegex().Match(line);
 #endif
                             if (match.Success)
                             {
@@ -207,15 +194,8 @@ namespace MitmDNS
 
                                 lock (DicRules)
                                 {
-#if NETCOREAPP2_0_OR_GREATER
                                     DicRules.TryAdd(hostname, dns);
                                     DicRules.TryAdd("www." + hostname, dns);
-#else
-                                    if (!DicRules.ContainsKey(hostname))
-                                        DicRules.Add(hostname, dns);
-                                    if (!DicRules.ContainsKey("www." + hostname))
-                                        DicRules.Add("www." + hostname, dns);
-#endif
                                 }
 
                                 break;
@@ -251,13 +231,13 @@ namespace MitmDNS
                         }
                         catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
+                            IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         }
                         break;
                     }
                 default:
                     {
-                        IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(); // Some legacy DNS clients doesn't support IPv6.
+                        IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
@@ -267,7 +247,7 @@ namespace MitmDNS
         }
         #endregion
 
-        private static bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private static bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

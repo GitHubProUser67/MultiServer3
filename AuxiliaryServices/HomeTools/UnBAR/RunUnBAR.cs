@@ -662,7 +662,7 @@ namespace HomeTools.UnBAR
         /// <returns>A int (-1 if not found).</returns>
         private static int FindDataPositionInBinary(byte[] data1, byte[] data2)
         {
-            if (data1 == null || data2 == null)
+            if (data1 == null || data2 == null || data1.Length < data2.Length)
                 return -1;
 
             for (int i = 0; i < data1.Length - data2.Length + 1; i++)
@@ -683,7 +683,5 @@ namespace HomeTools.UnBAR
 
             return -1; // Data2 not found in Data1
         }
-
-        
     }
 }

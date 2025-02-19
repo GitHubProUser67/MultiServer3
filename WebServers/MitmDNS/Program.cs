@@ -1,4 +1,3 @@
-using HashLib;
 using CustomLogger;
 using NetworkLibrary.TCP_IP;
 using MitmDNS;
@@ -14,10 +13,8 @@ public static class MitmDNSServerConfiguration
 {
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
-    public static uint MaximumNumberOfRequests { get; set; } = 200;
-    public static uint MinimumDeltaTimeMs { get; set; } = 1000;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
-    public static bool EnableAdguardFiltering { get; set; } = true;
+    public static bool EnableAdguardFiltering { get; set; } = false;
 
     /// <summary>
     /// Tries to load the specified configuration file.
@@ -37,8 +34,6 @@ public static class MitmDNSServerConfiguration
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
                 new JProperty("online_routes_config", DNSOnlineConfig),
-                new JProperty("maximum_number_of_requests", MaximumNumberOfRequests),
-                new JProperty("minimum_delta_time_ms", MinimumDeltaTimeMs),
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
                 new JProperty("enable_adguard_filtering", EnableAdguardFiltering)
@@ -53,8 +48,6 @@ public static class MitmDNSServerConfiguration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             DNSOnlineConfig = GetValueOrDefault(config, "online_routes_config", DNSOnlineConfig);
-            MaximumNumberOfRequests = GetValueOrDefault(config, "maximum_number_of_requests", MaximumNumberOfRequests);
-            MinimumDeltaTimeMs = GetValueOrDefault(config, "minimum_delta_time_ms", MinimumDeltaTimeMs);
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
@@ -99,7 +92,7 @@ class Program
     private static string DNSconfigMD5 = string.Empty;
     private static Task DNSThread = null;
     private static Task DNSRefreshThread = null;
-    private static MitmDNSClass Server = new MitmDNSClass();
+    private static DNSUdpServer Server = null;
     private static readonly FileSystemWatcher dnswatcher = new FileSystemWatcher();
 
     // Event handler for DNS change event
@@ -135,11 +128,14 @@ class Program
 
     private static void StartOrUpdateServer()
     {
-        Server.StopServer();
+        Server?.Stop();
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+
+        if (MitmDNSServerConfiguration.EnableAdguardFiltering)
+            _ = DNSResolver.adChecker.DownloadAndParseFilterListAsync();
 
         dnswatcher.Path = Path.GetDirectoryName(MitmDNSServerConfiguration.DNSConfig) ?? configDir;
         dnswatcher.Filter = Path.GetFileName(MitmDNSServerConfiguration.DNSConfig);
@@ -166,21 +162,24 @@ class Program
 
         _ = IPUtils.TryGetServerIP(53, out DNSResolver.ServerIp);
 
-        Server.StartServerAsync(new CancellationTokenSource().Token);
+        if (Server == null)
+            Server = new(Environment.ProcessorCount * 4);
+        else
+            Server.Start();
     }
 
     private static Task RefreshDNS()
     {
-        if (DNSThread != null && !MitmDNSClass.Initiated)
+        if (DNSThread != null && !DNSConfigProcessor.Initiated)
         {
-            while (!MitmDNSClass.Initiated)
+            while (!DNSConfigProcessor.Initiated)
             {
                 LoggerAccessor.LogWarn("[DNS] - Waiting for previous config assignement Task to finish...");
                 Thread.Sleep(6000);
             }
         }
 
-        DNSThread = Task.Run(MitmDNSClass.RenewConfig);
+        DNSThread = Task.Run(DNSConfigProcessor.InitDNSSubsystem);
 
         return Task.CompletedTask;
     }

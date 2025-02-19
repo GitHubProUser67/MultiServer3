@@ -20,15 +20,17 @@ namespace SVO
         private volatile bool threadActive;
 
         private HttpListener? listener;
-        private readonly string ip;
+        private readonly string host;
 
+        private readonly int AwaiterTimeoutInMS;
         private int MaxConcurrentListeners;
 
-        public SVOServer(string ip, X509Certificate2? certificate = null, int MaxConcurrentListeners = 10)
+        public SVOServer(string host, X509Certificate2? certificate = null, int MaxConcurrentListeners = 10, int awaiterTimeoutInMS = 500)
         {
-            this.ip = ip;
+            this.host = host;
             this.certificate = certificate;
             this.MaxConcurrentListeners = MaxConcurrentListeners;
+            AwaiterTimeoutInMS = awaiterTimeoutInMS;
 
             Start();
         }
@@ -92,74 +94,52 @@ namespace SVO
             return true;
         }
 
-        private async void Listen()
+        private void Listen()
         {
             threadActive = true;
+
+            object _sync = new();
 
             // start listener
             try
             {
                 listener = new HttpListener();
                 if (certificate != null)
-                    listener.SetCertificate(System.Net.IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(ip, "0.0.0.0")), securePort, certificate);
-				listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10058));
-                listener.Prefixes.Add(string.Format("http://{0}:{1}/", ip, 10060));
-                listener.Prefixes.Add(string.Format("https://{0}:{1}/", ip, securePort));
+                    listener.SetCertificate(System.Net.IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(host, "0.0.0.0")), securePort, certificate);
+				listener.Prefixes.Add(string.Format("http://{0}:{1}/", host, 10058));
+                listener.Prefixes.Add(string.Format("http://{0}:{1}/", host, 10060));
+                listener.Prefixes.Add(string.Format("https://{0}:{1}/", host, securePort));
                 listener.Start();
 
                 LoggerAccessor.LogInfo("[SVO] - Server started...");
 
-                HashSet<Task> requests = new();
+                List<Task> HttpClientTasks = new();
                 for (int i = 0; i < MaxConcurrentListeners; i++)
-                    requests.Add(listener.GetContextAsync());
+                    HttpClientTasks.Add(listener.GetContextAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
 
                 // wait for requests
                 while (threadActive)
                 {
                     try
                     {
-                        if (!threadActive) break;
-
-                        Task t = await Task.WhenAny(requests);
-
-                        if (t is Task<HttpListenerContext>)
+                        lock (_sync)
                         {
-                            HttpListenerContext? ctx = null;
-
-                            try
-                            {
-                                ctx = (t as Task<HttpListenerContext>)?.Result;
-                            }
-                            catch (AggregateException ex)
-                            {
-                                ex.Handle(innerEx =>
-                                {
-                                    if (innerEx is TaskCanceledException)
-                                        return true; // Indicate that the exception was handled
-
-                                    LoggerAccessor.LogWarn($"[SVO] - HttpListenerContext Task thrown an AggregateException: {ex}");
-
-                                    return false;
-                                });
-                            }
-
-                            _ = ProcessContext(ctx);
+                            if (!threadActive)
+                                break;
                         }
 
-                        requests.Remove(t);
-                        requests.Add(listener.GetContextAsync());
-                    }
-                    catch (HttpListenerException e)
-                    {
-                        if (e.ErrorCode != 995) LoggerAccessor.LogError("[SVO] - A HttpListenerException Occured: " + e.Message);
+                        while (HttpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                            HttpClientTasks.Add(listener.GetContextAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+
+                        int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                        if (RemoveAtIndex != -1) //Remove the completed task from the list
+                            HttpClientTasks.RemoveAt(RemoveAtIndex);
                     }
                     catch (Exception e)
                     {
-                        LoggerAccessor.LogError("[SVO] - An Exception Occured: " + e.Message);
+                        LoggerAccessor.LogError("[SVO] - An Exception Occured in the listener loop: " + e.Message);
                     }
                 }
-
-                requests.Clear();
             }
             catch (Exception e)
             {
@@ -167,8 +147,37 @@ namespace SVO
                 threadActive = false;
             }
         }
+        #region Protected Functions
+        protected virtual Task ReceiveClientRequestTask(Task t)
+        {
+            if (t is not null and Task<HttpListenerContext>)
+            {
+                HttpListenerContext? ctx = null;
 
-        private async Task ProcessContext(HttpListenerContext? ctx)
+                try
+                {
+                    ctx = (t as Task<HttpListenerContext>)?.Result;
+                }
+                catch (AggregateException ex)
+                {
+                    ex.Handle(innerEx =>
+                    {
+                        if (innerEx is TaskCanceledException)
+                            return true; // Indicate that the exception was handled
+
+                        LoggerAccessor.LogError($"[SVO] - HttpListenerContext Task thrown an AggregateException: {ex} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+
+                        return false;
+                    });
+                }
+
+                _ = ProcessContext(ctx);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        protected virtual async Task ProcessContext(HttpListenerContext? ctx)
         {
             if (ctx == null)
                 return;
@@ -311,11 +320,15 @@ namespace SVO
                 else
                     ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
-            catch (HttpListenerException e) when (e.ErrorCode == 64)
+            catch (HttpListenerException e)
             {
                 // Unfortunately, some client side implementation of HTTP (like RPCS3) freeze the interface at regular interval.
                 // This will cause server to throw error 64 (network interface not openned anymore)
                 // In that case, we send internalservererror so client try again.
+
+                int errorCode = e.ErrorCode;
+
+                if (errorCode != 995 && errorCode != 64) LoggerAccessor.LogError("[SVO] - HttpListenerException ERROR: " + e.Message);
 
                 ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
@@ -335,5 +348,6 @@ namespace SVO
             }
             ctx.Response.Close();
         }
+        #endregion
     }
 }
