@@ -19,6 +19,7 @@ $propertiesToRemove = @(
     "CastleLibrary/1.0.0",
     "CompressionLibrary/1.0.0",
     "CustomLogger/1.0.0",
+	"DNSLibrary/1.0.0",
     "NetworkLibrary/1.0.0",
     "EndianTools/1.0.0",
     "HomeTools/1.0.0",

@@ -1,7 +1,7 @@
 using System.Text;
 using HTTPSecureServerLite.Extensions;
 using NetworkLibrary.HTTP;
-using NetworkLibrary.DNS;
+using NetworkLibrary.AdBlocker;
 using NetworkLibrary.GeoLocalization;
 using WebAPIService.LOOT;
 using WebAPIService.NDREAMS;
@@ -38,6 +38,7 @@ using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using WebAPIService.DIGITAL_LEISURE;
 using NetworkLibrary.Upscalers;
+using DNS.Protocol;
 
 namespace HTTPSecureServerLite
 {
@@ -1256,114 +1257,141 @@ namespace HTTPSecureServerLite
                                                         if (x > 0)
                                                             dnsRequestBase64Url = dnsRequestBase64Url.PadRight(dnsRequestBase64Url.Length - x + 4, '=');
 
+                                                        bool treated = false;
+
                                                         try
                                                         {
-                                                            bool treated = false;
+                                                            byte[] DnsReq = Convert.FromBase64String(dnsRequestBase64Url);
+                                                            Request Req = Request.FromArray(DnsReq);
 
-                                                            byte[] DnsReq = DNSProcessor.TrimArray(Convert.FromBase64String(dnsRequestBase64Url));
-
-                                                            string fullname = string.Join(".", DNSProcessor.GetDnsName(DnsReq).ToArray());
-
-                                                            LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
-
-                                                            string? url = null;
-
-                                                            if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
+                                                            if (Req.OperationCode == OperationCode.Query)
                                                             {
-                                                                if (arparuleaddr != null)
+                                                                Question? question = Req.Questions.FirstOrDefault();
+
+                                                                if (question == null)
                                                                 {
-                                                                    if (arparuleaddr.AddressFamily == AddressFamily.InterNetwork)
+                                                                    response.ChunkedTransfer = false;
+                                                                    statusCode = HttpStatusCode.BadRequest;
+                                                                    response.StatusCode = (int)statusCode;
+                                                                    response.ContentType = "text/plain";
+                                                                    sent = await response.Send();
+                                                                }
+                                                                else
+                                                                {
+                                                                    string fullname = question.Name.ToString();
+
+                                                                    LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
+
+                                                                    string? url = null;
+
+                                                                    if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
                                                                     {
-                                                                        // Split the IP address into octets
-                                                                        string[] octets = arparuleaddr.ToString().Split('.');
-
-                                                                        // Reverse the order of octets
-                                                                        Array.Reverse(octets);
-
-                                                                        // Join the octets back together
-                                                                        url = string.Join(".", octets);
-
-                                                                        treated = true;
-                                                                    }
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                if (HTTPSServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
-                                                                {
-                                                                    url = "127.0.0.1";
-                                                                    treated = true;
-                                                                }
-
-                                                                if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
-                                                                {
-                                                                    if (value.Mode == HandleMode.Allow) url = fullname;
-                                                                    else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
-                                                                    else if (value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                                    treated = true;
-                                                                }
-
-                                                                if (!treated && SecureDNSConfigProcessor.StarRules != null)
-                                                                {
-                                                                    foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
-                                                                    {
-                                                                        Regex regex = new(rule.Key);
-                                                                        if (!regex.IsMatch(fullname))
-                                                                            continue;
-
-                                                                        if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                                                                        else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                                        else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                                        treated = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
-
-                                                            if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
-                                                            {
-                                                                List<IPAddress> Ips = new();
-
-                                                                try
-                                                                {
-                                                                    if (!IPAddress.TryParse(url, out IPAddress? address))
-                                                                    {
-                                                                        foreach (var extractedIp in Dns.GetHostEntry(url).AddressList)
+                                                                        if (arparuleaddr != null)
                                                                         {
-                                                                            Ips.Add(extractedIp);
+                                                                            if (arparuleaddr.AddressFamily == AddressFamily.InterNetwork)
+                                                                            {
+                                                                                // Split the IP address into octets
+                                                                                string[] octets = arparuleaddr.ToString().Split('.');
+
+                                                                                // Reverse the order of octets
+                                                                                Array.Reverse(octets);
+
+                                                                                // Join the octets back together
+                                                                                url = string.Join(".", octets);
+
+                                                                                treated = true;
+                                                                            }
                                                                         }
                                                                     }
-                                                                    else Ips.Add(address);
-                                                                }
-                                                                catch
-                                                                {
-                                                                    Ips.Clear();
-                                                                }
+                                                                    else
+                                                                    {
+                                                                        if (HTTPSServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
+                                                                        {
+                                                                            url = "127.0.0.1";
+                                                                            treated = true;
+                                                                        }
 
-                                                                LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
+                                                                        if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
+                                                                        {
+                                                                            if (value.Mode == HandleMode.Allow) url = fullname;
+                                                                            else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                                            else if (value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                                            treated = true;
+                                                                        }
 
-                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips);
+                                                                        if (!treated && SecureDNSConfigProcessor.StarRules != null)
+                                                                        {
+                                                                            foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                                            {
+                                                                                Regex regex = new(rule.Key);
+                                                                                if (!regex.IsMatch(fullname))
+                                                                                    continue;
+
+                                                                                if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                                                else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                                                else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                                                treated = true;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
+                                                                        url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+
+                                                                    if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
+                                                                    {
+                                                                        List<IPAddress> Ips = new();
+
+                                                                        try
+                                                                        {
+                                                                            if (!IPAddress.TryParse(url, out IPAddress? address))
+                                                                            {
+                                                                                foreach (var extractedIp in Dns.GetHostEntry(url).AddressList)
+                                                                                {
+                                                                                    Ips.Add(extractedIp);
+                                                                                }
+                                                                            }
+                                                                            else Ips.Add(address);
+                                                                        }
+                                                                        catch
+                                                                        {
+                                                                            Ips.Clear();
+                                                                        }
+
+                                                                        LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
+
+                                                                        DnsReq = Response.MakeType0DnsResponsePacket(DnsReq.Trim(), Ips);
+                                                                    }
+                                                                    else
+                                                                        DnsReq = Response.MakeType0DnsResponsePacket(DnsReq.Trim(), new List<IPAddress> { });
+
+                                                                    if (DnsReq != null)
+                                                                    {
+                                                                        statusCode = HttpStatusCode.OK;
+                                                                        response.StatusCode = (int)statusCode;
+                                                                        response.ContentType = "application/dns-message";
+                                                                        if (response.ChunkedTransfer)
+                                                                            sent = await response.SendFinalChunk(DnsReq);
+                                                                        else
+                                                                            sent = await response.Send(DnsReq);
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        response.ChunkedTransfer = false;
+                                                                        statusCode = HttpStatusCode.InternalServerError;
+                                                                        response.StatusCode = (int)statusCode;
+                                                                        response.ContentType = "text/plain";
+                                                                        sent = await response.Send();
+                                                                    }
+                                                                }
                                                             }
                                                             else
-                                                                DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
+                                                            {
+                                                                LoggerAccessor.LogWarn($"[HTTPS_DNS] - The requested OperationCode: {Req.OperationCode} is not yet supported, report to GITHUB!");
 
-                                                            if (DnsReq != null)
-                                                            {
-                                                                statusCode = HttpStatusCode.OK;
-                                                                response.StatusCode = (int)statusCode;
-                                                                response.ContentType = "application/dns-message";
-                                                                if (response.ChunkedTransfer)
-                                                                    sent = await response.SendFinalChunk(DnsReq);
-                                                                else
-                                                                    sent = await response.Send(DnsReq);
-                                                            }
-                                                            else
-                                                            {
                                                                 response.ChunkedTransfer = false;
-                                                                statusCode = HttpStatusCode.InternalServerError;
+                                                                statusCode = HttpStatusCode.NotImplemented;
                                                                 response.StatusCode = (int)statusCode;
                                                                 response.ContentType = "text/plain";
                                                                 sent = await response.Send();
@@ -1736,113 +1764,141 @@ namespace HTTPSecureServerLite
                                                 }
                                                 else
                                                 {
+                                                    bool treated = false;
+
                                                     try
                                                     {
-                                                        byte[] DnsReq = DNSProcessor.TrimArray(request.DataAsBytes);
+                                                        byte[] DnsReq = request.DataAsBytes;
+                                                        Request Req = Request.FromArray(DnsReq);
 
-                                                        string fullname = string.Join(".", DNSProcessor.GetDnsName(DnsReq).ToArray());
-
-                                                        LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
-
-                                                        string? url = null;
-                                                        bool treated = false;
-
-                                                        if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
+                                                        if (Req.OperationCode == OperationCode.Query)
                                                         {
-                                                            if (arparuleaddr != null)
+                                                            Question? question = Req.Questions.FirstOrDefault();
+
+                                                            if (question == null)
                                                             {
-                                                                if (arparuleaddr.AddressFamily == AddressFamily.InterNetwork)
+                                                                response.ChunkedTransfer = false;
+                                                                statusCode = HttpStatusCode.BadRequest;
+                                                                response.StatusCode = (int)statusCode;
+                                                                response.ContentType = "text/plain";
+                                                                sent = await response.Send();
+                                                            }
+                                                            else
+                                                            {
+                                                                string fullname = question.Name.ToString();
+
+                                                                LoggerAccessor.LogInfo($"[HTTPS_DNS] - Host: {fullname} was Requested.");
+
+                                                                string? url = null;
+
+                                                                if (fullname.EndsWith("in-addr.arpa") && IPAddress.TryParse(fullname[..^13], out IPAddress? arparuleaddr)) // IPV4 Only.
                                                                 {
-                                                                    // Split the IP address into octets
-                                                                    string[] octets = arparuleaddr.ToString().Split('.');
-
-                                                                    // Reverse the order of octets
-                                                                    Array.Reverse(octets);
-
-                                                                    // Join the octets back together
-                                                                    url = string.Join(".", octets);
-
-                                                                    treated = true;
-                                                                }
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            if (HTTPSServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
-                                                            {
-                                                                url = "127.0.0.1";
-                                                                treated = true;
-                                                            }
-
-                                                            if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
-                                                            {
-                                                                if (value.Mode == HandleMode.Allow) url = fullname;
-                                                                else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
-                                                                else if (value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                                treated = true;
-                                                            }
-
-                                                            if (!treated && SecureDNSConfigProcessor.StarRules != null)
-                                                            {
-                                                                foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
-                                                                {
-                                                                    Regex regex = new(rule.Key);
-                                                                    if (!regex.IsMatch(fullname))
-                                                                        continue;
-
-                                                                    if (rule.Value.Mode == HandleMode.Allow) url = fullname;
-                                                                    else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
-                                                                    else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
-                                                                    treated = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-
-                                                        if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
-                                                            url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
-
-                                                        if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
-                                                        {
-                                                            List<IPAddress> Ips = new();
-
-                                                            try
-                                                            {
-                                                                if (!IPAddress.TryParse(url, out IPAddress? address))
-                                                                {
-                                                                    foreach (var extractedIp in Dns.GetHostEntry(url).AddressList)
+                                                                    if (arparuleaddr != null)
                                                                     {
-                                                                        Ips.Add(extractedIp);
+                                                                        if (arparuleaddr.AddressFamily == AddressFamily.InterNetwork)
+                                                                        {
+                                                                            // Split the IP address into octets
+                                                                            string[] octets = arparuleaddr.ToString().Split('.');
+
+                                                                            // Reverse the order of octets
+                                                                            Array.Reverse(octets);
+
+                                                                            // Join the octets back together
+                                                                            url = string.Join(".", octets);
+
+                                                                            treated = true;
+                                                                        }
                                                                     }
                                                                 }
-                                                                else Ips.Add(address);
-                                                            }
-                                                            catch
-                                                            {
-                                                                Ips.Clear();
-                                                            }
+                                                                else
+                                                                {
+                                                                    if (HTTPSServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
+                                                                    {
+                                                                        url = "127.0.0.1";
+                                                                        treated = true;
+                                                                    }
 
-                                                            LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
+                                                                    if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
+                                                                    {
+                                                                        if (value.Mode == HandleMode.Allow) url = fullname;
+                                                                        else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
+                                                                        else if (value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                                        treated = true;
+                                                                    }
 
-                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, Ips);
+                                                                    if (!treated && SecureDNSConfigProcessor.StarRules != null)
+                                                                    {
+                                                                        foreach (KeyValuePair<string, DnsSettings> rule in SecureDNSConfigProcessor.StarRules)
+                                                                        {
+                                                                            Regex regex = new(rule.Key);
+                                                                            if (!regex.IsMatch(fullname))
+                                                                                continue;
+
+                                                                            if (rule.Value.Mode == HandleMode.Allow) url = fullname;
+                                                                            else if (rule.Value.Mode == HandleMode.Redirect) url = rule.Value.Address ?? "127.0.0.1";
+                                                                            else if (rule.Value.Mode == HandleMode.Deny) url = "NXDOMAIN";
+                                                                            treated = true;
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                if (!treated && HTTPSServerConfiguration.DNSAllowUnsafeRequests)
+                                                                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+
+                                                                if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
+                                                                {
+                                                                    List<IPAddress> Ips = new();
+
+                                                                    try
+                                                                    {
+                                                                        if (!IPAddress.TryParse(url, out IPAddress? address))
+                                                                        {
+                                                                            foreach (var extractedIp in Dns.GetHostEntry(url).AddressList)
+                                                                            {
+                                                                                Ips.Add(extractedIp);
+                                                                            }
+                                                                        }
+                                                                        else Ips.Add(address);
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                        Ips.Clear();
+                                                                    }
+
+                                                                    LoggerAccessor.LogInfo($"[HTTPS_DNS] - Resolved: {fullname} to: {string.Join(", ", Ips)}");
+
+                                                                    DnsReq = Response.MakeType0DnsResponsePacket(DnsReq.Trim(), Ips);
+                                                                }
+                                                                else
+                                                                    DnsReq = Response.MakeType0DnsResponsePacket(DnsReq.Trim(), new List<IPAddress> { });
+
+                                                                if (DnsReq != null)
+                                                                {
+                                                                    statusCode = HttpStatusCode.OK;
+                                                                    response.StatusCode = (int)statusCode;
+                                                                    response.ContentType = "application/dns-message";
+                                                                    if (response.ChunkedTransfer)
+                                                                        sent = await response.SendFinalChunk(DnsReq);
+                                                                    else
+                                                                        sent = await response.Send(DnsReq);
+                                                                }
+                                                                else
+                                                                {
+                                                                    response.ChunkedTransfer = false;
+                                                                    statusCode = HttpStatusCode.InternalServerError;
+                                                                    response.StatusCode = (int)statusCode;
+                                                                    response.ContentType = "text/plain";
+                                                                    sent = await response.Send();
+                                                                }
+                                                            }
                                                         }
                                                         else
-                                                            DnsReq = DNSProcessor.MakeDnsResponsePacket(DnsReq, new List<IPAddress> { });
+                                                        {
+                                                            LoggerAccessor.LogWarn($"[HTTPS_DNS] - The requested OperationCode: {Req.OperationCode} is not yet supported, report to GITHUB!");
 
-                                                        if (DnsReq != null)
-                                                        {
-                                                            statusCode = HttpStatusCode.OK;
-                                                            response.StatusCode = (int)statusCode;
-                                                            response.ContentType = "application/dns-message";
-                                                            if (response.ChunkedTransfer)
-                                                                sent = await response.SendFinalChunk(DnsReq);
-                                                            else
-                                                                sent = await response.Send(DnsReq);
-                                                        }
-                                                        else
-                                                        {
                                                             response.ChunkedTransfer = false;
-                                                            statusCode = HttpStatusCode.InternalServerError;
+                                                            statusCode = HttpStatusCode.NotImplemented;
                                                             response.StatusCode = (int)statusCode;
                                                             response.ContentType = "text/plain";
                                                             sent = await response.Send();
