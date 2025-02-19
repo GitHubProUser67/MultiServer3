@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace NetworkLibrary.DNS
+namespace NetworkLibrary.AdBlocker
 {
     public class AdGuardFilterChecker
     {

@@ -133,6 +133,15 @@ namespace NetworkLibrary.Extension
             return b1.SequenceEqual(b2);
         }
 
+        public static byte[] Trim(this byte[] arr)
+        {
+            int i = arr.Length - 1;
+            while (arr[i] == 0) i--;
+            byte[] data = new byte[i + 1];
+            Array.Copy(arr, data, i + 1);
+            return data;
+        }
+
         public static byte[] GenerateRandomBytes(ushort size)
         {
             Tpm2 _tpm = null;
