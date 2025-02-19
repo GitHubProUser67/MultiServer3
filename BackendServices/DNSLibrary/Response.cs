@@ -14,7 +14,7 @@ namespace DNS.Protocol {
         private IList<IResourceRecord> authority;
         private IList<IResourceRecord> additional;
 
-        public static byte[] MakeType0DnsResponsePacket(byte[] Req, List<IPAddress> Ips, int maxResponseSize = 512, int timeToLeave = 180)
+        public static byte[] MakeType0DnsResponsePacket(byte[] Req, List<IPAddress> Ips, int maxResponseSize = 512, int timeToLive = 180)
         {
             const byte dnsHeaderSize = 12;
 
@@ -69,7 +69,7 @@ namespace DNS.Protocol {
                 else
                     ans.AddRange(new byte[4] { 0x00, 0x01, 0x00, 0x01 }); // Type A (IPv4), Class IN
 
-                ans.AddRange(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseInt(timeToLeave) : timeToLeave)); // TTL
+                ans.AddRange(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseInt(timeToLive) : timeToLive)); // TTL
                 ans.AddRange(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianTools.EndianUtils.ReverseUshort(addrSizeOf) : addrSizeOf)); // Data length (4 bytes for IPv4, 16 bytes for IPv6)
                 ans.AddRange(addrBytes);
 
