@@ -136,7 +136,6 @@ namespace HTTPServer
             try
             {
                 string? clientip = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Address.ToString();
-
                 int? clientport = ((IPEndPoint?)tcpClient.Client.RemoteEndPoint)?.Port;
 
                 if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
