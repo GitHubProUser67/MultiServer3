@@ -5,9 +5,6 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace MitmDNS
 {
@@ -58,7 +55,7 @@ namespace MitmDNS
                         treated = true;
                     }
 
-                    if (!treated && MitmDNSClass.DicRules != null && MitmDNSClass.DicRules.TryGetValue(fullname, out DnsSettings value))
+                    if (!treated && DNSConfigProcessor.DicRules != null && DNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
                     {
                         if (value.Mode == HandleMode.Allow) url = fullname;
                         else if (value.Mode == HandleMode.Redirect) url = value.Address ?? "127.0.0.1";
@@ -66,9 +63,9 @@ namespace MitmDNS
                         treated = true;
                     }
 
-                    if (!treated && MitmDNSClass.StarRules != null)
+                    if (!treated && DNSConfigProcessor.StarRules != null)
                     {
-                        foreach (KeyValuePair<string, DnsSettings> rule in MitmDNSClass.StarRules)
+                        foreach (KeyValuePair<string, DnsSettings> rule in DNSConfigProcessor.StarRules)
                         {
                             Regex regex = new Regex(rule.Key);
                             if (!regex.IsMatch(fullname))

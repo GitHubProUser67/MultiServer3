@@ -26,7 +26,7 @@ public static class HTTPServerConfiguration
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static int BufferSize { get; set; } = 4096;
-    public static int MaximumAllowedKeepAliveClients { get; set; } = 150;
+    public static int MaximumAllowedKeepAliveClients { get; set; } = 20;
     public static string HttpVersion { get; set; } = "1.1";
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
