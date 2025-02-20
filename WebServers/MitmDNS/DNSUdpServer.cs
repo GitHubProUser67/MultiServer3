@@ -91,14 +91,14 @@ namespace MitmDNS
                 // wait for requests
                 while (threadActive)
                 {
+                    lock (_sync)
+                    {
+                        if (!threadActive)
+                            break;
+                    }
+						
                     try
                     {
-                        lock (_sync)
-                        {
-                            if (!threadActive)
-                                break;
-                        }
-
                         while (UdpTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
                             UdpTasks.Add(listener.ReceiveAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
 
