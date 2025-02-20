@@ -96,25 +96,18 @@ namespace HTTPServer
                 // wait for requests
                 while (threadActive)
                 {
-                    try
+                    lock (_sync)
                     {
-                        lock (_sync)
-                        {
-                            if (!threadActive)
-                                break;
-                        }
-
-                        while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                            TcpClientTasks.Add(listener.AcceptTcpClientAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
-
-                        int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
-                        if (RemoveAtIndex != -1) //Remove the completed task from the list
-                            TcpClientTasks.RemoveAt(RemoveAtIndex);
+                        if (!threadActive)
+                            break;
                     }
-                    catch (Exception e)
-                    {
-                        LoggerAccessor.LogError("[HTTP] - An Exception Occured in the listener loop: " + e.Message);
-                    }
+
+                    while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                        TcpClientTasks.Add(listener.AcceptTcpClientAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+
+                    int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                    if (RemoveAtIndex != -1) //Remove the completed task from the list
+                        TcpClientTasks.RemoveAt(RemoveAtIndex);
                 }
             }
             catch (Exception e)

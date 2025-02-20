@@ -120,25 +120,18 @@ namespace SVO
                 // wait for requests
                 while (threadActive)
                 {
-                    try
+                    lock (_sync)
                     {
-                        lock (_sync)
-                        {
-                            if (!threadActive)
-                                break;
-                        }
-
-                        while (HttpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                            HttpClientTasks.Add(listener.GetContextAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
-
-                        int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
-                        if (RemoveAtIndex != -1) //Remove the completed task from the list
-                            HttpClientTasks.RemoveAt(RemoveAtIndex);
+                        if (!threadActive)
+                            break;
                     }
-                    catch (Exception e)
-                    {
-                        LoggerAccessor.LogError("[SVO] - An Exception Occured in the listener loop: " + e.Message);
-                    }
+
+                    while (HttpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                        HttpClientTasks.Add(listener.GetContextAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+
+                    int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                    if (RemoveAtIndex != -1) //Remove the completed task from the list
+                        HttpClientTasks.RemoveAt(RemoveAtIndex);
                 }
             }
             catch (Exception e)
