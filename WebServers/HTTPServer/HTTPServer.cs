@@ -96,14 +96,14 @@ namespace HTTPServer
                 // wait for requests
                 while (threadActive)
                 {
+                    lock (_sync)
+                    {
+                        if (!threadActive)
+                            break;
+                    }
+					
                     try
                     {
-                        lock (_sync)
-                        {
-                            if (!threadActive)
-                                break;
-                        }
-
                         while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
                             TcpClientTasks.Add(listener.AcceptTcpClientAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
 

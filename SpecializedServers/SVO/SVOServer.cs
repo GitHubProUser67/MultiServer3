@@ -120,14 +120,14 @@ namespace SVO
                 // wait for requests
                 while (threadActive)
                 {
+                    lock (_sync)
+                    {
+                        if (!threadActive)
+                            break;
+                    }
+						
                     try
                     {
-                        lock (_sync)
-                        {
-                            if (!threadActive)
-                                break;
-                        }
-
                         while (HttpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
                             HttpClientTasks.Add(listener.GetContextAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
 
