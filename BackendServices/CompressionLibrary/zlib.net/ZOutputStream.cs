@@ -184,59 +184,49 @@ namespace ComponentAce.Compression.Libs.zlib
                 return;
             byte[] array = new byte[b1.Length];
             Array.Copy(b1, 0, array, 0, b1.Length);
-            if (z != null)
+            z.next_in = array;
+            z.next_in_index = off;
+            z.avail_in = len;
+            int num;
+            do
             {
-                z.next_in = array;
-                z.next_in_index = off;
-                z.avail_in = len;
-                int num;
-                do
-                {
-                    z.next_out = buf;
-                    z.next_out_index = 0;
-                    z.avail_out = bufsize;
-                    num = (!compress) ? z.inflate(flush_Renamed_Field) : z.deflate(flush_Renamed_Field);
-                    if (num != 0 && num != 1)
-                        throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
-                    if (buf != null)
-                        out_Renamed?.Write(buf, 0, bufsize - z.avail_out);
-                }
-                while ((z.avail_in > 0 || z.avail_out == 0) && num == 0);
+                z.next_out = buf;
+                z.next_out_index = 0;
+                z.avail_out = bufsize;
+                num = (!compress) ? z.inflate(flush_Renamed_Field) : z.deflate(flush_Renamed_Field);
+                if (num != 0 && num != 1)
+                    throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
+                out_Renamed?.Write(buf, 0, bufsize - z.avail_out);
             }
+            while ((z.avail_in > 0 || z.avail_out == 0) && num == 0);
         }
 
         public virtual void Finish()
         {
             int num;
-            if (z != null)
+            do
             {
-                do
-                {
-                    z.next_out = buf;
-                    z.next_out_index = 0;
-                    z.avail_out = bufsize;
-                    num = (!compress) ? z.inflate(4) : z.deflate(4);
-                    if (num != 1 && num != 0)
-                        throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
-                    if (bufsize - z.avail_out > 0 && buf != null)
-                        out_Renamed?.Write(buf, 0, bufsize - z.avail_out);
-                }
-                while ((z.avail_in > 0 || z.avail_out == 0) && num == 0);
+                z.next_out = buf;
+                z.next_out_index = 0;
+                z.avail_out = bufsize;
+                num = (!compress) ? z.inflate(4) : z.deflate(4);
+                if (num != 1 && num != 0)
+                    throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
+                if (bufsize - z.avail_out > 0)
+                    out_Renamed?.Write(buf, 0, bufsize - z.avail_out);
             }
+            while ((z.avail_in > 0 || z.avail_out == 0) && num == 0);
 
             Flush();
         }
 
         public virtual void End()
         {
-            if (z != null)
-            {
-                if (compress)
-                    z.deflateEnd();
-                else
-                    z.inflateEnd();
-                z.free();
-            }
+            if (compress)
+                z.deflateEnd();
+            else
+                z.inflateEnd();
+            z.free();
             z = null;
         }
 
@@ -250,9 +240,9 @@ namespace ComponentAce.Compression.Libs.zlib
                     {
                         Finish();
                     }
-                    catch (IOException)
+                    catch
                     {
-                        // Ignore
+                        
                     }
                 }
                 finally

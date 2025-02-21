@@ -193,27 +193,24 @@ namespace ComponentAce.Compression.Libs.zlib
 
         internal void flush_pending()
         {
-            if (dstate != null && dstate.pending_buf != null)
+            int pending = dstate.pending;
+            if (pending > avail_out)
+                pending = avail_out;
+            if (pending != 0)
             {
-                int pending = dstate.pending;
-                if (pending > avail_out)
-                    pending = avail_out;
-                if (pending != 0)
+                if (dstate.pending_buf.Length > dstate.pending_out && next_out?.Length > next_out_index && dstate.pending_buf.Length >= dstate.pending_out + pending)
                 {
-                    if (dstate.pending_buf.Length > dstate.pending_out && next_out?.Length > next_out_index && dstate.pending_buf.Length >= dstate.pending_out + pending)
-                    {
-                        _ = next_out.Length;
-                        _ = next_out_index + pending;
-                    }
-                    Array.Copy(dstate.pending_buf, dstate.pending_out, next_out ?? Array.Empty<byte>(), next_out_index, pending);
-                    next_out_index += pending;
-                    dstate.pending_out += pending;
-                    total_out += pending;
-                    avail_out -= pending;
-                    dstate.pending -= pending;
-                    if (dstate.pending == 0)
-                        dstate.pending_out = 0;
+                    _ = next_out.Length;
+                    _ = next_out_index + pending;
                 }
+                Array.Copy(dstate.pending_buf, dstate.pending_out, next_out ?? Array.Empty<byte>(), next_out_index, pending);
+                next_out_index += pending;
+                dstate.pending_out += pending;
+                total_out += pending;
+                avail_out -= pending;
+                dstate.pending -= pending;
+                if (dstate.pending == 0)
+                    dstate.pending_out = 0;
             }
         }
 
@@ -225,10 +222,9 @@ namespace ComponentAce.Compression.Libs.zlib
             if (num == 0)
                 return 0;
             avail_in -= num;
-            if (dstate?.noheader == 0 && _adler != null)
+            if (dstate?.noheader == 0)
                 adler = _adler.adler32(adler, next_in, next_in_index, num);
-            if (next_in != null)
-                Array.Copy(next_in, next_in_index, buf, start, num);
+            Array.Copy(next_in, next_in_index, buf, start, num);
             next_in_index += num;
             total_in += num;
             return num;

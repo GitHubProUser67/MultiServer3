@@ -166,8 +166,7 @@ namespace ComponentAce.Compression.Libs.zlib
                 return -2;
             }
             wbits = w;
-            if (z.istate != null)
-                z.istate.blocks = new InfBlocks(z, (z.istate.nowrap != 0) ? null : this, 1 << w);
+            z.istate.blocks = new InfBlocks(z, (z.istate.nowrap != 0) ? null : this, 1 << w);
             inflateReset(z);
             return 0;
         }
@@ -270,8 +269,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         z.istate.marker = 0;
                         return -2;
                     case 7:
-                        if (z.istate.blocks != null)
-                            num = z.istate.blocks.proc(z, num);
+                        num = z.istate.blocks.proc(z, num);
                         switch (num)
                         {
                             case -3:
@@ -381,31 +379,27 @@ namespace ComponentAce.Compression.Libs.zlib
             int num;
             if ((num = z.avail_in) == 0)
                 return -5;
-            else if (z.next_in != null)
+            int num2 = z.next_in_index;
+            int num3 = z.istate.marker;
+            while (num != 0 && num3 < 4)
             {
-                int num2 = z.next_in_index;
-                int num3 = z.istate.marker;
-                while (num != 0 && num3 < 4)
-                {
-                    num3 = ((z.next_in[num2] != mark[num3]) ? ((z.next_in[num2] == 0) ? (4 - num3) : 0) : (num3 + 1));
-                    num2++;
-                    num--;
-                }
-                z.total_in += num2 - z.next_in_index;
-                z.next_in_index = num2;
-                z.avail_in = num;
-                z.istate.marker = num3;
-                if (num3 != 4)
-                    return -3;
-                long total_in = z.total_in;
-                long total_out = z.total_out;
-                inflateReset(z);
-                z.total_in = total_in;
-                z.total_out = total_out;
-                z.istate.mode = 7;
-                return 0;
+                num3 = ((z.next_in[num2] != mark[num3]) ? ((z.next_in[num2] == 0) ? (4 - num3) : 0) : (num3 + 1));
+                num2++;
+                num--;
             }
-            return -1;
+            z.total_in += num2 - z.next_in_index;
+            z.next_in_index = num2;
+            z.avail_in = num;
+            z.istate.marker = num3;
+            if (num3 != 4)
+                return -3;
+            long total_in = z.total_in;
+            long total_out = z.total_out;
+            inflateReset(z);
+            z.total_in = total_in;
+            z.total_out = total_out;
+            z.istate.mode = 7;
+            return 0;
         }
 
         internal int inflateSyncPoint(ZStream z)

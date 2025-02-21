@@ -283,16 +283,13 @@ namespace ComponentAce.Compression.Libs.zlib
             int[] array4 = new int[16];
             int num = 0;
             int num2 = n;
-            if (b != null)
+            do
             {
-                do
-                {
-                    array[b[bindex + num]]++;
-                    num++;
-                    num2--;
-                }
-                while (num2 != 0);
+                array[b[bindex + num]]++;
+                num++;
+                num2--;
             }
+            while (num2 != 0);
             if (array[0] == n)
             {
                 t[0] = -1;
@@ -338,16 +335,13 @@ namespace ComponentAce.Compression.Libs.zlib
             }
             num2 = 0;
             num = 0;
-            if (b != null)
+            do
             {
-                do
-                {
-                    if ((i = b[bindex + num]) != 0)
-                        v[array4[i]++] = num2;
-                    num++;
-                }
-                while (++num2 < n);
+                if ((i = b[bindex + num]) != 0)
+                    v[array4[i]++] = num2;
+                num++;
             }
+            while (++num2 < n);
             n = array4[num4];
             num2 = (array4[0] = 0);
             num = 0;
@@ -405,7 +399,7 @@ namespace ComponentAce.Compression.Libs.zlib
                         array2[0] = (byte)((v[num] >= 256) ? 96 : 0);
                         array2[2] = v[num++];
                     }
-                    else if (e != null && d != null)
+                    else
                     {
                         array2[0] = (byte)(e[v[num] - s] + 16 + 64);
                         array2[2] = d[v[num++] - s];

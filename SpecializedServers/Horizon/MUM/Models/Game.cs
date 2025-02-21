@@ -8,9 +8,6 @@ using System.Data;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.SERVER;
-using Horizon.SERVER.Extension.PlayStationHome;
-using System.Threading.Tasks;
-using System.Text;
 
 namespace Horizon.MUM.Models
 {
@@ -888,43 +885,6 @@ namespace Horizon.MUM.Models
 
         public virtual Task GameCreated()
         {
-            /*if (ApplicationId == 20371 || ApplicationId == 20374 && !string.IsNullOrEmpty(GameName) && GameName.StartsWith("AP|") && GameName.Split('|').Length >= 5)
-            {
-                if (Host != null)
-                {
-                    string funcName = "Tell AP PassCode";
-
-                    if (Host.Tasks.ContainsKey(funcName))
-                    {
-#if DEBUG
-                        LoggerAccessor.LogWarn($"[Game] - Disposing Home AP Passcode Task for client: {Host}");
-#endif
-                        try
-                        {
-                            Host.Tasks[funcName].Dispose();
-                        }
-                        catch
-                        {
-
-                        }
-                    }
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[Game] - Adding Home AP Passcode Task for client: {Host}");
-#endif
-                    Host.Tasks.TryAdd(funcName, Task.Run(() =>
-                    {
-                        string LobbyName = GameName!.Split('|')[5];
-
-                        while (!Host.IsInGame)
-                        {
-                            Thread.Sleep(4500);
-                        }
-
-                        HomeRTMTools.SendRemoteCommand(Host, $"lc Debug.System( 'say {LobbyName}->{HomeGuestJoiningSystem.GetGJSCRC(Host.AccountName!, LobbyName + "H3m0", utcTimeCreated)}' )");
-                    }));
-                }
-            }*/
-
             return Task.CompletedTask;
         }
 
