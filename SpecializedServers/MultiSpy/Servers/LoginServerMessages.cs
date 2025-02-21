@@ -1,5 +1,6 @@
 using MultiSpy.Data;
-using MultiSpyService.Utils;
+using Reality.Net.Extensions;
+using Reality.Net.GameSpy.Servers;
 using System.Net;
 using System.Text;
 
