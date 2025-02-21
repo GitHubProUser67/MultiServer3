@@ -1,12 +1,12 @@
 using CustomLogger;
 using MultiSpyService.Data;
-using MultiSpyService.GS;
 using MultiSpyService.Utils;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using NetworkLibrary.Extension.LinqSQL;
+using Reality.Net.GameSpy.Servers;
 
 namespace MultiSpy.Servers
 {

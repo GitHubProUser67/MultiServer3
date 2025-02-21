@@ -1,5 +1,6 @@
 using CustomLogger;
 using MultiSpyService.Data;
+using MultiSpyService.Utils;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -106,7 +107,7 @@ namespace MultiSpy.Servers
 				IPEndPoint? remote = (IPEndPoint?)e.RemoteEndPoint;
 
 				string receivedData = Encoding.UTF8.GetString(e.Buffer, e.Offset, e.BytesTransferred);
-				string decrypted = Xor(receivedData);
+				string decrypted = XorEncoding.Xor(receivedData);
 
 				// known messages
 				// \ka\ = keep alive from the game server every 20s, we don't care about this
@@ -122,7 +123,7 @@ namespace MultiSpy.Servers
 
 						string reply = String.Format(_dataResponse, m.Groups["Challenge"].Value.Substring(0, 32), m.Groups["Key"].Value);
 
-						byte[] response = Encoding.UTF8.GetBytes(Xor(reply));
+						byte[] response = Encoding.UTF8.GetBytes(XorEncoding.Xor(reply));
 						_socket?.SendTo(response, remote);
 					}
 				}
@@ -130,23 +131,6 @@ namespace MultiSpy.Servers
 			}
 
 			WaitForData();
-		}
-
-		private static string Xor(string s)
-		{
-			const string gamespy = "gamespy";
-			int length = s.Length;
-			char[] data = s.ToCharArray();
-			int index = 0;
-
-			for (int i = 0; length > 0; length--) {
-				if (i >= gamespy.Length)
-					i = 0;
-
-				data[index++] ^= gamespy[i++];
-			}
-
-			return new String(data);
 		}
 	}
 }

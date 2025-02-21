@@ -3,11 +3,12 @@ using NetworkLibrary.GeoLocalization;
 using NetworkLibrary.TCP_IP;
 using MultiSpy.Data;
 using MultiSpy.Servers;
-using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
+using System.Text.Json;
 
 public static class MultiSpyServerConfiguration
 {
@@ -4728,19 +4729,25 @@ public static class MultiSpyServerConfiguration
 
             Directory.CreateDirectory(Path.GetDirectoryName(configPath) ?? Directory.GetCurrentDirectory() + "/static");
 
-            // Write the JObject to a file
-            File.WriteAllText(configPath, new JObject(
-                new JProperty("enable_login", EnableLogin),
-                new JProperty("enable_peer_chat", EnablePeerChat),
-                new JProperty("enable_natneg", EnableNatNeg),
-                new JProperty("enable_cdkey", EnableCdKey),
-                new JProperty("enable_master", EnableMaster),
-                new JProperty("enable_list", EnableList),
-                new JProperty("database_path", DatabasePath),
-                new JProperty("chat_server_path", ChatServerPath),
-                new JProperty("games_key", GamesKey),
-                SerializeGamesKey()
-            ).ToString());
+            // Write the JsonObject to a file
+            var configObject = new
+            {
+                enable_login = EnableLogin,
+                enable_peer_chat = EnablePeerChat,
+                enable_natneg = EnableNatNeg,
+                enable_cdkey = EnableCdKey,
+                enable_master = EnableMaster,
+                enable_list = EnableList,
+                database_path = DatabasePath,
+                chat_server_path = ChatServerPath,
+                games_key = GamesKey,
+                games_key_serialized = SerializeGamesKey()
+            };
+
+            File.WriteAllText(configPath, JsonSerializer.Serialize(configObject, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            }));
 
             return;
         }
@@ -4748,7 +4755,7 @@ public static class MultiSpyServerConfiguration
         try
         {
             // Parse the JSON configuration
-            dynamic config = JObject.Parse(File.ReadAllText(configPath));
+            JsonElement config = JsonDocument.Parse(File.ReadAllText(configPath)).RootElement;
 
             EnableLogin = GetValueOrDefault(config, "enable_login", EnableLogin);
             EnablePeerChat = GetValueOrDefault(config, "enable_peer_chat", EnablePeerChat);
@@ -4767,22 +4774,12 @@ public static class MultiSpyServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    public static T GetValueOrDefault<T>(JsonElement config, string propertyName, T defaultValue)
     {
         try
         {
-            if (obj != null)
-            {
-                if (obj is JObject jObject)
-                {
-                    if (jObject.TryGetValue(propertyName, out JToken? value))
-                    {
-                        T? returnvalue = value.ToObject<T>();
-                        if (returnvalue != null)
-                            return returnvalue;
-                    }
-                }
-            }
+            if (config.TryGetProperty(propertyName, out JsonElement value))
+                return JsonSerializer.Deserialize<T>(value.GetRawText()) ?? defaultValue;
         }
         catch (Exception ex)
         {
@@ -4793,14 +4790,17 @@ public static class MultiSpyServerConfiguration
     }
 
     // Helper method for the GamesKey config serialization.
-    private static JProperty SerializeGamesKey()
+    private static JsonObject SerializeGamesKey()
     {
-        JObject jObject = new();
-        foreach (var kvp in GamesKey ?? new Dictionary<string, string>())
+        JsonObject jsonObject = new();
+        if (GamesKey != null)
         {
-            jObject.Add(kvp.Key, kvp.Value);
+            foreach (var kvp in GamesKey)
+            {
+                jsonObject.Add(kvp.Key, kvp.Value);
+            }
         }
-        return new JProperty("games_key", jObject);
+        return jsonObject;
     }
 
     // http://aluigi.altervista.org/papers/gslist.cfg
