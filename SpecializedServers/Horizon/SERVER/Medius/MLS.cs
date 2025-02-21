@@ -409,6 +409,19 @@ namespace Horizon.SERVER.Medius
                                         if (data.ClientObject != null)
                                             data.ClientObject.SSFWid = Encoding.ASCII.GetString(clientCheatQuery.Data);
                                         break;
+                                    case -559038736:
+                                        if (data.ClientObject != null && clientCheatQuery.StartAddress == data.ClientObject.WorldCoreSpaceTypePointer)
+                                        {
+                                            data.ClientObject.CurrentSpaceType = BitConverter.ToInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(clientCheatQuery.Data) : clientCheatQuery.Data, 0);
+
+                                            if (data.ClientObject.Tasks.ContainsKey("GJS GUEST BRUTEFORCE") && HomeGuestJoiningSystem.IsInOwnApartment(data.ClientObject.CurrentSpaceType) == 1)
+                                            {
+                                                const int guestModeConst = 6;
+                                                // Set guest mode.
+                                                PokeAddress(data.ClientObject, data.ClientObject.WorldCoreSpaceTypePointer, BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(guestModeConst) : guestModeConst));
+                                            }
+                                        }
+                                            break;
                                     case -559038737:
                                         switch (clientCheatQuery.StartAddress)
                                         {
@@ -5564,7 +5577,6 @@ namespace Horizon.SERVER.Medius
                                             if (rClient.WorldCorePointer != 0 && rClient.ClientHomeData != null)
                                             {
                                                 const uint guestPtrPrefix = 0x00020000;
-                                                uint guestPtr = 0;
 
                                                 switch (rClient.ClientHomeData.Type)
                                                 {
@@ -5572,7 +5584,7 @@ namespace Horizon.SERVER.Medius
                                                         switch (rClient.ClientHomeData.Version)
                                                         {
                                                             case "01.86.09":
-                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
+                                                                rClient.WorldCoreSpaceTypePointer = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
                                                                 break;
                                                             default:
                                                                 break;
@@ -5589,7 +5601,7 @@ namespace Horizon.SERVER.Medius
                                                         switch (rClient.ClientHomeData.Version)
                                                         {
                                                             case "01.82.09":
-                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x61a8;
+                                                                rClient.WorldCoreSpaceTypePointer = rClient.WorldCorePointer + guestPtrPrefix - 0x61a8;
                                                                 break;
                                                             default:
                                                                 break;
@@ -5599,10 +5611,10 @@ namespace Horizon.SERVER.Medius
                                                         switch (rClient.ClientHomeData.Version)
                                                         {
                                                             case "01.83.12":
-                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
+                                                                rClient.WorldCoreSpaceTypePointer = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
                                                                 break;
                                                             case "01.86.09":
-                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
+                                                                rClient.WorldCoreSpaceTypePointer = rClient.WorldCorePointer + guestPtrPrefix - 0x6194;
                                                                 break;
                                                             default:
                                                                 break;
@@ -5612,7 +5624,7 @@ namespace Horizon.SERVER.Medius
                                                         switch (rClient.ClientHomeData.Version)
                                                         {
                                                             case "01.86.09":
-                                                                guestPtr = rClient.WorldCorePointer + guestPtrPrefix - 0x62a4;
+                                                                rClient.WorldCoreSpaceTypePointer = rClient.WorldCorePointer + guestPtrPrefix - 0x62a4;
                                                                 break;
                                                             default:
                                                                 break;
@@ -5620,9 +5632,8 @@ namespace Horizon.SERVER.Medius
                                                         break;
                                                 }
 
-                                                if (guestPtr != 0)
+                                                if (rClient.WorldCoreSpaceTypePointer != 0)
                                                 {
-                                                    const int guestMode = 6;
                                                     int patchedLobbyId = homeLobby.MediusWorldId;
 
                                                     rClient.Tasks.TryAdd("GJS GUEST BRUTEFORCE", Task.Run(() =>
@@ -5630,14 +5641,9 @@ namespace Horizon.SERVER.Medius
                                                         while (true)
                                                         {
                                                             if (rClient.IsInGame && patchedLobbyId == rClient.CurrentGame!.MediusWorldId)
-                                                            {
-                                                                // Set guest mode.
-                                                                PokeAddress(rClient, guestPtr, BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseInt(guestMode) : guestMode));
+                                                                CheatQuery(rClient.WorldCoreSpaceTypePointer, 4, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, unchecked((int)0xDEADBEEF) + 1);
 
-                                                                break;
-                                                            }
-                                                            else
-                                                                Thread.Sleep(6000);
+                                                            Thread.Sleep(6000);
                                                         }
                                                     }));
                                                 }

@@ -55,6 +55,16 @@ namespace Horizon.MUM.Models
         /// <summary>
         /// 
         /// </summary>
+        public uint WorldCoreSpaceTypePointer = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int CurrentSpaceType = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public string? SSFWid = null;
 
         /// <summary>
@@ -715,6 +725,9 @@ namespace Horizon.MUM.Models
         {
             if (CurrentGame != null && CurrentGame == game)
             {
+                if (ApplicationId == 20371 || ApplicationId == 20374)
+                    _ = DisposeTask("GJS GUEST BRUTEFORCE");
+
                 await LeaveCurrentGame();
 
                 // Tell database
@@ -1007,6 +1020,23 @@ namespace Horizon.MUM.Models
                 try
                 {
                     task.Dispose();
+                }
+                catch
+                {
+
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task DisposeTask(string taskIdentifier)
+        {
+            if (Tasks.TryRemove(taskIdentifier, out Task? task))
+            {
+                try
+                {
+                    task?.Dispose();
                 }
                 catch
                 {

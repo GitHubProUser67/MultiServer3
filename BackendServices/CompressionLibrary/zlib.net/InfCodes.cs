@@ -188,7 +188,7 @@ namespace ComponentAce.Compression.Libs.zlib
                             int num7;
                             for (num7 = need; num2 < num7; num2 += 8)
                             {
-                                if (num4 != 0 && z.next_in != null)
+                                if (num4 != 0)
                                 {
                                     r = 0;
                                     num4--;
@@ -204,35 +204,32 @@ namespace ComponentAce.Compression.Libs.zlib
                                 return s.inflate_flush(z, r);
                             }
                             int num8 = (tree_index + (num & inflate_mask[num7])) * 3;
-                            if (tree != null)
+                            num = SupportClass.URShift(num, tree[num8 + 1]);
+                            num2 -= tree[num8 + 1];
+                            int num9 = tree[num8];
+                            if (num9 == 0)
                             {
-                                num = SupportClass.URShift(num, tree[num8 + 1]);
-                                num2 -= tree[num8 + 1];
-                                int num9 = tree[num8];
-                                if (num9 == 0)
-                                {
-                                    lit = tree[num8 + 2];
-                                    mode = 6;
-                                    break;
-                                }
-                                if (((uint)num9 & 0x10u) != 0)
-                                {
-                                    get_Renamed = num9 & 0xF;
-                                    len = tree[num8 + 2];
-                                    mode = 2;
-                                    break;
-                                }
-                                if ((num9 & 0x40) == 0)
-                                {
-                                    need = num9;
-                                    tree_index = num8 / 3 + tree[num8 + 2];
-                                    break;
-                                }
-                                if (((uint)num9 & 0x20u) != 0)
-                                {
-                                    mode = 7;
-                                    break;
-                                }
+                                lit = tree[num8 + 2];
+                                mode = 6;
+                                break;
+                            }
+                            if (((uint)num9 & 0x10u) != 0)
+                            {
+                                get_Renamed = num9 & 0xF;
+                                len = tree[num8 + 2];
+                                mode = 2;
+                                break;
+                            }
+                            if ((num9 & 0x40) == 0)
+                            {
+                                need = num9;
+                                tree_index = num8 / 3 + tree[num8 + 2];
+                                break;
+                            }
+                            if (((uint)num9 & 0x20u) != 0)
+                            {
+                                mode = 7;
+                                break;
                             }
                             mode = 9;
                             z.msg = "invalid literal/length code";
@@ -250,7 +247,7 @@ namespace ComponentAce.Compression.Libs.zlib
                             int num7;
                             for (num7 = get_Renamed; num2 < num7; num2 += 8)
                             {
-                                if (num4 != 0 && z.next_in != null)
+                                if (num4 != 0)
                                 {
                                     r = 0;
                                     num4--;
@@ -279,7 +276,7 @@ namespace ComponentAce.Compression.Libs.zlib
                             int num7;
                             for (num7 = need; num2 < num7; num2 += 8)
                             {
-                                if (num4 != 0 && z.next_in != null)
+                                if (num4 != 0)
                                 {
                                     r = 0;
                                     num4--;
@@ -295,24 +292,21 @@ namespace ComponentAce.Compression.Libs.zlib
                                 return s.inflate_flush(z, r);
                             }
                             int num8 = (tree_index + (num & inflate_mask[num7])) * 3;
-                            if (tree != null)
+                            num >>= tree[num8 + 1];
+                            num2 -= tree[num8 + 1];
+                            int num9 = tree[num8];
+                            if (((uint)num9 & 0x10u) != 0)
                             {
-                                num >>= tree[num8 + 1];
-                                num2 -= tree[num8 + 1];
-                                int num9 = tree[num8];
-                                if (((uint)num9 & 0x10u) != 0)
-                                {
-                                    get_Renamed = num9 & 0xF;
-                                    dist = tree[num8 + 2];
-                                    mode = 4;
-                                    break;
-                                }
-                                if ((num9 & 0x40) == 0)
-                                {
-                                    need = num9;
-                                    tree_index = num8 / 3 + tree[num8 + 2];
-                                    break;
-                                }
+                                get_Renamed = num9 & 0xF;
+                                dist = tree[num8 + 2];
+                                mode = 4;
+                                break;
+                            }
+                            if ((num9 & 0x40) == 0)
+                            {
+                                need = num9;
+                                tree_index = num8 / 3 + tree[num8 + 2];
+                                break;
                             }
                             mode = 9;
                             z.msg = "invalid distance code";
@@ -330,7 +324,7 @@ namespace ComponentAce.Compression.Libs.zlib
                             int num7;
                             for (num7 = get_Renamed; num2 < num7; num2 += 8)
                             {
-                                if (num4 != 0 && z.next_in != null)
+                                if (num4 != 0)
                                 {
                                     r = 0;
                                     num4--;
@@ -507,7 +501,7 @@ namespace ComponentAce.Compression.Libs.zlib
             int num11;
             while (true)
             {
-                if (num3 < 20 && z.next_in != null)
+                if (num3 < 20)
                 {
                     num--;
                     num2 |= (z.next_in[next_in_index++] & 0xFF) << num3;
@@ -531,7 +525,7 @@ namespace ComponentAce.Compression.Libs.zlib
                     {
                         num2 >>= array[(num9 + num8) * 3 + 1];
                         num3 -= array[(num9 + num8) * 3 + 1];
-                        if (((uint)num10 & 0x10u) != 0 && z.next_in != null)
+                        if (((uint)num10 & 0x10u) != 0)
                         {
                             num10 &= 0xF;
                             num11 = array[(num9 + num8) * 3 + 2] + (num2 & inflate_mask[num10]);

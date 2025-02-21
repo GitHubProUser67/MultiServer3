@@ -9,6 +9,8 @@
 // Neither the name of ComponentAce nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission. 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+
 /*
 Copyright (c) 2000,2001,2002,2003 ymnk, JCraft,Inc. All rights reserved.
 
@@ -41,73 +43,66 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * Jean-loup Gailly(jloup@gzip.org) and Mark Adler(madler@alumni.caltech.edu)
 * and contributors of zlib.
 */
+using System;
 namespace ComponentAce.Compression.Libs.zlib
 {
-    internal sealed class Adler32
-    {
-        private const int BASE = 65521;
-
-        private const int NMAX = 5552;
-
-        internal long adler32(long adler, byte[] buf, int index, int len)
-        {
-            if (buf == null)
-                return 1L;
-            long num = adler & 0xFFFF;
-            long num2 = (adler >> 16) & 0xFFFF;
-            while (len > 0)
-            {
-                int num3 = (len < 5552) ? len : 5552;
-                len -= num3;
-                while (num3 >= 16)
-                {
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num += buf[index++] & 0xFF;
-                    num2 += num;
-                    num3 -= 16;
-                }
-                if (num3 != 0)
-                {
-                    do
-                    {
-                        num += buf[index++] & 0xFF;
-                        num2 += num;
-                    }
-                    while (--num3 != 0);
-                }
-                num %= 65521;
-                num2 %= 65521;
-            }
-            return (num2 << 16) | num;
-        }
-    }
+	
+	sealed class Adler32
+	{
+		
+		// largest prime smaller than 65536
+		private const int BASE = 65521;
+		// NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1
+		private const int NMAX = 5552;
+		
+		internal long adler32(long adler, byte[] buf, int index, int len)
+		{
+			if (buf == null)
+			{
+				return 1L;
+			}
+			
+			long s1 = adler & 0xffff;
+			long s2 = (adler >> 16) & 0xffff;
+			int k;
+			
+			while (len > 0)
+			{
+				k = len < NMAX?len:NMAX;
+				len -= k;
+				while (k >= 16)
+				{
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					s1 += (buf[index++] & 0xff); s2 += s1;
+					k -= 16;
+				}
+				if (k != 0)
+				{
+					do 
+					{
+						s1 += (buf[index++] & 0xff); s2 += s1;
+					}
+					while (--k != 0);
+				}
+				s1 %= BASE;
+				s2 %= BASE;
+			}
+			return (s2 << 16) | s1;
+		}
+		
+	}
 }
