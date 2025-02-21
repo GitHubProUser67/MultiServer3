@@ -116,44 +116,35 @@ namespace Horizon.SERVER.Medius
                         {
                             if (MediusClass.Settings.AllowGuests)
                             {
-                                if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ApplicationId == 20371 || data.ApplicationId == 20374))
+                                string clientIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' });
+
+                                data.ClientObject = MediusClass.Manager.GetClientsByIp(clientIP, clientConnectTcp.AppId)?.FirstOrDefault();
+
+                                if (data.ClientObject == null)
                                 {
-                                    data.Ignore = true;
-                                    LoggerAccessor.LogWarn($"[MLS] - Ignoring guest login for {clientChannel.RemoteAddress}: {clientConnectTcp}");
+                                    data.ClientObject = new(scertClient.MediusVersion ?? 0, clientConnectTcp.SessionKey, clientConnectTcp.AccessToken)
+                                    {
+                                        ApplicationId = clientConnectTcp.AppId,
+                                    };
+                                    data.ClientObject.OnConnected();
+                                    data.ClientObject.SetIp(clientIP);
+                                }
+
+                                if (await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId)) // Would be too easy if the Client could bypass Ban with a Guest...
+                                {
+                                    // Then queue send ban message
+                                    await QueueBanMessage(data, "You have been banned from this server.");
+
+                                    await data.ClientObject!.Logout();
+
                                     break;
                                 }
-                                else
+
+                                if (!data.ClientObject.IsLoggedIn && !await GuestLogin(clientChannel, data))
                                 {
-                                    string clientIP = ((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' });
-
-                                    data.ClientObject = MediusClass.Manager.GetClientsByIp(clientIP, clientConnectTcp.AppId)?.FirstOrDefault();
-
-                                    if (data.ClientObject == null)
-                                    {
-                                        data.ClientObject = new(scertClient.MediusVersion ?? 0, clientConnectTcp.SessionKey, clientConnectTcp.AccessToken)
-                                        {
-                                            ApplicationId = clientConnectTcp.AppId,
-                                        };
-                                        data.ClientObject.OnConnected();
-                                        data.ClientObject.SetIp(clientIP);
-                                    }
-
-                                    if (await HorizonServerConfiguration.Database.GetIsMacBanned(data.MachineId)) // Would be too easy if the Client could bypass Ban with a Guest...
-                                    {
-                                        // Then queue send ban message
-                                        await QueueBanMessage(data, "You have been banned from this server.");
-
-                                        await data.ClientObject!.Logout();
-
-                                        break;
-                                    }
-
-                                    if (!data.ClientObject.IsLoggedIn && !await GuestLogin(clientChannel, data))
-                                    {
-                                        data.Ignore = true;
-                                        LoggerAccessor.LogError($"[MLS] - Ignoring banned client for {clientChannel.RemoteAddress}: {clientConnectTcp}");
-                                        break;
-                                    }
+                                    data.Ignore = true;
+                                    LoggerAccessor.LogError($"[MLS] - Ignoring banned client for {clientChannel.RemoteAddress}: {clientConnectTcp}");
+                                    break;
                                 }
                             }
                             else
@@ -168,14 +159,6 @@ namespace Horizon.SERVER.Medius
                             data.ClientObject.MediusVersion = scertClient.MediusVersion ?? 0;
                             data.ClientObject.ApplicationId = clientConnectTcp.AppId;
                             data.ClientObject.OnConnected();
-
-                            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (data.ClientObject.ApplicationId == 20371 || data.ClientObject.ApplicationId == 20374) 
-                                && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(data.ClientObject.AccountName + ":" + data.ClientObject.IP)))
-                            {
-                                data.State = ClientState.DISCONNECTED;
-                                await clientChannel.CloseAsync();
-                                break;
-                            }
                         }
                         #endregion
 
@@ -11178,16 +11161,7 @@ namespace Horizon.SERVER.Medius
             }
 
             if (data.ClientObject!.ApplicationId == 20371 || data.ClientObject!.ApplicationId == 20374)
-            {
-                if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName + ":" + data.ClientObject!.IP)))
-                {
-                    data.State = ClientState.DISCONNECTED;
-                    await clientChannel.CloseAsync();
-                    return false;
-                }
-
                 CheatQuery(0x00010000, 512000, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, unchecked((int)0xDEADBEEF));
-            }
 
             await data.ClientObject!.Login(accountDto);
 

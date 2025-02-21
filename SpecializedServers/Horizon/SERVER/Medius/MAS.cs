@@ -2795,269 +2795,259 @@ namespace Horizon.SERVER.Medius
             if (data.ClientObject!.IP == IPAddress.Any)
                 data.ClientObject!.SetIp(((IPEndPoint)clientChannel.RemoteAddress).Address.ToString().Trim(new char[] { ':', 'f', '{', '}' }));
 
-            bool isHome = data.ApplicationId == 20371 || data.ApplicationId == 20374;
-
-            if (MediusClass.Settings.PlaystationHomeUserNameWhitelist && isHome && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(accountDto.AccountName + ":" + data.ClientObject.IP)))
+            if ((data.ApplicationId == 20371 || data.ApplicationId == 20374) && data.ClientObject.ClientHomeData != null)
             {
-                data.State = ClientState.DISCONNECTED;
-                await clientChannel.CloseAsync();
+                if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83)
+                {
+                    if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
+                        _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
+                    else
+                        _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "mlaaenable 0");
+                }
+                /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
+                {
+                    if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
+                        _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");
+                    else
+                        _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "msaaenable 1");
+                }*/
+
+                switch (data.ClientObject.ClientHomeData.Type)
+                {
+                    case "HDK With Offline":
+                        switch (data.ClientObject.ClientHomeData.Version)
+                        {
+                            case "01.86.09":
+                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                {
+                                    CheatQuery(0x00546cf4, 4, clientChannel);
+
+                                    CheatQuery(0x005478dc, 4, clientChannel);
+                                }
+
+                                CheatQuery(0x1054e5c0, 4, clientChannel);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case "HDK Online Only":
+                        switch (data.ClientObject.ClientHomeData.Version)
+                        {
+                            default:
+                                break;
+                        }
+                        break;
+                    case "HDK Online Only (Dbg Symbols)":
+                        switch (data.ClientObject.ClientHomeData.Version)
+                        {
+                            case "01.82.09":
+                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                {
+                                    CheatQuery(0x00530770, 4, clientChannel);
+
+                                    CheatQuery(0x00531370, 4, clientChannel);
+                                }
+
+                                CheatQuery(0x1053e160, 4, clientChannel);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case "Online Debug":
+                        switch (data.ClientObject.ClientHomeData.Version)
+                        {
+                            case "01.83.12":
+                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                {
+                                    CheatQuery(0x0054ac80, 4, clientChannel);
+
+                                    CheatQuery(0x00548bc0, 4, clientChannel);
+                                }
+
+                                CheatQuery(0x1054e1c0, 4, clientChannel);
+                                break;
+                            case "01.86.09":
+                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                {
+                                    CheatQuery(0x00557d8c, 4, clientChannel);
+
+                                    CheatQuery(0x00555cb4, 4, clientChannel);
+                                }
+
+                                CheatQuery(0x1054e358, 4, clientChannel);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case "Retail":
+                        switch (data.ClientObject.ClientHomeData.Version)
+                        {
+                            case "01.86.09":
+                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                {
+                                    CheatQuery(0x006f59b8, 4, clientChannel);
+                                    CheatQuery(0x002aa960, 4, clientChannel);
+
+                                    CheatQuery(0x000861e8, 4, clientChannel);
+
+                                    CheatQuery(0x00087080, 4, clientChannel);
+                                }
+
+                                CheatQuery(0x105c24c8, 4, clientChannel);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                }
+            }
+
+            await data.ClientObject.Login(accountDto);
+
+            #region Update DB IP and CID
+            await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
+
+            CIDManager.CreateCIDPair(data.ClientObject.AccountName, data.MachineId);
+
+            if (!string.IsNullOrEmpty(data.MachineId))
+                await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
+            #endregion
+
+            // Add to logged in clients
+            MediusClass.Manager.AddOrUpdateLoggedInClient(data.ClientObject);
+
+            LoggerAccessor.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.AccessToken}");
+
+            // Tell client
+            if (ticket)
+            {
+                #region IF PS3 Client
+                data.ClientObject.Queue(new MediusTicketLoginResponse()
+                {
+                    //TicketLoginResponse
+                    MessageID = messageId,
+                    StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
+                    PasswordType = MediusPasswordType.MediusPasswordNotSet,
+
+                    //AccountLoginResponse Wrapped
+                    MessageID2 = messageId,
+                    StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
+                    AccountID = data.ClientObject.AccountId,
+                    AccountType = MediusAccountType.MediusMasterAccount,
+                    ConnectInfo = new NetConnectionInfo()
+                    {
+                        AccessKey = data.ClientObject.AccessToken,
+                        SessionKey = data.ClientObject.SessionKey,
+                        TargetWorldID = data.ClientObject.CurrentChannel!.Id,
+                        ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
+                        AddressList = new NetAddressList()
+                        {
+                            AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                            {
+                                    new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = (MediusClass.Settings.NpMLSPortOverride != -1) ? MediusClass.Settings.NpMLSPortOverride : MediusClass.LobbyServer.TCPPort , AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                            }
+                        },
+                        Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                    },
+                });
+                #endregion
+
+                // Prepare for transition to lobby server
+                data.ClientObject.KeepAliveUntilNextConnection();
             }
             else
             {
-                if (isHome && data.ClientObject.ClientHomeData != null)
+                #region If PS2/PSP
+
+                if (data.ClientObject.MediusVersion > 108)
                 {
-                    if (data.ClientObject.IsOnRPCN && data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83)
+                    data.ClientObject.Queue(new MediusAccountLoginResponse()
                     {
-                        if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
-                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'mlaaenable 0' )");
-                        else
-                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "mlaaenable 0");
-                    }
-                    /*else if (data.ClientObject.ClientHomeData.VersionAsDouble >= 01.83) // MSAA PS3 Only for now: https://github.com/RPCS3/rpcs3/issues/15719
-                    {
-                        if (!string.IsNullOrEmpty(data.ClientObject.ClientHomeData?.Type) && (data.ClientObject.ClientHomeData.Type.Contains("HDK") || data.ClientObject.ClientHomeData.Type == "Online Debug"))
-                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "lc Debug.System( 'msaaenable 1' )");
-                        else
-                            _ = HomeRTMTools.SendRemoteCommand(data.ClientObject, "msaaenable 1");
-                    }*/
-
-                    switch (data.ClientObject.ClientHomeData.Type)
-                    {
-                        case "HDK With Offline":
-                            switch (data.ClientObject.ClientHomeData.Version)
-                            {
-                                case "01.86.09":
-                                    if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
-                                    {
-                                        CheatQuery(0x00546cf4, 4, clientChannel);
-
-                                        CheatQuery(0x005478dc, 4, clientChannel);
-                                    }
-
-                                    CheatQuery(0x1054e5c0, 4, clientChannel);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case "HDK Online Only":
-                            switch (data.ClientObject.ClientHomeData.Version)
-                            {
-                                default:
-                                    break;
-                            }
-                            break;
-                        case "HDK Online Only (Dbg Symbols)":
-                            switch (data.ClientObject.ClientHomeData.Version)
-                            {
-                                case "01.82.09":
-                                    if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
-                                    {
-                                        CheatQuery(0x00530770, 4, clientChannel);
-
-                                        CheatQuery(0x00531370, 4, clientChannel);
-                                    }
-
-                                    CheatQuery(0x1053e160, 4, clientChannel);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case "Online Debug":
-                            switch (data.ClientObject.ClientHomeData.Version)
-                            {
-                                case "01.83.12":
-                                    if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
-                                    {
-                                        CheatQuery(0x0054ac80, 4, clientChannel);
-
-                                        CheatQuery(0x00548bc0, 4, clientChannel);
-                                    }
-
-                                    CheatQuery(0x1054e1c0, 4, clientChannel);
-                                    break;
-                                case "01.86.09":
-                                    if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
-                                    {
-                                        CheatQuery(0x00557d8c, 4, clientChannel);
-
-                                        CheatQuery(0x00555cb4, 4, clientChannel);
-                                    }
-
-                                    CheatQuery(0x1054e358, 4, clientChannel);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case "Retail":
-                            switch (data.ClientObject.ClientHomeData.Version)
-                            {
-                                case "01.86.09":
-                                    if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
-                                    {
-                                        CheatQuery(0x006f59b8, 4, clientChannel);
-                                        CheatQuery(0x002aa960, 4, clientChannel);
-
-                                        CheatQuery(0x000861e8, 4, clientChannel);
-
-                                        CheatQuery(0x00087080, 4, clientChannel);
-                                    }
-
-                                    CheatQuery(0x105c24c8, 4, clientChannel);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                    }
-                }
-
-                await data.ClientObject.Login(accountDto);
-
-                #region Update DB IP and CID
-                await HorizonServerConfiguration.Database.PostAccountIp(accountDto.AccountId, ((IPEndPoint)clientChannel.RemoteAddress).Address.MapToIPv4().ToString());
-
-                CIDManager.CreateCIDPair(data.ClientObject.AccountName, data.MachineId);
-
-                if (!string.IsNullOrEmpty(data.MachineId))
-                    await HorizonServerConfiguration.Database.PostMachineId(data.ClientObject.AccountId, data.MachineId);
-                #endregion
-
-                // Add to logged in clients
-                MediusClass.Manager.AddOrUpdateLoggedInClient(data.ClientObject);
-
-                LoggerAccessor.LogInfo($"LOGGING IN AS {data.ClientObject.AccountName} with access token {data.ClientObject.AccessToken}");
-
-                // Tell client
-                if (ticket)
-                {
-                    #region IF PS3 Client
-                    data.ClientObject.Queue(new MediusTicketLoginResponse()
-                    {
-                        //TicketLoginResponse
                         MessageID = messageId,
-                        StatusCodeTicketLogin = MediusCallbackStatus.MediusSuccess,
-                        PasswordType = MediusPasswordType.MediusPasswordNotSet,
-
-                        //AccountLoginResponse Wrapped
-                        MessageID2 = messageId,
-                        StatusCodeAccountLogin = MediusCallbackStatus.MediusSuccess,
+                        StatusCode = MediusCallbackStatus.MediusSuccess,
                         AccountID = data.ClientObject.AccountId,
                         AccountType = MediusAccountType.MediusMasterAccount,
+                        WorldID = data.ClientObject.CurrentChannel!.Id,
                         ConnectInfo = new NetConnectionInfo()
                         {
                             AccessKey = data.ClientObject.AccessToken,
                             SessionKey = data.ClientObject.SessionKey,
                             TargetWorldID = data.ClientObject.CurrentChannel!.Id,
-                            ServerKey = new RSA_KEY(), //MediusStarter.GlobalAuthPublic,
+                            ServerKey = MediusClass.GlobalAuthPublic,
                             AddressList = new NetAddressList()
                             {
                                 AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    new NetAddress() {Address = !string.IsNullOrEmpty(MediusClass.Settings.NpMLSIpOverride) ? MediusClass.Settings.NpMLSIpOverride : MediusClass.LobbyServer.IPAddress.ToString(), Port = (MediusClass.Settings.NpMLSPortOverride != -1) ? MediusClass.Settings.NpMLSPortOverride : MediusClass.LobbyServer.TCPPort , AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
                                 }
                             },
                             Type = NetConnectionType.NetConnectionTypeClientServerTCP
                         },
                     });
-                    #endregion
-
-                    // Prepare for transition to lobby server
-                    data.ClientObject.KeepAliveUntilNextConnection();
+                }
+                else if (pre108Secure.Contains(data.ClientObject.ApplicationId)) //10683 / 10684
+                {
+                    data.ClientObject.Queue(new MediusAccountLoginResponse()
+                    {
+                        MessageID = messageId,
+                        StatusCode = MediusCallbackStatus.MediusSuccess,
+                        AccountID = data.ClientObject.AccountId,
+                        AccountType = MediusAccountType.MediusMasterAccount,
+                        WorldID = data.ClientObject.CurrentChannel!.Id,
+                        ConnectInfo = new NetConnectionInfo()
+                        {
+                            AccessKey = data.ClientObject.AccessToken,
+                            SessionKey = data.ClientObject.SessionKey,
+                            TargetWorldID = data.ClientObject.CurrentChannel!.Id,
+                            ServerKey = new RSA_KEY(),
+                            AddressList = new NetAddressList()
+                            {
+                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
+                                {
+                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
+                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
+                                }
+                            },
+                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                        },
+                    });
                 }
                 else
                 {
-                    #region If PS2/PSP
-
-                    if (data.ClientObject.MediusVersion > 108)
+                    data.ClientObject.Queue(new MediusAccountLoginResponse()
                     {
-                        data.ClientObject.Queue(new MediusAccountLoginResponse()
+                        MessageID = messageId,
+                        StatusCode = MediusCallbackStatus.MediusSuccess,
+                        AccountID = data.ClientObject.AccountId,
+                        AccountType = MediusAccountType.MediusMasterAccount,
+                        WorldID = data.ClientObject.CurrentChannel!.Id,
+                        ConnectInfo = new NetConnectionInfo()
                         {
-                            MessageID = messageId,
-                            StatusCode = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            WorldID = data.ClientObject.CurrentChannel!.Id,
-                            ConnectInfo = new NetConnectionInfo()
+                            AccessKey = data.ClientObject.AccessToken,
+                            SessionKey = data.ClientObject.SessionKey,
+                            TargetWorldID = data.ClientObject.CurrentChannel!.Id,
+                            ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
+                            AddressList = new NetAddressList()
                             {
-                                AccessKey = data.ClientObject.AccessToken,
-                                SessionKey = data.ClientObject.SessionKey,
-                                TargetWorldID = data.ClientObject.CurrentChannel!.Id,
-                                ServerKey = MediusClass.GlobalAuthPublic,
-                                AddressList = new NetAddressList()
+                                AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                 {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
                                     new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
                                     new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                                }
                             },
-                        });
-                    }
-                    else if (pre108Secure.Contains(data.ClientObject.ApplicationId)) //10683 / 10684
-                    {
-                        data.ClientObject.Queue(new MediusAccountLoginResponse()
-                        {
-                            MessageID = messageId,
-                            StatusCode = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            WorldID = data.ClientObject.CurrentChannel!.Id,
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                AccessKey = data.ClientObject.AccessToken,
-                                SessionKey = data.ClientObject.SessionKey,
-                                TargetWorldID = data.ClientObject.CurrentChannel!.Id,
-                                ServerKey = new RSA_KEY(),
-                                AddressList = new NetAddressList()
-                                {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                            },
-                        });
-                    }
-                    else
-                    {
-                        data.ClientObject.Queue(new MediusAccountLoginResponse()
-                        {
-                            MessageID = messageId,
-                            StatusCode = MediusCallbackStatus.MediusSuccess,
-                            AccountID = data.ClientObject.AccountId,
-                            AccountType = MediusAccountType.MediusMasterAccount,
-                            WorldID = data.ClientObject.CurrentChannel!.Id,
-                            ConnectInfo = new NetConnectionInfo()
-                            {
-                                AccessKey = data.ClientObject.AccessToken,
-                                SessionKey = data.ClientObject.SessionKey,
-                                TargetWorldID = data.ClientObject.CurrentChannel!.Id,
-                                ServerKey = MediusClass.GlobalAuthPublic, //Some Older Medius games don't set a RSA Key
-                                AddressList = new NetAddressList()
-                                {
-                                    AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
-                                    {
-                                    new NetAddress() {Address = MediusClass.LobbyServer.IPAddress.ToString(), Port = MediusClass.LobbyServer.TCPPort, AddressType = NetAddressType.NetAddressTypeExternal},
-                                    new NetAddress() {Address = host.AddressList.First().ToString(), Port = MediusClass.Settings.NATPort, AddressType = NetAddressType.NetAddressTypeNATService},
-                                    }
-                                },
-                                Type = NetConnectionType.NetConnectionTypeClientServerTCP
-                            },
-                        });
-                    }
-
-                    // Prepare for transition to lobby server
-                    data.ClientObject.KeepAliveUntilNextConnection();
-                    #endregion
+                            Type = NetConnectionType.NetConnectionTypeClientServerTCP
+                        },
+                    });
                 }
+
+                // Prepare for transition to lobby server
+                data.ClientObject.KeepAliveUntilNextConnection();
+                #endregion
             }
         }
         #endregion
