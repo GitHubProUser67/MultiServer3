@@ -417,8 +417,6 @@ namespace Horizon.SERVER.Config
 
         public bool PlaystationHomeAntiCheat { get; set; } = false;
 
-        public bool PlaystationHomeUserNameWhitelist { get; set; } = false;
-
         public Dictionary<string, string> PlaystationHomeUsersServersAccessList { get; set; } = new();
 
         #endregion
