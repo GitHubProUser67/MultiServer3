@@ -127,6 +127,10 @@ wpc.33F8.edgecastcdn.net,Redirect,IP
 server.lootgear.com,Redirect,IP
 alpha.lootgear.com,Redirect,IP
 
+;Heavy Water
+secure.heavyh2o.net,Redirect,IP
+services.heavyh2o.net,Redirect,IP
+
 ;Unsorted or Media
 s3.amazonaws.com,Redirect,IP
 youtube.com,Redirect,IP

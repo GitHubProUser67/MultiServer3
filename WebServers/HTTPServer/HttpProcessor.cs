@@ -41,6 +41,7 @@ using WebAPIService.CCPGames;
 using WebAPIService.DEMANGLER;
 using WebAPIService.UBISOFT.BuildAPI;
 using NetworkLibrary.Extension.Csharp;
+using WebAPIService.HEAVYWATER;
 
 namespace HTTPServer
 {
@@ -511,7 +512,7 @@ namespace HTTPServer
                                             #endregion
 
                                             #region Hellfire Games API
-                                            else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php"))
+                                            else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php") && !string.IsNullOrEmpty(Method))
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
@@ -521,7 +522,7 @@ namespace HTTPServer
                                                 {
                                                     using MemoryStream postdata = new();
                                                     request.GetDataStream.CopyTo(postdata);
-                                                    res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
+                                                    res = new HELLFIREClass(Method, HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(postdata.ToArray(), request.GetContentType(), false);
                                                     postdata.Flush();
                                                 }
 
@@ -532,6 +533,19 @@ namespace HTTPServer
                                                     //response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                     response = HttpResponse.Send(res, "application/xml;charset=UTF-8");
                                                 }
+                                            }
+                                            #endregion
+
+                                            #region Heavy Water API
+                                            else if ((Host == "services.heavyh2o.net" || Host == "www.services.heavyh2o.net") && !string.IsNullOrEmpty(Method))
+                                            {
+                                                LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a Heavy Water method : {absolutepath}");
+
+                                                string res = new HeavyWaterClass(Method, HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.GetContentType());
+                                                if (string.IsNullOrEmpty(res))
+                                                    res = "{\"STATUS\":\"FAILURE\"}";
+
+                                                response = HttpResponse.Send(res, "application/json");
                                             }
                                             #endregion
 

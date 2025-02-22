@@ -39,6 +39,7 @@ using System.Collections.Concurrent;
 using WebAPIService.DIGITAL_LEISURE;
 using NetworkLibrary.Upscalers;
 using DNS.Protocol;
+using WebAPIService.HEAVYWATER;
 
 namespace HTTPSecureServerLite
 {
@@ -691,6 +692,26 @@ namespace HTTPSecureServerLite
                                 response.StatusCode = (int)statusCode;
                                 if (response.ChunkedTransfer)
                                     sent = await response.SendFinalChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Heavy Water API
+                            else if (Host == "secure.heavyh2o.net")
+                            {
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a Heavy Water method : {absolutepath}");
+
+                                response.ContentType = "application/json";
+                                statusCode = HttpStatusCode.OK;
+
+                                string res = new HeavyWaterClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
+                                    res = "{\"STATUS\":\"FAILURE\"}";
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendFinalChunk(Encoding.UTF8.GetBytes(res));
                                 else
                                     sent = await response.Send(res);
                             }

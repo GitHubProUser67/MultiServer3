@@ -6,10 +6,10 @@
       "serviceActions": {
         "horizon": "StartDebugging",
         "multisocks": "StartDebugging",
+        "multispy": "StartDebugging",
         "ssfwserver": "StartDebugging",
         "svo": "StartDebugging",
         "httpsecureserverlite": "StartDebugging",
-        "databasemiddleware": "StartDebugging",
         "quazalserver": "StartDebugging",
         "httpserver": "StartDebugging",
         "mitmdns": "StartDebugging"
