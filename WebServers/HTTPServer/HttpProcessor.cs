@@ -541,7 +541,7 @@ namespace HTTPServer
                                             {
                                                 LoggerAccessor.LogInfo($"[HTTP] - {clientip}:{clientport} Requested a Heavy Water method : {absolutepath}");
 
-                                                string res = new HeavyWaterClass(Method, HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.GetContentType());
+                                                string res = new HeavyWaterClass(Method, HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.QueryParameters, request.DataAsBytes, request.GetContentType());
                                                 if (string.IsNullOrEmpty(res))
                                                     res = "{\"STATUS\":\"FAILURE\"}";
 
