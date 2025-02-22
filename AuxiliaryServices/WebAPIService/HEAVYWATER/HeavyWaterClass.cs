@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace WebAPIService.HEAVYWATER
 {
@@ -26,7 +27,7 @@ namespace WebAPIService.HEAVYWATER
             this.apipath = apipath;
         }
 
-        public string ProcessRequest(byte[] PostData, string ContentType)
+        public string ProcessRequest(IDictionary<string, string> QueryParameters, byte[] PostData, string ContentType)
         {
             const string playerPathern = @"/player/([^/]+)";
 
@@ -110,7 +111,7 @@ namespace WebAPIService.HEAVYWATER
                         }
                         break;
                     case "POST":
-                        if (absolutepath.Contains("/D2O/Ticket/verify/"))
+                        if (absolutepath.Contains("/D2O/Ticket/") && (absolutepath.Contains("validate/") || absolutepath.Contains("verify/")))
                         {
                             using (MemoryStream copyStream = new MemoryStream(PostData))
                             {
@@ -266,6 +267,36 @@ namespace WebAPIService.HEAVYWATER
 
                                         return "{\"STATUS\": \"SUCCESS\"}";
                                     }
+                                }
+                            }
+                            else if (absolutepath.Contains("/D2O/AvalonPublicHexx/"))
+                            {
+                                if (absolutepath.EndsWith("/metrics"))
+                                {
+                                    // TODO: process metrics data?
+                                    return @"{
+                                        ""STATUS"": ""SUCCESS"",
+                                      }";
+                                }
+                            }
+                            else if (absolutepath.Contains("/D2O/HeavyWaterPublic/"))
+                            {
+                                if (absolutepath.EndsWith("/metrics"))
+                                {
+                                    // TODO: process metrics data?
+                                    return @"{
+                                        ""STATUS"": ""SUCCESS"",
+                                      }";
+                                }
+                            }
+                            else if (absolutepath.Contains("/D2O/EmoRay/"))
+                            {
+                                if (absolutepath.EndsWith("/metrics"))
+                                {
+                                    // TODO: process metrics data?
+                                    return @"{
+                                        ""STATUS"": ""SUCCESS"",
+                                      }";
                                 }
                             }
                         }

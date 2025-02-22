@@ -705,7 +705,7 @@ namespace HTTPSecureServerLite
                                 response.ContentType = "application/json";
                                 statusCode = HttpStatusCode.OK;
 
-                                string res = new HeavyWaterClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                string res = new HeavyWaterClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                     res = "{\"STATUS\":\"FAILURE\"}";
 
