@@ -26,7 +26,6 @@ public static class HTTPServerConfiguration
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static int BufferSize { get; set; } = 4096;
-    public static int MaximumAllowedKeepAliveClients { get; set; } = 20;
     public static string HttpVersion { get; set; } = "1.1";
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
     public static string HTTPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
@@ -77,7 +76,6 @@ public static class HTTPServerConfiguration
                 new JProperty("http_temp_folder", HTTPTempFolder),
                 new JProperty("converters_folder", ConvertersFolder),
                 new JProperty("buffer_size", BufferSize),
-                new JProperty("maximum_allowed_keep_alive_clients", MaximumAllowedKeepAliveClients),
                 new JProperty("http_version", HttpVersion),
                 SerializeMimeTypes(),
                 SerializeDateTimeOffset(),
@@ -115,7 +113,6 @@ public static class HTTPServerConfiguration
             HTTPTempFolder = GetValueOrDefault(config, "http_temp_folder", HTTPTempFolder);
             ConvertersFolder = GetValueOrDefault(config, "converters_folder", ConvertersFolder);
             BufferSize = GetValueOrDefault(config, "buffer_size", BufferSize);
-            MaximumAllowedKeepAliveClients = GetValueOrDefault(config, "maximum_allowed_keep_alive_clients", MaximumAllowedKeepAliveClients);
             HttpVersion = GetValueOrDefault(config, "http_version", HttpVersion);
             MimeTypes = GetValueOrDefault(config, "mime_types", MimeTypes);
             DateTimeOffset = GetValueOrDefault(config, "datetime_offset", DateTimeOffset);
