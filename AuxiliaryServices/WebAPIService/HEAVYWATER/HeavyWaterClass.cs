@@ -44,7 +44,7 @@ namespace WebAPIService.HEAVYWATER
 
                             if (absolutepath.Contains("/D2O/Avalon/"))
                             {
-                                string avalonProfilePath = apipath + $"/HEAVYWATER/Avalon_keep/{id}/";
+                                string avalonProfilePath = apipath + $"/HEAVYWATER/Avalon_keep/{id}";
 
                                 if (absolutepath.EndsWith("/data/HouseData"))
                                 {
@@ -71,6 +71,94 @@ namespace WebAPIService.HEAVYWATER
                                     ""result"":
                                       {AvalonKeepData}
                                   }}";
+                                }
+                            }
+                            else if (absolutepath.Contains("/D2O/AvalonHexx/"))
+                            {
+                                string hexxProfilePath = apipath + $"/HEAVYWATER/Avalon_hexx/{id}";
+
+                                if (absolutepath.EndsWith("/data/MyAvalonHexxData"))
+                                {
+                                    string AvalonHexxData = "{}";
+
+                                    if (File.Exists(hexxProfilePath + "/HexxData.json"))
+                                        AvalonHexxData = File.ReadAllText(hexxProfilePath + "/HexxData.json");
+
+                                    return $@"{{
+                                        ""STATUS"": ""SUCCESS"",
+                                        ""result"":
+                                          {AvalonHexxData}
+                                      }}";
+                                }
+                            }
+                            else if (absolutepath.Contains("/D2O/EmoRay/"))
+                            {
+                                string emorayProfilePath = apipath + $"/HEAVYWATER/EmoRay/{id}";
+
+                                if (absolutepath.EndsWith("/data/ProgressionData"))
+                                {
+                                    string emorayProgData = "{}";
+
+                                    if (File.Exists(emorayProfilePath + "/ProgressionData.json"))
+                                        emorayProgData = File.ReadAllText(emorayProfilePath + "/ProgressionData.json");
+
+                                    return $@"{{
+                                        ""STATUS"": ""SUCCESS"",
+                                        ""result"":
+                                          {emorayProgData}
+                                      }}";
+                                }
+                                else if (absolutepath.EndsWith("/data/EquippedData"))
+                                {
+                                    string emorayEquippedData = "{}";
+
+                                    if (File.Exists(emorayProfilePath + "/EquippedData.json"))
+                                        emorayEquippedData = File.ReadAllText(emorayProfilePath + "/EquippedData.json");
+
+                                    return $@"{{
+                                        ""STATUS"": ""SUCCESS"",
+                                        ""result"":
+                                          {emorayEquippedData}
+                                      }}";
+                                }
+                                else if (absolutepath.EndsWith("/data/ScoresData"))
+                                {
+                                    string emorayScoresData = "{}";
+
+                                    if (File.Exists(emorayProfilePath + "/ScoresData.json"))
+                                        emorayScoresData = File.ReadAllText(emorayProfilePath + "/ScoresData.json");
+
+                                    return $@"{{
+                                        ""STATUS"": ""SUCCESS"",
+                                        ""result"":
+                                          {emorayScoresData}
+                                      }}";
+                                }
+                                else if (absolutepath.EndsWith("/data/ControllerData"))
+                                {
+                                    string emorayControllerData = "{}";
+
+                                    if (File.Exists(emorayProfilePath + "/ControllerData.json"))
+                                        emorayControllerData = File.ReadAllText(emorayProfilePath + "/ControllerData.json");
+
+                                    return $@"{{
+                                        ""STATUS"": ""SUCCESS"",
+                                        ""result"":
+                                          {emorayControllerData}
+                                      }}";
+                                }
+                                else if (absolutepath.EndsWith("/data/StoreProgressData"))
+                                {
+                                    string emorayStoreProgressData = "{}";
+
+                                    if (File.Exists(emorayProfilePath + "/StoreProgressData.json"))
+                                        emorayStoreProgressData = File.ReadAllText(emorayProfilePath + "/StoreProgressData.json");
+
+                                    return $@"{{
+                                        ""STATUS"": ""SUCCESS"",
+                                        ""result"":
+                                          {emorayStoreProgressData}
+                                      }}";
                                 }
                             }
                             else if (absolutepath.Contains("/D2O/D2OUniverse/"))
@@ -106,6 +194,56 @@ namespace WebAPIService.HEAVYWATER
                                     ""STATUS"": ""SUCCESS"",
                                     ""result"":
                                       {ContribData}
+                                  }}";
+                            }
+                        }
+                        else if (absolutepath.Contains("/D2O/AvalonHexx/"))
+                        {
+                            const string d2oidPathern = @"/d2oid/([^/]+)";
+
+                            match = Regex.Match(absolutepath, d2oidPathern);
+
+                            if (match.Success)
+                                return $@"{{
+                                    ""STATUS"": ""SUCCESS"",
+                                    ""result"":
+                                      ""{GenerateD2OGuid(match.Groups[1].Value)}""
+                                  }}";
+                            else if (absolutepath.EndsWith("Scores/") && QueryParameters.ContainsKey("limit") && int.TryParse(QueryParameters["limit"], out int limit))
+                            {
+                                int i = 1;
+                                StringBuilder scoreboardData = new StringBuilder("{\"Scores\":{");
+
+                                var scoreData = GetTopScores(apipath + $"/HEAVYWATER/Avalon_hexx/Scoreboard.json", limit);
+                                int scoreDataCount = scoreData.Count();
+
+                                foreach (var scoreKeyPair in scoreData)
+                                {
+                                    if (i == scoreDataCount)
+                                        scoreboardData.Append($"\"{scoreKeyPair.Key}\":{scoreKeyPair.Value}");
+                                    else
+                                        scoreboardData.Append($"\"{scoreKeyPair.Key}\":{scoreKeyPair.Value},");
+
+                                    i++;
+                                }
+
+                                return $@"{{
+                                    ""STATUS"": ""SUCCESS"",
+                                    ""result"":
+                                      {scoreboardData}}}}}
+                                  }}";
+                            }
+                        }
+                        else if (absolutepath.Contains("/D2O/EmoRay/"))
+                        {
+                            if (absolutepath.EndsWith("Scores/") && QueryParameters.ContainsKey("limit") && QueryParameters.ContainsKey("range")
+                                && !string.IsNullOrEmpty(QueryParameters["range"]) && int.TryParse(QueryParameters["limit"], out int limit))
+                            {
+                                // TODO, figure out leaderboards.
+
+                                return $@"{{
+                                    ""STATUS"": ""SUCCESS"",
+                                    ""result"": {{ }}
                                   }}";
                             }
                         }
@@ -180,7 +318,7 @@ namespace WebAPIService.HEAVYWATER
 
                                 if (absolutepath.Contains("/D2O/Avalon/"))
                                 {
-                                    string avalonProfilePath = apipath + $"/HEAVYWATER/Avalon_keep/{id}/";
+                                    string avalonProfilePath = apipath + $"/HEAVYWATER/Avalon_keep/{id}";
 
                                     Directory.CreateDirectory(avalonProfilePath);
 
@@ -204,6 +342,86 @@ namespace WebAPIService.HEAVYWATER
                                             ""STATUS"": ""SUCCESS"",
                                             ""result"":
                                               {AvalonKeepData}
+                                          }}";
+                                    }
+                                }
+                                else if (absolutepath.Contains("/D2O/AvalonHexx/"))
+                                {
+                                    string hexxProfilePath = apipath + $"/HEAVYWATER/Avalon_hexx/{id}";
+
+                                    Directory.CreateDirectory(hexxProfilePath);
+
+                                    if (absolutepath.EndsWith("/data/MyAvalonHexxData"))
+                                    {
+                                        string AvalonHexxData = Encoding.UTF8.GetString(PostData);
+                                        File.WriteAllText(hexxProfilePath + "/AvalonHexxData.json", AvalonHexxData);
+
+                                        return $@"{{
+                                            ""STATUS"": ""SUCCESS"",
+                                            ""result"":
+                                              {AvalonHexxData}
+                                          }}";
+                                    }
+                                }
+                                else if (absolutepath.Contains("/D2O/EmoRay/"))
+                                {
+                                    string emorayProfilePath = apipath + $"/HEAVYWATER/EmoRay/{id}";
+
+                                    Directory.CreateDirectory(emorayProfilePath);
+
+                                    if (absolutepath.EndsWith("/data/ProgressionData"))
+                                    {
+                                        string emorayProgData = Encoding.UTF8.GetString(PostData);
+                                        File.WriteAllText(emorayProfilePath + "/ProgressionData.json", emorayProgData);
+
+                                        return $@"{{
+                                            ""STATUS"": ""SUCCESS"",
+                                            ""result"":
+                                              {emorayProgData}
+                                          }}";
+                                    }
+                                    else if (absolutepath.EndsWith("/data/EquippedData"))
+                                    {
+                                        string emorayEquippedData = Encoding.UTF8.GetString(PostData);
+                                        File.WriteAllText(emorayProfilePath + "/EquippedData.json", emorayEquippedData);
+
+                                        return $@"{{
+                                            ""STATUS"": ""SUCCESS"",
+                                            ""result"":
+                                              {emorayEquippedData}
+                                          }}";
+                                    }
+                                    else if (absolutepath.EndsWith("/data/ScoresData"))
+                                    {
+                                        string emorayScoresData = Encoding.UTF8.GetString(PostData);
+                                        File.WriteAllText(emorayProfilePath + "/ScoresData.json", emorayScoresData);
+
+                                        return $@"{{
+                                            ""STATUS"": ""SUCCESS"",
+                                            ""result"":
+                                              {emorayScoresData}
+                                          }}";
+                                    }
+                                    else if (absolutepath.EndsWith("/data/ControllerData"))
+                                    {
+                                        string emorayControllerData = Encoding.UTF8.GetString(PostData);
+                                        File.WriteAllText(emorayProfilePath + "/ControllerData.json", emorayControllerData);
+
+                                        return $@"{{
+                                            ""STATUS"": ""SUCCESS"",
+                                            ""result"":
+                                              {emorayControllerData}
+                                          }}";
+                                    }
+                                    else if (absolutepath.EndsWith("/data/StoreProgressData"))
+                                    {
+                                        string emorayStoreProgressData = Encoding.UTF8.GetString(PostData);
+                                        File.WriteAllText(emorayProfilePath + "/StoreProgressData.json", emorayStoreProgressData);
+
+                                        return $@"{{
+                                            ""STATUS"": ""SUCCESS"",
+                                            ""result"":
+                                              {emorayStoreProgressData}
                                           }}";
                                     }
                                 }
@@ -279,6 +497,22 @@ namespace WebAPIService.HEAVYWATER
                                       }";
                                 }
                             }
+                            else if (absolutepath.Contains("/D2O/AvalonHexx/"))
+                            {
+                                if (absolutepath.Contains("Scores/"))
+                                {
+                                    string hexxDataPath = apipath + $"/HEAVYWATER/Avalon_hexx";
+                                    string[] parts = absolutepath.Split('/');
+
+                                    Directory.CreateDirectory(hexxDataPath);
+
+                                    SaveScore(hexxDataPath + "/Scoreboard.json", parts[parts.Length - 2], int.Parse(parts[parts.Length - 1]));
+
+                                    return @"{
+                                        ""STATUS"": ""SUCCESS"",
+                                      }";
+                                }
+                            }
                             else if (absolutepath.Contains("/D2O/HeavyWaterPublic/"))
                             {
                                 if (absolutepath.EndsWith("/metrics"))
@@ -309,6 +543,34 @@ namespace WebAPIService.HEAVYWATER
             }
 
             return null;
+        }
+
+        private static Dictionary<string, List<int>> LoadScores(string scoreFilePath)
+        {
+            if (!File.Exists(scoreFilePath))
+                return new Dictionary<string, List<int>>();
+
+            return JsonConvert.DeserializeObject<Dictionary<string, List<int>>>(File.ReadAllText(scoreFilePath)) ?? new Dictionary<string, List<int>>();
+        }
+
+        private static void SaveScore(string scoreFilePath, string username, int score)
+        {
+            Dictionary<string, List<int>> scores = LoadScores(scoreFilePath);
+
+            if (!scores.ContainsKey(username))
+                scores[username] = new List<int>();
+
+            scores[username].Add(score);
+
+            File.WriteAllText(scoreFilePath, JsonConvert.SerializeObject(scores, Formatting.Indented));
+        }
+
+        private static IEnumerable<KeyValuePair<string, int>> GetTopScores(string scoreFilePath, int amount)
+        {
+            return LoadScores(scoreFilePath)
+                .SelectMany(user => user.Value.Select(score => new KeyValuePair<string, int>(user.Key, score)))
+                .OrderByDescending(entry => entry.Value)
+                .Take(amount);
         }
 
         private static string GenerateD2OGuid(string input)
