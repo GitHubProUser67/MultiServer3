@@ -17,6 +17,8 @@ namespace MitmDNS
 
         private UdpClient listener;
 
+        private List<Task> UdpTasks = new();
+
         private readonly int AwaiterTimeoutInMS;
         private readonly int MaxConcurrentListeners;
 
@@ -81,46 +83,45 @@ namespace MitmDNS
             try
             {
                 listener = new UdpClient(53);
-
-                LoggerAccessor.LogInfo($"[DNS_UDP] - Server started on port 53...");
-
-                List<Task> UdpTasks = new();
-                for (int i = 0; i < MaxConcurrentListeners; i++)
-                    UdpTasks.Add(Task.Run(async () =>
-                    {
-#if DEBUG
-                        LoggerAccessor.LogInfo($"[DNS_UDP] - Listening on port 53... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-#endif
-                        return ProcessMessagesFromClient(await listener.ReceiveAsync().ConfigureAwait(false));
-                    }));
-
-                // wait for requests
-                while (threadActive)
-                {
-                    lock (_sync)
-                    {
-                        if (!threadActive)
-                            break;
-                    }
-
-                    while (UdpTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                        UdpTasks.Add(Task.Run(async () =>
-                        {
-#if DEBUG
-                            LoggerAccessor.LogInfo($"[DNS_UDP] - Listening on port 53... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-#endif
-                            return ProcessMessagesFromClient(await listener.ReceiveAsync().ConfigureAwait(false));
-                        }));
-
-                    int RemoveAtIndex = Task.WaitAny(UdpTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
-                    if (RemoveAtIndex != -1) //Remove the completed task from the list
-                        UdpTasks.RemoveAt(RemoveAtIndex);
-                }
             }
             catch (Exception e)
             {
                 LoggerAccessor.LogError("[DNS_UDP] - An Exception Occured while starting the udp client: " + e.Message);
                 threadActive = false;
+                return;
+            }
+
+            LoggerAccessor.LogInfo($"[DNS_UDP] - Server started on port 53...");
+
+            // wait for requests
+            while (threadActive)
+            {
+                lock (_sync)
+                {
+                    if (!threadActive)
+                        break;
+                }
+
+                while (UdpTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                    UdpTasks.Add(listener.ReceiveAsync().ContinueWith(t =>
+                    {
+                        UdpReceiveResult? result = null;
+                        try
+                        {
+                            if (!t.IsCompleted)
+                                return;
+                            result = t.Result;
+                        }
+                        catch
+                        {
+                        }
+                        _ = Task.Run(() => { ProcessMessagesFromClient(result); });
+                    }));
+
+
+                int RemoveAtIndex = Task.WaitAny(UdpTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                if (RemoveAtIndex != -1) //Remove the completed task from the list
+                    UdpTasks.RemoveAt(RemoveAtIndex);
             }
         }
 

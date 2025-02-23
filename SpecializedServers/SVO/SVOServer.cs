@@ -20,10 +20,13 @@ namespace SVO
         private volatile bool threadActive;
 
         private HttpListener? listener;
-        private readonly string host;
+
+        private List<Task> HttpClientTasks = new();
 
         private readonly int AwaiterTimeoutInMS;
         private int MaxConcurrentListeners;
+
+        private readonly string host;
 
         public SVOServer(string host, X509Certificate2? certificate = null, int MaxConcurrentListeners = 10, int awaiterTimeoutInMS = 500)
         {
@@ -110,46 +113,44 @@ namespace SVO
                 listener.Prefixes.Add(string.Format("http://{0}:{1}/", host, 10060));
                 listener.Prefixes.Add(string.Format("https://{0}:{1}/", host, securePort));
                 listener.Start();
-
-                LoggerAccessor.LogInfo("[SVO] - Server started...");
-
-                List<Task> HttpClientTasks = new();
-                for (int i = 0; i < MaxConcurrentListeners; i++)
-                    HttpClientTasks.Add(Task.Run(async () =>
-                    {
-#if DEBUG
-                        LoggerAccessor.LogInfo($"[SVO] - Listening... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-#endif
-                        return ProcessMessagesFromClient(await listener.GetContextAsync().ConfigureAwait(false));
-                    }));
-
-                // wait for requests
-                while (threadActive)
-                {
-                    lock (_sync)
-                    {
-                        if (!threadActive)
-                            break;
-                    }
-
-                    while (HttpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                        HttpClientTasks.Add(Task.Run(async () =>
-                        {
-#if DEBUG
-                            LoggerAccessor.LogInfo($"[SVO] - Listening... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-#endif
-                            return ProcessMessagesFromClient(await listener.GetContextAsync().ConfigureAwait(false));
-                        }));
-
-                    int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
-                    if (RemoveAtIndex != -1) //Remove the completed task from the list
-                        HttpClientTasks.RemoveAt(RemoveAtIndex);
-                }
             }
             catch (Exception e)
             {
                 LoggerAccessor.LogError("[SVO] - An Exception Occured while starting the http server: " + e.Message);
                 threadActive = false;
+                return;
+            }
+
+            LoggerAccessor.LogInfo("[SVO] - Server started...");
+
+            // wait for requests
+            while (threadActive)
+            {
+                lock (_sync)
+                {
+                    if (!threadActive)
+                        break;
+                }
+
+                while (HttpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                    HttpClientTasks.Add(listener.GetContextAsync().ContinueWith(t =>
+                    {
+                        HttpListenerContext? client = null;
+                        try
+                        {
+                            if (!t.IsCompleted)
+                                return;
+                            client = t.Result;
+                        }
+                        catch
+                        {
+                        }
+                        _ = ProcessMessagesFromClient(client);
+                    }));
+
+                int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                if (RemoveAtIndex != -1) //Remove the completed task from the list
+                    HttpClientTasks.RemoveAt(RemoveAtIndex);
             }
         }
 

@@ -22,6 +22,8 @@ namespace HTTPServer
 
         private TcpListener? listener;
 
+        private List<Task> TcpClientTasks = new();
+
         private readonly int AwaiterTimeoutInMS;
         private readonly int MaxConcurrentListeners;
 
@@ -86,46 +88,44 @@ namespace HTTPServer
             {
                 listener = new TcpListener(IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(host, "0.0.0.0")), port);
                 listener.Start();
-
-                LoggerAccessor.LogInfo($"[HTTP] - Server started on port {port}...");
-
-                List<Task> TcpClientTasks = new();
-                for (int i = 0; i < MaxConcurrentListeners; i++)
-                    TcpClientTasks.Add(Task.Run(async () =>
-                    {
-#if DEBUG
-                        LoggerAccessor.LogInfo($"[HTTP] - Listening on port {port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-#endif
-                        return ProcessMessagesFromClient(await listener.AcceptTcpClientAsync().ConfigureAwait(false));
-                    }));
-
-                // wait for requests
-                while (threadActive)
-                {
-                    lock (_sync)
-                    {
-                        if (!threadActive)
-                            break;
-                    }
-
-                    while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                        TcpClientTasks.Add(Task.Run(async () =>
-                        {
-#if DEBUG
-                            LoggerAccessor.LogInfo($"[HTTP] - Listening on port {port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-#endif
-                            return ProcessMessagesFromClient(await listener.AcceptTcpClientAsync().ConfigureAwait(false));
-                        }));
-
-                    int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
-                    if (RemoveAtIndex != -1) //Remove the completed task from the list
-                        TcpClientTasks.RemoveAt(RemoveAtIndex);
-                }
             }
             catch (Exception e)
             {
                 LoggerAccessor.LogError("[HTTP] - An Exception Occured while starting the http server: " + e.Message);
                 threadActive = false;
+                return;
+            }
+
+            LoggerAccessor.LogInfo($"[HTTP] - Server started on port {port}...");
+
+            // wait for requests
+            while (threadActive)
+            {
+                lock (_sync)
+                {
+                    if (!threadActive)
+                        break;
+                }
+
+                while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                    TcpClientTasks.Add(listener.AcceptTcpClientAsync().ContinueWith(t =>
+                    {
+                        TcpClient? client = null;
+                        try
+                        {
+                            if (!t.IsCompleted)
+                                return;
+                            client = t.Result;
+                        }
+                        catch
+                        {
+                        }
+                        _ = Task.Run(() => { ProcessMessagesFromClient(client); });
+                    }));
+
+                int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                if (RemoveAtIndex != -1) //Remove the completed task from the list
+                    TcpClientTasks.RemoveAt(RemoveAtIndex);
             }
         }
 
