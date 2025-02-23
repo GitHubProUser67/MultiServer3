@@ -91,7 +91,13 @@ namespace HTTPServer
 
                 List<Task> TcpClientTasks = new();
                 for (int i = 0; i < MaxConcurrentListeners; i++)
-                    TcpClientTasks.Add(listener.AcceptTcpClientAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                    TcpClientTasks.Add(Task.Run(async () =>
+                    {
+#if DEBUG
+                        LoggerAccessor.LogInfo($"[HTTP] - Listening on port {port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+                        return ProcessMessagesFromClient(await listener.AcceptTcpClientAsync().ConfigureAwait(false));
+                    }));
 
                 // wait for requests
                 while (threadActive)
@@ -103,7 +109,13 @@ namespace HTTPServer
                     }
 
                     while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                        TcpClientTasks.Add(listener.AcceptTcpClientAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                        TcpClientTasks.Add(Task.Run(async () =>
+                        {
+#if DEBUG
+                            LoggerAccessor.LogInfo($"[HTTP] - Listening on port {port}... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+                            return ProcessMessagesFromClient(await listener.AcceptTcpClientAsync().ConfigureAwait(false));
+                        }));
 
                     int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
                     if (RemoveAtIndex != -1) //Remove the completed task from the list
@@ -118,39 +130,10 @@ namespace HTTPServer
         }
 
         #region Protected Functions
-        protected virtual Task ReceiveClientRequestTask(Task? t)
-        {
-            if (t is not null and Task<TcpClient>)
-            {
-                TcpClient? client = null;
-
-                try
-                {
-                    client = (t as Task<TcpClient>)?.Result;
-                }
-                catch (AggregateException ex)
-                {
-                    ex.Handle(innerEx =>
-                    {
-                        if (innerEx is TaskCanceledException)
-                            return true; // Indicate that the exception was handled
-
-                        LoggerAccessor.LogError($"[HTTP] - TcpClient Task thrown an AggregateException: {ex} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-
-                        return false;
-                    });
-                }
-
-                _ = Task.Run(() => ProcessMessagesFromClient(client));
-            }
-
-            return Task.CompletedTask;
-        }
-
-        protected virtual void ProcessMessagesFromClient(TcpClient? Connection)
+        protected virtual bool ProcessMessagesFromClient(TcpClient? Connection)
         {
             if (Connection == null)
-                return;
+                return false;
 #if DEBUG
             LoggerAccessor.LogInfo($"[HTTP] - Connection established on port {port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
@@ -162,6 +145,8 @@ namespace HTTPServer
 #if DEBUG
             LoggerAccessor.LogWarn($"[HTTP] - Client disconnected from port {port} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
+
+            return true;
         }
         #endregion
     }

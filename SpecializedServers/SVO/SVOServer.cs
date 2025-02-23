@@ -115,7 +115,13 @@ namespace SVO
 
                 List<Task> HttpClientTasks = new();
                 for (int i = 0; i < MaxConcurrentListeners; i++)
-                    HttpClientTasks.Add(listener.GetContextAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                    HttpClientTasks.Add(Task.Run(async () =>
+                    {
+#if DEBUG
+                        LoggerAccessor.LogInfo($"[SVO] - Listening... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+                        return ProcessMessagesFromClient(await listener.GetContextAsync().ConfigureAwait(false));
+                    }));
 
                 // wait for requests
                 while (threadActive)
@@ -127,7 +133,13 @@ namespace SVO
                     }
 
                     while (HttpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                        HttpClientTasks.Add(listener.GetContextAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                        HttpClientTasks.Add(Task.Run(async () =>
+                        {
+#if DEBUG
+                            LoggerAccessor.LogInfo($"[SVO] - Listening... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+                            return ProcessMessagesFromClient(await listener.GetContextAsync().ConfigureAwait(false));
+                        }));
 
                     int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
                     if (RemoveAtIndex != -1) //Remove the completed task from the list
@@ -140,41 +152,15 @@ namespace SVO
                 threadActive = false;
             }
         }
+
         #region Protected Functions
-        protected virtual Task ReceiveClientRequestTask(Task t)
-        {
-            if (t is not null and Task<HttpListenerContext>)
-            {
-                HttpListenerContext? ctx = null;
-
-                try
-                {
-                    ctx = (t as Task<HttpListenerContext>)?.Result;
-                }
-                catch (AggregateException ex)
-                {
-                    ex.Handle(innerEx =>
-                    {
-                        if (innerEx is TaskCanceledException)
-                            return true; // Indicate that the exception was handled
-
-                        LoggerAccessor.LogError($"[SVO] - HttpListenerContext Task thrown an AggregateException: {ex} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-
-                        return false;
-                    });
-                }
-
-                _ = ProcessContext(ctx);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        protected virtual async Task ProcessContext(HttpListenerContext? ctx)
+        protected virtual async Task<bool> ProcessMessagesFromClient(HttpListenerContext? ctx)
         {
             if (ctx == null)
-                return;
-
+                return false;
+#if DEBUG
+            LoggerAccessor.LogInfo($"[SVO] - Connection received (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
             try
             {
                 bool isAllowed = false;
@@ -340,6 +326,11 @@ namespace SVO
                 // outputstream has been disposed already.
             }
             ctx.Response.Close();
+#if DEBUG
+            LoggerAccessor.LogWarn($"[SVO] - Client disconnected (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+
+            return true;
         }
         #endregion
     }

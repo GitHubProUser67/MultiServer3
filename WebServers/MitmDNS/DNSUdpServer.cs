@@ -86,7 +86,13 @@ namespace MitmDNS
 
                 List<Task> UdpTasks = new();
                 for (int i = 0; i < MaxConcurrentListeners; i++)
-                    UdpTasks.Add(listener.ReceiveAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                    UdpTasks.Add(Task.Run(async () =>
+                    {
+#if DEBUG
+                        LoggerAccessor.LogInfo($"[DNS_UDP] - Listening on port 53... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+                        return ProcessMessagesFromClient(await listener.ReceiveAsync().ConfigureAwait(false));
+                    }));
 
                 // wait for requests
                 while (threadActive)
@@ -98,7 +104,13 @@ namespace MitmDNS
                     }
 
                     while (UdpTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
-                        UdpTasks.Add(listener.ReceiveAsync().ContinueWith((t) => ReceiveClientRequestTask(t)));
+                        UdpTasks.Add(Task.Run(async () =>
+                        {
+#if DEBUG
+                            LoggerAccessor.LogInfo($"[DNS_UDP] - Listening on port 53... (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+                            return ProcessMessagesFromClient(await listener.ReceiveAsync().ConfigureAwait(false));
+                        }));
 
                     int RemoveAtIndex = Task.WaitAny(UdpTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
                     if (RemoveAtIndex != -1) //Remove the completed task from the list
@@ -113,39 +125,10 @@ namespace MitmDNS
         }
 
         #region Protected Functions
-        protected virtual Task ReceiveClientRequestTask(Task t)
-        {
-            if (t is not null and Task<UdpReceiveResult>)
-            {
-                UdpReceiveResult? result = null;
-
-                try
-                {
-                    result = (t as Task<UdpReceiveResult>)?.Result;
-                }
-                catch (AggregateException ex)
-                {
-                    ex.Handle(innerEx =>
-                    {
-                        if (innerEx is TaskCanceledException)
-                            return true; // Indicate that the exception was handled
-
-                        LoggerAccessor.LogError($"[DNS_UDP] - UdpReceiveResult Task thrown an AggregateException: {ex} (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-
-                        return false;
-                    });
-                }
-
-                _ = Task.Run(() => ProcessMessagesFromClient(result));
-            }
-
-            return Task.CompletedTask;
-        }
-
-        protected virtual void ProcessMessagesFromClient(UdpReceiveResult? result)
+        protected virtual bool ProcessMessagesFromClient(UdpReceiveResult? result)
         {
             if (!result.HasValue)
-                return;
+                return false;
 #if DEBUG
             LoggerAccessor.LogInfo($"[DNS_UDP] - Connection received on port 53 (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
@@ -155,7 +138,7 @@ namespace MitmDNS
             int? clientport = resultVal.RemoteEndPoint?.Port;
 
             if (!clientport.HasValue || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
-                return;
+                return false;
 
             byte[] ResultBuffer = DNSResolver.ProcRequest(resultVal.Buffer);
             if (ResultBuffer != null)
@@ -174,6 +157,8 @@ namespace MitmDNS
                     LoggerAccessor.LogError($"[DNS_UDP] - ProcessMessagesFromClient thrown an exception : {ex}");
                 }
             }
+
+            return true;
         }
         #endregion
     }

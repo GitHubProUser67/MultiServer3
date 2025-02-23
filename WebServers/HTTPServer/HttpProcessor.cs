@@ -50,7 +50,6 @@ namespace HTTPServer
         #region Fields
 
         private readonly List<Route> Routes = new();
-        private int KeepAliveClients = 0;
 
         public string ServerIp = "127.0.0.1";
 
@@ -130,7 +129,6 @@ namespace HTTPServer
 
         public void HandleClient(TcpClient tcpClient, ushort ListenerPort)
         {
-            bool IsInterlocked = false;
             HttpRequest? request = null;
             HttpResponse? response = null;
 
@@ -141,9 +139,6 @@ namespace HTTPServer
 
                 if (clientport == null || string.IsNullOrEmpty(clientip) || IsIPBanned(clientip, clientport))
                     return;
-
-                IsInterlocked = Interlocked.Increment(ref KeepAliveClients) > 0;
-                bool AllowKeepAlive = KeepAliveClients < HTTPServerConfiguration.MaximumAllowedKeepAliveClients;
 
                 using Stream? inputStream = GetInputStream(tcpClient);
                 using (Stream? outputStream = GetOutputStream(tcpClient))
@@ -1014,7 +1009,7 @@ namespace HTTPServer
 
                                                                     if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
                                                                     {
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, false, noCompressCacheControl);
                                                                         continue;
                                                                     }
                                                                     else
@@ -1067,7 +1062,7 @@ namespace HTTPServer
 
                                                                     if (fileExists && request.Headers != null && request.Headers.Count(header => header.Key.Equals("Range")) == 1) // Mmm, is it possible to have more?
                                                                     {
-                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, AllowKeepAlive, noCompressCacheControl);
+                                                                        Handle_LocalFile_Stream(outputStream, request, filePath, UserAgent, false, noCompressCacheControl);
                                                                         continue;
                                                                     }
                                                                     else
@@ -1226,7 +1221,7 @@ namespace HTTPServer
                                     }
                                 }
 
-                                WriteResponse(outputStream, request, response, filePath, AllowKeepAlive, EtagCompatible);
+                                WriteResponse(outputStream, request, response, filePath, false, EtagCompatible);
                             }
                         }
                     }
@@ -1252,9 +1247,6 @@ namespace HTTPServer
             }
             finally
             {
-                if (IsInterlocked)
-                    Interlocked.Decrement(ref KeepAliveClients);
-
                 request?.Dispose();
                 response?.Dispose();
             }
