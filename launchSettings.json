@@ -9,9 +9,8 @@
         "multispy": "StartDebugging",
         "ssfwserver": "StartDebugging",
         "svo": "StartDebugging",
-        "httpsecureserverlite": "StartDebugging",
+        "multihttp": "StartDebugging",
         "quazalserver": "StartDebugging",
-        "httpserver": "StartDebugging",
         "mitmdns": "StartDebugging"
       }
     }

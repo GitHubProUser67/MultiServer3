@@ -1,6 +1,5 @@
-using CompressionLibrary.NetChecksummer;
+using NetChecksummer;
 using System.Text;
-using System.Windows.Forms;
 
 namespace RemoteControl
 {
@@ -10,8 +9,7 @@ namespace RemoteControl
 
         private const string exeExtension = ".exe";
 
-        private readonly uint httpCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("HTTPServer" + exeExtension));
-        private readonly uint httpsCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("HTTPSecureServerLite" + exeExtension));
+        private readonly uint httpCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("ApacheNet" + exeExtension));
         private readonly uint dnsCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("MitmDNS" + exeExtension));
         private readonly uint horizonCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("Horizon" + exeExtension));
         private readonly uint multisocksCRC = CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes("MultiSocks" + exeExtension));
@@ -29,8 +27,7 @@ namespace RemoteControl
             richTextBoxLicense.SelectionAlignment = HorizontalAlignment.Center;
 
             // Settings programs path.
-            textBoxHTTPPath.Text = Program.currentDir + "/HTTPServer" + exeExtension;
-            textBoxHTTPSPath.Text = Program.currentDir + "/HTTPSecureServerLite" + exeExtension;
+            textBoxHTTPPath.Text = Program.currentDir + "/ApacheNet" + exeExtension;
             textBoxDNSPath.Text = Program.currentDir + "/MitmDNS" + exeExtension;
             textBoxHorizonPath.Text = Program.currentDir + "/Horizon" + exeExtension;
             textBoxMultisocksPath.Text = Program.currentDir + "/MultiSocks" + exeExtension;
@@ -41,7 +38,6 @@ namespace RemoteControl
             textBoxEdenserverPath.Text = Program.currentDir + "/EdenServer" + exeExtension;
 
             _writersList.Add(httpCRC, new ControlWriter(richTextBoxHTTPLog));
-            _writersList.Add(httpsCRC, new ControlWriter(richTextBoxHTTPSLog));
             _writersList.Add(dnsCRC, new ControlWriter(richTextBoxDNSLog));
             _writersList.Add(horizonCRC, new ControlWriter(richTextBoxHorizonLog));
             _writersList.Add(multisocksCRC, new ControlWriter(richTextBoxMultisocksLog));
@@ -89,11 +85,6 @@ namespace RemoteControl
             Utils.OpenExecutableFile(textBoxHTTPPath);
         }
 
-        private void buttonBrowseHTTPSPath_Click(object sender, EventArgs e)
-        {
-            Utils.OpenExecutableFile(textBoxHTTPSPath);
-        }
-
         private void buttonBrowseDNSPath_Click(object sender, EventArgs e)
         {
             Utils.OpenExecutableFile(textBoxDNSPath);
@@ -138,7 +129,7 @@ namespace RemoteControl
         {
             _ = Task.Run(() =>
             {
-                string prefix = "HTTP";
+                string prefix = "ApacheNet";
 
                 try
                 {
@@ -164,41 +155,6 @@ namespace RemoteControl
                     groupBoxHTTP.Invoke(new Action(() =>
                     {
                         groupBoxHTTP.BackColor = Color.Red;
-                    }));
-                }
-            });
-        }
-
-        private void buttonStartHTTPS_Click(object sender, EventArgs e)
-        {
-            _ = Task.Run(() =>
-            {
-                string prefix = "HTTPS";
-
-                try
-                {
-                    _writersList[httpsCRC].Flush();
-                    ProcessManager.StartupProgram(_writersList[httpsCRC], textBoxHTTPS, groupBoxHTTPS, prefix, textBoxHTTPSPath.Text, httpsCRC);
-                    textBoxHTTPS.Invoke(new Action(() =>
-                    {
-                        textBoxHTTPS.Text = "Running";
-                    }));
-                    groupBoxHTTPS.Invoke(new Action(() =>
-                    {
-                        groupBoxHTTPS.BackColor = Color.Green;
-                    }));
-                    Console.WriteLine($"[{prefix}] - Server started at: {DateTime.Now}!");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[{prefix}] - An assertion was thrown while starting the server! (Exception: {ex})");
-                    textBoxHTTPS.Invoke(new Action(() =>
-                    {
-                        textBoxHTTPS.Text = "Stopped";
-                    }));
-                    groupBoxHTTPS.Invoke(new Action(() =>
-                    {
-                        groupBoxHTTPS.BackColor = Color.Red;
                     }));
                 }
             });
@@ -496,25 +452,7 @@ namespace RemoteControl
                 {
                     groupBoxHTTP.BackColor = Color.Red;
                 }));
-                Console.WriteLine($"[HTTP] - Server stopped at: {DateTime.Now}!");
-            }
-            else
-                Utils.ShowNoProcessMessageBox();
-        }
-
-        private void buttonStopHTTPS_Click(object sender, EventArgs e)
-        {
-            if (ProcessManager.ShutdownProcess(httpsCRC))
-            {
-                textBoxHTTPS.Invoke(new Action(() =>
-                {
-                    textBoxHTTPS.Text = "Stopped";
-                }));
-                groupBoxHTTPS.Invoke(new Action(() =>
-                {
-                    groupBoxHTTPS.BackColor = Color.Red;
-                }));
-                Console.WriteLine($"[HTTPS] - Server stopped at: {DateTime.Now}!");
+                Console.WriteLine($"[ApacheNet] - Server stopped at: {DateTime.Now}!");
             }
             else
                 Utils.ShowNoProcessMessageBox();

@@ -8,7 +8,7 @@ using System.Runtime.Intrinsics.Arm;
 #endif
 using EndianTools;
 
-namespace CompressionLibrary.NetChecksummer
+namespace NetChecksummer
 {
     public static class CRC32
     {

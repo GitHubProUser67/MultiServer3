@@ -205,6 +205,9 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
 
         public static string GetOnlineConfigPSN(string onlineConfigID)
         {
+            if (string.IsNullOrEmpty(onlineConfigID))
+                return string.Empty;
+
             List<OnlineConfigEntry> list = new List<OnlineConfigEntry>();
 
             switch (onlineConfigID)

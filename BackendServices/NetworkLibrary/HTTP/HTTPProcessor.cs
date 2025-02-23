@@ -11,21 +11,18 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Threading;
-using System.Buffers;
+using System.Text.Json;
+using NetworkLibrary.Extension;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #else
 using System.Net;
 #endif
-using NetworkLibrary.Extension.Csharp;
 
 namespace NetworkLibrary.HTTP
 {
     public partial class HTTPProcessor
     {
-        private static object _StackLock = new object();
-
         public static readonly Dictionary<string, string> _mimeTypes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
              #region Big freaking list of mime types
@@ -885,6 +882,27 @@ namespace NetworkLibrary.HTTP
                 .Normalize(NormalizationForm.FormC);
         }
 
+        /**
+	     * calculate etag for filename and params
+	     *
+	     * @param String $filename
+	     * @param array $params relevant request parameters for etag calculation
+	     * @return String
+	     */
+        public static string ETag(string filename, object parameters = null)
+        {
+            if (!File.Exists(filename))
+            {
+                CustomLogger.LoggerAccessor.LogError("[HTTPProcessor] - ETag - File not found", filename);
+                return null;
+            }
+
+            FileInfo fileInfo = new FileInfo(filename);
+
+            return "\"" + BitConverter.ToString(NetHasher.DotNetHasher.ComputeMD5(Encoding.UTF8.GetBytes(
+                    $"{fileInfo.GetHashCode()}-{fileInfo.LastWriteTimeUtc.Ticks}-{fileInfo.Length}" 
+                    + parameters != null ? JsonSerializer.Serialize(parameters) : string.Empty))).Replace("-", string.Empty).ToLower() + "\"" ;
+        }
 
         /// <summary>
         /// Convert string to DateTimeOffset
@@ -903,12 +921,18 @@ namespace NetworkLibrary.HTTP
 
         public static byte[] CompressZstd(byte[] input)
         {
+            if (input == null)
+                return input;
+
             using (Compressor compressor = new Compressor())
                 return compressor.Wrap(input).ToArray();
         }
 #if NET5_0_OR_GREATER
         public static byte[] CompressBrotli(byte[] input)
         {
+            if (input == null)
+                return input;
+
             using MemoryStream output = new MemoryStream();
             using (BrotliStream brStream = new BrotliStream(output, CompressionLevel.Fastest))
             {
@@ -921,6 +945,9 @@ namespace NetworkLibrary.HTTP
 #endif
         public static byte[] CompressGzip(byte[] input)
         {
+            if (input == null)
+                return input;
+
             using (MemoryStream output = new MemoryStream())
             using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest))
             {
@@ -932,6 +959,9 @@ namespace NetworkLibrary.HTTP
 
         public static byte[] Inflate(byte[] input)
         {
+            if (input == null)
+                return input;
+
             using (MemoryStream output = new MemoryStream())
             using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
             {
@@ -944,250 +974,118 @@ namespace NetworkLibrary.HTTP
 
         public static Stream ZstdCompressStream(Stream input)
         {
+            if (input == null)
+                return input;
+
             Stream outMemoryStream;
-            if (input.Length > 2147483648)
-                outMemoryStream = new HugeMemoryStream();
-            else
-                outMemoryStream = new MemoryStream();
-            using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
+            using (input)
             {
-                outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
-                CopyStream(input, outZStream, 4096);
+                try
+                {
+                    if (input.Length > 0x7FFFFFC7)
+                        outMemoryStream = new HugeMemoryStream();
+                    else
+                        outMemoryStream = new MemoryStream();
+                    using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
+                    {
+                        outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
+                        StreamUtils.CopyStream(input, outZStream, 4096);
+                    }
+                    outMemoryStream.Seek(0, SeekOrigin.Begin);
+                }
+                catch
+                {
+                    outMemoryStream = null;
+                }
             }
-            input.Close();
-            input.Dispose();
-            outMemoryStream.Seek(0, SeekOrigin.Begin);
             return outMemoryStream;
         }
 #if NET5_0_OR_GREATER
         public static Stream BrotliCompressStream(Stream input)
         {
+            if (input == null)
+                return input;
+
             Stream outMemoryStream;
-            if (input.Length > 2147483648)
-                outMemoryStream = new HugeMemoryStream();
-            else
-                outMemoryStream = new MemoryStream();
-            using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest, true))
-                CopyStream(input, outBStream, 4096);
-            input.Close();
-            input.Dispose();
-            outMemoryStream.Seek(0, SeekOrigin.Begin);
+            using (input)
+            {
+                try
+                {
+                    if (input.Length > 0x7FFFFFC7)
+                        outMemoryStream = new HugeMemoryStream();
+                    else
+                        outMemoryStream = new MemoryStream();
+                    using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest, true))
+                    {
+                        StreamUtils.CopyStream(input, outBStream, 4096);
+                        outBStream.Flush();
+                    }
+                    outMemoryStream.Seek(0, SeekOrigin.Begin);
+                }
+                catch
+                {
+                    outMemoryStream = null;
+                }
+            }
             return outMemoryStream;
         }
 #endif
         public static Stream GzipCompressStream(Stream input)
         {
+            if (input == null)
+                return input;
+
             Stream outMemoryStream;
-            if (input.Length > 2147483648)
-                outMemoryStream = new HugeMemoryStream();
-            else
-                outMemoryStream = new MemoryStream();
-            using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
+            using (input)
             {
-                CopyStream(input, outGStream, 4096, false);
-                outGStream.Close();
+                try
+                {
+                    if (input.Length > 0x7FFFFFC7)
+                        outMemoryStream = new HugeMemoryStream();
+                    else
+                        outMemoryStream = new MemoryStream();
+                    using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
+                    {
+                        StreamUtils.CopyStream(input, outGStream, 4096);
+                        outGStream.Close();
+                    }
+                    outMemoryStream.Seek(0, SeekOrigin.Begin);
+                }
+                catch
+                {
+                    outMemoryStream = null;
+                }
             }
-            input.Close();
-            input.Dispose();
-            outMemoryStream.Seek(0, SeekOrigin.Begin);
             return outMemoryStream;
         }
 
         public static Stream InflateStream(Stream input)
         {
+            if (input == null)
+                return input;
+
             Stream outMemoryStream;
-            if (input.Length > 2147483648)
-                outMemoryStream = new HugeMemoryStream();
-            else
-                outMemoryStream = new MemoryStream();
-            using (ZOutputStreamLeaveOpen outZStream = new ZOutputStreamLeaveOpen(outMemoryStream, 1, true))
+            using (input)
             {
-                CopyStream(input, outZStream, 4096, false);
-                outZStream.Close();
+                try
+                {
+                    if (input.Length > 0x7FFFFFC7)
+                        outMemoryStream = new HugeMemoryStream();
+                    else
+                        outMemoryStream = new MemoryStream();
+                    using (ZOutputStreamLeaveOpen outZStream = new ZOutputStreamLeaveOpen(outMemoryStream, 1, true))
+                    {
+                        StreamUtils.CopyStream(input, outZStream, 4096);
+                        outZStream.Close();
+                    }
+                    outMemoryStream.Seek(0, SeekOrigin.Begin);
+                }
+                catch
+                {
+                    outMemoryStream = null;
+                }
             }
-            input.Close();
-            input.Dispose();
-            outMemoryStream.Seek(0, SeekOrigin.Begin);
             return outMemoryStream;
-        }
-
-        /// <summary>
-        /// Compute the MD5 checksum of a stream.
-        /// <para>Calcul la somme des contr�les en MD5 d'un stream.</para>
-        /// </summary>
-        /// <param name="input">The input stream (must be seekable).</param>
-        /// <returns>A string.</returns>
-        public static string ComputeStreamMD5(Stream input)
-        {
-            if (!input.CanSeek)
-                return null;
-
-            string md5Hash = NetHasher.DotNetHasher.ComputeMD5String(input).ToLower();
-            input.Seek(0, SeekOrigin.Begin);
-            return md5Hash;
-        }
-
-        /// <summary>
-        /// Copies a Stream to an other.
-        /// <para>Copie d'un Stream � un autre.</para>
-        /// </summary>
-        /// <param name="input">The Stream to copy.</param>
-        /// <param name="output">the Steam to copy to.</param>
-        /// <param name="BufferSize">the buffersize for the copy.</param>
-        public static void CopyStream(Stream input, Stream output, int BufferSize, bool flush = true)
-        {
-            if (BufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
-
-            bool lockTaken = false;
-            int bytesRead;
-
-            Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock.
-
-            try
-            {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                if (lockTaken) // Lock is free.
-                {
-                    Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommanded value for stackalloc).
-                    while ((bytesRead = input.Read(buffer)) > 0)
-                    {
-                        output.Write(buffer[..bytesRead]);
-                    }
-                    if (flush)
-                        output.Flush();
-                }
-                else
-                {
-                    byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                    try
-                    {
-                        while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            output.Write(buffer, 0, bytesRead);
-                        }
-                        if (flush)
-                            output.Flush();
-                    }
-                    finally
-                    {
-                        ArrayPool<byte>.Shared.Return(buffer);
-                    }
-                }
-#else
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                try
-                {
-                    while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        output.Write(buffer, 0, bytesRead);
-                    }
-                    if (flush)
-                        output.Flush();
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-#endif
-            }
-            finally
-            {
-                // Release the lock if it was acquired
-                if (lockTaken)
-                    Monitor.Exit(_StackLock);
-            }
-        }
-
-        /// <summary>
-        /// Copies a specified number of bytes from one Stream to another.
-        /// <para>Copie un nombre spécifié d'octets d'un Stream à un autre.</para>
-        /// </summary>
-        /// <param name="input">The Stream to copy from.</param>
-        /// <param name="output">The Stream to copy to.</param>
-        /// <param name="BufferSize">The buffer size to use for copying.</param>
-        /// <param name="numOfBytes">The number of bytes to copy.</param>
-        /// <param name="flush">Whether to flush the output stream after copying.</param>
-        public static void CopyStream(Stream input, Stream output, int BufferSize, long numOfBytes, bool flush = true)
-        {
-            if (BufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(BufferSize), "[HTTPProcessor] - CopyStream() - Buffer size must be greater than zero.");
-
-            else if (numOfBytes < 0)
-                throw new ArgumentOutOfRangeException(nameof(numOfBytes), "[HTTPProcessor] - CopyStream() - Number of bytes to copy must be non-negative.");
-
-            else if (numOfBytes == 0)
-            {
-                if (flush)
-                    output.Flush();
-                return;
-            }
-
-            bool lockTaken = false;
-            int bytesRead;
-            long bytesCopied = 0;
-
-            Monitor.TryEnter(_StackLock, ref lockTaken); // Attempt to acquire the lock.
-
-            try
-            {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                if (lockTaken) // Lock is free.
-                {
-                    Span<byte> buffer = stackalloc byte[1024]; // Allocate buffer on the stack (1024 being recommended value for stackalloc).
-                    while (bytesCopied < numOfBytes && (bytesRead = input.Read(buffer)) > 0)
-                    {
-                        int bytesToWrite = (int)Math.Min(bytesRead, numOfBytes - bytesCopied); // Ensure we don't write more than the specified number of bytes.
-                        output.Write(buffer[..bytesToWrite]);
-                        bytesCopied += bytesToWrite;
-                    }
-                    if (flush)
-                        output.Flush();
-                }
-                else
-                {
-                    byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                    try
-                    {
-                        while (bytesCopied < numOfBytes && (bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            int bytesToWrite = (int)Math.Min(bytesRead, numOfBytes - bytesCopied); // Ensure we don't write more than the specified number of bytes.
-                            output.Write(buffer, 0, bytesToWrite);
-                            bytesCopied += bytesToWrite;
-                        }
-                        if (flush)
-                            output.Flush();
-                    }
-                    finally
-                    {
-                        ArrayPool<byte>.Shared.Return(buffer);
-                    }
-                }
-#else
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                try
-                {
-                    while (bytesCopied < numOfBytes && (bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        int bytesToWrite = (int)Math.Min(bytesRead, numOfBytes - bytesCopied); // Ensure we don't write more than the specified number of bytes.
-                        output.Write(buffer, 0, bytesToWrite);
-                        bytesCopied += bytesToWrite;
-                    }
-                    if (flush)
-                        output.Flush();
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-#endif
-            }
-            finally
-            {
-                // Release the lock if it was acquired
-                if (lockTaken)
-                    Monitor.Exit(_StackLock);
-            }
         }
 #if NET7_0_OR_GREATER
         [GeneratedRegex("^(.*?http://.*?http://)([^/]+)(.*)$")]

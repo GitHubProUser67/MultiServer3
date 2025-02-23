@@ -1,8 +1,5 @@
 using NetworkLibrary.HTTP;
-using HTTPServer;
-using HTTPServer.Models;
 using NetworkLibrary.HTTP.PluginManager;
-using HTTPServer.RouteHandlers;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -67,36 +64,6 @@ namespace PdfToJpeg
                 }
 
                 return sent;
-            }
-            else if (obj is HttpRequest request)
-            {
-                HttpResponse? response = null;
-
-                if (!string.IsNullOrEmpty(request.RawUrlWithQuery))
-                {
-                    switch (request.Method)
-                    {
-                        case "POST":
-
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(HTTPProcessor.DecodeUrl(request.RawUrlWithQuery)))
-                            {
-                                #region PdfConvert
-                                case "/!PdfConvert/Process/":
-                                    (byte[]?, string)? makeres = ProcessPDFConvert(request.GetDataStream, request.GetContentType());
-                                    if (makeres != null)
-                                        response = FileSystemRouteHandler.Handle_ByteSubmit_Download(request, makeres.Value.Item1, makeres.Value.Item2);
-                                    else
-                                        response = HttpBuilder.InternalServerError();
-                                    break;
-                                    #endregion
-
-                            }
-
-                            break;
-                    }
-                }
-
-                return response;
             }
 
             return null;

@@ -1,6 +1,4 @@
 using NetworkLibrary.HTTP;
-using HTTPServer;
-using HTTPServer.Models;
 using NetworkLibrary.HTTP.PluginManager;
 using System;
 using System.Threading.Tasks;
@@ -60,39 +58,6 @@ namespace EdNetCRCCalculator
                 }
 
                 return sent;
-            }
-            else if (obj is HttpRequest request)
-            {
-                HttpResponse? response = null;
-
-                if (!string.IsNullOrEmpty(request.RawUrlWithQuery))
-                {
-                    switch (request.Method)
-                    {
-                        case "GET":
-
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(HTTPProcessor.DecodeUrl(request.RawUrlWithQuery)))
-                            {
-                                #region EdNet CRC Tools
-                                case "/!EdNet/GetCRC/":
-                                    if (request.QueryParameters != null && request.QueryParameters.ContainsKey("str"))
-                                    {
-                                        if (request.QueryParameters.ContainsKey("v2") && request.QueryParameters["v2"].Equals("true", StringComparison.InvariantCultureIgnoreCase))
-                                            response = HttpResponse.Send(EdNetService.CRCUtils.GetCRCFromStringHexadecimal(request.QueryParameters["str"], true));
-                                        else
-                                            response = HttpResponse.Send(EdNetService.CRCUtils.GetCRCFromStringHexadecimal(request.QueryParameters["str"], false));
-                                    }
-                                    else
-                                        response = HttpBuilder.InternalServerError();
-                                    break;
-                                    #endregion
-                            }
-
-                            break;
-                    }
-                }
-
-                return response;
             }
 
             return null;

@@ -1,19 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Text.Json.Serialization;
-using WatsonWebserver.Core;
-using SpaceWizards.HttpListener;
-using NetworkLibrary.Extension.Csharp;
-using NetworkLibrary.HTTP;
-
-namespace WatsonWebserver
+﻿namespace WatsonWebserver
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Text.Json.Serialization;
+    using WatsonWebserver.Core;
+    using NetworkLibrary.Extension;
+    using SpaceWizards.HttpListener;
+
     /// <summary>
     /// HTTP response.
     /// </summary>
@@ -137,7 +136,8 @@ namespace WatsonWebserver
             HttpListenerContext ctx, 
             WebserverSettings settings, 
             WebserverEvents events,
-            ISerializationHelper serializer, bool KeepAliveResponseData)
+            ISerializationHelper serializer,
+            bool KeepAliveResponseData)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (ctx == null) throw new ArgumentNullException(nameof(ctx));
@@ -150,7 +150,7 @@ namespace WatsonWebserver
             _Context = ctx;
             _Response = _Context.Response;
             _Settings = settings;
-            _Events = events; 
+            _Events = events;
             _KeepAliveData = KeepAliveResponseData;
 
             _OutputStream = _Response.OutputStream;
@@ -160,23 +160,14 @@ namespace WatsonWebserver
 
         #region Public-Methods
          
-        /// <summary>
-        /// Send headers and no data to the requestor and terminate the connection.
-        /// </summary>
-        /// <param name="token">Cancellation token useful for canceling the request.</param>
-        /// <returns>True if successful.</returns>
+        /// <inheritdoc />
         public override async Task<bool> Send(CancellationToken token = default)
         {
             if (ChunkedTransfer) throw new IOException("Response is configured to use chunked transfer-encoding.  Use SendChunk() and SendFinalChunk().");
             return await SendInternalAsync(0, null, token).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Send headers with a specified content length and no data to the requestor and terminate the connection.  Useful for HEAD requests where the content length must be set.
-        /// </summary>
-        /// <param name="token">Cancellation token useful for canceling the request.</param>
-        /// <param name="contentLength">Content length.</param>
-        /// <returns>True if successful.</returns>
+        /// <inheritdoc />
         public override async Task<bool> Send(long contentLength, CancellationToken token = default)
         {
             if (ChunkedTransfer) throw new IOException("Response is configured to use chunked transfer-encoding.  Use SendChunk() and SendFinalChunk().");
@@ -184,63 +175,39 @@ namespace WatsonWebserver
             return await SendInternalAsync(0, null, token).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Send headers and data to the requestor and terminate the connection.
-        /// </summary>
-        /// <param name="data">Data.</param>
-        /// <param name="token">Cancellation token useful for canceling the request.</param>
-        /// <returns>True if successful.</returns>
+        /// <inheritdoc />
         public override async Task<bool> Send(string data, CancellationToken token = default)
         {
             if (ChunkedTransfer) throw new IOException("Response is configured to use chunked transfer-encoding.  Use SendChunk() and SendFinalChunk().");
-            if (string.IsNullOrEmpty(data))
+            if (String.IsNullOrEmpty(data))
                 return await SendInternalAsync(0, null, token).ConfigureAwait(false);
 
             byte[] bytes = Encoding.UTF8.GetBytes(data);
-            MemoryStream ms = new MemoryStream();
-            await ms.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
-            ms.Seek(0, SeekOrigin.Begin);
-            return await SendInternalAsync(bytes.Length, ms, token).ConfigureAwait(false);
+            return await SendInternalAsync(bytes.Length, new MemoryStream(bytes), token).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Send headers and data to the requestor and terminate the connection.
-        /// </summary>
-        /// <param name="data">Data.</param>
-        /// <param name="token">Cancellation token useful for canceling the request.</param>
-        /// <returns>True if successful.</returns>
+        /// <inheritdoc />
         public override async Task<bool> Send(byte[] data, CancellationToken token = default)
         {
             if (ChunkedTransfer) throw new IOException("Response is configured to use chunked transfer-encoding.  Use SendChunk() and SendFinalChunk().");
             if (data == null || data.Length < 1)
                     return await SendInternalAsync(0, null, token).ConfigureAwait(false);
 
-            MemoryStream ms = new MemoryStream();
-            await ms.WriteAsync(data, 0, data.Length, token).ConfigureAwait(false);
-            ms.Seek(0, SeekOrigin.Begin);
-            return await SendInternalAsync(data.Length, ms, token).ConfigureAwait(false);
+            return await SendInternalAsync(data.Length, new MemoryStream(data), token).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Send headers and data to the requestor and terminate.
-        /// </summary>
-        /// <param name="contentLength">Number of bytes to send.</param>
-        /// <param name="stream">Stream containing the data.</param>
-        /// <param name="token">Cancellation token useful for canceling the request.</param>
-        /// <returns>True if successful.</returns>
+        /// <inheritdoc />
         public override async Task<bool> Send(long contentLength, Stream stream, CancellationToken token = default)
         {
             if (ChunkedTransfer) throw new IOException("Response is configured to use chunked transfer-encoding.  Use SendChunk() and SendFinalChunk().");
+            if (stream == null || !stream.CanRead)
+                return await SendInternalAsync(0, null, token).ConfigureAwait(false);
+
             return await SendInternalAsync(contentLength, stream, token);
         }
 
-        /// <summary>
-        /// Send headers (if not already sent) and a chunk of data using chunked transfer-encoding, and keep the connection in-tact.
-        /// </summary>
-        /// <param name="chunk">Chunk of data.</param>
-        /// <param name="token">Cancellation token useful for canceling the request.</param>
-        /// <returns>True if successful.</returns>
-        public override async Task<bool> SendChunk(byte[] chunk, CancellationToken token = default)
+        /// <inheritdoc />
+        public override async Task<bool> SendChunk(byte[] chunk, bool isFinal, CancellationToken token = default)
         {
             if (!ChunkedTransfer) throw new IOException("Response is not configured to use chunked transfer-encoding.  Set ChunkedTransfer to true first, otherwise use Send().");
             if (!_HeadersSet) SendHeaders();
@@ -251,10 +218,37 @@ namespace WatsonWebserver
             try
             {
                 if (chunk == null || chunk.Length < 1) chunk = Array.Empty<byte>();
-                await _OutputStream.WriteAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false);
-                await _OutputStream.FlushAsync(token).ConfigureAwait(false);
+                try
+                {
+                    await _OutputStream.WriteAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false);
+                    await _OutputStream.FlushAsync(token).ConfigureAwait(false);
+                }
+                catch { }
+
+                if (isFinal)
+                {
+                    byte[] endChunk = Array.Empty<byte>();
+                    try
+                    {
+                        await _OutputStream.WriteAsync(endChunk, 0, endChunk.Length, token).ConfigureAwait(false);
+                        await _OutputStream.FlushAsync(token).ConfigureAwait(false);
+                    }
+                    catch { }
+
+                    try
+                    {
+                        _OutputStream.Close();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // outputstream has been disposed already.
+                    }
+
+                    if (_Response != null) _Response.Close();
+                    ResponseSent = true;
+                }
             }
-            catch
+            catch (Exception)
             {
                 return false;
             }
@@ -262,37 +256,53 @@ namespace WatsonWebserver
             return true;
         }
 
-        /// <summary>
-        /// Send headers (if not already sent) and the final chunk of data using chunked transfer-encoding and terminate the connection.
-        /// </summary>
-        /// <param name="chunk">Chunk of data.</param>
-        /// <param name="token">Cancellation token useful for canceling the request.</param>
-        /// <returns>True if successful.</returns>
-        public override async Task<bool> SendFinalChunk(byte[] chunk, CancellationToken token = default)
+        /// <inheritdoc />
+        public override async Task<bool> SendEvent(string eventData, bool isFinal, CancellationToken token = default)
         {
-            if (!ChunkedTransfer) throw new IOException("Response is not configured to use chunked transfer-encoding.  Set ChunkedTransfer to true first, otherwise use Send().");
+            if (!ServerSentEvents) throw new IOException("Response is not configured to use server-sent events.  Set ServerSentEvents to true first, otherwise use Send().");
             if (!_HeadersSet) SendHeaders();
 
-            if (chunk != null && chunk.Length > 0)
-                ContentLength += chunk.Length;
+            if (!String.IsNullOrEmpty(eventData))
+                ContentLength += eventData.Length;
 
             try
-            { 
-                if (chunk != null && chunk.Length > 0)
-                    await _OutputStream.WriteAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false);
+            {
+                if (String.IsNullOrEmpty(eventData)) eventData = string.Empty;
 
-                byte[] endChunk = Array.Empty<byte>();
-                await _OutputStream.WriteAsync(endChunk, 0, endChunk.Length, token).ConfigureAwait(false);
+                byte[] dataBytes = Encoding.UTF8.GetBytes("data: " + eventData + "\n\n");
+                try
+                {
+                    await _OutputStream.WriteAsync(dataBytes, 0, dataBytes.Length, token).ConfigureAwait(false);
+                    await _OutputStream.FlushAsync(token).ConfigureAwait(false);
+                }
+                catch { }
 
-                await _OutputStream.FlushAsync(token).ConfigureAwait(false);
-                _OutputStream.Close();
+                if (isFinal)
+                {
+                    byte[] endChunk = Array.Empty<byte>();
+                    try
+                    {
+                        await _OutputStream.WriteAsync(endChunk, 0, endChunk.Length, token).ConfigureAwait(false);
+                        await _OutputStream.FlushAsync(token).ConfigureAwait(false);
+                    }
+                    catch { }
 
-                if (_Response != null) _Response.Close();
+                    try
+                    {
+                        _OutputStream.Close();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // outputstream has been disposed already.
+                    }
 
-                ResponseSent = true;
+                    if (_Response != null) _Response.Close();
+                    ResponseSent = true;
+                }
+
                 return true;
             }
-            catch
+            catch (Exception)
             {
                 return false;
             }
@@ -330,7 +340,7 @@ namespace WatsonWebserver
                 case 203:
                     return "Non-Authoritative Information";
                 case 204:
-                    return "No Contact";
+                    return "No Content";
                 case 205:
                     return "Reset Content";
                 case 206:
@@ -451,12 +461,20 @@ namespace WatsonWebserver
         {
             if (_HeadersSet) throw new IOException("Headers already sent.");
 
+            _Response.ProtocolVersion = new Version(1, 1);
             _Response.ContentLength64 = ContentLength;
             _Response.StatusCode = StatusCode;
             _Response.StatusDescription = GetStatusDescription(StatusCode);
-            _Response.SendChunked = ChunkedTransfer;
+            _Response.SendChunked = (ChunkedTransfer || ServerSentEvents);
             _Response.ContentType = ContentType;
             _Response.KeepAlive = false;
+
+            if (ServerSentEvents)
+            {
+                _Response.ContentType = "text/event-stream; charset=utf-8";
+                _Response.Headers.Add("Cache-Control", "no-cache");
+                _Response.Headers.Add("Connection", "keep-alive");
+            }
 
             if (Headers != null && Headers.Count > 0)
             {
@@ -466,7 +484,9 @@ namespace WatsonWebserver
                     string[] vals = Headers.GetValues(i);
 
                     if (vals == null || vals.Length < 1)
+                    {
                         _Response.AddHeader(key, null);
+                    }
                     else
                     {
                         for (int j = 0; j < vals.Length; j++)
@@ -486,7 +506,9 @@ namespace WatsonWebserver
                         // already present
                     }
                     else
+                    {
                         _Response.AddHeader(header.Key, header.Value);
+                    }
                 }
             }
 
@@ -501,7 +523,7 @@ namespace WatsonWebserver
             byte[] buffer = new byte[16 * 1024];
             using (MemoryStream ms = new MemoryStream())
             {
-                int read = 0;
+                int read;
 
                 while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
                 {
@@ -524,64 +546,66 @@ namespace WatsonWebserver
             {
                 if (_Request.Method != HttpMethod.HEAD)
                 {
-                    if (stream != null && stream.CanRead && contentLength > 0)
+                    if (stream != null && stream.CanRead)
                     {
-                        int bufferSize = contentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
-
-                        if (_KeepAliveData)
+                        using (stream)
                         {
-                            int bytesRead;
-                            long bytesRemaining = contentLength;
+                            // We override the bufferSize for large content, else, we murder the CPU.
+                            int bufferSize = ContentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
 
-                            // We override the bufferSize for large content, else, we monster the CPU.
-                            byte[] buffer = new byte[bufferSize];
-
-                            _Data = new MemoryStream();
-
-                            while (bytesRemaining > 0)
+                            try
                             {
-                                bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
-                                if (bytesRead > 0)
+                                // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
+                                if (ContentLength > 0)
                                 {
-                                    await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                    await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                    bytesRemaining -= bytesRead;
+                                    if (_KeepAliveData)
+                                    {
+                                        int bytesRead;
+                                        long bytesRemaining = contentLength;
+
+                                        byte[] buffer = new byte[bufferSize];
+
+                                        _Data = new MemoryStream();
+
+                                        while (bytesRemaining > 0)
+                                        {
+                                            bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+                                            if (bytesRead > 0)
+                                            {
+                                                await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+                                                try
+                                                {
+                                                    await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+                                                }
+                                                catch { }
+                                                bytesRemaining -= bytesRead;
+                                            }
+                                        }
+
+                                        _Data.Seek(0, SeekOrigin.Begin);
+                                    }
+                                    else
+                                        await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, ContentLength, false, token).ConfigureAwait(false);
                                 }
-                            }
+                                else
+                                    await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, false, token).ConfigureAwait(false);
 
-                            try
-                            {
-                                stream.Close();
-                                stream.Dispose();
+                                // Only flush when there is valid data.
+                                await _OutputStream.FlushAsync(token).ConfigureAwait(false);
                             }
-                            catch (ObjectDisposedException)
-                            {
-                                // stream has been disposed already.
-                            }
-
-                            _Data.Seek(0, SeekOrigin.Begin);
-                        }
-                        else
-                        {
-                            _Data = stream;
-
-                            HTTPProcessor.CopyStream(_Data, _OutputStream, bufferSize);
-
-                            try
-                            {
-                                _Data.Close();
-                                _Data.Dispose();
-                            }
-                            catch (ObjectDisposedException)
-                            {
-                                // _Data has been disposed already.
-                            }
+                            catch { }
                         }
                     }
                 }
 
-                await _OutputStream.FlushAsync(token).ConfigureAwait(false);
-                _OutputStream.Close();
+                try
+                {
+                    _OutputStream.Close();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // outputstream has been disposed already.
+                }
 
                 if (_Response != null) _Response.Close();
 

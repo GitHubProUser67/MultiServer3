@@ -1,4 +1,4 @@
-using CompressionLibrary.NetChecksummer;
+using NetChecksummer;
 using EndianTools;
 using System;
 using System.Collections;

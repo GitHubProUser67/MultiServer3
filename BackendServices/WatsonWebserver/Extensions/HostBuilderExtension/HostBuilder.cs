@@ -1,11 +1,11 @@
-using System;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using WatsonWebserver.Core;
-
-namespace WatsonWebserver.Extensions.HostBuilderExtension
+﻿namespace WatsonWebserver.Extensions.HostBuilderExtension
 {
+    using System;
+    using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using WatsonWebserver.Core;
+
     /// <summary>
     /// Host builder.
     /// </summary>
@@ -66,7 +66,7 @@ namespace WatsonWebserver.Extensions.HostBuilderExtension
         /// <param name="defaultRoute">Default route.</param>
         public HostBuilder(string hostname, int port, bool ssl, Func<HttpContextBase, Task> defaultRoute)
         {
-            if (string.IsNullOrEmpty(hostname)) hostname = "localhost";
+            if (String.IsNullOrEmpty(hostname)) hostname = "localhost";
             if (port < 0) port = 8000;
             if (defaultRoute == null) throw new ArgumentNullException(nameof(defaultRoute));
 

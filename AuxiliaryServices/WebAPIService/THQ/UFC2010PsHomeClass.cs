@@ -17,7 +17,7 @@ namespace WebAPIService.THQ
 
         private static readonly string UFCData = GenerateDefaultData();
 
-        public static string ProcessUFCUserData(Stream postdata, string boundary, string apiPath)
+        public static string ProcessUFCUserData(byte[] postdata, string boundary, string apiPath)
         {
             string output = null;
 
@@ -25,12 +25,8 @@ namespace WebAPIService.THQ
             {
                 try
                 {
-                    using (MemoryStream copyStream = new MemoryStream())
+                    using (MemoryStream copyStream = new MemoryStream(postdata))
                     {
-                        postdata.CopyTo(copyStream);
-
-                        copyStream.Position = 0;
-
                         byte[] ticketData = null;
 
                         var data = MultipartFormDataParser.Parse(copyStream, boundary);

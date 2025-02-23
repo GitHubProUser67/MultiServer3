@@ -61,7 +61,7 @@ namespace SpaceWizards.HttpListener
             if (secure)
             {
                 _secure = secure;
-                _cert = _listener.LoadCertificateAndKey(addr, port);
+                _cert = _listener.LoadRootCACertificate(addr, port);
             }
 
             _endpoint = new IPEndPoint(addr, port);

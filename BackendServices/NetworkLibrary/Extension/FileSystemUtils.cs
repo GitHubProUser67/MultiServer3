@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NetworkLibrary.Extension
 {
@@ -58,6 +59,73 @@ namespace NetworkLibrary.Extension
         public static bool IsHidden(this FileInfo fileInfo)
         {
             return (fileInfo.Attributes & hiddenAttribute) == hiddenAttribute;
+        }
+
+        // https://stackoverflow.com/questions/24279882/file-open-hangs-and-freezes-thread-when-accessing-a-local-file
+        public static async Task<bool> IsLocked(this FileInfo file)
+        {
+            Task<bool> checkTask = Task.Run(() =>
+            {
+                try
+                {
+                    using (file.Open(FileMode.Open, FileAccess.Read, FileShare.None)) { };
+                    return false;
+                }
+                catch
+                {
+                }
+                return true;
+            });
+            Task delayTask = Task.Delay(1000);
+            try
+            {
+                if ((await Task.WhenAny(checkTask, delayTask).ConfigureAwait(false)) == delayTask)
+                    return true;
+                else
+                    return await checkTask.ConfigureAwait(false);
+            }
+            catch
+            {
+            }
+            return true;
+        }
+
+        public static async Task<FileStream> TryOpen(string filePath, int AwaiterTimeoutInMS = -1)
+        {
+            if (AwaiterTimeoutInMS != -1)
+            {
+                FileInfo info;
+                try
+                {
+                    info = new FileInfo(filePath);
+                }
+                catch
+                {
+                    return null;
+                }
+                const int lockCheckInterval = 100;
+                int elapsedTime = 0;
+                bool TimedOut = false;
+                while (await IsLocked(info).ConfigureAwait(false))
+                {
+                    TimedOut = elapsedTime >= AwaiterTimeoutInMS;
+                    if (TimedOut)
+                        break;
+                    await Task.Delay(lockCheckInterval).ConfigureAwait(false);
+                    elapsedTime += lockCheckInterval;
+                }
+                if (TimedOut)
+                    return null;
+            }
+            try
+            {
+                return File.OpenRead(filePath);
+            }
+            catch
+            {
+            }
+
+            return null;
         }
 
         /// <summary>
