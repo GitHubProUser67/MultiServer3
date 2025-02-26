@@ -100,7 +100,7 @@ namespace WebAPIService.LOOT
                                                     if (File.Exists(profilePath))
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - Detected existing player data for {guid}, overwriting!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         // #Floor:1,EX_ENTITY,0,0,0,0,0,0,false,,false,StageFloor_Plywood.mdl#Canvas:1:L,EX_ENTITY,-9.388,15.5,-12.464,0,0,0,true,,false,StageCanvas_WhiteL.mdl#Canvas:1:C,EX_ENTITY,0.706,7.2691,-21.788,0,0,0,true,,false,StageCanvas_White.mdl#Canvas:1:R,EX_ENTITY,11.3,12.955,-12.8,0,0,0,true,,false,StageCanvas_WhiteR.mdl
 
@@ -108,19 +108,19 @@ namespace WebAPIService.LOOT
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                     else
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - New player with no saved for {guid}! Saving for FIRST TIME!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         return "<response>\r\n" +
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                 }
@@ -148,7 +148,7 @@ namespace WebAPIService.LOOT
                                                     if (File.Exists(profilePath))
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - Detected existing player data for {guid}, overwriting!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         // #RichardLight:1,RICHARD_LIGHT,0.25098,0.67843,0.90196,10,1,10,0,14,9.6883,265.09,1,30,12.7,3.2,15.5,1,2.5,3.5#RichardLight:2,RICHARD_LIGHT,0.88235,0.88235,0.88235,8,1,5,0,0,10.677,0.85705,5,30,5.7,5,6.2,1,2.5,13.5#RichardLight:3,RIG_LIGHT,0.98039,0.23529,1,15,1,0,5.5,4,0,0,0,0,0,0,0,0,0,0,0
 
@@ -156,19 +156,19 @@ namespace WebAPIService.LOOT
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                     else
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - New player with no saved for {guid}! Saving for FIRST TIME!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         return "<response>\r\n" +
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                 }
@@ -196,7 +196,7 @@ namespace WebAPIService.LOOT
                                                     if (File.Exists(profilePath))
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - Detected existing player data for {guid}, overwriting!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         // #RichardLight:1,RICHARD_LIGHT,1.349,1.7765,2,10,1,-10,1.35,-14,10.512,262.12,1,30,-12.7,3.2,-15.5,1,2.5,-13.5#RichardLight:2,RICHARD_LIGHT,0.88235,0.88235,0.88235,8,1,5,0,0,10.677,0.85705,5,30,5.7,5,6.2,1,2.5,-13.5#RichardLight:3,RIG_LIGHT,0.98039,0.23529,1,15,1,0,5.5,-4,0,0,0,0,0,0,0,0,0,0,0
 
@@ -204,19 +204,19 @@ namespace WebAPIService.LOOT
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                     else
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - New player with no saved for {guid}! Saving for FIRST TIME!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         return "<response>\r\n" +
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                 }
@@ -244,7 +244,7 @@ namespace WebAPIService.LOOT
                                                     if (File.Exists(profilePath))
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - Detected existing player data for {guid}, overwriting!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         // #1,RICHARD_CAMERA,3.0275,1.5,-11.296,0,180,0,76.515#2,RICHARD_CAMERA,5.655,1.5,-5.9686,0,180,0,49.847#3,RICHARD_CAMERA,-5.0921,1.5,-9.2886,0,180,0,49.847
 
@@ -252,19 +252,19 @@ namespace WebAPIService.LOOT
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                     else
                                                     {
                                                         LoggerAccessor.LogInfo($"[LOOT] - New player with no saved for {guid}! Saving for FIRST TIME!");
-                                                        File.WriteAllText(profilePath, Encoding.UTF8.GetString(PostData));
+                                                        File.WriteAllText(profilePath, serialized_data);
 
                                                         return "<response>\r\n" +
                                                             "    <code>200</code>\r\n" +
                                                             "    <message>ok</message>\r\n" +
                                                             "    <version>1</version>\r\n" +
-                                                           $"    <body>{PostData}</body>\r\n" +
+                                                           $"    <body>{serialized_data}</body>\r\n" +
                                                             "</response>";
                                                     }
                                                 }
