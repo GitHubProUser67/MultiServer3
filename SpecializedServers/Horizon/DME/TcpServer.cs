@@ -939,12 +939,13 @@ namespace Horizon.DME
 
         protected virtual Task ProcessRTTHostTokenMessage(RT_MSG_CLIENT_TOKEN_MESSAGE clientTokenMsg, IChannel clientChannel, ChannelData data)
         {
-            LoggerAccessor.LogInfo($"rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.DMEObject?.ScertId}, target token = {clientTokenMsg.targetToken}");
-
+#if DEBUG
+            LoggerAccessor.LogInfo($"[DME] - TcpServer - ProcessRTTHostTokenMessage: rt_msg_server_process_client_token_msg: msg type {clientTokenMsg.RT_TOKEN_MESSAGE_TYPE}, client {data.DMEObject?.ScertId}, target token = {clientTokenMsg.targetToken}");
+#endif
             bool isTokenValid = rt_token_is_valid(clientTokenMsg.targetToken);
 
             if (!isTokenValid)
-                LoggerAccessor.LogInfo($"rt_msg_server_process_client_token_msg: bad target token {clientTokenMsg.targetToken}");
+                LoggerAccessor.LogWarn($"[DME] - TcpServer - ProcessRTTHostTokenMessage: rt_msg_server_process_client_token_msg: bad target token {clientTokenMsg.targetToken}");
             else
             {
                 switch (clientTokenMsg.RT_TOKEN_MESSAGE_TYPE)
@@ -953,33 +954,36 @@ namespace Horizon.DME
                         {
                             if (data.DMEObject != null && data.DMEObject.DmeWorld != null)
                             {
-                                if (!data.DMEObject.DmeWorld.clientTokens.ContainsKey(clientTokenMsg.targetToken))
+                                lock (data.DMEObject.DmeWorld._TokenLock)
                                 {
-                                    data.DMEObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new ConcurrentList<int>() { data.DMEObject.DmeId });
+                                    if (!data.DMEObject.DmeWorld.clientTokens.ContainsKey(clientTokenMsg.targetToken))
+                                    {
+                                        data.DMEObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new ConcurrentList<int>() { data.DMEObject.DmeId });
 
-                                    if (data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Count > 0)
-                                        data.DMEObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to broadcast the signal that this token is owned.
+                                        if (data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Count > 0)
+                                            data.DMEObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to broadcast the signal that this token is owned.
+                                            {
+                                                TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED, clientTokenMsg.targetToken, (ushort)data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken][0]) }
+                                            });
+                                        else
                                         {
-                                            TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED, clientTokenMsg.targetToken, (ushort)data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken][0]) }
-                                        });
+                                            LoggerAccessor.LogError($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.DMEObject?.IP} requested a token request but errored out while owning a token!");
+
+                                            Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
+                                            {
+                                                Reason = SERVER_FORCE_DISCONNECT_REASON.SERVER_FORCED_DISCONNECT_ERROR
+                                            }, clientChannel);
+                                        }
+                                    }
                                     else
                                     {
-                                        LoggerAccessor.LogError($"[DME] - TcpServer - ProcessRTTHostTokenMessage: Client {data.DMEObject?.IP} requested a token request but errored out while owning a token!");
+                                        data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Add(data.DMEObject.DmeId);
 
-                                        Queue(new RT_MSG_SERVER_FORCED_DISCONNECT()
+                                        Queue(new RT_MSG_SERVER_TOKEN_MESSAGE() // This message should not be broadcasted, Home doesn't like it.
                                         {
-                                            Reason = SERVER_FORCE_DISCONNECT_REASON.SERVER_FORCED_DISCONNECT_ERROR
+                                            TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED, clientTokenMsg.targetToken, 0) }
                                         }, clientChannel);
                                     }
-                                }
-                                else
-                                {
-                                    data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Add(data.DMEObject.DmeId);
-
-                                    Queue(new RT_MSG_SERVER_TOKEN_MESSAGE() // This message should not be broadcasted, Home doesn't like it.
-                                    {
-                                        TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_GRANTED, clientTokenMsg.targetToken, 0) }
-                                    }, clientChannel);
                                 }
                             }
                             else
