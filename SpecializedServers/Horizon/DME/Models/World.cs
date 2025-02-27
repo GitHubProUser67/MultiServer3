@@ -21,7 +21,7 @@ namespace Horizon.DME.Models
         private static ConcurrentDictionary<int, World> _idToWorld = new();
         private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
 
-        private static object _lock = new();
+        private object _ClientIndexlock = new();
 
         private void RegisterWorld(int GameChannelWorldId, int WorldId)
         {
@@ -58,7 +58,7 @@ namespace Horizon.DME.Models
 
         private bool TryRegisterNewClientIndex(out int index)
         {
-            lock (_lock)
+            lock (_ClientIndexlock)
             {
                 for (index = 0; index < _pIdIsUsed.Count; ++index)
                 {
@@ -81,6 +81,8 @@ namespace Horizon.DME.Models
         #endregion
 
         #region TokenManagement
+
+        internal object _TokenLock = new object();
 
         public ConcurrentDictionary<ushort, ConcurrentList<int>> clientTokens = new();
 
