@@ -1,3 +1,4 @@
+using CastleLibrary.NetHasher.CRC;
 using CustomLogger;
 using System.Text;
 
@@ -75,7 +76,7 @@ namespace QuazalServer.QNetZ
 
             do
             {
-                result = NetChecksummer.CRC32.Create(Encoding.UTF8.GetBytes(input + "QnetZM$3")) ^ result;
+                result = CRC32.Create(Encoding.UTF8.GetBytes(input + "QnetZM$3")) ^ result;
 
                 // If below or equal 1000, modify the input slightly and recalculate.
                 if (result <= 1000)

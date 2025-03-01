@@ -1,11 +1,11 @@
-﻿using NetChecksummer;
-using CustomLogger;
+﻿using CustomLogger;
 using Horizon.MUM.Models;
 using NetworkLibrary.Extension;
 using NetworkLibrary.HTTP;
 using SoftFloatLibrary;
 using System.Security.Cryptography;
 using System.Text;
+using CastleLibrary.NetHasher.CRC;
 
 namespace Horizon.SERVER.Extension.PlayStationHome
 {

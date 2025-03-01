@@ -7,7 +7,7 @@ using System.Text;
 using NetworkLibrary.HTTP;
 using NetworkLibrary.Crypto;
 using Horizon.MUM.Models;
-using NetChecksummer;
+using CastleLibrary.NetHasher.CRC;
 
 namespace Horizon.MUM
 {

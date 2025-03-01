@@ -12,8 +12,6 @@ namespace NetworkLibrary.GeoLocalization
 
         private static GeoIP _instance;
 
-        private static readonly string currentdir = Directory.GetCurrentDirectory();
-
         public GeoIP(DatabaseReader reader)
         {
             Reader = reader;
@@ -56,6 +54,7 @@ namespace NetworkLibrary.GeoLocalization
         public static void Initialize()
         {
             DatabaseReader reader;
+            string currentdir = Directory.GetCurrentDirectory();
 
             try
             {
