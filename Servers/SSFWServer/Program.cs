@@ -1,5 +1,5 @@
 using CustomLogger;
-using NetworkLibrary.TCP_IP;
+using NetworkLibrary.Extension;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
 using System.Reflection;
@@ -194,7 +194,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");

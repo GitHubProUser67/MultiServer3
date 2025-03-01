@@ -5,7 +5,7 @@ using System.Text;
 using SpaceWizards.HttpListener;
 using System.Security.Cryptography.X509Certificates;
 using SVO.Games.PS3;
-using NetworkLibrary.TCP_IP;
+using NetworkLibrary.Extension;
 
 namespace SVO
 {
@@ -104,7 +104,7 @@ namespace SVO
             // start listener
             try
             {
-                System.Net.IPAddress hostAddr = System.Net.IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(host, "0.0.0.0"));
+                System.Net.IPAddress hostAddr = System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(host, "0.0.0.0"));
 
                 listener = new HttpListener();
                 if (certificate != null)

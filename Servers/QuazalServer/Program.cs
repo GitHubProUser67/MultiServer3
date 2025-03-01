@@ -1,5 +1,5 @@
 using CustomLogger;
-using NetworkLibrary.TCP_IP;
+using NetworkLibrary.Extension;
 using Newtonsoft.Json.Linq;
 using QuazalServer.ServerProcessors;
 using System.Reflection;
@@ -7,8 +7,8 @@ using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = IPUtils.GetLocalIPAddress().ToString();
-    public static string ServerPublicBindAddress { get; set; } = IPUtils.GetPublicIPAddress();
+    public static string ServerBindAddress { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+    public static string ServerPublicBindAddress { get; set; } = IpUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
     public static bool UsePublicIP { get; set; } = false;
@@ -226,7 +226,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         QuazalServerConfiguration.RefreshVariables(configPath);

@@ -8,7 +8,7 @@ using System.Net;
 using System.Security.Principal;
 using System.Security.Cryptography;
 using System.Reflection;
-using NetworkLibrary.TCP_IP;
+using NetworkLibrary.Extension;
 
 public static class SVOServerConfiguration
 {
@@ -194,7 +194,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         SVOServerConfiguration.RefreshVariables(configPath);

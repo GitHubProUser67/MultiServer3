@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
-using NetworkLibrary.TCP_IP;
 using NetworkLibrary.Extension;
 
 public static class HorizonServerConfiguration
@@ -32,7 +31,7 @@ public static class HorizonServerConfiguration
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
     public static string MediusAPIKey { get; set; } = NetworkLibrary.Crypto.WebCrypto.GenerateRandomBase64KeyAsync().Result;
-    public static string SSFWUrl { get; set; } = $"http://{IPUtils.GetLocalIPAddress().ToString()}:8080";
+    public static string SSFWUrl { get; set; } = $"http://{IpUtils.GetLocalIPAddress().ToString()}:8080";
     public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
@@ -260,7 +259,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         GeoIP.Initialize();

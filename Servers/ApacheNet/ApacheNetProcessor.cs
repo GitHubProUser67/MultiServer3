@@ -1491,7 +1491,7 @@ namespace MultiHTTP
                                                                 }
 
                                                                 if (!treated && ApacheNetServerConfiguration.DNSAllowUnsafeRequests)
-                                                                    url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+                                                                    url = IpUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                                 {
@@ -1998,7 +1998,7 @@ namespace MultiHTTP
                                                             }
 
                                                             if (!treated && ApacheNetServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+                                                                url = IpUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                             {

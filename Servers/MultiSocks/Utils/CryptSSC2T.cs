@@ -1,4 +1,4 @@
-namespace CastleLibrary.SSC2
+namespace MultiSocks.Utils
 {
     public class CryptSSC2T
     {

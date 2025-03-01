@@ -1,6 +1,5 @@
 using CustomLogger;
 using NetworkLibrary.GeoLocalization;
-using NetworkLibrary.TCP_IP;
 using MultiSpy.Data;
 using MultiSpy.Servers;
 using System.Net;
@@ -9,6 +8,7 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using System.Text.Json;
+using NetworkLibrary.Extension;
 
 public static class MultiSpyServerConfiguration
 {
@@ -4907,7 +4907,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         GeoIP.Initialize();

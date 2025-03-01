@@ -1,11 +1,11 @@
 using BlazeCommon;
 using CustomLogger;
-using NetworkLibrary.TCP_IP;
 using MultiSocks.Aries;
 using MultiSocks.Blaze;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Runtime;
+using NetworkLibrary.Extension;
 
 public static class MultiSocksServerConfiguration
 {
@@ -126,7 +126,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         MultiSocksServerConfiguration.RefreshVariables(configPath);
