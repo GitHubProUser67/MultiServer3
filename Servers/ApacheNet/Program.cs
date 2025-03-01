@@ -41,7 +41,7 @@ public static class ApacheNetServerConfiguration
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
-    public static bool PreferNativeHttpListenerEngine { get; set; } = NetworkLibrary.Extension.Windows.Win32API.IsWindows && NetworkLibrary.Extension.Windows.Win32API.IsAdministrator();
+    public static bool PreferNativeHttpListenerEngine { get; set; } = false;
     public static bool UseLiteEngine { get; set; } = false;
     public static bool RangeHandling { get; set; } = false;
     public static bool ChunkedTransfers { get; set; } = false;
