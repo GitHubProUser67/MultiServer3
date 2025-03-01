@@ -81,9 +81,7 @@ namespace Horizon.DME.Models
 
         #region TokenManagement
 
-        internal object _TokenLock = new object();
-
-        public ConcurrentDictionary<ushort, ConcurrentList<int>> clientTokens = new();
+        public Dictionary<ushort, List<int>> clientTokens = new();
 
         #endregion
 
@@ -383,7 +381,7 @@ namespace Horizon.DME.Models
 
                 Parallel.ForEach(clientTokens.Keys, (ushort token) =>
                 {
-                    if (clientTokens.TryGetValue(token, out ConcurrentList<int>? value) && value != null && value.Count > 0)
+                    if (clientTokens.TryGetValue(token, out List<int>? value) && value != null && value.Count > 0)
                         tokenList.Add((RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNED, token, (ushort)value[0]));
                 });
 
