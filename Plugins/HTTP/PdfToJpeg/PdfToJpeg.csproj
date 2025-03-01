@@ -9,8 +9,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
-    <ProjectReference Include="..\..\..\WebServers\HTTPServer\HTTPServer.csproj" />
+    <ProjectReference Include="..\..\..\Servers\ApacheNet\ApacheNet.csproj" />
     <PackageReference Include="PDFtoImage" Version="5.0.0" />
 	<PackageReference Include="System.Text.Json" Version="8.0.5" />
 	<PackageReference Include="Costura.Fody" Version="6.0.0">

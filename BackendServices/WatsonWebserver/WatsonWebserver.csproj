@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Watson.Core" Version="6.2.3" />
+		<PackageReference Include="Watson.Core" Version="6.3.5" />
 	</ItemGroup>
 
 	<ItemGroup>

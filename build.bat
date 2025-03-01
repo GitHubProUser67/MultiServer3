@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer build script 07/12/2024
+@echo MultiServer build script 23/02/2025
 @echo.
 
 @echo Cleaning up directories:
@@ -14,15 +14,14 @@ dotnet build MultiServer3.sln --configuration Debug --property WarningLevel=0
 dotnet build MultiServer3.sln --configuration Release --property WarningLevel=0
 
 @echo Copying build output to ~BuildOutput...
-xcopy /E /Y /I "SpecializedServers/Horizon/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "SpecializedServers/MultiSocks/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "SpecializedServers/QuazalServer/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "SpecializedServers/SSFWServer/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "SpecializedServers/SVO/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "SpecializedServers/MultiSpy/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "WebServers/HTTPServer/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "WebServers/MitmDNS/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/Horizon/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/MultiSocks/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/QuazalServer/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/SSFWServer/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/SVO/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/MultiSpy/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/ApacheNet/bin" "~BuildOutput/MultiServer"
+xcopy /E /Y /I "Servers/MitmDNS/bin" "~BuildOutput/MultiServer"
 xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows" "~BuildOutput/MultiServer/Debug"
 xcopy /E /Y /I "RemoteControl/bin/Release/net6.0-windows" "~BuildOutput/MultiServer/Release"
 if exist "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" (

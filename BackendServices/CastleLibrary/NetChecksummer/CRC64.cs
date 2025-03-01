@@ -3,7 +3,7 @@
 using System.Threading.Tasks;
 #endif
 
-namespace CompressionLibrary.NetChecksummer
+namespace NetChecksummer
 {
     public static class CRC64
     {

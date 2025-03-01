@@ -190,9 +190,19 @@ namespace NetworkLibrary.Extension
             if (isfirstNull && issecondNull)
                 return null;
             else if (issecondNull || second.Length == 0)
-                return first;
+            {
+                int sizeOfArray = first.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(first, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
             else if (isfirstNull || first.Length == 0)
-                return second;
+            {
+                int sizeOfArray = second.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(second, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
 
             bool exceptionThrown = false;
             int totalLength = first.Length + second.Length;
@@ -201,9 +211,17 @@ namespace NetworkLibrary.Extension
 #else
             if (totalLength > 0X7FFFFFC7 || totalLength < 0)
 #endif
-                return first;
+            {
+                // Return the first array if total length exceeds limits
+                int sizeOfArray = first.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(first, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
 
             byte[] bytes = new byte[totalLength];
+
+            // Combine first, and second arrays
             Task t = Task.Run(() => { Array.Copy(first, 0, bytes, 0, first.Length); });
             try
             {
@@ -220,7 +238,7 @@ namespace NetworkLibrary.Extension
                 {
                     t.Wait();
                 }
-                catch (AggregateException)
+                catch
                 {
                     // Don't assert if we already thrown an exception.
                     if (!exceptionThrown)
@@ -237,6 +255,102 @@ namespace NetworkLibrary.Extension
         }
 
         /// <summary>
+        /// Combines 3 bytes arrays into one unique byte array.
+        /// <para>Combine 3 tableaux de bytes en un seul tableau de bytes.</para>
+        /// </summary>
+        /// <param name="first">The first byte array, which represents the leftmost part.</param>
+        /// <param name="second">The second byte array, which represents the middle part.</param>
+        /// <param name="third">The third byte array, which represents the rightmost part.</param>
+        /// <returns>A byte array.</returns>
+        public static byte[] CombineByteArrays(byte[] first, byte[] second, byte[] third)
+        {
+            bool isfirstNull = first == null;
+            bool issecondNull = second == null;
+            bool isthirdNull = third == null;
+
+            if (isfirstNull && issecondNull && isthirdNull)
+                return null;
+            else if (issecondNull && isthirdNull)
+            {
+                int sizeOfArray = first.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(first, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
+            else if (isthirdNull && isfirstNull)
+            {
+                int sizeOfArray = second.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(second, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
+            else if (isfirstNull && issecondNull)
+            {
+                int sizeOfArray = third.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(third, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
+            else if (isfirstNull || first.Length == 0)
+                return CombineByteArray(second, third);
+            else if (issecondNull || second.Length == 0)
+                return CombineByteArray(first, third);
+            else if (isthirdNull || third.Length == 0)
+                return CombineByteArray(first, second);
+
+            bool exceptionThrown = false;
+            int totalLength = first.Length + second.Length + third.Length;
+
+#if NET6_0_OR_GREATER
+            if (totalLength > Array.MaxLength || totalLength < 0)
+#else
+    if (totalLength > 0X7FFFFFC7 || totalLength < 0)
+#endif
+            {
+                // Return the first array if total length exceeds limits
+                int sizeOfArray = first.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(first, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
+
+            byte[] bytes = new byte[totalLength];
+
+            // Combine first, second, and third arrays
+            Task t1 = Task.Run(() => { Array.Copy(first, 0, bytes, 0, first.Length); });
+            Task t2 = Task.Run(() => { Array.Copy(second, 0, bytes, first.Length, second.Length); });
+            try
+            {
+                Array.Copy(third, 0, bytes, first.Length + second.Length, third.Length);
+            }
+            catch
+            {
+                exceptionThrown = true;
+                throw;
+            }
+            finally
+            {
+                try
+                {
+                    Task.WhenAll(t1, t2).Wait();
+                }
+                catch
+                {
+                    if (!exceptionThrown)
+#pragma warning disable CA2219
+                        throw;
+#pragma warning restore
+                }
+                finally
+                {
+                    t1.Dispose();
+                    t2.Dispose();
+                }
+            }
+            return bytes;
+        }
+
+        /// <summary>
         /// Combines a byte array with an array of byte array to a unique byte array.
         /// <para>Combiner un tableau de bytes avec un tableau de tableaux de bytes en un seul tableau de bytes.</para>
         /// </summary>
@@ -246,7 +360,12 @@ namespace NetworkLibrary.Extension
         public static byte[] CombineByteArrays(byte[] first, byte[][] second)
         {
             if (second == null || second.Length == 0)
-                return first;
+            {
+                int sizeOfArray = first.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(first, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
 
             int firstLength = first?.Length ?? 0;
             int totalLength = firstLength + second.Sum(arr => arr.Length);
@@ -255,14 +374,20 @@ namespace NetworkLibrary.Extension
 #else
             if (totalLength > 0X7FFFFFC7 || totalLength < 0)
 #endif
-                return first;
+            {
+                // Return the first array if total length exceeds limits
+                int sizeOfArray = first.Length;
+                byte[] copy = new byte[sizeOfArray];
+                Array.Copy(first, 0, copy, 0, sizeOfArray);
+                return copy;
+            }
 
             bool exceptionThrown = false;
             Task t = null;
             byte[] result = new byte[totalLength];
 
             if (first != null)
-                t = Task.Run(() => { Buffer.BlockCopy(first, 0, result, 0, first.Length); });
+                t = Task.Run(() => { Array.Copy(first, 0, result, 0, first.Length); });
 
             // Calculate offsets for each array in `second` before the parallel operation.
             int[] offsets = new int[second.Length];
@@ -279,12 +404,12 @@ namespace NetworkLibrary.Extension
                 // Perform the block copy in parallel
                 Parallel.ForEach(Enumerable.Range(0, second.Length), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i =>
                 {
-                    Buffer.BlockCopy(second[i], 0, result, offsets[i], second[i].Length);
+                    Array.Copy(second[i], 0, result, offsets[i], second[i].Length);
                 });
 
                 t?.Wait();
             }
-            catch (AggregateException)
+            catch
             {
                 exceptionThrown = true;
                 throw;
@@ -299,7 +424,7 @@ namespace NetworkLibrary.Extension
                         {
                             t.Wait();
                         }
-                        catch (AggregateException)
+                        catch
                         {
                             // Don't assert if we already thrown an exception.
                             if (!exceptionThrown)

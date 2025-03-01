@@ -137,9 +137,11 @@ namespace NetworkLibrary.SSL
         /// <param name="directoryPath">The output RootCA filename.</param>
         /// <param name="Hashing">The Hashing algorithm to use.</param>
         /// <returns>A X509Certificate2.</returns>
-        public static X509Certificate2 CreateRootCertificateAuthority(string directoryPath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
+        public static X509Certificate2 CreateRootCertificateAuthority(string OutputPfxCertificatePath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
         {
-            File.WriteAllText(directoryPath + "/lock.txt", string.Empty);
+            string certDirectoryPath = Path.GetDirectoryName(OutputPfxCertificatePath);
+
+            File.WriteAllText(certDirectoryPath + "/lock.txt", string.Empty);
 
             byte[] certSerialNumber = new byte[16];
 
@@ -171,20 +173,20 @@ namespace NetworkLibrary.SSL
                 string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
 
                 // Export the private key.
-                File.WriteAllText(directoryPath + "/MultiServer_rootca_privkey.pem",
+                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}_privkey.pem",
                     PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                 rsa.Clear();
 
                 // Export the certificate.
-                File.WriteAllText(directoryPath + "/MultiServer_rootca.pem", PemRootCACertificate);
+                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}.pem", PemRootCACertificate);
 
                 // Export the certificate in PFX format.
-                File.WriteAllBytes(directoryPath + "/MultiServer_rootca.pfx", RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
+                File.WriteAllBytes(OutputPfxCertificatePath, RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
 
-                CreateCertificatesTextFile(PemRootCACertificate, directoryPath + "/CERTIFICATES.TXT");
+                CreateCertificatesTextFile(PemRootCACertificate, certDirectoryPath + "/CERTIFICATES.TXT");
 
-                File.Delete(directoryPath + "/lock.txt");
+                File.Delete(certDirectoryPath + "/lock.txt");
 
                 return RootCACertificate;
             }
@@ -367,8 +369,12 @@ namespace NetworkLibrary.SSL
         /// <param name="certPassword">Password of the certificate file.</param>
         /// <param name="DnsList">DNS domains to include in the certificate.</param>
         /// <param name="Hashing">The Hashing algorithm to use.</param>
-        public static void InitializeSSLCertificates(string certPath, string certPassword, string[] DnsList, HashAlgorithmName Hashing)
+        public static void InitializeSSLChainSignedCertificates(string certPath, string certPassword, string[] DnsList, HashAlgorithmName Hashing)
         {
+            if (string.IsNullOrEmpty(certPath) || !certPath.EndsWith(".pfx", StringComparison.InvariantCultureIgnoreCase))
+                throw new InvalidDataException("[CertificateHelper] - InitializeSSLChainSignedCertificates: Invalid certificate file path or extension, only .pfx files are supported.");
+
+            string certName = Path.GetFileNameWithoutExtension(certPath);
             string directoryPath = Path.GetDirectoryName(certPath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
 
             Directory.CreateDirectory(directoryPath);
@@ -378,12 +384,29 @@ namespace NetworkLibrary.SSL
             if (File.Exists(directoryPath + "/lock.txt"))
                 WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
 
-            if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
-                RootCACertificate = CreateRootCertificateAuthority(directoryPath, HashAlgorithmName.SHA256);
+            if (!File.Exists(directoryPath + $"/{certName}_rootca.pem") || !File.Exists(directoryPath + $"/{certName}_rootca_privkey.pem"))
+                RootCACertificate = CreateRootCertificateAuthority(directoryPath + $"/{certName}_rootca.pfx", HashAlgorithmName.SHA256);
             else
-                RootCACertificate = LoadPemCertificate(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");
+                RootCACertificate = LoadPemCertificate(directoryPath + $"/{certName}_rootca.pem", directoryPath + $"/{certName}_rootca_privkey.pem");
 
             MakeMasterChainSignedCert(RootCACertificate, Hashing, certPath, certPassword, DnsList);
+        }
+
+        public static void InitializeSSLRootCaCertificates(string certPath, HashAlgorithmName Hashing)
+        {
+            if (string.IsNullOrEmpty(certPath) || !certPath.EndsWith(".pfx", StringComparison.InvariantCultureIgnoreCase))
+                throw new InvalidDataException("[CertificateHelper] - InitializeSSLRootCaCertificates: Invalid certificate file path or extension, only .pem files are supported.");
+
+            string certName = Path.GetFileNameWithoutExtension(certPath);
+            string directoryPath = Path.GetDirectoryName(certPath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
+
+            Directory.CreateDirectory(directoryPath);
+
+            if (File.Exists(directoryPath + "/lock.txt"))
+                WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
+
+            if (!File.Exists(certPath) || !File.Exists(directoryPath + $"/{certName}_privkey.pem"))
+                CreateRootCertificateAuthority(certPath, Hashing);
         }
 
         /// <summary>
@@ -491,10 +514,8 @@ namespace NetworkLibrary.SSL
                     fileSystemWatcher.Deleted += (sender, e) =>
                     {
                         if (e.Name == Path.GetFileName(filePath))
-                        {
                             // Signal that the file has been deleted
                             deletionCompletionSource.SetResult(true);
-                        }
                     };
 
                     // Enable watching
