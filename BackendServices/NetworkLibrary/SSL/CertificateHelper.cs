@@ -7,6 +7,8 @@ using System.IO;
 using System.Threading.Tasks;
 using NetworkLibrary.Extension;
 using System.Linq;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 #if !NET5_0_OR_GREATER
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -15,7 +17,7 @@ using Org.BouncyCastle.Security;
 
 namespace NetworkLibrary.SSL
 {
-    public static class SSLUtils
+    public static class CertificateHelper
     {
         // PEM file headers.
         public const string CRT_HEADER = "-----BEGIN CERTIFICATE-----\n";
@@ -126,6 +128,8 @@ namespace NetworkLibrary.SSL
             ".example", ".localhost", ".test" // Reserved TLDs
         };
 
+        private static ConcurrentDictionary<string, X509Certificate2> FakeCertificates = new ConcurrentDictionary<string, X509Certificate2>();
+
         /// <summary>
         /// Creates a Root CA Cert for chain signed usage.
         /// <para>Creation d'un certificat Root pour usage sur une chaine de certificats.</para>
@@ -133,9 +137,11 @@ namespace NetworkLibrary.SSL
         /// <param name="directoryPath">The output RootCA filename.</param>
         /// <param name="Hashing">The Hashing algorithm to use.</param>
         /// <returns>A X509Certificate2.</returns>
-        public static X509Certificate2 CreateRootCertificateAuthority(string directoryPath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
+        public static X509Certificate2 CreateRootCertificateAuthority(string OutputPfxCertificatePath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
         {
-            File.WriteAllText(directoryPath + "/lock.txt", string.Empty);
+            string certDirectoryPath = Path.GetDirectoryName(OutputPfxCertificatePath);
+
+            File.WriteAllText(certDirectoryPath + "/lock.txt", string.Empty);
 
             byte[] certSerialNumber = new byte[16];
 
@@ -167,35 +173,111 @@ namespace NetworkLibrary.SSL
                 string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
 
                 // Export the private key.
-                File.WriteAllText(directoryPath + "/MultiServer_rootca_privkey.pem",
+                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}_privkey.pem",
                     PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                 rsa.Clear();
 
                 // Export the certificate.
-                File.WriteAllText(directoryPath + "/MultiServer_rootca.pem", PemRootCACertificate);
+                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}.pem", PemRootCACertificate);
 
                 // Export the certificate in PFX format.
-                File.WriteAllBytes(directoryPath + "/MultiServer_rootca.pfx", RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
+                File.WriteAllBytes(OutputPfxCertificatePath, RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
 
-                CreateCertificatesTextFile(PemRootCACertificate, directoryPath + "/CERTIFICATES.TXT");
+                CreateCertificatesTextFile(PemRootCACertificate, certDirectoryPath + "/CERTIFICATES.TXT");
 
-                File.Delete(directoryPath + "/lock.txt");
+                File.Delete(certDirectoryPath + "/lock.txt");
 
                 return RootCACertificate;
             }
         }
 
         /// <summary>
-        /// Creates a chained signed certificate.
-        /// <para>Creation d'un certificat sur une chaine de certificats issue d'un RootCA.</para>
+        /// Issue a chain-signed SSL certificate with private key.
+        /// </summary>
+        /// <param name="certSubject">Certificate subject (domain name).</param>
+        /// <param name="issuerCertificate">Authority's certificate used to sign this certificate.</param>
+        /// <param name="serverIp">IP Address of the remote server.</param>
+        /// <param name="certHashAlgorithm">Certificate hash algorithm.</param>
+        /// <param name="certVaildBeforeNow">Minimum Certificate validity Date.</param>
+        /// <param name="certVaildAfterNow">Maximum Certificate validity Date.</param>
+        /// <param name="wildcard">(optional) Enables wildcard SAN attributes.</param>
+        /// <returns>Signed chain of SSL Certificates.</returns>
+        public static X509Certificate MakeChainSignedCert(string certSubject, X509Certificate2 issuerCertificate, HashAlgorithmName certHashAlgorithm,
+            IPAddress serverIp, DateTimeOffset certVaildBeforeNow, DateTimeOffset certVaildAfterNow, bool wildcard = false)
+        {
+            // Look if it is already issued.
+            // Why: https://support.mozilla.org/en-US/kb/Certificate-contains-the-same-serial-number-as-another-certificate
+            if (FakeCertificates.ContainsKey(certSubject))
+            {
+                X509Certificate2 CachedCertificate = FakeCertificates[certSubject];
+                //check that it hasn't expired
+                if (CachedCertificate.NotAfter > DateTime.Now && CachedCertificate.NotBefore < DateTime.Now)
+                { return CachedCertificate; }
+                else
+#if NET6_0_OR_GREATER
+                { FakeCertificates.Remove(certSubject, out _); }
+#else
+                { FakeCertificates.TryRemove(certSubject, out _); }
+#endif
+            }
+
+            using (RSA issuerPrivKey = issuerCertificate.GetRSAPrivateKey() ?? throw new Exception("Issuer Certificate doesn't have a private key, Chain Signed Certificate will not be generated."))
+            {
+                // If not found, initialize private key generator & set up a certificate creation request.
+                using (RSA rsa = RSA.Create())
+                {
+                    // Generate an unique serial number.
+                    byte[] certSerialNumber = new byte[16];
+                    new Random().NextBytes(certSerialNumber);
+
+                    // set up a certificate creation request.
+                    CertificateRequest certRequestAny = new CertificateRequest($"CN={certSubject} [{GetRandomInt64(100, 999)}], OU=Scientists Department," +
+                        $" O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, certHashAlgorithm, RSASignaturePadding.Pkcs1);
+
+                    // set up a optional SAN builder.
+                    SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
+
+                    sanBuilder.AddDnsName(certSubject); // Some legacy clients will not recognize the cert serial-number.
+                    sanBuilder.AddEmailAddress("SpaceWizards@gmail.com");
+                    sanBuilder.AddIpAddress(serverIp);
+
+                    if (wildcard)
+                    {
+                        tlds.Select(tld => "*" + tld)
+                        .ToList()
+                        .ForEach(sanBuilder.AddDnsName);
+                    }
+
+                    certRequestAny.CertificateExtensions.Add(sanBuilder.Build());
+
+                    // Export the issued certificate with private key.
+                    X509Certificate2 certificateWithKey = new X509Certificate2(certRequestAny.Create(
+                        issuerCertificate.IssuerName,
+                        new RsaPkcs1SignatureGenerator(issuerPrivKey),
+                        certVaildBeforeNow,
+                        certVaildAfterNow,
+                        certSerialNumber).CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+
+                    // Save the certificate and return it.
+                    FakeCertificates.TryAdd(certSubject, certificateWithKey);
+                    return certificateWithKey;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a master chained signed certificate.
+        /// <para>Creation d'un certificat master sur une chaine de certificats issue d'un RootCA.</para>
         /// </summary>
         /// <param name="RootCACertificate">The initial RootCA.</param>
         /// <param name="Hashing">The Hashing algorithm to use.</param>
         /// <param name="OutputPfxCertificatePath">The output chained signed certificate file path.</param>
         /// <param name="OutputCertificatePassword">The password of the output chained signed certificate.</param>
         /// <param name="DnsList">DNS to set in the SAN attributes.</param>
-        public static void CreateChainSignedCert(X509Certificate2 RootCACertificate, HashAlgorithmName Hashing, string OutputPfxCertificatePath, string OutputCertificatePassword, string[] DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool Wildcard = true)
+        public static void MakeMasterChainSignedCert(X509Certificate2 RootCACertificate, HashAlgorithmName Hashing, string OutputPfxCertificatePath,
+            string OutputCertificatePassword, string[] DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department",
+            string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool Wildcard = true)
         {
             if (RootCACertificate == null)
                 return;
@@ -287,8 +369,12 @@ namespace NetworkLibrary.SSL
         /// <param name="certPassword">Password of the certificate file.</param>
         /// <param name="DnsList">DNS domains to include in the certificate.</param>
         /// <param name="Hashing">The Hashing algorithm to use.</param>
-        public static void InitializeSSLCertificates(string certPath, string certPassword, string[] DnsList, HashAlgorithmName Hashing)
+        public static void InitializeSSLChainSignedCertificates(string certPath, string certPassword, string[] DnsList, HashAlgorithmName Hashing)
         {
+            if (string.IsNullOrEmpty(certPath) || !certPath.EndsWith(".pfx", StringComparison.InvariantCultureIgnoreCase))
+                throw new InvalidDataException("[CertificateHelper] - InitializeSSLChainSignedCertificates: Invalid certificate file path or extension, only .pfx files are supported.");
+
+            string certName = Path.GetFileNameWithoutExtension(certPath);
             string directoryPath = Path.GetDirectoryName(certPath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
 
             Directory.CreateDirectory(directoryPath);
@@ -298,12 +384,40 @@ namespace NetworkLibrary.SSL
             if (File.Exists(directoryPath + "/lock.txt"))
                 WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
 
-            if (!File.Exists(directoryPath + "/MultiServer_rootca.pem") || !File.Exists(directoryPath + "/MultiServer_rootca_privkey.pem"))
-                RootCACertificate = CreateRootCertificateAuthority(directoryPath, HashAlgorithmName.SHA256);
+            if (!File.Exists(directoryPath + $"/{certName}_rootca.pem") || !File.Exists(directoryPath + $"/{certName}_rootca_privkey.pem"))
+                RootCACertificate = CreateRootCertificateAuthority(directoryPath + $"/{certName}_rootca.pfx", HashAlgorithmName.SHA256);
             else
-                RootCACertificate = LoadPemCertificate(directoryPath + "/MultiServer_rootca.pem", directoryPath + "/MultiServer_rootca_privkey.pem");
+                RootCACertificate = LoadPemCertificate(directoryPath + $"/{certName}_rootca.pem", directoryPath + $"/{certName}_rootca_privkey.pem");
 
-            CreateChainSignedCert(RootCACertificate, Hashing, certPath, certPassword, DnsList);
+            MakeMasterChainSignedCert(RootCACertificate, Hashing, certPath, certPassword, DnsList);
+        }
+
+        public static void InitializeSSLRootCaCertificates(string certPath, HashAlgorithmName Hashing)
+        {
+            if (string.IsNullOrEmpty(certPath) || !certPath.EndsWith(".pfx", StringComparison.InvariantCultureIgnoreCase))
+                throw new InvalidDataException("[CertificateHelper] - InitializeSSLRootCaCertificates: Invalid certificate file path or extension, only .pem files are supported.");
+
+            string certName = Path.GetFileNameWithoutExtension(certPath);
+            string directoryPath = Path.GetDirectoryName(certPath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
+
+            Directory.CreateDirectory(directoryPath);
+
+            if (File.Exists(directoryPath + "/lock.txt"))
+                WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
+
+            if (!File.Exists(certPath) || !File.Exists(directoryPath + $"/{certName}_privkey.pem"))
+                CreateRootCertificateAuthority(certPath, Hashing);
+        }
+
+        /// <summary>
+        /// Checks if the X509Certificate is of Certificate Authority type.
+        /// </summary>
+        /// <param name="certificate">The certificate to check on.</param>
+        /// <returns>A bool.</returns>
+        public static bool IsCertificateAuthority(X509Certificate certificate)
+        {
+            // Compare the Issuer and Subject properties of the certificate
+            return certificate.Issuer == certificate.Subject;
         }
 
         /// <summary>
@@ -400,10 +514,8 @@ namespace NetworkLibrary.SSL
                     fileSystemWatcher.Deleted += (sender, e) =>
                     {
                         if (e.Name == Path.GetFileName(filePath))
-                        {
                             // Signal that the file has been deleted
                             deletionCompletionSource.SetResult(true);
-                        }
                     };
 
                     // Enable watching

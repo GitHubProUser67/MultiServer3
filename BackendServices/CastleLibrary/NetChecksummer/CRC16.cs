@@ -1,6 +1,6 @@
 using System;
 
-namespace CompressionLibrary.NetChecksummer
+namespace NetChecksummer
 {
     public static class CRC16
     {

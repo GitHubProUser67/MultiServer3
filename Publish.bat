@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer publisher script 07/12/2024
+@echo MultiServer publisher script 23/02/2025
 @echo.
 
 @echo Cleaning up directories:
@@ -32,24 +32,22 @@ for %%r in (%RIDs%) do (
     dotnet publish MultiServer3.sln -r %%r -c Release %params%
 	
 	@echo Copying %%r build output to ~PublishOutput...
-	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "SpecializedServers/SSFWServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "SpecializedServers/SVO/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "SpecializedServers/MultiSpy/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "WebServers/HTTPServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "WebServers/MitmDNS/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "SpecializedServers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "SpecializedServers/MultiSocks/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "SpecializedServers/QuazalServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "SpecializedServers/SSFWServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "SpecializedServers/SVO/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "SpecializedServers/MultiSpy/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "WebServers/HTTPSecureServerLite/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "WebServers/HTTPServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "WebServers/MitmDNS/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/MultiSocks/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/QuazalServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/SSFWServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/SVO/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/MultiSpy/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/ApacheNet/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/MitmDNS/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
+	xcopy /E /Y /I "Servers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/MultiSocks/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/QuazalServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/SSFWServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/SVO/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/MultiSpy/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/ApacheNet/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/MitmDNS/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
 	if exist "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" (
 		xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" "~PublishOutput/MultiServer/%%r/Debug/static"
 	)

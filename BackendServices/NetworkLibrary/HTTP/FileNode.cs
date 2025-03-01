@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using NetworkLibrary.Extension;
 using System.Threading.Tasks;
-using NetworkLibrary.Extension.Csharp;
 
 namespace NetworkLibrary.HTTP
 {

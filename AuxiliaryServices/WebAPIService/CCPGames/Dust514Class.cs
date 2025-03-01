@@ -2,6 +2,7 @@ using CustomLogger;
 using NetworkLibrary.HTTP;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,19 +22,12 @@ namespace WebAPIService.CCPGames
             this.method = method;
         }
 
-        public string ProcessRequest(byte[] PostData, string ContentType, List<KeyValuePair<string, string>> headers, bool https)
+        public string ProcessRequest(byte[] PostData, string ContentType, NameValueCollection headers, bool https)
         {
             if (string.IsNullOrEmpty(absolutepath))
                 return null;
 
-            string contentTypeValue = headers.FirstOrDefault(x => x.Key.Equals("Accept")).Value;
-
-#if DEBUG 
-            LoggerAccessor.LogWarn(contentTypeValue);
-#endif
-
-            //string GlobalState.charaId = string.Empty;
-            //bool isLoggedIn = false;
+            string contentTypeValue = headers["Accept"];
 
             switch (method)
             {

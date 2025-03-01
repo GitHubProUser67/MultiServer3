@@ -10,8 +10,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\..\AuxiliaryServices\EdNetService\EdNetService.csproj" />
-    <ProjectReference Include="..\..\..\WebServers\HTTPSecureServerLite\HTTPSecureServerLite.csproj" />
-    <ProjectReference Include="..\..\..\WebServers\HTTPServer\HTTPServer.csproj" />
+    <ProjectReference Include="..\..\..\Servers\ApacheNet\ApacheNet.csproj" />
 	<PackageReference Include="System.Text.Json" Version="8.0.5" />
 	<PackageReference Include="Costura.Fody" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>

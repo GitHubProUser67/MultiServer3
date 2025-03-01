@@ -1,9 +1,9 @@
-using SpaceWizards.HttpListener;
-using System;
-using WatsonWebserver.Core;
-
-namespace WatsonWebserver
+﻿namespace WatsonWebserver
 {
+    using SpaceWizards.HttpListener;
+    using System;
+    using WatsonWebserver.Core;
+
     /// <summary>
     /// HTTP context including both request and response.
     /// </summary>
@@ -38,7 +38,8 @@ namespace WatsonWebserver
             HttpListenerContext ctx, 
             WebserverSettings settings, 
             WebserverEvents events,
-            ISerializationHelper serializer, bool KeepAliveResponseData)
+            ISerializationHelper serializer,
+            bool KeepAliveResponseData)
         {
             if (events == null) throw new ArgumentNullException(nameof(events));
             if (ctx == null) throw new ArgumentNullException(nameof(ctx));
