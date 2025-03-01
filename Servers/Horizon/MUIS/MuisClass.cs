@@ -9,6 +9,7 @@ using Horizon.HTTPSERVICE;
 using Horizon.LIBRARY.Database.Models;
 using Horizon.MUM;
 using Horizon.SERVER.Extension.PlayStationHome;
+using NetworkLibrary.Extension;
 
 namespace Horizon.MUIS
 {
@@ -1044,7 +1045,7 @@ namespace Horizon.MUIS
             else
             {
                 if (string.IsNullOrWhiteSpace(Settings.PublicIpOverride))
-                    SERVER_IP = IPAddress.Parse(NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress());
+                    SERVER_IP = IPAddress.Parse(IpUtils.GetPublicIPAddress());
                 else
                     SERVER_IP = IPAddress.Parse(Settings.PublicIpOverride);
             }

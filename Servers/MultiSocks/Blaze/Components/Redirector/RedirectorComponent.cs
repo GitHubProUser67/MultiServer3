@@ -4,6 +4,7 @@ using Blaze3SDK.Components;
 using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Utils;
+using NetworkLibrary.Extension;
 
 namespace MultiSocks.Blaze.Components.Redirector
 {
@@ -36,7 +37,7 @@ namespace MultiSocks.Blaze.Components.Redirector
                     });
             }
 
-            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? IpUtils.GetPublicIPAddress() : IpUtils.GetLocalIPAddress().ToString();
 
             return Task.FromResult(new ServerInstanceInfo()
             {
@@ -46,7 +47,7 @@ namespace MultiSocks.Blaze.Components.Redirector
                     IpAddress = new IpAddress()
                     {
                         mHostname = ip,
-                        mIp = NetworkUtils.GetIPAddressAsUInt(ip),
+                        mIp = IpUtils.GetIPAddressAsUInt(ip),
                         mPort = port
                     },
                 },

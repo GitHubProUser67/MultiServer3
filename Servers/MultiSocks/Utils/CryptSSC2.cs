@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace CastleLibrary.SSC2
+namespace MultiSocks.Utils
 {
     public class CryptSSC2
     {

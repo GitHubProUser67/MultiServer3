@@ -1,4 +1,5 @@
 using CustomLogger;
+using NetworkLibrary.Extension;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -231,13 +232,13 @@ namespace MitmDNS
                         }
                         catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
+                            IP = IpUtils.GetLocalIPAddress(true);
                         }
                         break;
                     }
                 default:
                     {
-                        IP = NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress(true);
+                        IP = IpUtils.GetLocalIPAddress(true);
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }

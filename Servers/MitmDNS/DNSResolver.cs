@@ -91,7 +91,7 @@ namespace MitmDNS
                     }
 
                     if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                        url = NetworkLibrary.TCP_IP.IPUtils.GetFirstActiveIPAddress(fullname, ServerIp);
+                        url = IpUtils.GetFirstActiveIPAddress(fullname, ServerIp);
 
                     if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                     {

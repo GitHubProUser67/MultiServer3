@@ -6,6 +6,7 @@ using MultiSocks.Blaze.Components.Redirector;
 using MultiSocks.Blaze.Components.Util;
 using MultiSocks.Blaze.Util;
 using MultiSocks.ProtoSSL;
+using NetworkLibrary.Extension;
 using System.Net;
 
 namespace MultiSocks.Blaze
@@ -20,7 +21,7 @@ namespace MultiSocks.Blaze
 
         public BlazeClass(CancellationToken cancellationToken)
         {
-            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? IpUtils.GetPublicIPAddress() : IpUtils.GetLocalIPAddress().ToString();
             string domain = "gosredirector.ea.com";
 
             // Create Blaze Redirector servers

@@ -14,7 +14,7 @@ using NetworkLibrary.HTTP.PluginManager;
 using System.Reflection;
 using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;
-using NetworkLibrary.TCP_IP;
+using NetworkLibrary.Extension;
 
 public static class ApacheNetServerConfiguration
 {
@@ -481,7 +481,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         GeoIP.Initialize();

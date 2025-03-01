@@ -7,8 +7,8 @@
     using WatsonWebserver.Core;
     using System.Text;
     using SpaceWizards.HttpListener;
-    using NetworkLibrary.TCP_IP;
     using System.Collections.Generic;
+    using NetworkLibrary.Extension;
 
     /// <summary>
     /// Watson webserver.
@@ -131,7 +131,7 @@
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
+                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
@@ -156,7 +156,7 @@
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IPUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
+                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();

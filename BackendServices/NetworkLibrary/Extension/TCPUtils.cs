@@ -5,7 +5,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace NetworkLibrary.TCP_IP
+namespace NetworkLibrary.Extension
 {
     public class TCPUtils
     {
@@ -59,12 +59,12 @@ namespace NetworkLibrary.TCP_IP
                         if (table.numberOfEntries > 0)
                         {
                             ports = new int[table.numberOfEntries];
-                            handle = (IntPtr)(((long)handle) + Marshal.SizeOf(table.numberOfEntries));
+                            handle = (IntPtr)((long)handle + Marshal.SizeOf(table.numberOfEntries));
                             for (int i = 0; i < table.numberOfEntries; i++)
                             {
                                 MibTcpRow row = (MibTcpRow)Marshal.PtrToStructure(handle, typeof(MibTcpRow));
-                                ports[i] = (((row.localPort3 << 0x18) | (row.localPort4 << 0x10)) | (row.localPort1 << 8)) | row.localPort2;
-                                handle = (IntPtr)(((long)handle) + Marshal.SizeOf(row));
+                                ports[i] = row.localPort3 << 0x18 | row.localPort4 << 0x10 | row.localPort1 << 8 | row.localPort2;
+                                handle = (IntPtr)((long)handle + Marshal.SizeOf(row));
                             }
                         }
 #pragma warning restore

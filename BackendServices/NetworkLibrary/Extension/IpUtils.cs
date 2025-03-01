@@ -1,7 +1,6 @@
 using CustomLogger;
 using EndianTools;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,9 +14,9 @@ using System.Net.Http;
 using System.Runtime.Intrinsics.X86;
 #endif
 
-namespace NetworkLibrary.TCP_IP
+namespace NetworkLibrary.Extension
 {
-    public static class IPUtils
+    public static class IpUtils
     {
         public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength, bool detailed = false)
         {
@@ -120,7 +119,7 @@ namespace NetworkLibrary.TCP_IP
                         IPInterfaceProperties properties = networkInterface.GetIPProperties();
 
                         // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
-                        System.Collections.Generic.IEnumerable<string> addresses = allowipv6
+                        IEnumerable<string> addresses = allowipv6
                             ? properties.UnicastAddresses.Select(addr => addr.Address.ToString())
                             : properties.UnicastAddresses
                                 .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
@@ -200,6 +199,17 @@ namespace NetworkLibrary.TCP_IP
             return fallback;
         }
 
+        public static uint GetIPAddressAsUInt(string ipAddress)
+        {
+            if (string.IsNullOrEmpty(ipAddress))
+                throw new ArgumentException(nameof(ipAddress));
+
+            byte[] bytes = IPAddress.Parse(ipAddress).GetAddressBytes();
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return BitConverter.ToUInt32(bytes, 0);
+        }
+
         public static byte? GetLocalSubnet()
         {
             foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
@@ -229,17 +239,17 @@ namespace NetworkLibrary.TCP_IP
         {
             // Check for private IP ranges
             return // 10.0.0.0/8
-                (ipBytes[0] == 10) ||
+                ipBytes[0] == 10 ||
                 // 172.16.0.0/12
-                (ipBytes[0] == 172 && ipBytes[1] >= 16 && ipBytes[1] <= 31) ||
+                ipBytes[0] == 172 && ipBytes[1] >= 16 && ipBytes[1] <= 31 ||
                 // 192.168.0.0/16
-                (ipBytes[0] == 192 && ipBytes[1] == 168);
+                ipBytes[0] == 192 && ipBytes[1] == 168;
         }
 
         private static uint GetSubnetMask(byte cidrPrefixLength)
         {
             // Use bit shifting to generate subnet mask
-            return cidrPrefixLength == 0 ? 0 : 0xFFFFFFFF << (32 - cidrPrefixLength);
+            return cidrPrefixLength == 0 ? 0 : 0xFFFFFFFF << 32 - cidrPrefixLength;
         }
 
         private static uint SubnetMaskToCIDR(IPAddress subnetMask)

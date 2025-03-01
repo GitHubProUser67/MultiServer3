@@ -1,5 +1,6 @@
 using CustomLogger;
 using MultiSocks.Aries.DataStore;
+using NetworkLibrary.Extension;
 
 namespace MultiSocks.Aries
 {
@@ -61,7 +62,7 @@ namespace MultiSocks.Aries
 
         public AriesServer(CancellationToken cancellationToken)
         {
-            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? NetworkLibrary.TCP_IP.IPUtils.GetPublicIPAddress() : NetworkLibrary.TCP_IP.IPUtils.GetLocalIPAddress().ToString();
+            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? IpUtils.GetPublicIPAddress() : IpUtils.GetLocalIPAddress().ToString();
 
             Database = new DirtySocksJSONDatabase();
 

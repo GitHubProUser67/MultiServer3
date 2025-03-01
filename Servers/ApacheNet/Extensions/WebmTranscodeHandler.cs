@@ -1,4 +1,5 @@
 using CustomLogger;
+using NetworkLibrary.Extension;
 using NetworkLibrary.HTTP;
 using SpaceWizards.HttpListener;
 using System;
@@ -34,7 +35,7 @@ namespace MultiHTTP.Extensions
         public async Task<bool> ProcessVideoTranscode(HttpContextBase context)
         {
             StartServer();
-            if (!NetworkLibrary.TCP_IP.TCPUtils.IsTCPPortAvailable(_httpPort))
+            if (!TCPUtils.IsTCPPortAvailable(_httpPort))
                 StartFFMpeg(context);
 
             _waitFFMpeg.WaitOne(6000); // We wait, but not more than 6000 if other process failed.
@@ -127,7 +128,7 @@ namespace MultiHTTP.Extensions
                     using HttpListener listener = new();
                     try
                     {
-                        _httpPort = NetworkLibrary.TCP_IP.TCPUtils.GetNextVacantTCPPort(_httpPort, 10);
+                        _httpPort = TCPUtils.GetNextVacantTCPPort(_httpPort, 10);
 
                         if (_httpPort == -1)
                             return;

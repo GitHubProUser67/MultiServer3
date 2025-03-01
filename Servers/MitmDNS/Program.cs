@@ -1,5 +1,4 @@
 using CustomLogger;
-using NetworkLibrary.TCP_IP;
 using MitmDNS;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,6 +8,7 @@ using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using NetworkLibrary.Extension;
 
 public static class MitmDNSServerConfiguration
 {
@@ -175,7 +175,7 @@ class Program
             }
         }
 
-        _ = IPUtils.TryGetServerIP(53, out DNSResolver.ServerIp);
+        _ = IpUtils.TryGetServerIP(53, out DNSResolver.ServerIp);
 
         if (Server == null)
             Server = new(Environment.ProcessorCount * 4);
@@ -232,7 +232,7 @@ class Program
             args.SetObserved();
         };
 
-        IPUtils.GetIPInfos(IPUtils.GetLocalIPAddress().ToString(), IPUtils.GetLocalSubnet());
+        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         MitmDNSServerConfiguration.RefreshVariables(configPath);
