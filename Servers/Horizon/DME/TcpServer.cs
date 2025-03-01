@@ -953,11 +953,11 @@ namespace Horizon.DME
                         {
                             if (data.DMEObject != null && data.DMEObject.DmeWorld != null)
                             {
-                                lock (data.DMEObject.DmeWorld._TokenLock)
+                                lock (data.DMEObject.DmeWorld.clientTokens)
                                 {
                                     if (!data.DMEObject.DmeWorld.clientTokens.ContainsKey(clientTokenMsg.targetToken))
                                     {
-                                        data.DMEObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new ConcurrentList<int>() { data.DMEObject.DmeId });
+                                        data.DMEObject.DmeWorld.clientTokens.TryAdd(clientTokenMsg.targetToken, new List<int>() { data.DMEObject.DmeId });
 
                                         if (data.DMEObject.DmeWorld.clientTokens[clientTokenMsg.targetToken].Count > 0)
                                             data.DMEObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE() // We need to broadcast the signal that this token is owned.
@@ -1002,40 +1002,43 @@ namespace Horizon.DME
                         {
                             if (data.DMEObject != null && data.DMEObject.DmeWorld != null)
                             {
-                                if (data.DMEObject.DmeWorld.clientTokens.TryGetValue(clientTokenMsg.targetToken, out ConcurrentList<int>? value) && value != null)
+                                lock (data.DMEObject.DmeWorld.clientTokens)
                                 {
-                                    if (value.Contains(data.DMEObject.DmeId))
+                                    if (data.DMEObject.DmeWorld.clientTokens.TryGetValue(clientTokenMsg.targetToken, out List<int>? value) && value != null)
                                     {
-                                        if (value.IndexOf(data.DMEObject.DmeId) == 0)
+                                        if (value.Contains(data.DMEObject.DmeId))
                                         {
-                                            data.DMEObject.DmeWorld.clientTokens.TryRemove(clientTokenMsg.targetToken, out _);
-
-                                            data.DMEObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                            if (value.IndexOf(data.DMEObject.DmeId) == 0)
                                             {
-                                                TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED, clientTokenMsg.targetToken, 0) }
-                                            });
+                                                data.DMEObject.DmeWorld.clientTokens.Remove(clientTokenMsg.targetToken, out _);
+
+                                                data.DMEObject.DmeWorld.BroadcastTcpScertMessage(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                                {
+                                                    TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_FREED, clientTokenMsg.targetToken, 0) }
+                                                });
+                                            }
+                                            else
+                                            {
+                                                value.Remove(data.DMEObject.DmeId);
+
+                                                Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
+                                                {
+                                                    TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED, clientTokenMsg.targetToken, 0) }
+                                                }, clientChannel);
+                                            }
                                         }
                                         else
-                                        {
-                                            value.Remove(data.DMEObject.DmeId);
-
                                             Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                             {
                                                 TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED, clientTokenMsg.targetToken, 0) }
                                             }, clientChannel);
-                                        }
                                     }
                                     else
                                         Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
                                         {
-                                            TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_RELEASED, clientTokenMsg.targetToken, 0) }
+                                            TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNER_REMOVED, 0, 0) }
                                         }, clientChannel);
                                 }
-                                else
-                                    Queue(new RT_MSG_SERVER_TOKEN_MESSAGE()
-                                    {
-                                        TokenList = new List<(RT_TOKEN_MESSAGE_TYPE, ushort, ushort)> { (RT_TOKEN_MESSAGE_TYPE.RT_TOKEN_SERVER_OWNER_REMOVED, 0, 0) }
-                                    }, clientChannel);
 
                                 // Hotfix the arcade cabinets MLAA enabling in PS Home.
                                 ClientObject? mumClient = MediusClass.Manager.GetClientBySessionKey(data.DMEObject.SessionKey, data.DMEObject.ApplicationId);
