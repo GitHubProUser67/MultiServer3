@@ -15,6 +15,7 @@ using System.Reflection;
 using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;
 using NetworkLibrary.Extension;
+using System.Diagnostics;
 
 public static class ApacheNetServerConfiguration
 {
@@ -40,6 +41,7 @@ public static class ApacheNetServerConfiguration
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/MultiServer.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
+    public static bool PreferNativeHttpListenerEngine { get; set; } = NetworkLibrary.Extension.Windows.Win32API.IsWindows && NetworkLibrary.Extension.Windows.Win32API.IsAdministrator();
     public static bool UseLiteEngine { get; set; } = false;
     public static bool RangeHandling { get; set; } = false;
     public static bool ChunkedTransfers { get; set; } = false;
@@ -167,6 +169,7 @@ public static class ApacheNetServerConfiguration
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
                 new JProperty("404_not_found_web_archive", NotFoundWebArchive),
                 new JProperty("404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit),
+                new JProperty("prefer_native_httplistener_engine", PreferNativeHttpListenerEngine),
                 new JProperty("use_lite_engine", UseLiteEngine),
                 new JProperty("enable_range_handling", RangeHandling),
                 new JProperty("enable_chunked_transfers", ChunkedTransfers),
@@ -213,6 +216,7 @@ public static class ApacheNetServerConfiguration
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             NotFoundWebArchive = GetValueOrDefault(config, "404_not_found_web_archive", NotFoundWebArchive);
             NotFoundWebArchiveDateLimit = GetValueOrDefault(config, "404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit);
+            PreferNativeHttpListenerEngine = GetValueOrDefault(config, "prefer_native_httplistener_engine", PreferNativeHttpListenerEngine);
             UseLiteEngine = GetValueOrDefault(config, "use_lite_engine", UseLiteEngine);
             RangeHandling = GetValueOrDefault(config, "enable_range_handling", RangeHandling);
             ChunkedTransfers = GetValueOrDefault(config, "enable_chunked_transfers", ChunkedTransfers);
@@ -487,6 +491,15 @@ class Program
         GeoIP.Initialize();
 
         ApacheNetServerConfiguration.RefreshVariables(configPath);
+
+        if (ApacheNetServerConfiguration.PreferNativeHttpListenerEngine
+            && NetworkLibrary.Extension.Windows.Win32API.IsWindows
+            && !NetworkLibrary.Extension.Windows.Win32API.IsAdministrator())
+        {
+            LoggerAccessor.LogWarn("[Program] - Trying to restart as admin...");
+            if (NetworkLibrary.Extension.Windows.Win32API.StartAsAdmin(Process.GetCurrentProcess().MainModule?.FileName))
+                Environment.Exit(0);
+        }
 
         ApacheNetProcessor.Routes.AddRange(MultiHTTP.RouteHandlers.Main.index);
 

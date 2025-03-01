@@ -43,6 +43,7 @@ using DNS.Protocol;
 using MultiHTTP.RouteHandlers;
 using WatsonWebserver.Lite;
 using System.Reflection;
+using WatsonWebserver.Native;
 
 namespace MultiHTTP
 {
@@ -107,6 +108,7 @@ namespace MultiHTTP
 
         public ApacheNetProcessor(string certpath, string certpass, string ip, ushort port, bool secure)
         {
+            bool useHttpSys = ApacheNetServerConfiguration.PreferNativeHttpListenerEngine;
             this.port = port;
             WebserverSettings settings = new()
             {
@@ -118,17 +120,29 @@ namespace MultiHTTP
             settings.IO.EnableKeepAlive = ApacheNetServerConfiguration.EnableKeepAlive;
             if (secure)
             {
+                useHttpSys = false;
                 settings.Ssl.PfxCertificateFile = certpath;
                 settings.Ssl.PfxCertificatePassword = certpass;
                 settings.Ssl.Enable = true;
             }
             if (!_UsingLite)
             {
-                _Server = new Webserver(settings, DefaultRoute);
+                if (useHttpSys)
+                {
+                    _Server = new NativeWebserver(settings, DefaultRoute);
 #if !DEBUG
-                ((Webserver)_Server).LogResponseSentMsg = false;
+                    ((NativeWebserver)_Server).LogResponseSentMsg = false;
 #endif
-                ((Webserver)_Server).KeepAliveResponseData = false;
+                    ((NativeWebserver)_Server).KeepAliveResponseData = false;
+                }
+                else
+                {
+                    _Server = new Webserver(settings, DefaultRoute);
+#if !DEBUG
+                    ((Webserver)_Server).LogResponseSentMsg = false;
+#endif
+                    ((Webserver)_Server).KeepAliveResponseData = false;
+                }
             }
             else
                 _Server = new WebserverLite(settings, DefaultRoute);
@@ -348,9 +362,10 @@ namespace MultiHTTP
             HttpResponseBase response = ctx.Response;
             response.ProtocolVersion = ApacheNetServerConfiguration.HttpVersion;
             HttpStatusCode statusCode = HttpStatusCode.Forbidden;
-            string fullurl = string.Empty;
+            string filePath = string.Empty;
             string absolutepath = string.Empty;
             string fulluripath = string.Empty;
+            string fullurl = HTTPProcessor.DecodeUrl(request.Url.RawWithQuery);
             bool noCompressCacheControl = request.HeaderExists("Cache-Control") && ctx.Request.RetrieveHeaderValue("Cache-Control") == "no-transform";
             string Host = request.RetrieveHeaderValue("Host");
             if (string.IsNullOrEmpty(Host))
@@ -367,8 +382,6 @@ namespace MultiHTTP
                 LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested the {loggerprefix} Server with a ByteDance crawler!");
             else
             {
-                fullurl = HTTPProcessor.DecodeUrl(request.Url.RawWithQuery);
-
                 string SuplementalMessage = string.Empty;
                 string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
 
@@ -545,7 +558,7 @@ namespace MultiHTTP
                         string directoryPath = Path.Combine(!ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder : ApacheNetServerConfiguration.HTTPStaticFolder + '/' + Host, string.Join("/", segments.Take(segments.Length - 1).ToArray()));
 
                         // Process the request based on the HTTP method
-                        string filePath = Path.Combine(!ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder : ApacheNetServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
+                        filePath = Path.Combine(!ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder : ApacheNetServerConfiguration.HTTPStaticFolder + '/' + Host, absolutepath[1..]);
 
                         //For HF to trim the url path out the combine, we don't need it for that api
                         string apiRootPath = ApacheNetServerConfiguration.APIStaticFolder;
@@ -2404,6 +2417,27 @@ namespace MultiHTTP
                 response.StatusCode = (int)statusCode; // Send the other status.
                 response.ContentType = "text/plain";
                 sent = await response.Send();
+            }
+
+            if (response.StatusCode < 400)
+                LoggerAccessor.LogInfo($"{fullurl} -> {response.StatusCode}");
+            else
+            {
+                switch (response.StatusCode)
+                {
+                    case (int)HttpStatusCode.NotFound:
+                        LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested a non-existent file: {filePath} -> {response.StatusCode}");
+                        break;
+
+                    case (int)HttpStatusCode.NotImplemented:
+                    case (int)HttpStatusCode.RequestedRangeNotSatisfiable:
+                        LoggerAccessor.LogWarn($"{fullurl} -> {response.StatusCode}");
+                        break;
+
+                    default:
+                        LoggerAccessor.LogError($"{fullurl} -> {response.StatusCode}");
+                        break;
+                }
             }
         }
 

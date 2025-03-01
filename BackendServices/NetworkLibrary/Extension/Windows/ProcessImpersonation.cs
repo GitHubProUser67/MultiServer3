@@ -59,6 +59,41 @@ namespace NetworkLibrary.Extension.Windows
         public static readonly bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT
             || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows;
 
+        /// <summary>
+        /// Know if we are the true administrator of the Windows system.
+        /// <para>Savoir si est réellement l'administrateur Windows.</para>
+        /// </summary>
+        /// <returns>A boolean.</returns>
+#pragma warning disable
+        public static bool IsAdministrator()
+        {
+            return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+        }
+#pragma warning restore
+
+        public static bool StartAsAdmin(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath))
+                return false;
+            try
+            {
+                new Process()
+                {
+                    StartInfo =
+                    {
+                        FileName = filePath,
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    }
+                }.Start();
+                return true;
+            }
+            catch
+            {
+            }
+            return false;
+        }
+
         public static IntPtr GetActiveUserToken()
         {
             uint result = WTSGetActiveConsoleSessionId();
