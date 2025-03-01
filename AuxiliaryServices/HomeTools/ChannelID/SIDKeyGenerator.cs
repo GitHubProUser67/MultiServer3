@@ -1,7 +1,7 @@
-using NetChecksummer;
 using EndianTools;
 using System;
 using System.Collections;
+using CastleLibrary.NetHasher.CRC;
 
 namespace HomeTools.ChannelID
 {
