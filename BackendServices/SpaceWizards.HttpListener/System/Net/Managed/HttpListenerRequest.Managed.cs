@@ -187,7 +187,7 @@ namespace SpaceWizards.HttpListener
             else
                 path = _rawUrl;
 
-            if ((host == null || host.Length == 0))
+            if (host == null || host.Length == 0)
                 host = UserHostAddress;
 
             if (raw_uri != null)
@@ -201,7 +201,8 @@ namespace SpaceWizards.HttpListener
 
             string base_uri = $"{RequestScheme}://{host}:{LocalEndPoint.Port}";
 
-            if (!Uri.TryCreate(base_uri + path, UriKind.Absolute, out _requestUri))
+            // Invalidate requests with empty _rawUrl ('rawPath' must have at least one character. assertion)
+            if (!Uri.TryCreate(base_uri + path, UriKind.Absolute, out _requestUri) || string.IsNullOrEmpty(_rawUrl))
             {
                 _context.ErrorMessage = WebUtility.HtmlEncode("Invalid url: " + base_uri + path);
                 return;
@@ -218,7 +219,7 @@ namespace SpaceWizards.HttpListener
                 if (t_encoding != null && !_isChunked)
                 {
                     _context.ErrorStatus = 501;
-                    _context.ErrorMessage = "";
+                    _context.ErrorMessage = string.Empty;
                     return;
                 }
             }
@@ -228,7 +229,7 @@ namespace SpaceWizards.HttpListener
                 if (string.Equals(_method, "PUT", StringComparison.OrdinalIgnoreCase))
                 {
                     _context.ErrorStatus = 411;
-                    _context.ErrorMessage = "";
+                    _context.ErrorMessage = string.Empty;
                     return;
                 }
                 else if (string.Equals(_method, "POST", StringComparison.OrdinalIgnoreCase))
