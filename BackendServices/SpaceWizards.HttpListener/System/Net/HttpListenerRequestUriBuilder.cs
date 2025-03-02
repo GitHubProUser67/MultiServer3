@@ -137,7 +137,6 @@ namespace SpaceWizards.HttpListener
         private ParsingResult BuildRequestUriUsingRawPath(Encoding encoding)
         {
             Debug.Assert(encoding != null, "'encoding' must be assigned.");
-            Debug.Assert(!string.IsNullOrEmpty(_rawPath), "'rawPath' must have at least one character.");
 
             _rawOctets = new List<byte>();
             _requestUriString = new StringBuilder();
