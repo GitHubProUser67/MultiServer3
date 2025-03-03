@@ -49,7 +49,10 @@ namespace ApacheNet
 {
     public partial class ApacheNetProcessor
     {
+        public const string allowedMethods = "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH";
         private static string serverRevision = Assembly.GetExecutingAssembly().GetName().Name + " " + Assembly.GetExecutingAssembly().GetName().Version;
+
+        public static List<string> allowedOrigins = new List<string>() { };
 
         public static AdGuardFilterChecker adChecker = new AdGuardFilterChecker();
         public static DanPollockChecker danChecker = new DanPollockChecker();
@@ -149,6 +152,28 @@ namespace ApacheNet
                 _Server = new WebserverLite(settings, DefaultRoute);
 
             StartServer();
+        }
+
+        private static void SetCorsHeaders(HttpContextBase ctx)
+        {
+            const string originHeader = "Origin";
+            string origin = ctx.Request.RetrieveHeaderValue(originHeader);
+
+            if (string.IsNullOrEmpty(origin) || allowedOrigins.Count == 0)
+                // Allow requests with no Origin header (e.g., direct server-to-server requests) or if we not set any CORS rules.
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            else if (allowedOrigins.Contains(origin))
+                // Allow requests with a valid Origin
+                ctx.Response.Headers.Add("Access-Control-Allow-Origin", origin);
+            else
+            {
+                ctx.Response.Headers.Add("Access-Control-Deny-Origin", origin);
+                return;
+            }
+
+            ctx.Response.Headers.Add("Access-Control-Allow-Methods", allowedMethods);
+            ctx.Response.Headers.Add("Access-Control-Allow-Headers", "*");
+            ctx.Response.Headers.Add("Access-Control-Expose-Headers", string.Empty);
         }
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
@@ -378,6 +403,8 @@ namespace ApacheNet
             int ServerPort = request.Destination.Port;
             bool secure = ServerPort.ToString().EndsWith("443");
             string loggerprefix = secure ? "HTTPS" : "HTTP";
+
+            SetCorsHeaders(ctx);
 
             if (!string.IsNullOrEmpty(request.Useragent) && request.Useragent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
                 LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested the {loggerprefix} Server with a ByteDance crawler!");
