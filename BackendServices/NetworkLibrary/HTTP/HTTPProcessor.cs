@@ -865,6 +865,29 @@ namespace NetworkLibrary.HTTP
                 return input;
         }
 
+        public static Dictionary<string, string> GetQueryParameters(string fullurl)
+        {
+            if (!string.IsNullOrEmpty(fullurl))
+            {
+                Dictionary<string, string> parameterDictionary = new();
+
+                int questionMarkIndex = fullurl.IndexOf("?");
+                if (questionMarkIndex != -1) // If '?' is found
+                {
+                    string trimmedurl = fullurl.Substring(questionMarkIndex + 1);
+                    foreach (string UrlArg in HttpUtility.ParseQueryString(trimmedurl).AllKeys) // Thank you WebOne.
+                    {
+                        if (!string.IsNullOrEmpty(UrlArg))
+                            parameterDictionary[UrlArg] = HttpUtility.ParseQueryString(trimmedurl)[UrlArg] ?? string.Empty;
+                    }
+                }
+
+                return parameterDictionary;
+            }
+
+            return null;
+        }
+
         public static string RemoveDiacritics(string text)
         {
             string normalizedString = text.Normalize(NormalizationForm.FormD);

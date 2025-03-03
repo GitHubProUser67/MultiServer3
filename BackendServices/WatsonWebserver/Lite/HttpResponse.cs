@@ -559,7 +559,7 @@
                     _HeadersSent = true;
                 }
 
-                if (stream != null && stream.CanRead && contentLength > 0)
+                if (stream != null && stream.CanRead)
                 {
                     using (stream)
                     {
