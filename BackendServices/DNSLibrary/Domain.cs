@@ -55,7 +55,15 @@ namespace DNS.Protocol {
 
                 byte length = lengthOrPointer;
                 byte[] label = new byte[length];
-                Array.Copy(message, offset, label, 0, length);
+                try
+                {
+                    Array.Copy(message, offset, label, 0, length);
+                }
+                catch
+                {
+                    // Out of bounds or invalid offset.
+                    break;
+                }
 
                 labels.Add(label);
 

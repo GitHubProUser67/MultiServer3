@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using NetworkLibrary.Extension;
 using NetworkLibrary.Upscalers;
 
-namespace MultiHTTP
+namespace ApacheNet
 {
     public class LocalFileStreamHelper
     {

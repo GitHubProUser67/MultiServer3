@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
 
-namespace MultiHTTP.RouteHandlers
+namespace ApacheNet.RouteHandlers
 {
     public class Route
     {

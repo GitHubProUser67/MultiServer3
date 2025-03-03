@@ -43,7 +43,7 @@ namespace NetworkLibrary.AdBlocker
                     foreach (string line in (await client.DownloadStringTaskAsync(adGuardFilterUrl).ConfigureAwait(false)).Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
 #endif
                     {
-                        // If the line starts with "||", it is an excluded URL
+                        // If the line starts with "||" or "://", it is an excluded URL
                         if (line.StartsWith("||"))
                         {
                             string processedLine = line.Substring(2).Trim();
@@ -54,7 +54,16 @@ namespace NetworkLibrary.AdBlocker
                             else
                                 excludedUrls.AddElementToArray(processedLine);
                         }
+                        else if (line.StartsWith("://"))
+                        {
+                            string processedLine = line.Substring(3).Trim();
+                            int lastSpaceIndex = processedLine.LastIndexOf('^');
 
+                            if (lastSpaceIndex != -1)
+                                excludedUrls.AddElementToArray(processedLine.Substring(0, lastSpaceIndex));
+                            else
+                                excludedUrls.AddElementToArray(processedLine);
+                        }
                         // If the line starts with "/^", it is a regex rule
                         else if (line.StartsWith("/^"))
                         {

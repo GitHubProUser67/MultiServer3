@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
 
-namespace MultiHTTP.Extensions
+namespace ApacheNet.Extensions
 {
     public class WebmTranscodeHandler
     {

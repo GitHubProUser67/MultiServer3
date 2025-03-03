@@ -4,7 +4,7 @@ using System.Net;
 using WebAPIService.THQ;
 using WatsonWebserver.Core;
 
-namespace MultiHTTP.RouteHandlers
+namespace ApacheNet.RouteHandlers
 {
     public class Main
     {
