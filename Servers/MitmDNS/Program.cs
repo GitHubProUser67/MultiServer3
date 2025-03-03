@@ -16,6 +16,7 @@ public static class MitmDNSServerConfiguration
     public static string DNSOnlineConfig { get; set; } = string.Empty;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
     public static bool EnableAdguardFiltering { get; set; } = false;
+    public static bool EnableDanPollockHosts { get; set; } = false;
     public static List<string> BannedIPs { get; set; }
 
     /// <summary>
@@ -39,6 +40,7 @@ public static class MitmDNSServerConfiguration
                 new JProperty("routes_config", DNSConfig),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
                 new JProperty("enable_adguard_filtering", EnableAdguardFiltering),
+                new JProperty("enable_dan_pollock_hosts", EnableDanPollockHosts),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { }))
             ).ToString());
 
@@ -54,6 +56,7 @@ public static class MitmDNSServerConfiguration
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
+            EnableDanPollockHosts = GetValueOrDefault(config, "enable_dan_pollock_hosts", EnableDanPollockHosts);
             // Deserialize BannedIPs if it exists
             try
             {
@@ -151,6 +154,8 @@ class Program
 
         if (MitmDNSServerConfiguration.EnableAdguardFiltering)
             _ = DNSResolver.adChecker.DownloadAndParseFilterListAsync();
+        if (MitmDNSServerConfiguration.EnableDanPollockHosts)
+            _ = DNSResolver.danChecker.DownloadAndParseFilterListAsync();
 
         dnswatcher.Path = Path.GetDirectoryName(MitmDNSServerConfiguration.DNSConfig) ?? configDir;
         dnswatcher.Filter = Path.GetFileName(MitmDNSServerConfiguration.DNSConfig);

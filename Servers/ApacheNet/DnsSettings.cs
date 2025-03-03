@@ -1,4 +1,4 @@
-namespace MultiHTTP
+namespace ApacheNet
 {
     public struct DnsSettings
     {

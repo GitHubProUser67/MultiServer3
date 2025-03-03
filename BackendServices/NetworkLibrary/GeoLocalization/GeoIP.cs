@@ -91,7 +91,12 @@ namespace NetworkLibrary.GeoLocalization
                 try
                 {
                     if (Instance.Reader.TryCountry(IPAddr, out CountryResponse countryresponse) && countryresponse != null && !string.IsNullOrEmpty(countryresponse.Country.Name))
-                        return countryresponse.Country.Name + $"-{countryresponse.Country.IsInEuropeanUnion}";
+                    {
+                        if (Instance.Reader.TryCity(IPAddr, out CityResponse cityresponse) && cityresponse != null && !string.IsNullOrEmpty(cityresponse.City.Name))
+                            return countryresponse.Country.Name + $"-{countryresponse.Country.IsInEuropeanUnion}-{cityresponse.City.Name}";
+                        else
+                            return countryresponse.Country.Name + $"-{countryresponse.Country.IsInEuropeanUnion}";
+                    }
                 }
                 catch
                 {

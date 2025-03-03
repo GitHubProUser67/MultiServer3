@@ -1,5 +1,5 @@
 using System.Text;
-using MultiHTTP.Extensions;
+using ApacheNet.Extensions;
 using NetworkLibrary.HTTP;
 using NetworkLibrary.AdBlocker;
 using NetworkLibrary.GeoLocalization;
@@ -40,18 +40,19 @@ using NetworkLibrary.Extension;
 using WebAPIService.WebArchive;
 using Newtonsoft.Json;
 using DNS.Protocol;
-using MultiHTTP.RouteHandlers;
+using ApacheNet.RouteHandlers;
 using WatsonWebserver.Lite;
 using System.Reflection;
 using WatsonWebserver.Native;
 
-namespace MultiHTTP
+namespace ApacheNet
 {
     public partial class ApacheNetProcessor
     {
         private static string serverRevision = Assembly.GetExecutingAssembly().GetName().Name + " " + Assembly.GetExecutingAssembly().GetName().Version;
 
         public static AdGuardFilterChecker adChecker = new AdGuardFilterChecker();
+        public static DanPollockChecker danChecker = new DanPollockChecker();
 
         public readonly static List<Route> Routes = new();
 
@@ -387,15 +388,14 @@ namespace MultiHTTP
 
                 if (!string.IsNullOrEmpty(GeoCodeString))
                 {
-                    // Split the input string by the '-' character
                     string[] parts = GeoCodeString.Split('-');
+                    int partsLength = parts.Length;
 
-                    // Check if there are exactly two parts
-                    if (parts.Length == 2)
+                    if (partsLength >= 2)
                     {
                         string CountryCode = parts[0];
 
-                        SuplementalMessage = " Located at " + CountryCode + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+                        SuplementalMessage = " Located at " + CountryCode + $"{(partsLength == 3 ? $" In City {parts[3]}" : string.Empty)}" + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
 
                         if (ApacheNetServerConfiguration.DateTimeOffset != null && ApacheNetServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
                             CurrentDate = CurrentDate.AddDays(ApacheNetServerConfiguration.DateTimeOffset[CountryCode]);
@@ -1474,8 +1474,17 @@ namespace MultiHTTP
                                                                 {
                                                                     if (ApacheNetServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
                                                                     {
-                                                                        url = "127.0.0.1";
+                                                                        url = "0.0.0.0";
                                                                         treated = true;
+                                                                    }
+                                                                    else if (ApacheNetServerConfiguration.EnableDanPollockHosts && danChecker.isLoaded)
+                                                                    {
+                                                                        IPAddress danAddr = danChecker.GetDomainIP(fullname);
+                                                                        if (danAddr != null)
+                                                                        {
+                                                                            url = danAddr.ToString();
+                                                                            treated = true;
+                                                                        }
                                                                     }
 
                                                                     if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))
@@ -1981,8 +1990,17 @@ namespace MultiHTTP
                                                             {
                                                                 if (ApacheNetServerConfiguration.EnableAdguardFiltering && adChecker.isLoaded && adChecker.IsDomainRefused(fullname))
                                                                 {
-                                                                    url = "127.0.0.1";
+                                                                    url = "0.0.0.0";
                                                                     treated = true;
+                                                                }
+                                                                else if (ApacheNetServerConfiguration.EnableDanPollockHosts && danChecker.isLoaded)
+                                                                {
+                                                                    IPAddress danAddr = danChecker.GetDomainIP(fullname);
+                                                                    if (danAddr != null)
+                                                                    {
+                                                                        url = danAddr.ToString();
+                                                                        treated = true;
+                                                                    }
                                                                 }
 
                                                                 if (!treated && SecureDNSConfigProcessor.DicRules != null && SecureDNSConfigProcessor.DicRules.TryGetValue(fullname, out DnsSettings value))

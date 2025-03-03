@@ -5,7 +5,7 @@ using System;
 using NetworkLibrary.Extension;
 using System.Text;
 
-namespace MultiHTTP.Extensions
+namespace ApacheNet.Extensions
 {
     public class PHP
     {
