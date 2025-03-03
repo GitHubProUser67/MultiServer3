@@ -5,7 +5,7 @@ namespace MultiSocks.Aries.Model
 {
     public class UserCollection
     {
-        private readonly object _Lock = new();
+        private readonly object _QueueLock = new();
 
         protected ConcurrentDictionary<int, AriesUser> Users = new();
         protected Queue<int> UserIdsQueue = new(); // To maintain insertion order
@@ -14,7 +14,7 @@ namespace MultiSocks.Aries.Model
         {
             IEnumerable<AriesUser> userQueue;
 
-            lock (_Lock)
+            lock (_QueueLock)
             {
                 userQueue = UserIdsQueue.Select(id => Users[id]);
             }
@@ -29,7 +29,7 @@ namespace MultiSocks.Aries.Model
 
             if (Users.TryAdd(user.ID, user))
             {
-                lock (_Lock)
+                lock (_QueueLock)
                 {
                     UserIdsQueue.Enqueue(user.ID);
                 }
@@ -46,7 +46,7 @@ namespace MultiSocks.Aries.Model
 
             if (Users.TryAdd(user.ID, user))
             {
-                lock (_Lock)
+                lock (_QueueLock)
                 {
                     UserIdsQueue.Enqueue(user.ID);
                 }
@@ -63,7 +63,7 @@ namespace MultiSocks.Aries.Model
 
             if (Users.Remove(user.ID, out _))
             {
-                lock (_Lock)
+                lock (_QueueLock)
                 {
                     UserIdsQueue = new Queue<int>(UserIdsQueue.Where(id => id != user.ID));
                 }
