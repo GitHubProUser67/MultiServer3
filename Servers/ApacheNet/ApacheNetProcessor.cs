@@ -1611,11 +1611,17 @@ namespace ApacheNet
                                                 }
                                             }
                                             break;
+                                        case "/networktest/get_2m":
+                                            response.ChunkedTransfer = false;
+                                            statusCode = HttpStatusCode.OK;
+                                            response.StatusCode = (int)statusCode;
+                                            sent = await response.Send(new byte[2097152]);
+                                            break;
                                         case "/!player":
                                         case "/!player/":
                                             if (ServerIP.Length > 15)
                                                 ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
-                                            WebVideoPlayer? WebPlayer = new(request.Query.Elements, $"http://{ServerIP}/!webvideo/?");
+                                            WebVideoPlayer? WebPlayer = new(request.Query.Elements, $"{(secure ? "https" : "http")}://{ServerIP}/!webvideo/?");
                                             statusCode = HttpStatusCode.OK;
                                             response.StatusCode = (int)statusCode;
                                             response.ContentType = "text/html";
@@ -1628,6 +1634,79 @@ namespace ApacheNet
                                             else
                                                 sent = await response.Send(WebPlayer.HtmlPage);
                                             WebPlayer = null;
+                                            break;
+                                        case "/!webvideo":
+                                        case "/!webvideo/":
+                                            Dictionary<string, string>? QueryDic = HTTPProcessor.GetQueryParameters(fullurl);
+                                            if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? queryUrl) && !string.IsNullOrEmpty(queryUrl))
+                                            {
+                                                WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, ApacheNetServerConfiguration.ConvertersFolder);
+                                                if (vid != null && vid.Available)
+                                                {
+                                                    statusCode = HttpStatusCode.OK;
+                                                    response.StatusCode = (int)statusCode;
+                                                    response.ContentType = vid.ContentType;
+                                                    response.Headers.Add("Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"");
+                                                    const int buffersize = 16 * 1024;
+                                                    HugeMemoryStream videoStream = new HugeMemoryStream(vid.VideoStream, buffersize);
+                                                    if (ctx.Response.ChunkedTransfer)
+                                                    {
+                                                        bool isNotlastChunk;
+                                                        long bytesLeft = videoStream.Length;
+                                                        byte[] buffer;
+
+                                                        while (bytesLeft > 0)
+                                                        {
+                                                            isNotlastChunk = bytesLeft > buffersize;
+                                                            buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
+                                                            int n = videoStream.Read(buffer, 0, buffer.Length);
+
+                                                            if (isNotlastChunk)
+                                                                await ctx.Response.SendChunk(buffer, false);
+                                                            else
+                                                                sent = await ctx.Response.SendChunk(buffer, true);
+
+                                                            bytesLeft -= n;
+                                                        }
+                                                    }
+                                                    else
+                                                        sent = await ctx.Response.Send(videoStream.Length, videoStream);
+                                                }
+                                                else
+                                                {
+                                                    string htmlPayloadVideo = "<p>" + vid?.ErrorMessage + "</p>" +
+                                                                "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>";
+                                                    statusCode = HttpStatusCode.OK;
+                                                    response.StatusCode = (int)statusCode;
+                                                    response.ContentType = "text/html";
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPayloadVideo), true);
+                                                    else
+                                                        sent = await response.Send(htmlPayloadVideo);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                const string webVideoTutorialHtmlPayload = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
+                                                            "<p>Manual use parameters:" +
+                                                            "<ul>" +
+                                                            "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
+                                                            "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
+                                                            "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
+                                                            "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
+                                                            "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
+                                                            "<li>Also you can use many <i>yt-dlp" +
+                                                            "</i> and <i>ffmpeg" +
+                                                            "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
+                                                            "</ul></p>";
+                                                statusCode = HttpStatusCode.OK;
+                                                response.StatusCode = (int)statusCode;
+                                                response.ContentType = "text/html";
+                                                if (response.ChunkedTransfer)
+                                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes(webVideoTutorialHtmlPayload), true);
+                                                else
+                                                    sent = await response.Send(webVideoTutorialHtmlPayload);
+                                            }
                                             break;
                                         default:
                                             if (Directory.Exists(filePath) && filePath.EndsWith("/"))
