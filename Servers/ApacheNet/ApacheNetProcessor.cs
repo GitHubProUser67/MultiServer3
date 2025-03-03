@@ -49,7 +49,7 @@ namespace ApacheNet
 {
     public partial class ApacheNetProcessor
     {
-        public const string allowedMethods = "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH";
+        public const string allowedMethods = "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH, PROPFIND";
         private static string serverRevision = Assembly.GetExecutingAssembly().GetName().Name + " " + Assembly.GetExecutingAssembly().GetName().Version;
 
         public static List<string> allowedOrigins = new List<string>() { };
