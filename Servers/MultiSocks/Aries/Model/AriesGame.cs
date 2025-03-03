@@ -4,8 +4,6 @@ namespace MultiSocks.Aries.Model
 {
     public class AriesGame
     {
-        private readonly object _PlayerSyncLock = new();
-
         public int MaxSize;
         public int MinSize;
         public int ID;
@@ -113,11 +111,11 @@ namespace MultiSocks.Aries.Model
         {
             Started = status;
 
-            lock (_PlayerSyncLock)
+            lock (UsersCache)
             {
                 UsersCache.Clear();
                 if (status)
-                    UsersCache = Users.GetAll();
+                    UsersCache.AddRange(Users.GetAll());
             }
         }
 
@@ -181,7 +179,7 @@ namespace MultiSocks.Aries.Model
             int i = 0;
             Dictionary<string, string> PLAYERSLIST = new();
 
-            lock (_PlayerSyncLock)
+            lock (UsersCache)
             {
                 foreach (AriesUser user in (Started && UsersCache.Count > 0) ? UsersCache.AsEnumerable() : Users.GetAll())
                 {
