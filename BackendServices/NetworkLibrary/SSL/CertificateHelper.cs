@@ -374,7 +374,7 @@ namespace NetworkLibrary.SSL
             if (string.IsNullOrEmpty(certPath) || !certPath.EndsWith(".pfx", StringComparison.InvariantCultureIgnoreCase))
                 throw new InvalidDataException("[CertificateHelper] - InitializeSSLChainSignedCertificates: Invalid certificate file path or extension, only .pfx files are supported.");
 
-            string certName = Path.GetFileNameWithoutExtension(certPath);
+            const string rootCaCertName = "MultiServer";
             string directoryPath = Path.GetDirectoryName(certPath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
 
             Directory.CreateDirectory(directoryPath);
@@ -384,10 +384,10 @@ namespace NetworkLibrary.SSL
             if (File.Exists(directoryPath + "/lock.txt"))
                 WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
 
-            if (!File.Exists(directoryPath + $"/{certName}_rootca.pem") || !File.Exists(directoryPath + $"/{certName}_rootca_privkey.pem"))
-                RootCACertificate = CreateRootCertificateAuthority(directoryPath + $"/{certName}_rootca.pfx", HashAlgorithmName.SHA256);
+            if (!File.Exists(directoryPath + $"/{rootCaCertName}_rootca.pem") || !File.Exists(directoryPath + $"/{rootCaCertName}_rootca_privkey.pem"))
+                RootCACertificate = CreateRootCertificateAuthority(directoryPath + $"/{rootCaCertName}_rootca.pfx", HashAlgorithmName.SHA256);
             else
-                RootCACertificate = LoadPemCertificate(directoryPath + $"/{certName}_rootca.pem", directoryPath + $"/{certName}_rootca_privkey.pem");
+                RootCACertificate = LoadPemCertificate(directoryPath + $"/{rootCaCertName}_rootca.pem", directoryPath + $"/{rootCaCertName}_rootca_privkey.pem");
 
             MakeMasterChainSignedCert(RootCACertificate, Hashing, certPath, certPassword, DnsList);
         }
