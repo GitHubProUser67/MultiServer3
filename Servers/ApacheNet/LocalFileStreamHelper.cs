@@ -18,6 +18,14 @@ namespace ApacheNet
             bool sent = false;
             Stream? st;
 
+            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
+
+            string NoneMatch = ctx.Request.RetrieveHeaderValue("If-None-Match");
+            string? EtagMD5 = HTTPProcessor.ETag(filePath);
+            bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
+            bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, ctx.Request.RetrieveHeaderValue("If-Modified-Since"));
+
             if (ApacheNetServerConfiguration.EnableImageUpscale && ContentType.StartsWith("image/"))
             {
                 ctx.Response.ContentType = ContentType;
@@ -133,63 +141,58 @@ namespace ApacheNet
                 return await ctx.Response.Send();
             }
 
-            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-
-            string NoneMatch = ctx.Request.RetrieveHeaderValue("If-None-Match");
-            string? EtagMD5 = HTTPProcessor.ETag(filePath);
-            bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
-            bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, ctx.Request.RetrieveHeaderValue("If-Modified-Since"));
-
-            if ((isNoneMatchValid && isModifiedSinceValid) ||
-                (isNoneMatchValid && string.IsNullOrEmpty(ctx.Request.RetrieveHeaderValue("If-Modified-Since"))) ||
-                (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
+            using (st)
             {
-                ctx.Response.ChunkedTransfer = false;
-                ctx.Response.Headers.Clear();
-                ctx.Response.ContentType = "text/plain";
-                if (!string.IsNullOrEmpty(EtagMD5))
+                if ((isNoneMatchValid && isModifiedSinceValid) ||
+                    (isNoneMatchValid && string.IsNullOrEmpty(ctx.Request.RetrieveHeaderValue("If-Modified-Since"))) ||
+                    (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
                 {
-                    ctx.Response.Headers.Add("ETag", EtagMD5);
-                    ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                }
-                ctx.Response.StatusCode = 304;
-                sent = await ctx.Response.Send();
-            }
-            else
-            {
-                ctx.Response.StatusCode = 200;
-
-                if (!string.IsNullOrEmpty(EtagMD5))
-                {
-                    ctx.Response.Headers.Add("ETag", EtagMD5);
-                    ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                }
-
-                if (ctx.Response.ChunkedTransfer)
-                {
-                    const int buffersize = 16 * 1024;
-
-                    bool isNotlastChunk;
-                    long bytesLeft = st.Length;
-                    byte[] buffer;
-
-                    while (bytesLeft > 0)
+                    ctx.Response.ChunkedTransfer = false;
+                    ctx.Response.Headers.Clear();
+                    ctx.Response.ContentType = "text/plain";
+                    if (!string.IsNullOrEmpty(EtagMD5))
                     {
-                        isNotlastChunk = bytesLeft > buffersize;
-                        buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
-                        int n = st.Read(buffer, 0, buffer.Length);
-
-                        if (isNotlastChunk)
-                            await ctx.Response.SendChunk(buffer, false);
-                        else
-                            sent = await ctx.Response.SendChunk(buffer, true);
-
-                        bytesLeft -= n;
+                        ctx.Response.Headers.Add("ETag", EtagMD5);
+                        ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
                     }
+                    ctx.Response.StatusCode = 304;
+                    sent = await ctx.Response.Send();
                 }
                 else
-                    sent = await ctx.Response.Send(st.Length, st);
+                {
+                    ctx.Response.StatusCode = 200;
+
+                    if (!string.IsNullOrEmpty(EtagMD5))
+                    {
+                        ctx.Response.Headers.Add("ETag", EtagMD5);
+                        ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
+                    }
+
+                    if (ctx.Response.ChunkedTransfer)
+                    {
+                        const int buffersize = 16 * 1024;
+
+                        bool isNotlastChunk;
+                        long bytesLeft = st.Length;
+                        byte[] buffer;
+
+                        while (bytesLeft > 0)
+                        {
+                            isNotlastChunk = bytesLeft > buffersize;
+                            buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
+                            int n = st.Read(buffer, 0, buffer.Length);
+
+                            if (isNotlastChunk)
+                                await ctx.Response.SendChunk(buffer, false);
+                            else
+                                sent = await ctx.Response.SendChunk(buffer, true);
+
+                            bytesLeft -= n;
+                        }
+                    }
+                    else
+                        sent = await ctx.Response.Send(st.Length, st);
+                }
             }
 
             return sent;

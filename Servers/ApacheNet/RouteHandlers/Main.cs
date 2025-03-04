@@ -83,7 +83,7 @@ namespace ApacheNet.RouteHandlers
                         {
                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                             ctx.Response.ContentType = "text/xml";
-                            return ctx.Response.Send().Result;
+                            return ctx.Response.Send(UFCResult).Result;
                         }
 
                         ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

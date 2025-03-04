@@ -1062,6 +1062,16 @@
         }
 
         /// <summary>
+        /// Get direct access to the underlying TcpClient.
+        /// </summary>
+        /// <param name="guid">Client GUID.</param>
+        /// <returns>TcpClient.</returns>
+        public TcpClient GetRawTcpClient(Guid guid)
+        {
+            return GetTcpClient(guid);
+        }
+
+        /// <summary>
         /// Determines if a client is connected by its IP:port.
         /// </summary>
         /// <param name="ipPort">The client IP:port.</param>
@@ -2291,6 +2301,19 @@
 
                 if (!_Ssl) return client.NetworkStream;
                 else return client.SslStream;
+            }
+        }
+
+        private TcpClient GetTcpClient(Guid guid)
+        {
+            lock (_ClientsLock)
+            {
+                if (!_Clients.TryGetValue(guid, out ClientMetadata client))
+                {
+                    throw new KeyNotFoundException("Client with GUID " + guid.ToString() + " not found.");
+                }
+
+                return client.Client;
             }
         }
 

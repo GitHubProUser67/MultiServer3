@@ -183,7 +183,8 @@
                 return await SendInternalAsync(0, null, token).ConfigureAwait(false);
 
             byte[] bytes = Encoding.UTF8.GetBytes(data);
-            return await SendInternalAsync(bytes.Length, new MemoryStream(bytes), token).ConfigureAwait(false);
+            using (var ms = new MemoryStream(bytes))
+                return await SendInternalAsync(bytes.Length, ms, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -193,7 +194,8 @@
             if (data == null || data.Length < 1)
                     return await SendInternalAsync(0, null, token).ConfigureAwait(false);
 
-            return await SendInternalAsync(data.Length, new MemoryStream(data), token).ConfigureAwait(false);
+            using (var ms = new MemoryStream(data))
+                return await SendInternalAsync(data.Length, ms, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -203,7 +205,7 @@
             if (stream == null || !stream.CanRead)
                 return await SendInternalAsync(0, null, token).ConfigureAwait(false);
 
-            return await SendInternalAsync(contentLength, stream, token);
+            return await SendInternalAsync(contentLength, stream, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -548,53 +550,50 @@
                 {
                     if (stream != null && stream.CanRead)
                     {
-                        using (stream)
+                        // We override the bufferSize for large content, else, we murder the CPU.
+                        int bufferSize = ContentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
+
+                        try
                         {
-                            // We override the bufferSize for large content, else, we murder the CPU.
-                            int bufferSize = ContentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
-
-                            try
+                            // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
+                            if (ContentLength > 0)
                             {
-                                // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
-                                if (ContentLength > 0)
+                                if (_KeepAliveData)
                                 {
-                                    if (_KeepAliveData)
+                                    int bytesRead;
+                                    long bytesRemaining = contentLength;
+
+                                    byte[] buffer = new byte[bufferSize];
+
+                                    _Data = new MemoryStream();
+
+                                    while (bytesRemaining > 0)
                                     {
-                                        int bytesRead;
-                                        long bytesRemaining = contentLength;
-
-                                        byte[] buffer = new byte[bufferSize];
-
-                                        _Data = new MemoryStream();
-
-                                        while (bytesRemaining > 0)
+                                        bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+                                        if (bytesRead > 0)
                                         {
-                                            bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
-                                            if (bytesRead > 0)
+                                            await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+                                            try
                                             {
-                                                await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                                try
-                                                {
-                                                    await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                                }
-                                                catch { }
-                                                bytesRemaining -= bytesRead;
+                                                await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
                                             }
+                                            catch { }
+                                            bytesRemaining -= bytesRead;
                                         }
-
-                                        _Data.Seek(0, SeekOrigin.Begin);
                                     }
-                                    else
-                                        await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, ContentLength, false, token).ConfigureAwait(false);
+
+                                    _Data.Seek(0, SeekOrigin.Begin);
                                 }
                                 else
-                                    await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, false, token).ConfigureAwait(false);
-
-                                // Only flush when there is valid data.
-                                await _OutputStream.FlushAsync(token).ConfigureAwait(false);
+                                    await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, ContentLength, false, token).ConfigureAwait(false);
                             }
-                            catch { }
+                            else
+                                await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, false, token).ConfigureAwait(false);
+
+                            // Only flush when there is valid data.
+                            await _OutputStream.FlushAsync(token).ConfigureAwait(false);
                         }
+                        catch { }
                     }
                 }
 
