@@ -326,7 +326,12 @@ namespace Horizon.LIBRARY.Database
                         return ftb3Mod;
                     }
                     else
-                        result = _simulatedAccounts.FirstOrDefault(x => x.AppId == appId && x.AccountName != null && name != null && x.AccountName.ToLower() == name.ToLower());
+                        result = _simulatedAccounts.FirstOrDefault(x => x.AppId == appId && 
+                                 x.AccountName != null && 
+                                 name != null && 
+                                (x.AccountName.EndsWith("@RPCN") 
+                                ? x.AccountName.Substring(0, x.AccountName.Length - "@RPCN".Length) 
+                                : x.AccountName).ToLower() == name.ToLower());
                 }
                 else
                 {
