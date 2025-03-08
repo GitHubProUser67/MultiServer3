@@ -217,11 +217,7 @@ namespace Horizon.DME
                 _ = Task.Run(async () =>
                 {
                     await Task.Delay(5000);
-                    try
-                    {
-                        await channel.CloseAsync();
-                    }
-                    catch (Exception) { }
+                    try { await channel.CloseAsync(); } catch { }
                 });
             }
         }

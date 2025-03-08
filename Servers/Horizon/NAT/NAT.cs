@@ -124,10 +124,5 @@ namespace Horizon.NAT
                         _workerGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)));
             }
         }
-
-        public Task Tick()
-        {
-            return Task.CompletedTask;
-        }
     }
 }

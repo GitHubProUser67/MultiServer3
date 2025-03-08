@@ -104,6 +104,7 @@ namespace Horizon.SERVER.Medius
                 });
                 */
             };
+
             // Remove client on disconnect
             _scertHandler.OnChannelInactive += async (channel) =>
             {
@@ -221,7 +222,6 @@ namespace Horizon.SERVER.Medius
             // Disconnect and remove timedout unauthenticated channels
             while (_forceDisconnectQueue.TryDequeue(out var channel))
             {
-
                 // Send disconnect message
                 _ = ForceDisconnectClient(channel);
 
@@ -237,7 +237,7 @@ namespace Horizon.SERVER.Medius
                 _ = Task.Run(async () =>
                 {
                     await Task.Delay(5000);
-                    try { await channel.CloseAsync(); } catch (Exception) { }
+                    try { await channel.CloseAsync(); } catch { }
                 });
             }
         }
