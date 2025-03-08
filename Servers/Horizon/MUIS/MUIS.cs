@@ -14,9 +14,7 @@ using Horizon.MUIS.Config;
 using Horizon.SERVER;
 using static Horizon.SERVER.Medius.BaseMediusComponent;
 using Horizon.MUM.Models;
-using Horizon.SERVER.Medius;
 using NetworkLibrary.Extension;
-using Horizon.SERVER.Extension.PlayStationHome;
 
 namespace Horizon.MUIS
 {

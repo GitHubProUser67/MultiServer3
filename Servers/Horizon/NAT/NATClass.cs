@@ -13,16 +13,6 @@ namespace Horizon.NAT
 
         public static bool started = false;
 
-        private static async Task LoopServer()
-        {
-            while (started)
-            {
-                await NATServer.Tick();
-
-                await Task.Delay(100);
-            }
-        }
-
         public static async void StopServer()
         {
             started = false;
@@ -39,8 +29,6 @@ namespace Horizon.NAT
                 LoggerAccessor.LogInfo($"NAT started.");
 
                 started = true;
-
-                _ = Task.Run(LoopServer);
             }
             catch (Exception ex)
             {
