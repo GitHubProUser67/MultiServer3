@@ -175,11 +175,12 @@ namespace SVO
             {
                 bool isAllowed = false;
                 string absolutepath = ctx.Request.Url.AbsolutePath;
-                string clientip = ctx.Request.RemoteEndPoint?.Address.ToString() ?? string.Empty;
+                string clientip = ctx.Request.RemoteEndPoint.Address.ToString();
+                int clientport = ctx.Request.RemoteEndPoint.Port;
 
                 if (IsIPBanned(clientip))
-                    LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
-                else
+                    LoggerAccessor.LogError($"[SECURITY] - Client - {clientip}:{clientport} Requested the SVO server while being banned!");
+                else if (!string.IsNullOrEmpty(absolutepath))
                 {
                     string? UserAgent = null;
 
@@ -187,10 +188,10 @@ namespace SVO
                         UserAgent = ctx.Request.UserAgent.ToLower();
 
                     if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("bytespider")) // Get Away TikTok.
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip}:{clientport} Requested the SVO Server while not being allowed!");
                     else
                     {
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip}:{clientport} Requested the SVO Server with URL : {ctx.Request.Url}");
                         isAllowed = true;
                     }
                 }
@@ -218,7 +219,7 @@ namespace SVO
 
                                     FileInfo[] files = directory.GetFiles();
 
-                                    if (files.Length >= 20)
+                                    if (files.Length > 19)
                                     {
                                         FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
                                         LoggerAccessor.LogInfo("[SVO] - Replacing Home Debug log file: " + oldestFile.Name);
@@ -238,7 +239,7 @@ namespace SVO
                                             ctx.Response.ContentLength64 = datatooutput.Length;
                                             ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
                                         }
-                                        catch (Exception)
+                                        catch
                                         {
                                             // Not Important.
                                         }
@@ -296,9 +297,9 @@ namespace SVO
                                     ctx.Response.ContentLength64 = FileContent.Length;
                                     ctx.Response.OutputStream.Write(FileContent, 0, FileContent.Length);
                                 }
-                                catch (Exception)
+                                catch
                                 {
-                                    // Not Important;
+                                    // Not Important.
                                 }
                             }
                         }

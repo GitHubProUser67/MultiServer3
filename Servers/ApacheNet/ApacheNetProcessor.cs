@@ -408,7 +408,7 @@ namespace ApacheNet
 
             if (!string.IsNullOrEmpty(request.Useragent) && request.Useragent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
                 LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested the {loggerprefix} Server with a ByteDance crawler!");
-            else
+            else if (fullurl != string.Empty)
             {
                 string SuplementalMessage = string.Empty;
                 string? GeoCodeString = GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip));
