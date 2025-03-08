@@ -135,7 +135,9 @@ namespace SSFWServer
         {
             try
             {
-                if (!string.IsNullOrEmpty(request.Url))
+                string absolutepath = request.Url;
+
+                if (!string.IsNullOrEmpty(absolutepath))
                 {
                     (string HeaderIndex, string HeaderItem)[] Headers = CollectHeaders(request);
 
@@ -145,8 +147,6 @@ namespace SSFWServer
 
                     if (string.IsNullOrEmpty(cacheControl) || cacheControl != "no-transform")
                         encoding = GetHeaderValue(Headers, "Accept-Encoding");
-
-                    string absolutepath = request.Url;
 
                     // Split the URL into segments
                     string[] segments = absolutepath.Trim('/').Split('/');
@@ -158,10 +158,10 @@ namespace SSFWServer
                     string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath[1..]);
 
 #if DEBUG
-                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url} (Details: \n{{ \"NetCoreServer\":" + System.Text.Json.JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })
+                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {absolutepath} (Details: \n{{ \"NetCoreServer\":" + System.Text.Json.JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })
                         + (Headers.Length > 0 ? $", \"Headers\":{System.Text.Json.JsonSerializer.Serialize(Headers.ToDictionary(header => header.HeaderIndex, header => header.HeaderItem), new JsonSerializerOptions { WriteIndented = true })} }} )" : "} )"));
 #else
-                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
+                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {absolutepath}");
 #endif
 
                     if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")) // Host ban is not perfect, but netcoreserver only has that to offer...
