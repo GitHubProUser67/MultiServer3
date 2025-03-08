@@ -633,8 +633,10 @@ namespace Horizon.MUM.Models
             lock (LocalClients)
             {
                 LocalClients.RemoveAll(x => x.Client == client);
-
-                if (MigrateHost && MediusVersion >= 109)
+				
+                if (LocalClients.Count == 0)
+                    await EndGame(appid);
+                else if (MigrateHost && MediusVersion >= 109)
                     Host = LocalClients.FirstOrDefault()?.Client;
             }
         }
