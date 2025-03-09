@@ -1978,8 +1978,6 @@ namespace ApacheNet
                                                 {
                                                     bool ArchiveOrgProcessed = false;
 
-                                                    LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip} Requested a non-existant file : {filePath}");
-
                                                     if (ApacheNetServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
                                                     {
                                                         WebArchiveRequest archiveReq = new($"{(secure ? "https" : "http")}://{Host}" + fullurl);
@@ -2335,8 +2333,6 @@ namespace ApacheNet
                                                 }
                                                 else
                                                 {
-                                                    LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip} Requested a non-existant file : {filePath}");
-
                                                     statusCode = HttpStatusCode.NotFound;
                                                     response.StatusCode = (int)statusCode;
 
@@ -2460,8 +2456,6 @@ namespace ApacheNet
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip} Requested a non-existant file: {filePath}");
-
                                         statusCode = HttpStatusCode.NotFound;
                                         response.StatusCode = (int)statusCode;
                                         response.ContentType = "text/plain";
