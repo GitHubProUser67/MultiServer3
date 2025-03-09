@@ -197,11 +197,6 @@ namespace Horizon.HTTPSERVICE
                     secSalt[i] = (byte)(NetObfuscator.SecSalt[i] ^ RandSecSaltKey[i] ^ secSalt[i - 1]);
             }
 
-            for (i = 0; i < input.Length; i++)
-            {
-                secSalt[i % secSalt.Length] ^= (byte)input[i];
-            }
-
             return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCrypto.EncryptCBC(input, key, WebCrypto.IdentIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";
         }
     }
