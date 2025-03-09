@@ -635,7 +635,7 @@ namespace Horizon.MUM.Models
                 LocalClients.RemoveAll(x => x.Client == client);
 				
                 if (LocalClients.Count == 0)
-                    await EndGame(appid);
+                    EndGame(appid).Wait();
                 else if (MigrateHost && MediusVersion >= 109)
                     Host = LocalClients.FirstOrDefault()?.Client;
             }

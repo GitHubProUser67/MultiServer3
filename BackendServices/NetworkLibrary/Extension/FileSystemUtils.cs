@@ -146,15 +146,14 @@ namespace NetworkLibrary.Extension
 #else
             byte[] result = new byte[bytesToRead];
 #endif
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            try
             {
-                using (BinaryReader reader = new BinaryReader(fileStream))
+                using (FileStream fileStream = File.OpenRead(filePath))
                 {
 #if NET5_0_OR_GREATER
-                    bytesRead = reader.Read(result);
+                    bytesRead = fileStream.Read(result);
 #else
-                    bytesRead = reader.Read(result, 0, bytesToRead);
+                    bytesRead = fileStream.Read(result, 0, bytesToRead);
 #endif
                 }
 
@@ -167,6 +166,9 @@ namespace NetworkLibrary.Extension
                     Array.Clear(result, bytesRead, bytesToRead - bytesRead);
 #endif
                 }
+            }
+            catch
+            {
             }
 
             return result.ToArray();
