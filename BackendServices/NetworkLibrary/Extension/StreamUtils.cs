@@ -13,21 +13,6 @@ namespace NetworkLibrary.Extension
             return Encoding.ASCII.GetString(((MemoryStream)stream).ToArray());
         }
 
-        public static string Readline(this Stream stream)
-        {
-            int next_char;
-            string data = string.Empty;
-            while (true)
-            {
-                next_char = stream.ReadByte();
-                if (next_char == '\n') { break; }
-                if (next_char == '\r') { continue; }
-                if (next_char == -1) { Thread.Sleep(1); continue; };
-                data += Convert.ToChar(next_char);
-            }
-            return data;
-        }
-
         /// <summary>
         /// Copies a Stream to an other.
         /// <para>Copie d'un Stream � un autre.</para>
