@@ -35,7 +35,7 @@ namespace NetworkLibrary.Extension
         /// <param name="input">The Stream to copy.</param>
         /// <param name="output">the Steam to copy to.</param>
         /// <param name="BufferSize">the buffersize for the copy.</param>
-        public static void CopyStream(Stream input, Stream output, long BufferSize, bool ignore_errors = false)
+        public static void CopyStream(Stream input, Stream output, long BufferSize = 16 * 1024, bool ignore_errors = false)
         {
             if (BufferSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BufferSize), "[StreamUtils] - CopyStream() - Buffer size must be greater than zero.");

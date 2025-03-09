@@ -945,7 +945,7 @@ namespace NetworkLibrary.HTTP
         public static byte[] CompressZstd(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
             using (Compressor compressor = new Compressor())
                 return compressor.Wrap(input).ToArray();
@@ -954,22 +954,21 @@ namespace NetworkLibrary.HTTP
         public static byte[] CompressBrotli(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
-            using MemoryStream output = new MemoryStream();
+            using (MemoryStream output = new MemoryStream())
             using (BrotliStream brStream = new BrotliStream(output, CompressionLevel.Fastest))
             {
                 brStream.Write(input, 0, input.Length);
                 brStream.Flush();
+                return output.ToArray();
             }
-
-            return output.ToArray();
         }
 #endif
         public static byte[] CompressGzip(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
             using (MemoryStream output = new MemoryStream())
             using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest))
@@ -983,7 +982,7 @@ namespace NetworkLibrary.HTTP
         public static byte[] Inflate(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
             using (MemoryStream output = new MemoryStream())
             using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
@@ -998,7 +997,7 @@ namespace NetworkLibrary.HTTP
         public static Stream ZstdCompressStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -1012,7 +1011,7 @@ namespace NetworkLibrary.HTTP
                     using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
                     {
                         outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
-                        StreamUtils.CopyStream(input, outZStream, 4096);
+                        StreamUtils.CopyStream(input, outZStream);
                     }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
                 }
@@ -1027,7 +1026,7 @@ namespace NetworkLibrary.HTTP
         public static Stream BrotliCompressStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -1040,7 +1039,7 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new MemoryStream();
                     using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest, true))
                     {
-                        StreamUtils.CopyStream(input, outBStream, 4096);
+                        StreamUtils.CopyStream(input, outBStream);
                         outBStream.Flush();
                     }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
@@ -1056,7 +1055,7 @@ namespace NetworkLibrary.HTTP
         public static Stream GzipCompressStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -1069,7 +1068,7 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new MemoryStream();
                     using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
                     {
-                        StreamUtils.CopyStream(input, outGStream, 4096);
+                        StreamUtils.CopyStream(input, outGStream);
                         outGStream.Close();
                     }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
@@ -1085,7 +1084,7 @@ namespace NetworkLibrary.HTTP
         public static Stream InflateStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -1098,7 +1097,7 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new MemoryStream();
                     using (ZOutputStreamLeaveOpen outZStream = new ZOutputStreamLeaveOpen(outMemoryStream, 1, true))
                     {
-                        StreamUtils.CopyStream(input, outZStream, 4096);
+                        StreamUtils.CopyStream(input, outZStream);
                         outZStream.Close();
                     }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
