@@ -1,19 +1,22 @@
-using System.Linq;
+﻿using System.Linq;
 using System;
 using System.IO;
+using System.Collections.Generic;
 using CustomLogger;
+using NetHasher;
 using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text;
 using NetworkLibrary.HTTP;
 using static WebAPIService.OHS.UserCounter;
-using NetHasher;
 
 namespace WebAPIService.OHS
 {
     public class User
     {
+        public static Dictionary<string, object> _StaticLeaderboardLock = new Dictionary<string, object>();
+
         public static string ClearEntry(byte[] PostData, string ContentType, string directorypath, string batchparams, int game)
         {
             bool isCleared = false;
@@ -96,6 +99,7 @@ namespace WebAPIService.OHS
         {
             string dataforohs = null;
             string output = null;
+            string writekey = null;
 
             if (string.IsNullOrEmpty(batchparams))
             {
@@ -107,7 +111,14 @@ namespace WebAPIService.OHS
                     {
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         LoggerAccessor.LogInfo($"[OHS] : Client Version - {data.GetParameterValue("version")}");
-                        dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
+                        if (directorypath.EndsWith("/SCEA/WorldDomination"))
+                        {
+                            (string, string) dualresult = JaminProcessor.JaminDeFormatWithWriteKey(data.GetParameterValue("data"), true, game);
+                            writekey = dualresult.Item1;
+                            dataforohs = dualresult.Item2;
+                        }
+                        else
+                            dataforohs = JaminProcessor.JaminDeFormat(data.GetParameterValue("data"), true, game);
                         ms.Flush();
                     }
                 }
@@ -116,7 +127,7 @@ namespace WebAPIService.OHS
                 dataforohs = batchparams;
 
             try
-            {
+            {   
                 if (!string.IsNullOrEmpty(dataforohs))
                 {
                     JToken Token = JToken.Parse(dataforohs);
@@ -127,56 +138,118 @@ namespace WebAPIService.OHS
 
                     object user = Utils.JtokenUtils.GetValueFromJToken(Token, "user");
 
-                    Directory.CreateDirectory(directorypath + $"/User_Profiles");
+                    Directory.CreateDirectory(directorypath);
 
                     if (!global)
                     {
-                        string profiledatastring = directorypath + $"/User_Profiles/{user}.json";
-
-                        if (File.Exists(profiledatastring))
+                        if (!string.IsNullOrEmpty(writekey))
                         {
-                            string profiledata = File.ReadAllText(profiledatastring);
+                            string leaderboardDirectoryPath = directorypath + $"/Leaderboards";
 
-                            if (!string.IsNullOrEmpty(profiledata))
+                            Directory.CreateDirectory(leaderboardDirectoryPath);
+
+                            JToken json = JToken.FromObject(value);
+
+                            List<KeyValuePair<string, int>> leaderboard = new List<KeyValuePair<string, int>>();
+
+                            foreach (var property in json.Children<JProperty>())
                             {
-                                JObject jObject = JObject.Parse(profiledata);
+                                string keyName = property.Name;
+                                string valueName = property.Value.ToString();
 
-                                if (jObject != null)
+                                if (keyName.StartsWith("name"))
                                 {
-                                    // Check if the key name already exists in the JSON
-                                    JToken existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == (string)key);
+                                    // Extract base name (e.g., "name1" → "name")
+                                    string scoreKey = "score" + keyName.Substring(4);
 
-                                    if (existingKey != null && value != null)
-                                        // Update the value of the existing key
-                                        existingKey.Replace(JToken.FromObject(value));
-                                    else if (key != null && value != null)
+                                    if (json[scoreKey] != null)
+                                        leaderboard.Add(new KeyValuePair<string, int>(valueName, json[scoreKey].ToObject<int>()));
+                                }
+                            }
+
+                            string strKey = key.ToString();
+                            string leaderboardPath = leaderboardDirectoryPath + $"/{strKey}.luatable";
+
+                            if (!_StaticLeaderboardLock.ContainsKey(strKey))
+                                _StaticLeaderboardLock.Add(strKey, new object());
+
+                            lock (_StaticLeaderboardLock[strKey])
+                            {
+                                using (StreamWriter writer = new StreamWriter(leaderboardPath, false))
+                                {
+                                    StringBuilder st = new StringBuilder("{ ");
+                                    List<KeyValuePair<string, int>> orderedLeaderboard = leaderboard.OrderByDescending(x => x.Value).ToList();
+                                    int totalEntries = leaderboard.Count;
+                                    for (int i = 1; i <= totalEntries; i++)
                                     {
-                                        JToken KeyEntry = jObject["key"];
+                                        KeyValuePair<string, int> CurrentLeaderboardEntry = orderedLeaderboard[i - 1];
+                                        st.Append($"[\"name{i}\"] = \"{CurrentLeaderboardEntry.Key}\", [\"score{i}\"] = {CurrentLeaderboardEntry.Value}, ");
 
-                                        if (KeyEntry != null)
-                                            // Step 2: Add a new entry to the "Key" object
-                                            KeyEntry[key] = JToken.FromObject(value);
                                     }
-
-                                    File.WriteAllText(profiledatastring, jObject.ToString(Formatting.Indented));
+                                    totalEntries++;
+                                    // The leaderboards has a "filler" per say, so we just feed it with empty data.
+                                    st.Append($"[\"name{totalEntries}\"] = \"................\", [\"score{totalEntries}\"] = 0, ");
+                                    st.Length -= 2;
+                                    st.Append(" }");
+                                    writer.Write(st);
+                                    output = $"{{ [\"writeKey\"] = \"{writekey}\" }}";
                                 }
                             }
                         }
-                        else if (key != null)
+                        else
                         {
-                            string keystring = key.ToString();
+                            Directory.CreateDirectory(directorypath + $"/User_Profiles");
 
-                            if (keystring != null && user != null && value != null)
+                            string profiledatastring = directorypath + $"/User_Profiles/{user}.json";
+
+                            if (File.Exists(profiledatastring))
                             {
-                                // Create a new profile with the key field
-                                OHSUserProfile newProfile = new OHSUserProfile
-                                {
-                                    user = user.ToString(),
-                                    key = new JObject { { keystring, JToken.FromObject(value) } }
-                                };
+                                string profiledata = File.ReadAllText(profiledatastring);
 
-                                File.WriteAllText(profiledatastring, JsonConvert.SerializeObject(newProfile));
+                                if (!string.IsNullOrEmpty(profiledata))
+                                {
+                                    JObject jObject = JObject.Parse(profiledata);
+
+                                    if (jObject != null)
+                                    {
+                                        // Check if the key name already exists in the JSON
+                                        JToken existingKey = jObject.DescendantsAndSelf().FirstOrDefault(t => t.Path == (string)key);
+
+                                        if (existingKey != null && value != null)
+                                            // Update the value of the existing key
+                                            existingKey.Replace(JToken.FromObject(value));
+                                        else if (key != null && value != null)
+                                        {
+                                            JToken KeyEntry = jObject["key"];
+
+                                            if (KeyEntry != null)
+                                                // Step 2: Add a new entry to the "Key" object
+                                                KeyEntry[key] = JToken.FromObject(value);
+                                        }
+
+                                        File.WriteAllText(profiledatastring, jObject.ToString(Formatting.Indented));
+                                    }
+                                }
                             }
+                            else if (key != null)
+                            {
+                                string keystring = key.ToString();
+
+                                if (keystring != null && user != null && value != null)
+                                {
+                                    // Create a new profile with the key field
+                                    OHSUserProfile newProfile = new OHSUserProfile
+                                    {
+                                        user = user.ToString(),
+                                        key = new JObject { { keystring, JToken.FromObject(value) } }
+                                    };
+
+                                    File.WriteAllText(profiledatastring, JsonConvert.SerializeObject(newProfile));
+                                }
+                            }
+
+                            if (value != null)
+                                output = LuaUtils.ConvertJTokenToLuaTable(JToken.FromObject(value), true);
                         }
                     }
                     else
@@ -227,10 +300,10 @@ namespace WebAPIService.OHS
                                 File.WriteAllText(globaldatastring, JsonConvert.SerializeObject(newProfile));
                             }
                         }
-                    }
 
-                    if (value != null)
-                        output = LuaUtils.ConvertJTokenToLuaTable(JToken.FromObject(value), true);
+                        if (value != null)
+                            output = LuaUtils.ConvertJTokenToLuaTable(JToken.FromObject(value), true);
+                    }
                 }
             }
             catch (Exception ex)
@@ -390,63 +463,79 @@ namespace WebAPIService.OHS
                             // Getting the value of the "user" field
                             string ohsUserName = (string)jsonObject["user"];
 
-                            if (!string.IsNullOrEmpty(ohsUserName) && File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
+                            if (!string.IsNullOrEmpty(ohsUserName))
                             {
-                                string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{ohsUserName}.json");
-
-                                if (!string.IsNullOrEmpty(userprofile))
+                                if (directorypath.EndsWith("/SCEA/WorldDomination"))
                                 {
-                                    // Parse the JSON string to a JObject
-                                    jsonObject = JObject.Parse(userprofile);
+                                    string leaderboardPath = directorypath + $"/Leaderboards/{ohsKey}.luatable";
 
-                                    // Check if the "key" property exists and if it is an object
-                                    if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                    if (File.Exists(leaderboardPath))
                                     {
-                                        if (((JObject)keyValueToken).TryGetValue(ohsKey, out JToken wishlistToken))
-                                            output = LuaUtils.ConvertJTokenToLuaTable(wishlistToken, true);
+                                        if (!_StaticLeaderboardLock.ContainsKey(ohsKey))
+                                            _StaticLeaderboardLock.Add(ohsKey, new object());
+
+                                        lock (_StaticLeaderboardLock[ohsKey])
+                                            output = File.ReadAllText(leaderboardPath);
                                     }
                                 }
-                            }
-                            else
-                            {
-                                switch (ohsKey)
+                                else if (File.Exists(directorypath + $"/User_Profiles/{ohsUserName}.json"))
                                 {
-                                    case "timestamp":
-                                        if (directorypath.Contains("Ooblag"))
-                                            output = DateTime.Now.ToString("yyyyMMdd");
-                                        break;
-                                    case "timeStamp":
-                                        if (directorypath.Contains("casino"))
-                                            output = "nil";
-                                        break;
-                                    case "GameState":
-                                        if (directorypath.Contains("shooter_game"))
-                                            output = "{ [\"currentLevel\"] = 1, [\"currentMaxLevel\"] = 50, [\"items\"] = {\t{ type = \"guns\"  \t\t , name=\"repeater\"\t\t\t, level=1 , inUse = false }\r\n" +
-                                                ",\t{ type = \"tank\"  \t\t , name=\"plating1\"\t\t\t, level=0 , inUse = false }\r\n" +
-                                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
-                                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
-                                                ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
-                                                "}, [\"loadout\"] = { { mount='thrusters' , slot='left'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
-                                                ", { mount='thrusters' , slot='right' \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
-                                                ", { mount='thrusters' , slot='rear'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
-                                                ", { mount='guns'      , slot=1       \t\t\t ,name=\"repeater\", level=1 }\r\n" +
-                                                ", { mount='guns'      , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
-                                                ", { mount='missiles'  , slot=1       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
-                                                ", { mount='missiles'  , slot=2       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
-                                                ", { mount='counters'  , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
-                                                ", { mount='counters'  , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
-                                                ", { mount='burner'    , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
-                                                ", { mount='tank'      , slot=1       \t\t\t ,name=\"plating1\", level=0 }\r\n" +
-                                                ", { mount='module'    , slot='fireRateAug' ,name=\"none\" \t , level=0 }\r\n" +
-                                                ", { mount='module'    , slot='handlingAug' ,name=\"none\" \t , level=0 }\r\n" +
-                                                ", { mount='module'    , slot='engineAug'\t ,name=\"none\" \t , level=0 }\r\n" +
-                                                ", { mount='module'    , slot='targeting'\t ,name=\"none\"    , level=0 }\r\n" +
-                                                ", { mount='module'    , slot='ammoStore'\t ,name=\"none\" \t , level=0 }\r\n" +
-                                                ", { mount='module'    , slot='armour'\t\t\t ,name=\"none\" \t , level=0 }\r\n" +
-                                                ", { mount='module'    , slot='autoRepair'\t ,name=\"none\" \t , level=0 }\r\n" +
-                                                ", { mount='module'    , slot='heatSink'\t\t ,name=\"none\" \t , level=0 }\r\n" +
-                                                "}, [\"scores\"] = { } }";
-                                        break;
+                                    string userprofile = File.ReadAllText(directorypath + $"/User_Profiles/{ohsUserName}.json");
+
+                                    if (!string.IsNullOrEmpty(userprofile))
+                                    {
+                                        // Parse the JSON string to a JObject
+                                        jsonObject = JObject.Parse(userprofile);
+
+                                        // Check if the "key" property exists and if it is an object
+                                        if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
+                                        {
+                                            if (((JObject)keyValueToken).TryGetValue(ohsKey, out JToken wishlistToken))
+                                                output = LuaUtils.ConvertJTokenToLuaTable(wishlistToken, true);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    switch (ohsKey)
+                                    {
+                                        case "timestamp":
+                                            if (directorypath.Contains("Ooblag"))
+                                                output = DateTime.Now.ToString("yyyyMMdd");
+                                            break;
+                                        case "timeStamp":
+                                            if (directorypath.Contains("casino"))
+                                                output = "nil";
+                                            break;
+                                        case "GameState":
+                                            if (directorypath.Contains("shooter_game"))
+                                                output = "{ [\"currentLevel\"] = 1, [\"currentMaxLevel\"] = 50, [\"items\"] = {\t{ type = \"guns\"  \t\t , name=\"repeater\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                                    ",\t{ type = \"tank\"  \t\t , name=\"plating1\"\t\t\t, level=0 , inUse = false }\r\n" +
+                                                    ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                                    ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                                    ",\t{ type = \"thrusters\" , name=\"HoverFan\"\t\t\t, level=1 , inUse = false }\r\n" +
+                                                    "}, [\"loadout\"] = { { mount='thrusters' , slot='left'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                                    ", { mount='thrusters' , slot='right' \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                                    ", { mount='thrusters' , slot='rear'  \t\t\t ,name=\"HoverFan\", level=1 }\r\n" +
+                                                    ", { mount='guns'      , slot=1       \t\t\t ,name=\"repeater\", level=1 }\r\n" +
+                                                    ", { mount='guns'      , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                                    ", { mount='missiles'  , slot=1       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
+                                                    ", { mount='missiles'  , slot=2       \t\t\t ,name=\"none\"\t\t , level=0 }\r\n" +
+                                                    ", { mount='counters'  , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                                    ", { mount='counters'  , slot=2       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                                    ", { mount='burner'    , slot=1       \t\t\t ,name=\"none\"    , level=0 }\r\n" +
+                                                    ", { mount='tank'      , slot=1       \t\t\t ,name=\"plating1\", level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='fireRateAug' ,name=\"none\" \t , level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='handlingAug' ,name=\"none\" \t , level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='engineAug'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='targeting'\t ,name=\"none\"    , level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='ammoStore'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='armour'\t\t\t ,name=\"none\" \t , level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='autoRepair'\t ,name=\"none\" \t , level=0 }\r\n" +
+                                                    ", { mount='module'    , slot='heatSink'\t\t ,name=\"none\" \t , level=0 }\r\n" +
+                                                    "}, [\"scores\"] = { } }";
+                                            break;
+                                    }
                                 }
                             }
                         }
@@ -946,14 +1035,14 @@ namespace WebAPIService.OHS
                 if (string.IsNullOrEmpty(dataforohs))
                     return null;
                 else
-                    return UniqueNumberGenerator.GenerateUniqueNumber(dataforohs).ToString();
+                    return JaminUniqueNumberGenerator.GenerateUniqueNumber(dataforohs).ToString();
             }
             else
             {
                 if (string.IsNullOrEmpty(dataforohs))
                     dataforohs = JaminProcessor.JaminFormat("{ [\"status\"] = \"fail\" }", game);
                 else
-                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {UniqueNumberGenerator.GenerateUniqueNumber(dataforohs)} }}", game);
+                    dataforohs = JaminProcessor.JaminFormat($"{{ [\"status\"] = \"success\", [\"value\"] = {JaminUniqueNumberGenerator.GenerateUniqueNumber(dataforohs)} }}", game);
             }
 
             return dataforohs;
@@ -1050,7 +1139,7 @@ namespace WebAPIService.OHS
             public object Key { get; set; }
         }
 
-        public static class UniqueNumberGenerator
+        public static class JaminUniqueNumberGenerator
         {
             // Function to generate a unique number based on a string using MD5
             public static int GenerateUniqueNumber(string inputString)

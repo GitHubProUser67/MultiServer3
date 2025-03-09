@@ -628,7 +628,7 @@ namespace ApacheNet
                                             sent = await response.Send(CollectPHP.Item1);
                                     }
                                     if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
-                                        sent = await LocalFileStreamHelper.handlePartialRangeRequest(ctx, ApacheNetServerConfiguration.HTTPStaticFolder + $"/{indexFile}",
+                                        sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, ApacheNetServerConfiguration.HTTPStaticFolder + $"/{indexFile}",
                                             HTTPProcessor.GetMimeType(Path.GetExtension(ApacheNetServerConfiguration.HTTPStaticFolder + $"/{indexFile}"), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes), noCompressCacheControl);
                                     else
                                     {
@@ -830,7 +830,7 @@ namespace ApacheNet
                         #endregion
 
                         #region Outso OHS API
-                        else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com") &&
+                        else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com" || Host == "ec2-184-72-239-107.compute-1.amazonaws.com") &&
                                                     (absolutepath.Contains("/ohs_") ||
                                                     absolutepath.Contains("/ohs/") ||
                                                     absolutepath.Contains("/statistic/") ||
@@ -862,6 +862,8 @@ namespace ApacheNet
                             else if (absolutepath.Contains("/Infamous/"))
                                 version = 1;
                             else if (absolutepath.Contains("/warhawk_shooter/"))
+                                version = 1;
+                            else if (absolutepath.Contains("/SCEA/WorldDomination/"))
                                 version = 1;
                             #endregion
 
@@ -1916,13 +1918,13 @@ namespace ApacheNet
                                                             sent = await new MP4TranscodeHandler(filePath, ApacheNetServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
                                                     }
                                                     else if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
-                                                        sent = await LocalFileStreamHelper.handlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
+                                                        sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
                                                     else
                                                     {
                                                         // send file
                                                         LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Requested a file : {absolutepath}");
 
-                                                        sent = await LocalFileStreamHelper.handleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
+                                                        sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
                                                     }
                                                 }
                                                 else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
@@ -2275,13 +2277,13 @@ namespace ApacheNet
                                                         response.ChunkedTransfer = false;
 
                                                     if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
-                                                        sent = await LocalFileStreamHelper.handlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
+                                                        sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
                                                     else
                                                     {
                                                         // send file
                                                         LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Requested a file : {absolutepath}");
 
-                                                        sent = await LocalFileStreamHelper.handleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
+                                                        sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
                                                     }
                                                 }
                                                 else if (isHtmlCompatible && Directory.Exists(filePath + "/"))

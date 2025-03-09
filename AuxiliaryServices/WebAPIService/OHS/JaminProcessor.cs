@@ -27,7 +27,7 @@ namespace WebAPIService.OHS
                     if (unescape)
                         dataforohs = EncryptDecrypt.UnEscape(dataforohs);
 
-                    if (game != 0 && !string.IsNullOrEmpty(dataforohs))
+                    if (game != 0)
                         dataforohs = EncryptDecrypt.Decrypt(dataforohs, game);
 
                     if (!string.IsNullOrEmpty(dataforohs))
@@ -83,7 +83,7 @@ namespace WebAPIService.OHS
                     if (unescape)
                         dataforohs = EncryptDecrypt.UnEscape(dataforohs);
 
-                    if (game != 0 && !string.IsNullOrEmpty(dataforohs))
+                    if (game != 0)
                         dataforohs = EncryptDecrypt.Decrypt(dataforohs, game);
 
                     if (!string.IsNullOrEmpty(dataforohs))
@@ -140,7 +140,7 @@ namespace WebAPIService.OHS
                     LoggerAccessor.LogInfo($"[OHS] - JaminFormat Assembled Data : {LuaReturn}");
 #endif
                     if (game != 0)
-                        return EncryptDecrypt.Encrypt(LuaReturn, new Random().Next(1, 9025 - 1), game);
+                        return EncryptDecrypt.Encrypt(LuaReturn, new Random().Next(1, 9026), game);
                     else
                         return LuaReturn;
                 }
