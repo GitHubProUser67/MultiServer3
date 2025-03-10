@@ -48,7 +48,7 @@ namespace HomeWebTools
                             {
                                 #region LibSecure HomeTools
                                 case "/!HomeTools/MakeBarSdat/":
-                                    (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(ConvertersStaticFolder, APIStaticFolder, new MemoryStream(request.DataAsBytes), request.ContentType);
+                                    (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(ConvertersStaticFolder, Path.GetTempPath(), new MemoryStream(request.DataAsBytes), request.ContentType);
                                     if (makeres != null)
                                     {
                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -65,7 +65,7 @@ namespace HomeWebTools
                                     }
                                     break;
                                 case "/!HomeTools/UnBar/":
-                                    (byte[]?, string)? unbarres = HomeToolsInterface.UnBar(APIStaticFolder, new MemoryStream(request.DataAsBytes), request.ContentType, APIStaticFolder + "/HelperFiles").Result;
+                                    (byte[]?, string)? unbarres = HomeToolsInterface.UnBar(Path.GetTempPath(), new MemoryStream(request.DataAsBytes), request.ContentType, APIStaticFolder + "/HelperFiles").Result;
                                     if (unbarres != null)
                                     {
                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));

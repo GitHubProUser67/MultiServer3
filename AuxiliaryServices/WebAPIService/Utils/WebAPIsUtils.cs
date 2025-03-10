@@ -2,15 +2,16 @@ using CustomLogger;
 using System.IO.Compression;
 using System.IO;
 using System;
-using NetHasher;
+using CastleLibrary.NetHasher.CRC;
+using System.Text;
 
 namespace WebAPIService.Utils
 {
     public class WebAPIsUtils
     {
-        public static string GenerateDynamicCacheGuid(string input)
+        public static string GenerateDynamicCacheFolder(string input)
         {
-            return DotNetHasher.ComputeMD5String(GetCurrentDateTime() + input + NetworkLibrary.SSL.CertificateHelper.GetRandomInt64(long.MinValue, long.MaxValue));
+            return CRC32.CreateCastagnoli(Encoding.ASCII.GetBytes(input + Guid.NewGuid())).ToString("x4");
         }
 
         public static void AddFileToZip(ZipArchive archive, string entryName, Stream contentStream)
@@ -36,7 +37,6 @@ namespace WebAPIService.Utils
                 LoggerAccessor.LogError($"[File Uncompress] - An error occurred: {ex}");
             }
         }
-
 
         /// <summary>
         /// Get the current date-time.

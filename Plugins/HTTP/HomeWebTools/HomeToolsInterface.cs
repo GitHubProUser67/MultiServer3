@@ -21,14 +21,14 @@ namespace HomeWebTools
 {
     public class HomeToolsInterface
     {
-        public static (byte[], string)? MakeBarSdat(string ConvertersFolder, string APIStaticFolder, Stream PostData, string ContentType)
+        public static (byte[], string)? MakeBarSdat(string ConvertersFolder, string TempDirPath, Stream PostData, string ContentType)
         {
             (byte[], string)? output = null;
             List<(byte[], string)?> TasksResult = new List<(byte[], string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = APIStaticFolder + $"/cache/MakeBarSdat/{WebAPIsUtils.GenerateDynamicCacheGuid(WebAPIsUtils.GetCurrentDateTime())}";
+                string maindir = TempDirPath + $"/MakeBarSdat/{WebAPIsUtils.GenerateDynamicCacheFolder(WebAPIsUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -151,7 +151,7 @@ namespace HomeWebTools
 
                                 filename = multipartfile.FileName.TrimBeforeExtension();
 
-                                string guid = WebAPIsUtils.GenerateDynamicCacheGuid(filename);
+                                string guid = WebAPIsUtils.GenerateDynamicCacheFolder(filename);
 
                                 string tempdir = $"{maindir}/{guid}";
 
@@ -241,9 +241,9 @@ namespace HomeWebTools
                                 if (mode == "sdat")
                                 {
                                     if (version2 == "on")
-                                        RunUnBAR.RunEncrypt(/*APIStaticFolder,*/ rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat"/*, SDATVersion*/);
+                                        RunUnBAR.RunEncrypt(/*TempDirPath,*/ rebardir + $"/{filename}.SHARC", rebardir + $"/{filename.ToLower()}.sdat"/*, SDATVersion*/);
                                     else
-                                        RunUnBAR.RunEncrypt(/*APIStaticFolder,*/ rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat"/*, SDATVersion*/);
+                                        RunUnBAR.RunEncrypt(/*TempDirPath,*/ rebardir + $"/{filename}.BAR", rebardir + $"/{filename.ToLower()}.sdat"/*, SDATVersion*/);
 
                                     using (FileStream zipStream = new FileStream(rebardir + $"/{filename}_Rebar.zip", FileMode.Create))
                                     {
@@ -401,14 +401,14 @@ namespace HomeWebTools
             return output;
         }
 
-        public static async Task<(byte[], string)?> UnBar(string APIStaticFolder, Stream PostData, string ContentType, string HelperStaticFolder)
+        public static async Task<(byte[], string)?> UnBar(string TempDirPath, Stream PostData, string ContentType, string HelperStaticFolder)
         {
             (byte[], string)? output = null;
             List<(byte[], string)?> TasksResult = new List<(byte[], string)?>();
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = APIStaticFolder + $"/cache/UnBar/{WebAPIsUtils.GenerateDynamicCacheGuid(WebAPIsUtils.GetCurrentDateTime())}";
+                string maindir = TempDirPath + $"/UnBar/{WebAPIsUtils.GenerateDynamicCacheFolder(WebAPIsUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -478,7 +478,7 @@ namespace HomeWebTools
 
                                 string mapfilepath = filename + ".map";
 
-                                string tempdir = $"{maindir}/{WebAPIsUtils.GenerateDynamicCacheGuid(filename)}";
+                                string tempdir = $"{maindir}/{WebAPIsUtils.GenerateDynamicCacheFolder(filename)}";
 
                                 string unbardir = tempdir + $"/unbar";
 
@@ -513,19 +513,19 @@ namespace HomeWebTools
 
                                 if (filename.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase) || filename.EndsWith(".dat", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false, cdnMode);
+                                    await RunUnBAR.Run(TempDirPath, barfile, unbardir, false, cdnMode);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 4).ToUpper();
                                 }
                                 else if (filename.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, false, 0);
+                                    await RunUnBAR.Run(TempDirPath, barfile, unbardir, false, 0);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 6).ToUpper();
                                 }
                                 else if (filename.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    await RunUnBAR.Run(APIStaticFolder, barfile, unbardir, true, cdnMode);
+                                    await RunUnBAR.Run(TempDirPath, barfile, unbardir, true, cdnMode);
                                     ogfilename = filename;
                                     filename = filename.Substring(0, filename.Length - 5).ToUpper();
                                 }
