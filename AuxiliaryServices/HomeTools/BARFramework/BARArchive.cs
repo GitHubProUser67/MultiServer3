@@ -12,6 +12,8 @@ using System;
 using CompressionLibrary.Edge;
 using NetworkLibrary.Extension;
 using HomeTools.AFS;
+using NetworkLibrary.HTTP;
+using NetworkLibrary.Upscalers;
 
 namespace HomeTools.BARFramework
 {
@@ -38,9 +40,15 @@ namespace HomeTools.BARFramework
 
         private bool encrypt = false;
 
+        private bool optimizeassets = false;
+
         private ushort cdnMode = 0;
 
         private string version2key = string.Empty;
+
+        private string convertersfolder = null;
+
+        private string m_imparams = ImageOptimizer.defaultOptimizerParams;
 
         public BARArchive()
         {
@@ -51,8 +59,9 @@ namespace HomeTools.BARFramework
             m_allowWhitespaceInFilenames = true;
         }
 
-        public BARArchive(string sourceFilePath, string resourceRoot, ushort cdnMode = 0, int UserData = 0, bool encrypt = false, bool bigendian = false, string version2key = "") : this()
+        public BARArchive(string ConvertersFolder, string sourceFilePath, string resourceRoot, ushort cdnMode = 0, int UserData = 0, bool encrypt = false, bool bigendian = false, string version2key = "", bool optimizeassets = false) : this()
         {
+            convertersfolder = ConvertersFolder;
             m_sourceFile = sourceFilePath;
             m_resourceRoot = resourceRoot;
             this.cdnMode = cdnMode;
@@ -66,6 +75,7 @@ namespace HomeTools.BARFramework
                 this.version2key = version2key;
                 m_header.Version = 512;
             }
+            this.optimizeassets = optimizeassets;
         }
 
         public bool Dirty
@@ -89,6 +99,21 @@ namespace HomeTools.BARFramework
             set
             {
                 m_allowWhitespaceInFilenames = value;
+            }
+        }
+
+        public string ImageMagickParams
+        {
+            get
+            {
+                return m_imparams;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                    m_imparams = ImageOptimizer.defaultOptimizerParams;
+                else
+                    m_imparams = value;
             }
         }
 
@@ -826,18 +851,42 @@ namespace HomeTools.BARFramework
                 ReplaceFile(filePath, options);
                 return;
             }
-            using (FileStream fileStream = File.OpenRead(filePath))
+            string extension = null;
+            try
             {
-                try
+                extension = Path.GetExtension(filePath);
+            }
+            catch
+            {
+            }
+            string ContentType = HTTPProcessor.GetMimeType(extension);
+            if (optimizeassets && (ContentType.StartsWith("image/") || (!string.IsNullOrEmpty(extension) && extension.Equals(".dds", StringComparison.InvariantCultureIgnoreCase))))
+            {
+                using (Stream stream = ImageOptimizer.OptimizeImage(convertersfolder, filePath, extension, m_imparams))
                 {
-                    AddFile(filePath, fileStream, options);
+                    try
+                    {
+                        AddFile(filePath, stream, options);
+                    }
+                    catch
+                    {
+
+                    }
                 }
-                catch (Exception)
+            }
+            else
+            {
+                using (FileStream fileStream = File.OpenRead(filePath))
                 {
+                    try
+                    {
+                        AddFile(filePath, fileStream, options);
+                    }
+                    catch
+                    {
 
+                    }
                 }
-
-                fileStream.Close();
             }
         }
 
@@ -856,7 +905,20 @@ namespace HomeTools.BARFramework
             AFSHash afsHash = new AFSHash(inBARPath);
             HashedFileName filename = (HashedFileName)afsHash.Value;
             TOCEntry tocEntry = m_toc[filename];
-            FileStream inStream = File.OpenRead(filePath);
+            Stream inStream;
+            string extension = null;
+            try
+            {
+                extension = Path.GetExtension(filePath);
+            }
+            catch
+            {
+            }
+            string ContentType = HTTPProcessor.GetMimeType(extension);
+            if (optimizeassets && (ContentType.StartsWith("image/") || (!string.IsNullOrEmpty(extension) && extension.Equals(".dds", StringComparison.InvariantCultureIgnoreCase))))
+                inStream = ImageOptimizer.OptimizeImage(convertersfolder, filePath, extension, m_imparams);
+            else
+                inStream = File.OpenRead(filePath);
             bool compress = ShouldCompress(filePath, options);
             CompressAndAddFile(compress, inStream, tocEntry);
             Dirty = true;

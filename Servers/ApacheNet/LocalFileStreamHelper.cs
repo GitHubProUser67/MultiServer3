@@ -39,13 +39,20 @@ namespace ApacheNet
 
             bool compressionSettingEnabled = ApacheNetServerConfiguration.EnableHTTPCompression;
             bool sent = false;
-            Stream? st;
+            string extension = Path.GetExtension(filePath);
+            Stream? st = null;
 
-            if (ApacheNetServerConfiguration.EnableImageUpscale && ContentType.StartsWith("image/"))
+            if (ApacheNetServerConfiguration.EnableImageUpscale && (ContentType.StartsWith("image/") || (!string.IsNullOrEmpty(extension) && extension.Equals(".dds", StringComparison.InvariantCultureIgnoreCase))))
             {
                 ctx.Response.ContentType = ContentType;
 
-                st = ImageOptimizer.OptimizeImage(ApacheNetServerConfiguration.ConvertersFolder, filePath, Path.GetExtension(filePath));
+                try
+                {
+                    st = ImageOptimizer.OptimizeImage(ApacheNetServerConfiguration.ConvertersFolder, filePath, extension, ImageOptimizer.defaultOptimizerParams);
+                }
+                catch
+                {
+                }
             }
             else if (isHtmlCompatible && isVideoOrAudio)
             {
