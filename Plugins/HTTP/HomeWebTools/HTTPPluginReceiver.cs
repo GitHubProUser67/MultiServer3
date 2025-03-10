@@ -12,7 +12,9 @@ namespace HomeWebTools
 {
     public class HTTPPluginReceiver : HTTPPlugin
     {
+        // TODO, improve the plugin params, by ideally passing the server config directly.
         private string APIStaticFolder = Directory.GetCurrentDirectory() + "/static";
+        private string ConvertersStaticFolder = Directory.GetCurrentDirectory() + "/static/converters";
 
         public Task HTTPStartPlugin(string param, ushort port)
         {
@@ -46,7 +48,7 @@ namespace HomeWebTools
                             {
                                 #region LibSecure HomeTools
                                 case "/!HomeTools/MakeBarSdat/":
-                                    (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(APIStaticFolder, new MemoryStream(request.DataAsBytes), request.ContentType);
+                                    (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(ConvertersStaticFolder, APIStaticFolder, new MemoryStream(request.DataAsBytes), request.ContentType);
                                     if (makeres != null)
                                     {
                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));

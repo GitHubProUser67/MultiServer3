@@ -21,7 +21,7 @@ namespace HomeWebTools
 {
     public class HomeToolsInterface
     {
-        public static (byte[], string)? MakeBarSdat(string APIStaticFolder, Stream PostData, string ContentType)
+        public static (byte[], string)? MakeBarSdat(string ConvertersFolder, string APIStaticFolder, Stream PostData, string ContentType)
         {
             (byte[], string)? output = null;
             List<(byte[], string)?> TasksResult = new List<(byte[], string)?>();
@@ -44,6 +44,8 @@ namespace HomeWebTools
                         string encrypt = string.Empty;
                         string version2 = string.Empty;
                         string bigendian = string.Empty;
+                        string optimizeassets = string.Empty;
+                        string assetsparams = string.Empty;
                         int TimeStamp = (int)DateTime.Now.ToFileTime();
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         string mode = data.GetParameterValue("mode");
@@ -83,6 +85,22 @@ namespace HomeWebTools
                         try
                         {
                             bigendian = data.GetParameterValue("bigendian");
+                        }
+                        catch
+                        {
+                            // Not Important
+                        }
+                        try
+                        {
+                            optimizeassets = data.GetParameterValue("optimizeassets");
+                        }
+                        catch
+                        {
+                            // Not Important
+                        }
+                        try
+                        {
+                            assetsparams = data.GetParameterValue("assetsparams");
                         }
                         catch
                         {
@@ -156,28 +174,29 @@ namespace HomeWebTools
 
                                 IEnumerable<string> enumerable = Directory.EnumerateFiles(unzipdir, "*.*", SearchOption.AllDirectories);
                                 BARArchive? bararchive = null;
+                                bool optimizeassetsBool = optimizeassets == "on";
                                 if (version2 == "on")
                                 {
                                     if (bigendian == "on")
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, true, options);
+                                        bararchive = new BARArchive(ConvertersFolder, string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, true, options, optimizeassetsBool);
                                     else
-                                        bararchive = new BARArchive(string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, false, options);
+                                        bararchive = new BARArchive(ConvertersFolder, string.Format("{0}/{1}.SHARC", rebardir, filename), unzipdir, 0, TimeStamp, true, false, options, optimizeassetsBool);
                                 }
                                 else
                                 {
                                     if (encrypt == "on")
                                     {
                                         if (bigendian == "on")
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true, true);
+                                            bararchive = new BARArchive(ConvertersFolder, string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true, true, string.Empty, optimizeassetsBool);
                                         else
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true);
+                                            bararchive = new BARArchive(ConvertersFolder, string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, cdnMode, TimeStamp, true, false, string.Empty, optimizeassetsBool);
                                     }
                                     else
                                     {
                                         if (bigendian == "on")
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp, false, true);
+                                            bararchive = new BARArchive(ConvertersFolder, string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp, false, true, string.Empty, optimizeassetsBool);
                                         else
-                                            bararchive = new BARArchive(string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp);
+                                            bararchive = new BARArchive(ConvertersFolder, string.Format("{0}/{1}.BAR", rebardir, filename), unzipdir, 0, TimeStamp, false, false, string.Empty, optimizeassetsBool);
                                     }
                                     if (leanzlib == "on")
                                     {
@@ -188,6 +207,7 @@ namespace HomeWebTools
                                         bararchive.BARHeader.Flags = ArchiveFlags.Bar_Flag_ZTOC;
                                 }
 
+                                bararchive.ImageMagickParams = assetsparams;
                                 bararchive.AllowWhitespaceInFilenames = true;
 
                                 foreach (string path in enumerable)

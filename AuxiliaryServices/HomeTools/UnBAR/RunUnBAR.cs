@@ -262,7 +262,7 @@ namespace HomeTools.UnBAR
                 {
                     try
                     {
-                        BARArchive archive = new BARArchive(filePath, outDir);
+                        BARArchive archive = new BARArchive(null, filePath, outDir);
                         archive.Load();
                         //archive.WriteMap(filePath);
                         File.WriteAllText(barDirectoryPath + "/timestamp.txt", archive.BARHeader.UserData.ToString("X"));
