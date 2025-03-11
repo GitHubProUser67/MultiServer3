@@ -8,6 +8,7 @@
     using System.Text;
     using System.Collections.Generic;
     using System.Net;
+    using NetworkLibrary.HTTP;
 
     /// <summary>
     /// Watson webserver.
@@ -693,12 +694,23 @@
                                     }
                                     catch (Exception eInner)
                                     {
-                                        ctx.Response.StatusCode = 500;
-                                        ctx.Response.ContentType = DefaultPages.Pages[500].ContentType;
+                                        HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
+                                        string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(
+                                            statusCode,
+                                            null,
+                                            null,
+                                            null,
+                                            "Watson Webserver",
+                                            "https://github.com/GitHubProUser67/MultiServer3",
+                                            ctx.Request.Destination.Port,
+                                            false,
+                                            eInner).ConfigureAwait(false);
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = DefaultPages.Pages[(int)statusCode].ContentType;
                                         if (ctx.Response.ChunkedTransfer)
-                                            await ctx.Response.SendChunk(Encoding.UTF8.GetBytes(DefaultPages.Pages[500].Content), true).ConfigureAwait(false);
+                                            await ctx.Response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true).ConfigureAwait(false);
                                         else
-                                            await ctx.Response.Send(DefaultPages.Pages[500].Content).ConfigureAwait(false);
+                                            await ctx.Response.Send(htmlPage).ConfigureAwait(false);
                                         Events.HandleExceptionEncountered(this, new ExceptionEventArgs(ctx, eInner));
                                     }
                                     finally

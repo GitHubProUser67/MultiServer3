@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using CavemanTcp;
     using NetworkLibrary.Extension;
+    using NetworkLibrary.HTTP;
     using WatsonWebserver.Core;
 
     /// <summary>
@@ -732,15 +733,26 @@
             {
                 if (ctx != null)
                 {
-                    ctx.Response.StatusCode = 500;
-                    ctx.Response.ContentType = DefaultPages.Pages[500].ContentType;
+                    HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
+                    string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(
+                        statusCode,
+                        null,
+                        null,
+                        null,
+                        "Watson Webserver",
+                        "https://github.com/GitHubProUser67/MultiServer3",
+                        ctx.Request.Destination.Port,
+                        false,
+                        e).ConfigureAwait(false);
+                    ctx.Response.StatusCode = (int)statusCode;
+                    ctx.Response.ContentType = DefaultPages.Pages[(int)statusCode].ContentType;
 
                     try
                     {
                         if (ctx.Response.ChunkedTransfer)
-                            await ctx.Response.SendChunk(Encoding.UTF8.GetBytes(DefaultPages.Pages[500].Content), true, _Token).ConfigureAwait(false);
+                            await ctx.Response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true, _Token).ConfigureAwait(false);
                         else
-                            await ctx.Response.Send(DefaultPages.Pages[500].Content, _Token).ConfigureAwait(false);
+                            await ctx.Response.Send(htmlPage, _Token).ConfigureAwait(false);
                     }
                     catch
                     {

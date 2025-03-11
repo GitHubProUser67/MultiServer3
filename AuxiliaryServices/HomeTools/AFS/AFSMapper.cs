@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Linq;
 using System;
-using static System.Net.Mime.MediaTypeNames;
+using System.Collections.Concurrent;
 
 namespace HomeTools.AFS
 {
@@ -136,23 +136,23 @@ namespace HomeTools.AFS
                     File.Move(foldertomap + "/D3A7AF9F.xml", foldertomap + "/__$manifest$__");
                 if (File.Exists(foldertomap + "/EDFBFAE9.xml") && !File.Exists(foldertomap + "/FILES.TXT"))
                     File.Move(foldertomap + "/EDFBFAE9.xml", foldertomap + "/FILES.TXT");
-                foreach (string file in filesToDelete)
-                {
-                    if (File.Exists(file))
-                    {
-                        try
-                        {
-                            File.Delete(file);
-                        }
-                        catch
-                        {
-                        }
-                    }
-                }
             }
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[Mapper] - An Error happened in MapperStart - {ex}");
+            }
+            foreach (string file in filesToDelete)
+            {
+                if (File.Exists(file))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch
+                    {
+                    }
+                }
             }
             return Task.CompletedTask;
         }
@@ -278,8 +278,6 @@ namespace HomeTools.AFS
             {
                 foreach (string file in Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
                 {
-                    filesToDelete.Add(file);
-
 #if NET5_0_OR_GREATER
                     string targetPath = Path.Combine(targetDir, Path.GetRelativePath(sourceDir, file));
 #else
@@ -292,6 +290,8 @@ namespace HomeTools.AFS
                         Directory.CreateDirectory(directorytargetPath);
 
                         File.Copy(file, targetPath, true);
+
+                        filesToDelete.Add(targetPath);
                     }
                 }
             }
@@ -303,82 +303,49 @@ namespace HomeTools.AFS
 
         internal static List<MappedList> ScanForString(string sourceFile)
         {
+            string input = string.Empty;
+            ConcurrentBag<MappedList> mappedListList = new ConcurrentBag<MappedList>();
             List<RegexPatterns> regexPatternsList = new List<RegexPatterns>()
               {
                     new RegexPatterns()
                     {
                         type = ".mdl",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.mdl"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)mdl|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)mdl)"
                     },
                     new RegexPatterns
                     {
                         type = ".dds",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.dds"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)dds|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)dds)"
                     },
                     new RegexPatterns
                     {
                         type = ".dds",
-                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.dds"
+                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)dds"
                     },
                     new RegexPatterns
                     {
                         type = ".dds",
-                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.dds"
+                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)dds"
                     },
                     new RegexPatterns
                     {
                         type = ".dds",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.DDS"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".dds",
-                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.DDS"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".dds",
-                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.DDS"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".dds",
-                        pattern = "([\\w-\\s]+\\\\)+[\\w-\\s]+\\.dds"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".dds",
-                        pattern = "([\\w-\\s]+\\\\)+[\\w-\\s]+\\.DDS"
+                        pattern = "([\\w-\\s]+\\\\)+[\\w-\\s]+\\.(?i)dds"
                     },
                     new RegexPatterns
                     {
                         type = "..dds",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..dds"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..(?i)dds|(?<=[0-9a-fA-F]{8}:)(.*\\..(?i)dds)"
                     },
                     new RegexPatterns
                     {
                         type = "..dds",
-                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..dds"
+                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..(?i)dds"
                     },
                     new RegexPatterns
                     {
                         type = "..dds",
-                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..dds"
-                    },
-                    new RegexPatterns
-                    {
-                        type = "..dds",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..DDS"
-                    },
-                    new RegexPatterns
-                    {
-                        type = "..dds",
-                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..DDS"
-                    },
-                    new RegexPatterns
-                    {
-                        type = "..dds",
-                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..DDS"
+                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*..(?i)dds"
                     },
                     new RegexPatterns
                     {
@@ -387,422 +354,375 @@ namespace HomeTools.AFS
                     },
                     new RegexPatterns
                     {
-                        type = "..dds",
-                        pattern = "([\\w-\\s]+\\\\)+[\\w-\\s]+\\..DDS"
-                    },
-                    new RegexPatterns
-                    {
                         type = "passphrase",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*passphrase"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*(?i)passphrase|(?<=[0-9a-fA-F]{8}:)(.*(?i)passphrase)"
                     },
                     new RegexPatterns
                     {
                         type = "passphrase_EU",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*passphrase_EU"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*(?i)passphrase_EU|(?<=[0-9a-fA-F]{8}:)(.*(?i)passphrase_EU)"
                     },
                     new RegexPatterns
                     {
                         type = ".repertoire_circuit",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.repertoire_circuit"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)repertoire_circuit|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)repertoire_circuit)"
                     },
                     new RegexPatterns
                     {
                         type = ".lua",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.lua"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)lua|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)lua)"
                     },
                     new RegexPatterns
                     {
                         type = ".lua",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.LUA"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".lua",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.Lua"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)Lua"
                     },
                     new RegexPatterns
                     {
                         type = ".luac",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.luac"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)luac|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)luac)"
                     },
                     new RegexPatterns
                     {
                         type = ".json",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.json"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".luac",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.LUAC"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)json|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)json)"
                     },
                     new RegexPatterns
                     {
                         type = ".xml",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.xml"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".xml",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.XML"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)xml|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)xml)"
                     },
                     new RegexPatterns
                     {
                         type = ".efx",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|efx_filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.efx"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|efx_filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)efx|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)efx)"
                     },
                     new RegexPatterns
                     {
                         type = ".efx",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.effect"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)effect|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)effect)"
                     },
                     new RegexPatterns
                     {
                         type = ".bnk",
-                        pattern = "(?<=\\b(?<=source=\"|filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.bnk"
+                        pattern = "(?<=\\b(?<=source=\"|filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)bnk|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)bnk)"
                     },
                     new RegexPatterns
                     {
                         type = ".ttf",
-                        pattern = "(?<=\\b(?<=source=\"|filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ttf"
+                        pattern = "(?<=\\b(?<=source=\"|filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)ttf|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)ttf)"
                     },
                     new RegexPatterns
                     {
                         type = ".bank",
-                        pattern = "(?<=\\b(?<=source=\"|filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.bank"
+                        pattern = "(?<=\\b(?<=source=\"|filename=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)bank|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)bank)"
                     },
                     new RegexPatterns
                     {
                         type = ".hkx",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.hkx"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)hkx|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)hkx)"
                     },
                     new RegexPatterns
                     {
                         type = ".probe",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.probe"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)probe|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)probe)"
                     },
                     new RegexPatterns
                     {
                         type = ".ocean",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ocean"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)ocean|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)ocean)"
                     },
                     new RegexPatterns
                     {
                         type = ".skn",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.skn"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)skn|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)skn)"
                     },
                     new RegexPatterns
                     {
                         type = ".ani",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ani"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)ani|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)ani)"
                     },
                     new RegexPatterns
                     {
                         type = ".mp3",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.mp3"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)mp3|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)mp3)"
                     },
                     new RegexPatterns
                     {
                         type = ".atmos",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.atmos"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)atmos|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)atmos)"
                     },
                     new RegexPatterns
                     {
                         type = ".png",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.png"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)png|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)png)"
                     },
                     new RegexPatterns
                     {
                         type = ".cer",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.cer"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)cer|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)cer)"
                     },
                     new RegexPatterns
                     {
                         type = ".der",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.der"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)der|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)der)"
                     },
                     new RegexPatterns
                     {
                         type = ".bin",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.bin"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)bin|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)bin)"
                     },
                     new RegexPatterns
                     {
                         type = ".raw",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.raw"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)raw|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)raw)"
                     },
                     new RegexPatterns
                     {
                         type = ".ini",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ini"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)ini|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)ini)"
                     },
                     new RegexPatterns
                     {
                         type = ".txt",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.txt"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)txt|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)txt)"
                     },
                     new RegexPatterns
                     {
                         type = ".enemy",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.enemy"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)enemy|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)enemy)"
                     },
                     new RegexPatterns
                     {
                         type = ".ui-setup",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ui-setup"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)ui-setup|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)ui-setup)"
                     },
                     new RegexPatterns
                     {
                         type = ".cam-def",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.cam-def"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)cam-def|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)cam-def)"
                     },
                     new RegexPatterns
                     {
                         type = ".level-setup",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.level-setup"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)level-setup|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)level-setup)"
                     },
                     new RegexPatterns
                     {
                         type = ".node-def",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.node-def"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)node-def|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)node-def)"
                     },
                     new RegexPatterns
                     {
                         type = ".spline-def",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.spline-def"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)spline-def|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)spline-def)"
                     },
                     new RegexPatterns
                     {
                         type = ".psd",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.psd"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)psd|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)psd)"
                     },
                     new RegexPatterns
                     {
                         type = ".tmx",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.tmx"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)tmx|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)tmx)"
                     },
                     new RegexPatterns
                     {
                         type = ".atgi",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.atgi"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)atgi|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)atgi)"
                     },
                     new RegexPatterns
                     {
                         type = ".fpo",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.fpo"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)fpo|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)fpo)"
                     },
                     new RegexPatterns
                     {
                         type = ".bank",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.bank"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)bank|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)bank)"
                     },
                     new RegexPatterns
                     {
                         type = ".bnk",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.bnk"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)bnk|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)bnk)"
                     },
                     new RegexPatterns
                     {
                         type = ".agf",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.agf"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)agf|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)agf)"
                     },
                     new RegexPatterns
                     {
                         type = ".avtr",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.avtr"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)avtr|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)avtr)"
                     },
                     new RegexPatterns
                     {
                         type = ".vpo",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.vpo"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)vpo|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)vpo)"
                     },
                     new RegexPatterns
                     {
                         type = ".vxd",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.vxd"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)vxd|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)vxd)"
                     },
                     new RegexPatterns
                     {
                         type = ".jpg",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.jpg"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)jpg|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)jpg)"
                     },
                     new RegexPatterns
                     {
                         type = ".mp4",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.mp4"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)mp4|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)mp4)"
                     },
                     new RegexPatterns
                     {
                         type = ".sdat",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sdat"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)sdat|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)sdat)"
                     },
                     new RegexPatterns
                     {
                         type = ".dat",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.dat"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)dat|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)dat)"
                     },
                     new RegexPatterns
                     {
                         type = ".svml",
-                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.svml"
+                        pattern = "(?<=\\b(?<=href=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)svml|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)svml)"
                     },
                     new RegexPatterns
                     {
                         type = ".svml",
-                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.svml"
+                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)svml"
                     },
                     new RegexPatterns
                     {
                         type = ".sql",
-                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sql"
+                        pattern = "(?<=\\b(?<=src=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)sql|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)sql)"
                     },
                     new RegexPatterns
                     {
                         type = ".svml",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.svml"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)svml"
                     },
                     new RegexPatterns
                     {
                         type = ".fp",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.fp"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)fp|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)fp)"
                     },
                     new RegexPatterns
                     {
                         type = ".sql",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sql"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".BAR",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.BAR"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)sql"
                     },
                     new RegexPatterns
                     {
                         type = ".vp",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.vp"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)vp|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)vp)"
                     },
                     new RegexPatterns
                     {
                         type = ".dat",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.dat"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)dat"
                     },
                     new RegexPatterns
                     {
                         type = ".sdat",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sdat"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)sdat"
                     },
                     new RegexPatterns
                     {
                         type = ".bar",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.bar"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)bar|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)bar)"
                     },
                     new RegexPatterns
                     {
                         type = ".odc",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.odc"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)odc|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)odc)"
                     },
                     new RegexPatterns
                     {
                         type = ".scene",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.scene"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)scene|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)scene)"
                     },
                     new RegexPatterns
                     {
                         type = ".scene",
-                        pattern = "(?<=\\b(?<=config=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.scene"
+                        pattern = "(?<=\\b(?<=config=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)scene"
                     },
                     new RegexPatterns
                     {
                         type = ".sharc",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sharc"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".SHARC",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.SHARC"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)sharc|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)sharc)"
                     },
                     new RegexPatterns
                     {
                         type = ".map",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.map"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)map|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)map)"
                     },
                     new RegexPatterns
                     {
                         type = ".gui-setup",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.gui-setup"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)gui-setup|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)gui-setup)"
                     },
                     new RegexPatterns
                     {
                         type = ".oel",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.oel"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)oel|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)oel)"
                     },
                     new RegexPatterns
                     {
                         type = ".wav",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.wav"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".gui-setup",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.gui-setup"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)wav|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)wav)"
                     },
                     new RegexPatterns
                     {
                         type = ".sdc",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sdc"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)sdc|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)sdc)"
                     },
                     new RegexPatterns
                     {
                         type = ".sdc",
-                        pattern = "(?<=\\b(?<=desc=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.sdc"
+                        pattern = "(?<=\\b(?<=desc=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)sdc"
                     },
                     new RegexPatterns
                     {
                         type = ".oxml",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.oxml"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)oxml|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)oxml)"
                     },
                     new RegexPatterns
                     {
                         type = ".ttf",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ttf"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".ttf",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.TTF"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)ttf|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)ttf)"
                     },
                     new RegexPatterns
                     {
                         type = ".tga",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.tga"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)tga|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)tga)"
                     },
                     new RegexPatterns
                     {
                         type = ".rig",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.rig"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)rig|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)rig)"
                     },
                     new RegexPatterns
                     {
                         type = ".jsp",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.jsp"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)jsp|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)jsp)"
                     },
                     new RegexPatterns
                     {
                         type = ".fnt",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.fnt"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)fnt|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)fnt)"
                     },
                     new RegexPatterns
                     {
                         type = ".shpack",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.shpack"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".txt",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.txt"
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)shpack|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)shpack)"
                     },
               };
-            string input = string.Empty;
-            List<MappedList> mappedListList = new List<MappedList>();
             using (StreamReader streamReader = File.OpenText(sourceFile))
             {
                 input = streamReader.ReadToEnd();
@@ -815,23 +735,17 @@ namespace HomeTools.AFS
                 {
                     Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern).OfType<Match>(), match =>
                     {
-                        lock (mappedListList)
+                        MappedList mappedList = new MappedList()
                         {
-                            if (!mappedListList.Contains(new MappedList()
-                            {
-                                type = regexPatterns.type,
-                                file = match.Value
-                            }))
-                                mappedListList.Add(new MappedList()
-                                {
-                                    type = regexPatterns.type,
-                                    file = match.Value
-                                });
-                        }
+                            type = regexPatterns.type,
+                            file = match.Value
+                        };
+                        if (!mappedListList.Contains(mappedList))
+                            mappedListList.Add(mappedList);
                     });
                 }
             });
-            return mappedListList;
+            return mappedListList.ToList();
         }
 #if !NET5_0_OR_GREATER
         private static string GetRelativePath(string sourceDir, string file)
