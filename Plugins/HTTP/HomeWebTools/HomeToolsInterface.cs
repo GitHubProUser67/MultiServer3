@@ -28,7 +28,7 @@ namespace HomeWebTools
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = TempDirPath + $"/MakeBarSdat/{WebAPIsUtils.GenerateDynamicCacheFolder(WebAPIsUtils.GetCurrentDateTime())}";
+                string maindir = TempDirPath + $"MakeBarSdat/{WebAPIsUtils.GenerateDynamicCacheFolder(WebAPIsUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -408,7 +408,7 @@ namespace HomeWebTools
 
             if (PostData != null && !string.IsNullOrEmpty(ContentType))
             {
-                string maindir = TempDirPath + $"/UnBar/{WebAPIsUtils.GenerateDynamicCacheFolder(WebAPIsUtils.GetCurrentDateTime())}";
+                string maindir = TempDirPath + $"UnBar/{WebAPIsUtils.GenerateDynamicCacheFolder(WebAPIsUtils.GetCurrentDateTime())}";
                 Directory.CreateDirectory(maindir);
                 string boundary = HTTPProcessor.ExtractBoundary(ContentType);
                 if (!string.IsNullOrEmpty(boundary))
@@ -422,7 +422,6 @@ namespace HomeWebTools
                         string ogfilename = string.Empty;
                         string subfolder = string.Empty;
                         string bruteforce = string.Empty;
-                        string afsengine = string.Empty;
                         var data = MultipartFormDataParser.Parse(ms, boundary);
                         string prefix = data.GetParameterValue("prefix");
                         try
@@ -436,14 +435,6 @@ namespace HomeWebTools
                         try
                         {
                             bruteforce = data.GetParameterValue("bruteforce");
-                        }
-                        catch
-                        {
-                            // Not Important
-                        }
-                        try
-                        {
-                            afsengine = data.GetParameterValue("afsengine");
                         }
                         catch
                         {
@@ -544,7 +535,7 @@ namespace HomeWebTools
                                     continue;
                                 }
 
-                                LegacyMapper? map = new LegacyMapper();
+                                AFSMapper? map = new AFSMapper();
 
                                 if (Directory.Exists(unbardir + $"/{filename}") && (ogfilename.EndsWith(".bar", StringComparison.InvariantCultureIgnoreCase) || ogfilename.EndsWith(".sharc", StringComparison.InvariantCultureIgnoreCase) || ogfilename.EndsWith(".sdat", StringComparison.InvariantCultureIgnoreCase)))
                                 {
@@ -555,12 +546,7 @@ namespace HomeWebTools
                                             int fileCount = Directory.GetFiles(dircursor).Length;
 
                                             if (fileCount > 0)
-                                            {
-                                                if (afsengine == "on")
-                                                    await AFSClass.AFSMapStart(dircursor, prefix, bruteforce);
-                                                else
-                                                    await map.MapperStart(dircursor, HelperStaticFolder, prefix, bruteforce);
-                                            }
+                                                await map.MapperStart(dircursor, HelperStaticFolder, prefix, bruteforce);
                                         }
                                     }
                                     else
@@ -568,12 +554,7 @@ namespace HomeWebTools
                                         int fileCount = Directory.GetFiles(unbardir + $"/{filename}").Length;
 
                                         if (fileCount > 0)
-                                        {
-                                            if (afsengine == "on")
-                                                await AFSClass.AFSMapStart(unbardir + $"/{filename}", prefix, bruteforce);
-                                            else
-                                                await map.MapperStart(unbardir + $"/{filename}", HelperStaticFolder, prefix, bruteforce);
-                                        }
+                                            await map.MapperStart(unbardir + $"/{filename}", HelperStaticFolder, prefix, bruteforce);
                                     }
 
                                     ZipFile.CreateFromDirectory(unbardir + $"/{filename}", tempdir + $"/{filename}_Mapped.zip");
@@ -589,12 +570,7 @@ namespace HomeWebTools
                                             int fileCount = Directory.GetFiles(dircursor).Length;
 
                                             if (fileCount > 0)
-                                            {
-                                                if (afsengine == "on")
-                                                    await AFSClass.AFSMapStart(dircursor, prefix, bruteforce);
-                                                else
-                                                    await map.MapperStart(dircursor, HelperStaticFolder, prefix, bruteforce);
-                                            }
+                                                await map.MapperStart(dircursor, HelperStaticFolder, prefix, bruteforce);
                                         }
                                     }
                                     else
@@ -602,12 +578,7 @@ namespace HomeWebTools
                                         int fileCount = Directory.GetFiles(unbardir + $"/{filename}").Length;
 
                                         if (fileCount > 0)
-                                        {
-                                            if (afsengine == "on")
-                                                await AFSClass.AFSMapStart(unbardir + $"/{filename}", prefix, bruteforce);
-                                            else
-                                                await map.MapperStart(unbardir + $"/{filename}", HelperStaticFolder, prefix, bruteforce);
-                                        }
+                                            await map.MapperStart(unbardir + $"/{filename}", HelperStaticFolder, prefix, bruteforce);
                                     }
 
                                     ZipFile.CreateFromDirectory(unbardir + $"/{filename}", tempdir + $"/{filename}_Mapped.zip");
@@ -623,12 +594,7 @@ namespace HomeWebTools
                                             int fileCount = Directory.GetFiles(dircursor).Length;
 
                                             if (fileCount > 0)
-                                            {
-                                                if (afsengine == "on")
-                                                    await AFSClass.AFSMapStart(dircursor, prefix, bruteforce);
-                                                else
-                                                    await map.MapperStart(dircursor, HelperStaticFolder, prefix, bruteforce);
-                                            }
+                                                await map.MapperStart(dircursor, HelperStaticFolder, prefix, bruteforce);
                                         }
                                     }
                                     else
@@ -636,12 +602,7 @@ namespace HomeWebTools
                                         int fileCount = Directory.GetFiles(unbardir).Length;
 
                                         if (fileCount > 0)
-                                        {
-                                            if (afsengine == "on")
-                                                await AFSClass.AFSMapStart(unbardir, prefix, bruteforce);
-                                            else
-                                                await map.MapperStart(unbardir, HelperStaticFolder, prefix, bruteforce);
-                                        }
+                                            await map.MapperStart(unbardir, HelperStaticFolder, prefix, bruteforce);
                                     }
 
                                     ZipFile.CreateFromDirectory(unbardir, tempdir + $"/{filename}_Mapped.zip");
