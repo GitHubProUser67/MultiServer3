@@ -210,141 +210,7 @@ namespace ApacheNet
                 _Server.Settings.Debug.Responses = true;
                 _Server.Settings.Debug.Routing = true;
 
-                _Server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/objects/D2CDD8B2-DE444593-A64C68CB-0B5EDE23/{id}.xml", async (ctx) =>
-                {
-                    string? QuizID = ctx.Request.Url.Parameters["id"];
-
-                    if (!string.IsNullOrEmpty(QuizID))
-                    {
-                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                        ctx.Response.ContentType = "text/xml";
-                        await ctx.Response.Send("<Root></Root>"); // TODO - Figure out this complicated LUAC in object : D2CDD8B2-DE444593-A64C68CB-0B5EDE23
-                    }
-                    else
-                    {
-                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                        ctx.Response.ContentType = "text/plain";
-                        await ctx.Response.Send();
-                    }
-                });
-
-                _Server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/setDressing.xml", async (ctx) =>
-                {
-                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                    ctx.Response.ContentType = "text/xml";
-                    await ctx.Response.Send(LUA2XmlProcessor.TransformLuaTableToXml(@"setDressing = {
-		                profiles = {
-			                'Votertron',
-			                'Customisation',
-			                'Posertrons',
-			                'BackstagePass',
-		                },
-		                entities = {
-			                ['main_scene'] = {
-				                'Booth_1_Colour',
-				                'Booth_1_Back',
-				                'Booth_2_Colour',
-				                'Booth_2_Back',
-				                'Booth_3_Colour',
-				                'Booth_3_Back',
-				                'Booths_Outer',
-				                'Lobby_Gate_Internal',
-				                'Lobby_Gate_External',
-				                'Lobby_Gate_Base',
-				                'Lobby_Main_Walls',
-				                'Lobby_Short_Walls',
-				                'Lobby_Tall_Walls',
-				                --'Lobby_Bench_Top',
-				                --'Lobby_Bench_Bottom',
-				                'Bar_Top_Front',
-				                'Bar_Back',
-				                'Bar_Front',
-				                'Bar_Floor',
-				                --'Bar_Sofa_Bottom',
-				                --'Bar_Sofa_Top',
-				                'Vip_Back',
-				                'Vip_Floor_Tile',
-				                'Vip_StairWall',
-				                'Vip_Cloth',
-				                --'Vip_Back_Sofa',
-				                --'Vip_Sofa_Bottom',
-				                --'Vip_Sofa_Top',
-				                'Catwalk_Floor',
-				                'Catwalk_backboard',
-				                --'Catwalk_Scoreboard',
-				                'Backstage_Back_Wall',
-				                'Backstage_Walls',
-				                'Backstage_Ceiling',
-				                'Backstage_Floor',
-				                --'Backstage_Sofa_Bottom',
-				                --'Backstage_Sofa_Top',
-				                'Backstage_Tassles',
-				                'Backstage_wood_dark_veneer',
-				                'Backstage_wood_dark_veneer2',
-			                }
-		                }
-	                }
-
-		            local options = {
-			            profiles = {},
-			            entities = {},
-		            }
-		            if setDressing then
-			            for _, name in ipairs(setDressing.profiles) do
-				            options.profiles[name] = {}
-			            end
-		            end
-		            if  setDressing then
-			            for entName, entDef in pairs(setDressing.entities) do
-				            options.entities[entName] = {}
-				            for _, matName in ipairs(entDef) do
-					            options.entities[entName][matName] = {}
-				            end
-			            end
-		            end
-
-                    local TableFromInput = {
-					    options 	= options,
-					    setups 		= {
-						    ['default'] = {
-							    profiles 	= {},
-							    dressing 	= {
-								    entities 	= {},
-							    },
-						    },
-					    },
-					    schedule 	= {
-						    january 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    february 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    march 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    april 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    may 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    june 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    july 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    august 		= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    september 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    october 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    november 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-						    december 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
-					    },
-					    customisationGroups 	= {},
-					    customisation 			= {
-						    profiles 	= {},
-						    entities 	= {},
-					    }
-				    }
-
-                    return XmlConvert.LuaToXml(TableFromInput, 'root', 1)
-                    "));
-                });
-
-                _Server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/camPath.xml", async (ctx) =>
-                {
-                    // For now this returns a default table, TODO: feed this with actual data.
-                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                    ctx.Response.ContentType = "text/xml";
-                    await ctx.Response.Send("<root></root>");
-                });
+                PostAuthParameters.Build(_Server);
 
                 _Server.Start();
                 LoggerAccessor.LogInfo($"{(port.ToString().EndsWith("443") ? "HTTPS" : "HTTP")} Server initiated on port: {port}...");
@@ -451,7 +317,7 @@ namespace ApacheNet
                     UserAgent = string.IsNullOrEmpty(request.Useragent) ? string.Empty : request.Useragent,
                     ClientAddress = request.Source.IpAddress + ":" + request.Source.Port,
 #if false // Serve as a HTTP json debugging.
-                                Body = request.ContentLength >= 0 ? Convert.ToBase64String(request.DataAsBytes) : string.Empty
+                    Body = request.ContentLength >= 0 ? Convert.ToBase64String(request.DataAsBytes) : string.Empty
 #endif
                 }, Formatting.Indented) + ") (" + ctx.Timestamp.TotalMs + "ms)");
 #else
@@ -688,8 +554,9 @@ namespace ApacheNet
 
                                 if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                 {
-                                    string htmlContent = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                        ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, ServerPort.ToString(), ApacheNetServerConfiguration.NotFoundSuggestions);
+                                    string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
+                                    string htmlContent = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
+                                        ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
                                     response.ContentType = "text/html";
                                     if (response.ChunkedTransfer)
                                         sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlContent), true);
@@ -1824,8 +1691,9 @@ namespace ApacheNet
 
                                                         if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                                         {
-                                                            string htmlPage = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, ServerPort.ToString(), ApacheNetServerConfiguration.NotFoundSuggestions);
+                                                            string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
+                                                            string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
+                                                                ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
 
                                                             response.ContentType = "text/html";
                                                             if (response.ChunkedTransfer)
@@ -1999,8 +1867,9 @@ namespace ApacheNet
 
                                                         if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                                         {
-                                                            string htmlPage = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                                ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, ServerPort.ToString(), ApacheNetServerConfiguration.NotFoundSuggestions);
+                                                            string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
+                                                            string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
+                                                                ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
 
                                                             response.ContentType = "text/html";
                                                             if (response.ChunkedTransfer)
@@ -2338,8 +2207,9 @@ namespace ApacheNet
 
                                                     if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                                     {
-                                                        string htmlPage = await DefaultHTMLPages.GenerateNotFound(absolutepath, $"{(secure ? "https" : "http")}://{(string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host)}",
-                                                            ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, ServerPort.ToString(), ApacheNetServerConfiguration.NotFoundSuggestions);
+                                                        string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
+                                                        string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
+                                                            ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
 
                                                         response.ContentType = "text/html";
                                                         if (response.ChunkedTransfer)

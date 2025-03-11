@@ -764,7 +764,6 @@ namespace NetworkLibrary.HTTP
             return true;
         }
 
-
         /// <summary>
         /// Check if it's need to return 304 instead.
         /// </summary>
