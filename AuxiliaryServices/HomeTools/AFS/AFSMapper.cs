@@ -1,4 +1,3 @@
-using HomeTools.AFS;
 using CustomLogger;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -6,23 +5,33 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Linq;
 using System;
+using static System.Net.Mime.MediaTypeNames;
 
-namespace HomeTools.UnBAR
+namespace HomeTools.AFS
 {
-    public partial class LegacyMapper
+    internal class MappedList
     {
-        // Declare a global list to store file paths
-        private readonly List<string> filePathList = new List<string>();
+        public string type;
+        public string file;
+    }
+
+    internal class RegexPatterns
+    {
+        public string type;
+        public string pattern;
+    }
+
+    public partial class AFSMapper
+    {
+        private readonly List<string> filesToDelete = new List<string>();
 
         public Task MapperStart(string foldertomap, string helperfolder, string prefix, string bruteforce)
         {
             MapperPrepareFiles(foldertomap);
-
             try
             {
-                if (bruteforce == "on" && !string.IsNullOrEmpty(helperfolder))
-                    CopyFiles(helperfolder, foldertomap);
-
+                if (bruteforce == "on")
+                    CopyHelperFiles(helperfolder, foldertomap);
                 if (string.IsNullOrEmpty(prefix))
                 {
 #if NET7_0_OR_GREATER
@@ -35,19 +44,15 @@ namespace HomeTools.UnBAR
                     File.WriteAllText(foldertomap + "/ObjectXMLBruteforce.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                         $" <XML>\r\n<asset source=\"objects/{match.Groups[0].Value}/object.xml\"/>\r\n<asset source=\"objects/{match.Groups[0].Value}/res" +
                         $"ources.xml\"/>\r\n<asset source=\"objects/{match.Groups[0].Value}/localisation.xml\"/>\r\n</XML>");
-                    filePathList.Add(foldertomap + "/ObjectXMLBruteforce.xml");
+                    filesToDelete.Add(foldertomap + "/ObjectXMLBruteforce.xml");
                 }
-
+                List<MappedList> mappedListList = new List<MappedList>();
                 IEnumerable<string> strings = Directory.EnumerateFiles(foldertomap, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mdl", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".atmos", StringComparison.InvariantCultureIgnoreCase)
                 || s.EndsWith(".efx", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".xml", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".scene", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".map", StringComparison.InvariantCultureIgnoreCase)
                 || s.EndsWith(".lua", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".luac", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".unknown", StringComparison.InvariantCultureIgnoreCase) || s.EndsWith(".txt", StringComparison.InvariantCultureIgnoreCase));
-                List<MappedList> mappedListList = new List<MappedList>();
-                int i = 0;
                 foreach (string sourceFile in strings)
                 {
-                    // LoggerAccessor.DrawTextProgressBar($"[Mapper] - Scanning: {sourceFile}", i, strings.Count() - 1); // Commented since other logs can polute this.
                     mappedListList.AddRange(ScanForString(sourceFile));
-                    i++;
                 }
             uuidloop:
                 foreach (MappedList mappedList in mappedListList)
@@ -83,11 +88,12 @@ namespace HomeTools.UnBAR
                             if (File.Exists(Path.Combine(foldertomap, file.Name)))
                             {
                                 new FileInfo(Path.Combine(foldertomap, text).ToUpper()).Directory?.Create();
-                                if (!File.Exists(Path.Combine(foldertomap, text.ToUpper())))
+                                string upper_casetext = text.ToUpper();
+                                if (!File.Exists(Path.Combine(foldertomap, upper_casetext)))
                                 {
-                                    File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, text.ToUpper()));
+                                    File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, upper_casetext));
 #if DEBUG
-                                    LoggerAccessor.LogInfo($"[Mapper] - Mapped {file.Name} -> {text.ToUpper()}");
+                                    LoggerAccessor.LogInfo($"[Mapper] - Mapped {file.Name} -> {upper_casetext}");
 #endif
                                 }
                             }
@@ -102,11 +108,12 @@ namespace HomeTools.UnBAR
                                 if (File.Exists(Path.Combine(foldertomap, file.Name)))
                                 {
                                     new FileInfo(Path.Combine(foldertomap, cdatafromatmos).ToUpper()).Directory?.Create();
-                                    if (!File.Exists(Path.Combine(foldertomap, cdatafromatmos.ToUpper())))
+                                    string upper_casecdatafromatmos = cdatafromatmos.ToUpper();
+                                    if (!File.Exists(Path.Combine(foldertomap, upper_casecdatafromatmos)))
                                     {
-                                        File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, cdatafromatmos.ToUpper()));
+                                        File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, upper_casecdatafromatmos));
 #if DEBUG
-                                        LoggerAccessor.LogInfo($"[Mapper] - Mapped {file.Name} -> {cdatafromatmos.ToUpper()}");
+                                        LoggerAccessor.LogInfo($"[Mapper] - Mapped {file.Name} -> {upper_casecdatafromatmos}");
 #endif
                                     }
                                 }
@@ -114,36 +121,39 @@ namespace HomeTools.UnBAR
                         }
                     }
                 }
-
-               if (!string.IsNullOrEmpty(prefix) && prefix.StartsWith("objects/") && prefix.Length == 44 && prefix.EndsWith("/"))
+                if (!string.IsNullOrEmpty(prefix) && prefix.StartsWith("objects/") && prefix.Length == 44 && prefix.EndsWith("/"))
                 {
                     prefix = string.Empty;
                     goto uuidloop;
                 }
-
                 if (File.Exists(foldertomap + "/4E545585.dds") && !File.Exists(foldertomap + "/PLACEHOLDER_N.DDS"))
                     File.Move(foldertomap + "/4E545585.dds", foldertomap + "/PLACEHOLDER_N.DDS");
-
                 if (File.Exists(foldertomap + "/4EE3523A.dds") && !File.Exists(foldertomap + "/PLACEHOLDER_S.DDS"))
                     File.Move(foldertomap + "/4EE3523A.dds", foldertomap + "/PLACEHOLDER_S.DDS");
-
                 if (File.Exists(foldertomap + "/696E72D6.dds") && !File.Exists(foldertomap + "/HATBUBBLE.DDS"))
                     File.Move(foldertomap + "/696E72D6.dds", foldertomap + "/HATBUBBLE.DDS");
-
                 if (File.Exists(foldertomap + "/D3A7AF9F.xml") && !File.Exists(foldertomap + "/__$manifest$__"))
                     File.Move(foldertomap + "/D3A7AF9F.xml", foldertomap + "/__$manifest$__");
-
-                foreach (string file in filePathList)
+                if (File.Exists(foldertomap + "/EDFBFAE9.xml") && !File.Exists(foldertomap + "/FILES.TXT"))
+                    File.Move(foldertomap + "/EDFBFAE9.xml", foldertomap + "/FILES.TXT");
+                foreach (string file in filesToDelete)
                 {
                     if (File.Exists(file))
-                        File.Delete(file);
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[Mapper] - An Error happened in MapperStart - {ex}");
             }
-
             return Task.CompletedTask;
         }
 
@@ -151,108 +161,105 @@ namespace HomeTools.UnBAR
         {
             try
             {
-                string text = string.Empty;
+                string text = null;
 
-                foreach (string myfile in Directory.GetFiles(foldertomap))
+                foreach (string filePath in Directory.GetFiles(foldertomap))
                 {
-                    string newFileName = myfile.Replace("0X", string.Empty);
-                    text = File.ReadAllText(myfile);
+                    string newFilePath = filePath.Replace("0X", string.Empty);
+                    text = File.ReadAllText(filePath);
 
-                    if (new FileInfo(myfile).Length <= 0)
+                    if (new FileInfo(filePath).Length <= 0)
                     {
-                        if (!File.Exists(newFileName + ".CORRUPTED"))
-                            File.Move(myfile, newFileName + ".CORRUPTED");
+                        if (!File.Exists(newFilePath + ".CORRUPTED"))
+                            File.Move(filePath, newFilePath + ".CORRUPTED");
                     }
                     else
                     {
-                        if (!Path.HasExtension(myfile))
+                        if (!Path.HasExtension(filePath))
                         {
                             if (text.StartsWith("DDS |"))
                             {
-                                if (!File.Exists(newFileName + ".dds"))
-                                    File.Move(myfile, newFileName + ".dds");
+                                if (!File.Exists(newFilePath + ".dds"))
+                                    File.Move(filePath, newFilePath + ".dds");
                             }
                             else if (text.StartsWith("LuaQ"))
                             {
-                                if (!File.Exists(newFileName + ".luac"))
-                                    File.Move(myfile, newFileName + ".luac");
+                                if (!File.Exists(newFilePath + ".luac"))
+                                    File.Move(filePath, newFilePath + ".luac");
                             }
                             else if (text.StartsWith("HM") || text.StartsWith("MR04"))
                             {
-                                if (!File.Exists(newFileName + ".mdl"))
-                                    File.Move(myfile, newFileName + ".mdl");
+                                if (!File.Exists(newFilePath + ".mdl"))
+                                    File.Move(filePath, newFilePath + ".mdl");
                             }
                             else if (text.StartsWith("‰PNG") || text.Contains("Photoshop ICC profile") || text.Contains("IHDR"))
                             {
-                                if (!File.Exists(newFileName + ".png"))
-                                    File.Move(myfile, newFileName + ".png");
+                                if (!File.Exists(newFilePath + ".png"))
+                                    File.Move(filePath, newFilePath + ".png");
                             }
                             else if (text.StartsWith("WW") || text.Contains("Havok-5.0.0-r1"))
                             {
-                                if (!File.Exists(newFileName + ".hkx"))
-                                    File.Move(myfile, newFileName + ".hkx");
+                                if (!File.Exists(newFilePath + ".hkx"))
+                                    File.Move(filePath, newFilePath + ".hkx");
                             }
                             else if (text.StartsWith("AC11"))
                             {
-                                if (!File.Exists(newFileName + ".ani"))
-                                    File.Move(myfile, newFileName + ".ani");
+                                if (!File.Exists(newFilePath + ".ani"))
+                                    File.Move(filePath, newFilePath + ".ani");
                             }
                             else if (text.StartsWith("SK08"))
                             {
-                                if (!File.Exists(newFileName + ".skn"))
-                                    File.Move(myfile, newFileName + ".skn");
+                                if (!File.Exists(newFilePath + ".skn"))
+                                    File.Move(filePath, newFilePath + ".skn");
                             }
                             else if (text.Contains("CHNK"))
                             {
-                                if (!File.Exists(newFileName + ".effect"))
-                                    File.Move(myfile, newFileName + ".effect");
+                                if (!File.Exists(newFilePath + ".effect"))
+                                    File.Move(filePath, newFilePath + ".effect");
                             }
                             else if (text.Contains("LoadLibrary") || text.Contains("function"))
                             {
-                                if (!File.Exists(newFileName + ".lua"))
-                                    File.Move(myfile, newFileName + ".lua");
+                                if (!File.Exists(newFilePath + ".lua"))
+                                    File.Move(filePath, newFilePath + ".lua");
                             }
                             else if (text.Contains("klBS"))
                             {
-                                if (!File.Exists(newFileName + ".bnk"))
-                                    File.Move(myfile, newFileName + ".bnk");
+                                if (!File.Exists(newFilePath + ".bnk"))
+                                    File.Move(filePath, newFilePath + ".bnk");
                             }
                             else if (text.Contains("LAME3.") || text.Contains("SfMarkers"))
                             {
-                                if (!File.Exists(newFileName + ".mp3"))
-                                    File.Move(myfile, newFileName + ".mp3");
+                                if (!File.Exists(newFilePath + ".mp3"))
+                                    File.Move(filePath, newFilePath + ".mp3");
                             }
                             else if (text.Contains("ftypmp42"))
                             {
-                                if (!File.Exists(newFileName + ".mp4"))
-                                    File.Move(myfile, newFileName + ".mp4");
+                                if (!File.Exists(newFilePath + ".mp4"))
+                                    File.Move(filePath, newFilePath + ".mp4");
                             }
                             else if (text.Contains("DSIG"))
                             {
-                                if (!File.Exists(newFileName + ".ttf"))
-                                    File.Move(myfile, newFileName + ".ttf");
+                                if (!File.Exists(newFilePath + ".ttf"))
+                                    File.Move(filePath, newFilePath + ".ttf");
                             }
                             else if (text.Contains("<gap:game"))
                             {
-                                if (!File.Exists(newFileName + ".scene"))
-                                    File.Move(myfile, newFileName + ".scene");
+                                if (!File.Exists(newFilePath + ".scene"))
+                                    File.Move(filePath, newFilePath + ".scene");
                             }
                             else if (text.Contains("</") || text.Contains("/>"))
                             {
-                                if (!File.Exists(newFileName + ".xml"))
-                                    File.Move(myfile, newFileName + ".xml");
+                                if (!File.Exists(newFilePath + ".xml"))
+                                    File.Move(filePath, newFilePath + ".xml");
                             }
                             else
                             {
-                                if (!File.Exists(newFileName + ".unknown"))
-                                    File.Move(myfile, newFileName + ".unknown");
+                                if (!File.Exists(newFilePath + ".unknown"))
+                                    File.Move(filePath, newFilePath + ".unknown");
                             }
                         }
-                        else
-                        {
-                            if (!File.Exists(newFileName))
-                                File.Move(myfile, newFileName);
-                        }
+                        else if (!File.Exists(newFilePath))
+                            File.Move(filePath, newFilePath);
                     }
                 }
             }
@@ -262,22 +269,17 @@ namespace HomeTools.UnBAR
             }
         }
 
-        private void CopyFiles(string sourceDir, string targetDir)
+        private void CopyHelperFiles(string sourceDir, string targetDir)
         {
-            // Check if the source directory exists
-            if (!Directory.Exists(sourceDir))
+            if (string.IsNullOrEmpty(sourceDir) || !Directory.Exists(sourceDir))
                 return;
 
-            // Create the target directory if it doesn't exist
-            Directory.CreateDirectory(targetDir);
-
-            // Get all files in the source directory and its subdirectories
-            foreach (string file in Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
+            try
             {
-                filePathList.Add(file);
-
-                try
+                foreach (string file in Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
                 {
+                    filesToDelete.Add(file);
+
 #if NET5_0_OR_GREATER
                     string targetPath = Path.Combine(targetDir, Path.GetRelativePath(sourceDir, file));
 #else
@@ -287,17 +289,15 @@ namespace HomeTools.UnBAR
 
                     if (!string.IsNullOrEmpty(directorytargetPath))
                     {
-                        // Create the directory structure in the target directory if it doesn't exist
                         Directory.CreateDirectory(directorytargetPath);
 
-                        // Copy the file to the target directory
-                        File.Copy(file, targetPath, true); // Use true to overwrite existing files
+                        File.Copy(file, targetPath, true);
                     }
                 }
-                catch
-                {
-                    // Not Important.
-                }
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Mapper] - An Error happened in CopyHelperFiles - {ex}");
             }
         }
 
@@ -797,59 +797,9 @@ namespace HomeTools.UnBAR
                     },
                     new RegexPatterns
                     {
-                        type = ".php",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.php"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".html",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.html"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".htm",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.htm"
-                    },
-                    new RegexPatterns
-                    {
                         type = ".txt",
                         pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.txt"
                     },
-                    new RegexPatterns
-                    {
-                        type = ".md",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.md"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".cs",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.cs"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".exe",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.exe"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".elf",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.elf"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".pdb",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.pdb"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".csproj",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.csproj"
-                    },
-                    new RegexPatterns
-                    {
-                        type = ".ico",
-                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.ico"
-                    }
               };
             string input = string.Empty;
             List<MappedList> mappedListList = new List<MappedList>();
@@ -863,7 +813,8 @@ namespace HomeTools.UnBAR
             {
                 if (!string.IsNullOrEmpty(regexPatterns.pattern))
                 {
-                    Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern).OfType<Match>(), match => {
+                    Parallel.ForEach(Regex.Matches(input, regexPatterns.pattern).OfType<Match>(), match =>
+                    {
                         lock (mappedListList)
                         {
                             if (!mappedListList.Contains(new MappedList()

@@ -1,9 +1,7 @@
 using NetworkLibrary.HTTP;
-using HomeTools.AFS;
 using NetworkLibrary.HTTP.PluginManager;
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
 using System.Net;
@@ -13,18 +11,12 @@ namespace HomeWebTools
     public class HTTPPluginReceiver : HTTPPlugin
     {
         // TODO, improve the plugin params, by ideally passing the server config directly.
-        private string APIStaticFolder = Directory.GetCurrentDirectory() + "/static";
+        private string APIStaticFolder = string.Empty;
         private string ConvertersStaticFolder = Directory.GetCurrentDirectory() + "/static/converters";
 
         public Task HTTPStartPlugin(string param, ushort port)
         {
             APIStaticFolder = param + "/!HomeTools";
-
-            Directory.CreateDirectory(APIStaticFolder + "/HelperFiles");
-
-            AFSClass.MapperHelperFolder = APIStaticFolder + "/HelperFiles";
-
-            _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
             return Task.CompletedTask;
         }
