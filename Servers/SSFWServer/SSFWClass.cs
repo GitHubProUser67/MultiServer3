@@ -401,7 +401,7 @@ namespace SSFWServer
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && IsSSFWRegistered(sessionid))
                                     {
                                         SSFWRewardsService reward = new(legacykey);
-                                        reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
+                                        reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath, env, SSFWUserSessionManager.GetIdBySessionId(sessionid));
                                         Response.MakeOkResponse();
                                         reward.Dispose();
                                     }

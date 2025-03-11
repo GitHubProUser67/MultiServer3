@@ -2,7 +2,6 @@ using CustomLogger;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace SSFWServer.Services
@@ -23,18 +22,18 @@ namespace SSFWServer.Services
 
             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", buffer);
 
-            SSFWUpdateMini(filepath + "/mini.json", Encoding.UTF8.GetString(buffer));
+            SSFWUpdateMini(filepath + "/mini.json", Encoding.UTF8.GetString(buffer), false);
 
             return buffer;
         }
 
-        public void HandleRewardServiceTrunksPOST(byte[] buffer, string directorypath, string filepath, string absolutepath)
+        public void HandleRewardServiceTrunksPOST(byte[] buffer, string directorypath, string filepath, string absolutepath, string env, string? userId)
         {
             Directory.CreateDirectory(directorypath);
 
             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", buffer);
 
-            SSFWTrunkServiceProcess(filepath.Replace("/setpartial", string.Empty) + ".json", Encoding.UTF8.GetString(buffer), false);
+            SSFWTrunkServiceProcess(filepath.Replace("/setpartial", string.Empty) + ".json", Encoding.UTF8.GetString(buffer), env, userId, false);
         }
 
         public void HandleRewardServiceTrunksEmergencyPOST(byte[] buffer, string directorypath, string absolutepath)
@@ -44,7 +43,7 @@ namespace SSFWServer.Services
             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", buffer);
         }
 
-        public void SSFWUpdateMini(string filePath, string postData)
+        public void SSFWUpdateMini(string filePath, string postData, bool delete)
         {
             try
             {
@@ -69,22 +68,32 @@ namespace SSFWServer.Services
                         foreach (var reward in rewardsObject)
                         {
                             string rewardKey = reward.Key;
+                            JToken? rewardValue = reward.Value;
 
                             // Check if the reward exists in the JSON array
                             JToken? existingReward = jsonArray.FirstOrDefault(r => r[rewardKey] != null);
-                            if (existingReward != null)
-                                // Update the value of the reward to 1
-                                existingReward[rewardKey] = 1;
+                            if (delete)
+                            {
+                                // If delete is true, remove the existing reward
+                                if (existingReward != null)
+                                    jsonArray.Remove(existingReward);
+                            }
                             else
                             {
-                                // Create a new reward object with the value 1
-                                JObject newReward = new JObject
+                                if (existingReward != null)
+                                    // Update the value of the reward
+                                    existingReward[rewardKey] = rewardValue ?? 1;
+                                else
                                 {
-                                    { rewardKey, 1 }
-                                };
+                                    // Create a new reward object with the value
+                                    JObject newReward = new JObject
+                                    {
+                                        { rewardKey, rewardValue ?? 1 }
+                                    };
 
-                                // Add the new reward to the JSON array
-                                jsonArray.Add(newReward);
+                                    // Add the new reward to the JSON array
+                                    jsonArray.Add(newReward);
+                                }
                             }
                         }
 
@@ -98,7 +107,7 @@ namespace SSFWServer.Services
             }
         }
 
-        public void SSFWTrunkServiceProcess(string filePath, string request, bool addOnMissingUpdateElement)
+        public void SSFWTrunkServiceProcess(string filePath, string request, string? env, string? userId, bool addOnMissingUpdateElement)
         {
             try
             {
@@ -121,9 +130,28 @@ namespace SSFWServer.Services
                                 JArray? mainArray = (JArray?)mainFile["objects"];
                                 if (mainArray != null)
                                 {
+                                    Dictionary<string, string> entriesToAddInMini = new Dictionary<string, string>();
+
                                     foreach (JObject addObject in addArray)
                                     {
                                         mainArray.Add(addObject);
+                                        if (addObject.TryGetValue("objectId", out JToken? objectIdToken) && objectIdToken != null 
+                                            && addObject.TryGetValue("type", out JToken? typeToken) && typeToken != null)
+                                            entriesToAddInMini.TryAdd(objectIdToken.ToString(), typeToken.ToString());
+                                    }
+
+                                    // Permently add items for the objects browser.
+                                    if (!string.IsNullOrEmpty(env) && !string.IsNullOrEmpty(userId))
+                                    {
+                                        string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
+
+                                        if (!File.Exists(miniPath))
+                                            File.WriteAllText(miniPath, "[]");
+
+                                        foreach (var entry in entriesToAddInMini)
+                                        {
+                                            SSFWUpdateMini(miniPath, $"{{\"rewards\":{{\"{entry.Key}\": {entry.Value}}}}}", false);
+                                        }
                                     }
                                 }
                             }
@@ -275,7 +303,7 @@ namespace SSFWServer.Services
 
                     File.WriteAllText(setPartialDirectory + "/setpartial.json", setpartialRequest);
 
-                    SSFWTrunkServiceProcess(trunkFilePath, setpartialRequest, true);
+                    SSFWTrunkServiceProcess(trunkFilePath, setpartialRequest, null, null, true);
                 }
                 catch (Exception ex)
                 {
