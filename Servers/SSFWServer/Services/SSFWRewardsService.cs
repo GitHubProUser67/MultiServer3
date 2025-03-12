@@ -2,7 +2,6 @@ using CustomLogger;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace SSFWServer.Services
@@ -23,18 +22,18 @@ namespace SSFWServer.Services
 
             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", buffer);
 
-            SSFWUpdateMini(filepath + "/mini.json", Encoding.UTF8.GetString(buffer));
+            SSFWUpdateMini(filepath + "/mini.json", Encoding.UTF8.GetString(buffer), false);
 
             return buffer;
         }
 
-        public void HandleRewardServiceTrunksPOST(byte[] buffer, string directorypath, string filepath, string absolutepath)
+        public void HandleRewardServiceTrunksPOST(byte[] buffer, string directorypath, string filepath, string absolutepath, string env, string? userId)
         {
             Directory.CreateDirectory(directorypath);
 
             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", buffer);
 
-            SSFWTrunkServiceProcess(filepath.Replace("/setpartial", string.Empty) + ".json", Encoding.UTF8.GetString(buffer), false);
+            SSFWTrunkServiceProcess(filepath.Replace("/setpartial", string.Empty) + ".json", Encoding.UTF8.GetString(buffer), env, userId);
         }
 
         public void HandleRewardServiceTrunksEmergencyPOST(byte[] buffer, string directorypath, string absolutepath)
@@ -44,7 +43,7 @@ namespace SSFWServer.Services
             File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", buffer);
         }
 
-        public void SSFWUpdateMini(string filePath, string postData)
+        public void SSFWUpdateMini(string filePath, string postData, bool delete)
         {
             try
             {
@@ -69,22 +68,31 @@ namespace SSFWServer.Services
                         foreach (var reward in rewardsObject)
                         {
                             string rewardKey = reward.Key;
+                            JToken? rewardValue = reward.Value;
+                            if (string.IsNullOrEmpty(rewardKey) || rewardValue == null)
+                                continue;
 
                             // Check if the reward exists in the JSON array
                             JToken? existingReward = jsonArray.FirstOrDefault(r => r[rewardKey] != null);
-                            if (existingReward != null)
-                                // Update the value of the reward to 1
-                                existingReward[rewardKey] = 1;
+                            if (delete)
+                            {
+                                // If delete is true, remove the existing reward
+                                if (existingReward != null)
+                                    jsonArray.Remove(existingReward);
+                            }
                             else
                             {
-                                // Create a new reward object with the value 1
-                                JObject newReward = new JObject
+                                if (existingReward != null)
+                                    // Update the value of the reward
+                                    existingReward[rewardKey] = rewardValue;
+                                else
                                 {
-                                    { rewardKey, 1 }
-                                };
-
-                                // Add the new reward to the JSON array
-                                jsonArray.Add(newReward);
+                                    // Add the new reward to the JSON array
+                                    jsonArray.Add(new JObject
+                                    {
+                                        { rewardKey, rewardValue }
+                                    });
+                                }
                             }
                         }
 
@@ -98,7 +106,7 @@ namespace SSFWServer.Services
             }
         }
 
-        public void SSFWTrunkServiceProcess(string filePath, string request, bool addOnMissingUpdateElement)
+        public void SSFWTrunkServiceProcess(string filePath, string request, string env, string? userId)
         {
             try
             {
@@ -121,9 +129,28 @@ namespace SSFWServer.Services
                                 JArray? mainArray = (JArray?)mainFile["objects"];
                                 if (mainArray != null)
                                 {
+                                    Dictionary<string, string> entriesToAddInMini = new Dictionary<string, string>();
+
                                     foreach (JObject addObject in addArray)
                                     {
                                         mainArray.Add(addObject);
+                                        if (addObject.TryGetValue("objectId", out JToken? objectIdToken) && objectIdToken != null 
+                                            && addObject.TryGetValue("type", out JToken? typeToken) && typeToken != null && typeToken.ToString() != "0")
+                                            entriesToAddInMini.TryAdd(objectIdToken.ToString(), typeToken.ToString());
+                                    }
+
+                                    // Update the mini file accordingly.
+                                    if (!string.IsNullOrEmpty(env) && !string.IsNullOrEmpty(userId))
+                                    {
+                                        string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
+
+                                        if (!File.Exists(miniPath))
+                                            File.WriteAllText(miniPath, "[]");
+
+                                        foreach (var entry in entriesToAddInMini)
+                                        {
+                                            SSFWUpdateMini(miniPath, $"{{\"rewards\":{{\"{entry.Key}\": {entry.Value}}}}}", false);
+                                        }
                                     }
                                 }
                             }
@@ -140,10 +167,7 @@ namespace SSFWServer.Services
                                         {
                                             string objectId = objectIdValue.ToString();
                                             JObject? existingObj = mainArray.FirstOrDefault(obj => obj["objectId"]?.ToString() == objectId) as JObject;
-                                            if (existingObj != null)
-                                                existingObj.Merge(updateObj, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Replace });
-                                            else if (addOnMissingUpdateElement)
-                                                mainArray.Add(updateObj);
+                                            existingObj?.Merge(updateObj, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Replace });
                                         }
                                     }
                                 }
@@ -155,14 +179,31 @@ namespace SSFWServer.Services
                                 JArray? mainArray = (JArray?)mainFile["objects"];
                                 if (mainArray != null)
                                 {
+                                    List<string> entriesToRemoveInMini = new List<string>();
+
                                     foreach (JObject deleteObj in deleteArray)
                                     {
                                         if (deleteObj.TryGetValue("objectId", out var objectIdToken) && objectIdToken is JValue objectIdValue)
                                         {
                                             string objectId = objectIdValue.ToString();
                                             JObject? existingObj = mainArray.FirstOrDefault(obj => obj["objectId"]?.ToString() == objectId) as JObject;
-                                            if (existingObj != null)
-                                                existingObj.Remove();
+                                            existingObj?.Remove();
+                                            if (deleteObj.TryGetValue("type", out JToken? typeToken) && typeToken != null && typeToken.ToString() != "0")
+                                                entriesToRemoveInMini.Add(objectId);
+                                        }
+                                    }
+
+                                    // Update the mini file accordingly.
+                                    if (!string.IsNullOrEmpty(env) && !string.IsNullOrEmpty(userId))
+                                    {
+                                        string miniPath = $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/{env}/rewards/{userId}/mini.json";
+
+                                        if (File.Exists(miniPath))
+                                        {
+                                            foreach (string entry in entriesToRemoveInMini)
+                                            {
+                                                SSFWUpdateMini(miniPath, $"{{\"rewards\":{{\"{entry}\": -1}}}}", true);
+                                            }
                                         }
                                     }
                                 }
@@ -179,70 +220,27 @@ namespace SSFWServer.Services
             }
         }
 
-        public void AddMiniEntry(List<Dictionary<string, byte>> rewardsList, string uuid, byte invtype, string trunkFilePath)
+        public void AddMiniEntry(string uuid, byte invtype, string trunkFilePath, string env, string? userId)
         {
-            if (!rewardsList.Any(x => x.ContainsKey(uuid)))
-                rewardsList.Add(new Dictionary<string, byte>
-                {
-                    { uuid, invtype }
-                });
-
-            ProcessTrunkObjectUpdate(trunkFilePath, new Dictionary<string, byte> { { uuid, invtype } }, true);
+            ProcessTrunkObjectUpdate(trunkFilePath, new Dictionary<string, byte> { { uuid, invtype } }, env, userId, true);
         }
 
-        public void RemoveMiniEntry(List<Dictionary<string, byte>> rewardsList, string uuid, byte invtype, string trunkFilePath)
+        public void RemoveMiniEntry(string uuid, byte invtype, string trunkFilePath, string env, string? userId)
         {
-            foreach (Dictionary<string, byte> dict in rewardsList)
-            {
-                if (dict.ContainsKey(uuid) && dict[uuid] == invtype)
-                {
-                    rewardsList.Remove(dict);
-                    break;
-                }
-            }
-
-            ProcessTrunkObjectUpdate(trunkFilePath, new Dictionary<string, byte> { { uuid, invtype } }, false);
+            ProcessTrunkObjectUpdate(trunkFilePath, new Dictionary<string, byte> { { uuid, invtype } }, env, userId, false);
         }
 
-        public void AddMiniEntries(List<Dictionary<string, byte>> rewardsList, Dictionary<string, byte> entriesToAdd, string trunkFilePath)
+        public void AddMiniEntries(Dictionary<string, byte> entriesToAdd, string trunkFilePath, string env, string? userId)
         {
-            foreach (var entry in entriesToAdd)
-            {
-                string uuid = entry.Key;
-
-                if (!rewardsList.Any(x => x.ContainsKey(uuid)))
-                {
-                    rewardsList.Add(new Dictionary<string, byte>
-                    {
-                        { uuid, entry.Value }
-                    });
-                }
-            }
-
-            ProcessTrunkObjectUpdate(trunkFilePath, entriesToAdd, true);
+            ProcessTrunkObjectUpdate(trunkFilePath, entriesToAdd, env, userId, true);
         }
 
-        public void RemoveMiniEntries(List<Dictionary<string, byte>> rewardsList, Dictionary<string, byte> entriesToRemove, string trunkFilePath)
+        public void RemoveMiniEntries(Dictionary<string, byte> entriesToRemove, string trunkFilePath, string env, string? userId)
         {
-            foreach (var entry in entriesToRemove)
-            {
-                string uuid = entry.Key;
-                byte invtype = entry.Value;
-
-                foreach (Dictionary<string, byte> dict in rewardsList)
-                {
-                    if (dict.ContainsKey(uuid) && dict[uuid] == invtype)
-                    {
-                        rewardsList.Remove(dict);
-                        break;
-                    }
-                }
-            }
-
-            ProcessTrunkObjectUpdate(trunkFilePath, entriesToRemove, false);
+            ProcessTrunkObjectUpdate(trunkFilePath, entriesToRemove, env, userId, false);
         }
 
-        private void ProcessTrunkObjectUpdate(string trunkFilePath, Dictionary<string, byte> entries, bool addOrUpdate)
+        private void ProcessTrunkObjectUpdate(string trunkFilePath, Dictionary<string, byte> entries, string env, string? userId, bool add)
         {
             string? trunkJson = FileHelper.ReadAllText(trunkFilePath, key);
 
@@ -269,13 +267,19 @@ namespace SSFWServer.Services
                     if (indexList.Count > 0)
                         lastIndex = indexList.Max() + 1;
 
-                    string setpartialRequest = BuildSetPartialJson(entries, lastIndex, addOrUpdate);
+                    // Make sure we don't add a given uuid twice (causes inventory errors at boot)
+                    foreach (string key in entries.Keys.Where(key => trunkJson.Contains(key)))
+                    {
+                        entries.Remove(key);
+                    }
+
+                    string setpartialRequest = BuildSetPartialJson(entries, lastIndex, add);
 
                     Directory.CreateDirectory(setPartialDirectory);
 
                     File.WriteAllText(setPartialDirectory + "/setpartial.json", setpartialRequest);
 
-                    SSFWTrunkServiceProcess(trunkFilePath, setpartialRequest, true);
+                    SSFWTrunkServiceProcess(trunkFilePath, setpartialRequest, env, userId);
                 }
                 catch (Exception ex)
                 {
@@ -284,14 +288,14 @@ namespace SSFWServer.Services
             }
         }
 
-        private string BuildSetPartialJson(Dictionary<string, byte> entries, int index, bool addOrUpdate)
+        private string BuildSetPartialJson(Dictionary<string, byte> entries, int index, bool add)
         {
             // Create the object to build the JSON structure
-            if (addOrUpdate)
+            if (add)
             {
                 var jsonObject = new
                 {
-                    update = new
+                    add = new
                     {
                         objects = new List<object>()
                     }
@@ -300,7 +304,7 @@ namespace SSFWServer.Services
                 // Loop through the dictionary and add each item to the objects list
                 foreach (var item in entries)
                 {
-                    jsonObject.update.objects.Add(new
+                    jsonObject.add.objects.Add(new
                     {
                         objectId = item.Key,
                         type = item.Value.ToString(),

@@ -401,7 +401,7 @@ namespace SSFWServer
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && IsSSFWRegistered(sessionid))
                                     {
                                         SSFWRewardsService reward = new(legacykey);
-                                        reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
+                                        reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath, env, SSFWUserSessionManager.GetIdBySessionId(sessionid));
                                         Response.MakeOkResponse();
                                         reward.Dispose();
                                     }
@@ -823,35 +823,20 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
-
-                                                if (rewardsList != null)
+                                                try
                                                 {
                                                     SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
 
-                                                    rewardService.AddMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+                                                    rewardService.AddMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
 
                                                     rewardService.Dispose();
-
-                                                    try
-                                                    {
-                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
-                                                        Response.Clear();
-                                                        Response.SetBegin(200);
-                                                        Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.Clear();
-                                                        Response.SetBegin(500);
-                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
-                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
-                                                    }
+                                                    Response.Clear();
+                                                    Response.SetBegin(200);
+                                                    Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                 }
-                                                else
+                                                catch (Exception ex)
                                                 {
-                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
+                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
@@ -888,42 +873,27 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
+                                                Dictionary<string, byte> entriesToAdd = new();
 
-                                                if (rewardsList != null)
+                                                foreach (string iteruuid in uuids)
                                                 {
-                                                    Dictionary<string, byte> entriesToAdd = new();
-
-                                                    foreach (string iteruuid in uuids)
-                                                    {
-                                                        entriesToAdd.TryAdd(iteruuid, InventoryEntryType);
-                                                    }
-
+                                                    entriesToAdd.TryAdd(iteruuid, InventoryEntryType);
+                                                }
+													
+                                                try
+                                                {
                                                     SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
 
-                                                    rewardService.AddMiniEntries(rewardsList, entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+                                                    rewardService.AddMiniEntries(entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
 
                                                     rewardService.Dispose();
-
-                                                    try
-                                                    {
-                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
-                                                        Response.Clear();
-                                                        Response.SetBegin(200);
-                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.Clear();
-                                                        Response.SetBegin(500);
-                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
-                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
-                                                    }
+                                                    Response.Clear();
+                                                    Response.SetBegin(200);
+                                                    Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                 }
-                                                else
+                                                catch (Exception ex)
                                                 {
-                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
+                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
@@ -960,35 +930,20 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
-
-                                                if (rewardsList != null)
+                                                try
                                                 {
                                                     SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
 
-                                                    rewardService.RemoveMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+                                                    rewardService.RemoveMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
 
                                                     rewardService.Dispose();
-
-                                                    try
-                                                    {
-                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
-                                                        Response.Clear();
-                                                        Response.SetBegin(200);
-                                                        Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.Clear();
-                                                        Response.SetBegin(500);
-                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
-                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
-                                                    }
+                                                    Response.Clear();
+                                                    Response.SetBegin(200);
+                                                    Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                 }
-                                                else
+                                                catch (Exception ex)
                                                 {
-                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
+                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
@@ -1025,42 +980,27 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
+                                                Dictionary<string, byte> entriesToRemove = new();
 
-                                                if (rewardsList != null)
+                                                foreach (string iteruuid in uuids)
                                                 {
-                                                    Dictionary<string, byte> entriesToRemove = new();
-
-                                                    foreach (string iteruuid in uuids)
-                                                    {
-                                                        entriesToRemove.TryAdd(iteruuid, InventoryEntryType);
-                                                    }
-
+                                                    entriesToRemove.TryAdd(iteruuid, InventoryEntryType);
+                                                }
+												
+                                                try
+                                                {
                                                     SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
 
-                                                    rewardService.RemoveMiniEntries(rewardsList, entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+                                                    rewardService.RemoveMiniEntries(entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
 
                                                     rewardService.Dispose();
-
-                                                    try
-                                                    {
-                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
-                                                        Response.Clear();
-                                                        Response.SetBegin(200);
-                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
-                                                        Response.Clear();
-                                                        Response.SetBegin(500);
-                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
-                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
-                                                    }
+                                                    Response.Clear();
+                                                    Response.SetBegin(200);
+                                                    Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
                                                 }
-                                                else
+                                                catch (Exception ex)
                                                 {
-                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
+                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));

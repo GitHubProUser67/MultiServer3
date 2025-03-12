@@ -130,7 +130,19 @@ namespace NetworkLibrary.Extension
                 // This also ensures that the count does not exceed the length of either buffer.  
                 return b1.Length == b2.Length && memcmp(b1, b2, b1.Length) == 0;
 
-            return b1.SequenceEqual(b2);
+            int i;
+            if (b1.Length == b2.Length)
+            {
+                i = 0;
+                while (i < b1.Length && (b1[i] == b2[i]))
+                {
+                    i++;
+                }
+                if (i == b1.Length)
+                    return true;
+            }
+
+            return false;
         }
 
         public static byte[] Trim(this byte[] arr)
