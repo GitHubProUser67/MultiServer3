@@ -1,6 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using ApacheNet;
+using ApacheNet.PluginManager;
 using System.Runtime;
 using NetworkLibrary.GeoLocalization;
 using System.IO;
@@ -10,7 +11,6 @@ using System;
 using System.Threading.Tasks;
 using NetworkLibrary.AIModels;
 using System.Security.Cryptography;
-using NetworkLibrary.HTTP.PluginManager;
 using System.Reflection;
 using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;

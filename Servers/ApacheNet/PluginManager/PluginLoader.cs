@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace NetworkLibrary.HTTP.PluginManager
+namespace ApacheNet.PluginManager
 {
     public class PluginLoader
     {

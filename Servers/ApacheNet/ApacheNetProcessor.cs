@@ -34,7 +34,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using NetworkLibrary.HTTP.PluginManager;
 using WatsonWebserver;
 using NetworkLibrary.Extension;
 using WebAPIService.WebArchive;
@@ -423,7 +422,7 @@ namespace ApacheNet
                 {
                     if (ApacheNetServerConfiguration.plugins.Count > 0)
                     {
-                        foreach (HTTPPlugin plugin in ApacheNetServerConfiguration.plugins.Values)
+                        foreach (PluginManager.HTTPPlugin plugin in ApacheNetServerConfiguration.plugins.Values)
                         {
                             try
                             {

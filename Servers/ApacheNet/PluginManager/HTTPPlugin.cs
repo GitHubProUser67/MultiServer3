@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace NetworkLibrary.HTTP.PluginManager
+namespace ApacheNet.PluginManager
 {
     public interface HTTPPlugin
     {

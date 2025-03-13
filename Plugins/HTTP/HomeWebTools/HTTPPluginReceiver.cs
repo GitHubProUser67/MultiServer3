@@ -1,10 +1,10 @@
 using NetworkLibrary.HTTP;
-using NetworkLibrary.HTTP.PluginManager;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
 using System.Net;
+using ApacheNet.PluginManager;
 
 namespace HomeWebTools
 {

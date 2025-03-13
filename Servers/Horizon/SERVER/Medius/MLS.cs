@@ -246,6 +246,11 @@ namespace Horizon.SERVER.Medius
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
+                                                        case 0x0016cc6c:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x0016cc6c, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -283,6 +288,11 @@ namespace Horizon.SERVER.Medius
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
+                                                        case 0x0016b4d0:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x0016b4d0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -313,6 +323,11 @@ namespace Horizon.SERVER.Medius
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
+                                                        case 0x001709e0:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x001709e0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
+                                                            break;
                                                     }
                                                     break;
                                                 case "01.86.09":
@@ -335,6 +350,11 @@ namespace Horizon.SERVER.Medius
                                                             // Sets WorldCorePointer.
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
+                                                        case 0x0016dac0:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x0016dac0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
                                                     break;
@@ -440,11 +460,13 @@ namespace Horizon.SERVER.Medius
                                                                     case "01.86.09":
                                                                         CheatQuery(0x10244430, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
 
-                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                        if (MediusClass.Settings.PokePatchOn)
                                                                         {
                                                                             CheatQuery(0x00546cf4, 4, clientChannel);
 
                                                                             CheatQuery(0x005478dc, 4, clientChannel);
+
+                                                                            CheatQuery(0x0016cc6c, 4, clientChannel);
                                                                         }
 
                                                                         CheatQuery(0x1054e5c0, 4, clientChannel);
@@ -466,12 +488,14 @@ namespace Horizon.SERVER.Medius
                                                                     case "01.82.09":
                                                                         CheatQuery(0x10234440, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
 
-                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                        if (MediusClass.Settings.PokePatchOn)
                                                                         {
                                                                             CheatQuery(0x00530770, 4, clientChannel);
 
                                                                             CheatQuery(0x00531370, 4, clientChannel);
-                                                                        }
+
+                                                                            CheatQuery(0x0016b4d0, 4, clientChannel);
+                                                                        }                                                                            
 
                                                                         CheatQuery(0x1053e160, 4, clientChannel);
                                                                         break;
@@ -485,11 +509,13 @@ namespace Horizon.SERVER.Medius
                                                                     case "01.83.12":
                                                                         CheatQuery(0x10244439, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
 
-                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                        if (MediusClass.Settings.PokePatchOn)
                                                                         {
                                                                             CheatQuery(0x0054ac80, 4, clientChannel);
 
                                                                             CheatQuery(0x00548bc0, 4, clientChannel);
+
+                                                                            CheatQuery(0x001709e0, 4, clientChannel);
                                                                         }
 
                                                                         CheatQuery(0x1054e1c0, 4, clientChannel);
@@ -497,11 +523,13 @@ namespace Horizon.SERVER.Medius
                                                                     case "01.86.09":
                                                                         CheatQuery(0x10244428, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
 
-                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                        if (MediusClass.Settings.PokePatchOn)
                                                                         {
                                                                             CheatQuery(0x00557d8c, 4, clientChannel);
 
                                                                             CheatQuery(0x00555cb4, 4, clientChannel);
+
+                                                                            CheatQuery(0x0016dac0, 4, clientChannel);
                                                                         }
 
                                                                         CheatQuery(0x1054e358, 4, clientChannel);
@@ -516,7 +544,7 @@ namespace Horizon.SERVER.Medius
                                                                     case "01.86.09":
                                                                         CheatQuery(0x101555f0, 36, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, int.MinValue);
 
-                                                                        if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                                                        if (MediusClass.Settings.PokePatchOn)
                                                                         {
                                                                             CheatQuery(0x006f59b8, 4, clientChannel);
                                                                             CheatQuery(0x002aa960, 4, clientChannel);
@@ -11164,8 +11192,6 @@ namespace Horizon.SERVER.Medius
                 CheatQuery(0x00010000, 512000, clientChannel, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, unchecked((int)0xDEADBEEF));
 
             await data.ClientObject!.Login(accountDto);
-
-            data.ClientObject.IsOnRPCN = true; // Sets the RPCN flag even if not on RPCN, this prevents pokes from being active while on RPCS3 (we have no way to detect that on guest login yet).
 
             #region Update DB IP and CID
             if (!Anonymous)
