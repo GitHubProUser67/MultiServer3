@@ -2,7 +2,7 @@
 {
     public static class CharUtils
     {
-        public static int GetHexVal(char hex, byte mode = 0)
+        public static int GetHexVal(this char hex, byte mode = 0)
         {
             int val = (int)hex;
 

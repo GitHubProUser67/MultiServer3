@@ -110,7 +110,7 @@ namespace NetworkLibrary.Extension
 
             for (int i = 0; i < cleanedRequest.Length >> 1; ++i)
             {
-                arr[i] = (byte)((CharUtils.GetHexVal(cleanedRequest[i << 1]) << 4) + CharUtils.GetHexVal(cleanedRequest[(i << 1) + 1]));
+                arr[i] = (byte)((cleanedRequest[i << 1].GetHexVal() << 4) + cleanedRequest[(i << 1) + 1].GetHexVal());
             }
 
             return arr;
