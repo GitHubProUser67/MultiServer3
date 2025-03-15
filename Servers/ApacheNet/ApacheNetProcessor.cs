@@ -570,428 +570,44 @@ namespace ApacheNet
                                 }
                             }
                         }
-
-                        #region Dust 514 dcrest
-                        else if (ServerPort == 26004 //Check for Dust514 specific Port!!
+                        else if (ApacheNetServerConfiguration.EnableBuiltInPlugins)
+                        {
+                            #region Dust 514 dcrest
+                            if (ServerPort == 26004 //Check for Dust514 specific Port!!
                             && request.RetrieveHeaderValue("X-CCP-User-Agent").Contains("CCPGamesCrestClient"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a Dust514 method : {absolutepath}");
-
-                            string? res = new Dust514Class(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, request.Headers, secure);
-                            if (string.IsNullOrEmpty(res))
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
-                                statusCode = HttpStatusCode.OK;
-
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-
-                        #endregion
-
-                        #region VEEMEE API
-                        else if ((Host == "away.veemee.com"
-                            || Host == "home.veemee.com"
-                            || Host == "ww-prod-sec.destinations.scea.com"
-                            || Host == "ww-prod.destinations.scea.com")
-                            && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
-                        {
-                            LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
-
-                            (byte[]?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.ContentLength > 0 ? request.DataAsBytes : null, request.ContentType, apiRootPath);
-                            if (res.Item1 == null || res.Item1.Length == 0)
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
                             {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                statusCode = HttpStatusCode.OK;
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a Dust514 method : {absolutepath}");
+
+                                string? res = new Dust514Class(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, request.Headers, secure);
+                                if (string.IsNullOrEmpty(res))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                    statusCode = HttpStatusCode.OK;
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
                             }
-                            response.StatusCode = (int)statusCode;
-                            if (!string.IsNullOrEmpty(res.Item2))
-                                response.ContentType = res.Item2;
-                            else
-                                response.ContentType = "text/plain";
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(res.Item1, true);
-                            else
-                                sent = await response.Send(res.Item1);
-                        }
-                        #endregion
 
-                        #region nDreams API
-                        else if (nDreamsDomains.Contains(Host)
-                        && !string.IsNullOrEmpty(request.Method.ToString())
-                        && (absolutepath.EndsWith(".php")
-                        || absolutepath.Contains("/NDREAMS/")
-                        || absolutepath.Contains("/gateway/")))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
-                            string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiRootPathWithURIPath, $"{(secure ? "https" : "http")}://nDreams-multiserver-cdn/", $"{(secure ? "https" : "http")}://{Host}{request.Url.RawWithQuery}", absolutepath,
-                                apiRootPath, Host).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
-                            if (string.IsNullOrEmpty(res))
-                            {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region Hellfire Games API
-                        else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
-
-                            string res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
-                            if (string.IsNullOrEmpty(res))
-                            {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                response.ContentType = "application/xml;charset=UTF-8";
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region Heavy Water API
-                        else if (Host == "secure.heavyh2o.net" || Host == "services.heavyh2o.net" || Host == "www.services.heavyh2o.net")
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a Heavy Water method : {absolutepath}");
-
-                            response.ContentType = "application/json";
-                            statusCode = HttpStatusCode.OK;
-
-                            string res = new HeavyWaterClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
-                            if (string.IsNullOrEmpty(res))
-                                res = "{\"STATUS\":\"FAILURE\"}";
-
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(Encoding.UTF8.GetBytes(res), true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region Outso OHS API
-                        else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com" || Host == "ec2-184-72-239-107.compute-1.amazonaws.com") &&
-                                                    (absolutepath.Contains("/ohs_") ||
-                                                    absolutepath.Contains("/ohs/") ||
-                                                    absolutepath.Contains("/statistic/") ||
-                                                    absolutepath.Contains("/Konami/") ||
-                                                    absolutepath.Contains("/tracker/")) && absolutepath.EndsWith("/"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
-
-                            #region OHS API Version
-                            int version = 0;
-                            if (secure)
-                            {
-                                // No OHS crypto on HTTPS.
-                            }
-                            else if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
-                                version = 2;
-                            else if (absolutepath.Contains("/SCEA/SaucerPop/"))
-                                version = 2;
-                            else if (absolutepath.Contains("/AirRace/"))
-                                version = 2;
-                            else if (absolutepath.Contains("/Flugtag/"))
-                                version = 2;
-                            else if (absolutepath.Contains("/SCEA/op4_"))
-                                version = 1;
-                            else if (absolutepath.Contains("/uncharted2"))
-                                version = 1;
-                            else if (absolutepath.Contains("/Uncharted2"))
-                                version = 1;
-                            else if (absolutepath.Contains("/Infamous/"))
-                                version = 1;
-                            else if (absolutepath.Contains("/warhawk_shooter/"))
-                                version = 1;
-                            else if (absolutepath.Contains("/SCEA/WorldDomination/"))
-                                version = 1;
                             #endregion
 
-                            string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPathWithURIPath);
-                            if (string.IsNullOrEmpty(res))
+                            #region VEEMEE API
+                            else if ((Host == "away.veemee.com"
+                                || Host == "home.veemee.com"
+                                || Host == "ww-prod-sec.destinations.scea.com"
+                                || Host == "ww-prod.destinations.scea.com")
+                                && (absolutepath.EndsWith(".php") || absolutepath.EndsWith(".xml")))
                             {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                res = $"<ohs>{res}</ohs>";
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "application/xml;charset=UTF-8";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
+                                LoggerAccessor.LogInfo($"[HTTPS] - {clientip}:{clientport} Requested a VEEMEE method : {absolutepath}");
 
-                        #region Outso OUWF Debug API
-                        else if (Host == "ouwf.outso-srv1.com" && request.ContentType.StartsWith("multipart/form-data"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Identified a OuWF method : {absolutepath}");
-
-                            string? res = new OuWFClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.HTTPStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
-                            if (string.IsNullOrEmpty(res))
-                            {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region Playmetrix Stats API
-                        else if (Host == "stats.playmetrix.com")
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Identified a Playmetrix Stats method : {absolutepath}");
-
-                            response.ChunkedTransfer = false;
-                            statusCode = HttpStatusCode.OK;
-                            response.StatusCode = (int)statusCode;
-                            response.ContentType = "text/plain";
-                            sent = await response.Send();
-                        }
-                        #endregion
-
-                        #region LOOT API
-                        else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com")
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
-
-                            string? res = new LOOTClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
-                            if (string.IsNullOrEmpty(res))
-                            {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "application/xml;charset=UTF-8";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region Juggernaut Games API
-                        else if (Host == "juggernaut-games.com" && absolutepath.EndsWith(".php"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
-
-                            string? res = null;
-                            JUGGERNAUTClass juggernaut = new(request.Method.ToString(), absolutepath);
-                            if (request.ContentLength > 0)
-                                res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath, request.DataAsBytes, request.ContentType);
-                            else
-                                res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath);
-
-                            if (res == null)
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else if (res == string.Empty)
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(res != null ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region Digital Leisure Casino API
-                        else if (Host == "root.pshomecasino.com" && absolutepath.EndsWith(".php"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a DIGITAL LEISURE Casino method : {absolutepath}");
-
-                            string? res = new DLCasinoClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
-
-                            if (res == null)
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(res != null ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region PREMIUMAGENCY API
-                        else if ((Host == "test.playstationhome.jp" ||
-                                                    Host == "playstationhome.jp" ||
-                                                    Host == "homeec.scej-nbs.jp" ||
-                                                    Host == "homeecqa.scej-nbs.jp" ||
-                                                    Host == "homect-scej.jp" ||
-                                                    Host == "qa-homect-scej.jp" ||
-                                                    Host == "home-eas.jp.playstation.com")
-                                                    && absolutepath.Contains("/eventController/"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
-
-                            string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, apiRootPath, fullurl).ProcessRequest(request.DataAsBytes, request.ContentType);
-                            if (string.IsNullOrEmpty(res))
-                            {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region FROMSOFTWARE API
-                        else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp")
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
-
-                            (byte[]?, string?, string[][]?) res = res = new FROMSOFTWAREClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType);
-
-                            if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = res.Item2;
-                                statusCode = HttpStatusCode.OK;
-                                foreach (string[] innerArray in res.Item3!)
-                                {
-                                    // Ensure the inner array has at least two elements
-                                    if (innerArray.Length >= 2)
-                                        // Extract two values from the inner array
-                                        response.Headers.Add(innerArray[0], innerArray[1]);
-                                }
-                            }
-
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(res.Item1, true);
-                            else
-                                sent = await response.Send(res.Item1);
-                        }
-                        #endregion
-
-                        #region UBISOFT API
-                        else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
-
-                            string Authorization = request.RetrieveHeaderValue("Authorization");
-
-                            if (!string.IsNullOrEmpty(Authorization))
-                            {
-                                // TODO, verify ticket data for every platforms.
-
-                                if (Authorization.StartsWith("psn t="))
-                                {
-                                    (bool, byte[]) base64Data = Authorization.Replace("psn t=", string.Empty).IsBase64();
-
-                                    if (base64Data.Item1)
-                                    {
-                                        byte[] PSNTicket = base64Data.Item2;
-
-                                        // Extract the desired portion of the binary data
-                                        byte[] extractedData = new byte[0x63 - 0x54 + 1];
-
-                                        // Copy it
-                                        Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
-
-                                        // Convert 0x00 bytes to 0x48 so FileSystem can support it
-                                        for (int i = 0; i < extractedData.Length; i++)
-                                        {
-                                            if (extractedData[i] == 0x00)
-                                                extractedData[i] = 0x48;
-                                        }
-
-                                        if (ByteUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
-                                            LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
-                                        else
-                                            LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
-                                    }
-                                }
-                                else if (Authorization.StartsWith("Ubi_v1 t="))
-                                {
-                                    // Our JWT token is fake for now.
-                                }
-
-                                (string?, string?) res = new HERMESClass(request.Method.ToString(), absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
-                                        request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), ApacheNetServerConfiguration.APIStaticFolder)
-                                    .ProcessRequest(request.DataAsBytes, request.ContentType);
-                                if (string.IsNullOrEmpty(res.Item1))
+                                (byte[]?, string?) res = new VEEMEEClass(request.Method.ToString(), absolutepath).ProcessRequest(request.ContentLength > 0 ? request.DataAsBytes : null, request.ContentType, apiRootPath);
+                                if (res.Item1 == null || res.Item1.Length == 0)
                                     statusCode = HttpStatusCode.InternalServerError;
                                 else
                                 {
                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                    response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
-                                    response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
                                     statusCode = HttpStatusCode.OK;
                                 }
                                 response.StatusCode = (int)statusCode;
@@ -1000,256 +616,642 @@ namespace ApacheNet
                                 else
                                     response.ContentType = "text/plain";
                                 if (response.ChunkedTransfer)
-                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res.Item1) ? Encoding.UTF8.GetBytes(res.Item1) : null, true);
+                                    sent = await response.SendChunk(res.Item1, true);
                                 else
                                     sent = await response.Send(res.Item1);
                             }
-                            else
+                            #endregion
+
+                            #region nDreams API
+                            else if (nDreamsDomains.Contains(Host)
+                            && !string.IsNullOrEmpty(request.Method.ToString())
+                            && (absolutepath.EndsWith(".php")
+                            || absolutepath.Contains("/NDREAMS/")
+                            || absolutepath.Contains("/gateway/")))
                             {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a NDREAMS method : {absolutepath}");
+                                string? res = new NDREAMSClass(CurrentDate, request.Method.ToString(), apiRootPathWithURIPath, $"{(secure ? "https" : "http")}://nDreams-multiserver-cdn/", $"{(secure ? "https" : "http")}://{Host}{request.Url.RawWithQuery}", absolutepath,
+                                    apiRootPath, Host).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Hellfire Games API
+                            else if (HellFireGamesDomains.Contains(Host) && absolutepath.EndsWith(".php"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
+
+                                string res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.ContentType = "application/xml;charset=UTF-8";
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Heavy Water API
+                            else if (Host == "secure.heavyh2o.net" || Host == "services.heavyh2o.net" || Host == "www.services.heavyh2o.net")
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a Heavy Water method : {absolutepath}");
+
+                                response.ContentType = "application/json";
+                                statusCode = HttpStatusCode.OK;
+
+                                string res = new HeavyWaterClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
+                                    res = "{\"STATUS\":\"FAILURE\"}";
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes(res), true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Outso OHS API
+                            else if ((Host == "stats.outso-srv1.com" || Host == "www.outso-srv1.com" || Host == "ec2-184-72-239-107.compute-1.amazonaws.com") &&
+                                                        (absolutepath.Contains("/ohs_") ||
+                                                        absolutepath.Contains("/ohs/") ||
+                                                        absolutepath.Contains("/statistic/") ||
+                                                        absolutepath.Contains("/Konami/") ||
+                                                        absolutepath.Contains("/tracker/")) && absolutepath.EndsWith("/"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a OHS method : {absolutepath}");
+
+                                #region OHS API Version
+                                int version = 0;
+                                if (secure)
+                                {
+                                    // No OHS crypto on HTTPS.
+                                }
+                                else if (absolutepath.Contains("/Insomniac/4BarrelsOfFury/"))
+                                    version = 2;
+                                else if (absolutepath.Contains("/SCEA/SaucerPop/"))
+                                    version = 2;
+                                else if (absolutepath.Contains("/AirRace/"))
+                                    version = 2;
+                                else if (absolutepath.Contains("/Flugtag/"))
+                                    version = 2;
+                                else if (absolutepath.Contains("/SCEA/op4_"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/uncharted2"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/Uncharted2"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/Infamous/"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/warhawk_shooter/"))
+                                    version = 1;
+                                else if (absolutepath.Contains("/SCEA/WorldDomination/"))
+                                    version = 1;
+                                #endregion
+
+                                string? res = new OHSClass(request.Method.ToString(), absolutepath, version).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPathWithURIPath);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    res = $"<ohs>{res}</ohs>";
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "application/xml;charset=UTF-8";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Outso OUWF Debug API
+                            else if (Host == "ouwf.outso-srv1.com" && request.ContentType.StartsWith("multipart/form-data"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Identified a OuWF method : {absolutepath}");
+
+                                string? res = new OuWFClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.HTTPStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Playmetrix Stats API
+                            else if (Host == "stats.playmetrix.com")
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Identified a Playmetrix Stats method : {absolutepath}");
+
                                 response.ChunkedTransfer = false;
-                                statusCode = HttpStatusCode.Forbidden;
+                                statusCode = HttpStatusCode.OK;
                                 response.StatusCode = (int)statusCode;
                                 response.ContentType = "text/plain";
                                 sent = await response.Send();
                             }
-                        }
-                        #endregion
+                            #endregion
 
-                        #region Ubisoft Build API
-                        else if (Host == "builddatabasepullapi" && request.ContentType.StartsWith("application/soap+xml"))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Identified a Ubisoft Build API method : {absolutepath}");
-
-                            string? res = new SoapBuildAPIClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.HTTPStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
-                            if (string.IsNullOrEmpty(res))
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
+                            #region LOOT API
+                            else if (Host == "server.lootgear.com" || Host == "alpha.lootgear.com")
                             {
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a LOOT method : {absolutepath}");
 
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region gsconnect API
-                        else if (Host == "gsconnect.ubisoft.com")
-                        {
-                            response.ChunkedTransfer = false;
-                            response.ProtocolVersion = "1.0";
-
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
-
-                            (string?, string?, Dictionary<string, string>?) res;
-                            gsconnectClass gsconn = new(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder);
-                            if (request.ContentLength > 0)
-                                res = gsconn.ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
-                            else
-                                res = gsconn.ProcessRequest(request.Query.Elements.ToDictionary());
-
-                            if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = res.Item2;
-                                statusCode = HttpStatusCode.OK;
-                                if (res.Item3 != null)
+                                string? res = new LOOTClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
                                 {
-                                    foreach (KeyValuePair<string, string> header in res.Item3)
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "application/xml;charset=UTF-8";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Juggernaut Games API
+                            else if (Host == "juggernaut-games.com" && absolutepath.EndsWith(".php"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a JUGGERNAUT method : {absolutepath}");
+
+                                string? res = null;
+                                JUGGERNAUTClass juggernaut = new(request.Method.ToString(), absolutepath);
+                                if (request.ContentLength > 0)
+                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath, request.DataAsBytes, request.ContentType);
+                                else
+                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath);
+
+                                if (res == null)
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else if (res == string.Empty)
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(res != null ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region Digital Leisure Casino API
+                            else if (Host == "root.pshomecasino.com" && absolutepath.EndsWith(".php"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a DIGITAL LEISURE Casino method : {absolutepath}");
+
+                                string? res = new DLCasinoClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+
+                                if (res == null)
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(res != null ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region PREMIUMAGENCY API
+                            else if ((Host == "test.playstationhome.jp" ||
+                                                        Host == "playstationhome.jp" ||
+                                                        Host == "homeec.scej-nbs.jp" ||
+                                                        Host == "homeecqa.scej-nbs.jp" ||
+                                                        Host == "homect-scej.jp" ||
+                                                        Host == "qa-homect-scej.jp" ||
+                                                        Host == "home-eas.jp.playstation.com")
+                                                        && absolutepath.Contains("/eventController/"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
+
+                                string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, apiRootPath, fullurl).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region FROMSOFTWARE API
+                            else if (Host == "acvd-ps3ww-cdn.fromsoftware.jp")
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a FROMSOFTWARE method : {absolutepath}");
+
+                                (byte[]?, string?, string[][]?) res = res = new FROMSOFTWAREClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType);
+
+                                if (res.Item1 == null || string.IsNullOrEmpty(res.Item2) || res.Item3?.Length == 0)
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = res.Item2;
+                                    statusCode = HttpStatusCode.OK;
+                                    foreach (string[] innerArray in res.Item3!)
                                     {
-                                        response.Headers.Add(header.Key, header.Value);
+                                        // Ensure the inner array has at least two elements
+                                        if (innerArray.Length >= 2)
+                                            // Extract two values from the inner array
+                                            response.Headers.Add(innerArray[0], innerArray[1]);
                                     }
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(res.Item1, true);
+                                else
+                                    sent = await response.Send(res.Item1);
+                            }
+                            #endregion
+
+                            #region UBISOFT API
+                            else if (Host.Contains("api-ubiservices.ubi.com") && request.RetrieveHeaderValue("User-Agent").Contains("UbiServices_SDK_HTTP_Client"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a UBISOFT method : {absolutepath}");
+
+                                string Authorization = request.RetrieveHeaderValue("Authorization");
+
+                                if (!string.IsNullOrEmpty(Authorization))
+                                {
+                                    // TODO, verify ticket data for every platforms.
+
+                                    if (Authorization.StartsWith("psn t="))
+                                    {
+                                        (bool, byte[]) base64Data = Authorization.Replace("psn t=", string.Empty).IsBase64();
+
+                                        if (base64Data.Item1)
+                                        {
+                                            byte[] PSNTicket = base64Data.Item2;
+
+                                            // Extract the desired portion of the binary data
+                                            byte[] extractedData = new byte[0x63 - 0x54 + 1];
+
+                                            // Copy it
+                                            Array.Copy(PSNTicket, 0x54, extractedData, 0, extractedData.Length);
+
+                                            // Convert 0x00 bytes to 0x48 so FileSystem can support it
+                                            for (int i = 0; i < extractedData.Length; i++)
+                                            {
+                                                if (extractedData[i] == 0x00)
+                                                    extractedData[i] = 0x48;
+                                            }
+
+                                            if (ByteUtils.FindBytePattern(PSNTicket, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
+                                                LoggerAccessor.LogInfo($"[HERMES] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                                            else
+                                                LoggerAccessor.LogInfo($"[HERMES] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                                        }
+                                    }
+                                    else if (Authorization.StartsWith("Ubi_v1 t="))
+                                    {
+                                        // Our JWT token is fake for now.
+                                    }
+
+                                    (string?, string?) res = new HERMESClass(request.Method.ToString(), absolutepath, request.RetrieveHeaderValue("Ubi-AppId"), request.RetrieveHeaderValue("Ubi-RequestedPlatformType"),
+                                            request.RetrieveHeaderValue("ubi-appbuildid"), clientip, GeoIP.GetISOCodeFromIP(IPAddress.Parse(clientip)), Authorization.Replace("psn t=", string.Empty), ApacheNetServerConfiguration.APIStaticFolder)
+                                        .ProcessRequest(request.DataAsBytes, request.ContentType);
+                                    if (string.IsNullOrEmpty(res.Item1))
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                    else
+                                    {
+                                        response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                        response.Headers.Add("Ubi-Forwarded-By", "ue1-p-us-public-nginx-056b582ac580ba328");
+                                        response.Headers.Add("Ubi-TransactionId", Guid.NewGuid().ToString());
+                                        statusCode = HttpStatusCode.OK;
+                                    }
+                                    response.StatusCode = (int)statusCode;
+                                    if (!string.IsNullOrEmpty(res.Item2))
+                                        response.ContentType = res.Item2;
+                                    else
+                                        response.ContentType = "text/plain";
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendChunk(!string.IsNullOrEmpty(res.Item1) ? Encoding.UTF8.GetBytes(res.Item1) : null, true);
+                                    else
+                                        sent = await response.Send(res.Item1);
+                                }
+                                else
+                                {
+                                    response.ChunkedTransfer = false;
+                                    statusCode = HttpStatusCode.Forbidden;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/plain";
+                                    sent = await response.Send();
+                                }
+                            }
+                            #endregion
+
+                            #region Ubisoft Build API
+                            else if (Host == "builddatabasepullapi" && request.ContentType.StartsWith("application/soap+xml"))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Identified a Ubisoft Build API method : {absolutepath}");
+
+                                string? res = new SoapBuildAPIClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.HTTPStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                if (string.IsNullOrEmpty(res))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region gsconnect API
+                            else if (Host == "gsconnect.ubisoft.com")
+                            {
+                                response.ChunkedTransfer = false;
+                                response.ProtocolVersion = "1.0";
+
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a gsconnect method : {absolutepath}");
+
+                                (string?, string?, Dictionary<string, string>?) res;
+                                gsconnectClass gsconn = new(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder);
+                                if (request.ContentLength > 0)
+                                    res = gsconn.ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                else
+                                    res = gsconn.ProcessRequest(request.Query.Elements.ToDictionary());
+
+                                if (string.IsNullOrEmpty(res.Item1) || string.IsNullOrEmpty(res.Item2))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = res.Item2;
+                                    statusCode = HttpStatusCode.OK;
+                                    if (res.Item3 != null)
+                                    {
+                                        foreach (KeyValuePair<string, string> header in res.Item3)
+                                        {
+                                            response.Headers.Add(header.Key, header.Value);
+                                        }
+                                    }
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res.Item1) ? Encoding.UTF8.GetBytes(res.Item1) : null, true);
+                                else
+                                    sent = await response.Send(res.Item1);
+                            }
+                            #endregion
+
+                            #region CentralDispatchManager API
+                            else if (HPDDomains.Contains(Host))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
+
+                                string? res = new CDMClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPath);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region CAPONE GriefReporter API
+                            else if (CAPONEDomains.Contains(Host))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
+
+                                string? res = new CAPONEClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                if (string.IsNullOrEmpty(res))
+                                {
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region HTS Samples API
+                            else if (HTSDomains.Contains(Host))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a HTS Samples method : {absolutepath}");
+
+                                string? res = null;
+                                if (request.ContentLength > 0)
+                                    res = new HTSClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                if (string.IsNullOrEmpty(res))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/xml";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region ILoveSony API
+                            else if (ILoveSonyDomains.Contains(Host))
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a IloveSony EULA method : {absolutepath}");
+
+                                string? res = null;
+                                if (request.ContentLength > 0)
+                                    res = new ILoveSonyClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                if (string.IsNullOrEmpty(res))
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                    response.ContentType = "text/plain";
+                                    statusCode = HttpStatusCode.OK;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
+                                else
+                                    sent = await response.Send(res);
+                            }
+                            #endregion
+
+                            #region PSH Central
+                            else if (Host == "apps.pshomecentral.net" && absolutepath == "/PrivateRTE/checkAuth.php")
+                            {
+                                LoggerAccessor.LogError($"[{loggerprefix}] - {clientip}:{clientport} Requested a PS Home Central method : {absolutepath}");
+
+                                statusCode = HttpStatusCode.OK;
+                                response.StatusCode = (int)statusCode;
+                                response.ContentType = "text/plain";
+                                if (response.ChunkedTransfer)
+                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes("false"), true);
+                                else
+                                    sent = await response.Send("false");
+                            }
+                            #endregion
+
+                            #region JsWebMedia
+                            else if (absolutepath == "/browse/get/")
+                            {
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a JsWebMedia|Browse method : {absolutepath}");
+
+                                MediaBrowse webmedia = new MediaBrowse(!ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder : ApacheNetServerConfiguration.HTTPStaticFolder + '/' + Host, fulluripath, filePath);
+
+                                if (webmedia.IsSupported())
+                                {
+                                    (ushort, string, string) webmediaBrowseOutput = webmedia.ListDirectoriesHandler();
+                                    response.StatusCode = webmediaBrowseOutput.Item1;
+                                    response.ContentType = webmediaBrowseOutput.Item2;
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes(webmediaBrowseOutput.Item3), true);
+                                    else
+                                        sent = await response.Send(webmediaBrowseOutput.Item3);
+                                }
+                                else
+                                {
+                                    statusCode = HttpStatusCode.Forbidden;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/plain";
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes("Browser is incompatible with the API!"), true);
+                                    else
+                                        sent = await response.Send("Browser is incompatible with the API!");
                                 }
                             }
 
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res.Item1) ? Encoding.UTF8.GetBytes(res.Item1) : null, true);
-                            else
-                                sent = await response.Send(res.Item1);
-                        }
-                        #endregion
-
-                        #region CentralDispatchManager API
-                        else if (HPDDomains.Contains(Host))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a CentralDispatchManager method : {absolutepath}");
-
-                            string? res = new CDMClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, apiRootPath);
-                            if (string.IsNullOrEmpty(res))
+                            else if (absolutepath == "/media/info")
                             {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a JsWebMedia|Info method : {absolutepath}");
 
-                        #region CAPONE GriefReporter API
-                        else if (CAPONEDomains.Contains(Host))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a CAPONE method : {absolutepath}");
+                                MediaInfo webmedia = new MediaInfo(!ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder : ApacheNetServerConfiguration.HTTPStaticFolder + '/' + Host, ApacheNetServerConfiguration.ConvertersFolder, fulluripath, filePath);
 
-                            string? res = new CAPONEClass(request.Method.ToString(), absolutepath, apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
-                            if (string.IsNullOrEmpty(res))
-                            {
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.InternalServerError;
-                            }
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region HTS Samples API
-                        else if (HTSDomains.Contains(Host))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a HTS Samples method : {absolutepath}");
-
-                            string? res = null;
-                            if (request.ContentLength > 0)
-                                res = new HTSClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
-                            if (string.IsNullOrEmpty(res))
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/xml";
-                                statusCode = HttpStatusCode.OK;
-                            }
-
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region ILoveSony API
-                        else if (ILoveSonyDomains.Contains(Host))
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a IloveSony EULA method : {absolutepath}");
-
-                            string? res = null;
-                            if (request.ContentLength > 0)
-                                res = new ILoveSonyClass(request.Method.ToString(), absolutepath, ApacheNetServerConfiguration.APIStaticFolder).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
-                            if (string.IsNullOrEmpty(res))
-                                statusCode = HttpStatusCode.InternalServerError;
-                            else
-                            {
-                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
-                                response.ContentType = "text/plain";
-                                statusCode = HttpStatusCode.OK;
-                            }
-
-                            response.StatusCode = (int)statusCode;
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(!string.IsNullOrEmpty(res) ? Encoding.UTF8.GetBytes(res) : null, true);
-                            else
-                                sent = await response.Send(res);
-                        }
-                        #endregion
-
-                        #region PSH Central
-                        else if (Host == "apps.pshomecentral.net" && absolutepath == "/PrivateRTE/checkAuth.php")
-                        {
-                            LoggerAccessor.LogError($"[{loggerprefix}] - {clientip}:{clientport} Requested a PS Home Central method : {absolutepath}");
-
-                            statusCode = HttpStatusCode.OK;
-                            response.StatusCode = (int)statusCode;
-                            response.ContentType = "text/plain";
-                            if (response.ChunkedTransfer)
-                                sent = await response.SendChunk(Encoding.UTF8.GetBytes("false"), true);
-                            else
-                                sent = await response.Send("false");
-                        }
-                        #endregion
-
-                        #region JsWebMedia
-                        else if (absolutepath == "/browse/get/")
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a JsWebMedia|Browse method : {absolutepath}");
-
-                            MediaBrowse webmedia = new MediaBrowse(!ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder : ApacheNetServerConfiguration.HTTPStaticFolder + '/' + Host, fulluripath, filePath);
-
-                            if (webmedia.IsSupported())
-                            {
-                                (ushort, string, string) webmediaBrowseOutput = webmedia.ListDirectoriesHandler();
-                                response.StatusCode = webmediaBrowseOutput.Item1;
-                                response.ContentType = webmediaBrowseOutput.Item2;
-                                if (response.ChunkedTransfer)
-                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes(webmediaBrowseOutput.Item3), true);
+                                if (webmedia.IsSupported())
+                                {
+                                    (ushort, string, string) webmediaBrowseOutput = webmedia.StartFFProbe();
+                                    response.StatusCode = webmediaBrowseOutput.Item1;
+                                    response.ContentType = webmediaBrowseOutput.Item2;
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes(webmediaBrowseOutput.Item3), true);
+                                    else
+                                        sent = await response.Send(webmediaBrowseOutput.Item3);
+                                }
                                 else
-                                    sent = await response.Send(webmediaBrowseOutput.Item3);
+                                {
+                                    statusCode = HttpStatusCode.Forbidden;
+                                    response.StatusCode = (int)statusCode;
+                                    response.ContentType = "text/plain";
+                                    if (response.ChunkedTransfer)
+                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes("Browser is incompatible with the API!"), true);
+                                    else
+                                        sent = await response.Send("Browser is incompatible with the API!");
+                                }
                             }
-                            else
-                            {
-                                statusCode = HttpStatusCode.Forbidden;
-                                response.StatusCode = (int)statusCode;
-                                response.ContentType = "text/plain";
-                                if (response.ChunkedTransfer)
-                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes("Browser is incompatible with the API!"), true);
-                                else
-                                    sent = await response.Send("Browser is incompatible with the API!");
-                            }
+                            #endregion
+
                         }
-
-                        else if (absolutepath == "/media/info")
-                        {
-                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a JsWebMedia|Info method : {absolutepath}");
-
-                            MediaInfo webmedia = new MediaInfo(!ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder : ApacheNetServerConfiguration.HTTPStaticFolder + '/' + Host, ApacheNetServerConfiguration.ConvertersFolder, fulluripath, filePath);
-
-                            if (webmedia.IsSupported())
-                            {
-                                (ushort, string, string) webmediaBrowseOutput = webmedia.StartFFProbe();
-                                response.StatusCode = webmediaBrowseOutput.Item1;
-                                response.ContentType = webmediaBrowseOutput.Item2;
-                                if (response.ChunkedTransfer)
-                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes(webmediaBrowseOutput.Item3), true);
-                                else
-                                    sent = await response.Send(webmediaBrowseOutput.Item3);
-                            }
-                            else
-                            {
-                                statusCode = HttpStatusCode.Forbidden;
-                                response.StatusCode = (int)statusCode;
-                                response.ContentType = "text/plain";
-                                if (response.ChunkedTransfer)
-                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes("Browser is incompatible with the API!"), true);
-                                else
-                                    sent = await response.Send("Browser is incompatible with the API!");
-                            }
-                        }
-                        #endregion
-
-                        else
+                        if (!sent)
                         {
                             string? encoding = request.RetrieveHeaderValue("Accept-Encoding");
 
@@ -1487,93 +1489,113 @@ namespace ApacheNet
                                             break;
                                         case "/!player":
                                         case "/!player/":
-                                            if (ServerIP.Length > 15)
-                                                ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
-                                            WebVideoPlayer? WebPlayer = new(request.Query.Elements, $"{(secure ? "https" : "http")}://{ServerIP}/!webvideo/?");
-                                            statusCode = HttpStatusCode.OK;
-                                            response.StatusCode = (int)statusCode;
-                                            response.ContentType = "text/html";
-                                            foreach (string[] HeaderCollection in WebPlayer.HeadersToSet)
+                                            if (ApacheNetServerConfiguration.EnableBuiltInPlugins)
                                             {
-                                                response.Headers.Add(HeaderCollection[0], HeaderCollection[1]);
+                                                if (ServerIP.Length > 15)
+                                                    ServerIP = "[" + ServerIP + "]"; // Format the hostname if it's a IPV6 url format.
+                                                WebVideoPlayer? WebPlayer = new(request.Query.Elements, $"{(secure ? "https" : "http")}://{ServerIP}/!webvideo/?");
+                                                statusCode = HttpStatusCode.OK;
+                                                response.StatusCode = (int)statusCode;
+                                                response.ContentType = "text/html";
+                                                foreach (string[] HeaderCollection in WebPlayer.HeadersToSet)
+                                                {
+                                                    response.Headers.Add(HeaderCollection[0], HeaderCollection[1]);
+                                                }
+                                                if (response.ChunkedTransfer)
+                                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes(WebPlayer.HtmlPage), true);
+                                                else
+                                                    sent = await response.Send(WebPlayer.HtmlPage);
+                                                WebPlayer = null;
                                             }
-                                            if (response.ChunkedTransfer)
-                                                sent = await response.SendChunk(Encoding.UTF8.GetBytes(WebPlayer.HtmlPage), true);
                                             else
-                                                sent = await response.Send(WebPlayer.HtmlPage);
-                                            WebPlayer = null;
+                                            {
+                                                response.ChunkedTransfer = false;
+                                                statusCode = HttpStatusCode.MethodNotAllowed;
+                                                response.StatusCode = (int)statusCode;
+                                                sent = await response.Send();
+                                            }
                                             break;
                                         case "/!webvideo":
                                         case "/!webvideo/":
-                                            Dictionary<string, string>? QueryDic = HTTPProcessor.GetQueryParameters(fullurl);
-                                            if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? queryUrl) && !string.IsNullOrEmpty(queryUrl))
+                                            if (ApacheNetServerConfiguration.EnableBuiltInPlugins)
                                             {
-                                                WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, ApacheNetServerConfiguration.ConvertersFolder);
-                                                if (vid != null && vid.Available)
+                                                Dictionary<string, string>? QueryDic = HTTPProcessor.GetQueryParameters(fullurl);
+                                                if (QueryDic != null && QueryDic.Count > 0 && QueryDic.TryGetValue("url", out string? queryUrl) && !string.IsNullOrEmpty(queryUrl))
                                                 {
-                                                    statusCode = HttpStatusCode.OK;
-                                                    response.StatusCode = (int)statusCode;
-                                                    response.ContentType = vid.ContentType;
-                                                    response.Headers.Add("Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"");
-                                                    const int buffersize = 16 * 1024;
-                                                    HugeMemoryStream videoStream = new HugeMemoryStream(vid.VideoStream, buffersize);
-                                                    if (ctx.Response.ChunkedTransfer)
+                                                    WebVideo? vid = WebVideoConverter.ConvertVideo(QueryDic, ApacheNetServerConfiguration.ConvertersFolder);
+                                                    if (vid != null && vid.Available)
                                                     {
-                                                        bool isNotlastChunk;
-                                                        long bytesLeft = videoStream.Length;
-                                                        byte[] buffer;
-
-                                                        while (bytesLeft > 0)
+                                                        statusCode = HttpStatusCode.OK;
+                                                        response.StatusCode = (int)statusCode;
+                                                        response.ContentType = vid.ContentType;
+                                                        response.Headers.Add("Content-Disposition", "attachment; filename=\"" + vid.FileName + "\"");
+                                                        const int buffersize = 16 * 1024;
+                                                        HugeMemoryStream videoStream = new HugeMemoryStream(vid.VideoStream, buffersize);
+                                                        if (ctx.Response.ChunkedTransfer)
                                                         {
-                                                            isNotlastChunk = bytesLeft > buffersize;
-                                                            buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
-                                                            int n = videoStream.Read(buffer, 0, buffer.Length);
+                                                            bool isNotlastChunk;
+                                                            long bytesLeft = videoStream.Length;
+                                                            byte[] buffer;
 
-                                                            if (isNotlastChunk)
-                                                                await ctx.Response.SendChunk(buffer, false);
-                                                            else
-                                                                sent = await ctx.Response.SendChunk(buffer, true);
+                                                            while (bytesLeft > 0)
+                                                            {
+                                                                isNotlastChunk = bytesLeft > buffersize;
+                                                                buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
+                                                                int n = videoStream.Read(buffer, 0, buffer.Length);
 
-                                                            bytesLeft -= n;
+                                                                if (isNotlastChunk)
+                                                                    await ctx.Response.SendChunk(buffer, false);
+                                                                else
+                                                                    sent = await ctx.Response.SendChunk(buffer, true);
+
+                                                                bytesLeft -= n;
+                                                            }
                                                         }
+                                                        else
+                                                            sent = await ctx.Response.Send(videoStream.Length, videoStream);
                                                     }
                                                     else
-                                                        sent = await ctx.Response.Send(videoStream.Length, videoStream);
+                                                    {
+                                                        string htmlPayloadVideo = "<p>" + vid?.ErrorMessage + "</p>" +
+                                                                    "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>";
+                                                        statusCode = HttpStatusCode.OK;
+                                                        response.StatusCode = (int)statusCode;
+                                                        response.ContentType = "text/html";
+                                                        if (response.ChunkedTransfer)
+                                                            sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPayloadVideo), true);
+                                                        else
+                                                            sent = await response.Send(htmlPayloadVideo);
+                                                    }
                                                 }
                                                 else
                                                 {
-                                                    string htmlPayloadVideo = "<p>" + vid?.ErrorMessage + "</p>" +
-                                                                "<p>Make sure that parameters are correct, and both <i>yt-dlp</i> and <i>ffmpeg</i> are properly installed on the server.</p>";
+                                                    const string webVideoTutorialHtmlPayload = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
+                                                                "<p>Manual use parameters:" +
+                                                                "<ul>" +
+                                                                "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
+                                                                "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
+                                                                "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
+                                                                "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
+                                                                "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
+                                                                "<li>Also you can use many <i>yt-dlp" +
+                                                                "</i> and <i>ffmpeg" +
+                                                                "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
+                                                                "</ul></p>";
                                                     statusCode = HttpStatusCode.OK;
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = "text/html";
                                                     if (response.ChunkedTransfer)
-                                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPayloadVideo), true);
+                                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes(webVideoTutorialHtmlPayload), true);
                                                     else
-                                                        sent = await response.Send(htmlPayloadVideo);
+                                                        sent = await response.Send(webVideoTutorialHtmlPayload);
                                                 }
                                             }
                                             else
                                             {
-                                                const string webVideoTutorialHtmlPayload = "<p>MultiServer can help download videos from popular sites in preferred format.</p>" +
-                                                            "<p>Manual use parameters:" +
-                                                            "<ul>" +
-                                                            "<li><b>url</b> - Address of the video (e.g. https://www.youtube.com/watch?v=fPnO26CwqYU or similar)</li>" +
-                                                            "<li><b>f</b> - Target format of the file (e.g. avi)</li>" +
-                                                            "<li><b>vcodec</b> - Codec for video (e.g. mpeg4)</li>" +
-                                                            "<li><b>acodec</b> - Codec for audio (e.g. mp3)</li>" +
-                                                            "<li><b>content-type</b> - override MIME content type for the file (optional).</li>" +
-                                                            "<li>Also you can use many <i>yt-dlp" +
-                                                            "</i> and <i>ffmpeg" +
-                                                            "</i> options like <b>aspect</b>, <b>b</b>, <b>no-mark-watched</b> and other.</li>" +
-                                                            "</ul></p>";
-                                                statusCode = HttpStatusCode.OK;
+                                                response.ChunkedTransfer = false;
+                                                statusCode = HttpStatusCode.MethodNotAllowed;
                                                 response.StatusCode = (int)statusCode;
-                                                response.ContentType = "text/html";
-                                                if (response.ChunkedTransfer)
-                                                    sent = await response.SendChunk(Encoding.UTF8.GetBytes(webVideoTutorialHtmlPayload), true);
-                                                else
-                                                    sent = await response.Send(webVideoTutorialHtmlPayload);
+                                                sent = await response.Send();
                                             }
                                             break;
                                         default:
@@ -2092,7 +2114,7 @@ namespace ApacheNet
                                             }
                                             else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(ApacheNetServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                             {
-                                                (byte[]?, string[][]) CollectPHP = Extensions.PHP.ProcessPHPPage(filePath, ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
+                                                (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
                                                 statusCode = HttpStatusCode.OK;
                                                 if (CollectPHP.Item2 != null)
                                                 {
