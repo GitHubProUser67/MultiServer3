@@ -3,16 +3,9 @@ using Newtonsoft.Json;
 
 namespace SSFWServer.SaveDataHelper
 {
-    public class SSFWGetFileList : IDisposable
+    public static class SSFWGetFileList
     {
-        private bool disposedValue;
-
-        public SSFWGetFileList()
-        {
-
-        }
-
-        public string? SSFWSaveDataDebugGetFileList(string directoryPath, string? segment)
+        public static string? SSFWSaveDataDebugGetFileList(string directoryPath, string? segment)
         {
             try
             {
@@ -32,7 +25,7 @@ namespace SSFWServer.SaveDataHelper
             return null;
         }
 
-        private List<FileItem>? GetFilesInfo(string directoryPath)
+        private static List<FileItem>? GetFilesInfo(string directoryPath)
         {
             List<FileItem> files = new();
             try
@@ -69,35 +62,6 @@ namespace SSFWServer.SaveDataHelper
         private class FilesContainer
         {
             public List<FileItem>? Files { get; set; }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: supprimer l'état managé (objets managés)
-                }
-
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
-                // TODO: affecter aux grands champs une valeur null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~SSFWGetFileList()
-        // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }
