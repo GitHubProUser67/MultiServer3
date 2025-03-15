@@ -27,6 +27,7 @@ public static class ApacheNetServerConfiguration
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
     public static bool EnableAdguardFiltering { get; set; } = false;
     public static bool EnableDanPollockHosts { get; set; } = false;
+    public static bool EnableBuiltInPlugins { get; set; } = true;
     public static bool EnableKeepAlive { get; set; } = false;
     public static string HttpVersion { get; set; } = "1.1";
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
@@ -146,6 +147,7 @@ public static class ApacheNetServerConfiguration
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
                 new JProperty("enable_adguard_filtering", EnableAdguardFiltering),
                 new JProperty("enable_dan_pollock_hosts", EnableDanPollockHosts),
+                new JProperty("enable_builtin_plugins", EnableBuiltInPlugins),
                 new JProperty("enable_keep_alive", EnableKeepAlive),
                 new JProperty("aspnet_redirect_url", ASPNETRedirectUrl),
                 new JProperty("php", new JObject(
@@ -199,6 +201,7 @@ public static class ApacheNetServerConfiguration
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
             EnableDanPollockHosts = GetValueOrDefault(config, "enable_dan_pollock_hosts", EnableDanPollockHosts);
+            EnableBuiltInPlugins = GetValueOrDefault(config, "enable_builtin_plugins", EnableBuiltInPlugins);
             EnableKeepAlive = GetValueOrDefault(config, "enable_keep_alive", EnableKeepAlive);
             APIStaticFolder = GetValueOrDefault(config, "api_static_folder", APIStaticFolder);
             ASPNETRedirectUrl = GetValueOrDefault(config, "aspnet_redirect_url", ASPNETRedirectUrl);
