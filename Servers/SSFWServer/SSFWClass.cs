@@ -201,34 +201,29 @@ namespace SSFWServer
                                     }
                                     else
                                         Response.MakeGetResponse(res, "application/json");
-                                    layout.Dispose();
                                 }
                                 #endregion
 
                                 #region AdminObjectService
                                 else if (absolutepath.Contains("/AdminObjectService/start") && IsSSFWRegistered(sessionid))
                                 {
-                                    SSFWAdminObjectService iga = new(sessionid, legacykey);
                                     Response.Clear();
-                                    if (iga.HandleAdminObjectService(UserAgent))
+                                    if (new SSFWAdminObjectService(sessionid, legacykey).HandleAdminObjectService(UserAgent))
                                         Response.SetBegin(200);
                                     else
                                         Response.SetBegin(403);
                                     Response.SetBody();
-                                    iga.Dispose();
                                 }
                                 #endregion
 
                                 #region SaveDataService
                                 else if (absolutepath.Contains($"/SaveDataService/{env}/{segments.LastOrDefault()}") && IsSSFWRegistered(sessionid))
                                 {
-                                    SSFWGetFileList filelist = new();
-                                    string? res = filelist.SSFWSaveDataDebugGetFileList(directoryPath, segments.LastOrDefault());
+                                    string? res = SSFWGetFileList.SSFWSaveDataDebugGetFileList(directoryPath, segments.LastOrDefault());
                                     if (res != null)
                                         Response.MakeGetResponse(res, "application/json");
                                     else
                                         Response.MakeErrorResponse();
-                                    filelist.Dispose();
                                 }
                                 #endregion
 
@@ -366,51 +361,39 @@ namespace SSFWServer
                                     #region AvatarLayoutService
                                     else if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && IsSSFWRegistered(sessionid))
                                     {
-                                        SSFWAvatarLayoutService layout = new(sessionid, legacykey);
                                         Response.Clear();
-                                        if (layout.HandleAvatarLayout(postbuffer, directoryPath, filePath, absolutepath, false))
+                                        if (new SSFWAvatarLayoutService(sessionid, legacykey).HandleAvatarLayout(postbuffer, directoryPath, filePath, absolutepath, false))
                                             Response.SetBegin(200);
                                         else
                                             Response.SetBegin(403);
                                         Response.SetBody();
-                                        layout.Dispose();
                                     }
                                     #endregion
 
                                     #region LayoutService
                                     else if (absolutepath.Contains($"/LayoutService/{env}/person/") && IsSSFWRegistered(sessionid))
                                     {
-                                        SSFWLayoutService layout = new(legacykey);
                                         Response.Clear();
-                                        if (layout.HandleLayoutServicePOST(postbuffer, directoryPath, absolutepath))
+                                        if (new SSFWLayoutService(legacykey).HandleLayoutServicePOST(postbuffer, directoryPath, absolutepath))
                                             Response.SetBegin(200);
                                         else
                                             Response.SetBegin(403);
                                         Response.SetBody();
-                                        layout.Dispose();
                                     }
                                     #endregion
 
                                     #region RewardsService
                                     else if (absolutepath.Contains($"/RewardsService/{env}/rewards/") && IsSSFWRegistered(sessionid))
-                                    {
-                                        SSFWRewardsService reward = new(legacykey);
-                                        Response.MakeGetResponse(reward.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
-                                        reward.Dispose();
-                                    }
+                                        Response.MakeGetResponse(new SSFWRewardsService(legacykey).HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && IsSSFWRegistered(sessionid))
                                     {
-                                        SSFWRewardsService reward = new(legacykey);
-                                        reward.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath, env, SSFWUserSessionManager.GetIdBySessionId(sessionid));
+                                        new SSFWRewardsService(legacykey).HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath, env, SSFWUserSessionManager.GetIdBySessionId(sessionid));
                                         Response.MakeOkResponse();
-                                        reward.Dispose();
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/set") && IsSSFWRegistered(sessionid))
                                     {
-                                        SSFWRewardsService reward = new(legacykey);
-                                        reward.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
+                                        new SSFWRewardsService(legacykey).HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
                                         Response.MakeOkResponse();
-                                        reward.Dispose();
                                     }
                                     #endregion
 
@@ -515,14 +498,12 @@ namespace SSFWServer
                                 {
                                     if (request.BodyLength <= Array.MaxLength)
                                     {
-                                        SSFWAvatarLayoutService layout = new(sessionid, legacykey);
                                         Response.Clear();
-                                        if (layout.HandleAvatarLayout(request.BodyBytes, directoryPath, filePath, absolutepath, true))
+                                        if (new SSFWAvatarLayoutService(sessionid, legacykey).HandleAvatarLayout(request.BodyBytes, directoryPath, filePath, absolutepath, true))
                                             Response.SetBegin(200);
                                         else
                                             Response.SetBegin(403);
                                         Response.SetBody();
-                                        layout.Dispose();
                                     }
                                     else
                                     {
@@ -825,11 +806,7 @@ namespace SSFWServer
                                             {
                                                 try
                                                 {
-                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
-
-                                                    rewardService.AddMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-
-                                                    rewardService.Dispose();
+                                                    new SSFWRewardsService(legacykey).AddMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
                                                     Response.Clear();
                                                     Response.SetBegin(200);
                                                     Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
@@ -882,11 +859,7 @@ namespace SSFWServer
 													
                                                 try
                                                 {
-                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
-
-                                                    rewardService.AddMiniEntries(entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-
-                                                    rewardService.Dispose();
+                                                    new SSFWRewardsService(legacykey).AddMiniEntries(entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
                                                     Response.Clear();
                                                     Response.SetBegin(200);
                                                     Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
@@ -932,11 +905,7 @@ namespace SSFWServer
                                             {
                                                 try
                                                 {
-                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
-
-                                                    rewardService.RemoveMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-
-                                                    rewardService.Dispose();
+                                                    new SSFWRewardsService(legacykey).RemoveMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
                                                     Response.Clear();
                                                     Response.SetBegin(200);
                                                     Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
@@ -989,11 +958,7 @@ namespace SSFWServer
 												
                                                 try
                                                 {
-                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
-
-                                                    rewardService.RemoveMiniEntries(entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-
-                                                    rewardService.Dispose();
+                                                    new SSFWRewardsService(legacykey).RemoveMiniEntries(entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
                                                     Response.Clear();
                                                     Response.SetBegin(200);
                                                     Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
