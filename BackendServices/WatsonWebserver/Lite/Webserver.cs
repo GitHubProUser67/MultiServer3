@@ -219,6 +219,7 @@
 
             #region Process
 
+            const string httpMethodPathern = @"^[A-Z]+\s";
             StringBuilder sb = new StringBuilder();
 
             try
@@ -249,35 +250,40 @@
                             return;
                         else
                         {
-                            if (sb.Length != 0)
-                                sb.Clear();
+                            string httpHeader = Encoding.ASCII.GetString(preReadResult.Data);
 
-                            sb.Append(Encoding.ASCII.GetString(preReadResult.Data));
-
-                            bool retrievingHeaders = true;
-                            while (retrievingHeaders)
+                            if (!string.IsNullOrEmpty(httpHeader) && System.Text.RegularExpressions.Regex.IsMatch(httpHeader, httpMethodPathern))
                             {
-                                if (sb.ToString().EndsWith("\r\n\r\n"))
-                                    retrievingHeaders = false;
-                                else
+                                if (sb.Length != 0)
+                                    sb.Clear();
+
+                                sb.Append(httpHeader);
+
+                                bool retrievingHeaders = true;
+                                while (retrievingHeaders)
                                 {
-                                    if (sb.Length >= Settings.IO.MaxIncomingHeadersSize)
-                                    {
-                                        Events.HandleConnectionDenied(this, new ConnectionEventArgs(ip, port));
-                                        Events.Logger?.Invoke(_Header + "failed to read headers from " + ip + ":" + port + " within " + Settings.IO.MaxIncomingHeadersSize + " bytes, closing connection");
-                                        return;
-                                    }
-
-                                    ReadResult addlReadResult = await _TcpServer.ReadWithTimeoutAsync(
-                                        Settings.IO.ReadTimeoutMs,
-                                        args.Client.Guid,
-                                        1,
-                                        _Token).ConfigureAwait(false);
-
-                                    if (addlReadResult.Status == ReadResultStatus.Success)
-                                        sb.Append(Encoding.ASCII.GetString(addlReadResult.Data));
+                                    if (sb.ToString().EndsWith("\r\n\r\n"))
+                                        retrievingHeaders = false;
                                     else
-                                        return;
+                                    {
+                                        if (sb.Length >= Settings.IO.MaxIncomingHeadersSize)
+                                        {
+                                            Events.HandleConnectionDenied(this, new ConnectionEventArgs(ip, port));
+                                            Events.Logger?.Invoke(_Header + "failed to read headers from " + ip + ":" + port + " within " + Settings.IO.MaxIncomingHeadersSize + " bytes, closing connection");
+                                            return;
+                                        }
+
+                                        ReadResult addlReadResult = await _TcpServer.ReadWithTimeoutAsync(
+                                            Settings.IO.ReadTimeoutMs,
+                                            args.Client.Guid,
+                                            1,
+                                            _Token).ConfigureAwait(false);
+
+                                        if (addlReadResult.Status == ReadResultStatus.Success)
+                                            sb.Append(Encoding.ASCII.GetString(addlReadResult.Data));
+                                        else
+                                            return;
+                                    }
                                 }
                             }
                         }
