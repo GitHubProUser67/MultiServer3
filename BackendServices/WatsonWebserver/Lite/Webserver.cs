@@ -249,40 +249,35 @@
                             return;
                         else
                         {
-                            string httpHeader = Encoding.ASCII.GetString(preReadResult.Data);
+                            if (sb.Length != 0)
+                                sb.Clear();
 
-                            if (!string.IsNullOrEmpty(httpHeader) && httpHeader.Contains("HTTP/"))
+                            sb.Append(Encoding.ASCII.GetString(preReadResult.Data));
+
+                            bool retrievingHeaders = true;
+                            while (retrievingHeaders)
                             {
-                                if (sb.Length != 0)
-                                    sb.Clear();
-
-                                sb.Append(httpHeader);
-
-                                bool retrievingHeaders = true;
-                                while (retrievingHeaders)
+                                if (sb.ToString().EndsWith("\r\n\r\n"))
+                                    retrievingHeaders = false;
+                                else
                                 {
-                                    if (sb.ToString().EndsWith("\r\n\r\n"))
-                                        retrievingHeaders = false;
-                                    else
+                                    if (sb.Length >= Settings.IO.MaxIncomingHeadersSize)
                                     {
-                                        if (sb.Length >= Settings.IO.MaxIncomingHeadersSize)
-                                        {
-                                            Events.HandleConnectionDenied(this, new ConnectionEventArgs(ip, port));
-                                            Events.Logger?.Invoke(_Header + "failed to read headers from " + ip + ":" + port + " within " + Settings.IO.MaxIncomingHeadersSize + " bytes, closing connection");
-                                            return;
-                                        }
-
-                                        ReadResult addlReadResult = await _TcpServer.ReadWithTimeoutAsync(
-                                            Settings.IO.ReadTimeoutMs,
-                                            args.Client.Guid,
-                                            1,
-                                            _Token).ConfigureAwait(false);
-
-                                        if (addlReadResult.Status == ReadResultStatus.Success)
-                                            sb.Append(Encoding.ASCII.GetString(addlReadResult.Data));
-                                        else
-                                            return;
+                                        Events.HandleConnectionDenied(this, new ConnectionEventArgs(ip, port));
+                                        Events.Logger?.Invoke(_Header + "failed to read headers from " + ip + ":" + port + " within " + Settings.IO.MaxIncomingHeadersSize + " bytes, closing connection");
+                                        return;
                                     }
+
+                                    ReadResult addlReadResult = await _TcpServer.ReadWithTimeoutAsync(
+                                        Settings.IO.ReadTimeoutMs,
+                                        args.Client.Guid,
+                                        1,
+                                        _Token).ConfigureAwait(false);
+
+                                    if (addlReadResult.Status == ReadResultStatus.Success)
+                                        sb.Append(Encoding.ASCII.GetString(addlReadResult.Data));
+                                    else
+                                        return;
                                 }
                             }
                         }
