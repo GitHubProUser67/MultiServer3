@@ -1,5 +1,4 @@
 using System.IO;
-using System.Globalization;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System;
@@ -13,7 +12,7 @@ namespace WebAPIService.VEEMEE.gofish
         public class ScoreboardEntry
         {
             public string psnid { get; set; }
-            public int score { get; set; }
+            public float score { get; set; }
             public string fishcount { get; set; }
             public string biggestfishweight { get; set; }
             public string totalfishweight { get; set; }
@@ -21,7 +20,7 @@ namespace WebAPIService.VEEMEE.gofish
 
         private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();
 
-        public static void UpdateScoreBoard(string psnid, string newFishcount, string newBiggestfishweight, string newTotalfishweight, int newScore)
+        public static void UpdateScoreBoard(string psnid, string newFishcount, string newBiggestfishweight, string newTotalfishweight, float newScore)
         {
             // Check if the player already exists in the scoreboard
             var existingEntry = scoreboard.Find(e => e.psnid != null && e.psnid.Equals(psnid, StringComparison.OrdinalIgnoreCase));
@@ -59,7 +58,7 @@ namespace WebAPIService.VEEMEE.gofish
             {
                 XElement xmlEntry = new XElement("player",
                     new XElement("psnid", entry.psnid ?? "Voodooperson05"),
-                    new XElement("score", entry.score),
+                    new XElement("score", entry.score.ToString().Replace(",", ".")),
                     new XElement("fishcount", entry.fishcount ?? "0"),
                     new XElement("biggestfishweight", entry.biggestfishweight ?? "0"),
                     new XElement("totalfishweight", entry.totalfishweight ?? "0"));
@@ -73,7 +72,7 @@ namespace WebAPIService.VEEMEE.gofish
             {
                 XElement xmlEntry = new XElement("game",
                     new XElement("psnid", entry.psnid ?? "Voodooperson05"),
-                    new XElement("score", entry.score),
+                    new XElement("score", entry.score.ToString().Replace(",", ".")),
                     new XElement("fishcount", entry.fishcount ?? "0"),
                     new XElement("biggestfishweight", entry.biggestfishweight ?? "0"),
                     new XElement("totalfishweight", entry.totalfishweight ?? "0"));

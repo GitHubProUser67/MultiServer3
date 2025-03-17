@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using NetworkLibrary.HTTP;
 
 namespace WebAPIService.VEEMEE.goalie_sfrgbt
@@ -15,14 +16,14 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "d2us7A2EcU2PuBuz")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - goalie_sfrgbt - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
-                type = data["type"];
+                psnid = data["psnid"].First();
+                type = data["type"].First();
 
                 string directoryPath = string.Empty;
 
@@ -50,7 +51,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                 }
             }
 
-            return null;
+            return "<leaderboard></leaderboard>";
         }
     }
 }

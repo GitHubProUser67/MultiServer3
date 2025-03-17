@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 namespace WebAPIService.VEEMEE
 {
-    public class Commerce
+    public static class Commerce
     {
         public static string Get_Count()
         {

@@ -69,8 +69,8 @@ namespace WebAPIService.VEEMEE.nml
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                    string game = data["game"];
-                    string psnid = data["psnid"];
+                    string game = data["game"].First();
+                    string psnid = data["psnid"].First();
 
                     Directory.CreateDirectory($"{apiPath}/VEEMEE/nml/User_Data");
 
@@ -113,8 +113,8 @@ namespace WebAPIService.VEEMEE.nml
 
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
 
-                string psnid = data["psnid"];
-                string game = data["game"];
+                string psnid = data["psnid"].First();
+                string game = data["game"].First();
 
                 string profilePath = $"{apiPath}/VEEMEE/nml/User_Data" + $"/{psnid}.xml";
                 Directory.CreateDirectory(apiPath);

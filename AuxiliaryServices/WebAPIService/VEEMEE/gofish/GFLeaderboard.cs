@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using NetworkLibrary.HTTP;
 
 namespace WebAPIService.VEEMEE.gofish
@@ -14,13 +15,13 @@ namespace WebAPIService.VEEMEE.gofish
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "tHeHuYUmuDa54qur")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - gofish - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 DateTime refdate = DateTime.Now; // We avoid race conditions by calculating it one time.
 
@@ -41,7 +42,7 @@ namespace WebAPIService.VEEMEE.gofish
                 }
             }
 
-            return null;
+            return "<leaderboard></leaderboard>";
         }
     }
 }

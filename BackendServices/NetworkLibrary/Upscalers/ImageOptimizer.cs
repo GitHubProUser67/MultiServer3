@@ -70,146 +70,149 @@ public static class ImageOptimizer
                     magickProc?.WaitForExit();
                     if (magickProc?.ExitCode is 0)
                     {
-                        bool isFidelityFxCompatible;
-                        // FidelityFx doesn't work well with transparency data...
-                        try
+                        if (Extension.Windows.Win32API.IsWindows)
                         {
-                            isFidelityFxCompatible = !HasTransparentPixels(tempfilePath, extension);
-                        }
-                        catch
-                        {
-                            isFidelityFxCompatible = false;
-                        }
-                        if (isFidelityFxCompatible && Extension.Windows.Win32API.IsWindows)
-                        {
-                            switch (extension)
+                            // FidelityFx doesn't work well with transparency data...
+                            bool isFidelityFxCompatible;
+                            try
                             {
-                                case "bmp":
-                                case "png":
-                                case "ico":
-                                case "jpg":
-                                case "tif":
-                                case "gif":
-                                    string fidelityFilePath = null;
-                                    switch (RuntimeInformation.OSArchitecture)
-                                    {
-                                        case Architecture.X86:
-                                        case Architecture.X64:
-                                            fidelityFilePath = $"{convertersDir}/FidelityFx/FidelityFX_CLI.exe";
-                                            break;
-                                    }
-                                    if (!string.IsNullOrEmpty(fidelityFilePath) && File.Exists(fidelityFilePath))
-                                    {
-                                        if (PreferFSR)
+                                isFidelityFxCompatible = !HasTransparentPixels(tempfilePath, extension);
+                            }
+                            catch
+                            {
+                                isFidelityFxCompatible = false;
+                            }
+                            if (isFidelityFxCompatible)
+                            {
+                                switch (extension)
+                                {
+                                    case "bmp":
+                                    case "png":
+                                    case "ico":
+                                    case "jpg":
+                                    case "tif":
+                                    case "gif":
+                                        string fidelityFilePath = null;
+                                        switch (RuntimeInformation.OSArchitecture)
                                         {
-                                            try
+                                            case Architecture.X86:
+                                            case Architecture.X64:
+                                                fidelityFilePath = $"{convertersDir}/FidelityFx/FidelityFX_CLI.exe";
+                                                break;
+                                        }
+                                        if (!string.IsNullOrEmpty(fidelityFilePath) && File.Exists(fidelityFilePath))
+                                        {
+                                            if (PreferFSR)
                                             {
-                                                using (Process upscaleProc = Process.Start(new ProcessStartInfo
+                                                try
                                                 {
-                                                    FileName = fidelityFilePath,
-                                                    Arguments = $"-Mode EASU {CommandLineParametersFsr} \"{tempfilePath}\" \"{tempScaledfilePath}\"",
-                                                    RedirectStandardOutput = true,
-                                                    RedirectStandardError = true,
-                                                    UseShellExecute = false,
-                                                    CreateNoWindow = true
-                                                }))
-                                                {
-                                                    upscaleProc?.WaitForExit();
-                                                    if (upscaleProc?.ExitCode is 0)
+                                                    using (Process upscaleProc = Process.Start(new ProcessStartInfo
                                                     {
-                                                        try
+                                                        FileName = fidelityFilePath,
+                                                        Arguments = $"-Mode EASU {CommandLineParametersFsr} \"{tempfilePath}\" \"{tempScaledfilePath}\"",
+                                                        RedirectStandardOutput = true,
+                                                        RedirectStandardError = true,
+                                                        UseShellExecute = false,
+                                                        CreateNoWindow = true
+                                                    }))
+                                                    {
+                                                        upscaleProc?.WaitForExit();
+                                                        if (upscaleProc?.ExitCode is 0)
                                                         {
-                                                            using (Process sharpenProc = Process.Start(new ProcessStartInfo
+                                                            try
                                                             {
-                                                                FileName = fidelityFilePath,
-                                                                Arguments = $"-Mode RCAS \"{tempScaledfilePath}\" \"{tempSharpenedfilePath}\"",
-                                                                RedirectStandardOutput = true,
-                                                                RedirectStandardError = true,
-                                                                UseShellExecute = false,
-                                                                CreateNoWindow = true
-                                                            }))
-                                                            {
-                                                                sharpenProc?.WaitForExit();
-                                                                if (sharpenProc?.ExitCode is 0)
+                                                                using (Process sharpenProc = Process.Start(new ProcessStartInfo
                                                                 {
-                                                                    try
+                                                                    FileName = fidelityFilePath,
+                                                                    Arguments = $"-Mode RCAS \"{tempScaledfilePath}\" \"{tempSharpenedfilePath}\"",
+                                                                    RedirectStandardOutput = true,
+                                                                    RedirectStandardError = true,
+                                                                    UseShellExecute = false,
+                                                                    CreateNoWindow = true
+                                                                }))
+                                                                {
+                                                                    sharpenProc?.WaitForExit();
+                                                                    if (sharpenProc?.ExitCode is 0)
                                                                     {
-                                                                        using (Process magickDownSampleProc = Process.Start(new ProcessStartInfo
+                                                                        try
                                                                         {
-                                                                            FileName = convertFilePath,
-                                                                            Arguments = $"\"{tempSharpenedfilePath}\" -resize 50% \"{tempDownScaledfilePath}\"",
-                                                                            RedirectStandardOutput = true,
-                                                                            RedirectStandardError = true,
-                                                                            UseShellExecute = false,
-                                                                            CreateNoWindow = true
-                                                                        }))
-                                                                        {
-                                                                            magickDownSampleProc?.WaitForExit();
-                                                                            if (magickDownSampleProc?.ExitCode is 0)
-                                                                                return new MemoryStream(File.ReadAllBytes(tempDownScaledfilePath));
-                                                                            else
-                                                                                LoggerAccessor.LogWarn($"[ImageOptimizer] - ImageMagick downsample process failed with status code: {magickDownSampleProc?.ExitCode}");
+                                                                            using (Process magickDownSampleProc = Process.Start(new ProcessStartInfo
+                                                                            {
+                                                                                FileName = convertFilePath,
+                                                                                Arguments = $"\"{tempSharpenedfilePath}\" -resize 50% \"{tempDownScaledfilePath}\"",
+                                                                                RedirectStandardOutput = true,
+                                                                                RedirectStandardError = true,
+                                                                                UseShellExecute = false,
+                                                                                CreateNoWindow = true
+                                                                            }))
+                                                                            {
+                                                                                magickDownSampleProc?.WaitForExit();
+                                                                                if (magickDownSampleProc?.ExitCode is 0)
+                                                                                    return new MemoryStream(File.ReadAllBytes(tempDownScaledfilePath));
+                                                                                else
+                                                                                    LoggerAccessor.LogWarn($"[ImageOptimizer] - ImageMagick downsample process failed with status code: {magickDownSampleProc?.ExitCode}");
+                                                                            }
                                                                         }
+                                                                        catch (Exception ex)
+                                                                        {
+                                                                            LoggerAccessor.LogWarn($"[ImageOptimizer] - ImageMagick downsample process failed - {ex}");
+                                                                        }
+                                                                        return new MemoryStream(File.ReadAllBytes(tempSharpenedfilePath));
                                                                     }
-                                                                    catch (Exception ex)
-                                                                    {
-                                                                        LoggerAccessor.LogWarn($"[ImageOptimizer] - ImageMagick downsample process failed - {ex}");
-                                                                    }
-                                                                    return new MemoryStream(File.ReadAllBytes(tempSharpenedfilePath));
+                                                                    else
+                                                                        LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed with status code: {sharpenProc?.ExitCode}");
                                                                 }
-                                                                else
-                                                                    LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed with status code: {sharpenProc?.ExitCode}");
+                                                            }
+                                                            catch (Exception ex)
+                                                            {
+                                                                LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed - {ex}");
                                                             }
                                                         }
-                                                        catch (Exception ex)
-                                                        {
-                                                            LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed - {ex}");
-                                                        }
+                                                        else
+                                                            LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI upscale process failed with status code: {upscaleProc?.ExitCode}");
                                                     }
-                                                    else
-                                                        LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI upscale process failed with status code: {upscaleProc?.ExitCode}");
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI upscale process failed - {ex}");
                                                 }
                                             }
-                                            catch (Exception ex)
+                                            else
                                             {
-                                                LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI upscale process failed - {ex}");
+                                                try
+                                                {
+                                                    using (Process sharpenProc = Process.Start(new ProcessStartInfo
+                                                    {
+                                                        FileName = fidelityFilePath,
+                                                        Arguments = $"-Mode RCAS \"{tempfilePath}\" \"{tempSharpenedfilePath}\"",
+                                                        RedirectStandardOutput = true,
+                                                        RedirectStandardError = true,
+                                                        UseShellExecute = false,
+                                                        CreateNoWindow = true
+                                                    }))
+                                                    {
+                                                        sharpenProc?.WaitForExit();
+                                                        if (sharpenProc?.ExitCode is 0)
+                                                            return new MemoryStream(File.ReadAllBytes(tempSharpenedfilePath));
+                                                        else
+                                                            LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed with status code: {sharpenProc?.ExitCode}");
+                                                    }
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed - {ex}");
+                                                }
                                             }
                                         }
                                         else
-                                        {
-                                            try
-                                            {
-                                                using (Process sharpenProc = Process.Start(new ProcessStartInfo
-                                                {
-                                                    FileName = fidelityFilePath,
-                                                    Arguments = $"-Mode RCAS \"{tempfilePath}\" \"{tempSharpenedfilePath}\"",
-                                                    RedirectStandardOutput = true,
-                                                    RedirectStandardError = true,
-                                                    UseShellExecute = false,
-                                                    CreateNoWindow = true
-                                                }))
-                                                {
-                                                    sharpenProc?.WaitForExit();
-                                                    if (sharpenProc?.ExitCode is 0)
-                                                        return new MemoryStream(File.ReadAllBytes(tempSharpenedfilePath));
-                                                    else
-                                                        LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed with status code: {sharpenProc?.ExitCode}");
-                                                }
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                LoggerAccessor.LogWarn($"[ImageOptimizer] - FidelityFX_CLI sharpen process failed - {ex}");
-                                            }
-                                        }
-                                    }
-                                    else
-                                        LoggerAccessor.LogWarn("[ImageOptimizer] - Could not find FidelityFX_CLI for current architecture, aborting process.");
-                                    break;
-                                default:
+                                            LoggerAccessor.LogWarn("[ImageOptimizer] - Could not find FidelityFX_CLI for current architecture, aborting process.");
+                                        break;
+                                    default:
 #if DEBUG
-                                    LoggerAccessor.LogWarn("[ImageOptimizer] - Input file is not compatible with FidelityFX_CLI, trying ffmpeg CAS instead.");
+                                        LoggerAccessor.LogWarn("[ImageOptimizer] - Input file is not compatible with FidelityFX_CLI, trying ffmpeg CAS instead.");
 #endif
-                                    break;
+                                        break;
+                                }
                             }
                         }
                         switch (extension)
@@ -312,6 +315,7 @@ public static class ImageOptimizer
     private static bool HasIcoTransparency(byte[] icoBytes)
     {
         using (MemoryStream ms = new MemoryStream(icoBytes))
+#pragma warning disable
         using (Icon icon = new Icon(ms))
         using (Bitmap bitmap = icon.ToBitmap())
         {
@@ -320,6 +324,7 @@ public static class ImageOptimizer
                 for (int x = 0; x < bitmap.Width; x++)
                 {
                     System.Drawing.Color pixel = bitmap.GetPixel(x, y);
+#pragma warning restore
                     if (pixel.A < byte.MaxValue)
                         return true;
                 }

@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace WebAPIService.VEEMEE.audi_tech
 {
-    public class Ghost
+    public static class Ghost
     {
         public static string getFriendsGhostTimes(byte[] PostData, string ContentType, string apiPath)
         {

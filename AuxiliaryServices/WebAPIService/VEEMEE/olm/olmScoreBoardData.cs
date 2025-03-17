@@ -1,5 +1,4 @@
 using System.IO;
-using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Collections.Generic;
@@ -14,13 +13,13 @@ namespace WebAPIService.VEEMEE.olm
         public class ScoreboardEntry
         {
             public string psnid { get; set; }
-            public int score { get; set; }
+            public float score { get; set; }
             public string throws { get; set; }
         }
 
         private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();
 
-        public static void UpdateScoreBoard(string psnid, string newthrows, int newScore)
+        public static void UpdateScoreBoard(string psnid, string newthrows, float newScore)
         {
             // Check if the player already exists in the scoreboard
             var existingEntry = scoreboard.Find(e => e.psnid != null && e.psnid.Equals(psnid, StringComparison.OrdinalIgnoreCase));
@@ -56,7 +55,7 @@ namespace WebAPIService.VEEMEE.olm
             {
                 XElement xmlEntry = new XElement("player",
                     new XElement("psnid", entry.psnid ?? "Voodooperson05"),
-                    new XElement("score", entry.score),
+                    new XElement("score", entry.score.ToString().Replace(",", ".")),
                     new XElement("throws", entry.throws ?? "0"));
 
                 xmlScoreboard.Add(xmlEntry);
@@ -68,7 +67,7 @@ namespace WebAPIService.VEEMEE.olm
             {
                 XElement xmlEntry = new XElement("game",
                     new XElement("psnid", entry.psnid ?? "Voodooperson05"),
-                    new XElement("score", entry.score),
+                    new XElement("score", entry.score.ToString().Replace(",", ".")),
                     new XElement("throws", entry.throws ?? "0"));
 
                 xmlGameboard.Add(xmlEntry);

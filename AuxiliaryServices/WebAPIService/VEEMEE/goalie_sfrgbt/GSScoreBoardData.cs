@@ -1,5 +1,4 @@
 using System.IO;
-using System.Globalization;
 using System.Xml.Linq;
 using System;
 using System.Collections.Generic;
@@ -13,13 +12,13 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
         public class ScoreboardEntry
         {
             public string psnid { get; set; }
-            public int score { get; set; }
+            public float score { get; set; }
             public string duration { get; set; }
         }
 
         private static List<ScoreboardEntry> scoreboard = new List<ScoreboardEntry>();
 
-        public static void UpdateScoreBoard(string psnid, string newDuration, int newScore)
+        public static void UpdateScoreBoard(string psnid, string newDuration, float newScore)
         {
             // Check if the player already exists in the scoreboard
             var existingEntry = scoreboard.Find(e => e.psnid != null && e.psnid.Equals(psnid, StringComparison.OrdinalIgnoreCase));
@@ -55,7 +54,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
             {
                 XElement xmlEntry = new XElement("player",
                     new XElement("psnid", entry.psnid ?? "Voodooperson05"),
-                    new XElement("score", entry.score),
+                    new XElement("score", entry.score.ToString().Replace(",",".")),
                     new XElement("duration", entry.duration ?? "0"));
 
                 xmlScoreboard.Add(xmlEntry);

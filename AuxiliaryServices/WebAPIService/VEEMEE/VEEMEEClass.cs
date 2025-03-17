@@ -1,7 +1,11 @@
+using NetworkLibrary.HTTP;
 using System;
 using System.Text;
+using WebAPIService.VEEMEE.audi_sled;
+using WebAPIService.VEEMEE.audi_vrun;
 using WebAPIService.VEEMEE.goalie_sfrgbt;
 using WebAPIService.VEEMEE.gofish;
+using WebAPIService.VEEMEE.meta;
 using WebAPIService.VEEMEE.nml;
 using WebAPIService.VEEMEE.olm;
 using WebAPIService.VEEMEE.player_profiles;
@@ -40,6 +44,78 @@ namespace WebAPIService.VEEMEE
                 case "POST":
                     switch (absolutepath)
                     {
+                        case "/audisledmp/audisledmpHSSetUserData.php":
+                            result = SledMpScoreProcessor.SetUserDataPOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audisledmp/audisledmpHSGetUserData.php":
+                            result = SledMpScoreProcessor.GetUserDataPOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audisledmp/audisledmpHSGetTopUser.php":
+                            result = SledMpScoreProcessor.GetHigherUserScorePOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audisledmp/audisledmpHSGlobalTable.php":
+                            result = SledMpScoreProcessor.GetGlobalTablePOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audisled/audisledHSSetUserData.php":
+                            result = SledScoreProcessor.SetUserDataPOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audisled/audisledHSGetUserData.php":
+                            result = SledScoreProcessor.GetUserDataPOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audisled/audisledHSGetTopUser.php":
+                            result = SledScoreProcessor.GetHigherUserScorePOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audisled/audisledHSGlobalTable.php":
+                            result = SledScoreProcessor.GetGlobalTablePOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audiHSSetUserData.php":
+                            result = VrunScoreProcessor.SetUserDataPOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audiHSGetUserData.php":
+                            result = VrunScoreProcessor.GetUserDataPOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audiHSGetTopUser.php":
+                            result = VrunScoreProcessor.GetHigherUserScorePOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/audiHSGlobalTable.php":
+                            result = VrunScoreProcessor.GetGlobalTablePOST(postData, HTTPProcessor.ExtractBoundary(contentType), apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/MetaScores/setScore.php":
+                            result = MetaScores.SetUserDataPOST(postData, contentType, apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/MetaScores/getScore.php":
+                            result = MetaScores.GetUserDataPOST(postData, contentType, apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/MetaScores/getTrophies.php":
+                            result = Trophy.GetUserTrophyDataPOST(postData, contentType, apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/MetaScores/setTrophy.php":
+                            result = Trophy.SetUserTrophyDataPOST(postData, contentType, apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/MetaScores/getHighScores.php":
+                        case "/MetaScores/getHighScoresToday.php":
+                        case "/MetaScores/getHighScoresYesterday.php":
+                        case "/MetaScores/getHighScoresFriends.php":
+                            // TODO: Implements MetaScores dynamic leaderboards!
+                            result = "<leaderboard></leaderboard>";
+                            resultContentType = "text/xml";
+                            break;
                         case "/player_profiles/setPlayerProfile.php":
                             result = Profile_Handler.SetPOST(postData, contentType, apiPath);
                             resultContentType = "text/xml";
@@ -106,6 +182,14 @@ namespace WebAPIService.VEEMEE
                             break;
                         case "/olm/olmHSGetUserData.php":
                             result = olmUserData.GetUserDataPOST(postData, contentType, apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/olm/olmHSGetLeaderboard.php":
+                            result = OLMLeaderboard.GetLeaderboardPOST(postData, contentType, 0, apiPath);
+                            resultContentType = "text/xml";
+                            break;
+                        case "/olm/olmHSGetWeekly.php":
+                            result = OLMLeaderboard.GetLeaderboardPOST(postData, contentType, 1, apiPath);
                             resultContentType = "text/xml";
                             break;
                         case "/commerce/get_count.php":

@@ -5,7 +5,7 @@ using HttpMultipartParser;
 
 namespace WebAPIService.VEEMEE
 {
-    public class Stats
+    public static class Stats
     {
         public static string GetConfig(bool get, byte[] PostData, string ContentType, string apiPath)
         {

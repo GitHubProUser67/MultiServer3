@@ -563,7 +563,7 @@ namespace WebAPIService.OHS
                                 switch (ohsKey)
                                 {
                                     case "vickie_version":
-                                        output = "{ [\"vickie_version\"] = 7 }";
+                                        output = "7";
                                         break;
                                     case "e3_global_data":
                                         if (directorypath.Contains("DustScene"))
