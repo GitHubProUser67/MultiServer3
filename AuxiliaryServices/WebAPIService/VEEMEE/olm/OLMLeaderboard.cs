@@ -1,11 +1,12 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NetworkLibrary.HTTP;
 
 namespace WebAPIService.VEEMEE.olm
 {
-    public class Leaderboard
+    public class OLMLeaderboard
     {
         public static string GetLeaderboardPOST(byte[] PostData, string ContentType, int mode, string apiPath)
         {
@@ -15,13 +16,13 @@ namespace WebAPIService.VEEMEE.olm
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "KEqZKh3At4Ev")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - olm - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 DateTime refdate = DateTime.Now; // We avoid race conditions by calculating it one time.
 
@@ -32,22 +33,25 @@ namespace WebAPIService.VEEMEE.olm
                             return File.ReadAllText($"{apiPath}/VEEMEE/olm/leaderboard_{refdate:yyyy_MM_dd}.xml");
                         break;
                     case 1:
-                        // Get all XML files in the scoreboard folder
-                        foreach (string file in Directory.GetFiles($"{apiPath}/VEEMEE/olm", "leaderboard_*.xml"))
+                        if (Directory.Exists($"{apiPath}/VEEMEE/olm"))
                         {
-                            // Extract date from the filename
-                            Match match = Regex.Match(file, @"leaderboard_(\d{4}_\d{2}_\d{2}).xml");
-                            if (match.Success)
+                            // Get all XML files in the scoreboard folder
+                            foreach (string file in Directory.GetFiles($"{apiPath}/VEEMEE/olm", "leaderboard_*.xml"))
                             {
-                                string fileDate = match.Groups[1].Value;
-
-                                // Parse the file date
-                                if (DateTime.TryParse(fileDate, out DateTime fileDateTime))
+                                // Extract date from the filename
+                                Match match = Regex.Match(file, @"leaderboard_(\d{4}_\d{2}_\d{2}).xml");
+                                if (match.Success)
                                 {
-                                    // Check if the file is newer than 7 days
-                                    double diff = (refdate - fileDateTime).TotalDays;
-                                    if (diff <= 7)
-                                        return File.ReadAllText($"{apiPath}/VEEMEE/olm/leaderboard_{refdate.AddDays(-diff):yyyy_MM_dd}.xml");
+                                    string fileDate = match.Groups[1].Value;
+
+                                    // Parse the file date
+                                    if (DateTime.TryParse(fileDate, out DateTime fileDateTime))
+                                    {
+                                        // Check if the file is newer than 7 days
+                                        double diff = (refdate - fileDateTime).TotalDays;
+                                        if (diff <= 7)
+                                            return File.ReadAllText($"{apiPath}/VEEMEE/olm/leaderboard_{refdate.AddDays(-diff):yyyy_MM_dd}.xml");
+                                    }
                                 }
                             }
                         }
@@ -55,7 +59,7 @@ namespace WebAPIService.VEEMEE.olm
                 }
             }
 
-            return null;
+            return "<leaderboard></leaderboard>";
         }
     }
 }

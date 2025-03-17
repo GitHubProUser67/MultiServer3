@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Xml;
 using NetworkLibrary.HTTP;
 
@@ -16,15 +17,15 @@ namespace WebAPIService.VEEMEE.gofish
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "tHeHuYUmuDa54qur")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - gofish - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
-                fish_mask_upper = data["fish_mask_upper"];
-                fish_mask_lower = data["fish_mask_lower"];
+                psnid = data["psnid"].First();
+                fish_mask_upper = data["fish_mask_upper"].First();
+                fish_mask_lower = data["fish_mask_lower"].First();
 
                 Directory.CreateDirectory($"{apiPath}/VEEMEE/gofish/Fish_User_Data");
 
@@ -75,13 +76,13 @@ namespace WebAPIService.VEEMEE.gofish
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "tHeHuYUmuDa54qur")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - gofish - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 if (File.Exists($"{apiPath}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml"))
                     return File.ReadAllText($"{apiPath}/VEEMEE/gofish/Fish_User_Data/{psnid}.xml");

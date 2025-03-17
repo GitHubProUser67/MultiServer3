@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NetworkLibrary.HTTP;
 
@@ -13,7 +14,7 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                file = data["file"];
+                file = data["file"].First();
 
                 if (!string.IsNullOrEmpty(file))
                 {

@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using NetworkLibrary.HTTP;
 
@@ -17,15 +19,15 @@ namespace WebAPIService.VEEMEE.olm
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "KEqZKh3At4Ev")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - olm - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
-                score = data["score"];
-                throws = data["throws"];
+                psnid = data["psnid"].First();
+                score = data["score"].First();
+                throws = data["throws"].First();
 
                 Directory.CreateDirectory($"{apiPath}/VEEMEE/olm/User_Data");
 
@@ -33,7 +35,7 @@ namespace WebAPIService.VEEMEE.olm
                 {
                     try
                     {
-                        olmScoreBoardData.UpdateScoreBoard(psnid, throws, int.Parse(score));
+                        olmScoreBoardData.UpdateScoreBoard(psnid, throws, (float)double.Parse(score, CultureInfo.InvariantCulture));
                         olmScoreBoardData.UpdateAllTimeScoreboardXml(apiPath); // We finalized edit, so we issue a write.
                         olmScoreBoardData.UpdateWeeklyScoreboardXml(apiPath, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
@@ -87,19 +89,19 @@ namespace WebAPIService.VEEMEE.olm
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "KEqZKh3At4Ev")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - olm - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 if (File.Exists($"{apiPath}/VEEMEE/olm/User_Data/{psnid}.xml"))
                     return File.ReadAllText($"{apiPath}/VEEMEE/olm/User_Data/{psnid}.xml");
             }
 
-            return null;
+            return $"<psnid>{psnid}</psnid><score>0</score><throws>0</throws>";
         }
     }
 }

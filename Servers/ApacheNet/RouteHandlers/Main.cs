@@ -175,6 +175,54 @@ namespace ApacheNet.RouteHandlers
                         }
                         return false;
                      }
+                },
+                new() {
+                    Name = "ansda_stats",
+                    UrlRegex = "/ndreams.stats/scenes/ansda_stats.xml",
+                    Method = "GET",
+                    Host = "s3.amazonaws.com",
+                    Callable = (HttpContextBase ctx) => {
+                        if (ApacheNetServerConfiguration.EnableBuiltInPlugins)
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.ContentType = "text/xml";
+                            return ctx.Response.Send(@"<?xml version=""1.0"" encoding=""utf-8""?>
+                                <STATS>
+	                                <TRACKING active=""false"">
+		                                <TIMING>10</TIMING>
+		                                <SIZE>30</SIZE>
+		                                <URL>http://pshome.ndreams.net/legacy/ansada/track.php</URL>
+	                                </TRACKING>
+	                                <PURCHASE active=""false"">
+		                                <ITEMS url=""https://s3.amazonaws.com/ndreams.stats/scenes/ansdaobjs.txt"">
+		                                </ITEMS>
+		                                <ZONES>
+			                                <ZONE x=""-15.21987"" y=""4.02206"" z=""-2.13493"" radius = ""3""/>
+		                                </ZONES>
+		                                <URL>http://pshome.ndreams.net/legacy/ansada/purchase.php</URL>
+	                                </PURCHASE>
+	                                <VISIT active=""false"">
+		                                <URL>http://pshome.ndreams.net/legacy/ansada/visit.php</URL>
+	                                </VISIT>
+                                </STATS>").Result;
+                        }
+                        return false;
+                     }
+                },
+                new() {
+                    Name = "ndreams objs",
+                    UrlRegex = "objs.txt",
+                    Method = "GET",
+                    Host = "s3.amazonaws.com",
+                    Callable = (HttpContextBase ctx) => {
+                        if (ApacheNetServerConfiguration.EnableBuiltInPlugins)
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.ContentType = "text/plain";
+                            return ctx.Response.Send(HTTPProcessor.RequestURLGET($"https://s3.amazonaws.com{ctx.Request.Url.RawWithQuery}")).Result;
+                        }
+                        return false;
+                     }
                 }
             };
     }

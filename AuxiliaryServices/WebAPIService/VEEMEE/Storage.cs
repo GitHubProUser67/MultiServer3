@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace WebAPIService.VEEMEE
 {
-    public class Storage
+    public static class Storage
     {
         public static string ReadConfig(byte[] PostData, string ContentType, string apiPath)
         {

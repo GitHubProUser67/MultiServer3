@@ -21,7 +21,7 @@ namespace WebAPIService.THQ
         {
             string output = null;
 
-            if (!string.IsNullOrEmpty(boundary))
+            if (!string.IsNullOrEmpty(boundary) && postdata != null)
             {
                 try
                 {

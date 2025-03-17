@@ -3,7 +3,7 @@ using System.Xml;
 
 namespace WebAPIService.VEEMEE.audi_tech
 {
-    public class Scoreboard
+    public static class Scoreboard
     {
         public static string MockedScoreBoard = GenerateRandomScoreBoardXML();
 

@@ -406,12 +406,12 @@ namespace Horizon.SERVER.Config
         /// <summary>
         /// Tries to patch HTTPS ticketlogin check inside Medius client SDK.
         /// </summary>
-        public bool HttpsSVOCheckPatcher { get; set; } = true;
+        public bool HttpsSVOCheckPatcher { get; set; } = false;
 
         /// <summary>
         /// Enables Memory Poking.
         /// </summary>
-        public bool PokePatchOn { get; set; } = true;
+        public bool PokePatchOn { get; set; } = false;
 
         #region PSHOME
         public bool PlaystationHomeAllowAnyEboot { get; set; } = true;

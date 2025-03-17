@@ -821,22 +821,30 @@ namespace NetworkLibrary.HTTP
             return string.Empty;
         }
 
-        public static Dictionary<string, string> ExtractAndSortUrlEncodedPOSTData(byte[] urlEncodedDataByte)
+        public static Dictionary<string, List<string>> ExtractAndSortUrlEncodedPOSTData(byte[] urlEncodedDataByte)
         {
-            // Use HttpUtility.ParseQueryString to parse the URL-encoded data
+            // Parse the URL-encoded data
             NameValueCollection formData = HttpUtility.ParseQueryString(Encoding.UTF8.GetString(urlEncodedDataByte));
 
-            // Convert the NameValueCollection to a dictionary for easy sorting
-            Dictionary<string, string> formDataDictionary = new Dictionary<string, string>();
+            // Use a dictionary with a list to handle multiple values for the same key
+            Dictionary<string, List<string>> formDataDictionary = new Dictionary<string, List<string>>();
+
             foreach (string key in formData.AllKeys)
             {
                 if (key != null)
-                    formDataDictionary[key] = formData[key] ?? string.Empty;
+                {
+                    if (!formDataDictionary.ContainsKey(key))
+                        formDataDictionary[key] = new List<string>();
+
+                    formDataDictionary[key].AddRange(formData.GetValues(key) ?? Array.Empty<string>());
+                }
             }
+
+            // Sort the dictionary by key
 #if NET5_0_OR_GREATER
-            return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key));
+            return new Dictionary<string, List<string>>(formDataDictionary.OrderBy(x => x.Key));
 #else
-            return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value));
+        return formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
 #endif
         }
 

@@ -6,12 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Processors.Transforms;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Formats;
 
 namespace WebAPIService.VEEMEE.wardrobe_wars
 {
@@ -42,7 +38,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
 
-
                     string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data";
                     Directory.CreateDirectory(serverFilePath);
 
@@ -53,12 +48,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     language = data.GetParameterValue("language");
                     //if secure url send
                     bracelet = data.GetParameterValue("bracelet");
-
-
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Verify Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
-
                     ms.Flush();
                 }
 
@@ -80,36 +69,27 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             string id = string.Empty;
             string previousid = string.Empty;
             string limitLocal = string.Empty;
-
-
             string territory = string.Empty;
             string region = string.Empty;
             string time = string.Empty;
             string psnid = string.Empty;
             string language = string.Empty;
-
             string psnNameFromFileName = string.Empty;
             int indexId = -1;
 
             if (PostData != null)
             {
-
-                Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-
-
-                urlEncodedData.TryGetValue("id", out id);
-                urlEncodedData.TryGetValue("previous", out previousid);
-                urlEncodedData.TryGetValue("limitLocal", out limitLocal);
-
-
-                urlEncodedData.TryGetValue("territory", out territory);
-                urlEncodedData.TryGetValue("region", out region);
-                urlEncodedData.TryGetValue("time", out time);
-                urlEncodedData.TryGetValue("psnid", out psnid);
-                urlEncodedData.TryGetValue("language", out language);
+                Dictionary<string, List<string>> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                id = urlEncodedData.TryGetValue("id", out var idList) && idList.Count > 0 ? idList[0] : string.Empty;
+                previousid = urlEncodedData.TryGetValue("previous", out var previousidList) && previousidList.Count > 0 ? previousidList[0] : string.Empty;
+                limitLocal = urlEncodedData.TryGetValue("limitLocal", out var limitLocalList) && limitLocalList.Count > 0 ? limitLocalList[0] : string.Empty;
+                territory = urlEncodedData.TryGetValue("territory", out var territoryList) && territoryList.Count > 0 ? territoryList[0] : string.Empty;
+                region = urlEncodedData.TryGetValue("region", out var regionList) && regionList.Count > 0 ? regionList[0] : string.Empty;
+                time = urlEncodedData.TryGetValue("time", out var timeList) && timeList.Count > 0 ? timeList[0] : string.Empty;
+                psnid = urlEncodedData.TryGetValue("psnid", out var psnidList) && psnidList.Count > 0 ? psnidList[0] : string.Empty;
+                language = urlEncodedData.TryGetValue("language", out var languageList) && languageList.Count > 0 ? languageList[0] : string.Empty;
 
                 //indexId = Convert.ToInt32(id.Split(".").First());
-                LoggerAccessor.LogInfo($"id {id} previous {previousid} limitLocal {limitLocal}");
 
                 string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/";
 
@@ -129,11 +109,7 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
 
                     if (Directory.Exists(serverFilePath))
                     {
-
                         string[] userProfiles = Directory.GetFiles(serverFilePath);
-
-
-                        LoggerAccessor.LogInfo($"TEST {IDFromString}");
 
                         string userfileName = Path.GetFileName(userProfiles[IDFromString]);
 
@@ -143,27 +119,23 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
 
                         if (Directory.Exists(serverScoreFilePath))
                         {
-
                             string[] userScoreProfiles = Directory.GetFiles(serverScoreFilePath);
 
                             voteScore = File.ReadAllText(serverFilePath + $"/{userScoreProfiles.Contains(psnid)}.txt");
                         }
 
-
                         return $"{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{psnNameFromFileName},{psnNameFromFileName.Split("_").First()},{voteScore},{indexId},0";
                     }
                     else
                     {
-                        LoggerAccessor.LogError($"No date directory found for today in path {serverFilePath} !");
+                        LoggerAccessor.LogError($"[VEEMEE] - Podium: No date directory found for today in path {serverFilePath} !");
                         return $"0,{psnNameFromFileName.Split("_").First()},0,{id},0";
                     }
                 } catch (Exception e)
                 {
-                    LoggerAccessor.LogWarn($"Failed to find a image at index {id}");
+                    LoggerAccessor.LogWarn($"[VEEMEE] - Podium: Failed to find a image at index {id}");
                     return $"0,{psnNameFromFileName.Split("_").First()},0,{id},0";
                 }
-
-
             }
 
             return null;
@@ -178,8 +150,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             string id = string.Empty;
             string entrant_id = string.Empty;
             string vote = string.Empty;
-
-
             string territory = string.Empty;
             string region = string.Empty;
             string time = string.Empty;
@@ -190,33 +160,20 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             {
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-
-                    Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-
-
-                    urlEncodedData.TryGetValue("id", out id);
-                    urlEncodedData.TryGetValue("entrant_id", out entrant_id);
-                    urlEncodedData.TryGetValue("vote", out vote);
-
-
-
-                    urlEncodedData.TryGetValue("territory", out territory);
-                    urlEncodedData.TryGetValue("region", out region);
-                    urlEncodedData.TryGetValue("time", out time);
-                    urlEncodedData.TryGetValue("psnid", out psnid);
-                    urlEncodedData.TryGetValue("language", out language);
-
-                    LoggerAccessor.LogInfo($"id {id} entrant_id {entrant_id} vote {vote}");
+                    Dictionary<string, List<string>> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                    id = urlEncodedData.TryGetValue("id", out var idList) && idList.Count > 0 ? idList[0] : string.Empty;
+                    entrant_id = urlEncodedData.TryGetValue("entrant_id", out var entrantList) && entrantList.Count > 0 ? entrantList[0] : string.Empty;
+                    vote = urlEncodedData.TryGetValue("vote", out var voteList) && voteList.Count > 0 ? voteList[0] : string.Empty;
+                    territory = urlEncodedData.TryGetValue("territory", out var territoryList) && territoryList.Count > 0 ? territoryList[0] : string.Empty;
+                    region = urlEncodedData.TryGetValue("region", out var regionList) && regionList.Count > 0 ? regionList[0] : string.Empty;
+                    time = urlEncodedData.TryGetValue("time", out var timeList) && timeList.Count > 0 ? timeList[0] : string.Empty;
+                    psnid = urlEncodedData.TryGetValue("psnid", out var psnidList) && psnidList.Count > 0 ? psnidList[0] : string.Empty;
+                    language = urlEncodedData.TryGetValue("language", out var languageList) && languageList.Count > 0 ? languageList[0] : string.Empty;
 
                     string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/Scores/{id}";
                     Directory.CreateDirectory(serverFilePath);
 
                     File.WriteAllText(serverFilePath + $"/{psnid}_{DateTime.UtcNow.ToString("hh-mm-ss")}.txt", vote);
-
-
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Podium_Vote Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
 
                     ms.Flush();
                 }
@@ -243,25 +200,11 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             {
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-
-                    Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-
-
-                    urlEncodedData.TryGetValue("id", out id);
-                    urlEncodedData.TryGetValue("entrant_id", out entrant_id);
-
-
-                    LoggerAccessor.LogInfo($"id {id} entrant_id {entrant_id} vote");
-
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Podium_Score Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
-
+                    Dictionary<string, List<string>> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                    id = urlEncodedData.TryGetValue("id", out var idList) && idList.Count > 0 ? idList[0] : string.Empty;
+                    entrant_id = urlEncodedData.TryGetValue("entrant_id", out var entrantList) && entrantList.Count > 0 ? entrantList[0] : string.Empty;
 
                     string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/";
-
-
-
                     ms.Flush();
                 }
 
@@ -282,7 +225,7 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             string id = string.Empty;
             string entrant_id = string.Empty;
 
-            Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+            Dictionary<string, List<string>> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
 
             string RewardsResponse = string.Empty;
 
@@ -290,12 +233,8 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             {
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-
-                    urlEncodedData.TryGetValue("id", out id);
-                    urlEncodedData.TryGetValue("entrant_id", out entrant_id);
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Rewards Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
+                    id = urlEncodedData.TryGetValue("id", out var idList) && idList.Count > 0 ? idList[0] : string.Empty;
+                    entrant_id = urlEncodedData.TryGetValue("entrant_id", out var entrantList) && entrantList.Count > 0 ? entrantList[0] : string.Empty;
 
                     string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/Server_Data";
                     Directory.CreateDirectory(serverFilePath);
@@ -314,10 +253,9 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     }
                     else
                     {
-                        LoggerAccessor.LogWarn($"Using fallback Rewards txt! Please provide one in {serverFilePath + "/Rewards.txt"}");
+                        LoggerAccessor.LogWarn($"[VEEMEE] - Podium: Using fallback Rewards txt! Please provide one in {serverFilePath + "/Rewards.txt"}");
 
                         RewardsResponse = $"1,1,DF7977BE-28684CDE-A2FE030B-7416242A";
-
                     }
 
                     ms.Flush();
@@ -345,14 +283,9 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
 
-                    Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-
-
-                    urlEncodedData.TryGetValue("id", out id);
-                    urlEncodedData.TryGetValue("entrant_id", out entrant_id);
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Rewards Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
+                    Dictionary<string, List<string>> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                    id = urlEncodedData.TryGetValue("id", out var idList) && idList.Count > 0 ? idList[0] : string.Empty;
+                    entrant_id = urlEncodedData.TryGetValue("entrant_id", out var entrantList) && entrantList.Count > 0 ? entrantList[0] : string.Empty;
 
                     string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/Server_Data";
                     Directory.CreateDirectory(serverFilePath);
@@ -360,11 +293,9 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     if(File.Exists(serverFilePath + "/Screens.xml"))
                     {
                         screensXML = File.ReadAllText(serverFilePath + "/Screens.xml");
-
-
                     } else
                     {
-                        LoggerAccessor.LogWarn($"Using fallback Screens xml! Please provide one in {serverFilePath + "/Screens.xml"}");
+                        LoggerAccessor.LogWarn($"[VEEMEE] - Podium: Using fallback Screens xml! Please provide one in {serverFilePath + "/Screens.xml"}");
 
                         screensXML = @"<Result>
     <!-- Winners -->
@@ -443,26 +374,13 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             {
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
-
-                    Dictionary<string, string> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-
-
-                    urlEncodedData.TryGetValue("territory", out territory);
-                    urlEncodedData.TryGetValue("Region", out Region);
-                    urlEncodedData.TryGetValue("time", out time);
-                    urlEncodedData.TryGetValue("psnid", out psnid);
-                    urlEncodedData.TryGetValue("bracelet", out bracelet);
-                    urlEncodedData.TryGetValue("secureme", out secureme);
-
-
-
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Podium_Score Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
-
-
-
-
+                    Dictionary<string, List<string>> urlEncodedData = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
+                    territory = urlEncodedData.TryGetValue("territory", out var territoryList) && territoryList.Count > 0 ? territoryList[0] : string.Empty;
+                    Region = urlEncodedData.TryGetValue("Region", out var regionList) && regionList.Count > 0 ? regionList[0] : string.Empty;
+                    time = urlEncodedData.TryGetValue("time", out var timeList) && timeList.Count > 0 ? timeList[0] : string.Empty;
+                    psnid = urlEncodedData.TryGetValue("psnid", out var psnidList) && psnidList.Count > 0 ? psnidList[0] : string.Empty;
+                    bracelet = urlEncodedData.TryGetValue("bracelet", out var braceletList) && braceletList.Count > 0 ? braceletList[0] : string.Empty;
+                    secureme = urlEncodedData.TryGetValue("secureme", out var securemeList) && securemeList.Count > 0 ? securemeList[0] : string.Empty;
 
                     ms.Flush();
                 }
@@ -484,10 +402,8 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
             string secureme = string.Empty;
             string thefile = string.Empty;
 
-
             string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
             Directory.CreateDirectory(serverFilePath);
-
 
             string boundary = HTTPProcessor.ExtractBoundary(ContentType);
 
@@ -496,7 +412,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                 using (MemoryStream ms = new MemoryStream(PostData))
                 {
                     var data = MultipartFormDataParser.Parse(ms, boundary);
-
 
                     territory = data.GetParameterValue("territory");
                     Region = data.GetParameterValue("region");
@@ -518,12 +433,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                         data.Files.FirstOrDefault().Data.CopyTo(fileStream);
                     }
 
-
-#if DEBUG
-                    LoggerAccessor.LogInfo($"[VEEMEE] - Podium_Score Details: POSTDATA: \n{Encoding.UTF8.GetString(PostData)}");
-#endif
-
-
                     ms.Flush();
                 }
                 //return id
@@ -538,10 +447,8 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
         /// </summary>
         public static byte[] RequestWWImage(string ContentType, string apiPath, string absolutePath)
         {
-
             byte[] imgSubmission;
             string serverFilePath = $"{apiPath}/VEEMEE/WW-Prod/User_Data/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{Path.GetFileName(absolutePath)}";
-
 
             imgSubmission = File.ReadAllBytes(serverFilePath);
 
@@ -573,9 +480,6 @@ namespace WebAPIService.VEEMEE.wardrobe_wars
                     }
                 }
             }
-        
-
         }
-
     }
 }
