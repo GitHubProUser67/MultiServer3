@@ -67,8 +67,10 @@ namespace WebAPIService.VEEMEE.audi_sled
                                 if (File.Exists(highestScorePath))
                                 {
                                     float currentTime = (float)double.Parse(File.ReadAllText(highestScorePath).Split(":")[0], CultureInfo.InvariantCulture);
-                                    if (currentTime < time)
+                                    if (currentTime > time)
                                         File.WriteAllText(highestScorePath, time.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
+                                    else
+                                        File.WriteAllText(highestScorePath, currentTime.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
                                 }
                                 else
                                     File.WriteAllText(highestScorePath, time.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
@@ -92,8 +94,10 @@ namespace WebAPIService.VEEMEE.audi_sled
                                 if (File.Exists(highestScorePath))
                                 {
                                     float currentTime = (float)double.Parse(File.ReadAllText(highestScorePath).Split(":")[0], CultureInfo.InvariantCulture);
-                                    if (currentTime < time)
+                                    if (currentTime > time)
                                         File.WriteAllText(highestScorePath, time.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
+                                    else
+                                        File.WriteAllText(highestScorePath, currentTime.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
                                 }
                                 else
                                     File.WriteAllText(highestScorePath, time.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");

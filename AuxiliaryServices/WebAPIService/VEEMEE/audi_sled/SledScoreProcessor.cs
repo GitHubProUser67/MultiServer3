@@ -62,6 +62,8 @@ namespace WebAPIService.VEEMEE.audi_sled
                                     float currentScore = (float)double.Parse(File.ReadAllText(highestScorePath).Split(":")[0], CultureInfo.InvariantCulture);
                                     if (currentScore < score)
                                         File.WriteAllText(highestScorePath, score.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
+                                    else
+                                        File.WriteAllText(highestScorePath, currentScore.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
                                 }
                                 else
                                     File.WriteAllText(highestScorePath, score.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
@@ -87,6 +89,8 @@ namespace WebAPIService.VEEMEE.audi_sled
                                     float currentScore = (float)double.Parse(File.ReadAllText(highestScorePath).Split(":")[0], CultureInfo.InvariantCulture);
                                     if (currentScore < score)
                                         File.WriteAllText(highestScorePath, score.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
+                                    else
+                                        File.WriteAllText(highestScorePath, currentScore.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
                                 }
                                 else
                                     File.WriteAllText(highestScorePath, score.ToString().Replace(",", ".") + $":{psnid}:{numOfRaces}");
