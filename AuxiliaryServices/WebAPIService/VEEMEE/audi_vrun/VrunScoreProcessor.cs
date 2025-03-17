@@ -67,7 +67,7 @@ namespace WebAPIService.VEEMEE.audi_vrun
                                 if (File.Exists(highestScorePath))
                                 {
                                     float currentTime = (float)double.Parse(File.ReadAllText(highestScorePath).Split(":")[0], CultureInfo.InvariantCulture);
-                                    if (currentTime < time)
+                                    if (currentTime > time)
                                         File.WriteAllText(highestScorePath, time.ToString().Replace(",", ".") + $":{psnid}:{dist}");
                                 }
                                 else
@@ -92,7 +92,7 @@ namespace WebAPIService.VEEMEE.audi_vrun
                                 if (File.Exists(highestScorePath))
                                 {
                                     float currentTime = (float)double.Parse(File.ReadAllText(highestScorePath).Split(":")[0], CultureInfo.InvariantCulture);
-                                    if (currentTime < time)
+                                    if (currentTime > time)
                                         File.WriteAllText(highestScorePath, time.ToString().Replace(",", ".") + $":{psnid}:{dist}");
                                 }
                                 else
