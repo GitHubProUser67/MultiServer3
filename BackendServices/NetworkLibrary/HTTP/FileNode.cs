@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using NetworkLibrary.Extension;
 using System.Threading.Tasks;
+using System.Text;
+using System.Web;
 
 namespace NetworkLibrary.HTTP
 {
-    public static class FileStructureToJson
+    public static class FileStructureFormater
     {
         private static int ProcessorCount = Environment.ProcessorCount;
         private static bool IsSingleProcessor => ProcessorCount == 1;
@@ -15,26 +17,27 @@ namespace NetworkLibrary.HTTP
         private static int ProcessorCountLeft = IsSingleProcessor ? ProcessorCount : (int)Math.Floor(ProcessorCount / 2.0);
         private static int ProcessorCountRight = IsSingleProcessor ? ProcessorCount : ProcessorCount - ProcessorCountLeft;
 
-        public static string GetFileStructureAsJson(string rootDirectory, string httpdirectoryrequest, Dictionary<string, string> mimeTypesDic)
+        public static async Task<string> GetFileStructureAsync(string rootDirectory, string rootDirectoryUrl, bool html, bool allowNestedReports, Dictionary<string, string> mimeTypesDic)
         {
             FileNode node = null;
 
             try
             {
-                if (Directory.Exists(rootDirectory))
-                {
-                    node = CreateFileNodeAsync(rootDirectory, httpdirectoryrequest, mimeTypesDic).Result;
+                node = await CreateFileNodeAsync(rootDirectory, rootDirectoryUrl, allowNestedReports, mimeTypesDic).ConfigureAwait(false);
+                FileStructure structure = new FileStructure() { Root = node };
 
-                    return JsonConvert.SerializeObject(new FileStructure() { Root = node },
+                if (html)
+                    return CreateFileNodeHtmlString(structure, rootDirectoryUrl, mimeTypesDic);
+                else
+                    return JsonConvert.SerializeObject(structure,
                      Formatting.Indented, new JsonSerializerSettings()
                      {
                          NullValueHandling = NullValueHandling.Ignore
                      });
-                }
             }
             catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogError($"[FileStructureToJson] - GetFileStructureAsJson - Thrown an exception: {ex}");
+                CustomLogger.LoggerAccessor.LogError($"[FileStructureFormater] - GetFileStructureAsJson - Thrown an exception: {ex}");
             }
             finally
             {
@@ -45,7 +48,7 @@ namespace NetworkLibrary.HTTP
             return "{}";
         }
 
-        private static async Task<FileNode> CreateFileNodeAsync(string directoryPath, string httpdirectoryrequest, Dictionary<string, string> mimeTypesDic)
+        private static async Task<FileNode> CreateFileNodeAsync(string directoryPath, string httpdirectoryrequest, bool allowNestedReports, Dictionary<string, string> mimeTypesDic)
         {
             try
             {
@@ -53,12 +56,14 @@ namespace NetworkLibrary.HTTP
                 FileNode fileNode = new FileNode()
                 {
                     Name = directoryInfo.Name,
+                    Link = httpdirectoryrequest,
                     Type = "Directory",
                     CreationDate = directoryInfo.CreationTimeUtc,
+                    //Size = directoryInfo.GetLength(),
+                    LastWriteTime = directoryInfo.LastWriteTimeUtc,
                     Childrens = new ConcurrentList<FileNode>()
                 };
 
-#if NETCOREAPP || NETSTANDARD1_0_OR_GREATER
                 await Task.WhenAll(
                     Parallel.ForEachAsync(directoryInfo.GetFiles(), new ParallelOptions { MaxDegreeOfParallelism = ProcessorCountLeft }, async (file, cancellationToken) =>
                     {
@@ -72,24 +77,25 @@ namespace NetworkLibrary.HTTP
                                     string ImgLink = null;
                                     string DescriptorText = null;
 
-                                    if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg"))
-                                        ImgLink = httpdirectoryrequest + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg";
-                                    else if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg"))
-                                        ImgLink = httpdirectoryrequest + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg";
-                                    else if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png"))
-                                        ImgLink = httpdirectoryrequest + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png";
+                                    if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg")))
+                                        ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg";
+                                    else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg")))
+                                        ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg";
+                                    else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png")))
+                                        ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png";
 
-                                    if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt"))
-                                        DescriptorText = File.ReadAllText(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt");
+                                    if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt")))
+                                        DescriptorText = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt"));
 
                                     fileNode.Childrens.Add(new FileNode
                                     {
-                                        Link = httpdirectoryrequest + $"/{file.Name}",
+                                        Link = $"{httpdirectoryrequest}/{file.Name}",
                                         Image = ImgLink,
                                         Descriptor = DescriptorText,
                                         Name = file.Name,
                                         Type = mimetype,
                                         Size = file.Length,
+                                        LastWriteTime = file.LastWriteTime,
                                         CreationDate = file.CreationTimeUtc
                                     });
                                     break;
@@ -99,21 +105,23 @@ namespace NetworkLibrary.HTTP
                                 case "application/json":
                                     fileNode.Childrens.Add(new FileNode
                                     {
-                                        Link = httpdirectoryrequest + $"/{file.Name}",
-                                        Content = File.ReadAllText(file.FullName),
+                                        Link = $"{httpdirectoryrequest}/{file.Name}",
+                                        Content = await File.ReadAllTextAsync(file.FullName, cancellationToken).ConfigureAwait(false),
                                         Name = file.Name,
                                         Type = mimetype,
                                         Size = file.Length,
+                                        LastWriteTime = file.LastWriteTime,
                                         CreationDate = file.CreationTimeUtc
                                     });
                                     break;
                                 default:
                                     fileNode.Childrens.Add(new FileNode
                                     {
-                                        Link = httpdirectoryrequest + $"/{file.Name}",
+                                        Link = $"{httpdirectoryrequest}/{file.Name}",
                                         Name = file.Name,
                                         Type = mimetype,
                                         Size = file.Length,
+                                        LastWriteTime = file.LastWriteTime,
                                         CreationDate = file.CreationTimeUtc
                                     });
                                     break;
@@ -123,98 +131,247 @@ namespace NetworkLibrary.HTTP
                     Parallel.ForEachAsync(directoryInfo.GetDirectories(), new ParallelOptions { MaxDegreeOfParallelism = ProcessorCountRight }, async (subdirectory, cancellationToken) =>
                     {
                         if (!subdirectory.IsHidden())
-                            fileNode.Childrens.Add(new FileNode
+                        {
+                            if (allowNestedReports)
                             {
-                                Link = httpdirectoryrequest + $"/{subdirectory.Name}/",
-                                Name = subdirectory.Name,
-                                Type = "Directory",
-                                CreationDate = subdirectory.CreationTimeUtc
-                            });
+                                // Recursively process subdirectories
+                                fileNode.Childrens.Add(await CreateFileNodeAsync(
+                                    subdirectory.FullName,
+                                    $"{httpdirectoryrequest}/{subdirectory.Name}",
+                                    true,
+                                    mimeTypesDic
+                                ).ConfigureAwait(false));
+                            }
+                            else
+                            {
+                                fileNode.Childrens.Add(new FileNode
+                                {
+                                    Link = httpdirectoryrequest + $"/{subdirectory.Name}/",
+                                    Name = subdirectory.Name,
+                                    Type = "Directory",
+                                    CreationDate = subdirectory.CreationTimeUtc,
+                                    //Size = directoryInfo.GetLength(),
+                                    LastWriteTime = directoryInfo.LastWriteTimeUtc
+                                });
+                            }
+                        }
                     })
                 );
-#else
-                foreach (FileInfo file in directoryInfo.GetFiles())
-                {
-                    if (!file.IsHidden())
-                    {
-                        string mimetype = HTTPProcessor.GetMimeType(Path.GetExtension(file.FullName), mimeTypesDic);
-
-                        switch (mimetype)
-                        {
-                            case "video/mp4":
-                                string ImgLink = null;
-                                string DescriptorText = null;
-
-                                if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg"))
-                                    ImgLink = httpdirectoryrequest + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg";
-                                else if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg"))
-                                    ImgLink = httpdirectoryrequest + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg";
-                                else if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png"))
-                                    ImgLink = httpdirectoryrequest + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png";
-
-                                if (File.Exists(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt"))
-                                    DescriptorText = File.ReadAllText(Path.GetDirectoryName(file.FullName) + $"/{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt");
-
-                                fileNode.Childrens.Add(new FileNode
-                                {
-                                    Link = httpdirectoryrequest + $"/{file.Name}",
-                                    Image = ImgLink,
-                                    Descriptor = DescriptorText,
-                                    Name = file.Name,
-                                    Type = mimetype,
-                                    Size = file.Length,
-                                    CreationDate = file.CreationTimeUtc
-                                });
-                                break;
-                            case "text/plain":
-                            case "text/xml":
-                            case "application/xml":
-                            case "application/json":
-                                fileNode.Childrens.Add(new FileNode
-                                {
-                                    Link = httpdirectoryrequest + $"/{file.Name}",
-                                    Content = File.ReadAllText(file.FullName),
-                                    Name = file.Name,
-                                    Type = mimetype,
-                                    Size = file.Length,
-                                    CreationDate = file.CreationTimeUtc
-                                });
-                                break;
-                            default:
-                                fileNode.Childrens.Add(new FileNode
-                                {
-                                    Link = httpdirectoryrequest + $"/{file.Name}",
-                                    Name = file.Name,
-                                    Type = mimetype,
-                                    Size = file.Length,
-                                    CreationDate = file.CreationTimeUtc
-                                });
-                                break;
-                        }
-                    }
-                }
-
-                foreach (DirectoryInfo subdirectory in directoryInfo.GetDirectories())
-                {
-                    if (!subdirectory.IsHidden())
-                        fileNode.Childrens.Add(new FileNode
-                        {
-                            Link = httpdirectoryrequest + $"/{subdirectory.Name}/",
-                            Name = subdirectory.Name,
-                            Type = "Directory",
-                            CreationDate = subdirectory.CreationTimeUtc
-                        });
-                }
-#endif
 
                 return fileNode;
             }
             catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogError($"[FileStructureToJson] - CreateFileNode - Thrown an exception: {ex}");
+                CustomLogger.LoggerAccessor.LogError($"[FileStructureFormater] - CreateFileNode - Thrown an exception: {ex}");
+                return null;
+            }
+        }
+
+        public static string CreateFileNodeHtmlString(FileStructure structure, string title, Dictionary<string, string> mimeTypesDic)
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder("<html><head>");
+
+                const string htmlStartData = @"
+                <style>
+                    body {
+                        font-family: 'Arial', sans-serif;
+                        background-color: #f4f4f4;
+                        margin: 0;
+                        padding: 0;
+                        color: #333;
+                    }
+                    h1 {
+                        background-color: #007BFF;
+                        color: white;
+                        padding: 20px;
+                        margin: 0;
+                        text-align: center;
+                    }
+                    .file-node {
+                        background-color: white;
+                        border-radius: 8px;
+                        margin: 10px 0;
+                        padding: 15px;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    }
+                    .file-node:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+                    }
+                    .file-node b {
+                        color: #007BFF;
+                        font-size: 1.1em;
+                    }
+                    .file-node i {
+                        color: #666;
+                        font-size: 0.9em;
+                    }
+                    .file-node p {
+                        font-size: 0.95em;
+                        color: #444;
+                    }
+                    .file-node ul {
+                        padding-left: 20px;
+                    }
+                    .file-node ul li {
+                        margin: 8px 0;
+                    }
+                    .file-node .file-size {
+                        color: #28a745;
+                        font-weight: bold;
+                    }
+                    .file-node .level-0 {
+                        background-color: #e9f7fe;
+                    }
+                    .file-node .level-1 {
+                        background-color: #f9f9f9;
+                    }
+                    .file-node .level-2 {
+                        background-color: #ffffff;
+                    }
+                    .file-node .level-3 {
+                        background-color: #f1f8e9;
+                    }
+                    .file-content {
+                        background-color: #f9f9f9;
+                        padding: 10px;
+                        border-radius: 8px;
+                        margin-top: 10px;
+                        font-family: 'Courier New', Courier, monospace;
+                        font-size: 0.95em;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                        max-height: 300px;
+                        overflow-y: auto;
+                        line-height: 1.5;
+                    }
+                    .file-container {
+                        max-width: 100%;
+                        overflow: hidden;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        margin: 10px 0;
+                    }
+                    .file-image {
+                        max-width: 100%;
+                        height: auto;
+                        margin-top: 10px;
+                        border-radius: 8px;
+                    }
+                    .file-video, .file-audio {
+                        max-width: 100%;
+                        max-height: 400px; /* Prevent oversized videos */
+                        border-radius: 8px;
+                    }
+                    .pdf-container {
+                        max-width: 100%;
+                        overflow: auto;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                    }
+                    .file-pdf {
+                        width: 100%;
+                        height: 600px;
+                    }
+                </style>
+                </head><body>";
+
+                sb.Append(htmlStartData);
+
+                sb.Append($"<h1>{title}</h1>");
+                sb.Append(GenerateFileNodeHtml(structure?.Root, 0, mimeTypesDic));
+                sb.Append("</body></html>");
+
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                CustomLogger.LoggerAccessor.LogError($"[FileStructureFormater] - CreateFileNodeHtmlString - Thrown an exception: {ex}");
             }
 
             return null;
+        }
+
+        private static string GenerateFileNodeHtml(FileNode node, int level, Dictionary<string, string> mimeTypesDic)
+        {
+            if (node == null)
+                return "<h3>FileNode was null!</h3>";
+
+            StringBuilder sb = new StringBuilder();
+
+            // Apply a unique class for each level to distinguish the appearance
+            string levelClass = level switch
+            {
+                0 => "level-0",
+                1 => "level-1",
+                2 => "level-2",
+                _ => "level-3"
+            };
+
+            // Create the basic structure for the current node
+            sb.AppendLine($"<div class='file-node {levelClass}'>");
+
+            // Make the file/directory name clickable by wrapping it with an <a> tag
+            sb.AppendLine($"<b><a href='{(node.Type == "Directory" ? node.Link + "?directory=on" : node.Link)}' style='color: #007BFF; text-decoration: none;'>{node.Name}</a></b> - <span style='color: #007BFF;'>{node.Type}</span>");
+            sb.AppendLine($"<i>Created: {node.CreationDate}</i><br>");
+            sb.AppendLine($"<i>Last modified: {node.LastWriteTime}</i><br>");
+            sb.AppendLine($"<p>{node.Descriptor}</p>");
+
+            if (node.Size.HasValue)
+                sb.AppendLine($"<p class='file-size'>Size: {node.Size} bytes</p>");
+
+            if (!string.IsNullOrEmpty(node.Content))
+            {
+                sb.AppendLine("<div class='file-content'>");
+                sb.AppendLine($"<pre>{HttpUtility.HtmlEncode(node.Content)}</pre>");
+                sb.AppendLine("</div>");
+            }
+            else if (node.Type.StartsWith("image/"))
+                sb.AppendLine($"<img src='{node.Link}' class='file-image' alt='{node.Name}'>");
+            else if (node.Type.StartsWith("video/"))
+            {
+                sb.AppendLine("<div class='file-container'>");
+                sb.AppendLine("<video controls class='file-video'>");
+                sb.AppendLine($"<source src='{node.Link}' type='{node.Type}'>");
+                sb.AppendLine("Your browser does not support the video tag.");
+                sb.AppendLine("</video>");
+                sb.AppendLine("</div>");
+            }
+            else if (node.Type.StartsWith("audio/"))
+            {
+                sb.AppendLine("<div class='file-container'>");
+                sb.AppendLine("<audio controls class='file-audio'>");
+                sb.AppendLine($"<source src='{node.Link}' type='{node.Type}'>");
+                sb.AppendLine("Your browser does not support the audio tag.");
+                sb.AppendLine("</audio>");
+                sb.AppendLine("</div>");
+            }
+            else if (node.Type == "application/pdf")
+            {
+                sb.AppendLine("<div class='file-container pdf-container'>");
+                sb.AppendLine($"<iframe src='{node.Link}' class='file-pdf'></iframe>");
+                sb.AppendLine("</div>");
+            }
+
+            if (node.Childrens != null && node.Childrens.Count > 0)
+            {
+                sb.AppendLine("<ul>");
+                foreach (var child in node.Childrens)
+                {
+                    sb.AppendLine("<li>");
+                    sb.Append(GenerateFileNodeHtml(child, level + 1, mimeTypesDic)); // Recursive call for child nodes
+                    sb.AppendLine("</li>");
+                }
+                sb.AppendLine("</ul>");
+            }
+
+            sb.AppendLine("</div>");
+
+            return sb.ToString();
         }
     }
 
@@ -228,7 +385,26 @@ namespace NetworkLibrary.HTTP
         public string Type { get; set; }
         public long? Size { get; set; }
         public DateTime CreationDate { get; set; }
+        public DateTime LastWriteTime { get; set; }
         public ConcurrentList<FileNode> Childrens { get; set; }
+
+        public override string ToString()
+        {
+            string childrenInfo = Childrens != null && Childrens.Count > 0
+                ? $"Children Count: {Childrens.Count}"
+                : "No children";
+
+            return $"FileNode: {Name}\n" +
+                   $"Link: {Link}\n" +
+                   $"Image: {Image}\n" +
+                   $"Descriptor: {Descriptor}\n" +
+                   $"Content: {Content}\n" +
+                   $"Type: {Type}\n" +
+                   $"Size: {Size?.ToString() ?? "N/A"}\n" +
+                   $"Creation Date: {CreationDate}\n" +
+                   $"Last Write-Time: {LastWriteTime}\n" +
+                   $"{childrenInfo}";
+        }
     }
 
     public class FileStructure
