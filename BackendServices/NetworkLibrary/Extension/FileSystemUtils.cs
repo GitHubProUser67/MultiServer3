@@ -128,6 +128,24 @@ namespace NetworkLibrary.Extension
             return null;
         }
 
+        public static long GetLength(this DirectoryInfo d)
+        {
+            long size = 0;
+
+            // Add file sizes.
+            foreach (FileInfo fi in d.GetFiles())
+            {
+                size += fi.Length;
+            }
+
+            // Add subdirectory sizes.
+            foreach (DirectoryInfo di in d.GetDirectories())
+            {
+                size += GetLength(di);
+            }
+            return size;
+        }
+
         /// <summary>
         /// Reads a fragment of a file with a given indicator.
         /// <para>Lire un fragment de fichier avec un indicateur explicite.</para>

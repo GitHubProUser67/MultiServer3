@@ -754,6 +754,22 @@ namespace NetworkLibrary.HTTP
             }
         }
 
+        public static string GetExtensionFromMime(string mimeType)
+        {
+            if (string.IsNullOrEmpty(mimeType))
+                return ".unknown";
+            else
+                return _mimeTypes.FirstOrDefault(x => x.Value == mimeType).Key ?? ".unknown";
+        }
+
+        public static string GetExtensionFromMime(string mimeType, Dictionary<string, string> mimeTypesDic)
+        {
+            if (string.IsNullOrEmpty(mimeType))
+                return ".unknown";
+            else
+                return mimeTypesDic.FirstOrDefault(x => x.Value == mimeType).Key ?? ".unknown";
+        }
+
         public static bool CheckHeaderMatch(byte[] byteArray, int startIndex, string header)
         {
             for (int i = 0; i < header.Length; i++)

@@ -257,11 +257,6 @@ namespace ApacheNet
             string absolutepath = string.Empty;
             string fulluripath = string.Empty;
             string fullurl = HTTPProcessor.DecodeUrl(request.Url.RawWithQuery);
-            bool noCompressCacheControl = request.HeaderExists("Cache-Control") && ctx.Request.RetrieveHeaderValue("Cache-Control") == "no-transform";
-            string Host = request.RetrieveHeaderValue("Host");
-            if (string.IsNullOrEmpty(Host))
-                Host = request.RetrieveHeaderValue("HOST");
-            string Accept = request.RetrieveHeaderValue("Accept");
             string clientip = request.Source.IpAddress;
             string clientport = request.Source.Port.ToString();
             string ServerIP = request.Destination.IpAddress;
@@ -420,6 +415,12 @@ namespace ApacheNet
 
                 if (!sent)
                 {
+                    bool noCompressCacheControl = request.HeaderExists("Cache-Control") && ctx.Request.RetrieveHeaderValue("Cache-Control") == "no-transform";
+                    string Host = request.RetrieveHeaderValue("Host");
+                    if (string.IsNullOrEmpty(Host))
+                        Host = request.RetrieveHeaderValue("HOST");
+                    string Accept = request.RetrieveHeaderValue("Accept");
+
                     if (ApacheNetServerConfiguration.plugins.Count > 0)
                     {
                         foreach (PluginManager.HTTPPlugin plugin in ApacheNetServerConfiguration.plugins.Values)
@@ -442,6 +443,8 @@ namespace ApacheNet
                     if (!sent && !RouteRequest(ctx, absolutepath, Host, Routes))
                     {
                         response.ChunkedTransfer = ApacheNetServerConfiguration.HttpVersion.Equals("1.1") && ApacheNetServerConfiguration.ChunkedTransfers;
+
+                        bool isHtmlCompatible = Accept.Contains("text/html");
 
                         // Split the URL into segments
                         string[] segments = absolutepath.Trim('/').Split('/');
@@ -1599,22 +1602,48 @@ namespace ApacheNet
                                             }
                                             break;
                                         default:
-                                            if (Directory.Exists(filePath) && filePath.EndsWith("/"))
+                                            if (Directory.Exists(filePath))
                                             {
+                                                bool endsWithSlash = filePath.EndsWith("/");
                                                 if (request.RetrieveQueryValue("directory") == "on")
                                                 {
                                                     statusCode = HttpStatusCode.OK;
                                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                     response.StatusCode = (int)statusCode;
-                                                    response.ContentType = "application/json";
+                                                    response.ContentType = isHtmlCompatible ? "text/html" : "application/json" + ";charset=utf-8";
+                                                    byte[] reportOutputBytes = Encoding.UTF8.GetBytes(await FileStructureFormater.GetFileStructureAsync(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}", 
+                                                        isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                    if (!string.IsNullOrEmpty(encoding))
+                                                    {
+                                                        if (encoding.Contains("zstd"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                                            reportOutputBytes = HTTPProcessor.CompressZstd(reportOutputBytes);
+                                                        }
+                                                        else if (encoding.Contains("br"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "br");
+                                                            reportOutputBytes = HTTPProcessor.CompressBrotli(reportOutputBytes);
+                                                        }
+                                                        else if (encoding.Contains("gzip"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                            reportOutputBytes = HTTPProcessor.CompressGzip(reportOutputBytes);
+                                                        }
+                                                        else if (encoding.Contains("deflate"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                                            reportOutputBytes = HTTPProcessor.Inflate(reportOutputBytes);
+                                                        }
+                                                    }
                                                     if (response.ChunkedTransfer)
-                                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}", ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes)), true);
+                                                        sent = await response.SendChunk(reportOutputBytes, true);
                                                     else
-                                                        sent = await response.Send(FileStructureToJson.GetFileStructureAsJson(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}", ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                        sent = await response.Send(reportOutputBytes);
                                                 }
                                                 else if (request.RetrieveQueryValue("m3u") == "on")
                                                 {
-                                                    string? m3ufile = FileSystemUtils.GetM3UStreamFromDirectory(filePath[..^1], $"{(secure ? "https" : "http")}://{ServerIP}:{ServerPort}{absolutepath[..^1]}");
+                                                    string? m3ufile = FileSystemUtils.GetM3UStreamFromDirectory(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}");
                                                     if (!string.IsNullOrEmpty(m3ufile))
                                                     {
                                                         statusCode = HttpStatusCode.OK;
@@ -1771,8 +1800,6 @@ namespace ApacheNet
                                             }
                                             else
                                             {
-                                                bool isHtmlCompatible = request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html");
-
                                                 if (File.Exists(filePath))
                                                 {
                                                     string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
@@ -2137,8 +2164,6 @@ namespace ApacheNet
                                             }
                                             else
                                             {
-                                                bool isHtmlCompatible = request.HeaderExists("Accept") && request.RetrieveHeaderValue("Accept").Contains("text/html");
-
                                                 if (File.Exists(filePath))
                                                 {
                                                     string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
@@ -2431,22 +2456,25 @@ namespace ApacheNet
             }
 
             if (response.StatusCode < 400)
-                LoggerAccessor.LogInfo($"{fullurl} -> {response.StatusCode}");
+                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
             else
             {
                 switch (response.StatusCode)
                 {
                     case (int)HttpStatusCode.NotFound:
-                        LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested a non-existent file: {filePath} -> {response.StatusCode}");
+                        if (string.IsNullOrEmpty(filePath))
+                            LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
+                        else
+                            LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested a non-existent file: {filePath} -> {response.StatusCode}");
                         break;
 
                     case (int)HttpStatusCode.NotImplemented:
                     case (int)HttpStatusCode.RequestedRangeNotSatisfiable:
-                        LoggerAccessor.LogWarn($"{fullurl} -> {response.StatusCode}");
+                        LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
                         break;
 
                     default:
-                        LoggerAccessor.LogError($"{fullurl} -> {response.StatusCode}");
+                        LoggerAccessor.LogError($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
                         break;
                 }
             }
