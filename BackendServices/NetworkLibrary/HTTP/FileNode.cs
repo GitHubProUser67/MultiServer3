@@ -42,10 +42,13 @@ namespace NetworkLibrary.HTTP
             finally
             {
                 if (node != null)
+                {
                     node.Childrens.Clear();
+                    node.Childrens = null;
+                }
             }
 
-            return "{}";
+            return null;
         }
 
         private static async Task<FileNode> CreateFileNodeAsync(string directoryPath, string httpdirectoryrequest, bool allowNestedReports, Dictionary<string, string> mimeTypesDic)
@@ -69,44 +72,53 @@ namespace NetworkLibrary.HTTP
                     {
                         if (!file.IsHidden())
                         {
+                            string ImgLink = null;
+                            string DescriptorText = null;
                             string mimetype = HTTPProcessor.GetMimeType(Path.GetExtension(file.FullName), mimeTypesDic);
+
+                            // List of possible web image extensions
+                            string[] imageExtensions = new string[] { "jpeg", "jpg", "png", "gif", "bmp", "tiff" };
+
+                            foreach (string extension in imageExtensions)
+                            {
+                                if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.{extension}")))
+                                {
+                                    ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.{extension}";
+                                    break;
+                                }
+                            }
+
+                            if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.txt")))
+                                DescriptorText = await File.ReadAllTextAsync(
+                                    Path.Combine(Path.GetDirectoryName(file.FullName),
+                                        $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.txt"), cancellationToken).ConfigureAwait(false);
+                            else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.EdgeZlib")))
+                                DescriptorText = Encoding.UTF8.GetString(
+                                    await CompressionLibrary.Edge.Zlib.EdgeZlibDecompress(
+                                        await File.ReadAllBytesAsync(
+                                            Path.Combine(Path.GetDirectoryName(file.FullName),
+                                                $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.EdgeZlib"), cancellationToken).ConfigureAwait(false)).ConfigureAwait(false));
 
                             switch (mimetype)
                             {
-                                case "video/mp4":
-                                    string ImgLink = null;
-                                    string DescriptorText = null;
-
-                                    if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg")))
-                                        ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpeg";
-                                    else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg")))
-                                        ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.jpg";
-                                    else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png")))
-                                        ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.png";
-
-                                    if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt")))
-                                        DescriptorText = await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt"));
-
-                                    fileNode.Childrens.Add(new FileNode
-                                    {
-                                        Link = $"{httpdirectoryrequest}/{file.Name}",
-                                        Image = ImgLink,
-                                        Descriptor = DescriptorText,
-                                        Name = file.Name,
-                                        Type = mimetype,
-                                        Size = file.Length,
-                                        LastWriteTime = file.LastWriteTime,
-                                        CreationDate = file.CreationTimeUtc
-                                    });
-                                    break;
                                 case "text/plain":
                                 case "text/xml":
                                 case "application/xml":
                                 case "application/json":
+                                    bool isUtf8 = false;
+                                    try
+                                    {
+                                        isUtf8 = new Utf8Checker().Check(file.FullName);
+                                    }
+                                    catch
+                                    {
+                                    }
                                     fileNode.Childrens.Add(new FileNode
                                     {
                                         Link = $"{httpdirectoryrequest}/{file.Name}",
-                                        Content = await File.ReadAllTextAsync(file.FullName, cancellationToken).ConfigureAwait(false),
+                                        Content = isUtf8 ? await File.ReadAllTextAsync(file.FullName, cancellationToken).ConfigureAwait(false) : null,
+                                        Image = ImgLink,
+                                        Descriptor = DescriptorText,
                                         Name = file.Name,
                                         Type = mimetype,
                                         Size = file.Length,
@@ -118,6 +130,8 @@ namespace NetworkLibrary.HTTP
                                     fileNode.Childrens.Add(new FileNode
                                     {
                                         Link = $"{httpdirectoryrequest}/{file.Name}",
+                                        Image = ImgLink,
+                                        Descriptor = DescriptorText,
                                         Name = file.Name,
                                         Type = mimetype,
                                         Size = file.Length,
@@ -146,7 +160,7 @@ namespace NetworkLibrary.HTTP
                             {
                                 fileNode.Childrens.Add(new FileNode
                                 {
-                                    Link = httpdirectoryrequest + $"/{subdirectory.Name}/",
+                                    Link = httpdirectoryrequest + $"/{subdirectory.Name}",
                                     Name = subdirectory.Name,
                                     Type = "Directory",
                                     CreationDate = subdirectory.CreationTimeUtc,
@@ -156,24 +170,21 @@ namespace NetworkLibrary.HTTP
                             }
                         }
                     })
-                );
+                ).ConfigureAwait(false);
 
                 return fileNode;
             }
             catch (Exception ex)
             {
                 CustomLogger.LoggerAccessor.LogError($"[FileStructureFormater] - CreateFileNode - Thrown an exception: {ex}");
-                return null;
             }
+
+            return null;
         }
 
         public static string CreateFileNodeHtmlString(FileStructure structure, string title, Dictionary<string, string> mimeTypesDic)
         {
-            try
-            {
-                StringBuilder sb = new StringBuilder("<html><head>");
-
-                const string htmlStartData = @"
+            const string htmlStartData = @"
                 <style>
                     body {
                         font-family: 'Arial', sans-serif;
@@ -280,20 +291,15 @@ namespace NetworkLibrary.HTTP
                 </style>
                 </head><body>";
 
-                sb.Append(htmlStartData);
+            StringBuilder sb = new StringBuilder("<html><head>");
 
-                sb.Append($"<h1>{title}</h1>");
-                sb.Append(GenerateFileNodeHtml(structure?.Root, 0, mimeTypesDic));
-                sb.Append("</body></html>");
+            sb.Append(htmlStartData);
 
-                return sb.ToString();
-            }
-            catch (Exception ex)
-            {
-                CustomLogger.LoggerAccessor.LogError($"[FileStructureFormater] - CreateFileNodeHtmlString - Thrown an exception: {ex}");
-            }
+            sb.Append($"<h1>{title}</h1>");
+            sb.Append(GenerateFileNodeHtml(structure?.Root, 0, mimeTypesDic));
+            sb.Append("</body></html>");
 
-            return null;
+            return sb.ToString();
         }
 
         private static string GenerateFileNodeHtml(FileNode node, int level, Dictionary<string, string> mimeTypesDic)
@@ -319,7 +325,11 @@ namespace NetworkLibrary.HTTP
             sb.AppendLine($"<b><a href='{(node.Type == "Directory" ? node.Link + "?directory=on" : node.Link)}' style='color: #007BFF; text-decoration: none;'>{node.Name}</a></b> - <span style='color: #007BFF;'>{node.Type}</span>");
             sb.AppendLine($"<i>Created: {node.CreationDate}</i><br>");
             sb.AppendLine($"<i>Last modified: {node.LastWriteTime}</i><br>");
-            sb.AppendLine($"<p>{node.Descriptor}</p>");
+
+            if (!string.IsNullOrEmpty(node.Image))
+                sb.AppendLine($"<img src='{node.Image}' class='file-image' alt='{Path.GetFileName(node.Image)}'>");
+            if (!string.IsNullOrEmpty(node.Descriptor))
+                sb.AppendLine($"<p>{HttpUtility.HtmlEncode(node.Descriptor)}</p>");
 
             if (node.Size.HasValue)
                 sb.AppendLine($"<p class='file-size'>Size: {node.Size} bytes</p>");

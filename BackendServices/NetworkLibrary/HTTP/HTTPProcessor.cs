@@ -148,6 +148,7 @@ namespace NetworkLibrary.HTTP
             {".dwf", "drawing/x-dwf"},
             {".dwp", "application/octet-stream"},
             {".dxr", "application/x-director"},
+            {".edgezlib", "application/edgecompressed-zlib"},
             {".eml", "message/rfc822"},
             {".emz", "application/octet-stream"},
             {".eot", "application/octet-stream"},
@@ -600,6 +601,7 @@ namespace NetworkLibrary.HTTP
             {".xwd", "image/x-xwindowdump"},
             {".z", "application/x-compress"},
             {".zip", "application/x-zip-compressed"},
+            {".zlib", "application/zlib"},
             #endregion
         };
 
