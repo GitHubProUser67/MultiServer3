@@ -94,7 +94,7 @@ namespace ApacheNet.Extensions
                         HandlersCache = (context, proc);
 
                         proc.StartInfo = new ProcessStartInfo($"{convertersPath}/ffmpeg",
-                            string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-i ""{0}"" -ss {1} -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
+                            !string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-i ""{0}"" -ss {1} -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
                             offset, GetBrowserSupportedFFMpegFormat(ismp4Source, needToTranscode, isNvenc), _httpPort, bitrate, httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty) :
                             string.Format(@"{5}-i ""{0}"" -ss {1} -r {4} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(ismp4Source, needToTranscode, isNvenc), _httpPort,
                             httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty))

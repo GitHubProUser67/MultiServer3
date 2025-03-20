@@ -444,7 +444,7 @@ namespace ApacheNet
                     {
                         response.ChunkedTransfer = ApacheNetServerConfiguration.HttpVersion.Equals("1.1") && ApacheNetServerConfiguration.ChunkedTransfers;
 
-                        bool isHtmlCompatible = Accept.Contains("text/html");
+                        bool isHtmlCompatible = !string.IsNullOrEmpty(Accept) && Accept.Contains("html");
 
                         // Split the URL into segments
                         string[] segments = absolutepath.Trim('/').Split('/');
@@ -554,7 +554,7 @@ namespace ApacheNet
                                 statusCode = HttpStatusCode.NotFound;
                                 response.StatusCode = (int)statusCode;
 
-                                if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                if (isHtmlCompatible)
                                 {
                                     string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
                                     string htmlContent = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
@@ -1611,8 +1611,8 @@ namespace ApacheNet
                                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = isHtmlCompatible ? "text/html" : "application/json" + ";charset=utf-8";
-                                                    byte[] reportOutputBytes = Encoding.UTF8.GetBytes(await FileStructureFormater.GetFileStructureAsync(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}", 
-                                                        isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                    byte[] reportOutputBytes = Encoding.UTF8.GetBytes(await FileStructureFormater.GetFileStructureAsync(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}",
+                                                        ServerPort, isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                                     if (!string.IsNullOrEmpty(encoding))
                                                     {
                                                         if (encoding.Contains("zstd"))
@@ -1827,20 +1827,27 @@ namespace ApacheNet
                                                     if (request.QuerystringExists("offset") && request.RetrieveQueryValue("format") != "mp4" && (isVideo || isAudio))
                                                     {
                                                         // This is a little gross, but I am gonna assume peoples uses decently updated browsers with this function.
-                                                        if (hasUserAgent && (request.Useragent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase) || request.Useragent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase)
-                                                            || request.Useragent.Contains("edge", StringComparison.InvariantCultureIgnoreCase) || request.Useragent.Contains("opera", StringComparison.InvariantCultureIgnoreCase)))
+                                                        bool isWebmCompatible = hasUserAgent && (request.Useragent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
+                                                                || request.Useragent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase)
+                                                                || request.Useragent.Contains("edge", StringComparison.InvariantCultureIgnoreCase)
+                                                                || request.Useragent.Contains("opera", StringComparison.InvariantCultureIgnoreCase));
+
+                                                        if (request.RetrieveQueryValue("format") != "webm" && isWebmCompatible)
                                                             sent = await new WebmTranscodeHandler(filePath, ApacheNetServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
-                                                        else
+                                                        else if (!isWebmCompatible)
                                                             sent = await new MP4TranscodeHandler(filePath, ApacheNetServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
                                                     }
-                                                    else if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
-                                                        sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
-                                                    else
+                                                    if (!sent)
                                                     {
-                                                        // send file
-                                                        LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Requested a file : {absolutepath}");
+                                                        if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
+                                                            sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
+                                                        else
+                                                        {
+                                                            // send file
+                                                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a file : {absolutepath}");
 
-                                                        sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
+                                                            sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
+                                                        }
                                                     }
                                                 }
                                                 else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
@@ -2194,7 +2201,7 @@ namespace ApacheNet
                                                     else
                                                     {
                                                         // send file
-                                                        LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip} Requested a file : {absolutepath}");
+                                                        LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a file : {absolutepath}");
 
                                                         sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
                                                     }

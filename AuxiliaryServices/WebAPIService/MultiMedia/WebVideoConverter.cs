@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
+using NetworkLibrary.Extension;
 
 namespace WebAPIService.MultiMedia
 {

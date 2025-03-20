@@ -17,7 +17,7 @@ namespace NetworkLibrary.HTTP
         private static int ProcessorCountLeft = IsSingleProcessor ? ProcessorCount : (int)Math.Floor(ProcessorCount / 2.0);
         private static int ProcessorCountRight = IsSingleProcessor ? ProcessorCount : ProcessorCount - ProcessorCountLeft;
 
-        public static async Task<string> GetFileStructureAsync(string rootDirectory, string rootDirectoryUrl, bool html, bool allowNestedReports, Dictionary<string, string> mimeTypesDic)
+        public static async Task<string> GetFileStructureAsync(string rootDirectory, string rootDirectoryUrl, int ServerPort, bool html, bool allowNestedReports, Dictionary<string, string> mimeTypesDic)
         {
             FileNode node = null;
 
@@ -27,7 +27,7 @@ namespace NetworkLibrary.HTTP
                 FileStructure structure = new FileStructure() { Root = node };
 
                 if (html)
-                    return CreateFileNodeHtmlString(structure, rootDirectoryUrl, mimeTypesDic);
+                    return CreateFileNodeHtmlString(structure, rootDirectoryUrl, ServerPort, mimeTypesDic);
                 else
                     return JsonConvert.SerializeObject(structure,
                      Formatting.Indented, new JsonSerializerSettings()
@@ -182,7 +182,7 @@ namespace NetworkLibrary.HTTP
             return null;
         }
 
-        public static string CreateFileNodeHtmlString(FileStructure structure, string title, Dictionary<string, string> mimeTypesDic)
+        public static string CreateFileNodeHtmlString(FileStructure structure, string title, int ServerPort, Dictionary<string, string> mimeTypesDic)
         {
             const string htmlStartData = @"
                 <style>
@@ -296,13 +296,13 @@ namespace NetworkLibrary.HTTP
             sb.Append(htmlStartData);
 
             sb.Append($"<h1>{title}</h1>");
-            sb.Append(GenerateFileNodeHtml(structure?.Root, 0, mimeTypesDic));
+            sb.Append(GenerateFileNodeHtml(structure?.Root, 0, ServerPort, mimeTypesDic));
             sb.Append("</body></html>");
 
             return sb.ToString();
         }
 
-        private static string GenerateFileNodeHtml(FileNode node, int level, Dictionary<string, string> mimeTypesDic)
+        private static string GenerateFileNodeHtml(FileNode node, int level, int ServerPort, Dictionary<string, string> mimeTypesDic)
         {
             if (node == null)
                 return "<h3>FileNode was null!</h3>";
@@ -322,17 +322,31 @@ namespace NetworkLibrary.HTTP
             sb.AppendLine($"<div class='file-node {levelClass}'>");
 
             // Make the file/directory name clickable by wrapping it with an <a> tag
-            sb.AppendLine($"<b><a href='{(node.Type == "Directory" ? node.Link + "?directory=on" : node.Link)}' style='color: #007BFF; text-decoration: none;'>{node.Name}</a></b> - <span style='color: #007BFF;'>{node.Type}</span>");
+            sb.AppendLine($"<b><a href='{(node.Type == "Directory" ? HttpUtility.HtmlEncode(node.Link + "?directory=on") : HttpUtility.HtmlEncode(node.Link))}' style='color: #007BFF; text-decoration: none;'>{HttpUtility.HtmlEncode(node.Name)}</a></b> - <span style='color: #007BFF;'>{node.Type}</span>");
             sb.AppendLine($"<i>Created: {node.CreationDate}</i><br>");
             sb.AppendLine($"<i>Last modified: {node.LastWriteTime}</i><br>");
 
             if (!string.IsNullOrEmpty(node.Image))
-                sb.AppendLine($"<img src='{node.Image}' class='file-image' alt='{Path.GetFileName(node.Image)}'>");
+                sb.AppendLine($"<img src='{HttpUtility.HtmlEncode(node.Image)}' class='file-image' alt='{HttpUtility.HtmlEncode(Path.GetFileName(node.Image))}'>");
             if (!string.IsNullOrEmpty(node.Descriptor))
                 sb.AppendLine($"<p>{HttpUtility.HtmlEncode(node.Descriptor)}</p>");
 
             if (node.Size.HasValue)
-                sb.AppendLine($"<p class='file-size'>Size: {node.Size} bytes</p>");
+            {
+                double size = node.Size.Value;
+                string formattedSize;
+
+                if (size >= 1_073_741_824) // 1 GB
+                    formattedSize = $"{size / 1_073_741_824:0.##} GB";
+                else if (size >= 1_048_576) // 1 MB
+                    formattedSize = $"{size / 1_048_576:0.##} MB";
+                else if (size >= 1024) // 1 KB
+                    formattedSize = $"{size / 1024:0.##} KB";
+                else
+                    formattedSize = $"{size} bytes";
+
+                sb.AppendLine($"<p class='file-size'>Size: {formattedSize}</p>");
+            }
 
             if (!string.IsNullOrEmpty(node.Content))
             {
@@ -341,21 +355,34 @@ namespace NetworkLibrary.HTTP
                 sb.AppendLine("</div>");
             }
             else if (node.Type.StartsWith("image/"))
-                sb.AppendLine($"<img src='{node.Link}' class='file-image' alt='{node.Name}'>");
+                sb.AppendLine($"<img src='{HttpUtility.HtmlEncode(node.Link)}' class='file-image' alt='{HttpUtility.HtmlEncode(node.Name)}'>");
             else if (node.Type.StartsWith("video/"))
             {
+                string fileFormat = HTTPProcessor.GetExtensionFromMime(node.Type, mimeTypesDic).Substring(1).ToLower();
+                bool isWebVideoFriendly = fileFormat == "mp4" || fileFormat == "webm";
                 sb.AppendLine("<div class='file-container'>");
-                sb.AppendLine("<video controls class='file-video'>");
-                sb.AppendLine($"<source src='{node.Link}' type='{node.Type}'>");
-                sb.AppendLine("Your browser does not support the video tag.");
-                sb.AppendLine("</video>");
+                if (isWebVideoFriendly)
+                {
+                    sb.AppendLine("<video controls class='file-video'>");
+                    sb.AppendLine($"<source src='{HttpUtility.HtmlEncode(node.Link)}' type='{node.Type}'>");
+                    sb.AppendLine("Your browser does not support the video tag.");
+                    sb.AppendLine("</video>");
+                }
+                else
+                {
+                    string mediaInfoResult = HTTPProcessor.RequestURLGET($"http://localhost:{ServerPort}/media/info?item={Uri.EscapeDataString(new Uri(node.Link).AbsolutePath)}");
+                    double? vBitrate = PlayerData.GetVBitRate(mediaInfoResult);
+                    double? vFrameRate = PlayerData.GetVFrameRate(mediaInfoResult);
+                    sb.AppendLine("<p style='color: red;'>This video format is not supported for direct streaming. To watch it using your browser, Please use this link instead :</p>");
+                    sb.AppendLine($"<a href='{HttpUtility.HtmlEncode(node.Link)}?offset=&vbitrate={(vBitrate == null ? "NaN" : vBitrate.ToString().Replace(",", "."))}&vtranscode=true&vframerate={(vFrameRate == null ? string.Empty : vFrameRate.ToString().Replace(",", "."))}&format={fileFormat}' download>Download Transcoded Video</a>");
+                }
                 sb.AppendLine("</div>");
             }
             else if (node.Type.StartsWith("audio/"))
             {
                 sb.AppendLine("<div class='file-container'>");
                 sb.AppendLine("<audio controls class='file-audio'>");
-                sb.AppendLine($"<source src='{node.Link}' type='{node.Type}'>");
+                sb.AppendLine($"<source src='{HttpUtility.HtmlEncode(node.Link)}' type='{node.Type}'>");
                 sb.AppendLine("Your browser does not support the audio tag.");
                 sb.AppendLine("</audio>");
                 sb.AppendLine("</div>");
@@ -363,7 +390,7 @@ namespace NetworkLibrary.HTTP
             else if (node.Type == "application/pdf")
             {
                 sb.AppendLine("<div class='file-container pdf-container'>");
-                sb.AppendLine($"<iframe src='{node.Link}' class='file-pdf'></iframe>");
+                sb.AppendLine($"<iframe src='{HttpUtility.HtmlEncode(node.Link)}' class='file-pdf'></iframe>");
                 sb.AppendLine("</div>");
             }
 
@@ -373,7 +400,7 @@ namespace NetworkLibrary.HTTP
                 foreach (var child in node.Childrens)
                 {
                     sb.AppendLine("<li>");
-                    sb.Append(GenerateFileNodeHtml(child, level + 1, mimeTypesDic)); // Recursive call for child nodes
+                    sb.Append(GenerateFileNodeHtml(child, level + 1, ServerPort, mimeTypesDic)); // Recursive call for child nodes
                     sb.AppendLine("</li>");
                 }
                 sb.AppendLine("</ul>");
