@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-namespace WebAPIService.MultiMedia
+namespace NetworkLibrary.Extension
 {
     public static class ProcessUtils
     {

@@ -94,7 +94,7 @@ namespace ApacheNet.Extensions
                         HandlersCache = (context, proc);
 
                         proc.StartInfo = new ProcessStartInfo($"{convertersPath}/ffmpeg",
-                            string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-i ""{0}"" -ss {1} -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
+                            !string.IsNullOrEmpty(bitrate) && bitrate != "NaN" ? string.Format(@"{6}-i ""{0}"" -ss {1} -b:v {4} -r {5} {2} http://localhost:{3}/", filePath,
                             offset, GetBrowserSupportedFFMpegFormat(httpContext.Request.RetrieveQueryValue("format"), isWebmSource, needToTranscode, isNvenc), _httpPort, bitrate, httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty) :
                             string.Format(@"{5}-i ""{0}"" -ss {1} -r {4} {2} http://localhost:{3}/", filePath, offset, GetBrowserSupportedFFMpegFormat(httpContext.Request.RetrieveQueryValue("format"), isWebmSource, needToTranscode, isNvenc), _httpPort,
                             httpContext.Request.RetrieveQueryValue("vframerate"), isNvenc ? "-hwaccel cuda -hwaccel_output_format cuda " : string.Empty))
@@ -293,14 +293,6 @@ namespace ApacheNet.Extensions
 
             // If "nvidia-smi" isn't found or no RTX 40+ match, assume no Ada GPU.
             return false;
-        }
-
-        private static int CompareVersions(string version1, string version2)
-        {
-            Version v1 = Version.Parse(version1);
-            Version v2 = Version.Parse(version2);
-
-            return v1.CompareTo(v2);
         }
     }
 }

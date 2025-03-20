@@ -220,31 +220,16 @@
             try
             {
                 if (chunk == null || chunk.Length < 1) chunk = Array.Empty<byte>();
-                try
-                {
-                    await _OutputStream.WriteAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false);
-                    await _OutputStream.FlushAsync(token).ConfigureAwait(false);
-                }
-                catch { }
+                await _OutputStream.WriteAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false);
+                await _OutputStream.FlushAsync(token).ConfigureAwait(false);
 
                 if (isFinal)
                 {
                     byte[] endChunk = Array.Empty<byte>();
-                    try
-                    {
-                        await _OutputStream.WriteAsync(endChunk, 0, endChunk.Length, token).ConfigureAwait(false);
-                        await _OutputStream.FlushAsync(token).ConfigureAwait(false);
-                    }
-                    catch { }
+                    await _OutputStream.WriteAsync(endChunk, 0, endChunk.Length, token).ConfigureAwait(false);
+                    await _OutputStream.FlushAsync(token).ConfigureAwait(false);
 
-                    try
-                    {
-                        _OutputStream.Close();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // outputstream has been disposed already.
-                    }
+                    _OutputStream.Close();
 
                     if (_Response != null) _Response.Close();
                     ResponseSent = true;
@@ -272,31 +257,16 @@
                 if (String.IsNullOrEmpty(eventData)) eventData = string.Empty;
 
                 byte[] dataBytes = Encoding.UTF8.GetBytes("data: " + eventData + "\n\n");
-                try
-                {
-                    await _OutputStream.WriteAsync(dataBytes, 0, dataBytes.Length, token).ConfigureAwait(false);
-                    await _OutputStream.FlushAsync(token).ConfigureAwait(false);
-                }
-                catch { }
+                await _OutputStream.WriteAsync(dataBytes, 0, dataBytes.Length, token).ConfigureAwait(false);
+                await _OutputStream.FlushAsync(token).ConfigureAwait(false);
 
                 if (isFinal)
                 {
                     byte[] endChunk = Array.Empty<byte>();
-                    try
-                    {
-                        await _OutputStream.WriteAsync(endChunk, 0, endChunk.Length, token).ConfigureAwait(false);
-                        await _OutputStream.FlushAsync(token).ConfigureAwait(false);
-                    }
-                    catch { }
+                    await _OutputStream.WriteAsync(endChunk, 0, endChunk.Length, token).ConfigureAwait(false);
+                    await _OutputStream.FlushAsync(token).ConfigureAwait(false);
 
-                    try
-                    {
-                        _OutputStream.Close();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // outputstream has been disposed already.
-                    }
+                    _OutputStream.Close();
 
                     if (_Response != null) _Response.Close();
                     ResponseSent = true;
@@ -553,58 +523,42 @@
                         // We override the bufferSize for large content, else, we murder the CPU.
                         int bufferSize = ContentLength > 8000000 && _Settings.IO.StreamBufferSize < 500000 ? 500000 : _Settings.IO.StreamBufferSize;
 
-                        try
+                        // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
+                        if (ContentLength > 0)
                         {
-                            // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
-                            if (ContentLength > 0)
+                            if (_KeepAliveData)
                             {
-                                if (_KeepAliveData)
+                                int bytesRead;
+                                long bytesRemaining = contentLength;
+
+                                byte[] buffer = new byte[bufferSize];
+
+                                _Data = new MemoryStream();
+
+                                while (bytesRemaining > 0)
                                 {
-                                    int bytesRead;
-                                    long bytesRemaining = contentLength;
-
-                                    byte[] buffer = new byte[bufferSize];
-
-                                    _Data = new MemoryStream();
-
-                                    while (bytesRemaining > 0)
+                                    bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+                                    if (bytesRead > 0)
                                     {
-                                        bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
-                                        if (bytesRead > 0)
-                                        {
-                                            await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                            try
-                                            {
-                                                await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-                                            }
-                                            catch { }
-                                            bytesRemaining -= bytesRead;
-                                        }
+                                        await _Data.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+                                        await _OutputStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+                                        bytesRemaining -= bytesRead;
                                     }
-
-                                    _Data.Seek(0, SeekOrigin.Begin);
                                 }
-                                else
-                                    await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, ContentLength, false, token).ConfigureAwait(false);
+
+                                _Data.Seek(0, SeekOrigin.Begin);
                             }
                             else
-                                await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, false, token).ConfigureAwait(false);
-
-                            // Only flush when there is valid data.
-                            await _OutputStream.FlushAsync(token).ConfigureAwait(false);
+                                await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, ContentLength, false, token).ConfigureAwait(false);
                         }
-                        catch { }
+                        else
+                            await StreamUtils.CopyStreamAsync(stream, _OutputStream, bufferSize, false, token).ConfigureAwait(false);
+
+                        await _OutputStream.FlushAsync(token).ConfigureAwait(false);
                     }
                 }
 
-                try
-                {
-                    _OutputStream.Close();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // outputstream has been disposed already.
-                }
+                _OutputStream.Close();
 
                 if (_Response != null) _Response.Close();
 

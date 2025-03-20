@@ -462,13 +462,7 @@
                     Headers.Add("Transfer-Encoding", "chunked");
                 }
                 else if (!ProtocolVersion.Contains("HTTP/"))
-                {
-                    try
-                    {
-                        ProtocolVersion = "HTTP/" + double.Parse(ProtocolVersion, CultureInfo.InvariantCulture).ToString().Replace(",", ".");
-                    }
-                    catch { }
-                }
+                    ProtocolVersion = "HTTP/" + double.Parse(ProtocolVersion, CultureInfo.InvariantCulture).ToString().Replace(",", ".");
 
                 if (ServerSentEvents)
                 {
@@ -567,18 +561,13 @@
                     // We override the bufferSize for large content, else, we murder the CPU.
                     int bufferSize = contentLength > 8000000 && _StreamBufferSize < 500000 ? 500000 : _StreamBufferSize;
 
-                    try
-                    {
-                        // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
-                        if (contentLength > 0)
-                            await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, contentLength, false, token).ConfigureAwait(false);
-                        else
-                            await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, false, token).ConfigureAwait(false);
+                    // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
+                    if (contentLength > 0)
+                        await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, contentLength, false, token).ConfigureAwait(false);
+                    else
+                        await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, false, token).ConfigureAwait(false);
 
-                        // Only flush when there is valid data.
-                        await _Stream.FlushAsync(token).ConfigureAwait(false);
-                    }
-                    catch { }
+                    await _Stream.FlushAsync(token).ConfigureAwait(false);
                 }
 
                 if (close)

@@ -2,6 +2,7 @@ using Newtonsoft.Json.Linq;
 using SimdJsonSharp;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
@@ -91,6 +92,11 @@ namespace NetworkLibrary.Extension
             }
 
             return Encoding.UTF8.GetString(bytes);
+        }
+
+        public static double Eval(this string expression, string filter = null)
+        {
+            return Convert.ToDouble(new DataTable().Compute(expression, filter));
         }
 
         /// <summary>
