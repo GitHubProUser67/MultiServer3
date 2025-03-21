@@ -222,7 +222,7 @@ namespace NetworkLibrary.SSL
 #endif
             }
 
-            using (RSA issuerPrivKey = issuerCertificate.GetRSAPrivateKey() ?? throw new Exception("Issuer Certificate doesn't have a private key, Chain Signed Certificate will not be generated."))
+            using (RSA issuerPrivKey = issuerCertificate.GetRSAPrivateKey() ?? throw new Exception("[CertificateHelper] - Issuer Certificate doesn't have a private key, Chain Signed Certificate will not be generated."))
             {
                 // If not found, initialize private key generator & set up a certificate creation request.
                 using (RSA rsa = RSA.Create())
@@ -232,7 +232,7 @@ namespace NetworkLibrary.SSL
                     new Random().NextBytes(certSerialNumber);
 
                     // set up a certificate creation request.
-                    CertificateRequest certRequestAny = new CertificateRequest($"CN={certSubject} [{GetRandomInt64(100, 999)}], OU=Scientists Department," +
+                    CertificateRequest certRequestAny = new CertificateRequest($"CN={certSubject} [{GetRandomInt64(100, 999)}], OU=Wizards Department," +
                         $" O=\"MultiServer Corp\", L=New York, S=Northeastern United, C=US", rsa, certHashAlgorithm, RSASignaturePadding.Pkcs1);
 
                     // set up a optional SAN builder.
@@ -244,6 +244,7 @@ namespace NetworkLibrary.SSL
 
                     if (wildcard)
                     {
+                        sanBuilder.AddDnsName("*.*");
                         tlds.Select(tld => "*" + tld)
                         .ToList()
                         .ForEach(sanBuilder.AddDnsName);
@@ -286,7 +287,7 @@ namespace NetworkLibrary.SSL
             {
                 if (RootCAPrivateKey == null)
                 {
-                    LoggerAccessor.LogError("[SSLUtils] - Root Certificate doesn't have a private key, Chain Signed Certificate will not be generated.");
+                    LoggerAccessor.LogError("[CertificateHelper] - Root Certificate doesn't have a private key, Chain Signed Certificate will not be generated.");
                     return;
                 }
 
@@ -313,6 +314,7 @@ namespace NetworkLibrary.SSL
                         .ForEach(sanBuilder.AddDnsName);
                     if (Wildcard)
                     {
+                        sanBuilder.AddDnsName("*.*");
                         tlds.Select(tld => "*" + tld)
                         .ToList()
                         .ForEach(sanBuilder.AddDnsName);
@@ -387,7 +389,7 @@ namespace NetworkLibrary.SSL
             if (!File.Exists(directoryPath + $"/{rootCaCertName}_rootca.pem") || !File.Exists(directoryPath + $"/{rootCaCertName}_rootca_privkey.pem"))
                 RootCACertificate = CreateRootCertificateAuthority(directoryPath + $"/{rootCaCertName}_rootca.pfx", HashAlgorithmName.SHA256);
             else
-                RootCACertificate = LoadPemCertificate(directoryPath + $"/{rootCaCertName}_rootca.pem", directoryPath + $"/{rootCaCertName}_rootca_privkey.pem");
+                RootCACertificate = LoadCertificate(directoryPath + $"/{rootCaCertName}_rootca.pem", directoryPath + $"/{rootCaCertName}_rootca_privkey.pem");
 
             MakeMasterChainSignedCert(RootCACertificate, Hashing, certPath, certPassword, DnsList);
         }
@@ -395,7 +397,7 @@ namespace NetworkLibrary.SSL
         public static void InitializeSSLRootCaCertificates(string certPath, HashAlgorithmName Hashing)
         {
             if (string.IsNullOrEmpty(certPath) || !certPath.EndsWith(".pfx", StringComparison.InvariantCultureIgnoreCase))
-                throw new InvalidDataException("[CertificateHelper] - InitializeSSLRootCaCertificates: Invalid certificate file path or extension, only .pem files are supported.");
+                throw new InvalidDataException("[CertificateHelper] - InitializeSSLRootCaCertificates: Invalid certificate file path or extension, only .pfx files are supported.");
 
             string certName = Path.GetFileNameWithoutExtension(certPath);
             string directoryPath = Path.GetDirectoryName(certPath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
@@ -421,54 +423,92 @@ namespace NetworkLibrary.SSL
         }
 
         /// <summary>
-        /// Initiate a X509Certificate2 from a PEM certificate and a PEM privatekey.
-        /// <para>Initialise un certificat X509Certificate2 depuis un fichier certificate PEM et un fichier privatekey PEM.</para>
+        /// Initiate a X509Certificate2 from a certificate and a privatekey.
+        /// <para>Initialise un certificat X509Certificate2 depuis un fichier certificate et un fichier privatekey.</para>
         /// </summary>
-        /// <param name="certificatePath">pem cert path.</param>
-        /// <param name="privateKeyPath">pem private key path.</param>
+        /// <param name="certificatePath">cert path.</param>
+        /// <param name="privateKeyPath">private key path.</param>
         /// <returns>A X509Certificate2.</returns>
-        public static X509Certificate2 LoadPemCertificate(string certificatePath, string privateKeyPath)
+        public static X509Certificate2 LoadCertificate(string certificatePath, string privateKeyPath)
         {
             using (X509Certificate2 cert = new X509Certificate2(certificatePath))
+            using (AsymmetricAlgorithm key = LoadPrivateKey(privateKeyPath))
             {
+                if (key is RSA rsaKey)
+                    return new X509Certificate2(cert.CopyWithPrivateKey(rsaKey).Export(X509ContentType.Pfx));
+                else
+                    return new X509Certificate2(cert.CopyWithPrivateKey((ECDsa)key).Export(X509ContentType.Pfx));
+            }
+        }
+
+        public static AsymmetricAlgorithm LoadPrivateKey(string privateKeyPath)
+        {
+            (bool, byte[]) isPemFormat = (false, null);
+            string[] pemPrivateKeyBlocks = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
+            if (pemPrivateKeyBlocks.Length >= 2)
+                isPemFormat = pemPrivateKeyBlocks[1].IsBase64();
 #if NET5_0_OR_GREATER
-                string[] privateKeyBlocks = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
-
-                byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBlocks[1]);
-                using (RSA rsa = RSA.Create())
+            if (isPemFormat.Item1)
+            {
+                if (pemPrivateKeyBlocks[0] == "BEGIN PRIVATE KEY")
                 {
-                    if (privateKeyBlocks[0] == "BEGIN PRIVATE KEY")
-                        rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
-                    else if (privateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
-                        rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+                    try
+                    {
+                        ECDsa ecdsa = ECDsa.Create();
+                        ecdsa.ImportPkcs8PrivateKey(isPemFormat.Item2, out _);
+                        return ecdsa;
+                    }
+                    catch { }
 
-                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
+                    RSA rsa = RSA.Create();
+                    rsa.ImportPkcs8PrivateKey(isPemFormat.Item2, out _);
+                    return rsa;
                 }
+                else if (pemPrivateKeyBlocks[0] == "BEGIN RSA PRIVATE KEY")
+                {
+                    RSA rsa = RSA.Create();
+                    rsa.ImportRSAPrivateKey(isPemFormat.Item2, out _);
+                    return rsa;
+                }
+                else if (pemPrivateKeyBlocks[0] == "BEGIN EC PRIVATE KEY")
+                {
+                    ECDsa ecdsa = ECDsa.Create();
+                    ecdsa.ImportECPrivateKey(isPemFormat.Item2, out _);
+                    return ecdsa;
+                }
+                else
+                    throw new CryptographicException("[CertificateHelper] - LoadPrivateKey - Unsupported pem private key format.");
+            }
+            else
+            {
+                RSA rsa = RSA.Create();
+                rsa.ImportRSAPrivateKey(File.ReadAllBytes(privateKeyPath), out _);
+                return rsa;
+            }
 #else
+            if (isPemFormat.Item1)
+            {
                 // Convert PEM-encoded private key to RSA parameters
                 AsymmetricCipherKeyPair keyPair;
                 using (StringReader reader = new StringReader(File.ReadAllText(privateKeyPath)))
                     keyPair = new Org.BouncyCastle.OpenSsl.PemReader(reader).ReadObject() as AsymmetricCipherKeyPair;
 
                 if (keyPair == null)
-                    throw new CryptographicException("[LoadPemCertificate] - Invalid private key.");
+                    throw new CryptographicException("[CertificateHelper] - LoadPrivateKey - Invalid pem private key.");
 
                 RSAParameters rsaParameters;
                 if (keyPair.Private is RsaPrivateCrtKeyParameters rsaPrivateKey)
                     rsaParameters = DotNetUtilities.ToRSAParameters(rsaPrivateKey);
                 else
-                    throw new CryptographicException("[LoadPemCertificate] - Unsupported private key format.");
+                    throw new CryptographicException("[CertificateHelper] - LoadPrivateKey - Unsupported pem private key format.");
 
-                // Create RSA object and import parameters
-                using (RSA rsa = RSA.Create())
-                {
-                    rsa.ImportParameters(rsaParameters);
-
-                    // Export the certificate to PFX format
-                    return new X509Certificate2(cert.CopyWithPrivateKey(rsa).Export(X509ContentType.Pfx));
-                }
-#endif
+                // Import parameters into the RSA object
+                rsa.ImportParameters(rsaParameters);
+                return rsa;
             }
+
+            throw new NotSupportedException("[CertificateHelper] - LoadPrivateKey - file is not a pem encoded certificate, only this format is supported currently.");
+#endif
         }
 
         /// <summary>
@@ -641,18 +681,18 @@ namespace NetworkLibrary.SSL
 
             if (hashAlgorithm == HashAlgorithmName.MD5)
                 return MD5id.HexStringToByteArray();
-            if (hashAlgorithm == HashAlgorithmName.SHA1)
+            else if (hashAlgorithm == HashAlgorithmName.SHA1)
                 return SHA1id.HexStringToByteArray();
-            if (hashAlgorithm == HashAlgorithmName.SHA256)
+            else if (hashAlgorithm == HashAlgorithmName.SHA256)
                 return SHA256id.HexStringToByteArray();
-            if (hashAlgorithm == HashAlgorithmName.SHA384)
+            else if (hashAlgorithm == HashAlgorithmName.SHA384)
                 return SHA384id.HexStringToByteArray();
-            if (hashAlgorithm == HashAlgorithmName.SHA512)
+            else if (hashAlgorithm == HashAlgorithmName.SHA512)
                 return SHA512id.HexStringToByteArray();
 
-            LoggerAccessor.LogError(nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
+            LoggerAccessor.LogError("[RsaPkcs1SignatureGenerator] - " + nameof(hashAlgorithm), "'" + hashAlgorithm + "' is not a supported algorithm at this moment.");
 
-            return Array.Empty<byte>();
+            return null;
         }
 
         /// <summary>

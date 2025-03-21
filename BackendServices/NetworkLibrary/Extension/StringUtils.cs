@@ -110,7 +110,7 @@ namespace NetworkLibrary.Extension
             string cleanedRequest = hex.Replace(" ", string.Empty).Replace("\n", string.Empty);
 
             if (cleanedRequest.Length % 2 == 1)
-                throw new Exception("The binary key cannot have an odd number of digits");
+                throw new Exception("[StringUtils] - HexStringToByteArray - The binary key cannot have an odd number of digits");
 
             byte[] arr = new byte[cleanedRequest.Length >> 1];
 
@@ -130,10 +130,7 @@ namespace NetworkLibrary.Extension
         /// <returns>A tuple boolean, byte array.</returns>
         public static (bool, byte[]) IsBase64(this string base64String)
         {
-            // Credit: oybek https://stackoverflow.com/users/794764/oybek
-            if (string.IsNullOrEmpty(base64String) || base64String.Length % 4 != 0
-               || base64String.Contains(" ") || base64String.Contains("\t")
-               || base64String.Contains("\r") || base64String.Contains("\n"))
+            if (string.IsNullOrEmpty(base64String))
                 return (false, null);
 
 #if NETCOREAPP2_1_OR_GREATER
@@ -143,7 +140,7 @@ namespace NetworkLibrary.Extension
                         2 : 1 : 0)];
 
             if (Convert.TryFromBase64String(base64String, buffer, out int bytesWritten) && bytesWritten > 0)
-                return (true, buffer.ToArray());
+                return (true, buffer[..bytesWritten].ToArray());
 #else
             try
             {
