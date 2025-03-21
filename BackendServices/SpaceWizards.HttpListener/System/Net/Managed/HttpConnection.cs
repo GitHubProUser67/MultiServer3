@@ -159,17 +159,18 @@ namespace SpaceWizards.HttpListener
                         string cert_file = Path.Combine(path, string.Format("{0}.pem", cert_prefix));
                         string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", cert_prefix));
                         if (File.Exists(cert_file) && File.Exists(pvk_file))
-                            return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
-                        else
+                            return CertificateHelper.LoadCertificate(cert_file, pvk_file);
+                        cert_file = Path.Combine(path, string.Format("{0}.cer", cert_prefix));
+                        pvk_file = Path.Combine(path, string.Format("{0}.pvk", cert_prefix));
+                        if (File.Exists(cert_file) && File.Exists(pvk_file))
+                            return CertificateHelper.LoadCertificate(cert_file, pvk_file);
+                        string origin_directory = Path.Combine(path, cert_prefix);
+                        if (Directory.Exists(origin_directory))
                         {
-                            string origin_directory = Path.Combine(path, cert_prefix);
-                            if (Directory.Exists(origin_directory))
-                            {
-                                cert_file = Path.Combine(origin_directory, "Origin Certificate");
-                                pvk_file = Path.Combine(origin_directory, "Private Key");
-                                if (File.Exists(cert_file) && File.Exists(pvk_file))
-                                    return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
-                            }
+                            cert_file = Path.Combine(origin_directory, "Origin Certificate");
+                            pvk_file = Path.Combine(origin_directory, "Private Key");
+                            if (File.Exists(cert_file) && File.Exists(pvk_file))
+                                return CertificateHelper.LoadCertificate(cert_file, pvk_file);
                         }
                     }
                     catch

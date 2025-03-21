@@ -269,7 +269,7 @@ namespace WebAPIService.HEAVYWATER
                                         // Read the contents of the memory stream into the byte array
                                         filedata.Read(ticketData, 0, contentLength);
 
-                                        (bool, byte[]) isValidBase64Data = new string(Encoding.ASCII.GetString(ticketData).Where(c => !char.IsWhiteSpace(c)).ToArray()).IsBase64();
+                                        (bool, byte[]) isValidBase64Data = Encoding.ASCII.GetString(ticketData).IsBase64();
 
                                         if (isValidBase64Data.Item1)
                                         {
