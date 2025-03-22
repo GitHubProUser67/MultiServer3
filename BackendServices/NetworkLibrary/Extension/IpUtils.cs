@@ -140,18 +140,46 @@ namespace NetworkLibrary.Extension
             return IPAddress.Loopback;
         }
 
-        public static Task TryGetServerIP(ushort Port, out string extractedIP)
+        public static Task TryGetServerIP(ushort Port, out string extractedIP, bool allowipv6 = false)
         {
-            // We want to check if the router allows external IPs first.
-            string ServerIP = GetPublicIPAddress(true);
-            try
+            string ServerIP;
+            if (allowipv6)
             {
-                using (TcpClient client = new(ServerIP, Port))
-                    client.Close();
+                // We want to check if the router allows external IPs first.
+                ServerIP = GetPublicIPAddress(true);
+                try
+                {
+                    using (TcpClient client = new(ServerIP, Port))
+                        client.Close();
+                }
+                catch // Failed to connect to public ip, so we fallback to IPV4 Public IP.
+                {
+                    ServerIP = GetPublicIPAddress();
+                    try
+                    {
+                        using (TcpClient client = new(ServerIP, Port))
+                            client.Close();
+                    }
+                    catch // Failed to connect to public ip, so we fallback to local IP.
+                    {
+                        ServerIP = GetLocalIPAddress(true).ToString();
+
+                        try
+                        {
+                            using (TcpClient client = new(ServerIP, Port))
+                                client.Close();
+                        }
+                        catch // Failed to connect to local ip, trying IPV4 only as a last resort.
+                        {
+                            ServerIP = GetLocalIPAddress().ToString();
+                        }
+                    }
+                }
             }
-            catch // Failed to connect to public ip, so we fallback to IPV4 Public IP.
+            else
             {
-                ServerIP = GetPublicIPAddress(false);
+                // We want to check if the router allows external IPs first.
+                ServerIP = GetPublicIPAddress();
                 try
                 {
                     using (TcpClient client = new(ServerIP, Port))
@@ -159,17 +187,7 @@ namespace NetworkLibrary.Extension
                 }
                 catch // Failed to connect to public ip, so we fallback to local IP.
                 {
-                    ServerIP = GetLocalIPAddress(true).ToString();
-
-                    try
-                    {
-                        using (TcpClient client = new(ServerIP, Port))
-                            client.Close();
-                    }
-                    catch // Failed to connect to local ip, trying IPV4 only as a last resort.
-                    {
-                        ServerIP = GetLocalIPAddress(false).ToString();
-                    }
+                    ServerIP = GetLocalIPAddress().ToString();
                 }
             }
 
