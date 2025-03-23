@@ -862,7 +862,7 @@ namespace NetworkLibrary.HTTP
 #if NET5_0_OR_GREATER
             return new Dictionary<string, List<string>>(formDataDictionary.OrderBy(x => x.Key));
 #else
-        return formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+            return formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
 #endif
         }
 
@@ -877,7 +877,7 @@ namespace NetworkLibrary.HTTP
             return HttpUtility.ParseQueryString(new Uri("http://test.com" + input).Query);
         }
 
-        public static string RemoveQueryString(string input)
+        public static string ProcessQueryString(string input, bool extractQuery = false)
         {
             if (string.IsNullOrEmpty(input))
                 return string.Empty;
@@ -885,9 +885,9 @@ namespace NetworkLibrary.HTTP
             int indexOfQuestionMark = input.IndexOf('?');
 
             if (indexOfQuestionMark >= 0)
-                return input.Substring(0, indexOfQuestionMark);
-            else
-                return input;
+                return extractQuery ? input.Substring(indexOfQuestionMark) : input.Substring(0, indexOfQuestionMark);
+
+            return extractQuery ? string.Empty : input;
         }
 
         public static Dictionary<string, string> GetQueryParameters(string fullurl)

@@ -29,7 +29,7 @@ namespace EdNetCRCCalculator
                     {
                         case "GET":
 
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
+                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.ProcessQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
                             {
                                 #region EdNet CRC Tools
                                 case "/!EdNet/GetCRC/":
