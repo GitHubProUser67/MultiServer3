@@ -104,7 +104,7 @@ namespace SVO
             // start listener
             try
             {
-                System.Net.IPAddress hostAddr = System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(host, "0.0.0.0"));
+                System.Net.IPAddress hostAddr = System.Net.IPAddress.Parse(InternetProtocolUtils.GetFirstActiveIPAddress(host, "0.0.0.0"));
 
                 listener = new HttpListener();
                 if (certificate != null)

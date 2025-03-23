@@ -184,9 +184,9 @@ class Program
         }
 
         if (MitmDNSServerConfiguration.PublicIpFallback)
-            DNSResolver.ServerIp = IpUtils.GetPublicIPAddress();
+            DNSResolver.ServerIp = InternetProtocolUtils.GetPublicIPAddress();
         else
-            DNSResolver.ServerIp = IpUtils.GetLocalIPAddress().ToString();
+            DNSResolver.ServerIp = InternetProtocolUtils.GetLocalIPAddress().ToString();
 
         if (Server == null)
             Server = new(Environment.ProcessorCount * 4);
@@ -243,7 +243,7 @@ class Program
             args.SetObserved();
         };
 
-        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
+        InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
         MitmDNSServerConfiguration.RefreshVariables(configPath);

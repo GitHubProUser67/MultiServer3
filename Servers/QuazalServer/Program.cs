@@ -7,8 +7,8 @@ using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = IpUtils.GetLocalIPAddress().ToString();
-    public static string ServerPublicBindAddress { get; set; } = IpUtils.GetPublicIPAddress();
+    public static string ServerBindAddress { get; set; } = InternetProtocolUtils.GetLocalIPAddress().ToString();
+    public static string ServerPublicBindAddress { get; set; } = InternetProtocolUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
     public static bool UsePublicIP { get; set; } = false;
@@ -226,7 +226,7 @@ class Program
             args.SetObserved();
         };
 
-        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
+        InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
         QuazalServerConfiguration.RefreshVariables(configPath);

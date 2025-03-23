@@ -99,7 +99,7 @@ namespace MitmDNS
                 }
 
                 if (!treated && MitmDNSServerConfiguration.DNSAllowUnsafeRequests)
-                    url = IpUtils.GetFirstActiveIPAddress(fullname, ServerIp);
+                    url = InternetProtocolUtils.GetFirstActiveIPAddress(fullname, ServerIp);
 
                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                 {

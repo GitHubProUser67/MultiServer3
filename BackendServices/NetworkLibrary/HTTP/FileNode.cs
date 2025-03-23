@@ -6,6 +6,7 @@ using NetworkLibrary.Extension;
 using System.Threading.Tasks;
 using System.Text;
 using System.Web;
+using System.Linq;
 
 namespace NetworkLibrary.HTTP
 {
@@ -27,7 +28,7 @@ namespace NetworkLibrary.HTTP
                 FileStructure structure = new FileStructure() { Root = node };
 
                 if (html)
-                    return CreateFileNodeHtmlString(structure, rootDirectoryUrl, ServerPort, mimeTypesDic);
+                    return CreateFileNodeHtmlString(structure, Path.GetFileName(rootDirectory), ServerPort, mimeTypesDic);
                 else
                     return JsonConvert.SerializeObject(structure,
                      Formatting.Indented, new JsonSerializerSettings()
@@ -397,7 +398,7 @@ namespace NetworkLibrary.HTTP
             if (node.Childrens != null && node.Childrens.Count > 0)
             {
                 sb.AppendLine("<ul>");
-                foreach (var child in node.Childrens)
+                foreach (var child in node.Childrens.OrderBy(x => x.Name))
                 {
                     sb.AppendLine("<li>");
                     sb.Append(GenerateFileNodeHtml(child, level + 1, ServerPort, mimeTypesDic)); // Recursive call for child nodes
