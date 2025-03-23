@@ -3,7 +3,6 @@ using EndianTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -16,7 +15,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace NetworkLibrary.Extension
 {
-    public static class IpUtils
+    public static class InternetProtocolUtils
     {
         public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength, bool detailed = false)
         {

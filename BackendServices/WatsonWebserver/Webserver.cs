@@ -132,7 +132,7 @@
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
+                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(InternetProtocolUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
@@ -157,7 +157,7 @@
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
+                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(InternetProtocolUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();

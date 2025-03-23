@@ -1413,7 +1413,7 @@ namespace ApacheNet
                                                                 }
 
                                                                 if (!treated && ApacheNetServerConfiguration.DNSAllowUnsafeRequests)
-                                                                    url = IpUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+                                                                    url = InternetProtocolUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                                 if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                                 {
@@ -2053,7 +2053,7 @@ namespace ApacheNet
                                                             }
 
                                                             if (!treated && ApacheNetServerConfiguration.DNSAllowUnsafeRequests)
-                                                                url = IpUtils.GetFirstActiveIPAddress(fullname, ServerIP);
+                                                                url = InternetProtocolUtils.GetFirstActiveIPAddress(fullname, ServerIP);
 
                                                             if (!string.IsNullOrEmpty(url) && url != "NXDOMAIN")
                                                             {

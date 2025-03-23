@@ -194,7 +194,7 @@ class Program
             args.SetObserved();
         };
 
-        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
+        InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
         SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");

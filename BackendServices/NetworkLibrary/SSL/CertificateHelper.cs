@@ -300,8 +300,8 @@ namespace NetworkLibrary.SSL
                 using (RSA rsa = RSA.Create())
                 {
                     IPAddress Loopback = IPAddress.Loopback;
-                    IPAddress PublicServerIP = IPAddress.Parse(IpUtils.GetPublicIPAddress());
-                    IPAddress LocalServerIP = IpUtils.GetLocalIPAddress();
+                    IPAddress PublicServerIP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
+                    IPAddress LocalServerIP = InternetProtocolUtils.GetLocalIPAddress();
 
                     // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
                     SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();

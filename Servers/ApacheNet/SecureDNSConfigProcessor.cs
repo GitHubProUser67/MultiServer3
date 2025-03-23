@@ -231,13 +231,13 @@ namespace ApacheNet
                         }
                         catch // Host is invalid or non-existant, fallback to local server IP
                         {
-                            IP = IpUtils.GetLocalIPAddress(true);
+                            IP = InternetProtocolUtils.GetLocalIPAddress(true);
                         }
                         break;
                     }
                 default:
                     {
-                        IP = IpUtils.GetLocalIPAddress(true);
+                        IP = InternetProtocolUtils.GetLocalIPAddress(true);
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
