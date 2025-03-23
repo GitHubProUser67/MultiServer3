@@ -39,6 +39,18 @@ namespace ApacheNet
                     await ctx.Response.Send();
                     return;
                 }
+                string xmlPath = $"/webassets/Sodium/{project}/{ctx.Request.Url.Parameters["version"]}/HoloTip_Data.xml";
+                string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
+
+                LoggerAccessor.LogDebug($"[PostAuthParameters] - HoloTip_Data data was not found for project:{project}, falling back to server file.");
+
+                if (File.Exists(filePath))
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                    ctx.Response.ContentType = "text/xml";
+                    await ctx.Response.Send(File.ReadAllText(filePath));
+                    return;
+                }
                 switch (project)
                 {
                     case "sodium_blimp":
@@ -1004,54 +1016,7 @@ namespace ApacheNet
                 </lua>");
                         return;
                     default:
-                        string xmlPath = $"/webassets/Sodium/{project}/{ctx.Request.Url.Parameters["version"]}/HoloTip_Data.xml";
-                        string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
-
-                        LoggerAccessor.LogWarn($"[PostAuthParameters] - HoloTip_Data data was not found for project:{project}, falling back to static file.");
-
-                        if (File.Exists(filePath))
-                        {
-                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                            ctx.Response.ContentType = "text/xml";
-                            await ctx.Response.Send(File.ReadAllText(filePath));
-                            return;
-                        }
-                        break;
-                }
-                ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                await ctx.Response.Send();
-            });
-
-            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/{project}/{version}/{region}.xml", async (ctx) =>
-            {
-                string? project = ctx.Request.Url.Parameters["project"];
-                if (string.IsNullOrEmpty(project))
-                {
-                    ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    ctx.Response.ContentType = "text/plain";
-                    await ctx.Response.Send();
-                    return;
-                }
-                switch (project)
-                {
-                    case "sodium_blimp":
-                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                        ctx.Response.ContentType = "text/xml";
-                        await ctx.Response.Send("");
-                        return;
-                    default:
-                        string xmlPath = $"/webassets/Sodium/{project}/{ctx.Request.Url.Parameters["version"]}/{ctx.Request.Url.Parameters["region"]}.xml";
-                        string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
-
-                        LoggerAccessor.LogWarn($"[PostAuthParameters] - regionalized data was not found for project:{project}, falling back to static file.");
-
-                        if (File.Exists(filePath))
-                        {
-                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                            ctx.Response.ContentType = "text/xml";
-                            await ctx.Response.Send(File.ReadAllText(filePath));
-                            return;
-                        }
+                        LoggerAccessor.LogWarn($"[PostAuthParameters] - HoloTip_Data data was not found for project:{project}!");
                         break;
                 }
                 ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
@@ -1066,6 +1031,18 @@ namespace ApacheNet
                     ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     ctx.Response.ContentType = "text/plain";
                     await ctx.Response.Send();
+                    return;
+                }
+                string xmlPath = $"/static/SodiumBlimp/{ctx.Request.Url.Parameters["version"]}/defs/{defs}.xml";
+                string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
+
+                LoggerAccessor.LogDebug($"[PostAuthParameters] - SodiumBlimp definition data was not found for defs:{defs}, falling back to static file.");
+
+                if (File.Exists(filePath))
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                    ctx.Response.ContentType = "text/xml";
+                    await ctx.Response.Send(File.ReadAllText(filePath));
                     return;
                 }
                 switch (defs)
@@ -1135,18 +1112,7 @@ namespace ApacheNet
                     ").Trim());
                         return;
                     default:
-                        string xmlPath = $"/static/SodiumBlimp/{ctx.Request.Url.Parameters["version"]}/defs/{defs}.xml";
-                        string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
-
-                        LoggerAccessor.LogWarn($"[PostAuthParameters] - definition data was not found for defs:{defs}, falling back to static file.");
-
-                        if (File.Exists(filePath))
-                        {
-                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-                            ctx.Response.ContentType = "text/xml";
-                            await ctx.Response.Send(File.ReadAllText(filePath));
-                            return;
-                        }
+                            LoggerAccessor.LogWarn($"[PostAuthParameters] - SodiumBlimp definition data was not found for defs:{defs}!");
                         break;
                 }
                 ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;

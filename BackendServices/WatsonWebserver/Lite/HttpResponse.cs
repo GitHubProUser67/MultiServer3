@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using NetworkLibrary.Extension;
     using WatsonWebserver.Core;
+    using WatsonWebserver.Lite.Extensions;
 
     /// <summary>
     /// Response to an HTTP request.
@@ -183,11 +184,13 @@
             {
                 if (chunk == null || chunk.Length < 1) chunk = Array.Empty<byte>();
 
-                byte[] message = ByteUtils.CombineByteArrays(Encoding.UTF8.GetBytes(chunk.Length.ToString("X") + "\r\n"), chunk, Encoding.UTF8.GetBytes("\r\n"));
-                if (isFinal) message = ByteUtils.CombineByteArray(message, Encoding.UTF8.GetBytes("0\r\n\r\n"));
-
-                using (var ms = new MemoryStream(message))
-                    await SendInternalAsync(message.Length, ms, isFinal, token).ConfigureAwait(false);
+                using (MemoryStream ms = new MemoryStream())
+                using (HttpResponseContentStream ctwire = new HttpResponseContentStream(ms, ChunkedTransfer))
+                {
+                    ctwire.Write(chunk, 0, chunk.Length);
+                    if (isFinal) ctwire.WriteTerminator();
+                    await SendInternalAsync(ctwire.Length, ms, isFinal, token).ConfigureAwait(false);
+                }
             }
             catch
             {

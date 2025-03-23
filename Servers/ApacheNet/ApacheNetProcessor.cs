@@ -317,7 +317,7 @@ namespace ApacheNet
 #else
                     LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport}{SuplementalMessage} Requested the {loggerprefix} Server with URL : {fullurl} (" + ctx.Timestamp.TotalMs + "ms)");
 #endif
-                absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(fullurl);
+                absolutepath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.ProcessQueryString(fullurl);
                 fulluripath = HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + fullurl;
                 isAllowed = true;
             }
@@ -659,7 +659,7 @@ namespace ApacheNet
                             {
                                 LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a HELLFIRE method : {absolutepath}");
 
-                                string res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
+                                string res = new HELLFIREClass(request.Method.ToString(), HTTPProcessor.ProcessQueryString(absolutepath), apiRootPath).ProcessRequest(request.DataAsBytes, request.ContentType, secure);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -687,7 +687,7 @@ namespace ApacheNet
                                 response.ContentType = "application/json";
                                 statusCode = HttpStatusCode.OK;
 
-                                string res = new HeavyWaterClass(request.Method.ToString(), HTTPProcessor.RemoveQueryString(absolutepath), apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
+                                string res = new HeavyWaterClass(request.Method.ToString(), HTTPProcessor.ProcessQueryString(absolutepath), apiRootPath).ProcessRequest(request.Query.Elements.ToDictionary(), request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                     res = "{\"STATUS\":\"FAILURE\"}";
 
@@ -1605,7 +1605,51 @@ namespace ApacheNet
                                             if (Directory.Exists(filePath))
                                             {
                                                 bool endsWithSlash = filePath.EndsWith("/");
-                                                if (request.RetrieveQueryValue("directory") == "on")
+                                                if (!endsWithSlash)
+                                                {
+                                                    byte[] movedPayloadBytes = Encoding.UTF8.GetBytes($@"
+                                                        <!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
+                                                        <html><head>
+                                                        <title>301 Moved Permanently</title>
+                                                        </head><body>
+                                                        <h1>Moved Permanently</h1>
+                                                        <p>The document has moved <a href=""{(secure ? "https" : "http")}://{Host}{absolutepath}/"">here</a>.</p>
+                                                        <hr>
+                                                        <address>{ServerIP} Port {ServerPort}</address>
+                                                        </body></html>");
+                                                    statusCode = HttpStatusCode.MovedPermanently;
+                                                    response.Headers.Add("Location", $"{(secure ? "https" : "http")}://{Host}{absolutepath}/{HTTPProcessor.ProcessQueryString(fullurl, true)}");
+                                                    response.StatusCode = (int)statusCode;
+                                                    response.ContentType = "text/html; charset=iso-8859-1";
+                                                    if (!string.IsNullOrEmpty(encoding))
+                                                    {
+                                                        if (encoding.Contains("zstd"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                                            movedPayloadBytes = HTTPProcessor.CompressZstd(movedPayloadBytes);
+                                                        }
+                                                        else if (encoding.Contains("br"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "br");
+                                                            movedPayloadBytes = HTTPProcessor.CompressBrotli(movedPayloadBytes);
+                                                        }
+                                                        else if (encoding.Contains("gzip"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                            movedPayloadBytes = HTTPProcessor.CompressGzip(movedPayloadBytes);
+                                                        }
+                                                        else if (encoding.Contains("deflate"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                                            movedPayloadBytes = HTTPProcessor.Inflate(movedPayloadBytes);
+                                                        }
+                                                    }
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendChunk(movedPayloadBytes, true);
+                                                    else
+                                                        sent = await response.Send(movedPayloadBytes);
+                                                }
+                                                else if (request.RetrieveQueryValue("directory") == "on")
                                                 {
                                                     statusCode = HttpStatusCode.OK;
                                                     response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -1798,146 +1842,96 @@ namespace ApacheNet
                                                 else
                                                     sent = await response.Send(CollectPHP.Item1);
                                             }
+                                            else if (File.Exists(filePath))
+                                            {
+                                                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+                                                if (ContentType == "application/octet-stream")
+                                                {
+                                                    byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
+                                                    foreach (var entry in HTTPProcessor._PathernDictionary)
+                                                    {
+                                                        if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
+                                                        {
+                                                            ContentType = entry.Key;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
+                                                bool isVideo = ContentType.StartsWith("video/");
+                                                bool isAudio = ContentType.StartsWith("audio/");
+                                                bool hasUserAgent = !string.IsNullOrEmpty(request.Useragent);
+
+                                                // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+                                                if (hasUserAgent && request.Useragent.Contains("PSHome") && (isVideo || isAudio))
+                                                    response.ChunkedTransfer = false;
+
+                                                if (request.QuerystringExists("offset") && request.RetrieveQueryValue("format") != "mp4" && (isVideo || isAudio))
+                                                {
+                                                    // This is a little gross, but I am gonna assume peoples uses decently updated browsers with this function.
+                                                    bool isWebmCompatible = hasUserAgent && (request.Useragent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
+                                                            || request.Useragent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase)
+                                                            || request.Useragent.Contains("edge", StringComparison.InvariantCultureIgnoreCase)
+                                                            || request.Useragent.Contains("opera", StringComparison.InvariantCultureIgnoreCase));
+
+                                                    if (request.RetrieveQueryValue("format") != "webm" && isWebmCompatible)
+                                                        sent = await new WebmTranscodeHandler(filePath, ApacheNetServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
+                                                    else if (!isWebmCompatible)
+                                                        sent = await new MP4TranscodeHandler(filePath, ApacheNetServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
+                                                }
+                                                if (!sent)
+                                                {
+                                                    if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
+                                                        sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
+                                                    else
+                                                    {
+                                                        // send file
+                                                        LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a file : {absolutepath}");
+
+                                                        sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
+                                                    }
+                                                }
+                                            }
                                             else
                                             {
-                                                if (File.Exists(filePath))
+                                                bool ArchiveOrgProcessed = false;
+
+                                                if (ApacheNetServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
                                                 {
-                                                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
-                                                    if (ContentType == "application/octet-stream")
+                                                    WebArchiveRequest archiveReq = new($"{(secure ? "https" : "http")}://{Host}" + fullurl);
+                                                    if (archiveReq.Archived)
                                                     {
-                                                        byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
-                                                        foreach (var entry in HTTPProcessor._PathernDictionary)
-                                                        {
-                                                            if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
-                                                            {
-                                                                ContentType = entry.Key;
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-
-                                                    bool isVideo = ContentType.StartsWith("video/");
-                                                    bool isAudio = ContentType.StartsWith("audio/");
-                                                    bool hasUserAgent = !string.IsNullOrEmpty(request.Useragent);
-
-                                                    // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
-                                                    if (hasUserAgent && request.Useragent.Contains("PSHome") && (isVideo || isAudio))
                                                         response.ChunkedTransfer = false;
-
-                                                    if (request.QuerystringExists("offset") && request.RetrieveQueryValue("format") != "mp4" && (isVideo || isAudio))
-                                                    {
-                                                        // This is a little gross, but I am gonna assume peoples uses decently updated browsers with this function.
-                                                        bool isWebmCompatible = hasUserAgent && (request.Useragent.Contains("firefox", StringComparison.InvariantCultureIgnoreCase)
-                                                                || request.Useragent.Contains("chrome", StringComparison.InvariantCultureIgnoreCase)
-                                                                || request.Useragent.Contains("edge", StringComparison.InvariantCultureIgnoreCase)
-                                                                || request.Useragent.Contains("opera", StringComparison.InvariantCultureIgnoreCase));
-
-                                                        if (request.RetrieveQueryValue("format") != "webm" && isWebmCompatible)
-                                                            sent = await new WebmTranscodeHandler(filePath, ApacheNetServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
-                                                        else if (!isWebmCompatible)
-                                                            sent = await new MP4TranscodeHandler(filePath, ApacheNetServerConfiguration.ConvertersFolder).ProcessVideoTranscode(ctx).ConfigureAwait(false);
-                                                    }
-                                                    if (!sent)
-                                                    {
-                                                        if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
-                                                            sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
-                                                        else
-                                                        {
-                                                            // send file
-                                                            LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a file : {absolutepath}");
-
-                                                            sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
-                                                        }
+                                                        ArchiveOrgProcessed = true;
+                                                        statusCode = HttpStatusCode.PermanentRedirect;
+                                                        response.Headers.Add("Location", archiveReq.ArchivedURL);
+                                                        response.StatusCode = (int)statusCode;
+                                                        sent = await response.Send();
                                                     }
                                                 }
-                                                else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
+
+                                                if (!ArchiveOrgProcessed)
                                                 {
-                                                    statusCode = HttpStatusCode.MovedPermanently;
+                                                    statusCode = HttpStatusCode.NotFound;
                                                     response.StatusCode = (int)statusCode;
 
-                                                    byte[] MovedPayload = Encoding.UTF8.GetBytes($@"
-                                                        <!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
-                                                        <html><head>
-                                                        <title>301 Moved Permanently</title>
-                                                        </head><body>
-                                                        <h1>Moved Permanently</h1>
-                                                        <p>The document has moved <a href=""{(secure ? "https" : "http")}://{request.Destination.Hostname}{absolutepath}/"">here</a>.</p>
-                                                        <hr>
-                                                        <address>{request.Destination.IpAddress} Port {request.Destination.Port}</address>
-                                                        </body></html>");
-
-                                                    if (ApacheNetServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
+                                                    if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
                                                     {
-                                                        if (encoding.Contains("zstd"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                                                            MovedPayload = HTTPProcessor.CompressZstd(MovedPayload);
-                                                        }
-                                                        else if (encoding.Contains("br"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "br");
-                                                            MovedPayload = HTTPProcessor.CompressBrotli(MovedPayload);
-                                                        }
-                                                        else if (encoding.Contains("gzip"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                                            MovedPayload = HTTPProcessor.CompressGzip(MovedPayload);
-                                                        }
-                                                        else if (encoding.Contains("deflate"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                                                            MovedPayload = HTTPProcessor.Inflate(MovedPayload);
-                                                        }
-                                                    }
+                                                        string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
+                                                        string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
+                                                            ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
 
-                                                    response.ChunkedTransfer = false;
-                                                    response.ContentType = "text/html; charset=iso-8859-1";
-
-                                                    response.Headers.Add("Location", $"{(secure ? "https" : "http")}://{request.Destination.Hostname}{absolutepath}/");
-
-                                                    sent = await response.Send(MovedPayload);
-                                                }
-                                                else
-                                                {
-                                                    bool ArchiveOrgProcessed = false;
-
-                                                    if (ApacheNetServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
-                                                    {
-                                                        WebArchiveRequest archiveReq = new($"{(secure ? "https" : "http")}://{Host}" + fullurl);
-                                                        if (archiveReq.Archived)
-                                                        {
-                                                            response.ChunkedTransfer = false;
-                                                            ArchiveOrgProcessed = true;
-                                                            statusCode = HttpStatusCode.PermanentRedirect;
-                                                            response.Headers.Add("Location", archiveReq.ArchivedURL);
-                                                            response.StatusCode = (int)statusCode;
-                                                            sent = await response.Send();
-                                                        }
-                                                    }
-
-                                                    if (!ArchiveOrgProcessed)
-                                                    {
-                                                        statusCode = HttpStatusCode.NotFound;
-                                                        response.StatusCode = (int)statusCode;
-
-                                                        if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
-                                                        {
-                                                            string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
-                                                            string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
-                                                                ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
-
-                                                            response.ContentType = "text/html";
-                                                            if (response.ChunkedTransfer)
-                                                                sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true);
-                                                            else
-                                                                sent = await response.Send(htmlPage);
-                                                        }
+                                                        response.ContentType = "text/html";
+                                                        if (response.ChunkedTransfer)
+                                                            sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true);
                                                         else
-                                                        {
-                                                            response.ChunkedTransfer = false;
-                                                            response.ContentType = "text/plain";
-                                                            sent = await response.Send();
-                                                        }
+                                                            sent = await response.Send(htmlPage);
+                                                    }
+                                                    else
+                                                    {
+                                                        response.ChunkedTransfer = false;
+                                                        response.ContentType = "text/plain";
+                                                        sent = await response.Send();
                                                     }
                                                 }
                                             }
@@ -2130,7 +2124,209 @@ namespace ApacheNet
                                             }
                                             break;
                                         default:
-                                            if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(ApacheNetServerConfiguration.ASPNETRedirectUrl))
+                                            if (Directory.Exists(filePath))
+                                            {
+                                                bool endsWithSlash = filePath.EndsWith("/");
+                                                if (!endsWithSlash)
+                                                {
+                                                    byte[] movedPayloadBytes = Encoding.UTF8.GetBytes($@"
+                                                        <!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
+                                                        <html><head>
+                                                        <title>301 Moved Permanently</title>
+                                                        </head><body>
+                                                        <h1>Moved Permanently</h1>
+                                                        <p>The document has moved <a href=""{(secure ? "https" : "http")}://{Host}{absolutepath}/"">here</a>.</p>
+                                                        <hr>
+                                                        <address>{ServerIP} Port {ServerPort}</address>
+                                                        </body></html>");
+                                                    statusCode = HttpStatusCode.MovedPermanently;
+                                                    response.Headers.Add("Location", $"{(secure ? "https" : "http")}://{Host}{absolutepath}/{HTTPProcessor.ProcessQueryString(fullurl, true)}");
+                                                    response.StatusCode = (int)statusCode;
+                                                    response.ContentType = "text/html; charset=iso-8859-1";
+                                                    if (!string.IsNullOrEmpty(encoding))
+                                                    {
+                                                        if (encoding.Contains("zstd"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                                            movedPayloadBytes = HTTPProcessor.CompressZstd(movedPayloadBytes);
+                                                        }
+                                                        else if (encoding.Contains("br"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "br");
+                                                            movedPayloadBytes = HTTPProcessor.CompressBrotli(movedPayloadBytes);
+                                                        }
+                                                        else if (encoding.Contains("gzip"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                            movedPayloadBytes = HTTPProcessor.CompressGzip(movedPayloadBytes);
+                                                        }
+                                                        else if (encoding.Contains("deflate"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                                            movedPayloadBytes = HTTPProcessor.Inflate(movedPayloadBytes);
+                                                        }
+                                                    }
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendChunk(movedPayloadBytes, true);
+                                                    else
+                                                        sent = await response.Send(movedPayloadBytes);
+                                                }
+                                                else if (request.RetrieveQueryValue("directory") == "on")
+                                                {
+                                                    statusCode = HttpStatusCode.OK;
+                                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                    response.StatusCode = (int)statusCode;
+                                                    response.ContentType = isHtmlCompatible ? "text/html" : "application/json" + ";charset=utf-8";
+                                                    byte[] reportOutputBytes = Encoding.UTF8.GetBytes(await FileStructureFormater.GetFileStructureAsync(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}",
+                                                        ServerPort, isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                    if (!string.IsNullOrEmpty(encoding))
+                                                    {
+                                                        if (encoding.Contains("zstd"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                                                            reportOutputBytes = HTTPProcessor.CompressZstd(reportOutputBytes);
+                                                        }
+                                                        else if (encoding.Contains("br"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "br");
+                                                            reportOutputBytes = HTTPProcessor.CompressBrotli(reportOutputBytes);
+                                                        }
+                                                        else if (encoding.Contains("gzip"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                                                            reportOutputBytes = HTTPProcessor.CompressGzip(reportOutputBytes);
+                                                        }
+                                                        else if (encoding.Contains("deflate"))
+                                                        {
+                                                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                                                            reportOutputBytes = HTTPProcessor.Inflate(reportOutputBytes);
+                                                        }
+                                                    }
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendChunk(reportOutputBytes, true);
+                                                    else
+                                                        sent = await response.Send(reportOutputBytes);
+                                                }
+                                                else if (request.RetrieveQueryValue("m3u") == "on")
+                                                {
+                                                    string? m3ufile = FileSystemUtils.GetM3UStreamFromDirectory(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}");
+                                                    if (!string.IsNullOrEmpty(m3ufile))
+                                                    {
+                                                        statusCode = HttpStatusCode.OK;
+                                                        response.StatusCode = (int)statusCode;
+                                                        response.ContentType = "audio/x-mpegurl";
+                                                        if (response.ChunkedTransfer)
+                                                            sent = await response.SendChunk(Encoding.UTF8.GetBytes(m3ufile), true);
+                                                        else
+                                                            sent = await response.Send(m3ufile);
+                                                    }
+                                                    else
+                                                    {
+                                                        response.ChunkedTransfer = false;
+                                                        statusCode = HttpStatusCode.NoContent;
+                                                        response.StatusCode = (int)statusCode;
+                                                        sent = await response.Send();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    bool handled = false;
+
+                                                    foreach (string indexFile in HTTPProcessor._DefaultFiles)
+                                                    {
+                                                        if (File.Exists(filePath + $"/{indexFile}"))
+                                                        {
+                                                            handled = true;
+
+                                                            if (indexFile.EndsWith(".php") && Directory.Exists(ApacheNetServerConfiguration.PHPStaticFolder))
+                                                            {
+                                                                var CollectPHP = PHP.ProcessPHPPage(filePath + $"/{indexFile}", ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
+                                                                statusCode = HttpStatusCode.OK;
+                                                                if (CollectPHP.Item2 != null)
+                                                                {
+                                                                    foreach (var innerArray in CollectPHP.Item2)
+                                                                    {
+                                                                        // Ensure the inner array has at least two elements
+                                                                        if (innerArray.Length >= 2)
+                                                                            // Extract two values from the inner array
+                                                                            response.Headers.Add(innerArray[0], innerArray[1]);
+                                                                    }
+                                                                }
+                                                                response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                                response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + $"/{indexFile}").ToString("r"));
+                                                                response.StatusCode = (int)statusCode;
+                                                                response.ContentType = "text/html";
+                                                                if (response.ChunkedTransfer)
+                                                                    sent = await response.SendChunk(CollectPHP.Item1, true);
+                                                                else
+                                                                    sent = await response.Send(CollectPHP.Item1);
+                                                            }
+                                                            else
+                                                            {
+                                                                using FileStream stream = new(filePath + $"/{indexFile}", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                                                byte[]? buffer = null;
+
+                                                                using (MemoryStream ms = new())
+                                                                {
+                                                                    stream.CopyTo(ms);
+                                                                    buffer = ms.ToArray();
+                                                                    ms.Flush();
+                                                                }
+
+                                                                if (buffer != null)
+                                                                {
+                                                                    statusCode = HttpStatusCode.OK;
+                                                                    response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                                                                    response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath + $"/{indexFile}").ToString("r"));
+                                                                    response.StatusCode = (int)statusCode;
+                                                                    response.ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath + $"/{indexFile}"), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+                                                                    if (response.ChunkedTransfer)
+                                                                        sent = await response.SendChunk(buffer, true);
+                                                                    else
+                                                                        sent = await response.Send(buffer);
+                                                                }
+                                                                else
+                                                                {
+                                                                    response.ChunkedTransfer = false;
+                                                                    statusCode = HttpStatusCode.InternalServerError;
+                                                                    response.StatusCode = (int)statusCode;
+                                                                    response.ContentType = "text/plain";
+                                                                    sent = await response.Send();
+                                                                }
+
+                                                                stream.Flush();
+                                                            }
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    if (!handled)
+                                                    {
+                                                        statusCode = HttpStatusCode.NotFound;
+                                                        response.StatusCode = (int)statusCode;
+
+                                                        if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                                        {
+                                                            string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
+                                                            string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
+                                                                ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
+
+                                                            response.ContentType = "text/html";
+                                                            if (response.ChunkedTransfer)
+                                                                sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true);
+                                                            else
+                                                                sent = await response.Send(htmlPage);
+                                                        }
+                                                        else
+                                                        {
+                                                            response.ChunkedTransfer = false;
+                                                            response.ContentType = "text/plain";
+                                                            sent = await response.Send();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            else if ((absolutepath.EndsWith(".asp", StringComparison.InvariantCultureIgnoreCase) || absolutepath.EndsWith(".aspx", StringComparison.InvariantCultureIgnoreCase)) && !string.IsNullOrEmpty(ApacheNetServerConfiguration.ASPNETRedirectUrl))
                                             {
                                                 response.ChunkedTransfer = false;
                                                 statusCode = HttpStatusCode.PermanentRedirect;
@@ -2169,113 +2365,63 @@ namespace ApacheNet
                                                 else
                                                     sent = await response.Send(CollectPHP.Item1);
                                             }
-                                            else
+                                            else if (File.Exists(filePath))
                                             {
-                                                if (File.Exists(filePath))
+                                                string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
+
+                                                if (ContentType == "application/octet-stream")
                                                 {
-                                                    string ContentType = HTTPProcessor.GetMimeType(Path.GetExtension(filePath), ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes);
-
-                                                    if (ContentType == "application/octet-stream")
+                                                    byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
+                                                    foreach (var entry in HTTPProcessor._PathernDictionary)
                                                     {
-                                                        byte[] VerificationChunck = FileSystemUtils.ReadFileChunck(filePath, 10);
-                                                        foreach (var entry in HTTPProcessor._PathernDictionary)
+                                                        if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
                                                         {
-                                                            if (ByteUtils.FindBytePattern(VerificationChunck, entry.Value) != -1)
-                                                            {
-                                                                ContentType = entry.Key;
-                                                                break;
-                                                            }
+                                                            ContentType = entry.Key;
+                                                            break;
                                                         }
-                                                    }
-
-                                                    bool isVideo = ContentType.StartsWith("video/");
-                                                    bool isAudio = ContentType.StartsWith("audio/");
-                                                    bool hasUserAgent = !string.IsNullOrEmpty(request.Useragent);
-
-                                                    // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
-                                                    if (hasUserAgent && request.Useragent.Contains("PSHome") && (isVideo || isAudio))
-                                                        response.ChunkedTransfer = false;
-
-                                                    if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
-                                                        sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
-                                                    else
-                                                    {
-                                                        // send file
-                                                        LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a file : {absolutepath}");
-
-                                                        sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
                                                     }
                                                 }
-                                                else if (isHtmlCompatible && Directory.Exists(filePath + "/"))
-                                                {
-                                                    statusCode = HttpStatusCode.MovedPermanently;
-                                                    response.StatusCode = (int)statusCode;
 
-                                                    byte[] MovedPayload = Encoding.UTF8.GetBytes($@"
-                                                        <!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
-                                                        <html><head>
-                                                        <title>301 Moved Permanently</title>
-                                                        </head><body>
-                                                        <h1>Moved Permanently</h1>
-                                                        <p>The document has moved <a href=""{(secure ? "https" : "http")}://{request.Destination.Hostname}{absolutepath}/"">here</a>.</p>
-                                                        <hr>
-                                                        <address>{request.Destination.IpAddress} Port {request.Destination.Port}</address>
-                                                        </body></html>");
+                                                bool isVideo = ContentType.StartsWith("video/");
+                                                bool isAudio = ContentType.StartsWith("audio/");
+                                                bool hasUserAgent = !string.IsNullOrEmpty(request.Useragent);
 
-                                                    if (ApacheNetServerConfiguration.EnableHTTPCompression && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
-                                                    {
-                                                        if (encoding.Contains("zstd"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                                                            MovedPayload = HTTPProcessor.CompressZstd(MovedPayload);
-                                                        }
-                                                        else if (encoding.Contains("br"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "br");
-                                                            MovedPayload = HTTPProcessor.CompressBrotli(MovedPayload);
-                                                        }
-                                                        else if (encoding.Contains("gzip"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                                                            MovedPayload = HTTPProcessor.CompressGzip(MovedPayload);
-                                                        }
-                                                        else if (encoding.Contains("deflate"))
-                                                        {
-                                                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                                                            MovedPayload = HTTPProcessor.Inflate(MovedPayload);
-                                                        }
-                                                    }
-
+                                                // Hotfix PSHome videos not being displayed in HTTP using chunck encoding (game bug).
+                                                if (hasUserAgent && request.Useragent.Contains("PSHome") && (isVideo || isAudio))
                                                     response.ChunkedTransfer = false;
-                                                    response.ContentType = "text/html; charset=iso-8859-1";
 
-                                                    response.Headers.Add("Location", $"{(secure ? "https" : "http")}://{request.Destination.Hostname}{absolutepath}/");
+                                                if (ApacheNetServerConfiguration.RangeHandling && !string.IsNullOrEmpty(request.RetrieveHeaderValue("Range")))
+                                                    sent = await LocalFileStreamHelper.HandlePartialRangeRequest(ctx, filePath, ContentType, noCompressCacheControl);
+                                                else
+                                                {
+                                                    // send file
+                                                    LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a file : {absolutepath}");
 
-                                                    sent = await response.Send(MovedPayload);
+                                                    sent = await LocalFileStreamHelper.HandleRequest(ctx, encoding, absolutepath, filePath, ContentType, isVideo || isAudio, isHtmlCompatible, noCompressCacheControl);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                statusCode = HttpStatusCode.NotFound;
+                                                response.StatusCode = (int)statusCode;
+
+                                                if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
+                                                {
+                                                    string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
+                                                    string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
+                                                        ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
+
+                                                    response.ContentType = "text/html";
+                                                    if (response.ChunkedTransfer)
+                                                        sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true);
+                                                    else
+                                                        sent = await response.Send(htmlPage);
                                                 }
                                                 else
                                                 {
-                                                    statusCode = HttpStatusCode.NotFound;
-                                                    response.StatusCode = (int)statusCode;
-
-                                                    if (!string.IsNullOrEmpty(Accept) && Accept.Contains("html"))
-                                                    {
-                                                        string hostToDisplay = string.IsNullOrEmpty(Host) ? (ServerIP.Length > 15 ? "[" + ServerIP + "]" : ServerIP) : Host;
-                                                        string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(statusCode, absolutepath, $"{(secure ? "https" : "http")}://{hostToDisplay}",
-                                                            ApacheNetServerConfiguration.HTTPStaticFolder, serverRevision, hostToDisplay, ServerPort, ApacheNetServerConfiguration.NotFoundSuggestions);
-
-                                                        response.ContentType = "text/html";
-                                                        if (response.ChunkedTransfer)
-                                                            sent = await response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true);
-                                                        else
-                                                            sent = await response.Send(htmlPage);
-                                                    }
-                                                    else
-                                                    {
-                                                        response.ChunkedTransfer = false;
-                                                        response.ContentType = "text/plain";
-                                                        sent = await response.Send();
-                                                    }
+                                                    response.ChunkedTransfer = false;
+                                                    response.ContentType = "text/plain";
+                                                    sent = await response.Send();
                                                 }
                                             }
                                             break;
