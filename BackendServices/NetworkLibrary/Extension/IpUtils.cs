@@ -140,44 +140,6 @@ namespace NetworkLibrary.Extension
             return IPAddress.Loopback;
         }
 
-        public static Task TryGetServerIP(ushort Port, out string extractedIP)
-        {
-            // We want to check if the router allows external IPs first.
-            string ServerIP = GetPublicIPAddress(true);
-            try
-            {
-                using (TcpClient client = new(ServerIP, Port))
-                    client.Close();
-            }
-            catch // Failed to connect to public ip, so we fallback to IPV4 Public IP.
-            {
-                ServerIP = GetPublicIPAddress(false);
-                try
-                {
-                    using (TcpClient client = new(ServerIP, Port))
-                        client.Close();
-                }
-                catch // Failed to connect to public ip, so we fallback to local IP.
-                {
-                    ServerIP = GetLocalIPAddress(true).ToString();
-
-                    try
-                    {
-                        using (TcpClient client = new(ServerIP, Port))
-                            client.Close();
-                    }
-                    catch // Failed to connect to local ip, trying IPV4 only as a last resort.
-                    {
-                        ServerIP = GetLocalIPAddress(false).ToString();
-                    }
-                }
-            }
-
-            extractedIP = ServerIP;
-
-            return Task.CompletedTask;
-        }
-
         /// <summary>
         /// Get the first active IP of a given domain.
         /// <para>Obtiens la première IP active disponible d'un domaine.</para>
