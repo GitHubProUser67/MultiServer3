@@ -134,7 +134,7 @@ namespace SSFWServer.Services
                                     {
                                         mainArray.Add(addObject);
                                         if (addObject.TryGetValue("objectId", out JToken? objectIdToken) && objectIdToken != null 
-                                            && addObject.TryGetValue("type", out JToken? typeToken) && typeToken != null && typeToken.ToString() != "0")
+                                            && addObject.TryGetValue("type", out JToken? typeToken) && typeToken != null && int.TryParse(typeToken.ToString(), out int typeTokenInt) && typeTokenInt != 0)
                                             entriesToAddInMini.TryAdd(objectIdToken.ToString(), typeToken.ToString());
                                     }
 
@@ -187,7 +187,7 @@ namespace SSFWServer.Services
                                             string objectId = objectIdValue.ToString();
                                             JObject? existingObj = mainArray.FirstOrDefault(obj => obj["objectId"]?.ToString() == objectId) as JObject;
                                             existingObj?.Remove();
-                                            if (deleteObj.TryGetValue("type", out JToken? typeToken) && typeToken != null && typeToken.ToString() != "0")
+                                            if (deleteObj.TryGetValue("type", out JToken? typeToken) && typeToken != null && int.TryParse(typeToken.ToString(), out int typeTokenInt) && typeTokenInt != 0)
                                                 entriesToRemoveInMini.Add(objectId);
                                         }
                                     }
