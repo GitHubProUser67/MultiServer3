@@ -170,24 +170,30 @@ namespace ApacheNet
                 ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                 if (ctx.Response.ChunkedTransfer)
                 {
-                    const int buffersize = 16 * 1024;
-
-                    bool isNotlastChunk;
                     long bytesLeft = st.Length;
-                    byte[] buffer;
 
-                    while (bytesLeft > 0)
+                    if (bytesLeft == 0)
+                        sent = await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+                    else
                     {
-                        isNotlastChunk = bytesLeft > buffersize;
-                        buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
-                        int n = st.Read(buffer, 0, buffer.Length);
+                        const int buffersize = 16 * 1024;
 
-                        if (isNotlastChunk)
-                            await ctx.Response.SendChunk(buffer, false);
-                        else
-                            sent = await ctx.Response.SendChunk(buffer, true);
+                        bool isNotlastChunk;
+                        byte[] buffer;
 
-                        bytesLeft -= n;
+                        while (bytesLeft > 0)
+                        {
+                            isNotlastChunk = bytesLeft > buffersize;
+                            buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
+                            int n = st.Read(buffer, 0, buffer.Length);
+
+                            if (isNotlastChunk)
+                                await ctx.Response.SendChunk(buffer, false);
+                            else
+                                sent = await ctx.Response.SendChunk(buffer, true);
+
+                            bytesLeft -= n;
+                        }
                     }
                 }
                 else
@@ -326,10 +332,14 @@ namespace ApacheNet
 
                                         if (ctx.Response.ChunkedTransfer)
                                         {
+                                            long bytesLeft = new FileInfo(filePath).Length;
+
+                                            if (bytesLeft == 0)
+                                                return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                             const int buffersize = 16 * 1024;
 
                                             bool isNotlastChunk;
-                                            long bytesLeft = new FileInfo(filePath).Length;
                                             byte[] buffer;
 
                                             while (bytesLeft > 0)
@@ -384,10 +394,14 @@ namespace ApacheNet
 
                                 if (ctx.Response.ChunkedTransfer)
                                 {
+                                    long bytesLeft = ms.Length;
+
+                                    if (bytesLeft == 0)
+                                        return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                     const int buffersize = 16 * 1024;
 
                                     bool isNotlastChunk;
-                                    long bytesLeft = ms.Length;
                                     byte[] buffer;
 
                                     while (bytesLeft > 0)
@@ -487,10 +501,14 @@ namespace ApacheNet
 
                                 if (ctx.Response.ChunkedTransfer)
                                 {
+                                    long bytesLeft = new FileInfo(filePath).Length;
+
+                                    if (bytesLeft == 0)
+                                        return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                     const int buffersize = 16 * 1024;
 
                                     bool isNotlastChunk;
-                                    long bytesLeft = new FileInfo(filePath).Length;
                                     byte[] buffer;
 
                                     while (bytesLeft > 0)
@@ -524,6 +542,9 @@ namespace ApacheNet
 
                                 if (ctx.Response.ChunkedTransfer)
                                 {
+                                    if (TotalBytes == 0)
+                                        return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                     const int buffersize = 16 * 1024;
 
                                     bool isNotlastChunk;

@@ -209,7 +209,7 @@ namespace ApacheNet
         #region GetIP
         private static string GetIp(string ip)
         {
-            IPAddress IP = IPAddress.Loopback;
+            IPAddress IP;
 
             switch (Uri.CheckHostName(ip))
             {
@@ -229,16 +229,16 @@ namespace ApacheNet
                         {
                             IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Loopback;
                         }
-                        catch // Host is invalid or non-existant, fallback to local server IP
+                        catch
                         {
-                            IP = InternetProtocolUtils.GetLocalIPAddress(true);
+                            IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
                         }
                         break;
                     }
                 default:
                     {
-                        IP = InternetProtocolUtils.GetLocalIPAddress(true);
-                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
+                        IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
+                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in SecureDNSConfigProcessor.GetIp()");
                         break;
                     }
             }

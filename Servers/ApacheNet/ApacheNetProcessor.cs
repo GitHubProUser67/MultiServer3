@@ -1536,22 +1536,28 @@ namespace ApacheNet
                                                         HugeMemoryStream videoStream = new HugeMemoryStream(vid.VideoStream, buffersize);
                                                         if (ctx.Response.ChunkedTransfer)
                                                         {
-                                                            bool isNotlastChunk;
                                                             long bytesLeft = videoStream.Length;
-                                                            byte[] buffer;
 
-                                                            while (bytesLeft > 0)
+                                                            if (bytesLeft == 0)
+                                                                sent = await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+                                                            else
                                                             {
-                                                                isNotlastChunk = bytesLeft > buffersize;
-                                                                buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
-                                                                int n = videoStream.Read(buffer, 0, buffer.Length);
+                                                                bool isNotlastChunk;
+                                                                byte[] buffer;
 
-                                                                if (isNotlastChunk)
-                                                                    await ctx.Response.SendChunk(buffer, false);
-                                                                else
-                                                                    sent = await ctx.Response.SendChunk(buffer, true);
+                                                                while (bytesLeft > 0)
+                                                                {
+                                                                    isNotlastChunk = bytesLeft > buffersize;
+                                                                    buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
+                                                                    int n = videoStream.Read(buffer, 0, buffer.Length);
 
-                                                                bytesLeft -= n;
+                                                                    if (isNotlastChunk)
+                                                                        await ctx.Response.SendChunk(buffer, false);
+                                                                    else
+                                                                        sent = await ctx.Response.SendChunk(buffer, true);
+
+                                                                    bytesLeft -= n;
+                                                                }
                                                             }
                                                         }
                                                         else

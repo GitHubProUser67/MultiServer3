@@ -1940,8 +1940,8 @@ namespace Horizon.SERVER.Medius
 
                         string accountLoggingMsg = string.Empty;
                         byte[] XI5TicketData = ByteUtils.CombineByteArrays(BitConverter.GetBytes(
-                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), new byte[][] { BitConverter.GetBytes(
-                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size), ticketLoginRequest.TicketData });
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), BitConverter.GetBytes(
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size), ticketLoginRequest.TicketData);
 
                         // Extract the desired portion of the binary data for a npticket 4.0
                         byte[] extractedData = new byte[0x63 - 0x54 + 1];

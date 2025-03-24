@@ -51,7 +51,7 @@ namespace SSFWServer.Services
                     string? json = FileHelper.ReadAllText(filePath, key);
 
                     // Parse the JSON string as a JArray
-                    JArray? jsonArray = null;
+                    JArray? jsonArray;
                     if (string.IsNullOrEmpty(json))
                         jsonArray = new JArray();
                     else
@@ -70,6 +70,11 @@ namespace SSFWServer.Services
                             JToken? rewardValue = reward.Value;
                             if (string.IsNullOrEmpty(rewardKey) || rewardValue == null)
                                 continue;
+                            if (rewardValue.Type != JTokenType.Integer)
+                            {
+                                LoggerAccessor.LogInfo($"[SSFWRewardsService] - Reward:{rewardValue} earned, adding to mini file:{filePath}.");
+                                rewardValue = 1;
+                            }
 
                             // Check if the reward exists in the JSON array
                             JToken? existingReward = jsonArray.FirstOrDefault(r => r[rewardKey] != null);
