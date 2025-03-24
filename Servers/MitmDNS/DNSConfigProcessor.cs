@@ -210,7 +210,7 @@ namespace MitmDNS
         #region GetIP
         private static string GetIp(string ip)
         {
-            IPAddress IP = IPAddress.Loopback;
+            IPAddress IP;
 
             switch (Uri.CheckHostName(ip))
             {
@@ -230,15 +230,21 @@ namespace MitmDNS
                         {
                             IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Loopback;
                         }
-                        catch // Host is invalid or non-existant, fallback to local server IP
+                        catch
                         {
-                            IP = InternetProtocolUtils.GetLocalIPAddress(true);
+                            if (MitmDNSServerConfiguration.PublicIpFallback)
+                                IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
+                            else
+                                IP = InternetProtocolUtils.GetLocalIPAddress();
                         }
                         break;
                     }
                 default:
                     {
-                        IP = InternetProtocolUtils.GetLocalIPAddress(true);
+                        if (MitmDNSServerConfiguration.PublicIpFallback)
+                            IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
+                        else
+                            IP = InternetProtocolUtils.GetLocalIPAddress();
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
@@ -248,7 +254,7 @@ namespace MitmDNS
         }
         #endregion
 
-        private static bool MyRemoteCertificateValidationCallback(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        private static bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true; //This isn't a good thing to do, but to keep the code simple i prefer doing this, it will be used only on mono
         }

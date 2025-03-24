@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
+#endif
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Tpm2Lib;
@@ -125,20 +129,22 @@ namespace NetworkLibrary.Extension
             else if (isb1Null || isb2Null)
                 return false;
 
+            int lenb1 = b1.Length;
+
             if (Windows.Win32API.IsWindows)
                 // Validate buffers are the same length.
                 // This also ensures that the count does not exceed the length of either buffer.  
-                return b1.Length == b2.Length && memcmp(b1, b2, b1.Length) == 0;
+                return lenb1 == b2.Length && memcmp(b1, b2, lenb1) == 0;
 
             int i;
-            if (b1.Length == b2.Length)
+            if (lenb1 == b2.Length)
             {
                 i = 0;
-                while (i < b1.Length && (b1[i] == b2[i]))
+                while (i < lenb1 && (b1[i] == b2[i]))
                 {
                     i++;
                 }
-                if (i == b1.Length)
+                if (i == lenb1)
                     return true;
             }
 
@@ -198,7 +204,7 @@ namespace NetworkLibrary.Extension
         {
             bool isfirstNull = first == null;
             bool issecondNull = second == null;
-            
+
             if (isfirstNull && issecondNull)
                 return null;
             else if (issecondNull || second.Length == 0)
@@ -216,8 +222,10 @@ namespace NetworkLibrary.Extension
                 return copy;
             }
 
-            bool exceptionThrown = false;
-            int totalLength = first.Length + second.Length;
+            int len1 = first.Length;
+            int len2 = second.Length;
+
+            int totalLength = len1 + len2;
 #if NET6_0_OR_GREATER
             if (totalLength > Array.MaxLength || totalLength < 0)
 #else
@@ -225,45 +233,78 @@ namespace NetworkLibrary.Extension
 #endif
             {
                 // Return the first array if total length exceeds limits
-                int sizeOfArray = first.Length;
+                int sizeOfArray = len1;
                 byte[] copy = new byte[sizeOfArray];
                 Array.Copy(first, 0, copy, 0, sizeOfArray);
                 return copy;
             }
 
-            byte[] bytes = new byte[totalLength];
+            int i = 0;
+            int j = 0;
+
+            byte[] resultBytes = new byte[totalLength];
 
             // Combine first, and second arrays
-            Task t = Task.Run(() => { Array.Copy(first, 0, bytes, 0, first.Length); });
-            try
+#if NETCOREAPP3_0_OR_GREATER
+            unsafe
             {
-                Array.Copy(second, 0, bytes, first.Length, second.Length);
-            }
-            catch
-            {
-                exceptionThrown = true;
-                throw;
-            }
-            finally
-            {
-                try
+                fixed (byte* src1Ptr = first, src2Ptr = second, dstPtr = resultBytes)
                 {
-                    t.Wait();
-                }
-                catch
-                {
-                    // Don't assert if we already thrown an exception.
-                    if (!exceptionThrown)
-#pragma warning disable CA2219
-                        throw;
-#pragma warning restore
-                }
-                finally
-                {
-                    t.Dispose();
+#if NET8_0_OR_GREATER
+                    if (Avx512F.IsSupported)
+                    {
+                        for (; i <= len1 - 64; i += 64)
+                        {
+                            Avx512F.Store(dstPtr + i, Avx512F.LoadVector512(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 64; j += 64)
+                        {
+                            Avx512F.Store(dstPtr + len1 + j, Avx512F.LoadVector512(src2Ptr + j));
+                        }
+                    }
+#endif
+                    if (Avx.IsSupported)
+                    {
+                        for (; i <= len1 - 32; i += 32)
+                        {
+                            Avx.Store(dstPtr + i, Avx.LoadVector256(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 32; j += 32)
+                        {
+                            Avx.Store(dstPtr + len1 + j, Avx.LoadVector256(src2Ptr + j));
+                        }
+                    }
+                    if (Sse2.IsSupported)
+                    {
+                        for (; i <= len1 - 16; i += 16)
+                        {
+                            Sse2.Store(dstPtr + i, Sse2.LoadVector128(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 16; j += 16)
+                        {
+                            Sse2.Store(dstPtr + len1 + j, Sse2.LoadVector128(src2Ptr + j));
+                        }
+                    }
+                    else if (AdvSimd.IsSupported)
+                    {
+                        for (; i <= len1 - 16; i += 16)
+                        {
+                            AdvSimd.Store(dstPtr + i, AdvSimd.LoadVector128(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 16; j += 16)
+                        {
+                            AdvSimd.Store(dstPtr + len1 + j, AdvSimd.LoadVector128(src2Ptr + j));
+                        }
+                    }
                 }
             }
-            return bytes;
+#endif
+            if (i < len1)
+                Array.Copy(first, i, resultBytes, i, len1 - i);
+            if (j < len2)
+                Array.Copy(second, j, resultBytes, len1 + j, len2 - j);
+
+            return resultBytes;
         }
 
         /// <summary>
@@ -310,56 +351,110 @@ namespace NetworkLibrary.Extension
             else if (isthirdNull || third.Length == 0)
                 return CombineByteArray(first, second);
 
-            bool exceptionThrown = false;
-            int totalLength = first.Length + second.Length + third.Length;
+            int len1 = first.Length;
+            int len2 = second.Length;
+            int len3 = third.Length;
+
+            int totalLength = len1 + len2 + len3;
 
 #if NET6_0_OR_GREATER
             if (totalLength > Array.MaxLength || totalLength < 0)
 #else
-    if (totalLength > 0X7FFFFFC7 || totalLength < 0)
+            if (totalLength > 0X7FFFFFC7 || totalLength < 0)
 #endif
             {
                 // Return the first array if total length exceeds limits
-                int sizeOfArray = first.Length;
+                int sizeOfArray = len1;
                 byte[] copy = new byte[sizeOfArray];
                 Array.Copy(first, 0, copy, 0, sizeOfArray);
                 return copy;
             }
 
-            byte[] bytes = new byte[totalLength];
+            int i = 0;
+            int j = 0;
+            int k = 0;
+
+            byte[] resultBytes = new byte[totalLength];
 
             // Combine first, second, and third arrays
-            Task t1 = Task.Run(() => { Array.Copy(first, 0, bytes, 0, first.Length); });
-            Task t2 = Task.Run(() => { Array.Copy(second, 0, bytes, first.Length, second.Length); });
-            try
+#if NETCOREAPP3_0_OR_GREATER
+            unsafe
             {
-                Array.Copy(third, 0, bytes, first.Length + second.Length, third.Length);
-            }
-            catch
-            {
-                exceptionThrown = true;
-                throw;
-            }
-            finally
-            {
-                try
+                fixed (byte* src1Ptr = first, src2Ptr = second, src3Ptr = third, dstPtr = resultBytes)
                 {
-                    Task.WhenAll(t1, t2).Wait();
-                }
-                catch
-                {
-                    if (!exceptionThrown)
-#pragma warning disable CA2219
-                        throw;
-#pragma warning restore
-                }
-                finally
-                {
-                    t1.Dispose();
-                    t2.Dispose();
+#if NET8_0_OR_GREATER
+                    if (Avx512F.IsSupported)
+                    {
+                        for (; i <= len1 - 64; i += 64)
+                        {
+                            Avx512F.Store(dstPtr + i, Avx512F.LoadVector512(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 64; j += 64)
+                        {
+                            Avx512F.Store(dstPtr + len1 + j, Avx512F.LoadVector512(src2Ptr + j));
+                        }
+                        for (; k <= len3 - 64; k += 64)
+                        {
+                            Avx512F.Store(dstPtr + len1 + len2 + k, Avx512F.LoadVector512(src3Ptr + k));
+                        }
+                    }
+#endif
+                    if (Avx.IsSupported)
+                    {
+                        for (; i <= len1 - 32; i += 32)
+                        {
+                            Avx.Store(dstPtr + i, Avx.LoadVector256(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 32; j += 32)
+                        {
+                            Avx.Store(dstPtr + len1 + j, Avx.LoadVector256(src2Ptr + j));
+                        }
+                        for (; k <= len3 - 32; k += 32)
+                        {
+                            Avx.Store(dstPtr + len1 + len2 + k, Avx.LoadVector256(src3Ptr + k));
+                        }
+                    }
+                    if (Sse2.IsSupported)
+                    {
+                        for (; i <= len1 - 16; i += 16)
+                        {
+                            Sse2.Store(dstPtr + i, Sse2.LoadVector128(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 16; j += 16)
+                        {
+                            Sse2.Store(dstPtr + len1 + j, Sse2.LoadVector128(src2Ptr + j));
+                        }
+                        for (; k <= len3 - 16; k += 16)
+                        {
+                            Sse2.Store(dstPtr + len1 + len2 + k, Sse2.LoadVector128(src3Ptr + k));
+                        }
+                    }
+                    else if (AdvSimd.IsSupported)
+                    {
+                        for (; i <= len1 - 16; i += 16)
+                        {
+                            AdvSimd.Store(dstPtr + i, AdvSimd.LoadVector128(src1Ptr + i));
+                        }
+                        for (; j <= len2 - 16; j += 16)
+                        {
+                            AdvSimd.Store(dstPtr + len1 + j, AdvSimd.LoadVector128(src2Ptr + j));
+                        }
+                        for (; k <= len3 - 16; k += 16)
+                        {
+                            AdvSimd.Store(dstPtr + len1 + len2 + k, AdvSimd.LoadVector128(src3Ptr + k));
+                        }
+                    }
                 }
             }
-            return bytes;
+#endif
+            if (i < len1)
+                Array.Copy(first, i, resultBytes, i, len1 - i);
+            if (j < len2)
+                Array.Copy(second, j, resultBytes, len1 + j, len2 - j);
+            if (k < len3)
+                Array.Copy(third, k, resultBytes, len1 + len2 + k, len3 - k);
+
+            return resultBytes;
         }
 
         /// <summary>
@@ -396,10 +491,10 @@ namespace NetworkLibrary.Extension
 
             bool exceptionThrown = false;
             Task t = null;
-            byte[] result = new byte[totalLength];
+            byte[] resultBytes = new byte[totalLength];
 
             if (first != null)
-                t = Task.Run(() => { Array.Copy(first, 0, result, 0, first.Length); });
+                t = Task.Run(() => { Array.Copy(first, 0, resultBytes, 0, first.Length); });
 
             // Calculate offsets for each array in `second` before the parallel operation.
             int[] offsets = new int[second.Length];
@@ -413,10 +508,9 @@ namespace NetworkLibrary.Extension
 
             try
             {
-                // Perform the block copy in parallel
                 Parallel.ForEach(Enumerable.Range(0, second.Length), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i =>
                 {
-                    Array.Copy(second[i], 0, result, offsets[i], second[i].Length);
+                    Array.Copy(second[i], 0, resultBytes, offsets[i], second[i].Length);
                 });
 
                 t?.Wait();
@@ -454,7 +548,7 @@ namespace NetworkLibrary.Extension
                 }
             }
 
-            return result;
+            return resultBytes;
         }
 
         /// <summary>
