@@ -39,7 +39,7 @@ namespace MultiSocks.Aries.Messages
 
             string? DecryptedPass = new PasswordUtils().ssc2Decode(PASS, client.SKEY);
 
-            if (!string.IsNullOrEmpty(NAME) && DecryptedPass != null)
+            if (!string.IsNullOrEmpty(NAME))
             {
                 DbAccount info = new()
                 {

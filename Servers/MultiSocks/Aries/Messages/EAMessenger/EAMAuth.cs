@@ -28,21 +28,27 @@ namespace MultiSocks.Aries.Messages
         {
             if (context is not EAMessengerServer mc) return;
 
+            string VERS = GetInputCacheValue("VERS") ?? string.Empty;
+            string SKU = GetInputCacheValue("SKU") ?? string.Empty;
             string? PRES = GetInputCacheValue("PRES");
             string? USER = GetInputCacheValue("USER");
             string? PROD = GetInputCacheValue("PROD");
-            string? VERS = GetInputCacheValue("VERS");
+            string? LOC = GetInputCacheValue("LOC");
+            string? MAC = GetInputCacheValue("MAC");
+            string? TOKEN = GetInputCacheValue("TOKEN");
             string? PASS = GetInputCacheValue("PASS");
 
-            DbAccount? user = AriesServer.Database?.GetByName(USER.Split("/").First());
+            client.VERS = VERS;
+            client.SKU = SKU;
+
+            DbAccount? user = AriesServer.Database?.GetByName(USER?.Split("/").First());
             if (user == null)
             {
                 client.SendMessage(this);
                 return;
             }
 
-            CustomLogger.LoggerAccessor.LogInfo("EA Messenger Logged in: " + user.Username);
-            mc.TryEAMLogin(user, client, VERS);
+            mc.TryEAMLogin(user, client, PASS, LOC ?? "enUS", MAC, TOKEN);
         }
     }
 }

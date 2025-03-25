@@ -1,6 +1,7 @@
 using MultiSocks.Aries.DataStore;
 using MultiSocks.Aries.Messages;
 using MultiSocks.Aries.Model;
+using MultiSocks.Utils;
 
 namespace MultiSocks.Aries
 {
@@ -50,15 +51,31 @@ namespace MultiSocks.Aries
             }
         }
 
-        public void TryEAMLogin(DbAccount user, AriesClient client, string VERS = "")
+        public void TryEAMLogin(DbAccount user, AriesClient client, string? PASS, string LOC, string? MAC, string? TOKEN)
         {
             //is someone else already logged in as this user?
             AriesUser? oldUser = Users.GetUserByName(user.Username);
             if (oldUser != null)
             {
-                oldUser.Connection?.Close(); //should remove the old user.
-                Thread.Sleep(500);
+                client.SendMessage(new AuthLogn());
+                return;
             }
+
+            PasswordUtils passutils = new();
+
+            string? DecryptedPass = passutils.ssc2Decode(PASS, client.SKEY);
+
+            if (DecryptedPass == string.Empty) // EA assumed that Consoles protect the login so they crypt an empty password, extremly bad, but can't do anything.
+            {
+
+            }
+            else if (user.Password != DecryptedPass)
+            {
+                client.SendMessage(new AuthPass());
+                return;
+            }
+
+            CustomLogger.LoggerAccessor.LogInfo("EA Messenger Logged in: " + user.Username);
 
             string[] personas = new string[4];
             for (int i = 0; i < user.Personas.Count; i++)
@@ -69,12 +86,14 @@ namespace MultiSocks.Aries
             //make a user object from DB user
             AriesUser user2 = new()
             {
+                MAC = MAC ?? string.Empty,
                 Connection = client,
                 ID = user.ID,
                 Personas = personas,
                 Username = user.Username,
                 ADDR = client.ADDR,
-                LADDR = client.LADDR
+                LADDR = client.LADDR,
+                LOC = LOC
             };
 
             Users.AddUser(user2);

@@ -70,12 +70,6 @@ namespace MultiSocks.Aries.Model
             }
         }
 
-        public virtual void UpdateUser(AriesUser user, AriesUser updatedUser)
-        {
-            if (Users.ContainsKey(user.ID))
-                Users[user.ID] = updatedUser;
-        }
-
         public AriesUser? GetUserByName(string? name)
         {
             if (string.IsNullOrEmpty(name))
