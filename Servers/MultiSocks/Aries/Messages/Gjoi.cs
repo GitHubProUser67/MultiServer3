@@ -26,12 +26,10 @@ namespace MultiSocks.Aries.Messages
             {
                 AriesGame prevGame = user.CurrentGame;
 
-                lock (mc.Games)
+                if (prevGame.RemovePlayerByUsername(user.Username))
                 {
-                    if (prevGame.RemovePlayerByUsername(user.Username))
+                    lock (mc.Games)
                         mc.Games.RemoveGame(prevGame);
-                    else
-                        mc.Games.UpdateGame(prevGame);
                 }
             }
 
@@ -42,7 +40,7 @@ namespace MultiSocks.Aries.Messages
             int? parsedIdent = int.TryParse(GetInputCacheValue("IDENT"), out int ident) ? ident : null;
 
             if (!string.IsNullOrEmpty(SESS) && SESS.Equals("Invite") && parsedMinSize.HasValue && parsedMaxSize.HasValue
-                && parsedIdent.HasValue && parsedPriv.HasValue && !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(user.Username))
+                && parsedIdent.HasValue && parsedPriv.HasValue && !string.IsNullOrEmpty(SEED))
             {
                 AriesGame? game = mc.Games.GamesSessions.Values.Where(game => game.pass == PASS && /*game.MinSize == parsedMinSize.Value 
                 && game.MaxSize == parsedMaxSize.Value Commented out, Burnout has an offset for some WEIRD reasons...  */ game.ID == parsedIdent.Value && game.Priv == (parsedPriv.Value == 1) && game.Seed == SEED).FirstOrDefault();
@@ -66,7 +64,7 @@ namespace MultiSocks.Aries.Messages
             // Check if any of the nullable variables are null before calling CreateGame
             else if (parsedMinSize.HasValue && parsedMaxSize.HasValue && parsedRoomID.HasValue && parsedIdent.HasValue && !string.IsNullOrEmpty(CUSTFLAGS) &&
                 !string.IsNullOrEmpty(PARAMS) && !string.IsNullOrEmpty(NAME) && parsedPriv.HasValue &&
-                !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(SYSFLAGS) && !string.IsNullOrEmpty(user.Username))
+                !string.IsNullOrEmpty(SEED) && !string.IsNullOrEmpty(SYSFLAGS))
             {
                 AriesGame? game = mc.Games.GamesSessions.Values.Where(game => game.Name.Equals(NAME) && game.pass == PASS
                 && game.MinSize == parsedMinSize.Value && game.MaxSize == parsedMaxSize.Value && game.CustFlags == CUSTFLAGS

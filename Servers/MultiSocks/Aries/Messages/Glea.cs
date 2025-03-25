@@ -23,12 +23,10 @@ namespace MultiSocks.Aries.Messages
 
                     AriesGame prevGame = user.CurrentGame;
 
-                    lock (mc.Games)
+                    if (prevGame.RemovePlayerByUsername(user.Username))
                     {
-                        if (prevGame.RemovePlayerByUsername(user.Username))
+                        lock (mc.Games)
                             mc.Games.RemoveGame(prevGame);
-                        else
-                            mc.Games.UpdateGame(prevGame);
                     }
                 }
                 else

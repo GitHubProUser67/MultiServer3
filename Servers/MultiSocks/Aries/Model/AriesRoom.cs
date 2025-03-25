@@ -46,15 +46,7 @@ namespace MultiSocks.Aries.Model
             lock (Games)
             {
                 if (!Games.Any(game =>
-                    game.MaxSize == maxSize &&
-                    game.MinSize == minSize &&
-                    game.CustFlags == custFlags &&
-                    game.Params == @params &&
-                    game.Name == name &&
-                    game.Priv == priv &&
-                    game.Seed == seed &&
-                    game.SysFlags == sysFlags &&
-                    game.pass == pass))
+                    game.Name == name))
                 {
                     AriesGame game = new(maxSize, minSize, GameIDsCounter, custFlags, @params,
                                     name, priv, seed, sysFlags, pass, roomId);

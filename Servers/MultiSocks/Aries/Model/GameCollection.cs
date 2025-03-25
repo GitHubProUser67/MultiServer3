@@ -45,12 +45,6 @@ namespace MultiSocks.Aries.Model
             }
         }
 
-        public void UpdateGame(AriesGame game)
-        {
-            if (GamesSessions.ContainsKey(game.ID))
-                GamesSessions[game.ID] = game;
-        }
-
         public AriesGame? GetGameByName(string? name, string? pass)
         {
             if (string.IsNullOrEmpty(name))

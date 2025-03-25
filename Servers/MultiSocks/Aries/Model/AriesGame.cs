@@ -20,7 +20,7 @@ namespace MultiSocks.Aries.Model
         public bool Started = false;
 
         public UserCollection Users = new();
-        List<AriesUser> UsersCache = new(); // This is necessary to prevent users leaving during a ranked event.
+        private List<AriesUser> UsersCache = new(); // This is necessary to prevent users leaving during a ranked event.
 
         public AriesGame(int maxSize, int minSize, int id, string custFlags, string @params,
                 string name, bool priv, string seed, string sysFlags, string? Pass, int roomId)
@@ -119,14 +119,6 @@ namespace MultiSocks.Aries.Model
             }
         }
 
-        public void UpdatePlayerParams(AriesUser updatedUser)
-        {
-            AriesUser? user = Users.GetAll().FirstOrDefault(user => user.ID == updatedUser.ID);
-
-            if (user != null)
-                Users.UpdateUser(user, updatedUser);
-        }
-
         public GenericMessage GetGameDetails(string msg)
         {
             Dictionary<string, string?> OutputCache = new()
@@ -181,7 +173,7 @@ namespace MultiSocks.Aries.Model
 
             lock (UsersCache)
             {
-                foreach (AriesUser user in (Started && UsersCache.Count > 0) ? UsersCache.AsEnumerable() : Users.GetAll())
+                foreach (AriesUser user in Started ? UsersCache : Users.GetAll())
                 {
                     PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
                     PLAYERSLIST.Add($"OPPART{i}", "0");
