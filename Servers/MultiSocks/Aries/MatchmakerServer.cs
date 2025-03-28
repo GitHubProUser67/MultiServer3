@@ -132,16 +132,8 @@ namespace MultiSocks.Aries
 
                 AriesGame? game = user.CurrentGame;
                 Model.AriesRoom? room = user.CurrentRoom;
-                if (game != null)
-                {
-                    if (game.RemoveUserAndCheckGameValidity(user))
-                    {
-                        lock (Games)
-                        {
-                            Games.RemoveGame(game);
-                        }
-                    }
-                }
+                if (game != null && game.RemoveUserAndCheckGameValidity(user))
+                    Games.RemoveGame(game);
 
                 if (room != null)
                 {
