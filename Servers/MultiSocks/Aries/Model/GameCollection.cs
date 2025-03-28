@@ -5,8 +5,55 @@ namespace MultiSocks.Aries.Model
 {
     public class GameCollection
     {
-        private int GameID = 1;
+        private static object _Lock = new();
+
+        private static ConcurrentDictionary<int, bool> _IdCounter = new();
         public ConcurrentDictionary<int, AriesGame> GamesSessions = new();
+
+        private static bool TryGetNextAvailableId(out int index)
+        {
+            lock (_Lock)
+            {
+                for (index = 1; index < int.MaxValue; ++index)
+                {
+                    if (_IdCounter.TryGetValue(index, out bool isUsed) && !isUsed)
+                    {
+                        _IdCounter[index] = true;
+                        return true;
+                    }
+                    else if (_IdCounter.TryAdd(index, true))
+                        return true;
+                }
+            }
+
+            index = -1;
+            return false;
+        }
+
+        private static bool TryRegisterNewId(int idToAdd)
+        {
+            if (idToAdd <= 0)
+                return false;
+
+            lock (_Lock)
+            {
+                if (!_IdCounter.ContainsKey(idToAdd))
+                    return _IdCounter.TryAdd(idToAdd, true);
+                else if (!_IdCounter[idToAdd])
+                {
+                    _IdCounter[idToAdd] = true;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static void UnregisterId(int idToRemove)
+        {
+            if (_IdCounter.ContainsKey(idToRemove))
+                _IdCounter[idToRemove] = false;
+        }
 
         public virtual AriesGame? AddGame(int maxSize, int minSize, string custFlags, string @params,
                 string name, bool priv, string seed, string sysFlags, string? pass, int roomId)
@@ -14,21 +61,26 @@ namespace MultiSocks.Aries.Model
             if (!GamesSessions.Values.Any(game =>
                     game.Name == name))
             {
-                AriesGame game = new(maxSize, minSize, GameID, custFlags, @params,
-                                name, priv, seed, sysFlags, pass, roomId);
-                GameID++;
-                GamesSessions.TryAdd(game.ID, game);
-                return game;
+                if (TryGetNextAvailableId(out int GameID))
+                {
+                    AriesGame game = new(maxSize, minSize, GameID, custFlags, @params,
+                        name, priv, seed, sysFlags, pass, roomId);
+                    GamesSessions.TryAdd(game.ID, game);
+                    CustomLogger.LoggerAccessor.LogInfo($"[Game] - Adding Game:{game.Name}:{game.ID}.");
+                    return game;
+                }
+                else
+                    CustomLogger.LoggerAccessor.LogError($"[Game] - Failed to register game id!");
             }
             else
-                CustomLogger.LoggerAccessor.LogWarn("[Game] - Trying to add a game while an other with same properties exists!");
+                CustomLogger.LoggerAccessor.LogWarn("[Game] - Trying to add a game while an other one with the same name exists!");
 
             return null;
         }
 
-        public virtual void RemoveGame(AriesGame game)
+        public virtual void RemoveGame(AriesGame? game)
         {
-            if (GamesSessions.ContainsKey(game.ID))
+            if (game != null && GamesSessions.ContainsKey(game.ID))
             {
                 CustomLogger.LoggerAccessor.LogWarn($"[Game] - Removing Game:{game.Name}:{game.ID}.");
 
@@ -42,7 +94,22 @@ namespace MultiSocks.Aries.Model
                 }
 
                 GamesSessions.TryRemove(game.ID, out _);
+
+                UnregisterId(game.ID);
+
+                game = null;
             }
+        }
+
+        public virtual bool TryChangeGameId(AriesGame game, int newID)
+        {
+            if (TryRegisterNewId(newID))
+            {
+                GamesSessions.TryRemove(game.ID, out _)
+                game.ID = newID;
+                return GamesSessions.TryAdd(newID, game);
+            }
+            return false;
         }
 
         public AriesGame? GetGameByName(string? name, string? pass)

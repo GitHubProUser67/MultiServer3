@@ -48,13 +48,13 @@ namespace MultiSocks.Aries.Messages
                     !string.IsNullOrEmpty(PARAMS) && !string.IsNullOrEmpty(NAME) && parsedPriv.HasValue &&
                     !string.IsNullOrEmpty(SEED))
                 {
+                    mc.Games.TryChangeGameId(user.CurrentGame, parsedIdent.Value);
                     user.CurrentGame.Name = NAME;
                     user.CurrentGame.pass = PASS;
                     user.CurrentGame.MinSize = parsedMinSize.Value;
                     user.CurrentGame.MaxSize = parsedMaxSize.Value;
                     user.CurrentGame.CustFlags = CUSTFLAGS;
                     user.CurrentGame.RoomID = parsedRoomID.Value;
-                    user.CurrentGame.ID = parsedIdent.Value;
                     user.CurrentGame.Priv = parsedPriv.Value == 1;
                     user.CurrentGame.Seed = SEED;
                     user.CurrentGame.Params = PARAMS;
@@ -64,10 +64,7 @@ namespace MultiSocks.Aries.Messages
                     AriesGame prevGame = user.CurrentGame;
 
                     if (prevGame.RemovePlayerByUsername(user.Username))
-                    {
-                        lock (mc.Games)
-                            mc.Games.RemoveGame(prevGame);
-                    }
+                        mc.Games.RemoveGame(prevGame);
                 }
             }
             if (!string.IsNullOrEmpty(KICK) && user.CurrentGame != null)
@@ -75,10 +72,7 @@ namespace MultiSocks.Aries.Messages
                 foreach (string player in KICK.Split(','))
                 {
                     if (user.CurrentGame.RemovePlayerByUsername(player, 1, KICK_REASON))
-                    {
-                        lock (mc.Games)
-                            mc.Games.RemoveGame(user.CurrentGame);
-                    }
+                        mc.Games.RemoveGame(user.CurrentGame);
                 }
             }
             if (user.CurrentGame != null)

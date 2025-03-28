@@ -27,10 +27,7 @@ namespace MultiSocks.Aries.Messages
                 AriesGame prevGame = user.CurrentGame;
 
                 if (prevGame.RemovePlayerByUsername(user.Username))
-                {
-                    lock (mc.Games)
-                        mc.Games.RemoveGame(prevGame);
-                }
+                    mc.Games.RemoveGame(prevGame);
             }
 
             int? parsedMinSize = int.TryParse(GetInputCacheValue("MINSIZE"), out int minSize) ? minSize : null;
