@@ -16,6 +16,7 @@ public static class ImageOptimizer
 {
     public const string defaultOptimizerParams = "-filter Catrom -quality 92 -modulate 105,103 -sigmoidal-contrast 3,50%";
 
+    private const int cacheTimeMs = 120000; // 120,000 milliseconds (2 minutes)
     private static string tmpDir = $"{Path.GetTempPath()}/ImageUpscale/Cache";
 
     public static Stream OptimizeImage(string convertersDir, string imagePath,
@@ -26,22 +27,23 @@ public static class ImageOptimizer
         if (string.IsNullOrEmpty(convertersDir) || !Directory.Exists(convertersDir))
             return File.OpenRead(imagePath);
         string directoryPrefix = FileSystemUtils.ComputeMD5FromFile(imagePath) ?? Guid.NewGuid().ToString();
-        string magickDirPath = $"{convertersDir}/ImageMagick/";
         string lockerFilePath = Path.Combine(tmpDir, $"{directoryPrefix}.lock");
+        if (File.Exists(lockerFilePath))
+            return File.OpenRead(imagePath);
+        string magickDirPath = $"{convertersDir}/ImageMagick/";
         string sourcefilePath = Path.Combine(tmpDir, $"{directoryPrefix}{extension}");
         string tempfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_tmp{extension}");
         string tempScaledfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_Scaled{extension}");
         string tempSharpenedfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_Sharpened{extension}");
         string tempDownScaledfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_DownScaled{extension}");
-        if (File.Exists(lockerFilePath))
-            return File.OpenRead(imagePath);
-        else if (File.Exists(tempDownScaledfilePath))
+        DateTime currentTime = DateTime.Now;
+        if (File.Exists(tempDownScaledfilePath) && (currentTime - File.GetLastWriteTime(tempDownScaledfilePath)).TotalMilliseconds < cacheTimeMs)
             return File.OpenRead(tempDownScaledfilePath);
-        else if (File.Exists(tempSharpenedfilePath))
+        else if (File.Exists(tempSharpenedfilePath) && (currentTime - File.GetLastWriteTime(tempSharpenedfilePath)).TotalMilliseconds < cacheTimeMs)
             return File.OpenRead(tempSharpenedfilePath);
-        else if (File.Exists(tempScaledfilePath))
+        else if (File.Exists(tempScaledfilePath) && (currentTime - File.GetLastWriteTime(tempScaledfilePath)).TotalMilliseconds < cacheTimeMs)
             return File.OpenRead(tempScaledfilePath);
-        else if (File.Exists(tempfilePath))
+        else if (File.Exists(tempfilePath) && (currentTime - File.GetLastWriteTime(tempfilePath)).TotalMilliseconds < cacheTimeMs)
             return File.OpenRead(tempfilePath);
         string convertFilePath = null;
         switch (RuntimeInformation.OSArchitecture)
@@ -281,7 +283,7 @@ public static class ImageOptimizer
                     if (File.Exists(lockerFilePath)) File.Delete(lockerFilePath);
                     if (File.Exists(sourcefilePath)) File.Delete(sourcefilePath);
 
-                    Thread.Sleep(120_000); // Sleeps for 120,000 milliseconds (2 minutes) to simulate some caching.
+                    Thread.Sleep(cacheTimeMs);
 
                     if (File.Exists(tempfilePath)) _ = FileSystemUtils.TryDelete(tempfilePath);
                     if (File.Exists(tempScaledfilePath)) _ = FileSystemUtils.TryDelete(tempScaledfilePath);

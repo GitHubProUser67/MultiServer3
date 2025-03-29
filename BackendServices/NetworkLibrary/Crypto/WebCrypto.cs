@@ -1,4 +1,3 @@
-using NetworkLibrary.HTTP;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -8,6 +7,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NetworkLibrary.Extension;
 
 namespace NetworkLibrary.Crypto
 {
