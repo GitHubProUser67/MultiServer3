@@ -1,4 +1,4 @@
-using CustomLogger;
+﻿using CustomLogger;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -128,22 +128,52 @@ namespace NetworkLibrary.Extension
             return null;
         }
 
-        public static long GetLength(this DirectoryInfo d)
+        public static async Task<bool> TryDelete(string filePath)
         {
-            long size = 0;
-
-            // Add file sizes.
-            foreach (FileInfo fi in d.GetFiles())
+            try
             {
-                size += fi.Length;
+                FileInfo file = new FileInfo(filePath);
+                for (byte tries = 0; await file.IsLocked().ConfigureAwait(false) && tries < 5; tries++)
+                    await Task.Delay(1000).ConfigureAwait(false);
+                file.Delete();
+                return true;
             }
-
-            // Add subdirectory sizes.
-            foreach (DirectoryInfo di in d.GetDirectories())
+            catch (Exception ex)
             {
-                size += GetLength(di);
+                LoggerAccessor.LogError($"[FileSystemUtils] - TryDelete failed with Exception:{ex} on file:{filePath}");
             }
-            return size;
+            return false;
+        }
+
+        public static long GetLength(this DirectoryInfo dir)
+        {
+            return Directory.GetFiles(dir.FullName, "*", SearchOption.AllDirectories).AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount)
+                .AsUnordered().Sum(t => new FileInfo(t).Length);
+        }
+
+        private static void SetFileReadWrite(string filePath)
+        {
+            if ((File.GetAttributes(filePath) & FileAttributes.ReadOnly) != FileAttributes.ReadOnly)
+                return;
+            File.SetAttributes(filePath, File.GetAttributes(filePath) ^ FileAttributes.ReadOnly);
+        }
+
+        /// <summary>
+        /// Compute the MD5 checksum of a file.
+        /// <para>Calcul la somme des contr�les en MD5 d'un fichier.</para>
+        /// </summary>
+        /// <param name="filePath">The input file path.</param>
+        /// <returns>A nullable string.</returns>
+        public static string ComputeMD5FromFile(string filePath)
+        {
+            try
+            {
+                return NetHasher.DotNetHasher.ComputeMD5String(File.OpenRead(filePath));
+            }
+            catch
+            {
+            }
+            return null;
         }
 
         /// <summary>
