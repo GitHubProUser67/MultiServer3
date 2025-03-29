@@ -1662,7 +1662,7 @@ namespace ApacheNet
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = isHtmlCompatible ? "text/html" : "application/json" + ";charset=utf-8";
                                                     byte[] reportOutputBytes = Encoding.UTF8.GetBytes(await FileStructureFormater.GetFileStructureAsync(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}",
-                                                        ServerPort, isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                        ServerPort, isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, request.RetrieveQueryValue("properties") == "on", ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                                     if (!string.IsNullOrEmpty(encoding))
                                                     {
                                                         if (encoding.Contains("zstd"))
@@ -2184,7 +2184,7 @@ namespace ApacheNet
                                                     response.StatusCode = (int)statusCode;
                                                     response.ContentType = isHtmlCompatible ? "text/html" : "application/json" + ";charset=utf-8";
                                                     byte[] reportOutputBytes = Encoding.UTF8.GetBytes(await FileStructureFormater.GetFileStructureAsync(endsWithSlash ? filePath[..^1] : filePath, $"{(secure ? "https" : "http")}://{Host}:{ServerPort}{(endsWithSlash ? absolutepath[..^1] : absolutepath)}",
-                                                        ServerPort, isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
+                                                        ServerPort, isHtmlCompatible, ApacheNetServerConfiguration.NestedDirectoryReporting, request.RetrieveQueryValue("properties") == "on", ApacheNetServerConfiguration.MimeTypes ?? HTTPProcessor._mimeTypes));
                                                     if (!string.IsNullOrEmpty(encoding))
                                                     {
                                                         if (encoding.Contains("zstd"))

@@ -105,7 +105,7 @@ namespace MultiSocks.Aries.Model
         {
             if (TryRegisterNewId(newID))
             {
-                GamesSessions.TryRemove(game.ID, out _)
+                GamesSessions.TryRemove(game.ID, out _);
                 game.ID = newID;
                 return GamesSessions.TryAdd(newID, game);
             }

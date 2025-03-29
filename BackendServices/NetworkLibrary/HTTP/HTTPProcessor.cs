@@ -13,6 +13,8 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Text.Json;
 using NetworkLibrary.Extension;
+using Ionic.Exploration;
+
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #else
@@ -973,7 +975,10 @@ namespace NetworkLibrary.HTTP
                 return null;
 
             using (Compressor compressor = new Compressor())
+            {
+                compressor.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, Environment.ProcessorCount);
                 return compressor.Wrap(input).ToArray();
+            }
         }
 #if NET5_0_OR_GREATER
         public static byte[] CompressBrotli(byte[] input)
@@ -996,8 +1001,8 @@ namespace NetworkLibrary.HTTP
                 return null;
 
             using (MemoryStream output = new MemoryStream())
-            using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest))
             {
+                ParallelGZipOutputStream gzipStream = new ParallelGZipOutputStream(output, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, Environment.ProcessorCount);
                 gzipStream.Write(input, 0, input.Length);
                 gzipStream.Close();
                 return output.ToArray();
@@ -1010,11 +1015,10 @@ namespace NetworkLibrary.HTTP
                 return null;
 
             using (MemoryStream output = new MemoryStream())
-            using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
             {
+                ZOutputStream zlibStream = new ZOutputStream(output, 1, true);
                 zlibStream.Write(input, 0, input.Length);
                 zlibStream.Close();
-                output.Close();
                 return output.ToArray();
             }
         }
@@ -1035,7 +1039,7 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new MemoryStream();
                     using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
                     {
-                        outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
+                        outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, Environment.ProcessorCount);
                         StreamUtils.CopyStream(input, outZStream);
                     }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
@@ -1091,11 +1095,8 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new HugeMemoryStream();
                     else
                         outMemoryStream = new MemoryStream();
-                    using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
-                    {
+                    using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, Environment.ProcessorCount))
                         StreamUtils.CopyStream(input, outGStream);
-                        outGStream.Close();
-                    }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
                 }
                 catch
@@ -1121,10 +1122,7 @@ namespace NetworkLibrary.HTTP
                     else
                         outMemoryStream = new MemoryStream();
                     using (ZOutputStreamLeaveOpen outZStream = new ZOutputStreamLeaveOpen(outMemoryStream, 1, true))
-                    {
                         StreamUtils.CopyStream(input, outZStream);
-                        outZStream.Close();
-                    }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
                 }
                 catch

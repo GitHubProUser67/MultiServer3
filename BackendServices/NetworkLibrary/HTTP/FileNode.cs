@@ -18,13 +18,13 @@ namespace NetworkLibrary.HTTP
         private static int ProcessorCountLeft = IsSingleProcessor ? ProcessorCount : (int)Math.Floor(ProcessorCount / 2.0);
         private static int ProcessorCountRight = IsSingleProcessor ? ProcessorCount : ProcessorCount - ProcessorCountLeft;
 
-        public static async Task<string> GetFileStructureAsync(string rootDirectory, string rootDirectoryUrl, int ServerPort, bool html, bool allowNestedReports, Dictionary<string, string> mimeTypesDic)
+        public static async Task<string> GetFileStructureAsync(string rootDirectory, string rootDirectoryUrl, int ServerPort, bool html, bool allowNestedReports, bool detailedReport, Dictionary<string, string> mimeTypesDic)
         {
             FileNode node = null;
 
             try
             {
-                node = await CreateFileNodeAsync(rootDirectory, rootDirectoryUrl, allowNestedReports, mimeTypesDic).ConfigureAwait(false);
+                node = await CreateFileNodeAsync(rootDirectory, rootDirectoryUrl, allowNestedReports, detailedReport, mimeTypesDic).ConfigureAwait(false);
                 FileStructure structure = new FileStructure() { Root = node };
 
                 if (html)
@@ -52,7 +52,7 @@ namespace NetworkLibrary.HTTP
             return null;
         }
 
-        private static async Task<FileNode> CreateFileNodeAsync(string directoryPath, string httpdirectoryrequest, bool allowNestedReports, Dictionary<string, string> mimeTypesDic)
+        private static async Task<FileNode> CreateFileNodeAsync(string directoryPath, string httpdirectoryrequest, bool allowNestedReports, bool detailedReport, Dictionary<string, string> mimeTypesDic)
         {
             try
             {
@@ -62,8 +62,8 @@ namespace NetworkLibrary.HTTP
                     Name = directoryInfo.Name,
                     Link = httpdirectoryrequest,
                     Type = "Directory",
-                    CreationDate = directoryInfo.CreationTimeUtc,
-                    //Size = directoryInfo.GetLength(),
+                    CreationDate = detailedReport ? directoryInfo.CreationTimeUtc : null,
+                    Size = detailedReport ? directoryInfo.GetLength() : null,
                     LastWriteTime = directoryInfo.LastWriteTimeUtc,
                     Childrens = new ConcurrentList<FileNode>()
                 };
@@ -122,9 +122,9 @@ namespace NetworkLibrary.HTTP
                                         Descriptor = DescriptorText,
                                         Name = file.Name,
                                         Type = mimetype,
-                                        Size = file.Length,
+                                        Size = detailedReport ? file.Length : null,
                                         LastWriteTime = file.LastWriteTime,
-                                        CreationDate = file.CreationTimeUtc
+                                        CreationDate = detailedReport ? file.CreationTimeUtc : null
                                     });
                                     break;
                                 default:
@@ -135,9 +135,9 @@ namespace NetworkLibrary.HTTP
                                         Descriptor = DescriptorText,
                                         Name = file.Name,
                                         Type = mimetype,
-                                        Size = file.Length,
+                                        Size = detailedReport ? file.Length : null,
                                         LastWriteTime = file.LastWriteTime,
-                                        CreationDate = file.CreationTimeUtc
+                                        CreationDate = detailedReport ? file.CreationTimeUtc : null
                                     });
                                     break;
                             }
@@ -154,6 +154,7 @@ namespace NetworkLibrary.HTTP
                                     subdirectory.FullName,
                                     $"{httpdirectoryrequest}/{subdirectory.Name}",
                                     true,
+                                    detailedReport,
                                     mimeTypesDic
                                 ).ConfigureAwait(false));
                             }
@@ -164,8 +165,8 @@ namespace NetworkLibrary.HTTP
                                     Link = httpdirectoryrequest + $"/{subdirectory.Name}",
                                     Name = subdirectory.Name,
                                     Type = "Directory",
-                                    CreationDate = subdirectory.CreationTimeUtc,
-                                    //Size = directoryInfo.GetLength(),
+                                    CreationDate = detailedReport ? subdirectory.CreationTimeUtc : null,
+                                    Size = detailedReport ? directoryInfo.GetLength() : null,
                                     LastWriteTime = directoryInfo.LastWriteTimeUtc
                                 });
                             }
@@ -308,8 +309,6 @@ namespace NetworkLibrary.HTTP
             if (node == null)
                 return "<h3>FileNode was null!</h3>";
 
-            StringBuilder sb = new StringBuilder();
-
             // Apply a unique class for each level to distinguish the appearance
             string levelClass = level switch
             {
@@ -320,11 +319,12 @@ namespace NetworkLibrary.HTTP
             };
 
             // Create the basic structure for the current node
-            sb.AppendLine($"<div class='file-node {levelClass}'>");
+            StringBuilder sb = new StringBuilder($"<div class='file-node {levelClass}'>");
 
             // Make the file/directory name clickable by wrapping it with an <a> tag
             sb.AppendLine($"<b><a href='{(node.Type == "Directory" ? HttpUtility.HtmlEncode(node.Link + "?directory=on") : HttpUtility.HtmlEncode(node.Link))}' style='color: #007BFF; text-decoration: none;'>{HttpUtility.HtmlEncode(node.Name)}</a></b> - <span style='color: #007BFF;'>{node.Type}</span>");
-            sb.AppendLine($"<i>Created: {node.CreationDate}</i><br>");
+            if (node.CreationDate != null)
+                sb.AppendLine($"<i>Created: {node.CreationDate}</i><br>");
             sb.AppendLine($"<i>Last modified: {node.LastWriteTime}</i><br>");
 
             if (!string.IsNullOrEmpty(node.Image))
@@ -422,7 +422,7 @@ namespace NetworkLibrary.HTTP
         public string Content { get; set; }
         public string Type { get; set; }
         public long? Size { get; set; }
-        public DateTime CreationDate { get; set; }
+        public DateTime? CreationDate { get; set; }
         public DateTime LastWriteTime { get; set; }
         public ConcurrentList<FileNode> Childrens { get; set; }
 

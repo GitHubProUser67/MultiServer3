@@ -7,6 +7,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Drawing;
+using NetworkLibrary.Extension;
+using System.Threading;
 
 namespace NetworkLibrary.Upscalers;
 
@@ -23,12 +25,24 @@ public static class ImageOptimizer
     {
         if (string.IsNullOrEmpty(convertersDir) || !Directory.Exists(convertersDir))
             return File.OpenRead(imagePath);
+        string directoryPrefix = FileSystemUtils.ComputeMD5FromFile(imagePath) ?? Guid.NewGuid().ToString();
         string magickDirPath = $"{convertersDir}/ImageMagick/";
-        string sourcefilePath = Path.Combine(tmpDir, $"{Guid.NewGuid()}{extension}");
-        string tempfilePath = Path.Combine(tmpDir, $"{Guid.NewGuid()}_tmp{extension}");
-        string tempScaledfilePath = Path.Combine(tmpDir, $"{Guid.NewGuid()}_Scaled{extension}");
-        string tempSharpenedfilePath = Path.Combine(tmpDir, $"{Guid.NewGuid()}_Sharpened{extension}");
-        string tempDownScaledfilePath = Path.Combine(tmpDir, $"{Guid.NewGuid()}_DownScaled{extension}");
+        string lockerFilePath = Path.Combine(tmpDir, $"{directoryPrefix}.lock");
+        string sourcefilePath = Path.Combine(tmpDir, $"{directoryPrefix}{extension}");
+        string tempfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_tmp{extension}");
+        string tempScaledfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_Scaled{extension}");
+        string tempSharpenedfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_Sharpened{extension}");
+        string tempDownScaledfilePath = Path.Combine(tmpDir, $"{directoryPrefix}_DownScaled{extension}");
+        if (File.Exists(lockerFilePath))
+            return File.OpenRead(imagePath);
+        else if (File.Exists(tempDownScaledfilePath))
+            return File.OpenRead(tempDownScaledfilePath);
+        else if (File.Exists(tempSharpenedfilePath))
+            return File.OpenRead(tempSharpenedfilePath);
+        else if (File.Exists(tempScaledfilePath))
+            return File.OpenRead(tempScaledfilePath);
+        else if (File.Exists(tempfilePath))
+            return File.OpenRead(tempfilePath);
         string convertFilePath = null;
         switch (RuntimeInformation.OSArchitecture)
         {
@@ -47,6 +61,7 @@ public static class ImageOptimizer
             convertFilePath = $"{convertersDir}/ImageMagick/convert{convertFilePath}";
             try
             {
+                File.WriteAllText(lockerFilePath, "DO NOT REMOVE ME!");
                 extension = extension.Substring(1).ToLower();
                 Directory.CreateDirectory(tmpDir);
                 File.Copy(imagePath, sourcefilePath);
@@ -263,11 +278,15 @@ public static class ImageOptimizer
             {
                 _ = Task.Run(() =>
                 {
+                    if (File.Exists(lockerFilePath)) File.Delete(lockerFilePath);
                     if (File.Exists(sourcefilePath)) File.Delete(sourcefilePath);
-                    if (File.Exists(tempfilePath)) File.Delete(tempfilePath);
-                    if (File.Exists(tempScaledfilePath)) File.Delete(tempScaledfilePath);
-                    if (File.Exists(tempSharpenedfilePath)) File.Delete(tempSharpenedfilePath);
-                    if (File.Exists(tempDownScaledfilePath)) File.Delete(tempDownScaledfilePath);
+
+                    Thread.Sleep(120_000); // Sleeps for 120,000 milliseconds (2 minutes) to simulate some caching.
+
+                    if (File.Exists(tempfilePath)) _ = FileSystemUtils.TryDelete(tempfilePath);
+                    if (File.Exists(tempScaledfilePath)) _ = FileSystemUtils.TryDelete(tempScaledfilePath);
+                    if (File.Exists(tempSharpenedfilePath)) _ = FileSystemUtils.TryDelete(tempSharpenedfilePath);
+                    if (File.Exists(tempDownScaledfilePath)) _ = FileSystemUtils.TryDelete(tempDownScaledfilePath);
                 });
             }
         }
