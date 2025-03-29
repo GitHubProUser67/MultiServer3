@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Tls;
 using MultiSocks.ProtoSSL;
 using MultiSocks.ProtoSSL.Crypto;
+using NetworkLibrary.Extension;
 
 namespace MultiSocks.Aries
 {
@@ -28,8 +29,7 @@ namespace MultiSocks.Aries
 
         private readonly bool secure;
         private readonly SemaphoreSlim dequeueSemaphore = new(1, 1);
-        private readonly Timer timerDequeue;
-        private readonly TcpClient ClientTcp;
+        private readonly TcpClient tcpClient;
         private readonly Thread RecvThread;
         private readonly ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
         private Stream? ClientStream;
@@ -46,8 +46,7 @@ namespace MultiSocks.Aries
         {
             this.secure = secure;
             Context = context;
-            ClientTcp = client;
-            timerDequeue = new Timer(DequeueAsyncMessage, null, 0, 100);
+            tcpClient = client;
 
             LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
@@ -65,17 +64,15 @@ namespace MultiSocks.Aries
 
         public void Close()
         {
-            ClientTcp.Close();
+            tcpClient.Close();
         }
 
         private void RunLoop()
         {
             if (secure)
             {
-                NetworkStream? networkStream = ClientTcp.GetStream();
-
                 Ssl3TlsServer connTls = new(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1);
-                TlsServerProtocol serverProtocol = new(networkStream);
+                TlsServerProtocol serverProtocol = new(tcpClient.GetStream());
 
                 try
                 {
@@ -90,8 +87,7 @@ namespace MultiSocks.Aries
                     connTls.Cancel();
 
                     ClientStream?.Dispose();
-                    ClientTcp.Dispose();
-                    timerDequeue.Dispose();
+                    tcpClient.Dispose();
                     LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 
@@ -101,7 +97,7 @@ namespace MultiSocks.Aries
                 ClientStream = serverProtocol.Stream;
             }
             else
-                ClientStream = ClientTcp.GetStream();
+                ClientStream = tcpClient.GetStream();
 
             bool InHeader = false;
             int len, TempDatOff = 0;
@@ -111,54 +107,58 @@ namespace MultiSocks.Aries
 
             try
             {
-                while ((len = ClientStream.Read(bytes)) != 0)
+                while (tcpClient.IsConnected())
                 {
-                    int off = 0;
-                    while (len > 0)
+                    if (tcpClient.Available > 0)
                     {
-                        // got some data
-                        if (ExpectedBytes == -1)
+                        len = ClientStream.Read(bytes);
+                        int off = 0;
+                        while (len > 0)
                         {
-                            // new packet
-                            InHeader = true;
-                            ExpectedBytes = 12; // header
-                            TempData = new byte[12];
-                            TempDatOff = 0;
-                        }
-
-                        if (TempData != null)
-                        {
-                            int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                            bytes.Slice(off, copyLen).CopyTo(TempData.Slice(TempDatOff));
-                            off += copyLen;
-                            TempDatOff += copyLen;
-                            len -= copyLen;
-
-                            if (TempDatOff == TempData.Length)
+                            // got some data
+                            if (ExpectedBytes == -1)
                             {
-                                if (InHeader)
+                                // new packet
+                                InHeader = true;
+                                ExpectedBytes = 12; // header
+                                TempData = new byte[12];
+                                TempDatOff = 0;
+                            }
+
+                            if (TempData != null)
+                            {
+                                int copyLen = Math.Min(len, TempData.Length - TempDatOff);
+                                bytes.Slice(off, copyLen).CopyTo(TempData.Slice(TempDatOff));
+                                off += copyLen;
+                                TempDatOff += copyLen;
+                                len -= copyLen;
+
+                                if (TempDatOff == TempData.Length)
                                 {
-                                    //header complete.
-                                    InHeader = false;
-                                    int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
-                                    if (size > MAX_SIZE)
+                                    if (InHeader)
                                     {
-                                        ClientTcp.Close(); // either something terrible happened or they're trying to mess with us
-                                        break;
+                                        //header complete.
+                                        InHeader = false;
+                                        int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
+                                        if (size > MAX_SIZE)
+                                        {
+                                            tcpClient.Close(); // either something terrible happened or they're trying to mess with us
+                                            break;
+                                        }
+                                        CommandName = Encoding.ASCII.GetString(TempData)[..4];
+
+                                        TempData = new byte[size - 12];
+                                        TempDatOff = 0;
                                     }
-                                    CommandName = Encoding.ASCII.GetString(TempData)[..4];
+                                    else
+                                    {
+                                        // message complete, process in a sync manner to avoids issues.
+                                        GotMessage(CommandName, TempData.ToArray());
 
-                                    TempData = new byte[size - 12];
-                                    TempDatOff = 0;
-                                }
-                                else
-                                {
-                                    // message complete, process in a sync manner to avoids issues.
-                                    Context.HandleMessage(CommandName, TempData, this);
-
-                                    TempDatOff = 0;
-                                    ExpectedBytes = -1;
-                                    TempData = null;
+                                        TempDatOff = 0;
+                                        ExpectedBytes = -1;
+                                        TempData = null;
+                                    }
                                 }
                             }
                         }
@@ -171,16 +171,23 @@ namespace MultiSocks.Aries
             }
 
             ClientStream?.Dispose();
-            ClientTcp.Dispose();
-            timerDequeue.Dispose();
+            tcpClient.Dispose();
             LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
             Context.RemoveClient(this);
         }
 
-        private void DequeueAsyncMessage(object? state)
+        private void GotMessage(string name, byte[] data)
+        {
+            Task.Run(() =>
+            {
+                Context.HandleMessage(name, data, this);
+            }).Wait();
+        }
+
+        private Task DequeueAsyncMessage()
         {
             if (!dequeueSemaphore.Wait(0))
-                return;
+                return Task.CompletedTask;
 
             try
             {
@@ -195,6 +202,8 @@ namespace MultiSocks.Aries
             {
                 dequeueSemaphore.Release();
             }
+
+            return Task.CompletedTask;
         }
 
         public bool SendImmediateMessage(byte[] data)
@@ -224,6 +233,8 @@ namespace MultiSocks.Aries
             {
                 if (CanAsync)
                     AsyncMessageQueue.Enqueue(msg);
+
+                _ = DequeueAsyncMessage();
 
                 return;
             }

@@ -16,7 +16,7 @@ namespace MultiSocks.Aries
         public string listenIP = string.Empty;
         public int SessionID = 1;
         public VulnerableCertificateGenerator? SSLCache = null;
-        public ConcurrentList<AriesClient> DirtySocksClients = new();
+        public List<AriesClient> DirtySocksClients = new();
         public TcpListener? Listener;
 
         private bool secure = false;
@@ -90,20 +90,25 @@ namespace MultiSocks.Aries
 
         public virtual void AddClient(AriesClient client)
         {
-            DirtySocksClients.Add(client);
+            lock (DirtySocksClients)
+                DirtySocksClients.Add(client);
         }
 
         public virtual void RemoveClient(AriesClient client)
         {
-            DirtySocksClients.Remove(client);
+            lock (DirtySocksClients)
+                DirtySocksClients.Remove(client);
         }
 
         public void Broadcast(AbstractMessage msg)
         {
-            foreach (AriesClient user in DirtySocksClients)
+            lock (DirtySocksClients)
             {
-                user.PingSendTick = DateTime.Now.Ticks;
-                user.SendMessage(msg);
+                foreach (AriesClient user in DirtySocksClients)
+                {
+                    user.PingSendTick = DateTime.Now.Ticks;
+                    user.SendMessage(msg);
+                }
             }
         }
 
@@ -130,9 +135,8 @@ namespace MultiSocks.Aries
                     if (c != null)
                         msg = (AbstractMessage?)Activator.CreateInstance(c);
                 }
-                catch (Exception)
+                catch
                 {
-                    // Not Important.
                 }
 
                 if (msg != null)
