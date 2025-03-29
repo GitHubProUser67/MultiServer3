@@ -14,7 +14,7 @@ public static class ImageOptimizer
 {
     public const string defaultOptimizerParams = "-filter Catrom -quality 92 -modulate 105,103 -sigmoidal-contrast 3,50%";
 
-    private static string tmpDir = $"{Path.GetTempPath()}/ImageUpscale/Cache";
+    private static string tmpDir = $"{Path.GetTempPath()}/ImageOptimizer";
 
     public static Stream OptimizeImage(string convertersDir, string imagePath,
         string extension, string CommandLineParametersConvert,

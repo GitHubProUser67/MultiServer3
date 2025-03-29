@@ -12,6 +12,8 @@ namespace ApacheNet
 {
     public class LocalFileStreamHelper
     {
+        private const long compressionSizeLimit = 800L * 1024 * 1024; // 800MB in bytes
+
         public static async Task<bool> HandleRequest(HttpContextBase ctx, string encoding, string absolutepath, string filePath, string ContentType, bool isVideoOrAudio, bool isHtmlCompatible, bool noCompressCacheControl)
         {
             bool isNoneMatchValid = false;
@@ -40,18 +42,43 @@ namespace ApacheNet
             bool compressionSettingEnabled = ApacheNetServerConfiguration.EnableHTTPCompression;
             bool sent = false;
             string extension = Path.GetExtension(filePath);
-            Stream? st = null;
+            Stream? st;
 
-            if (ApacheNetServerConfiguration.EnableImageUpscale && (ContentType.StartsWith("image/") || (!string.IsNullOrEmpty(extension) && extension.Equals(".dds", StringComparison.InvariantCultureIgnoreCase))))
+            if (ApacheNetServerConfiguration.EnableImageUpscale && ((!string.IsNullOrEmpty(ContentType) && ContentType.StartsWith("image/")) || (!string.IsNullOrEmpty(extension) && extension.Equals(".dds", StringComparison.InvariantCultureIgnoreCase))))
             {
                 ctx.Response.ContentType = ContentType;
 
                 try
                 {
                     st = ImageOptimizer.OptimizeImage(ApacheNetServerConfiguration.ConvertersFolder, filePath, extension, ImageOptimizer.defaultOptimizerParams);
+
+                    if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && st.Length >= compressionSizeLimit)
+                    {
+                        if (encoding.Contains("zstd"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                            st = HTTPProcessor.ZstdCompressStream(st);
+                        }
+                        else if (encoding.Contains("br"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "br");
+                            st = HTTPProcessor.BrotliCompressStream(st);
+                        }
+                        else if (encoding.Contains("gzip"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                            st = HTTPProcessor.GzipCompressStream(st);
+                        }
+                        else if (encoding.Contains("deflate"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                            st = HTTPProcessor.InflateStream(st);
+                        }
+                    }
                 }
                 catch
                 {
+                    st = null;
                 }
             }
             else if (isHtmlCompatible && isVideoOrAudio)
@@ -96,25 +123,30 @@ namespace ApacheNet
 
                 MemoryStream htmlMs = new MemoryStream(Encoding.UTF8.GetBytes(htmlContent));
 
-                if (encoding.Contains("zstd"))
+                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
                 {
-                    ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                    st = HTTPProcessor.ZstdCompressStream(htmlMs);
-                }
-                else if (encoding.Contains("br"))
-                {
-                    ctx.Response.Headers.Add("Content-Encoding", "br");
-                    st = HTTPProcessor.BrotliCompressStream(htmlMs);
-                }
-                else if (encoding.Contains("gzip"))
-                {
-                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    st = HTTPProcessor.GzipCompressStream(htmlMs);
-                }
-                else if (encoding.Contains("deflate"))
-                {
-                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                    st = HTTPProcessor.InflateStream(htmlMs);
+                    if (encoding.Contains("zstd"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                        st = HTTPProcessor.ZstdCompressStream(htmlMs);
+                    }
+                    else if (encoding.Contains("br"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "br");
+                        st = HTTPProcessor.BrotliCompressStream(htmlMs);
+                    }
+                    else if (encoding.Contains("gzip"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                        st = HTTPProcessor.GzipCompressStream(htmlMs);
+                    }
+                    else if (encoding.Contains("deflate"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                        st = HTTPProcessor.InflateStream(htmlMs);
+                    }
+                    else
+                        st = htmlMs;
                 }
                 else
                     st = htmlMs;
@@ -123,9 +155,7 @@ namespace ApacheNet
             {
                 ctx.Response.ContentType = ContentType;
 
-                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
-                && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
-                         || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
+                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && new FileInfo(filePath).Length >= compressionSizeLimit)
                 {
                     if (encoding.Contains("zstd"))
                     {
