@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Tls;
 using MultiSocks.ProtoSSL;
 using MultiSocks.ProtoSSL.Crypto;
+using NetworkLibrary.Extension;
 
 namespace MultiSocks.Aries
 {
@@ -26,17 +27,12 @@ namespace MultiSocks.Aries
         public bool CanAsyncGameSearch = false;
         public bool CanAsync = true;
 
-        private int ExpectedBytes = -1;
-        private bool InHeader;
         private readonly bool secure;
-        private int AsyncDequeueState = 0;
-        private readonly Timer timerDequeue;
-        private readonly TcpClient ClientTcp;
-        private Stream? ClientStream;
+        private readonly SemaphoreSlim dequeueSemaphore = new(1, 1);
+        private readonly TcpClient tcpClient;
         private readonly Thread RecvThread;
         private readonly ConcurrentQueue<AbstractMessage> AsyncMessageQueue = new();
-        private byte[]? TempData = null;
-        private int TempDatOff;
+        private Stream? ClientStream;
         private string CommandName = "null";
 
         private (AsymmetricKeyParameter, Certificate, X509Certificate2) SecureKeyCert;
@@ -44,14 +40,13 @@ namespace MultiSocks.Aries
         public long PingSendTick;
         public int Ping;
 
-        private static int MAX_SIZE = 1024 * 1024 * 2;
+        private const int MAX_SIZE = 1024 * 1024 * 2;
 
         public AriesClient(AbstractAriesServer context, TcpClient client, bool secure, string CN, bool WeakChainSignedRSAKey)
         {
             this.secure = secure;
             Context = context;
-            ClientTcp = client;
-            timerDequeue = new Timer(DequeueAsyncMessage, null, 0, 100);
+            tcpClient = client;
 
             LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
@@ -69,17 +64,15 @@ namespace MultiSocks.Aries
 
         public void Close()
         {
-            ClientTcp.Close();
+            tcpClient.Close();
         }
 
         private void RunLoop()
         {
             if (secure)
             {
-                NetworkStream? networkStream = ClientTcp.GetStream();
-
                 Ssl3TlsServer connTls = new(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1);
-                TlsServerProtocol serverProtocol = new(networkStream);
+                TlsServerProtocol serverProtocol = new(tcpClient.GetStream());
 
                 try
                 {
@@ -94,8 +87,7 @@ namespace MultiSocks.Aries
                     connTls.Cancel();
 
                     ClientStream?.Dispose();
-                    ClientTcp.Dispose();
-                    timerDequeue.Dispose();
+                    tcpClient.Dispose();
                     LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 
@@ -105,61 +97,68 @@ namespace MultiSocks.Aries
                 ClientStream = serverProtocol.Stream;
             }
             else
-                ClientStream = ClientTcp.GetStream();
+                ClientStream = tcpClient.GetStream();
 
-            int len = 0;
+            bool InHeader = false;
+            int len, TempDatOff = 0;
+            int ExpectedBytes = -1;
+            Span<byte> TempData = null;
             Span<byte> bytes = new byte[65536];
 
             try
             {
-                while ((len = ClientStream.Read(bytes)) != 0)
+                while (tcpClient.IsConnected())
                 {
-                    int off = 0;
-                    while (len > 0)
+                    if (tcpClient.Available > 0)
                     {
-                        // got some data
-                        if (ExpectedBytes == -1)
+                        len = ClientStream.Read(bytes);
+                        int off = 0;
+                        while (len > 0)
                         {
-                            // new packet
-                            InHeader = true;
-                            ExpectedBytes = 12; // header
-                            TempData = new byte[12];
-                            TempDatOff = 0;
-                        }
-
-                        if (TempData != null)
-                        {
-                            int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                            Array.Copy(bytes.ToArray(), off, TempData, TempDatOff, copyLen);
-                            off += copyLen;
-                            TempDatOff += copyLen;
-                            len -= copyLen;
-
-                            if (TempDatOff == TempData.Length)
+                            // got some data
+                            if (ExpectedBytes == -1)
                             {
-                                if (InHeader)
+                                // new packet
+                                InHeader = true;
+                                ExpectedBytes = 12; // header
+                                TempData = new byte[12];
+                                TempDatOff = 0;
+                            }
+
+                            if (TempData != null)
+                            {
+                                int copyLen = Math.Min(len, TempData.Length - TempDatOff);
+                                bytes.Slice(off, copyLen).CopyTo(TempData.Slice(TempDatOff));
+                                off += copyLen;
+                                TempDatOff += copyLen;
+                                len -= copyLen;
+
+                                if (TempDatOff == TempData.Length)
                                 {
-                                    //header complete.
-                                    InHeader = false;
-                                    int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
-                                    if (size > MAX_SIZE)
+                                    if (InHeader)
                                     {
-                                        ClientTcp.Close(); // either something terrible happened or they're trying to mess with us
-                                        break;
+                                        //header complete.
+                                        InHeader = false;
+                                        int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
+                                        if (size > MAX_SIZE)
+                                        {
+                                            tcpClient.Close(); // either something terrible happened or they're trying to mess with us
+                                            break;
+                                        }
+                                        CommandName = Encoding.ASCII.GetString(TempData)[..4];
+
+                                        TempData = new byte[size - 12];
+                                        TempDatOff = 0;
                                     }
-                                    CommandName = Encoding.ASCII.GetString(TempData)[..4];
+                                    else
+                                    {
+                                        // message complete, process in a sync manner to avoids issues.
+                                        GotMessage(CommandName, TempData.ToArray());
 
-                                    TempData = new byte[size - 12];
-                                    TempDatOff = 0;
-                                }
-                                else
-                                {
-                                    // message complete, process in a sync manner to avoids issues.
-                                    Context.HandleMessage(CommandName, TempData, this);
-
-                                    TempDatOff = 0;
-                                    ExpectedBytes = -1;
-                                    TempData = null;
+                                        TempDatOff = 0;
+                                        ExpectedBytes = -1;
+                                        TempData = null;
+                                    }
                                 }
                             }
                         }
@@ -172,29 +171,39 @@ namespace MultiSocks.Aries
             }
 
             ClientStream?.Dispose();
-            ClientTcp.Dispose();
-            timerDequeue.Dispose();
+            tcpClient.Dispose();
             LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
             Context.RemoveClient(this);
         }
 
-        private void DequeueAsyncMessage(object? state)
+        private void GotMessage(string name, byte[] data)
         {
-            // AMD processors are not liking a traditional lock here, interlocked works everywhere tho.
-
-            // Attempt to set isDequeueRunning to 1. If it's already 1, return immediately.
-            if (Interlocked.CompareExchange(ref AsyncDequeueState, 1, 0) == 1)
-                return;
-
-            while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
+            Task.Run(() =>
             {
-                if (msg != null && SendImmediateMessage(msg.GetData()))
-                    // Some games not like when async msgs are sent too close to each others (MOH).
-                    Thread.Sleep(100);
+                Context.HandleMessage(name, data, this);
+            }).Wait();
+        }
+
+        private Task DequeueAsyncMessage()
+        {
+            if (!dequeueSemaphore.Wait(0))
+                return Task.CompletedTask;
+
+            try
+            {
+                while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
+                {
+                    if (msg != null && SendImmediateMessage(msg.GetData()))
+                        // Some games not like when async msgs are sent too close to each others (MOH).
+                        Thread.Sleep(100);
+                }
+            }
+            finally
+            {
+                dequeueSemaphore.Release();
             }
 
-            // Reset isDequeueRunning to 0, allowing future executions.
-            Interlocked.Exchange(ref AsyncDequeueState, 0);
+            return Task.CompletedTask;
         }
 
         public bool SendImmediateMessage(byte[] data)
@@ -224,6 +233,8 @@ namespace MultiSocks.Aries
             {
                 if (CanAsync)
                     AsyncMessageQueue.Enqueue(msg);
+
+                _ = DequeueAsyncMessage();
 
                 return;
             }

@@ -1,5 +1,6 @@
 using MultiSocks.Aries.Messages;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace MultiSocks.Aries.Model
 {
@@ -90,9 +91,28 @@ namespace MultiSocks.Aries.Model
 
         public void Broadcast(AbstractMessage msg)
         {
-            Users.Values
-                .ToList()
-                .ForEach(x => x.Connection?.SendMessage(msg));
+            foreach (AriesUser user in Users.Values)
+            {
+                if (user.Connection == null)
+                {
+                    new Thread(() =>
+                    {
+                        int retries = 0;
+                        while (retries < 5)
+                        {
+                            if (user.Connection != null)
+                            {
+                                user.Connection.SendMessage(msg);
+                                break;
+                            }
+                            retries++;
+                            Thread.Sleep(500);
+                        }
+                    }).Start();
+                }
+                else
+                    user.Connection.SendMessage(msg);
+            }
         }
     }
 }
