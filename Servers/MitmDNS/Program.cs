@@ -14,7 +14,6 @@ public static class MitmDNSServerConfiguration
 {
     public static string DNSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/routes.txt";
     public static string DNSOnlineConfig { get; set; } = string.Empty;
-    public static bool PublicIpFallback { get; set; } = true;
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
     public static bool EnableAdguardFiltering { get; set; } = false;
     public static bool EnableDanPollockHosts { get; set; } = false;
@@ -39,7 +38,6 @@ public static class MitmDNSServerConfiguration
             File.WriteAllText(configPath, new JObject(
                 new JProperty("online_routes_config", DNSOnlineConfig),
                 new JProperty("routes_config", DNSConfig),
-                new JProperty("public_ip_fallback", PublicIpFallback),
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
                 new JProperty("enable_adguard_filtering", EnableAdguardFiltering),
                 new JProperty("enable_dan_pollock_hosts", EnableDanPollockHosts),
@@ -56,7 +54,6 @@ public static class MitmDNSServerConfiguration
 
             DNSOnlineConfig = GetValueOrDefault(config, "online_routes_config", DNSOnlineConfig);
             DNSConfig = GetValueOrDefault(config, "routes_config", DNSConfig);
-            PublicIpFallback = GetValueOrDefault(config, "public_ip_fallback", PublicIpFallback);
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
             EnableDanPollockHosts = GetValueOrDefault(config, "enable_dan_pollock_hosts", EnableDanPollockHosts);
@@ -183,10 +180,7 @@ class Program
             }
         }
 
-        if (MitmDNSServerConfiguration.PublicIpFallback)
-            DNSResolver.ServerIp = InternetProtocolUtils.GetPublicIPAddress();
-        else
-            DNSResolver.ServerIp = InternetProtocolUtils.GetLocalIPAddress().ToString();
+        _ = InternetProtocolUtils.TryGetServerIP(out DNSResolver.ServerIp);
 
         if (Server == null)
             Server = new(Environment.ProcessorCount * 4);

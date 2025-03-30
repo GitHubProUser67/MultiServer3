@@ -1,5 +1,4 @@
 using Blaze3SDK;
-using Blaze3SDK.Blaze;
 using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Blaze.Components.Redirector;
@@ -21,7 +20,7 @@ namespace MultiSocks.Blaze
 
         public BlazeClass(CancellationToken cancellationToken)
         {
-            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddress().ToString();
+            InternetProtocolUtils.TryGetServerIP(out string ListenIP).Wait(cancellationToken);
             string domain = "gosredirector.ea.com";
 
             // Create Blaze Redirector servers

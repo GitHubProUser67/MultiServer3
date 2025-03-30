@@ -62,7 +62,7 @@ namespace MultiSocks.Aries
 
         public AriesServer(CancellationToken cancellationToken)
         {
-            string ListenIP = MultiSocksServerConfiguration.UsePublicIPAddress ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddress().ToString();
+            InternetProtocolUtils.TryGetServerIP(out string ListenIP).Wait(cancellationToken);
 
             Database = new DirtySocksJSONDatabase();
 
