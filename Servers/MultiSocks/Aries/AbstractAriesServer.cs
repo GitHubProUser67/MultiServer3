@@ -138,7 +138,7 @@ namespace MultiSocks.Aries
             }
         }
 
-        public virtual void HandleMessage(string name, byte[] data, AriesClient client)
+        public virtual void HandleMessage(string name, Span<byte> data, AriesClient client)
         {
             try
             {
@@ -150,7 +150,7 @@ namespace MultiSocks.Aries
 #endif
                 if (!NameToClass.TryGetValue(name, out Type? c))
                 {
-                    LoggerAccessor.LogError($"{client.ADDR} Requested an unexpected message Type {name} : {body.Replace("\n", string.Empty)}");
+                    LoggerAccessor.LogError($"{client.ADDR} Requested an unexpected message Type {name} : {body.Replace("\n", "")}");
                     return;
                 }
 
