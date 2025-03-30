@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 
-namespace SSFWServer.Helpers.RegexHelper
+namespace SSFWServer.Helpers
 {
     public class GUIDValidator
     {

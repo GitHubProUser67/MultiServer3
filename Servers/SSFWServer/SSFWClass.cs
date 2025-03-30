@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;
 using SSFWServer.Helpers;
+using System.Text.Json;
+using System.Security.Authentication;
 
 namespace SSFWServer
 {

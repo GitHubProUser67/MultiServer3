@@ -1,8 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SSFWServer.Helpers.FileHelper;
-using SSFWServer.Helpers.RegexHelper;
+using SSFWServer.Helpers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -206,12 +205,9 @@ namespace SSFWServer.Services
             Directory.CreateDirectory(Path.GetDirectoryName(countsStoreDir));
             Directory.CreateDirectory(Path.GetDirectoryName(trackingFileDir));
 
-            // Preprocess JSON to ensure GUIDs are quoted
             string fixedJsonPayload = GUIDValidator.FixJsonValues(Encoding.UTF8.GetString(buffer));
             try
             {
-                //Console.WriteLine($"Fixed JSON: {fixedJsonPayload}");
-
                 using JsonDocument document = JsonDocument.Parse(fixedJsonPayload);
                 JsonElement root = document.RootElement;
                 if (!root.TryGetProperty("rewards", out JsonElement rewardsElement) || rewardsElement.ValueKind != JsonValueKind.Array)
