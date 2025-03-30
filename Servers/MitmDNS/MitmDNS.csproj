@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 53:53</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 53:53 -p 65535:65535</DockerfileRunArguments>
 	<ApplicationIcon>DNS.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<DockerfileContext>..\..</DockerfileContext>
