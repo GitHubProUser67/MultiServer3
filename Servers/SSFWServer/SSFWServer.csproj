@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 8080:8080 -p 10443:10443</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 8080:8080 -p 10443:10443 -p 65535:65535</DockerfileRunArguments>
 	<ApplicationIcon>SSFW.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<DockerfileContext>..\..</DockerfileContext>
