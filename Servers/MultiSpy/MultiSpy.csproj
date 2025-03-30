@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 29900:29900 -p 29901:29901 -p 29910:29910 -p 27900:27900 -p 28910:28910 -p 27901:27901 -p 6667:6667 -p 65535:65535</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 29900:29900 -p 29901:29901 -p 29910:29910 -p 27900:27900 -p 28910:28910 -p 27901:27901 -p 6667:6667</DockerfileRunArguments>
 	<ApplicationIcon>MultiSpy.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<DockerfileContext>..\..</DockerfileContext>
