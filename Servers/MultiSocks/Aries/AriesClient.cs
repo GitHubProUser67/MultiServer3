@@ -188,11 +188,9 @@ namespace MultiSocks.Aries
             {
                 while (AsyncMessageQueue.TryDequeue(out AbstractMessage? msg))
                 {
-                    // Some games not like when async msgs are sent too close to each others (MOH).
-                    Thread.Sleep(100);
-
-                    if (msg != null)
-                        SendImmediateMessage(msg.GetData());
+                    if (msg != null && SendImmediateMessage(msg.GetData()))
+                        // Some games not like when async msgs are sent too close to each others (MOH).
+                        Thread.Sleep(100);
                 }
             }
             finally
