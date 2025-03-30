@@ -62,11 +62,6 @@ namespace MultiSocks.Aries
             RecvThread.Start();
         }
 
-        public void Close()
-        {
-            tcpClient.Close();
-        }
-
         private void RunLoop()
         {
             ClientStream = tcpClient.GetStream();
