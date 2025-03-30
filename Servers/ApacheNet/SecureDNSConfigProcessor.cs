@@ -20,19 +20,15 @@ namespace ApacheNet
         public static Dictionary<string, DnsSettings> DicRules = new();
         public static Dictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
-        public static IPAddress? ServerIp;
 
         public static void InitDNSSubsystem()
         {
             LoggerAccessor.LogWarn("[HTTPS_DNS] - DNS system configuration is initialising, endpoints will be available when initialized...");
 
-            InternetProtocolUtils.TryGetServerIP(out string ServerIpStr).Wait();
-            ServerIp = IPAddress.Parse(ServerIpStr);
-
             if (!string.IsNullOrEmpty(ApacheNetServerConfiguration.DNSOnlineConfig))
             {
                 LoggerAccessor.LogInfo("[HTTPS_DNS] - Downloading Configuration File...");
-                if (NetworkLibrary.Extension.Windows.Win32API.IsWindows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                 try
                 {
 #if NET7_0_OR_GREATER
@@ -235,13 +231,13 @@ namespace ApacheNet
                         }
                         catch
                         {
-                            IP = ServerIp!;
+                            IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
                         }
                         break;
                     }
                 default:
                     {
-                        IP = ServerIp!;
+                        IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in SecureDNSConfigProcessor.GetIp()");
                         break;
                     }

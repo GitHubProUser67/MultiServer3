@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #endif
@@ -18,8 +17,6 @@ namespace NetworkLibrary.Extension
 {
     public static class InternetProtocolUtils
     {
-        private static object _InternalLock = new object();
-
         public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength, bool detailed = false)
         {
             if (cidrPrefixLength == null || cidrPrefixLength.Value > 32 || cidrPrefixLength.Value < 8)
@@ -140,91 +137,6 @@ namespace NetworkLibrary.Extension
 
             // If no valid interface with the desired IP version is found.
             return IPAddress.Loopback;
-        }
-
-        public static Task<bool> TryGetServerIP(out string extractedIP, bool allowipv6 = false)
-        {
-            const ushort testPort = ushort.MaxValue;
-
-            bool isPublic = false;
-            string ServerIP;
-            TcpListener listener = null;
-
-            lock (_InternalLock)
-            {
-                try
-                {
-                    listener = new TcpListener(IPAddress.Any, testPort);
-                    listener.Start();
-
-                    if (allowipv6)
-                    {
-                        // We want to check if the router allows external IPs first.
-                        ServerIP = GetPublicIPAddress(true);
-                        try
-                        {
-                            using (TcpClient client = new TcpClient(ServerIP, testPort))
-                                client.Close();
-                            isPublic = true;
-                        }
-                        catch // Failed to connect to public ip, so we fallback to IPV4 Public IP.
-                        {
-                            ServerIP = GetPublicIPAddress();
-                            try
-                            {
-                                using (TcpClient client = new TcpClient(ServerIP, testPort))
-                                    client.Close();
-                                isPublic = true;
-                            }
-                            catch // Failed to connect to public ip, so we fallback to local IP.
-                            {
-                                ServerIP = GetLocalIPAddress(true).ToString();
-
-                                try
-                                {
-                                    using (TcpClient client = new TcpClient(ServerIP, testPort))
-                                        client.Close();
-                                }
-                                catch // Failed to connect to local ip, trying IPV4 only as a last resort.
-                                {
-                                    ServerIP = GetLocalIPAddress().ToString();
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // We want to check if the router allows external IPs first.
-                        ServerIP = GetPublicIPAddress();
-                        try
-                        {
-                            using (TcpClient client = new TcpClient(ServerIP, testPort))
-                                client.Close();
-                            isPublic = true;
-                        }
-                        catch // Failed to connect to public ip, so we fallback to local IP.
-                        {
-                            ServerIP = GetLocalIPAddress().ToString();
-                        }
-                    }
-                }
-                catch
-                {
-                    ServerIP = "127.0.0.1";
-                }
-                finally
-                {
-                    if (listener != null)
-                        listener.Stop();
-
-                    if (listener != null)
-                        listener = null;
-                }
-            }
-
-            extractedIP = ServerIP;
-
-            return Task.FromResult(isPublic);
         }
 
         /// <summary>
