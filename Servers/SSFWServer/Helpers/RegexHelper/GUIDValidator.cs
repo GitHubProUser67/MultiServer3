@@ -22,7 +22,7 @@ namespace SSFWServer.Helpers
             }
             catch (JsonReaderException ex)
             {
-                CustomLogger.LoggerAccessor.LogError("Invalid JSON format: " + ex.Message);
+                CustomLogger.LoggerAccessor.LogError("[GUIDValidator] : Invalid JSON format: " + ex.Message);
                 return json;
             }
         }
