@@ -210,7 +210,7 @@ namespace NetworkLibrary.Extension
                 }
                 catch
                 {
-                    ServerIP = "127.0.0.1";
+                    ServerIP = "0.0.0.0";
                 }
                 finally
                 {
