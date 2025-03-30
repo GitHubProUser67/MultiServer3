@@ -16,10 +16,11 @@ namespace SSFWServer.Helpers
             {
                 if (segment != null)
                 {
-                    List<FileItem>? files = GetFilesInfo(directoryPath + "/" + segment);
+                    string path = directoryPath + "/" + segment;
+                    List<FileItem>? files = GetFilesInfo(path);
 
                     if (files != null)
-                        return JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented);
+                        return JsonConvert.SerializeObject(new FilesContainer() { files = files }, Formatting.Indented);
 
 #if DEBUG
                     LoggerAccessor.LogInfo($"[SSFW] - SaveDataDebug GetFileList Returned: \n{JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented)}");
@@ -40,14 +41,14 @@ namespace SSFWServer.Helpers
             try
             {
 
-                foreach (string filePath in Directory.GetFiles(directoryPath).Where(name => name.EndsWith(".json")))
+                foreach (string filePath in Directory.GetFiles(directoryPath))
                 {
                     FileInfo fileInfo = new(filePath);
                     files.Add(new FileItem()
                     {
-                        ObjectId = Path.GetFileNameWithoutExtension(fileInfo.Name),
-                        Size = (int)fileInfo.Length,
-                        LastUpdate = "0"
+                        objectId = Path.GetFileNameWithoutExtension(fileInfo.Name),
+                        size = (int)fileInfo.Length,
+                        lastUpdate = (long)fileInfo.LastWriteTime.Subtract(DateTime.UnixEpoch).TotalSeconds
                     });
                 }
 
@@ -63,14 +64,14 @@ namespace SSFWServer.Helpers
 
         private class FileItem
         {
-            public string? ObjectId { get; set; }
-            public int Size { get; set; }
-            public string? LastUpdate { get; set; }
+            public string? objectId { get; set; }
+            public int size { get; set; }
+            public long lastUpdate { get; set; }
         }
 
         private class FilesContainer
         {
-            public List<FileItem>? Files { get; set; }
+            public List<FileItem>? files { get; set; }
         }
 
     }
