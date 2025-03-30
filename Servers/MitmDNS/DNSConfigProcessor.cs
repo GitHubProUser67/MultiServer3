@@ -92,7 +92,7 @@ namespace MitmDNS
                                     dns.Address = GetIp(split[2].Trim());
                                     break;
                                 default:
-                                    LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not a formated properly, skipping...");
+                                    LoggerAccessor.LogWarn($"[DNS] - Rule : {s} is not formated properly, skipping...");
                                     break;
                             }
 

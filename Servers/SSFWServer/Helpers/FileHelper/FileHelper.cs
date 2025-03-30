@@ -3,7 +3,7 @@ using CustomLogger;
 using NetworkLibrary.Extension;
 using System.Text;
 
-namespace SSFWServer
+namespace SSFWServer.Helpers
 {
     public class FileHelper
     {

@@ -1,7 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json;
 
-namespace SSFWServer.SaveDataHelper
+namespace SSFWServer.Helpers
 {
     public class SSFWGetFileList : IDisposable
     {
@@ -22,6 +22,8 @@ namespace SSFWServer.SaveDataHelper
 
                     if (files != null)
                         return JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented);
+
+                    LoggerAccessor.LogInfo($"[SSFW] - SaveDataDebug GetFileList Returned: \n{JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented)}");
                 }
             }
             catch (Exception e)
