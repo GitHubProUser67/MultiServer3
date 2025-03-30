@@ -333,7 +333,7 @@ namespace SSFWServer.Services
             }
             catch (System.Text.Json.JsonException ex)
             {
-                Console.WriteLine($"Error parsing JSON payload: {ex.Message}");
+                LoggerAccessor.LogError($"[SSFW] : Error parsing JSON payload: {ex.Message}");
             }
             catch (Exception ex)
             {

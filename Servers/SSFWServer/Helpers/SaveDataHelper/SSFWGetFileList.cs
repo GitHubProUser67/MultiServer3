@@ -3,10 +3,8 @@ using Newtonsoft.Json;
 
 namespace SSFWServer.Helpers
 {
-    public class SSFWGetFileList : IDisposable
+    public class SSFWGetFileList
     {
-        private bool disposedValue;
-
         public SSFWGetFileList()
         {
 
@@ -23,7 +21,9 @@ namespace SSFWServer.Helpers
                     if (files != null)
                         return JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented);
 
+#if DEBUG
                     LoggerAccessor.LogInfo($"[SSFW] - SaveDataDebug GetFileList Returned: \n{JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented)}");
+#endif
                 }
             }
             catch (Exception e)
@@ -73,33 +73,5 @@ namespace SSFWServer.Helpers
             public List<FileItem>? Files { get; set; }
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: supprimer l'état managé (objets managés)
-                }
-
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
-                // TODO: affecter aux grands champs une valeur null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~SSFWGetFileList()
-        // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
     }
 }

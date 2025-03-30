@@ -233,7 +233,6 @@ namespace SSFWServer
                                         Response.MakeGetResponse(res, "application/json");
                                     else
                                         Response.MakeErrorResponse();
-                                    filelist.Dispose();
                                 }
                                 #endregion
 
@@ -248,7 +247,6 @@ namespace SSFWServer
                                             //Detect if existing inv exists
                                             if (File.Exists(filePath + ".json"))
                                             {
-                                                LoggerAccessor.LogInfo($"[SSFW] : {UserAgent} Existing inventories detected!");
                                                 string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
 
                                                 if (!string.IsNullOrEmpty(res))
@@ -263,35 +261,36 @@ namespace SSFWServer
                                             }
                                             else //fallback default 
                                             {
+#if DEBUG
                                                 LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Non-existent inventories detected, using defaults!");
-                                                
+#endif
                                                 if (absolutepath.Contains("p4t-cprod"))
                                                 {
                                                     #region Quest for Greatness
                                                     Response.MakeGetResponse(@"{
-  ""result"": 0,
-  ""rewards"": [
-    {
-      ""objectId"": ""00000000-00000000-00000000-00000001"",
-      ""_id"": ""tracking""
-    }
-  ]
-}", "application/json");
+                                                      ""result"": 0,
+                                                      ""rewards"": [
+                                                        {
+                                                          ""objectId"": ""00000000-00000000-00000000-00000001"",
+                                                          ""_id"": ""tracking""
+                                                        }
+                                                      ]
+                                                    }", "application/json");
                                                     #endregion
                                                 }
                                                 else
                                                 {
                                                     #region Pottermore
                                                     Response.MakeGetResponse(@"{
-  ""result"": 0,
-  ""rewards"": [
-    {
-      ""objectId"": ""00000000-00000000-00000000-00000001"",
-      ""boost"": ""AQ=="",
-      ""_id"": ""tracking""
-    }
-  ]
-}", "application/json");
+                                                      ""result"": 0,
+                                                      ""rewards"": [
+                                                        {
+                                                          ""objectId"": ""00000000-00000000-00000000-00000001"",
+                                                          ""boost"": ""AQ=="",
+                                                          ""_id"": ""tracking""
+                                                        }
+                                                      ]
+                                                    }", "application/json");
                                                     #endregion
                                                 }
 
@@ -302,7 +301,6 @@ namespace SSFWServer
                                             //Detect if existing inv exists
                                             if (File.Exists(filePath + ".json"))
                                             {
-                                                LoggerAccessor.LogInfo($"[SSFW] : {UserAgent} Existing inventories detected!");
                                                 string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
 
                                                 if (!string.IsNullOrEmpty(res))
@@ -318,7 +316,6 @@ namespace SSFWServer
                                         }
 
                                     }
-                                    
                                     else if (File.Exists(filePath + ".json"))
                                     {
                                         string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
