@@ -569,7 +569,6 @@ namespace SSFWServer
                                                         auditService.HandleAuditService(absolutepath, putbuffer);
                                                         //Audit doesn't care we send ok!
                                                         Response.MakeOkResponse();
-                                                        auditService.Dispose();
                                                     } else
                                                     {
                                                         File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", putbuffer);
