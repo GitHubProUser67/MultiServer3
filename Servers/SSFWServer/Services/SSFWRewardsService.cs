@@ -190,9 +190,6 @@ namespace SSFWServer.Services
 
         public byte[] SSFWRewardServiceInventoryPOST(byte[] buffer, string directorypath, string filepath, string absolutePath)
         {
-#if DEBUG
-            //LoggerAccessor.LogWarn($"POST CHECK {Encoding.UTF8.GetString(buffer)}");
-#endif
             //Tracking Inventory
             string trackingGuid = "00000000-00000000-00000000-00000001"; // fallback/hardcoded tracking GUID
 
@@ -259,7 +256,7 @@ namespace SSFWServer.Services
 
                     if (objectIdElement.ValueKind != JsonValueKind.String)
                     {
-                        Console.WriteLine($"Invalid reward: 'objectId' must be a string, got {objectIdElement.ValueKind}.");
+                        LoggerAccessor.LogError($"[SSFW] : 'objectId' must be a string, got {objectIdElement.ValueKind}.");
                         continue;
                     }
 

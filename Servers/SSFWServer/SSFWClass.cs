@@ -242,6 +242,7 @@ namespace SSFWServer
                                     if (absolutepath.Contains($"/RewardsService/pmcards/") ||
                                         absolutepath.Contains($"/RewardsService/p4t-cprod/"))
                                     {
+                                        //Check for specifically the Tracking GUID
                                         if (absolutepath.Contains("object/00000000-00000000-00000000-00000001"))
                                         {
                                             //Detect if existing inv exists
@@ -475,9 +476,8 @@ namespace SSFWServer
                                     #region RewardsService
                                     else if (absolutepath.Contains($"/RewardsService/{env}/rewards/") && IsSSFWRegistered(sessionid))
                                     {
-                                        SSFWRewardsService reward = new(legacykey);
-                                        Response.MakeGetResponse(reward.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
-                                        reward.Dispose();
+                                        Response.MakeGetResponse(rewardSvc.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
+                                        rewardSvc.Dispose();
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && IsSSFWRegistered(sessionid))
                                     {
@@ -487,10 +487,9 @@ namespace SSFWServer
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/set") && IsSSFWRegistered(sessionid))
                                     {
-                                        SSFWRewardsService reward = new(legacykey);
-                                        reward.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
+                                        rewardSvc.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
                                         Response.MakeOkResponse();
-                                        reward.Dispose();
+                                        rewardSvc.Dispose();
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/pmcards/") 
                                         || absolutepath.Contains($"/RewardsService/p4t-cprod/") 
