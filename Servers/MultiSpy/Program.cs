@@ -4774,7 +4774,7 @@ public static class MultiSpyServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(JsonElement config, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(JsonElement config, string propertyName, T defaultValue)
     {
         try
         {
@@ -4819,6 +4819,7 @@ class Program
 
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "multispy.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static IPAddress bindAddr = IPAddress.Any;
     private static LoginServer? serverLogin = null;
     private static CDKeyServer? serverCdKey = null;
@@ -4912,6 +4913,7 @@ class Program
 
         GeoIP.Initialize();
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         MultiSpyServerConfiguration.RefreshVariables(configPath);
 
         // we need to safely dispose of the database when the application closes

@@ -152,7 +152,7 @@ public static class QuazalServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         try
         {
@@ -182,6 +182,7 @@ class Program
 {
     public static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "quazal.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static BackendServicesServer? BackendServer;
     private static RDVServer? RendezVousServer;
 
@@ -229,6 +230,7 @@ class Program
         InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         QuazalServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

@@ -6,6 +6,9 @@ namespace TechnitiumLibrary.Net.Firewall
     {
         public static void CheckFirewallEntries(string appPath)
         {
+            if (string.IsNullOrWhiteSpace(appPath))
+                return;
+
             if (appPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 appPath = appPath.Substring(0, appPath.Length - 4) + ".exe";
 

@@ -80,7 +80,7 @@ public static class MitmDNSServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         try
         {
@@ -110,6 +110,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "dns.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static string DNSconfigMD5 = string.Empty;
     private static Task DNSThread = null;
     private static Task DNSRefreshThread = null;
@@ -246,6 +247,7 @@ class Program
         InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         MitmDNSServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

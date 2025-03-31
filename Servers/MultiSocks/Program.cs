@@ -57,7 +57,7 @@ public static class MultiSocksServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         try
         {
@@ -87,6 +87,7 @@ class Program
 {
     public static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "MultiSocks.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static AriesServer? DirtySocksServer;
     private static BlazeClass? BlazeDirtySocksServer;
 
@@ -129,6 +130,7 @@ class Program
         InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         MultiSocksServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

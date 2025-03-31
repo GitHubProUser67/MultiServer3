@@ -119,7 +119,7 @@ public static class SVOServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         try
         {
@@ -149,6 +149,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "svo.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static Task? MediusDatabaseLoop;
     private static SVOServer? _SVOServer;
 
@@ -197,6 +198,7 @@ class Program
         InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         SVOServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

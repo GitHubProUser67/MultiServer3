@@ -528,6 +528,27 @@ namespace NetworkLibrary.SSL
 #endif
         }
 
+        public static void ExtractCombinedPemData(string content, out string certificate, out string privateKey)
+        {
+            const string certBegin = "-----BEGIN CERTIFICATE-----";
+            const string certEnd = "-----END CERTIFICATE-----";
+            const string keyBegin = "-----BEGIN RSA PRIVATE KEY-----";
+            const string keyEnd = "-----END RSA PRIVATE KEY-----";
+
+            int certStart = content.IndexOf(certBegin);
+            int certEndIdx = content.IndexOf(certEnd) + certEnd.Length;
+            int keyStart = content.IndexOf(keyBegin);
+            int keyEndIdx = content.IndexOf(keyEnd) + keyEnd.Length;
+
+            certificate = certStart >= 0 && certEndIdx > certStart
+                ? content.Substring(certStart, certEndIdx - certStart).Trim()
+                : string.Empty;
+
+            privateKey = keyStart >= 0 && keyEndIdx > keyStart
+                ? content.Substring(keyStart, keyEndIdx - keyStart).Trim()
+                : string.Empty;
+        }
+
         /// <summary>
         /// Creates a specific CERTIFICATES.TXT file.
         /// <para>Génération d'un fichier CERTIFICATES.TXT.</para>

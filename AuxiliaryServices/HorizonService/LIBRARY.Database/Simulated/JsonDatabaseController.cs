@@ -7,7 +7,7 @@ namespace HorizonService.LIBRARY.Database.Simulated
 {
     public class JsonDatabaseController
     {
-        public static void WriteToJsonFile(string directoryPath, string Type, string Value)
+        public static void WriteToJsonFile(string directoryPath, string Type, string Value, bool IsBanned = false)
         {
             if (string.IsNullOrEmpty(directoryPath))
                 return;
@@ -16,7 +16,7 @@ namespace HorizonService.LIBRARY.Database.Simulated
             {
                 Directory.CreateDirectory(directoryPath + $"/MediusSimulatedDatabase/{Type}");
 
-                File.WriteAllText(directoryPath + $"/MediusSimulatedDatabase/{Type}/{Value}.json", JsonConvert.SerializeObject(new Dictionary<string, bool> { { "IsBanned", false } }));
+                File.WriteAllText(directoryPath + $"/MediusSimulatedDatabase/{Type}/{Value}.json", JsonConvert.SerializeObject(new Dictionary<string, bool> { { "IsBanned", IsBanned } }));
             }
             catch (Exception ex)
             {
