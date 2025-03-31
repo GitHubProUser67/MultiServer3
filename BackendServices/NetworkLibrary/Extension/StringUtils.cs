@@ -123,6 +123,31 @@ namespace NetworkLibrary.Extension
         }
 
         /// <summary>
+        /// Converts a Ghidra string report into a byte array.
+        /// Extracts hex bytes from each line and places them at the correct index.
+        /// </summary>
+        /// <param name="report">The Ghidra report as a string</param>
+        /// <returns>Byte array constructed from the report</returns>
+        public static byte[] GhidraStrReportToBytes(string report, int sizeOf = -1)
+        {
+            string[] lines = report.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            byte[] byteArray = new byte[sizeOf == -1 ? lines.Length : sizeOf];
+
+            foreach (string line in lines)
+            {
+                Match match = Regex.Match(line, @"\b([0-9a-fA-F]+)\s+([0-9a-fA-F]{2})\s+.*?\[(\d+)\]");
+                if (match.Success)
+                {
+                    string byteHex = match.Groups[2].Value;
+                    int index = int.Parse(match.Groups[3].Value);
+                    byteArray[index] = Convert.ToByte(byteHex, 16);
+                }
+            }
+
+            return byteArray;
+        }
+
+        /// <summary>
         /// Verify is the string is in base64 format.
         /// <para>Vérifie si un string est en format base64.</para>
         /// </summary>

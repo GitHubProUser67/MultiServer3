@@ -151,6 +151,14 @@ namespace NetworkLibrary.Extension
             return false;
         }
 
+        public static byte[] SubArray(this byte[] arr, int sizeToSubstract, bool atStart = false)
+        {
+            int newSize = arr.Length - sizeToSubstract;
+            byte[] output = new byte[newSize];
+            Array.Copy(arr, atStart ? sizeToSubstract : 0, output, 0, newSize);
+            return output;
+        }
+
         public static byte[] Trim(this byte[] arr)
         {
             int i = arr.Length - 1;

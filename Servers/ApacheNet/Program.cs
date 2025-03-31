@@ -280,7 +280,7 @@ public static class ApacheNetServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         if (obj != null)
         {
@@ -324,6 +324,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "ApacheNet.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static string DNSconfigMD5 = string.Empty;
     private static Timer? FilesystemTree = null;
     private static Task? DNSThread = null;
@@ -501,6 +502,7 @@ class Program
 
         GeoIP.Initialize();
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         ApacheNetServerConfiguration.RefreshVariables(configPath);
 
         if (ApacheNetServerConfiguration.PreferNativeHttpListenerEngine

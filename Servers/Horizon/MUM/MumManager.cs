@@ -10,8 +10,6 @@ using Horizon.HTTPSERVICE;
 using Horizon.SERVER;
 using Horizon.SERVER.Medius;
 using Horizon.MUM.Models;
-using System.Threading;
-using System;
 
 namespace Horizon.MUM
 {
@@ -267,14 +265,6 @@ namespace Horizon.MUM
                         return channel;
                 }
             }
-
-            return null;
-        }
-
-        public Game? GetGameByName(string? gameName, ClientObject? data)
-        {
-            if (!string.IsNullOrEmpty(gameName) && data != null && data.CurrentGame != null && data.CurrentGame.GameName == gameName)
-                return data.CurrentGame;
 
             return null;
         }
@@ -986,7 +976,7 @@ namespace Horizon.MUM
             }
 
             #region Password
-            else if (game.GamePassword != null && game.GamePassword != string.Empty && game.GamePassword != request.GamePassword)
+            else if (!string.IsNullOrEmpty(game.GamePassword) && game.GamePassword != request.GamePassword)
             {
                 LoggerAccessor.LogWarn($"Join Game Request Handler Error: This game's password {game.GamePassword} doesn't match the requested GamePassword {request.GamePassword}");
                 client.Queue(new MediusJoinGameResponse()
@@ -1054,8 +1044,8 @@ namespace Horizon.MUM
                                 {
                                     AddressList = new NetAddress[Constants.NET_ADDRESS_LIST_COUNT]
                                     {
-                                    new NetAddress() { Address = request.AddressList?.AddressList?[0].Address, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
-                                    new NetAddress() { AddressType = NetAddressType.NetAddressNone},
+                                        new NetAddress() { AddressBytes = request.AddressList.AddressList[0].AddressBytes, Port = request.AddressList.AddressList[0].Port, AddressType = NetAddressType.NetAddressTypeSignalAddress},
+                                        new NetAddress() { AddressType = NetAddressType.NetAddressNone},
                                     }
                                 },
                             }
@@ -1183,7 +1173,7 @@ namespace Horizon.MUM
                     StatusCode = MediusCallbackStatus.MediusGameNotFound
                 });
             }
-            else if (game.GamePassword != null && game.GamePassword != string.Empty && game.GamePassword != request.GamePassword)
+            else if (!string.IsNullOrEmpty(game.GamePassword) && game.GamePassword != request.GamePassword)
             {
                 client.Queue(new MediusJoinGameResponse()
                 {

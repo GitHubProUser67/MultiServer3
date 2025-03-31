@@ -12,7 +12,7 @@ namespace Horizon.RT.Models
         public string Address;
         public uint BinaryAddress;
         public int Port;
-
+        public byte[] AddressBytes;
         public byte IPBinaryBitOne;
         public byte IPBinaryBitTwo;
         public byte IPBinaryBitThree;
@@ -23,14 +23,14 @@ namespace Horizon.RT.Models
         {
             AddressType = reader.Read<NetAddressType>();
 
-            if(AddressType == NetAddressType.NetAddressTypeBinaryExternal 
+            if (AddressType == NetAddressType.NetAddressTypeBinaryExternal
                 || AddressType == NetAddressType.NetAddressTypeBinaryInternal)
             {
                 BinaryAddress = reader.ReadUInt32();
                 Port = reader.ReadInt32();
             }
 
-            if(AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+            if (AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
                 || AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
             {
                 IPBinaryBitOne = reader.ReadByte();
@@ -42,29 +42,33 @@ namespace Horizon.RT.Models
                 reader.ReadBytes(2);
             }
 
-            if(AddressType == NetAddressType.NetAddressTypeInternal
+            if (AddressType == NetAddressType.NetAddressTypeSignalAddress)
+            {
+                AddressBytes = reader.ReadBytes(Constants.NET_MAX_NETADDRESS_LENGTH);
+                Port = reader.ReadInt32();
+            }
+
+            if (AddressType == NetAddressType.NetAddressTypeInternal
                 || AddressType == NetAddressType.NetAddressTypeExternal
                 || AddressType == NetAddressType.NetAddressTypeNATService
-                || AddressType == NetAddressType.NetAddressTypeSignalAddress
                 || AddressType == NetAddressType.NetAddressNone)
             {
                 Address = reader.ReadString(Constants.NET_MAX_NETADDRESS_LENGTH);
                 Port = reader.ReadInt32();
             }
-            
         }
 
         public void Serialize(BinaryWriter writer)
         {
             writer.Write(AddressType);
             if (AddressType == NetAddressType.NetAddressTypeBinaryExternal
-                || AddressType == NetAddressType.NetAddressTypeBinaryInternal)  
+                || AddressType == NetAddressType.NetAddressTypeBinaryInternal)
             {
                 writer.Write(BinaryAddress);
                 writer.Write(Port);
             }
 
-            if(AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+            if (AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
                 || AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
             {
                 writer.Write(IPBinaryBitOne);
@@ -77,10 +81,15 @@ namespace Horizon.RT.Models
                 writer.Write(new byte[2]);
             }
 
-            if(AddressType == NetAddressType.NetAddressTypeInternal 
-                || AddressType == NetAddressType.NetAddressTypeExternal 
-                || AddressType == NetAddressType.NetAddressTypeNATService 
-                || AddressType == NetAddressType.NetAddressTypeSignalAddress
+            if (AddressType == NetAddressType.NetAddressTypeSignalAddress)
+            {
+                writer.Write(AddressBytes, Constants.NET_MAX_NETADDRESS_LENGTH);
+                writer.Write(Port);
+            }
+
+            if (AddressType == NetAddressType.NetAddressTypeInternal
+                || AddressType == NetAddressType.NetAddressTypeExternal
+                || AddressType == NetAddressType.NetAddressTypeNATService
                 || AddressType == NetAddressType.NetAddressNone)
             {
                 if (Address != null)
@@ -94,18 +103,23 @@ namespace Horizon.RT.Models
         public override string ToString()
         {
             if (AddressType == NetAddressType.NetAddressTypeBinaryExternal
-                || AddressType == NetAddressType.NetAddressTypeBinaryInternal) {
+                || AddressType == NetAddressType.NetAddressTypeBinaryInternal)
+            {
                 return base.ToString() + " " +
                 $"AddressType: {AddressType} " +
                 $"BinaryAddress: {BinaryAddress} " +
                 $"Port: {Port}";
-            } else if (AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
-                || AddressType == NetAddressType.NetAddressTypeBinaryInternalVport) {
+            }
+            else if (AddressType == NetAddressType.NetAddressTypeBinaryExternalVport
+                || AddressType == NetAddressType.NetAddressTypeBinaryInternalVport)
+            {
                 return base.ToString() + " " +
                 $"AddressType: {AddressType} " +
                 $"(Binary) IP : {IPBinaryBitOne}.{IPBinaryBitTwo}.{IPBinaryBitThree}.{IPBinaryBitFour} " +
-                $"(Vport/Port) Port: {BinaryPort}"; 
-            } else {
+                $"(Vport/Port) Port: {BinaryPort}";
+            }
+            else
+            {
                 return base.ToString() + " " +
                 $"AddressType: {AddressType} " +
                 $"Address: {string.Join(" ", Address)} " +

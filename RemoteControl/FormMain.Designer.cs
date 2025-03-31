@@ -1005,7 +1005,7 @@
             // 
             // buttonBrowseEdenserverPath
             // 
-            buttonBrowseEdenserverPath.Location = new Point(541, 872);
+            buttonBrowseEdenserverPath.Location = new Point(541, 683);
             buttonBrowseEdenserverPath.Margin = new Padding(3, 4, 3, 4);
             buttonBrowseEdenserverPath.Name = "buttonBrowseEdenserverPath";
             buttonBrowseEdenserverPath.Size = new Size(139, 32);
@@ -1017,7 +1017,7 @@
             // labelEdenserver
             // 
             labelEdenserver.AutoSize = true;
-            labelEdenserver.Location = new Point(8, 848);
+            labelEdenserver.Location = new Point(7, 662);
             labelEdenserver.Name = "labelEdenserver";
             labelEdenserver.Size = new Size(83, 20);
             labelEdenserver.TabIndex = 28;
@@ -1025,7 +1025,7 @@
             // 
             // textBoxEdenserverPath
             // 
-            textBoxEdenserverPath.Location = new Point(7, 872);
+            textBoxEdenserverPath.Location = new Point(8, 686);
             textBoxEdenserverPath.Margin = new Padding(3, 4, 3, 4);
             textBoxEdenserverPath.Name = "textBoxEdenserverPath";
             textBoxEdenserverPath.Size = new Size(514, 27);
@@ -1033,7 +1033,7 @@
             // 
             // buttonBrowseSVOPath
             // 
-            buttonBrowseSVOPath.Location = new Point(541, 784);
+            buttonBrowseSVOPath.Location = new Point(541, 605);
             buttonBrowseSVOPath.Margin = new Padding(3, 4, 3, 4);
             buttonBrowseSVOPath.Name = "buttonBrowseSVOPath";
             buttonBrowseSVOPath.Size = new Size(139, 32);
@@ -1045,7 +1045,7 @@
             // labelSVO
             // 
             labelSVO.AutoSize = true;
-            labelSVO.Location = new Point(7, 760);
+            labelSVO.Location = new Point(10, 586);
             labelSVO.Name = "labelSVO";
             labelSVO.Size = new Size(37, 20);
             labelSVO.TabIndex = 25;
@@ -1053,7 +1053,7 @@
             // 
             // textBoxSVOPath
             // 
-            textBoxSVOPath.Location = new Point(7, 784);
+            textBoxSVOPath.Location = new Point(8, 610);
             textBoxSVOPath.Margin = new Padding(3, 4, 3, 4);
             textBoxSVOPath.Name = "textBoxSVOPath";
             textBoxSVOPath.Size = new Size(514, 27);
@@ -1213,9 +1213,9 @@
             labelHTTP.AutoSize = true;
             labelHTTP.Location = new Point(7, 33);
             labelHTTP.Name = "labelHTTP";
-            labelHTTP.Size = new Size(78, 20);
+            labelHTTP.Size = new Size(83, 20);
             labelHTTP.TabIndex = 6;
-            labelHTTP.Text = "MultiHTTP";
+            labelHTTP.Text = "ApacheNet";
             // 
             // buttonBrowseDNSPath
             // 

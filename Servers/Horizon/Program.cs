@@ -127,7 +127,7 @@ public static class HorizonServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         try
         {
@@ -157,6 +157,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "horizon.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static ConcurrentBag<CrudServerHandler>? HTTPBag;
     private static MumServerHandler? MUMServer;
 
@@ -264,6 +265,7 @@ class Program
 
         GeoIP.Initialize();
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         HorizonServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

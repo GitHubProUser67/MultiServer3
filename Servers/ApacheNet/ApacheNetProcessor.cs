@@ -23,26 +23,27 @@ using WebAPIService.DIGITAL_LEISURE;
 using WebAPIService.HEAVYWATER;
 using WebAPIService.UBISOFT.BuildAPI;
 using WebAPIService.CCPGames;
+using WebAPIService.DEMANGLER;
+using WebAPIService.WebArchive;
 using CustomLogger;
 using HttpMultipartParser;
+using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using WatsonWebserver.Core;
-using System.Threading.Tasks;
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
+using WatsonWebserver.Native;
+using WatsonWebserver.Lite;
 using WatsonWebserver;
 using NetworkLibrary.Extension;
-using WebAPIService.WebArchive;
-using Newtonsoft.Json;
 using DNS.Protocol;
 using ApacheNet.RouteHandlers;
-using WatsonWebserver.Lite;
-using System.Reflection;
-using WatsonWebserver.Native;
 
 namespace ApacheNet
 {
@@ -282,7 +283,7 @@ namespace ApacheNet
                     {
                         string CountryCode = parts[0];
 
-                        SuplementalMessage = " Located at " + CountryCode + $"{(partsLength == 3 ? $" In City {parts[3]}" : string.Empty)}" + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty);
+                        SuplementalMessage = " Located at " + CountryCode + $"{(partsLength == 3 ? $" In City {parts[3]}" : string.Empty)}" + (bool.Parse(parts[1]) ? " Situated in Europe " : string.Empty) + $" ({await WebLocalization.GetOpenStreetMapUrl(clientip)})";
 
                         if (ApacheNetServerConfiguration.DateTimeOffset != null && ApacheNetServerConfiguration.DateTimeOffset.ContainsKey(CountryCode))
                             CurrentDate = CurrentDate.AddDays(ApacheNetServerConfiguration.DateTimeOffset[CountryCode]);
@@ -594,6 +595,32 @@ namespace ApacheNet
                                     sent = await response.Send(res);
                             }
 
+                            #endregion
+
+                            #region EA Demangler
+                            else if (Host.Contains("demangler.ea.com"))
+                            {
+                                response.ChunkedTransfer = false;
+                                response.ProtocolVersion = "1.0";
+
+                                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Identified a EA Demangler method : {absolutepath}");
+
+                                (string?, string?)? res = DemanglerClass.ProcessDemanglerRequest(request.Query.Elements.ToDictionary(), absolutepath, clientip, request.DataAsBytes);
+                                bool hasResult = res != null;
+                                if (!hasResult)
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                else
+                                {
+                                    statusCode = HttpStatusCode.OK;
+                                    response.Headers.Add("x-envoy-upstream-service-time", "0");
+                                    response.Headers.Add("server", "istio-envoy");
+                                    response.Headers.Add("content-length", res!.Value.Item1!.Length.ToString());
+                                    response.ContentType = res.Value.Item2;
+                                }
+
+                                response.StatusCode = (int)statusCode;
+                                sent = await response.Send(hasResult ? res!.Value.Item1 : null);
+                            }
                             #endregion
 
                             #region VEEMEE API
@@ -1252,7 +1279,6 @@ namespace ApacheNet
                                 }
                             }
                             #endregion
-
                         }
                         if (!sent)
                         {
