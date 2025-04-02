@@ -1324,7 +1324,7 @@
 
                     if (!_IsListening && (_Clients.Count >= _Settings.MaxConnections))
                     {
-                        Task.Delay(100).Wait();
+                        Task.Delay(100, _Token).Wait();
                         continue;
                     }
                     else if (!_IsListening)
@@ -1337,7 +1337,7 @@
 
                     while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
                     {
-                        TcpClientTasks.Add(_Listener.AcceptTcpClientAsync().ContinueWith(t => 
+                        TcpClientTasks.Add(_Listener.AcceptTcpClientAsync(_Token).AsTask().ContinueWith(t => 
                         {
                             ClientMetadata client = null;
 
@@ -1413,10 +1413,18 @@
                         }));
                     }
 
-                    int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                    int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS, _Token); //Synchronously Waits up to 500ms for any Task completion
                     if (RemoveAtIndex != -1) //Remove the completed task from the list
                         TcpClientTasks.RemoveAt(RemoveAtIndex);
                 }
+            }
+            catch (TaskCanceledException)
+            {
+
+            }
+            catch (OperationCanceledException)
+            {
+
             }
             catch (ObjectDisposedException)
             {

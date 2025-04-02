@@ -13,6 +13,7 @@ using NetworkLibrary.Extension;
 public static class SVOServerConfiguration
 {
     public static string DatabaseConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/db.config.json";
+    public static bool EnableKeepAlive { get; set; } = false;
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/SVO.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";
     public static HashAlgorithmName HTTPSCertificateHashingAlgorithm { get; set; } = HashAlgorithmName.SHA384;
@@ -65,6 +66,7 @@ public static class SVOServerConfiguration
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
                 new JProperty("static_folder", SVOStaticFolder),
+                new JProperty("enable_keep_alive", EnableKeepAlive),
                 new JProperty("https_bypass", SVOHTTPSBypass),
                 new JProperty("https_dns_list", HTTPSDNSList ?? Array.Empty<string>()),
                 new JProperty("certificate_file", HTTPSCertificateFile),
@@ -85,6 +87,7 @@ public static class SVOServerConfiguration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
             SVOStaticFolder = GetValueOrDefault(config, "static_folder", SVOStaticFolder);
+            EnableKeepAlive = GetValueOrDefault(config, "enable_keep_alive", EnableKeepAlive);
             SVOHTTPSBypass = GetValueOrDefault(config, "https_bypass", SVOHTTPSBypass);
             HTTPSCertificateFile = GetValueOrDefault(config, "certificate_file", HTTPSCertificateFile);
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);

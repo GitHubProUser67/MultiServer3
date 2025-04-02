@@ -92,6 +92,9 @@ namespace MultiSocks.Aries
                         _ = Task.Run(() => {
                             if (client != null && client.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
                             {
+#if DEBUG
+                                LoggerAccessor.LogInfo($"[AbstractAriesServer] - Connection received (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
                                 if (remoteEndPoint.AddressFamily == AddressFamily.InterNetworkV6)
                                     AddClient(new AriesClient(this, client, secure, CN, WeakChainSignedRSAKey)
                                     {
