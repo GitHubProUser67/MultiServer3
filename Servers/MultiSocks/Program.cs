@@ -1,3 +1,4 @@
+using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Aries;
 using MultiSocks.Blaze;
@@ -8,6 +9,7 @@ using NetworkLibrary.Extension;
 
 public static class MultiSocksServerConfiguration
 {
+    public static bool UsePublicIPAddress { get; set; } = false;
     public static bool RPCS3Workarounds { get; set; } = true;
     public static bool EnableBlazeEncryption { get; set; } = false;
     public static string DirtySocksDatabasePath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dirtysocks.db.json";
@@ -29,6 +31,7 @@ public static class MultiSocksServerConfiguration
 
             // Write the JObject to a file
             File.WriteAllText(configPath, new JObject(
+                new JProperty("use_public_ipaddress", UsePublicIPAddress),
                 new JProperty("rpcs3_workarounds", RPCS3Workarounds),
                 new JProperty("enable_blaze_encryption", EnableBlazeEncryption),
                 new JProperty("dirtysocks_database_path", DirtySocksDatabasePath)
@@ -42,6 +45,7 @@ public static class MultiSocksServerConfiguration
             // Parse the JSON configuration
             dynamic config = JObject.Parse(File.ReadAllText(configPath));
 
+            UsePublicIPAddress = GetValueOrDefault(config, "use_public_ipaddress", UsePublicIPAddress);
             RPCS3Workarounds = GetValueOrDefault(config, "rpcs3_workarounds", RPCS3Workarounds);
             EnableBlazeEncryption = GetValueOrDefault(config, "enable_blaze_encryption", EnableBlazeEncryption);
             DirtySocksDatabasePath = GetValueOrDefault(config, "dirtysocks_database_path", DirtySocksDatabasePath);

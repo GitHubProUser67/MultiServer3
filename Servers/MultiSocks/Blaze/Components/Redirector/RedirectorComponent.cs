@@ -5,7 +5,6 @@ using BlazeCommon;
 using CustomLogger;
 using MultiSocks.Utils;
 using NetworkLibrary.Extension;
-using System.Threading;
 
 namespace MultiSocks.Blaze.Components.Redirector
 {
@@ -25,7 +24,48 @@ namespace MultiSocks.Blaze.Components.Redirector
 
             switch (request.mClientName)
             {
+                //Currently all placeholder master blaze ports for testing!
+                //Mass Effect 2 PS3
+                case "MassEffect2-ps3":
+                    secure = false;
+                    port = 33152;
+                    break;
                 case "MassEffect3-ps3":
+                    secure = false;
+                    port = 33152;
+                    break;
+                //PS3 Crysis 3 Open beta
+                case "C3 Open Beta":
+                    secure = false;
+                    port = 33152;
+                    break;
+                //Battlefield 3
+                case "bf3 client":
+                    secure = false;
+                    port = 33152;
+                    break;
+                //Battlefield 4
+                case "warsaw client":
+                    secure = false;
+                    port = 33152;
+                    break;
+                // NFS: Rivals
+                case "test":
+                    secure = false;
+                    port = 33152;
+                    break;
+                //Army of Two: The Devil's Cartel
+                case "AO4 Client":
+                    secure = false;
+                    port = 33152;
+                    break;
+                //NFS Most Wanted
+                case "NFS Hot Pursuit":
+                    secure = false;
+                    port = 33152;
+                    break;
+                //PS3 Dead Space 2
+                case "/PS3/DEADSPACE-2011":
                     secure = false;
                     port = 33152;
                     break;
@@ -38,7 +78,7 @@ namespace MultiSocks.Blaze.Components.Redirector
                     });
             }
 
-            InternetProtocolUtils.TryGetServerIP(out string ip, true).Wait();
+            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddress().ToString();
 
             return Task.FromResult(new ServerInstanceInfo()
             {
