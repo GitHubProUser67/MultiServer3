@@ -2641,25 +2641,25 @@ namespace ApacheNet
             }
 
             if (response.StatusCode < 400)
-                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
+                LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} -> {response.StatusCode}");
             else
             {
                 switch (response.StatusCode)
                 {
                     case (int)HttpStatusCode.NotFound:
                         if (string.IsNullOrEmpty(filePath))
-                            LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
+                            LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} -> {response.StatusCode}");
                         else
                             LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested a non-existent file: {filePath} -> {response.StatusCode}");
                         break;
 
                     case (int)HttpStatusCode.NotImplemented:
                     case (int)HttpStatusCode.RequestedRangeNotSatisfiable:
-                        LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
+                        LoggerAccessor.LogWarn($"[{loggerprefix}] - {clientip}:{clientport} -> {response.StatusCode}");
                         break;
 
                     default:
-                        LoggerAccessor.LogError($"[{loggerprefix}] - {clientip}:{clientport} Requested {fullurl} -> {response.StatusCode}");
+                        LoggerAccessor.LogError($"[{loggerprefix}] - {clientip}:{clientport} -> {response.StatusCode}");
                         break;
                 }
             }
