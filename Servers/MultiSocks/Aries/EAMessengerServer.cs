@@ -12,6 +12,9 @@ namespace MultiSocks.Aries
             {
                 { "AUTH", typeof(EAMAuth) },
                 { "RGET", typeof(Rget) },
+                { "PADD", typeof(PADD) },
+                { "PDEL", typeof(PDEL) },
+                { "PING", typeof(PING) },
                 { "PSET", typeof(Pset) },
             };
 
