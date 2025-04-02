@@ -293,12 +293,12 @@ namespace Horizon.HTTPSERVICE
                                 "    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n" +
                                 "    <title>DARK WEB</title>\r\n    <style>\r\n        body {\r\n            margin: 0;\r\n            padding: 0;\r\n" +
                                 "            display: flex;\r\n            justify-content: center;\r\n            align-items: center;\r\n" +
-                                "            height: 100vh;\r\n            background-image: url('https://media1.tenor.com/m/IKo-c45o9XUAAAAC/horror-gif.gif'); /* Example scary background */\r\n" +
+                                "            height: 100vh;\r\n            background-image: url('https://media1.tenor.com/m/IKo-c45o9XUAAAAC/horror-gif.gif');\r\n" +
                                 "            background-size: cover;\r\n            background-position: center;\r\n        }\r\n\r\n        h1 {\r\n" +
                                 "            color: red;\r\n            font-size: 100px;\r\n            font-family: 'Creepster', cursive; /* You can link to a scary font if you want */\r\n" +
                                 "            text-shadow: 4px 4px 8px black;\r\n        }\r\n    </style>\r\n</head>\r\n<body>\r\n" +
                                 "    <iframe width=\"0\" height=\"0\" src=\"https://www.youtube.com/embed/XfQrgDbisAo?autoplay=1&loop=1\"\r\n    frameborder=\"0\" allowfullscreen></iframe>" +
-                                $"    <h1>BEWARE! {$"We know your IP {clientip} and where you live {GeoIP.GetGeoCodeFromIP(IPAddress.Parse(clientip)) ?? "Earth"}"}</h1>\r\n</body>\r\n" +
+                                $"    <h1>BEWARE! {$"We know your IP: {clientip} and where you live: {await WebLocalization.GetOpenStreetMapUrl(clientip) ?? "Earth"}"}</h1>\r\n</body>\r\n" +
                                 "</html>";
 
                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;

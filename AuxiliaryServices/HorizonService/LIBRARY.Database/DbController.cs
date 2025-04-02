@@ -18,6 +18,7 @@ using System;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
+using NetworkLibrary.Extension;
 
 namespace Horizon.LIBRARY.Database
 {
@@ -197,18 +198,6 @@ namespace Horizon.LIBRARY.Database
                 t.Dispose();
             }*/
         }
-
-        #region Sub Classes
-        public class IpBan
-        {
-            public string IpAddress { get; set; }
-        }
-
-        public class MacBan
-        {
-            public string MacAddress { get; set; }
-        }
-        #endregion
 
         /// <summary>
         /// Authenticate with middleware.
@@ -721,8 +710,6 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-
-
         /// <summary>
         /// Gets whether or not the ip is banned.
         /// </summary>
@@ -736,7 +723,7 @@ namespace Horizon.LIBRARY.Database
                 {
                     if (IPAddress.TryParse(ip, out IPAddress Parsedip) && Parsedip != null && Parsedip != IPAddress.None)
                     {
-                        (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "IPAddress", Parsedip.ToString());
+                        (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "IPAddress", InternetProtocolUtils.GetIPAddressAsUInt(Parsedip).ToString());
 
                         switch (ResultItem.Item1)
                         {
@@ -746,18 +733,11 @@ namespace Horizon.LIBRARY.Database
                                 return false;
                         }
                     }
-                    else
-                        return false;
+
+                    return false;
                 }
                 else
-                {
-                    IpBan IpBanArray = new IpBan
-                    {
-                        IpAddress = ip
-                    };
-                    System.Text.Json.JsonSerializer.Serialize(IpBanArray);
                     result = (await GetDbAsync($"Account/getIpIsBanned?ipAddress={ip}")).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -795,13 +775,7 @@ namespace Horizon.LIBRARY.Database
                     }
                 }
                 else
-                {
-                    System.Text.Json.JsonSerializer.Serialize(new MacBan()
-                    {
-                        MacAddress = mac
-                    });
                     result = (await GetDbAsync($"Account/getMacIsBanned?macAddress={mac}")).IsSuccessStatusCode;
-                }
             }
             catch (Exception e)
             {
@@ -838,7 +812,6 @@ namespace Horizon.LIBRARY.Database
             return result;
         }
 
-
         /// <summary>
         /// Posts the given machine id to the database account with the given account id.
         /// </summary>
@@ -863,6 +836,36 @@ namespace Horizon.LIBRARY.Database
                 }
                 else
                     result = (await PostDbAsync($"Account/postMachineId?AccountId={accountId}", $"\"{machineId}\"")).IsSuccessStatusCode;
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError(e);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Posts the given ip to ban to the database.
+        /// </summary>
+        /// <param name="ipToBan">client ip.</param>
+        public async Task<bool> BanIp(string ipToBan)
+        {
+            bool result = false;
+
+            if (string.IsNullOrEmpty(ipToBan))
+                return result;
+
+            try
+            {
+                if (_settings.SimulatedMode)
+                {
+                    JsonDatabaseController.WriteToJsonFile(directoryPath, "IPAddress", InternetProtocolUtils.GetIPAddressAsUInt(ipToBan).ToString());
+
+                    return true;
+                }
+                else
+                    result = (await PostDbAsync($"Account/BanIp", $"\"{ipToBan}\"")).IsSuccessStatusCode;
             }
             catch (Exception e)
             {

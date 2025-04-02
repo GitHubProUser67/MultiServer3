@@ -4,16 +4,16 @@ namespace MultiSocks.Aries.Messages
     {
         public override string _Name { get => "mesg"; }
 
-        public string? PRIV { get; set; }
-        public string TEXT { get; set; } = string.Empty;
-        public string? ATTR { get; set; }
-
         public override void Process(AbstractAriesServer context, AriesClient client)
         {
             if (context is not MatchmakerServer mc || !client.HasAuth()) return;
 
             Model.AriesUser? user = client.User;
             if (user == null) return;
+
+            string? PRIV = GetInputCacheValue("PRIV");
+            string? ATTR = GetInputCacheValue("ATTR");
+            string TEXT = GetInputCacheValue("TEXT") ?? string.Empty;
 
             PlusMesg mesg = new()
             {

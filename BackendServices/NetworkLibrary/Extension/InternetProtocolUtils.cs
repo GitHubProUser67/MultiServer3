@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #endif
@@ -17,6 +18,8 @@ namespace NetworkLibrary.Extension
 {
     public static class InternetProtocolUtils
     {
+        private static object _InternalLock = new object();
+
         public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength, bool detailed = false)
         {
             if (cidrPrefixLength == null || cidrPrefixLength.Value > 32 || cidrPrefixLength.Value < 8)
@@ -56,7 +59,7 @@ namespace NetworkLibrary.Extension
         /// </summary>
         /// <param name="allowipv6">Allow IPV6 format.</param>
         /// <param name="ipv6urlformat">Format the IPV6 result in a url compatible format ([addr]).</param>
-        /// <returns>A string.</returns>
+        /// <returns>A nullable string.</returns>
         public static string GetPublicIPAddress(bool allowipv6 = false, bool ipv6urlformat = false)
         {
 #if NET7_0_OR_GREATER
@@ -67,12 +70,10 @@ namespace NetworkLibrary.Extension
                 string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
                 if (ipv6urlformat && allowipv6 && result.Length > 15)
                     return $"[{result}]";
-                else
-                    return result;
+                return result;
             }
             catch
             {
-                // Not Important.
             }
 #else
             try
@@ -83,16 +84,14 @@ namespace NetworkLibrary.Extension
                     .Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
                 if (ipv6urlformat && allowipv6 && result.Length > 15)
                     return $"[{result}]";
-                else
-                    return result;
+                return result;
             }
             catch
             {
-                // Not Important.
             }
 #endif
 
-            return GetLocalIPAddress().ToString();
+            return null;
         }
 
         /// <summary>
@@ -100,7 +99,7 @@ namespace NetworkLibrary.Extension
         /// <para>Obtiens l'IP locale du server.</para>
         /// </summary>
         /// <param name="allowipv6">Allow IPV6 format.</param>
-        /// <returns>A IPAddress.</returns>
+        /// <returns>A nullable IPAddress.</returns>
         public static IPAddress GetLocalIPAddress(bool allowipv6 = false)
         {
             try
@@ -117,26 +116,119 @@ namespace NetworkLibrary.Extension
                     {
                         IPInterfaceProperties properties = networkInterface.GetIPProperties();
 
-                        // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter.
-                        IEnumerable<string> addresses = allowipv6
-                            ? properties.UnicastAddresses.Select(addr => addr.Address.ToString())
+                        // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter, and excluse localhost results.
+                        IEnumerable<IPAddress> addresses = allowipv6
+                            ? properties.UnicastAddresses.Where(addr => addr.Address != IPAddress.Loopback && addr.Address.ToString() != "::1").Select(addr => addr.Address)
                             : properties.UnicastAddresses
-                                .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
-                                .Select(addr => addr.Address.ToString());
+                                .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork && addr.Address != IPAddress.Loopback)
+                                .Select(addr => addr.Address);
 
                         // If there is at least one address, return the first one
                         if (addresses.Any())
-                            return IPAddress.Parse(addresses.First());
+                            return addresses.First();
                     }
                 }
             }
             catch
             {
-                // Not Important.
             }
 
-            // If no valid interface with the desired IP version is found.
-            return IPAddress.Loopback;
+            return null;
+        }
+
+        public static Task<bool> TryGetServerIP(out string extractedIP, bool allowipv6 = false)
+        {
+            bool isPublic;
+
+            if (!NetworkLibraryConfiguration.EnableServerIpAutoNegotiation)
+            {
+                isPublic = NetworkLibraryConfiguration.UsePublicIp;
+                extractedIP = isPublic ? GetPublicIPAddress(allowipv6) ?? NetworkLibraryConfiguration.FallbackServerIp : GetLocalIPAddress(allowipv6).ToString() ?? NetworkLibraryConfiguration.FallbackServerIp;
+                return Task.FromResult(isPublic);
+            }
+            else
+                isPublic = false;
+
+            const ushort testPort = ushort.MaxValue;
+
+            string ServerIP;
+            TcpListener listener = null;
+
+            lock (_InternalLock)
+            {
+                try
+                {
+                    listener = new TcpListener(IPAddress.Any, testPort);
+                    listener.Start();
+
+                    if (allowipv6)
+                    {
+                        // We want to check if the router allows external IPs first.
+                        ServerIP = GetPublicIPAddress(true);
+                        try
+                        {
+                            using (TcpClient client = new TcpClient(ServerIP, testPort))
+                                client.Close();
+                            isPublic = true;
+                        }
+                        catch // Failed to connect to public ip, so we fallback to IPV4 Public IP.
+                        {
+                            ServerIP = GetPublicIPAddress();
+                            try
+                            {
+                                using (TcpClient client = new TcpClient(ServerIP, testPort))
+                                    client.Close();
+                                isPublic = true;
+                            }
+                            catch // Failed to connect to public ip, so we fallback to local IP.
+                            {
+                                ServerIP = GetLocalIPAddress(true).ToString();
+
+                                try
+                                {
+                                    using (TcpClient client = new TcpClient(ServerIP, testPort))
+                                        client.Close();
+                                }
+                                catch // Failed to connect to local ip, trying IPV4 only as a last resort.
+                                {
+                                    ServerIP = GetLocalIPAddress().ToString();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // We want to check if the router allows external IPs first.
+                        ServerIP = GetPublicIPAddress();
+                        try
+                        {
+                            using (TcpClient client = new TcpClient(ServerIP, testPort))
+                                client.Close();
+                            isPublic = true;
+                        }
+                        catch // Failed to connect to public ip, so we fallback to local IP.
+                        {
+                            ServerIP = GetLocalIPAddress().ToString();
+                        }
+                    }
+                }
+                catch
+                {
+                    ServerIP = NetworkLibraryConfiguration.FallbackServerIp;
+                }
+                finally
+                {
+                    if (listener != null)
+                        listener.Stop();
+
+                    if (listener != null)
+                        listener = null;
+                }
+            }
+
+            extractedIP = ServerIP;
+
+            return Task.FromResult(isPublic);
         }
 
         /// <summary>
@@ -166,6 +258,17 @@ namespace NetworkLibrary.Extension
                 throw new ArgumentException(nameof(ipAddress));
 
             byte[] bytes = IPAddress.Parse(ipAddress).GetAddressBytes();
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return BitConverter.ToUInt32(bytes, 0);
+        }
+
+        public static uint GetIPAddressAsUInt(IPAddress ipAddress)
+        {
+            if (ipAddress == null)
+                throw new ArgumentException(nameof(ipAddress));
+
+            byte[] bytes = ipAddress.GetAddressBytes();
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(bytes);
             return BitConverter.ToUInt32(bytes, 0);

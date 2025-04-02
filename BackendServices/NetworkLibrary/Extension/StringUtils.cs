@@ -66,7 +66,7 @@ namespace NetworkLibrary.Extension
 
         /// <summary>
         /// Transform a string to it's hexadecimal representation.
-        /// <para>Obtenir un string dans sa représentation hexadecimale.</para>
+        /// <para>Obtenir un string dans sa reprÃ©sentation hexadecimale.</para>
         /// <param name="str">The string to transform.</param>
         /// </summary>
         /// <returns>A string.</returns>
@@ -101,7 +101,7 @@ namespace NetworkLibrary.Extension
 
         /// <summary>
         /// Convert a hex-formatted string to byte array.
-        /// <para>Convertir une représentation hexadécimal en tableau de bytes.</para>
+        /// <para>Convertir une reprÃ©sentation hexadÃ©cimal en tableau de bytes.</para>
         /// </summary>
         /// <param name="hex">A string looking like "300D06092A864886F70D0101050500".</param>
         /// <returns>A byte array.</returns>
@@ -123,8 +123,29 @@ namespace NetworkLibrary.Extension
         }
 
         /// <summary>
+        /// Converts a Ghidra string report into a byte array.
+        /// Extracts hex bytes from each line and places them at the correct index.
+        /// </summary>
+        /// <param name="report">The Ghidra report as a string</param>
+        /// <returns>Byte array constructed from the report</returns>
+        public static byte[] GhidraStrReportToBytes(string report, int sizeOfOutput = -1)
+        {
+            string[] lines = report.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            byte[] byteArray = new byte[sizeOfOutput <= -1 ? lines.Length : sizeOfOutput];
+
+            foreach (string line in lines)
+            {
+                Match match = Regex.Match(line, @"\b([0-9a-fA-F]+)\s+([0-9a-fA-F]{2})\s+.*?\[(\d+)\]");
+                if (match.Success)
+                    byteArray[int.Parse(match.Groups[3].Value)] = Convert.ToByte(match.Groups[2].Value, 16);
+            }
+
+            return byteArray;
+        }
+
+        /// <summary>
         /// Verify is the string is in base64 format.
-        /// <para>Vérifie si un string est en format base64.</para>
+        /// <para>VÃ©rifie si un string est en format base64.</para>
         /// </summary>
         /// <param name="base64String">The base64 string.</param>
         /// <returns>A tuple boolean, byte array.</returns>
@@ -168,7 +189,7 @@ namespace NetworkLibrary.Extension
 
         /// <summary>
         /// Adds an element to a double string array.
-        /// <para>Ajoute un élément à une liste double de strings.</para>
+        /// <para>Ajoute un Ã©lÃ©ment Ã  une liste double de strings.</para>
         /// </summary>
         /// <param name="original">The original double array.</param>
         /// <param name="bytesToRead">The new array to add.</param>
