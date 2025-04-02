@@ -10,7 +10,6 @@ namespace SSFWServer.Services
         private string? sessionid;
         private string? env;
         private string? key;
-        private bool disposedValue;
 
         public SSFWAuditService(string sessionid, string env, string? key)
         {

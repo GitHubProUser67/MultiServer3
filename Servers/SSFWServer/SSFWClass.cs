@@ -206,7 +206,6 @@ namespace SSFWServer
                                     }
                                     else
                                         Response.MakeGetResponse(res, "application/json");
-                                    layout.Dispose();
                                 }
                                 #endregion
 
@@ -220,7 +219,6 @@ namespace SSFWServer
                                     else
                                         Response.SetBegin(403);
                                     Response.SetBody();
-                                    iga.Dispose();
                                 }
                                 #endregion
 
@@ -456,7 +454,6 @@ namespace SSFWServer
                                         else
                                             Response.SetBegin(403);
                                         Response.SetBody();
-                                        layout.Dispose();
                                     }
                                     #endregion
 
@@ -469,7 +466,6 @@ namespace SSFWServer
                                         else
                                             Response.SetBegin(403);
                                         Response.SetBody();
-                                        layout.Dispose();
                                     }
                                     #endregion
 
@@ -477,26 +473,22 @@ namespace SSFWServer
                                     else if (absolutepath.Contains($"/RewardsService/{env}/rewards/") && IsSSFWRegistered(sessionid))
                                     {
                                         Response.MakeGetResponse(rewardSvc.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
-                                        rewardSvc.Dispose();
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && IsSSFWRegistered(sessionid))
                                     {
                                         rewardSvc.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
                                         Response.MakeOkResponse();
-                                        rewardSvc.Dispose();
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/set") && IsSSFWRegistered(sessionid))
                                     {
                                         rewardSvc.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
                                         Response.MakeOkResponse();
-                                        rewardSvc.Dispose();
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/pmcards/") 
                                         || absolutepath.Contains($"/RewardsService/p4t-cprod/") 
                                         && IsSSFWRegistered(sessionid))
                                     {
                                         Response.MakeGetResponse(rewardSvc.HandleRewardServiceInvPOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
-                                        rewardSvc.Dispose();
                                     }
                                     #endregion
 
@@ -614,7 +606,6 @@ namespace SSFWServer
                                         else
                                             Response.SetBegin(403);
                                         Response.SetBody();
-                                        layout.Dispose();
                                     }
                                     else
                                     {
@@ -923,8 +914,6 @@ namespace SSFWServer
 
                                                     rewardService.AddMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
 
-                                                    rewardService.Dispose();
-
                                                     try
                                                     {
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
@@ -995,8 +984,6 @@ namespace SSFWServer
 
                                                     rewardService.AddMiniEntries(rewardsList, entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
 
-                                                    rewardService.Dispose();
-
                                                     try
                                                     {
                                                         File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
@@ -1059,8 +1046,6 @@ namespace SSFWServer
                                                     SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
 
                                                     rewardService.RemoveMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
-
-                                                    rewardService.Dispose();
 
                                                     try
                                                     {
@@ -1131,8 +1116,6 @@ namespace SSFWServer
                                                     SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
 
                                                     rewardService.RemoveMiniEntries(rewardsList, entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
-
-                                                    rewardService.Dispose();
 
                                                     try
                                                     {

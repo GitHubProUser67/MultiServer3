@@ -1,9 +1,10 @@
 using CustomLogger;
 using Newtonsoft.Json;
+using SSFWServer.Helpers;
 
 namespace SSFWServer.Services
 {
-    public class SSFWAdminObjectService : IDisposable
+    public class SSFWAdminObjectService
     {
         private string? sessionid;
         private string? key;
@@ -45,36 +46,6 @@ namespace SSFWServer.Services
             LoggerAccessor.LogError($"[SSFW] - {UserAgent} requested IGA access, but no access allowed so we forbid!");
 
             return false;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    sessionid = null;
-                    key = null;
-                }
-
-                // TODO: libérer les ressources non managées (objets non managés) et substituer le finaliseur
-                // TODO: affecter aux grands champs une valeur null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: substituer le finaliseur uniquement si 'Dispose(bool disposing)' a du code pour libérer les ressources non managées
-        // ~SSFWAdminObjectService()
-        // {
-        //     // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Ne changez pas ce code. Placez le code de nettoyage dans la méthode 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }
