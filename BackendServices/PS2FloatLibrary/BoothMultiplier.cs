@@ -1,10 +1,10 @@
-﻿namespace SoftFloatLibrary
+﻿namespace PS2FloatLibrary
 {
     // From the PCSX2 Team (TellowKrinkle)
     public class BoothMultiplier
     {
-        // Uses a faster wallace tree generation, should be accurate.
-        public static bool fastMul = false;
+        // Uses an accurate and faster wallace tree generation.
+        public static bool fastMul = true;
 
         private struct BoothRecode
         {
@@ -41,59 +41,13 @@
         {
             ulong full;
             if (fastMul)
-            {
-                // Idea from: https://github.com/PCSX2/pcsx2/commit/00f14b5760ab2cd73bd9577993122674852a2f67#diff-9a2250bebcd2d2f1e7a9e044258e87bf371c8aab11285240b87d47a385194a59L604-L606
-                uint s = a;
-                uint t = b;
-                long res = 0;
-                uint[] part = new uint[13]; //partial products
-                uint[] bit = new uint[13]; //more partial products. 0 or 1.
-
-                t <<= 1;
-
-                for (int i = 0; i <= 12; i++, t >>= 2)
-                {
-                    uint test = t & 7;
-
-                    if (test == 0 || test == 7)
-                    {
-                        part[i] = 0;
-                        bit[i] = 0;
-                    }
-                    else if (test == 3)
-                    {
-                        part[i] = s << 1;
-                        bit[i] = 0;
-                    }
-                    else if (test == 4)
-                    {
-                        part[i] = ~(s << 1);
-                        bit[i] = 1;
-                    }
-                    else if (test < 4)
-                    {
-                        part[i] = s;
-                        bit[i] = 0;
-                    }
-                    else
-                    {
-                        part[i] = ~s;
-                        bit[i] = 1;
-                    }
-                }
-
-                for (int i = 0; i <= 12; i++)
-                {
-                    res += (long)(int)part[i] << (i * 2);
-                    res += bit[i] << (i * 2);
-                }
-
-                full = (ulong)res;
-            }
+                full = (ulong)a * (ulong)b;
             else
             {
                 Wallace wallace = new Wallace(a, b);
-                full = sdouble.FromRaw(wallace.fs_multiplier).RawMantissa + sdouble.FromRaw(wallace.ft_multiplier).RawMantissa;
+                ulong fs_man = wallace.fs_multiplier & 0xFFFFFFFFFFFFF;
+                ulong ft_man = wallace.ft_multiplier & 0xFFFFFFFFFFFFF;
+                full = fs_man + ft_man;
             }
             BoothRecode b0 = Booth(a, b, 0);
             BoothRecode b1 = Booth(a, b, 1);

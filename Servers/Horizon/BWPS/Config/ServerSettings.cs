@@ -20,7 +20,7 @@ namespace Horizon.BWPS.Config
         /// <summary>
         /// IP of the BWPS.
         /// </summary>
-        public string BWPSIp { get; set; } = InternetProtocolUtils.GetLocalIPAddress().ToString();
+        public string BWPSIp { get; set; } = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         #endregion
 
         /// <summary>

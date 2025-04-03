@@ -21,7 +21,7 @@ namespace Horizon.MUIS.Config
         /// <summary>
         /// IP of the MUIS.
         /// </summary>
-        public string MUISIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddress().ToString();
+        public string MUISIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         #endregion
 
         #region PublicIp

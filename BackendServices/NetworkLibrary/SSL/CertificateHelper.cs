@@ -301,7 +301,7 @@ namespace NetworkLibrary.SSL
                 {
                     IPAddress Loopback = IPAddress.Loopback;
                     IPAddress PublicServerIP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
-                    IPAddress LocalServerIP = InternetProtocolUtils.GetLocalIPAddress();
+                    IPAddress LocalServerIP = InternetProtocolUtils.GetLocalIPAddresses().First();
 
                     // Add a Subject Alternative Name (SAN) extension with a wildcard DNS entry
                     SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
@@ -444,7 +444,14 @@ namespace NetworkLibrary.SSL
         public static AsymmetricAlgorithm LoadPrivateKey(string privateKeyPath)
         {
             (bool, byte[]) isPemFormat = (false, null);
+#if NET6_0_OR_GREATER
             string[] pemPrivateKeyBlocks = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
+#else
+            string[] pemPrivateKeyBlocks = File.ReadAllText(privateKeyPath)
+                .Split('-')
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToArray();
+#endif
             if (pemPrivateKeyBlocks.Length >= 2)
                 isPemFormat = pemPrivateKeyBlocks[1].IsBase64();
 #if NET5_0_OR_GREATER
@@ -503,6 +510,7 @@ namespace NetworkLibrary.SSL
                     throw new CryptographicException("[CertificateHelper] - LoadPrivateKey - Unsupported pem private key format.");
 
                 // Import parameters into the RSA object
+                RSA rsa = RSA.Create();
                 rsa.ImportParameters(rsaParameters);
                 return rsa;
             }

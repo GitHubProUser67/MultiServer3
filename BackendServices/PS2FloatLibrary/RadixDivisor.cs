@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SoftFloatLibrary
+namespace PS2FloatLibrary
 {
     public class RadixDivisor
     {

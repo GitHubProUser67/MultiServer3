@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace SoftFloatLibrary
+namespace PS2FloatLibrary
 {
     public struct ps2float : IEquatable<ps2float>, IComparable<ps2float>, IComparable
     {
@@ -79,24 +79,14 @@ namespace SoftFloatLibrary
             // Exponent difference
             int expDiff = Exponent - addend.Exponent;
 
-            // diff = 25 .. 255 , expt < expd
-            if (expDiff >= 25)
-            {
-                b = b & SIGNMASK;
-            }
             // diff = 1 .. 24, expt < expd
-            else if (expDiff > 0)
+            if (expDiff > 0 && expDiff < 25)
             {
                 expDiff = expDiff - 1;
                 b = (uint)((unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff) & b);
             }
-            // diff = -255 .. -25, expd < expt
-            else if (expDiff <= -25)
-            {
-                a = a & SIGNMASK;
-            }
             // diff = -24 .. -1 , expd < expt
-            else if (expDiff < 0)
+            else if (expDiff < 0 && expDiff > -25)
             {
                 expDiff = -expDiff;
                 expDiff = expDiff - 1;
@@ -122,24 +112,14 @@ namespace SoftFloatLibrary
             // Exponent difference
             int expDiff = Exponent - subtrahend.Exponent;
 
-            // diff = 25 .. 255 , expt < expd
-            if (expDiff >= 25)
-            {
-                b = b & SIGNMASK;
-            }
             // diff = 1 .. 24, expt < expd
-            else if (expDiff > 0)
+            if (expDiff > 0 && expDiff < 25)
             {
                 expDiff = expDiff - 1;
                 b = (uint)((unchecked((int)MIN_FLOATING_POINT_VALUE) << expDiff) & b);
             }
-            // diff = -255 .. -25, expd < expt
-            else if (expDiff <= -25)
-            {
-                a = a & SIGNMASK;
-            }
             // diff = -24 .. -1 , expd < expt
-            else if (expDiff < 0)
+            else if (expDiff < 0 && expDiff > -25)
             {
                 expDiff = -expDiff;
                 expDiff = expDiff - 1;
@@ -592,53 +572,12 @@ namespace SoftFloatLibrary
         }
 
         /// <summary>
-        /// Converts an sfloat number to a ps2float value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ps2float(sfloat f)
-        {
-            return new ps2float(f.RawValue);
-        }
-
-        /// <summary>
-        /// Creates an sfloat number from a ps2float value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator sfloat(ps2float f)
-        {
-            // vuDouble hack from: https://github.com/PCSX2/pcsx2/blob/master/pcsx2/VUops.cpp
-
-            uint rawf = f.raw;
-
-            switch (rawf & 0x7F800000)
-            {
-                case 0x0:
-                    rawf &= 0x80000000;
-                    return sfloat.FromRaw(rawf);
-                case 0x7F800000:
-                    if (f.of)
-                        return sfloat.FromRaw((rawf & 0x80000000) | 0x7F7FFFFF);
-                    break;
-            }
-            return sfloat.FromRaw(rawf);
-        }
-
-        /// <summary>
         /// Creates a double number from a ps2float value
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator double(ps2float f)
         {
             return f.ToDouble();
-        }
-
-        /// <summary>
-        /// Creates a double number from a ps2float value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator sdouble(ps2float f)
-        {
-            return (sdouble)f.ToDouble();
         }
 
         /// <summary>

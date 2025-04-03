@@ -1,7 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
-
-namespace SoftFloatLibrary
+﻿namespace PS2FloatLibrary
 {
     public class Wallace
     {

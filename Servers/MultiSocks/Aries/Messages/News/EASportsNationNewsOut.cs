@@ -7,7 +7,7 @@ namespace MultiSocks.Aries.Messages
         public override string _Name { get => "news"; }
         public string? PEERTIMEOUT { get; set; } = "10000";
         public string? BUDDY_URL { get; set; } = "msgconn.beta.ea.com";
-        public string? BUDDY_SERVER { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddress().ToString();
+        public string? BUDDY_SERVER { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         public string? BUDDY_PORT { get; set; } = "10899";
         public string? NEWS_URL { get; set; } = "http://msgconn.beta.ea.com/easo/cso05/pub/NEWS.txt";
         public string? NEWS_DATE { get; set; } = "2008.6.11 21:00:00";

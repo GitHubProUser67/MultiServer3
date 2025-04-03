@@ -144,7 +144,7 @@ namespace NetworkLibrary.Extension
         }
 
         /// <summary>
-        /// Verify is the string is in base64 format.
+        /// Verify if the string is in base64 format.
         /// <para>Vérifie si un string est en format base64.</para>
         /// </summary>
         /// <param name="base64String">The base64 string.</param>

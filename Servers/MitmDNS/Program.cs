@@ -237,8 +237,6 @@ class Program
             LoggerAccessor.LogError(args.Exception);
             args.SetObserved();
         };
-
-        InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
         NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
