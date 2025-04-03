@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Numerics;
 #endif
 
-namespace SoftFloatLibrary
+namespace PS2FloatLibrary
 {
     public static class BitUtils
     {
@@ -73,12 +73,9 @@ namespace SoftFloatLibrary
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int BitScanReverse8(int b) => msb[b];
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int BitScanReverse11(ulong b) => msb[b];
-
         private static sbyte[] InitMostSignificantBitTable()
         {
-            const short msbTableSize = 2048;
+            const short msbTableSize = 256;
             sbyte[] msb = new sbyte[msbTableSize];
 #if NETCOREAPP || NETSTANDARD1_0_OR_GREATER || NET40_OR_GREATER
             Parallel.For(0, msbTableSize, i =>
@@ -91,10 +88,7 @@ namespace SoftFloatLibrary
                 else if (i < 32) msb[i] = 4;
                 else if (i < 64) msb[i] = 5;
                 else if (i < 128) msb[i] = 6;
-                else if (i < 256) msb[i] = 7;
-                else if (i < 512) msb[i] = 8;
-                else if (i < 1024) msb[i] = 9;
-                else msb[i] = 10;
+                else msb[i] = 7;
             });
 #else
             for (int i = 0; i < msbTableSize; i++)
@@ -107,10 +101,7 @@ namespace SoftFloatLibrary
                 else if (i < 32) msb[i] = 4;
                 else if (i < 64) msb[i] = 5;
                 else if (i < 128) msb[i] = 6;
-                else if (i < 256) msb[i] = 7;
-                else if (i < 512) msb[i] = 8;
-                else if (i < 1024) msb[i] = 9;
-                else msb[i] = 10;
+                else msb[i] = 7;
             }
 #endif
             return msb;

@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+﻿#if NET6_0_OR_GREATER
+using CustomLogger;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
 using System;
@@ -380,3 +381,4 @@ public static class ImageOptimizer
         return (false, -1, -1);
     }
 }
+#endif

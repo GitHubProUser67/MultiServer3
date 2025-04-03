@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 namespace NetworkLibrary
 {
@@ -41,7 +42,7 @@ namespace NetworkLibrary
             try
             {
                 // Parse the JSON configuration
-                dynamic config = JObject.Parse(File.ReadAllText(configPath));
+                JsonElement config = JsonDocument.Parse(File.ReadAllText(configPath)).RootElement;
 
                 EnableServerIpAutoNegotiation = GetValueOrDefault(config, "enable_server_ip_auto_negotiation", EnableServerIpAutoNegotiation);
                 UsePublicIp = GetValueOrDefault(config, "use_public_ip", UsePublicIp);
@@ -56,20 +57,23 @@ namespace NetworkLibrary
         }
 
         // Helper method to get a value or default value if not present
-        private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+        private static T GetValueOrDefault<T>(JsonElement config, string propertyName, T defaultValue)
         {
-            if (obj != null)
+            try
             {
-                if (obj is JObject jObject)
+                if (config.TryGetProperty(propertyName, out JsonElement value))
                 {
-                    if (jObject.TryGetValue(propertyName, out JToken value))
-                    {
-                        T returnvalue = value.ToObject<T>();
-                        if (returnvalue != null)
-                            return returnvalue;
-                    }
+                    T extractedValue = JsonSerializer.Deserialize<T>(value.GetRawText());
+                    if (extractedValue == null)
+                        return defaultValue;
+                    return extractedValue;
                 }
             }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[Program] - GetValueOrDefault thrown an exception: {ex}");
+            }
+
             return defaultValue;
         }
     }

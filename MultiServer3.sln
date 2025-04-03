@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreServer", "BackendSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WatsonWebserver", "BackendServices\WatsonWebserver\WatsonWebserver.csproj", "{813BAA48-3CFE-4975-A01D-F1C5A80A2014}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftFloatLibrary", "BackendServices\SoftFloatLibrary\SoftFloatLibrary.csproj", "{F872C7FB-2E7D-4FD6-99E9-60E626D1BB26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PS2FloatLibrary", "BackendServices\PS2FloatLibrary\PS2FloatLibrary.csproj", "{F872C7FB-2E7D-4FD6-99E9-60E626D1BB26}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blaze2SDK", "BlazeSDK\Blaze2SDK\Blaze2SDK.csproj", "{8B4CB43F-ECCE-4612-86C0-00F7BB02463F}"
 EndProject
