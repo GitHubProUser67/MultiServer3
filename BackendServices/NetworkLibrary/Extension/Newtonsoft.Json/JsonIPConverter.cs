@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Net;
 
-namespace NetworkLibrary.Extension
+namespace NetworkLibrary.Extension.Newtonsoft.Json
 {
     // This class is a workaround for lack of IPAddress convertion in JSON serialization.
     public class JsonIPConverter : JsonConverter<IPAddress>
