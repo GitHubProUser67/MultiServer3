@@ -7,7 +7,7 @@ using System.Text;
 using NetworkLibrary.Crypto;
 using Horizon.MUM.Models;
 using CastleLibrary.NetHasher.CRC;
-using NetworkLibrary.Extension;
+using NetworkLibrary.Extension.Newtonsoft.Json;
 
 namespace Horizon.MUM
 {

@@ -1,6 +1,4 @@
-using CustomLogger;
 using EndianTools;
-using NetworkLibrary.GeoLocalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +8,6 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
-#endif
-#if NETCORE3_0_OR_GREATER
-using System.Runtime.Intrinsics.X86;
 #endif
 
 namespace NetworkLibrary.Extension
@@ -30,15 +25,21 @@ namespace NetworkLibrary.Extension
         /// <returns>A nullable string.</returns>
         public static string GetPublicIPAddress(bool allowipv6 = false, bool ipv6urlformat = false)
         {
+            const string icanhazipUrl = "http://icanhazip.com/";
+            const string icanhazipIpv4Url = "http://ipv4.icanhazip.com/";
+
 #if NET7_0_OR_GREATER
             try
             {
-                HttpResponseMessage response = new HttpClient().GetAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result;
-                response.EnsureSuccessStatusCode();
-                string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
-                if (ipv6urlformat && allowipv6 && result.Length > 15)
-                    return $"[{result}]";
-                return result;
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = client.GetAsync(allowipv6 ? icanhazipUrl : icanhazipIpv4Url).Result;
+                    response.EnsureSuccessStatusCode();
+                    string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
+                    if (ipv6urlformat && allowipv6 && result.Length > 15)
+                        return $"[{result}]";
+                    return result;
+                }
             }
             catch
             {
@@ -47,12 +48,15 @@ namespace NetworkLibrary.Extension
             try
             {
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                string result = new WebClient().DownloadStringTaskAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result
+                using (WebClient client = new WebClient())
+                {
+                    string result = client.DownloadString(allowipv6 ? icanhazipUrl : icanhazipIpv4Url)
 #pragma warning restore
                     .Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
-                if (ipv6urlformat && allowipv6 && result.Length > 15)
-                    return $"[{result}]";
-                return result;
+                    if (ipv6urlformat && allowipv6 && result.Length > 15)
+                        return $"[{result}]";
+                    return result;
+                }
             }
             catch
             {
@@ -116,7 +120,7 @@ namespace NetworkLibrary.Extension
         /// <returns><c>True</c> if it's local address or <c>False</c> if it's from Internet</returns>
         public static bool IsLanIP(IPAddress address)
         {
-            var ping = new Ping();
+            Ping ping = new Ping();
             var rep = ping.Send(address, 100, new byte[] { 1 }, new PingOptions()
             {
                 DontFragment = true,
@@ -132,7 +136,7 @@ namespace NetworkLibrary.Extension
             if (!NetworkLibraryConfiguration.EnableServerIpAutoNegotiation)
             {
                 isPublic = NetworkLibraryConfiguration.UsePublicIp;
-                extractedIP = isPublic ? GetPublicIPAddress(allowipv6) ?? NetworkLibraryConfiguration.FallbackServerIp : GetLocalIPAddresses(allowipv6).First().ToString() ?? NetworkLibraryConfiguration.FallbackServerIp;
+                extractedIP = isPublic ? GetPublicIPAddress(allowipv6) ?? NetworkLibraryConfiguration.FallbackServerIp : GetLocalIPAddresses(allowipv6).First().ToString();
                 return Task.FromResult(isPublic);
             }
             else
