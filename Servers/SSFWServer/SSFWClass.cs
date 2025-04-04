@@ -237,83 +237,83 @@ namespace SSFWServer
                                 else if (IsSSFWRegistered(sessionid))
                                 {
                                     //First check if this is a Inventory request
-                                    if (absolutepath.Contains($"/RewardsService/pmcards/") ||
-                                        absolutepath.Contains($"/RewardsService/p4t-cprod/"))
+                                    if (absolutepath.Contains($"/RewardsService/") && absolutepath.Contains("counts"))
                                     {
-                                        //Check for specifically the Tracking GUID
-                                        if (absolutepath.Contains("object/00000000-00000000-00000000-00000001"))
+                                        //Detect if existing inv exists
+                                        if (File.Exists(filePath + ".json"))
                                         {
-                                            //Detect if existing inv exists
-                                            if (File.Exists(filePath + ".json"))
-                                            {
-                                                string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
+                                            string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
 
-                                                if (!string.IsNullOrEmpty(res))
-                                                {
-                                                    if (GetHeaderValue(Headers, "Accept") == "application/json")
-                                                        Response.MakeGetResponse(res, "application/json");
-                                                    else
-                                                        Response.MakeGetResponse(res);
-                                                }
-                                                else
-                                                    Response.MakeErrorResponse();
-                                            }
-                                            else //fallback default 
+                                            if (!string.IsNullOrEmpty(res))
                                             {
-#if DEBUG
-                                                LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Non-existent inventories detected, using defaults!");
-#endif
-                                                if (absolutepath.Contains("p4t-cprod"))
-                                                {
-                                                    #region Quest for Greatness
-                                                    Response.MakeGetResponse(@"{
-                                                      ""result"": 0,
-                                                      ""rewards"": [
-                                                        {
-                                                          ""objectId"": ""00000000-00000000-00000000-00000001"",
-                                                          ""_id"": ""tracking""
-                                                        }
-                                                      ]
-                                                    }", "application/json");
-                                                    #endregion
-                                                }
+                                                if (GetHeaderValue(Headers, "Accept") == "application/json")
+                                                    Response.MakeGetResponse(res, "application/json");
                                                 else
-                                                {
-                                                    #region Pottermore
-                                                    Response.MakeGetResponse(@"{
+                                                    Response.MakeGetResponse(res);
+                                            }
+                                            else
+                                                Response.MakeErrorResponse();
+                                        }
+                                        else //fallback default 
+                                        {
+                                            Response.MakeGetResponse(@"{ ""00000000-00000000-00000000-00000001"": 1 } ", "application/json");
+                                        }
+                                    }
+                                    //Check for specifically the Tracking GUID
+                                    else if (absolutepath.Contains($"/RewardsService/") && absolutepath.Contains("object/00000000-00000000-00000000-00000001"))
+                                    {
+                                        //Detect if existing inv exists
+                                        if (File.Exists(filePath + ".json"))
+                                        {
+                                            string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
+
+                                            if (!string.IsNullOrEmpty(res))
+                                            {
+                                                if (GetHeaderValue(Headers, "Accept") == "application/json")
+                                                    Response.MakeGetResponse(res, "application/json");
+                                                else
+                                                    Response.MakeGetResponse(res);
+                                            }
+                                            else
+                                                Response.MakeErrorResponse();
+                                        }
+                                        else //fallback default 
+                                        {
+#if DEBUG
+                                            LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Non-existent inventories detected, using defaults!");
+#endif
+                                            if (absolutepath.Contains("p4t-cprod"))
+                                            {
+                                                #region Quest for Greatness
+                                                Response.MakeGetResponse(@"{
+  ""result"": 0,
+  ""rewards"": {
+    ""00000000-00000000-00000000-00000001"": {
+      ""migrated"": 1,
+      ""_id"": ""1""
+    }
+  }
+}", "application/json");
+                                                #endregion
+                                            }
+                                            else
+                                            {
+                                                #region Pottermore
+                                                Response.MakeGetResponse(@"{
                                                       ""result"": 0,
                                                       ""rewards"": [
                                                         {
-                                                          ""objectId"": ""00000000-00000000-00000000-00000001"",
+                                                          ""00000000-00000000-00000000-00000001"": {
                                                           ""boost"": ""AQ=="",
                                                           ""_id"": ""tracking""
+                                                          }
                                                         }
                                                       ]
                                                     }", "application/json");
-                                                    #endregion
-                                                }
-
+                                                #endregion
                                             }
-                                        }
-                                        else if (absolutepath.Contains("counts"))
-                                        {
-                                            //Detect if existing inv exists
-                                            if (File.Exists(filePath + ".json"))
-                                            {
-                                                string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
 
-                                                if (!string.IsNullOrEmpty(res))
-                                                {
-                                                    if (GetHeaderValue(Headers, "Accept") == "application/json")
-                                                        Response.MakeGetResponse(res, "application/json");
-                                                    else
-                                                        Response.MakeGetResponse(res);
-                                                }
-                                                else
-                                                    Response.MakeGetResponse(@"{ ""00000000-00000000-00000000-00000001"": 1 } ", "application/json");
-                                            }
                                         }
-
                                     }
                                     else if (File.Exists(filePath + ".json"))
                                     {
