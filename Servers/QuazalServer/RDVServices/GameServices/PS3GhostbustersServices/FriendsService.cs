@@ -12,7 +12,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
     /// <summary>
     /// User friends service
     /// </summary>
-    [RMCService(RMCProtocolId.FriendsService)]
+    [RMCService((ushort)RMCProtocolId.FriendsService)]
     public class FriendsService : RMCServiceBase
     {
         [RMCMethod(1)]

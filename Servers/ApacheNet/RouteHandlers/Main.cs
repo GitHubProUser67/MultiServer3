@@ -63,7 +63,20 @@ namespace ApacheNet.RouteHandlers
                                                         {
                                                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                                                             ctx.Response.ContentType = "text/html; charset=utf-8"; // Not an error, packet shows this content type...
-                                                            return ctx.Response.Send(WebAPIService.UBISOFT.MatchMakingConfig.XMLData.DFSPS3NTSCENXMLPayload).Result;
+                                                            return ctx.Response.Send(WebAPIService.UBISOFT.MatchMakingConfig.XMLData.DFS_PS3_NTSC_EN_XMLPayload).Result;
+                                                        }
+                                                        break;
+                                                }
+                                                break;
+                                            case "885642bfde8842b79bbcf2c1f8102403": // DFSPC
+                                                switch (locale)
+                                                {
+                                                    default:
+                                                        if (format == "xml")
+                                                        {
+                                                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                                            ctx.Response.ContentType = "text/html; charset=utf-8"; // Not an error, packet shows this content type...
+                                                            return ctx.Response.Send(WebAPIService.UBISOFT.MatchMakingConfig.XMLData.DFS_PC_EN_XMLPayload).Result;
                                                         }
                                                         break;
                                                 }

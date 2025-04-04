@@ -9,7 +9,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
     /// <summary>
     /// Secure connection service protocol
     /// </summary>
-    [RMCService(RMCProtocolId.PrivilegesService)]
+    [RMCService((ushort)RMCProtocolId.PrivilegesService)]
     public class PrivilegesService : RMCServiceBase
     {
         // TODO, properly handle all the privileges per account.

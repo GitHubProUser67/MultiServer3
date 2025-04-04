@@ -8,8 +8,8 @@ namespace QuazalServer.QNetZ.Attributes
     [AttributeUsage(AttributeTargets.Class)]
 	public class RMCServiceAttribute : Attribute
 	{
-		public readonly RMCProtocolId ProtocolId;
-		public RMCServiceAttribute(RMCProtocolId protocolId)
+		public readonly ushort ProtocolId;
+		public RMCServiceAttribute(ushort protocolId)
 		{
 			ProtocolId = protocolId;
 		}

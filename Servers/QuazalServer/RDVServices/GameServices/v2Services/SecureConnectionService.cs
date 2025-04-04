@@ -3,14 +3,14 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
-using QuazalServer.RDVServices.RMC;
+using CustomLogger;
 
 namespace QuazalServer.RDVServices.GameServices.v2Services
 {
     /// <summary>
     /// Secure connection service protocol
     /// </summary>
-    [RMCService(RMCProtocolId.SecureConnectionService)]
+    [RMCService((ushort)RMCProtocolId.SecureConnectionService)]
     public class SecureConnectionService : RMCServiceBase
     {
         [RMCMethod(1)]
@@ -68,7 +68,7 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
                 });
             }
             else
-                CustomLogger.LoggerAccessor.LogInfo($"[RMC Secure] Error: Unknown Custom Data class {hCustomData.className}");
+                LoggerAccessor.LogError($"[RMC Secure] Error: Unknown Custom Data class {hCustomData.className}");
 
             return Error((int)ErrorCode.RendezVous_ClassNotFound);
         }

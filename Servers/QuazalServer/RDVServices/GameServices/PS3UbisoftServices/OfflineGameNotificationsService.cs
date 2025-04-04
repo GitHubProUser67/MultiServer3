@@ -5,7 +5,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 {
-    [RMCService(RMCProtocolId.OfflineGameNotificationsService)]
+    [RMCService((ushort)RMCProtocolId.OfflineGameNotificationsService)]
 
     public class OfflineGameNotificationsService : RMCServiceBase
     {

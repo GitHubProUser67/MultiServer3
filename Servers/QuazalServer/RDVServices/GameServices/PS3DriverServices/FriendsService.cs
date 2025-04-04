@@ -2,7 +2,6 @@ using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.QNetZ;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
-using QuazalServer.RDVServices.RMC;
 using Alcatraz.Context.Entities;
 using RDVServices;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +11,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
     /// <summary>
     /// User friends service
     /// </summary>
-    [RMCService(RMCProtocolId.FriendsService)]
+    [RMCService((ushort)RMCProtocolId.FriendsService)]
     public class FriendsService : RMCServiceBase
     {
         [RMCMethod(1)]

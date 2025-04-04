@@ -8,7 +8,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
     /// <summary>
     /// Ubi news service
     /// </summary>
-    [RMCService(RMCProtocolId.UbiNewsService)]
+    [RMCService((ushort)RMCProtocolId.UbiNewsService)]
     public class UbiNewsService : RMCServiceBase
     {
         [RMCMethod(1)]

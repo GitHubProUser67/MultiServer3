@@ -224,7 +224,8 @@ namespace QuazalServer.QNetZ
 
         public static byte[] Decompress(string AccessKey, byte[] InData)
         {
-			using (MemoryStream memoryStream = new())
+            using (MemoryStream inMemoryStream = new(InData))
+            using (MemoryStream outMemoryStream = new())
 			{
                 switch (AccessKey)
                 {
@@ -232,36 +233,38 @@ namespace QuazalServer.QNetZ
                     case "yh64s":
                     case "uG9Kv3p":
                     case "1WguH+y":
-                        using (LzoStream lzo = new(new MemoryStream(InData), System.IO.Compression.CompressionMode.Decompress))
+                        using (LzoStream lzo = new(inMemoryStream, System.IO.Compression.CompressionMode.Decompress))
                         {
-                            lzo.CopyTo(memoryStream);
+                            lzo.CopyTo(outMemoryStream);
                             lzo.Dispose();
-                            memoryStream.Position = 0;
-                            return memoryStream.ToArray();
+                            outMemoryStream.Position = 0;
+                            return outMemoryStream.ToArray();
                         }
                     default:
-                        InflaterInputStream inflaterInputStream = new(new MemoryStream(InData), new Inflater());
+						InflaterInputStream inflaterInputStream = new(inMemoryStream, new Inflater());
                         byte[] array = new byte[4096];
                         for (; ; )
                         {
                             int num = inflaterInputStream.Read(array, 0, array.Length);
                             if (num <= 0)
                                 break;
-                            memoryStream.Write(array, 0, num);
+                            outMemoryStream.Write(array, 0, num);
                         }
                         inflaterInputStream.Dispose();
-                        return memoryStream.ToArray();
+                        return outMemoryStream.ToArray();
                 }
             }
         }
 
         public static byte[] Compress(byte[] InData)
         {
-			MemoryStream memoryStream = new();
-            DeflaterOutputStream deflaterOutputStream = new(memoryStream, new Deflater(9));
-            deflaterOutputStream.Write(InData, 0, InData.Length);
-            deflaterOutputStream.Dispose();
-            return memoryStream.ToArray(); // Send OG data if compressed size higher?
+			using (MemoryStream memoryStream = new())
+			{
+				DeflaterOutputStream deflaterOutputStream = new(memoryStream, new Deflater(9));
+                deflaterOutputStream.Write(InData, 0, InData.Length);
+				deflaterOutputStream.Dispose();
+				return memoryStream.ToArray(); // Send OG data if compressed size higher?
+			}
         }
 
         public static byte[] Encrypt(string key, byte[] data)

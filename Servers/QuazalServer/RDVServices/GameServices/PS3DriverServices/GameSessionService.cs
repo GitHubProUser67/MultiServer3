@@ -3,7 +3,6 @@ using QuazalServer.QNetZ;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Interfaces;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
@@ -11,7 +10,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
     /// Game session 
     ///		Implements the sessions responsible for the gameplay process
     /// </summary>
-    [RMCService(RMCProtocolId.GameSessionService)]
+    [RMCService((ushort)RMCProtocolId.GameSessionService)]
     public class GameSessionService : RMCServiceBase
     {
         static uint GameSessionCounter = 22110;

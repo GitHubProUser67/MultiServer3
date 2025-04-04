@@ -2,14 +2,13 @@ using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.QNetZ;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
     /// <summary>
     /// Ubi news service
     /// </summary>
-    [RMCService(RMCProtocolId.NewsService)]
+    [RMCService((ushort)RMCProtocolId.NewsService)]
     public class NewsService : RMCServiceBase
     {
         [RMCMethod(1)]
