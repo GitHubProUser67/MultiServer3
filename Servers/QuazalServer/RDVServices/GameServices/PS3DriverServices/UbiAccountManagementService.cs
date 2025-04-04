@@ -11,7 +11,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
     /// <summary>
     /// Ubi account management service
     /// </summary>
-    [RMCService(RMCProtocolId.UbiAccountManagementService)]
+    [RMCService((ushort)RMCProtocolId.UbiAccountManagementService)]
     public class UbiAccountManagementService : RMCServiceBase
     {
         [RMCMethod(1)]

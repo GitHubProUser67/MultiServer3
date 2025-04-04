@@ -4,7 +4,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 {
-    [RMCService(RMCProtocolId.AchievementsService)]
+    [RMCService((ushort)RMCProtocolId.AchievementsService)]
     public class AchievementsService : RMCServiceBase
     {
         [RMCMethod(3)]

@@ -4,15 +4,15 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
 using System.Net;
-using QuazalServer.RDVServices.RMC;
-using RDVServices;
+using CustomLogger;
+using QuazalServer.QNetZ.DDL;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
     /// <summary>
     /// Authentication service (ticket granting)
     /// </summary>
-    [RMCService(RMCProtocolId.TicketGrantingService)]
+    [RMCService((ushort)RMCProtocolId.TicketGrantingService)]
     public class TicketGrantingService : RMCServiceBase
     {
         [RMCMethod(1)]
@@ -27,15 +27,29 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
                 // create tracking client info
                 PlayerInfo? plInfo = NetworkPlayers.GetPlayerInfoByUsername(userName);
 
-                if (plInfo != null && plInfo.Client != null &&
-                    !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
-                    plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                if (plInfo != null)
                 {
-                    CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
-                    NetworkPlayers.DropPlayerInfo(plInfo);
+                    if (plInfo.Client != null &&
+                        !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
+                        plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                    {
+                        LoggerAccessor.LogWarn($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
+                        return Result(new Login(0)
+                        {
+                            retVal = (uint)ErrorCode.RendezVous_ConcurrentLoginDenied,
+                            pConnectionData = new RVConnectionData()
+                            {
+                                m_urlRegularProtocols = new StationURL("prudp:/")
+                            },
+                            strReturnMsg = string.Empty,
+                            pbufResponse = new byte[] { }
+                        });
+                    }
+                    else
+                        NetworkPlayers.DropPlayerInfo(plInfo);
                 }
 
-                CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName}");
+                LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName}");
 
                 plInfo = NetworkPlayers.CreatePlayerInfo(Context.Client);
 
@@ -63,7 +77,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
                                     })
                         },
                         strReturnMsg = string.Empty,
-                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey, "h7fyctiuucf")
+                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey, "h7fyctiuucf")
                     });
                 }
                 else if (userName == "Tracking")
@@ -89,7 +103,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
                                     })
                         },
                         strReturnMsg = string.Empty,
-                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey, "JaDe!")
+                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey, "JaDe!")
                     });
                 }
                 else // Console login not uses Quazal storage, they use a given account to log-in.
@@ -116,7 +130,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
                                         })
                         },
                         strReturnMsg = string.Empty,
-                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey)
+                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey)
                     });
                 }
             }
@@ -129,7 +143,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
         {
             if (Context != null)
             {
-                KerberosTicket kerberos = new(sourcePID, targetPID, Constants.SessionKey, Constants.ticket);
+                KerberosTicket kerberos = new(sourcePID, targetPID, Constants.SessionKey, Constants.TicketData);
 
                 TicketData ticketData = new()
                 {
@@ -137,11 +151,11 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
                 };
 
                 if (sourcePID == 0) // Ubisoft tracker account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "JaDe!");
+                    ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey, "JaDe!");
                 else if (sourcePID == 100) // Quazal guest account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
+                    ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
+                    ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey);
 
                 return Result(ticketData);
             }

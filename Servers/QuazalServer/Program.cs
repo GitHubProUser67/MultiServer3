@@ -17,7 +17,8 @@ public static class QuazalServerConfiguration
                         Tuple.Create(30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30216, "hg7j1", "v2Services"), // TDUPS2BETA
                         Tuple.Create(30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
-                        //Tuple.Create(60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
+                        Tuple.Create(60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
+                        Tuple.Create(61106, "w6kAtr3T", "PCDriverServices"), // DFSPCENLOBBY
                         Tuple.Create(61111, "QusaPha9", "PS3DriverServices"), // DFSPS3
                         Tuple.Create(62111, "QusaPha9", "PS3DriverServices"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
@@ -42,7 +43,8 @@ public static class QuazalServerConfiguration
                         Tuple.Create(30200, 30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30215, 30216, "hg7j1", "v2Services"), // TDUPS2BETA
                         Tuple.Create(30550, 30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
-                        //Tuple.Create(60105, 60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
+                        Tuple.Create(60105, 60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
+                        Tuple.Create(61105, 61106, "w6kAtr3T", "PCDriverServices"), // DFSPCENLOBBY
                         Tuple.Create(61110, 61111, "QusaPha9", "PS3DriverServices"), // DFSPS3
                         Tuple.Create(62110, 62111, "QusaPha9", "PS3DriverServices"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60115, 60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3

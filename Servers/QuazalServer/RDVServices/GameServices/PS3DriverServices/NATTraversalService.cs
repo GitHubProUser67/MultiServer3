@@ -3,12 +3,11 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.DDL.Models;
-using QuazalServer.RDVServices.RMC;
 using System.Net;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
-    [RMCService(RMCProtocolId.NATTraversalService)]
+    [RMCService((ushort)RMCProtocolId.NATTraversalService)]
     public class NATTraversalService : RMCServiceBase
     {
         [RMCMethod(1)]
@@ -34,7 +33,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
                                 { "RVCID", (int)thisClient.PlayerInfo.RVCID }
                             });
 
-                        SendRMCCall(qclient, RMCProtocolId.NATTraversalService, 2, thisClientURL);
+                        SendRMCCall(qclient, (ushort)RMCProtocolId.NATTraversalService, 2, thisClientURL);
                     }
                 }
             }

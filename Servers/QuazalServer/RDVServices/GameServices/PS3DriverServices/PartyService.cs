@@ -2,7 +2,6 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
@@ -10,7 +9,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
     /// Hermes party service
     ///		Additional layer to the Match making service AND a game session
     /// </summary>
-    [RMCService(RMCProtocolId.PartyService)]
+    [RMCService((ushort)RMCProtocolId.PartyService)]
     class PartyService : RMCServiceBase
     {
         [RMCMethod(1)]

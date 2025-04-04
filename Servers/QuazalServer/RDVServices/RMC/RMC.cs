@@ -142,7 +142,7 @@ namespace QuazalServer.RDVServices.RMC
             SendResponsePacket(handler, p, rmc, client, reply, useCompression, error);
         }
 
-        public static void SendRMCCall(QPacketHandlerPRUDP handler, QClient client, RMCProtocolId protoId, uint methodId, RMCPRequest requestData)
+        public static void SendRMCCall(QPacketHandlerPRUDP handler, QClient client, ushort protoId, uint methodId, RMCPRequest requestData)
         {
             QPacket packet = new(handler.AccessKey)
             {

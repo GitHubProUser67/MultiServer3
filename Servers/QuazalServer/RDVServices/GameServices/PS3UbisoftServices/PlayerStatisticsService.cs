@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 {
-    [RMCService(RMCProtocolId.PlayerStatsService)]
+    [RMCService((ushort)RMCProtocolId.PlayerStatsService)]
     public class PlayerStatisticsService : RMCServiceBase
     {
         //public static List<StatisticsBoard> StatisticsBoards = new List<StatisticsBoard>();
@@ -161,7 +161,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
                 if (++i > MAX_STAT_PLAYERS_OR_FRIENDS_LIST_WILL_CRASH)
                     break;
 
-                var player = DBHelper.GetUserByPID(Context.Handler.Factory.Item1, playerId);
+                var player = NetworkPlayers.GetPlayerInfoByPID(playerId);
 
                 if (player == null)
                     continue;
@@ -169,7 +169,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
                 var scoreListRead = new ScoreListRead()
                 {
                     pid = playerId,
-                    pname = player.PlayerNickName
+                    pname = player.Name
                 };
                 playerStats.Add(scoreListRead);
 
@@ -240,14 +240,14 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
                 {
                     var scoreList = new ScoreListRead();
                     {
-                        var user = DBHelper.GetUserByPID(Context.Handler.Factory.Item1, board.PlayerId);
+                        var player = NetworkPlayers.GetPlayerInfoByPID(board.PlayerId);
 
-                        if (user == null)
+                        if (player == null)
                             continue;
 
                         scoreList = new ScoreListRead();
                         scoreList.pid = board.PlayerId;
-                        scoreList.pname = user.PlayerNickName;
+                        scoreList.pname = player.Name;
                     }
 
                     var statValueByBoard = new StatisticReadValueByBoard()

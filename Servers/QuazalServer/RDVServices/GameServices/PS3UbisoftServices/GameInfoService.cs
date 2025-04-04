@@ -8,7 +8,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
     /// <summary>
     /// Hermes Game Info protocol
     /// </summary>
-    [RMCService(RMCProtocolId.GameInfoService)]
+    [RMCService((ushort)RMCProtocolId.GameInfoService)]
     class GameInfoService : RMCServiceBase
     {
         // files which server can renturn
