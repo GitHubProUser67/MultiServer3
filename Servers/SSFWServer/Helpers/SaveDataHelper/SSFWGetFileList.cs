@@ -23,7 +23,7 @@ namespace SSFWServer.Helpers
                         return JsonConvert.SerializeObject(new FilesContainer() { files = files }, Formatting.Indented);
 
 #if DEBUG
-                    LoggerAccessor.LogInfo($"[SSFW] - SaveDataDebug GetFileList Returned: \n{JsonConvert.SerializeObject(new FilesContainer() { Files = files }, Formatting.Indented)}");
+                    LoggerAccessor.LogInfo($"[SSFW] - SaveDataDebug GetFileList Returned: \n{JsonConvert.SerializeObject(new FilesContainer() { files = files }, Formatting.Indented)}");
 #endif
                 }
             }
