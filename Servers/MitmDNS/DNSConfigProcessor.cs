@@ -1,6 +1,7 @@
 using CustomLogger;
 using NetworkLibrary.Extension;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,8 +18,8 @@ namespace MitmDNS
 {
     public static partial class DNSConfigProcessor
     {
-        public static Dictionary<string, DnsSettings> DicRules = new();
-        public static Dictionary<string, DnsSettings> StarRules = new();
+        public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
+        public static ConcurrentDictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
         public static IPAddress ServerIp;
 
@@ -116,30 +117,12 @@ namespace MitmDNS
                                 // Replace "*" characters with ".*" which means any number of any character for Regexp
                                 domain = domain.Replace("*", ".*");
 
-                                lock (StarRules)
-#if NETCOREAPP2_0_OR_GREATER
-                                    StarRules.TryAdd(domain, dns);
-#else
-                                {
-                                    if (!StarRules.ContainsKey(domain))
-                                        StarRules.Add(domain, dns);
-                                }
-#endif
+                                StarRules.TryAdd(domain, dns);
                             }
                             else
                             {
-                                lock (DicRules)
-                                {
-#if NETCOREAPP2_0_OR_GREATER
-                                    DicRules.TryAdd(domain, dns);
-                                    DicRules.TryAdd("www." + domain, dns);
-#else
-                                    if (!DicRules.ContainsKey(domain))
-                                        DicRules.Add(domain, dns);
-                                    if (!DicRules.ContainsKey("www." + domain))
-                                        DicRules.Add("www." + domain, dns);
-#endif
-                                }
+                                DicRules.TryAdd(domain, dns);
+                                DicRules.TryAdd("www." + domain, dns);
                             }
                         }
                         else
@@ -196,11 +179,8 @@ namespace MitmDNS
                                 dns.Mode = HandleMode.Redirect;
                                 dns.Address = GetIp(match.Groups[1].Value);
 
-                                lock (DicRules)
-                                {
-                                    DicRules.TryAdd(hostname, dns);
-                                    DicRules.TryAdd("www." + hostname, dns);
-                                }
+                                DicRules.TryAdd(hostname, dns);
+                                DicRules.TryAdd("www." + hostname, dns);
 
                                 break;
                             }
