@@ -10369,7 +10369,7 @@ namespace Horizon.SERVER.Medius
                         {
                             MessageID = getServerTimeRequest.MessageID,
                             StatusCode = MediusCallbackStatus.MediusSuccess,
-                            GMT_time = (int)Utils.GetUnixTime(),
+                            GMT_time = (int)DateTimeUtils.GetUnixTime(),
                             Local_server_timezone = MediusTimeZone.MediusTimeZone_GMT
                         });
                         break;

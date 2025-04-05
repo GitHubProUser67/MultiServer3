@@ -1,5 +1,6 @@
 using CustomLogger;
 using Horizon.LIBRARY.Common;
+using NetworkLibrary.Extension;
 
 namespace SVO
 {
@@ -12,7 +13,7 @@ namespace SVO
 #nullable disable
         public static SVOManager Manager = new();
 
-        private static DateTime _lastComponentLog = Utils.GetHighPrecisionUtcTime();
+        private static DateTime _lastComponentLog = DateTimeUtils.GetHighPrecisionUtcTime();
 
         private static async Task TickAsync()
         {
@@ -20,7 +21,7 @@ namespace SVO
             {
                 // Attempt to authenticate with the db middleware
                 // We do this every 24 hours to get a fresh new token
-                if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
+                if (_lastSuccessfulDbAuth == null || (DateTimeUtils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
                     if (!await SVOServerConfiguration.Database.Authenticate())
                     {
@@ -30,7 +31,7 @@ namespace SVO
                     }
                     else
                     {
-                        _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
+                        _lastSuccessfulDbAuth = DateTimeUtils.GetHighPrecisionUtcTime();
 
                         // pass to manager
                         await Manager.OnDatabaseAuthenticated();
@@ -44,8 +45,8 @@ namespace SVO
                     }
                 }
 
-                if ((Utils.GetHighPrecisionUtcTime() - _lastComponentLog).TotalSeconds > 15f)
-                    _lastComponentLog = Utils.GetHighPrecisionUtcTime();
+                if ((DateTimeUtils.GetHighPrecisionUtcTime() - _lastComponentLog).TotalSeconds > 15f)
+                    _lastComponentLog = DateTimeUtils.GetHighPrecisionUtcTime();
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
 using MultiSocks.Aries.Messages;
+using NetworkLibrary.Extension;
 
 namespace MultiSocks.Aries.Model
 {
@@ -44,6 +45,7 @@ namespace MultiSocks.Aries.Model
             lock (Users)
             {
                 Users.RemoveUser(user);
+                user.JoinedGameSince = null;
 
                 user.CurrentGame = null;
 
@@ -54,6 +56,7 @@ namespace MultiSocks.Aries.Model
                     foreach (AriesUser batchuser in Users.GetAll())
                     {
                         Users.RemoveUser(batchuser);
+                        user.JoinedGameSince = null;
 
                         batchuser.CurrentGame = null;
 
@@ -79,20 +82,32 @@ namespace MultiSocks.Aries.Model
 
         public void AddHost(AriesUser? user)
         {
+            if (user == null)
+                return;
+
             Users.AddUser(user);
+            user.JoinedGameSince = DateTimeUtils.GetHighPrecisionUtcTime();
             Host = user;
         }
 
         public void AddGPSHost(AriesUser? user)
         {
+            if (user == null)
+                return;
+
             Users.AddUser(user);
+            user.JoinedGameSince = DateTimeUtils.GetHighPrecisionUtcTime();
             GPSHost = user;
             Host ??= user;
         }
 
         public void AddUser(AriesUser? user)
         {
+            if (user == null)
+                return;
+
             Users.AddUser(user);
+            user.JoinedGameSince = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public bool RemovePlayerByUsername(string? username, int reason = 0, string? KickReason = "")
@@ -115,7 +130,9 @@ namespace MultiSocks.Aries.Model
             {
                 UsersCache.Clear();
                 if (status)
-                    UsersCache.AddRange(Users.GetAll());
+                    UsersCache.AddRange(Users.GetAll()
+                        .Where(x => x.JoinedGameSince != null)
+                        .OrderBy(x => x.JoinedGameSince));
             }
         }
 
@@ -171,34 +188,36 @@ namespace MultiSocks.Aries.Model
             int i = 0;
             Dictionary<string, string> PLAYERSLIST = new();
 
-            lock (UsersCache)
+            foreach (AriesUser user in Started
+                ? UsersCache.ToArray()
+                : Users.GetAll()
+                    .Where(x => x.JoinedGameSince != null)
+                    .OrderBy(x => x.JoinedGameSince)
+                    .ToArray())
             {
-                foreach (AriesUser user in Started ? UsersCache : Users.GetAll())
+                PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
+                PLAYERSLIST.Add($"OPPART{i}", "0");
+                PLAYERSLIST.Add($"OPFLAG{i}", "0");
+                PLAYERSLIST.Add($"PRES{i}", "0");
+                PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
+                PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
+                PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
+                PLAYERSLIST.Add($"MADDR{i}", user.MAC);
+
+                if (!string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5"))
                 {
-                    PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
-                    PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-
-                    if (!string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5"))
+                    // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
+                    string PlayerColorModifer(int index, string param)
                     {
-                        // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
-                        string PlayerColorModifer(int index, string param)
-                        {
-                            return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", (i - 1).ToString() + ',');
-                        }
-
-                        PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
+                        return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", (i - 1).ToString() + ',');
                     }
-                    else
-                        PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
 
-                    i++;
+                    PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
                 }
+                else
+                    PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
+
+                i++;
             }
 
             return PLAYERSLIST;

@@ -13,6 +13,7 @@ using Horizon.LIBRARY.Pipeline.Tcp;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.MUM.Models;
+using NetworkLibrary.Extension;
 
 namespace Horizon.SERVER.Medius
 {
@@ -58,13 +59,13 @@ namespace Horizon.SERVER.Medius
             /// When true, all messages from this client will be ignored.
             /// </summary>
             public bool Ignore { get; set; } = false;
-            public DateTime TimeConnected { get; set; } = Utils.GetHighPrecisionUtcTime();
+            public DateTime TimeConnected { get; set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
 
             /// <summary>
             /// Timesout client if they haven't authenticated after a given number of seconds.
             /// </summary>
-            public bool ShouldDestroy => ClientObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
+            public bool ShouldDestroy => ClientObject == null && (DateTimeUtils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         }
 
         protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new ConcurrentQueue<IChannel>();
@@ -72,7 +73,7 @@ namespace Horizon.SERVER.Medius
 
         protected PS2_RC4? _sessionCipher = null;
 
-        protected DateTime _timeLastEcho = Utils.GetHighPrecisionUtcTime();
+        protected DateTime _timeLastEcho = DateTimeUtils.GetHighPrecisionUtcTime();
 
 
         public virtual async void Start()
@@ -309,7 +310,7 @@ namespace Horizon.SERVER.Medius
                         if (data.ClientObject != null)
                         {
                             // Echo
-                            if (data.ClientObject.MediusVersion > 108 && (Utils.GetHighPrecisionUtcTime() - data.ClientObject.UtcLastServerEchoSent).TotalSeconds > MediusClass.GetAppSettingsOrDefault(data.ClientObject.ApplicationId).ServerEchoIntervalSeconds)
+                            if (data.ClientObject.MediusVersion > 108 && (DateTimeUtils.GetHighPrecisionUtcTime() - data.ClientObject.UtcLastServerEchoSent).TotalSeconds > MediusClass.GetAppSettingsOrDefault(data.ClientObject.ApplicationId).ServerEchoIntervalSeconds)
                                 data.ClientObject.QueueServerEcho();
 
                             // Add client object's send queue to responses

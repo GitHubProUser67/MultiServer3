@@ -12,6 +12,7 @@ using Horizon.PluginManager;
 using Horizon.RT.Models.MGCL;
 using Horizon.MUM.Models;
 using Horizon.DME;
+using NetworkLibrary.Extension;
 
 namespace Horizon.SERVER.Medius
 {
@@ -20,7 +21,7 @@ namespace Horizon.SERVER.Medius
         public override int TCPPort => MediusClass.Settings.MPSPort;
         public override int UDPPort => 00000;
 
-        private static DateTime lastSend = Utils.GetHighPrecisionUtcTime();
+        private static DateTime lastSend = DateTimeUtils.GetHighPrecisionUtcTime();
 
         private static IChannel? channel = null;
         private static ChannelData? channelData = null;
