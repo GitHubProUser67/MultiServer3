@@ -19,8 +19,7 @@ namespace MultiSocks.Aries.Model
         private string[] Parameters = new string[] { "PUSMC01?????", string.Empty, string.Empty, "-1", "-1", string.Empty, "d" };
 
         public int SelectedPersona = -1;
-
-        public DateTime? JoinedGameSince = null;
+        public int CurrentGameIndex = -1;
 
         public string? PersonaName { get => SelectedPersona == -1 ? null : Personas[SelectedPersona]; }
 
@@ -186,7 +185,7 @@ namespace MultiSocks.Aries.Model
                     LA = user.LADDR ?? string.Empty,
                     HW = "0",
                     RP = "0",
-                    MA = "$000000000000",
+                    MA = user.MAC,
                     LO = LOC,
                     X = info.X,
                     US = "0",

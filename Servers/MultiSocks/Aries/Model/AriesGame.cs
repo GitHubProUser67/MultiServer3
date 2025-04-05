@@ -1,5 +1,5 @@
 using MultiSocks.Aries.Messages;
-using NetworkLibrary.Extension;
+using System.Collections.Concurrent;
 
 namespace MultiSocks.Aries.Model
 {
@@ -22,6 +22,9 @@ namespace MultiSocks.Aries.Model
 
         public UserCollection Users = new();
         private List<AriesUser> UsersCache = new(); // This is necessary to prevent users leaving during a ranked event.
+        private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
+
+        private object _ClientIndexlock = new();
 
         public AriesGame(int maxSize, int minSize, int id, string custFlags, string @params,
                 string name, bool priv, string seed, string sysFlags, string? Pass, int roomId)
@@ -39,13 +42,39 @@ namespace MultiSocks.Aries.Model
             RoomID = roomId;
         }
 
+        private bool TryRegisterNewClientIndex(out int index)
+        {
+            lock (_ClientIndexlock)
+            {
+                for (index = 0; index < _pIdIsUsed.Count; ++index)
+                {
+                    if (_pIdIsUsed.TryGetValue(index, out bool isUsed) && !isUsed)
+                    {
+                        _pIdIsUsed[index] = true;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public void UnregisterClientIndex(int index)
+        {
+            _pIdIsUsed[index] = false;
+        }
+
         // true as a return value means close game.
         public bool RemoveUserAndCheckGameValidity(AriesUser user, int reason = 0, string? KickReason = "")
         {
             lock (Users)
             {
                 Users.RemoveUser(user);
-                user.JoinedGameSince = null;
+                if (user.CurrentGameIndex != -1)
+                {
+                    UnregisterClientIndex(user.CurrentGameIndex);
+                    user.CurrentGameIndex = -1;
+                }
 
                 user.CurrentGame = null;
 
@@ -56,7 +85,11 @@ namespace MultiSocks.Aries.Model
                     foreach (AriesUser batchuser in Users.GetAll())
                     {
                         Users.RemoveUser(batchuser);
-                        user.JoinedGameSince = null;
+                        if (user.CurrentGameIndex != -1)
+                        {
+                            UnregisterClientIndex(user.CurrentGameIndex);
+                            user.CurrentGameIndex = -1;
+                        }
 
                         batchuser.CurrentGame = null;
 
@@ -86,7 +119,6 @@ namespace MultiSocks.Aries.Model
                 return;
 
             Users.AddUser(user);
-            user.JoinedGameSince = DateTimeUtils.GetHighPrecisionUtcTime();
             Host = user;
         }
 
@@ -96,7 +128,7 @@ namespace MultiSocks.Aries.Model
                 return;
 
             Users.AddUser(user);
-            user.JoinedGameSince = DateTimeUtils.GetHighPrecisionUtcTime();
+            TryRegisterNewClientIndex(out user.CurrentGameIndex);
             GPSHost = user;
             Host ??= user;
         }
@@ -107,14 +139,14 @@ namespace MultiSocks.Aries.Model
                 return;
 
             Users.AddUser(user);
-            user.JoinedGameSince = DateTimeUtils.GetHighPrecisionUtcTime();
+            TryRegisterNewClientIndex(out user.CurrentGameIndex);
         }
 
         public bool RemovePlayerByUsername(string? username, int reason = 0, string? KickReason = "")
         {
             if (string.IsNullOrEmpty(username)) return false;
 
-            AriesUser? userToRemove = Users.GetAll().FirstOrDefault(user => user.Username.Equals(username));
+            AriesUser? userToRemove = Users.GetUserByName(username);
 
             if (userToRemove != null)
                 return RemoveUserAndCheckGameValidity(userToRemove, reason, KickReason);
@@ -130,9 +162,7 @@ namespace MultiSocks.Aries.Model
             {
                 UsersCache.Clear();
                 if (status)
-                    UsersCache.AddRange(Users.GetAll()
-                        .Where(x => x.JoinedGameSince != null)
-                        .OrderBy(x => x.JoinedGameSince));
+                    UsersCache.AddRange(Users.GetAll());
             }
         }
 
@@ -188,14 +218,9 @@ namespace MultiSocks.Aries.Model
             int i = 0;
             Dictionary<string, string> PLAYERSLIST = new();
 
-            foreach (AriesUser user in Started
-                ? UsersCache.ToArray()
-                : Users.GetAll()
-                    .Where(x => x.JoinedGameSince != null)
-                    .OrderBy(x => x.JoinedGameSince)
-                    .ToArray())
+            foreach (AriesUser user in Started ? UsersCache : Users.GetAll())
             {
-                PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
+                PLAYERSLIST.Add($"OPPO{i}", user == Host ? '@' + user.Username : user.Username);
                 PLAYERSLIST.Add($"OPPART{i}", "0");
                 PLAYERSLIST.Add($"OPFLAG{i}", "0");
                 PLAYERSLIST.Add($"PRES{i}", "0");
@@ -209,7 +234,10 @@ namespace MultiSocks.Aries.Model
                     // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
                     string PlayerColorModifer(int index, string param)
                     {
-                        return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", (i - 1).ToString() + ',');
+                        const string playerIndexToChange = "ff";
+                        if (param.StartsWith(playerIndexToChange))
+                            return param.Replace(playerIndexToChange, $"{user.CurrentGameIndex},");
+                        return param;
                     }
 
                     PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
