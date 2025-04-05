@@ -44,13 +44,13 @@ namespace Horizon.DME
             public DMEObject? DMEObject { get; set; } = null;
             public ConcurrentQueue<BaseScertMessage> RecvQueue { get; } = new();
             public ConcurrentQueue<BaseScertMessage> SendQueue { get; } = new();
-            public DateTime TimeConnected { get; set; } = Utils.GetHighPrecisionUtcTime();
+            public DateTime TimeConnected { get; set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
 
             /// <summary>
             /// Timesout client if they authenticated after a given number of seconds.
             /// </summary>
-            public bool ShouldDestroy => DMEObject == null && (Utils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
+            public bool ShouldDestroy => DMEObject == null && (DateTimeUtils.GetHighPrecisionUtcTime() - TimeConnected).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
         }
 
         protected ConcurrentQueue<IChannel> _forceDisconnectQueue = new();
@@ -291,12 +291,12 @@ namespace Horizon.DME
                         if (data.DMEObject != null)
                         {
                             // Echo
-                            if (data.DMEObject.MediusVersion > 108 && (Utils.GetHighPrecisionUtcTime() - data.DMEObject.UtcLastServerEchoSent).TotalSeconds > DmeClass.GetAppSettingsOrDefault(data.DMEObject.ApplicationId).ServerEchoIntervalSeconds)
+                            if (data.DMEObject.MediusVersion > 108 && (DateTimeUtils.GetHighPrecisionUtcTime() - data.DMEObject.UtcLastServerEchoSent).TotalSeconds > DmeClass.GetAppSettingsOrDefault(data.DMEObject.ApplicationId).ServerEchoIntervalSeconds)
                             {
                                 var message = new RT_MSG_SERVER_ECHO();
                                 if (!await PassMessageToPlugins(clientChannel, data, message, false))
                                     responses.Add(message);
-                                data.DMEObject.UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+                                data.DMEObject.UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
                             }
 
                             // Add client object's send queue to responses
@@ -654,7 +654,7 @@ namespace Horizon.DME
                             Queue(new RT_MSG_SERVER_STARTUP_INFO_NOTIFY()
                             {
                                 GameHostType = (byte)MGCL_GAME_HOST_TYPE.MGCLGameHostClientServerAuxUDP,
-                                Timebase = (uint?)data.DMEObject.DmeWorld?.WorldTimer.ElapsedMilliseconds ?? Utils.GetUnixTime()
+                                Timebase = (uint?)data.DMEObject.DmeWorld?.WorldTimer.ElapsedMilliseconds ?? DateTimeUtils.GetUnixTime()
                             }, clientChannel);
                             Queue(new RT_MSG_SERVER_INFO_AUX_UDP()
                             {
@@ -919,7 +919,7 @@ namespace Horizon.DME
                         data.DMEObject?.EnqueueTcp(new RT_MSG_SERVER_APP() { 
                             Message = new TypePing()
                             {
-                                TimeOfSend = Utils.GetUnixTime(),
+                                TimeOfSend = DateTimeUtils.GetUnixTime(),
                                 PingInstance = ping.PingInstance,
                                 RequestEcho = ping.RequestEcho
                             }

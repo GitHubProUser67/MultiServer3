@@ -9,6 +9,7 @@ using Horizon.RT.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.SERVER.Extension.PlayStationHome;
+using NetworkLibrary.Extension;
 
 namespace Horizon.MUM.Models
 {
@@ -241,12 +242,12 @@ namespace Horizon.MUM.Models
         /// <summary>
         /// 
         /// </summary>
-        public DateTime UtcLastServerEchoSent { get; set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime UtcLastServerEchoSent { get; set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
         /// </summary>
-        public DateTime UtcLastMessageReceived { get; protected set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime UtcLastMessageReceived { get; protected set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
@@ -261,7 +262,7 @@ namespace Horizon.MUM.Models
         /// <summary>
         /// 
         /// </summary>
-        public DateTime TimeCreated { get; protected set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime TimeCreated { get; protected set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
@@ -316,10 +317,10 @@ namespace Horizon.MUM.Models
         public virtual bool IsLoggedIn => !_logoutTime.HasValue && _loginTime.HasValue && IsConnected;
         public virtual bool IsInGame => CurrentGame != null && CurrentChannel != null && CurrentChannel.Type == ChannelType.Game;
         public virtual bool IsActiveServer => _hasServerSession;
-        public virtual bool Timedout => (Utils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > TimeoutSeconds;
-        public virtual bool LongTimedout => (Utils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > LongTimeoutSeconds;
+        public virtual bool Timedout => (DateTimeUtils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > TimeoutSeconds;
+        public virtual bool LongTimedout => (DateTimeUtils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > LongTimeoutSeconds;
         public virtual bool IsConnected => KeepAlive || (_hasSocket && !LongTimedout);
-        public bool KeepAlive => _keepAliveTime.HasValue && (Utils.GetHighPrecisionUtcTime() - _keepAliveTime).Value.TotalSeconds < MediusClass.GetAppSettingsOrDefault(ApplicationId).KeepAliveGracePeriodSeconds;
+        public bool KeepAlive => _keepAliveTime.HasValue && (DateTimeUtils.GetHighPrecisionUtcTime() - _keepAliveTime).Value.TotalSeconds < MediusClass.GetAppSettingsOrDefault(ApplicationId).KeepAliveGracePeriodSeconds;
 
         /// <summary>
         /// 
@@ -377,11 +378,11 @@ namespace Horizon.MUM.Models
             if (MediusVersion <= 108)
             {
                 // reply must be before sent for the timeout to work
-                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
-                UtcLastMessageReceived = Utils.GetHighPrecisionUtcTime();
+                UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime().AddSeconds(1);
+                UtcLastMessageReceived = DateTimeUtils.GetHighPrecisionUtcTime();
             }
             else
-                UtcLastMessageReceived = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+                UtcLastMessageReceived = UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
 
             TimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
             LongTimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientLongTimeoutSeconds;
@@ -398,11 +399,11 @@ namespace Horizon.MUM.Models
             if (MediusVersion <= 108)
             {
                 // reply must be before sent for the timeout to work
-                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
-                UtcLastMessageReceived = Utils.GetHighPrecisionUtcTime();
+                UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime().AddSeconds(1);
+                UtcLastMessageReceived = DateTimeUtils.GetHighPrecisionUtcTime();
             }
             else
-                UtcLastMessageReceived = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+                UtcLastMessageReceived = UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
 
             TimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
             LongTimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientLongTimeoutSeconds;
@@ -411,7 +412,7 @@ namespace Horizon.MUM.Models
         public void QueueServerEcho()
         {
             SendMessageQueue.Enqueue(new RT_MSG_SERVER_ECHO());
-            UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+            UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public void OnRecvServerEcho(RT_MSG_SERVER_ECHO echo)
@@ -420,7 +421,7 @@ namespace Horizon.MUM.Models
             if (echoTime > _lastServerEchoValue)
             {
                 _lastServerEchoValue = echoTime;
-                LatencyMs = (uint)(Utils.GetHighPrecisionUtcTime() - echoTime).TotalMilliseconds;
+                LatencyMs = (uint)(DateTimeUtils.GetHighPrecisionUtcTime() - echoTime).TotalMilliseconds;
             }
         }
 
@@ -430,12 +431,12 @@ namespace Horizon.MUM.Models
             // so instead we'll increment our timeout dates by the client echo
             if (MediusVersion <= 108)
                 // reply must be before sent for the timeout to work
-                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
+                UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime().AddSeconds(1);
         }
 
         public virtual void OnRecv(BaseScertMessage msg)
         {
-            UtcLastMessageReceived = Utils.GetHighPrecisionUtcTime();
+            UtcLastMessageReceived = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public virtual void OnFileDownloadResponse(MediusFileDownloadResponse statsRequest)
@@ -493,7 +494,7 @@ namespace Horizon.MUM.Models
 
         public void ForceDisconnect()
         {
-            DateTime now = Utils.GetHighPrecisionUtcTime();
+            DateTime now = DateTimeUtils.GetHighPrecisionUtcTime();
             if ((now - _lastForceDisconnect)?.TotalSeconds < 5)
                 return;
 
@@ -504,7 +505,7 @@ namespace Horizon.MUM.Models
 
         public void KeepAliveUntilNextConnection()
         {
-            _keepAliveTime = Utils.GetHighPrecisionUtcTime();
+            _keepAliveTime = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         #endregion
@@ -579,7 +580,7 @@ namespace Horizon.MUM.Models
             HomePointer = 0;
 
             // Logout
-            _logoutTime = Utils.GetHighPrecisionUtcTime();
+            _logoutTime = DateTimeUtils.GetHighPrecisionUtcTime();
 
             // Tell database
             PostStatus();
@@ -600,7 +601,7 @@ namespace Horizon.MUM.Models
             SessionKey = anonymousLoginRequest?.SessionKey;
 
             // Login
-            _loginTime = Utils.GetHighPrecisionUtcTime();
+            _loginTime = DateTimeUtils.GetHighPrecisionUtcTime();
 
             // update timeout times
             TimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
@@ -626,14 +627,14 @@ namespace Horizon.MUM.Models
                 await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_LOGGED_IN, new OnPlayerArgs() { Player = this });
 
                 // Login
-                _loginTime = Utils.GetHighPrecisionUtcTime();
+                _loginTime = DateTimeUtils.GetHighPrecisionUtcTime();
 
                 // update timeout times
                 TimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
                 LongTimeoutSeconds = MediusClass.GetAppSettingsOrDefault(ApplicationId).ClientLongTimeoutSeconds;
 
                 // Update last sign in date
-                _ = HorizonServerConfiguration.Database.PostAccountSignInDate(AccountId, Utils.GetHighPrecisionUtcTime());
+                _ = HorizonServerConfiguration.Database.PostAccountSignInDate(AccountId, DateTimeUtils.GetHighPrecisionUtcTime());
 
                 // Update database status
                 PostStatus();

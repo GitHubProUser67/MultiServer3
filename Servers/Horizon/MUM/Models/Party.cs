@@ -8,6 +8,7 @@ using System.Data;
 using Horizon.PluginManager;
 using System.Text.Json.Serialization;
 using Horizon.SERVER;
+using NetworkLibrary.Extension;
 
 namespace Horizon.MUM.Models
 {
@@ -63,7 +64,7 @@ namespace Horizon.MUM.Models
 
         protected string? accountIdsAtStart;
 
-        public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
+        public uint Time => (uint)(DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
         public int PlayerCount
         {
@@ -76,7 +77,7 @@ namespace Horizon.MUM.Models
 
         public bool Destroyed = false;
 
-        public virtual bool ReadyToDestroy => !Destroyed && WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
+        public virtual bool ReadyToDestroy => !Destroyed && WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
         public Party(ClientObject client, IMediusRequest partyCreate, ClientObject dmeServer)
         {
@@ -85,7 +86,7 @@ namespace Horizon.MUM.Models
             if (partyCreate is MediusPartyCreateRequest r)
                 FromPartyCreateRequest(r);
 
-            utcTimeCreated = Utils.GetHighPrecisionUtcTime();
+            utcTimeCreated = DateTimeUtils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
             DMEServer = dmeServer;
             GameChannel?.RegisterParty(this);
@@ -190,8 +191,8 @@ namespace Horizon.MUM.Models
                 }
 
                 // Auto close when everyone leaves or if host fails to connect after timeout time
-                if (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame) && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
-                    utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
+                if (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame) && (hasHostJoined || (DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+                    utcTimeEmpty = DateTimeUtils.GetHighPrecisionUtcTime();
             }
 
             return Task.CompletedTask;

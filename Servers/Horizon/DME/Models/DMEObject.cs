@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using CustomLogger;
 using Horizon.RT.Cryptography;
+using NetworkLibrary.Extension;
 
 namespace Horizon.DME.Models
 {
@@ -84,12 +85,12 @@ namespace Horizon.DME.Models
         /// <summary>
         /// 
         /// </summary>
-        public DateTime UtcLastServerEchoSent { get; set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime UtcLastServerEchoSent { get; set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
         /// </summary>
-        public DateTime UtcLastMessageReceived { get; protected set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime UtcLastMessageReceived { get; protected set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// RTT (ms)
@@ -99,7 +100,7 @@ namespace Horizon.DME.Models
         /// <summary>
         /// 
         /// </summary>
-        public DateTime TimeCreated { get; protected set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime TimeCreated { get; protected set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
@@ -131,14 +132,14 @@ namespace Horizon.DME.Models
         /// </summary>
         public bool HasJoined { get; set; } = false;
 
-        public virtual bool IsConnectingGracePeriod => !TimeAuthenticated.HasValue && (Utils.GetHighPrecisionUtcTime() - TimeCreated).TotalSeconds < DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
-        public virtual bool Timedout => !IsConnectingGracePeriod && ((Utils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds);
-        public virtual bool LongTimedout => (Utils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientLongTimeoutSeconds;
+        public virtual bool IsConnectingGracePeriod => !TimeAuthenticated.HasValue && (DateTimeUtils.GetHighPrecisionUtcTime() - TimeCreated).TotalSeconds < DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds;
+        public virtual bool Timedout => !IsConnectingGracePeriod && ((DateTimeUtils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientTimeoutSeconds);
+        public virtual bool LongTimedout => (DateTimeUtils.GetHighPrecisionUtcTime() - UtcLastMessageReceived).TotalSeconds > DmeClass.GetAppSettingsOrDefault(ApplicationId).ClientLongTimeoutSeconds;
         public virtual bool IsConnected => !Disconnected && Tcp != null && Tcp.Active && !LongTimedout;
         public virtual bool IsAuthenticated => TimeAuthenticated.HasValue;
         public virtual bool Destroy => Disconnected || (!IsConnected && !IsConnectingGracePeriod);
         public virtual bool IsDestroyed { get; protected set; } = false;
-        public virtual bool IsAggTime => !LastAggTime.HasValue || (Utils.GetMillisecondsSinceStartup() - LastAggTime.Value) >= AggTimeMs;
+        public virtual bool IsAggTime => !LastAggTime.HasValue || (DateTimeUtils.GetMillisecondsSinceStartup() - LastAggTime.Value) >= AggTimeMs;
 
         public Action<DMEObject>? OnDestroyed;
 
@@ -159,7 +160,7 @@ namespace Horizon.DME.Models
             RNG.NextBytes(tokenBuf);
             Token = Convert.ToBase64String(tokenBuf);
 			
-            UtcLastMessageReceived = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+            UtcLastMessageReceived = UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public DMEObject(string sessionKey)
@@ -173,7 +174,7 @@ namespace Horizon.DME.Models
             RNG.NextBytes(tokenBuf);
             Token = Convert.ToBase64String(tokenBuf);
 
-            UtcLastMessageReceived = UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+            UtcLastMessageReceived = UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public void BeginUdp(CipherService? cipher)
@@ -188,7 +189,7 @@ namespace Horizon.DME.Models
         public void QueueServerEcho()
         {
             TcpSendMessageQueue.Enqueue(new RT_MSG_SERVER_ECHO());
-            UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+            UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public void OnRecvServerEcho(RT_MSG_SERVER_ECHO echo)
@@ -197,7 +198,7 @@ namespace Horizon.DME.Models
             if (echoTime > _lastServerEchoValue)
             {
                 _lastServerEchoValue = echoTime;
-                LatencyMs = (uint)(Utils.GetHighPrecisionUtcTime() - echoTime).TotalMilliseconds;
+                LatencyMs = (uint)(DateTimeUtils.GetHighPrecisionUtcTime() - echoTime).TotalMilliseconds;
             }
         }
 
@@ -207,17 +208,17 @@ namespace Horizon.DME.Models
             // so instead we'll increment our timeout dates by the client echo
             if (MediusVersion <= 108)
                 // reply must be before sent for the timeout to work
-                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime().AddSeconds(1);
+                UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime().AddSeconds(1);
         }
 
         public virtual void OnRecv(BaseScertMessage msg)
         {
-            UtcLastMessageReceived = Utils.GetHighPrecisionUtcTime();
+            UtcLastMessageReceived = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public virtual void OnRecv(ScertDatagramPacket msg)
         {
-            UtcLastMessageReceived = Utils.GetHighPrecisionUtcTime();
+            UtcLastMessageReceived = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public Task HandleIncomingMessages()
@@ -239,7 +240,7 @@ namespace Horizon.DME.Models
             //if (LastAggTime.HasValue)
             //    LastAggTime += AggTimeMs * ((Utils.GetMillisecondsSinceStartup() - LastAggTime.Value) / AggTimeMs);
             //else
-            LastAggTime = Utils.GetMillisecondsSinceStartup();
+            LastAggTime = DateTimeUtils.GetMillisecondsSinceStartup();
 
             // tcp
             if (Tcp != null)
@@ -305,12 +306,12 @@ namespace Horizon.DME.Models
 
         public void OnConnectionCompleted()
         {
-            TimeAuthenticated = Utils.GetHighPrecisionUtcTime();
+            TimeAuthenticated = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public void ForceDisconnect()
         {
-            DateTime now = Utils.GetHighPrecisionUtcTime();
+            DateTime now = DateTimeUtils.GetHighPrecisionUtcTime();
             if ((now - _lastForceDisconnect)?.TotalSeconds < 5)
                 return;
 

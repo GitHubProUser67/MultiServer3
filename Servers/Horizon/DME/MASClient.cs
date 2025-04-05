@@ -6,11 +6,11 @@ using Horizon.RT.Common;
 using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.LIBRARY.Pipeline.Tcp;
-using Horizon.LIBRARY.Common;
 using System.Collections.Concurrent;
 using System.Net;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.SERVER;
+using NetworkLibrary.Extension;
 
 namespace Horizon.DME
 {
@@ -78,7 +78,7 @@ namespace Horizon.DME
             _scertHandler.OnChannelInactive += async (channel) =>
             {
                 LoggerAccessor.LogWarn("MAS was disconnected or lost connection.");
-                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                TimeLostConnection = DateTimeUtils.GetHighPrecisionUtcTime();
                 await Stop();
             };
 
@@ -179,10 +179,10 @@ namespace Horizon.DME
         public bool CheckMASConnectivity()
         {
             if (_masState == MASConnectionState.FAILED ||
-                (_masState != MASConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
+                (_masState != MASConnectionState.AUTHENTICATED && (DateTimeUtils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
             {
                 LoggerAccessor.LogError("[DMEMediusManager] - HandleIncomingMessages() - MAS server is not authenticated!");
-                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                TimeLostConnection = DateTimeUtils.GetHighPrecisionUtcTime();
                 Stop().Wait();
                 return false;
             }
@@ -244,7 +244,7 @@ namespace Horizon.DME
 
         private async Task ConnectMAS()
         {
-            _utcConnectionState = Utils.GetHighPrecisionUtcTime();
+            _utcConnectionState = DateTimeUtils.GetHighPrecisionUtcTime();
             _masState = MASConnectionState.NO_CONNECTION;
 
             try
@@ -255,7 +255,7 @@ namespace Horizon.DME
             catch (Exception)
             {
                 LoggerAccessor.LogError($"Failed to connect to MAS");
-                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                TimeLostConnection = DateTimeUtils.GetHighPrecisionUtcTime();
                 return;
             }
 

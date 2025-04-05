@@ -8,6 +8,7 @@ using static Horizon.LIBRARY.libAntiCheat.Models.Game;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using NetworkLibrary.Extension;
 
 namespace Horizon.LIBRARY.libAntiCheat.Models
 {
@@ -123,12 +124,12 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         /// <summary>
         /// 
         /// </summary>
-        public DateTime UtcLastServerEchoSent { get; protected set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime UtcLastServerEchoSent { get; protected set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
         /// </summary>
-        public DateTime UtcLastServerEchoReply { get; protected set; } = Utils.GetHighPrecisionUtcTime();
+        public DateTime UtcLastServerEchoReply { get; protected set; } = DateTimeUtils.GetHighPrecisionUtcTime();
 
         /// <summary>
         /// 
@@ -234,7 +235,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         public void QueueServerEcho()
         {
             SendMessageQueue.Enqueue(new RT_MSG_SERVER_ECHO());
-            UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
+            UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public void OnRecvServerEcho(RT_MSG_SERVER_ECHO echo)
@@ -243,7 +244,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             if (echoTime > _lastServerEchoValue)
             {
                 _lastServerEchoValue = echoTime;
-                UtcLastServerEchoReply = Utils.GetHighPrecisionUtcTime();
+                UtcLastServerEchoReply = DateTimeUtils.GetHighPrecisionUtcTime();
                 LatencyMs = (uint)(UtcLastServerEchoReply - echoTime).TotalMilliseconds;
             }
         }
@@ -254,8 +255,8 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
             // so instead we'll increment our timeout dates by the client echo
             if (MediusVersion <= 108)
             {
-                UtcLastServerEchoSent = Utils.GetHighPrecisionUtcTime();
-                UtcLastServerEchoReply = Utils.GetHighPrecisionUtcTime();
+                UtcLastServerEchoSent = DateTimeUtils.GetHighPrecisionUtcTime();
+                UtcLastServerEchoReply = DateTimeUtils.GetHighPrecisionUtcTime();
             }
         }
 
@@ -263,7 +264,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
         public void KeepAliveUntilNextConnection()
         {
-            _keepAliveTime = Utils.GetHighPrecisionUtcTime();
+            _keepAliveTime = DateTimeUtils.GetHighPrecisionUtcTime();
         }
 
         public void OnConnected()

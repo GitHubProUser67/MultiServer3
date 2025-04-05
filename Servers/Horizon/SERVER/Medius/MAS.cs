@@ -914,9 +914,9 @@ namespace Horizon.SERVER.Medius
                                     // Ensure that we're past the from date
                                     // Ensure that we're before the to date (if set)
                                     if (r.Result.MaintenanceMode.IsActive
-                                         && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
+                                         && DateTimeUtils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                          && (!r.Result.MaintenanceMode.ToDt.HasValue
-                                             || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
+                                             || r.Result.MaintenanceMode.ToDt > DateTimeUtils.GetHighPrecisionUtcTime()))
                                         QueueBanMessage(data, "Server in maintenance mode.");
                                     else
                                     {
@@ -950,9 +950,9 @@ namespace Horizon.SERVER.Medius
                                     // Ensure that we're past the from date
                                     // Ensure that we're before the to date (if set)
                                     if (r.Result.MaintenanceMode.IsActive
-                                         && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
+                                         && DateTimeUtils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                          && (!r.Result.MaintenanceMode.ToDt.HasValue
-                                             || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
+                                             || r.Result.MaintenanceMode.ToDt > DateTimeUtils.GetHighPrecisionUtcTime()))
                                         QueueBanMessage(data, "Server in maintenance mode.");
                                     #endregion
 
@@ -1002,9 +1002,9 @@ namespace Horizon.SERVER.Medius
                                         // Ensure that we're past the from date
                                         // Ensure that we're before the to date (if set)
                                         if (r.Result.MaintenanceMode.IsActive
-                                             && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
+                                             && DateTimeUtils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                              && (!r.Result.MaintenanceMode.ToDt.HasValue
-                                                 || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
+                                                 || r.Result.MaintenanceMode.ToDt > DateTimeUtils.GetHighPrecisionUtcTime()))
                                             QueueBanMessage(data, "Server in maintenance mode.");
 
                                         #endregion

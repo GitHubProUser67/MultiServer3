@@ -20,6 +20,8 @@ namespace MultiSocks.Aries.Model
 
         public int SelectedPersona = -1;
 
+        public DateTime? JoinedGameSince = null;
+
         public string? PersonaName { get => SelectedPersona == -1 ? null : Personas[SelectedPersona]; }
 
         public void SelectPersona(string? name)
