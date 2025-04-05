@@ -505,7 +505,7 @@ namespace NetworkLibrary.HTTP
                 </script>
                 </head><body>";
 
-            StringBuilder sb = new StringBuilder($"<html><head><div class='header'><button class='back-button' onclick='goBack()'>&larr; Back</button><h1>{htmlStartData}{title}</h1></div>");
+            StringBuilder sb = new StringBuilder($"<html><head><div class='header'><button class='back-button' onclick='goBack()'>&larr; Back</button><h1>{htmlStartData}{HttpUtility.HtmlEncode(title)}</h1></div>");
             sb.Append(GenerateFileNodeHtml(structure?.Root, 0, ServerPort, mimeTypesDic));
             sb.Append("</body></html>");
             return sb.ToString();
