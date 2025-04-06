@@ -7,7 +7,7 @@ using System.Runtime;
 
 public static class QuazalServerConfiguration
 {
-    public static string ServerBindAddress { get; set; } = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
+    public static string ServerBindAddress { get; set; } = InternetProtocolUtils.GetLocalIPAddress().ToString();
     public static string ServerPublicBindAddress { get; set; } = InternetProtocolUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
@@ -17,12 +17,12 @@ public static class QuazalServerConfiguration
                         Tuple.Create(30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30216, "hg7j1", "v2Services"), // TDUPS2BETA
                         Tuple.Create(30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
-                        Tuple.Create(60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
-                        Tuple.Create(61106, "w6kAtr3T", "PCDriverServices"), // DFSPCENLOBBY
+                        Tuple.Create(21221, "8dtRv2oj", "PCGROnlineServices"), // GROPC
+                        //Tuple.Create(60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
                         Tuple.Create(61111, "QusaPha9", "PS3DriverServices"), // DFSPS3
                         Tuple.Create(62111, "QusaPha9", "PS3DriverServices"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
-                        Tuple.Create(61121, "q1UFc45UwoyI", "PS3UbisoftServices"), // GRFSPS3
+                        Tuple.Create(61121, "q1UFc45UwoyI", "PS3GFRSServices"), // GRFSPS3
                         Tuple.Create(61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
                         Tuple.Create(62126, "cYoqGd4f", "PS3UbisoftServices"), // PRIVAC3PS3
                         Tuple.Create(61128, "cYoqGd4f", "PS3UbisoftServices"), // AC3MULTPS3
@@ -36,6 +36,7 @@ public static class QuazalServerConfiguration
                         //Tuple.Create(21032, "8dtRv2oj", "PCUbisoftServices"), // GRO
                         Tuple.Create(30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
                         Tuple.Create(30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
+                        Tuple.Create(31041, "7aK4858Q", "PS3UbisoftServices"), // OFP2PS3
                         //Tuple.Create(61136, "pJ3Lsyc2", "WIIUUbisoftServices"), // WATCHDOGSWIIU
                     };
     public static List<Tuple<int, int, string, string>>? RendezVousServersList { get; set; } = new List<Tuple<int, int, string, string>>
@@ -43,12 +44,11 @@ public static class QuazalServerConfiguration
                         Tuple.Create(30200, 30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30215, 30216, "hg7j1", "v2Services"), // TDUPS2BETA
                         Tuple.Create(30550, 30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
-                        Tuple.Create(60105, 60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
-                        Tuple.Create(61105, 61106, "w6kAtr3T", "PCDriverServices"), // DFSPCENLOBBY
+                        //Tuple.Create(60105, 60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
                         Tuple.Create(61110, 61111, "QusaPha9", "PS3DriverServices"), // DFSPS3
                         Tuple.Create(62110, 62111, "QusaPha9", "PS3DriverServices"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60115, 60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
-                        Tuple.Create(61120, 61121, "q1UFc45UwoyI", "PS3UbisoftServices"), // GRFSPS3
+                        Tuple.Create(61120, 61121, "q1UFc45UwoyI", "PS3GFRSServices"), // GRFSPS3
                         Tuple.Create(61125, 61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
                         Tuple.Create(62125, 62126, "cYoqGd4f", "PS3UbisoftServices"), // PRIVAC3PS3
                         Tuple.Create(61127, 61128, "cYoqGd4f", "PS3UbisoftServices"), // AC3MULTPS3
@@ -60,6 +60,7 @@ public static class QuazalServerConfiguration
                         //Tuple.Create(61139, 61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
                         Tuple.Create(30160, 30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
                         Tuple.Create(30560, 30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
+                        Tuple.Create(31040, 31041, "7aK4858Q", "PS3UbisoftServices"), // OFP2PS3
                         //Tuple.Create(61135, 61136, "pJ3Lsyc2", "WIIUUbisoftServices"), // WATCHDOGSWIIU
                     };
 
@@ -228,6 +229,8 @@ class Program
             LoggerAccessor.LogError(args.Exception);
             args.SetObserved();
         };
+
+        InternetProtocolUtils.GetIPInfos(InternetProtocolUtils.GetLocalIPAddress().ToString(), InternetProtocolUtils.GetLocalSubnet());
 #endif
 
         NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
