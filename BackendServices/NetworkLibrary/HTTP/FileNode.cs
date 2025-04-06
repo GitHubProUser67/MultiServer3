@@ -57,17 +57,31 @@ namespace NetworkLibrary.HTTP
             try
             {
                 DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-                FileNode fileNode = new FileNode()
-                {
-                    Name = directoryInfo.Name,
-                    Link = httpdirectoryrequest,
-                    Type = "Directory",
-                    CreationDate = detailedReport ? directoryInfo.CreationTimeUtc : null,
-                    Size = detailedReport ? directoryInfo.GetLength() : null,
-                    LastWriteTime = directoryInfo.LastWriteTimeUtc,
-                    Childrens = new ConcurrentList<FileNode>()
-                };
+                FileNode fileNode;
 
+                if (detailedReport)
+                    fileNode = new FileNode()
+                    {
+                        Name = directoryInfo.Name,
+                        Link = httpdirectoryrequest,
+                        Type = "Directory",
+                        CreationDate = directoryInfo.CreationTimeUtc,
+                        Size = directoryInfo.GetLength(),
+                        LastWriteTime = directoryInfo.LastWriteTimeUtc,
+                        Childrens = new ConcurrentList<FileNode>()
+                    };
+                else
+                    fileNode = new FileNode()
+                    {
+                        Name = directoryInfo.Name,
+                        Link = httpdirectoryrequest,
+                        Type = "Directory",
+                        CreationDate = null,
+                        Size = null,
+                        LastWriteTime = directoryInfo.LastWriteTimeUtc,
+                        Childrens = new ConcurrentList<FileNode>()
+                    };
+#if NET6_0_OR_GREATER
                 await Task.WhenAll(
                     Parallel.ForEachAsync(directoryInfo.GetFiles(), new ParallelOptions { MaxDegreeOfParallelism = ProcessorCountLeft }, async (file, cancellationToken) =>
                     {
@@ -183,7 +197,160 @@ namespace NetworkLibrary.HTTP
                         }
                     })
                 ).ConfigureAwait(false);
+#else
+                Parallel.ForEach(directoryInfo.GetFiles(), new ParallelOptions { MaxDegreeOfParallelism = ProcessorCountLeft }, async (file, cancellationToken) =>
+                {
+                    if (!file.IsHidden())
+                    {
+                        string ImgLink = null;
+                        string DescriptorText = null;
+                        string mimetype = HTTPProcessor.GetMimeType(Path.GetExtension(file.FullName), mimeTypesDic);
 
+                        // List of possible web image extensions
+                        string[] imageExtensions = new string[] { "jpeg", "jpg", "png", "gif", "bmp", "tiff" };
+
+                        foreach (string extension in imageExtensions)
+                        {
+                            if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_pic.{extension}")))
+                            {
+                                ImgLink = $"{httpdirectoryrequest}/{Path.GetFileNameWithoutExtension(file.FullName)}_pic.{extension}";
+                                break;
+                            }
+                        }
+
+                        if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt")))
+                            DescriptorText = File.ReadAllText(
+                                Path.Combine(Path.GetDirectoryName(file.FullName),
+                                    $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.txt"));
+                        else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.EdgeZlib")))
+                            DescriptorText = Encoding.UTF8.GetString(
+                                await CompressionLibrary.Edge.Zlib.EdgeZlibDecompress(
+                                    File.ReadAllBytes(
+                                        Path.Combine(Path.GetDirectoryName(file.FullName),
+                                            $"{Path.GetFileNameWithoutExtension(file.FullName)}_description.EdgeZlib"))).ConfigureAwait(false));
+                        else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.txt")))
+                            DescriptorText = File.ReadAllText(
+                                Path.Combine(Path.GetDirectoryName(file.FullName),
+                                    $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.txt"));
+                        else if (File.Exists(Path.Combine(Path.GetDirectoryName(file.FullName), $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.EdgeZlib")))
+                            DescriptorText = Encoding.UTF8.GetString(
+                                await CompressionLibrary.Edge.Zlib.EdgeZlibDecompress(
+                                    File.ReadAllBytes(
+                                        Path.Combine(Path.GetDirectoryName(file.FullName),
+                                            $"{Path.GetFileNameWithoutExtension(file.FullName)}_desc.EdgeZlib"))).ConfigureAwait(false));
+
+                        switch (mimetype)
+                        {
+                            case "text/plain":
+                            case "text/xml":
+                            case "application/xml":
+                            case "application/json":
+                                bool isUtf8 = false;
+                                try
+                                {
+                                    isUtf8 = new Utf8Checker().Check(file.FullName);
+                                }
+                                catch
+                                {
+                                }
+                                if (detailedReport)
+                                    fileNode.Childrens.Add(new FileNode
+                                    {
+                                        Link = $"{httpdirectoryrequest}/{file.Name}",
+                                        Content = isUtf8 ? File.ReadAllText(file.FullName) : null,
+                                        Image = ImgLink,
+                                        Descriptor = DescriptorText,
+                                        Name = file.Name,
+                                        Type = mimetype,
+                                        Size = file.Length,
+                                        LastWriteTime = file.LastWriteTime,
+                                        CreationDate = file.CreationTimeUtc
+                                    });
+                                else
+                                    fileNode.Childrens.Add(new FileNode
+                                    {
+                                        Link = $"{httpdirectoryrequest}/{file.Name}",
+                                        Content = isUtf8 ? File.ReadAllText(file.FullName) : null,
+                                        Image = ImgLink,
+                                        Descriptor = DescriptorText,
+                                        Name = file.Name,
+                                        Type = mimetype,
+                                        Size = null,
+                                        LastWriteTime = file.LastWriteTime,
+                                        CreationDate = null
+                                    });
+                                break;
+                            default:
+                                if (detailedReport)
+                                    fileNode.Childrens.Add(new FileNode
+                                    {
+                                        Link = $"{httpdirectoryrequest}/{file.Name}",
+                                        Image = ImgLink,
+                                        Descriptor = DescriptorText,
+                                        Name = file.Name,
+                                        Type = mimetype,
+                                        Size = file.Length,
+                                        LastWriteTime = file.LastWriteTime,
+                                        CreationDate = file.CreationTimeUtc
+                                    });
+                                else
+                                    fileNode.Childrens.Add(new FileNode
+                                    {
+                                        Link = $"{httpdirectoryrequest}/{file.Name}",
+                                        Image = ImgLink,
+                                        Descriptor = DescriptorText,
+                                        Name = file.Name,
+                                        Type = mimetype,
+                                        Size = null,
+                                        LastWriteTime = file.LastWriteTime,
+                                        CreationDate = null
+                                    });
+                                break;
+                        }
+                    }
+                });
+                Parallel.ForEach(directoryInfo.GetDirectories(), new ParallelOptions { MaxDegreeOfParallelism = ProcessorCountRight }, async (subdirectory, cancellationToken) =>
+                {
+                    if (!subdirectory.IsHidden())
+                    {
+                        if (allowNestedReports)
+                        {
+                            // Recursively process subdirectories
+                            fileNode.Childrens.Add(await CreateFileNodeAsync(
+                                subdirectory.FullName,
+                                $"{httpdirectoryrequest}/{subdirectory.Name}",
+                                true,
+                                detailedReport,
+                                mimeTypesDic
+                            ).ConfigureAwait(false));
+                        }
+                        else if (detailedReport)
+                        {
+                            fileNode.Childrens.Add(new FileNode
+                            {
+                                Link = httpdirectoryrequest + $"/{subdirectory.Name}",
+                                Name = subdirectory.Name,
+                                Type = "Directory",
+                                CreationDate = subdirectory.CreationTimeUtc,
+                                Size = directoryInfo.GetLength(),
+                                LastWriteTime = directoryInfo.LastWriteTimeUtc
+                            });
+                        }
+                        else
+                        {
+                            fileNode.Childrens.Add(new FileNode
+                            {
+                                Link = httpdirectoryrequest + $"/{subdirectory.Name}",
+                                Name = subdirectory.Name,
+                                Type = "Directory",
+                                CreationDate = null,
+                                Size = null,
+                                LastWriteTime = directoryInfo.LastWriteTimeUtc
+                            });
+                        }
+                    }
+                });
+#endif
                 return fileNode;
             }
             catch (Exception ex)
@@ -338,7 +505,7 @@ namespace NetworkLibrary.HTTP
                 </script>
                 </head><body>";
 
-            StringBuilder sb = new StringBuilder($"<html><head><div class='header'><button class='back-button' onclick='goBack()'>&larr; Back</button><h1>{htmlStartData}{title}</h1></div>");
+            StringBuilder sb = new StringBuilder($"<html><head><div class='header'><button class='back-button' onclick='goBack()'>&larr; Back</button><h1>{htmlStartData}{HttpUtility.HtmlEncode(title)}</h1></div>");
             sb.Append(GenerateFileNodeHtml(structure?.Root, 0, ServerPort, mimeTypesDic));
             sb.Append("</body></html>");
             return sb.ToString();
@@ -350,13 +517,22 @@ namespace NetworkLibrary.HTTP
                 return "<h3>FileNode was null!</h3>";
 
             // Apply a unique class for each level to distinguish the appearance
-            string levelClass = level switch
+            string levelClass;
+            switch (level)
             {
-                0 => "level-0",
-                1 => "level-1",
-                2 => "level-2",
-                _ => "level-3"
-            };
+                case 0:
+                    levelClass = "level-0";
+                    break;
+                case 1:
+                    levelClass = "level-1";
+                    break;
+                case 2:
+                    levelClass = "level-2";
+                    break;
+                default:
+                    levelClass = "level-3";
+                    break;
+            }
 
             bool isRoot = level == 0;
             bool hasChildrens = node.Childrens != null && node.Childrens.Count > 0;

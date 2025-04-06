@@ -17,49 +17,56 @@ namespace QuazalServer.QNetZ
 			ticket = ticketData;
 		}
 
-        public byte[]? toBuffer(string AccessKey, string? input = null)
+        public byte[]? ToBuffer(string AccessKey, string? input = null)
 		{
 			if (sessionKey != null && ticket != null)
 			{
-                MemoryStream m = new();
-                m.Write(sessionKey, 0, 16);
+                using (MemoryStream ms = new())
+                {
+                    ms.Write(sessionKey, 0, 16);
 
-                Helper.WriteU32(m, serverPID);
-                Helper.WriteU32(m, (uint)ticket.Length);
+                    Helper.WriteU32(ms, serverPID);
+                    Helper.WriteU32(ms, (uint)ticket.Length);
 
-                m.Write(ticket, 0, ticket.Length);
+                    ms.Write(ticket, 0, ticket.Length);
 
-                byte[] buff = m.ToArray();
-                byte[] key = Array.Empty<byte>();
+                    byte[] key;
+                    byte[] buff = ms.ToArray();
 
-				switch (AccessKey)
-				{
-                    case "os4R9pEiy":
-                    case "OLjNg84Gh":
-					case "cYoqGd4f":
-                    case "QusaPha9":
-					case "q1UFc45UwoyI":
-                    case "h0rszqTw":
-					case "lON6yKGp":
-                    case "4TeVtJ7V":
-                    case "HJb8Ix1M":
-                    case "uG9Kv3p":
-                        key = Helper.DeriveKey(userPID, input ?? "PS3NPDummyPwd");
-                        break;
-                    default:
-                        key = Helper.DeriveKey(userPID, input ?? "UbiDummyPwd");
-                        break;
+                    switch (AccessKey)
+                    {
+                        case "os4R9pEiy":
+                        case "OLjNg84Gh":
+                        case "cYoqGd4f":
+                        case "QusaPha9":
+                        case "q1UFc45UwoyI":
+                        case "h0rszqTw":
+                        case "lON6yKGp":
+                        case "4TeVtJ7V":
+                        case "HJb8Ix1M":
+                        case "uG9Kv3p":
+                            key = Helper.DeriveKey(userPID, input ?? "PS3NPDummyPwd");
+                            break;
+                        case "w6kAtr3T":
+                            key = Helper.DeriveKey(userPID, input ?? "UbiDummyPwd");
+                            break;
+                        default:
+                            key = Helper.DeriveKey(userPID, input ?? "h7fyctiuucf");
+                            break;
+                    }
+
+                    buff = Helper.Encrypt(key, buff);
+
+                    byte[] hmac = Helper.MakeHMAC(key, buff);
+
+                    using (MemoryStream ms1 = new())
+                    {
+                        ms1.Write(buff, 0, buff.Length);
+                        ms1.Write(hmac, 0, hmac.Length);
+
+                        return ms1.ToArray();
+                    }
                 }
-
-                buff = Helper.Encrypt(key, buff);
-
-                byte[] hmac = Helper.MakeHMAC(key, buff);
-
-                m = new MemoryStream();
-                m.Write(buff, 0, buff.Length);
-                m.Write(hmac, 0, hmac.Length);
-
-                return m.ToArray();
             }
 
 			return null;

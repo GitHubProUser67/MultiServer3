@@ -3,6 +3,7 @@ using Alcatraz.Context.Entities;
 using Alcatraz.DTO.Helpers;
 using CustomLogger;
 using Microsoft.EntityFrameworkCore;
+using QuazalServer.QNetZ;
 
 namespace RDVServices
 {
@@ -10,16 +11,14 @@ namespace RDVServices
 	{
 		public static MainDbContext? GetDbContext(string serviceClass)
 		{
-			MainDbContext retCtx;
-			string connectionString;
+            bool initiateSharedUbiPlayers = false;
+            string connectionString;
+            MainDbContext? retCtx = null;
 
             switch (serviceClass)
 			{
-                case "PS3RaymanLegendsServices":
                 case "PCDriverServices":
-                case "PS3DriverServices":
                 case "PCUbisoftServices":
-                case "PS3UbisoftServices":
 					connectionString = $"{Program.configDir}/Quazal/Database/Uplay.sqlite";
 
 					Directory.CreateDirectory(Path.GetDirectoryName(connectionString)!);
@@ -28,27 +27,8 @@ namespace RDVServices
 
                     retCtx.Database.Migrate();
 
-                    return retCtx;
-                case "PS3TurokServices":
-                    connectionString = $"{Program.configDir}/Quazal/Database/Turok2008_PS3.sqlite";
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(connectionString)!);
-
-                    retCtx = new MainDbContext(MainDbContext.OnContextBuilding(new DbContextOptionsBuilder<MainDbContext>(), 0, $"Data Source={connectionString}").Options);
-
-                    retCtx.Database.Migrate();
-
-                    return retCtx;
-                case "PS3GhostbustersServices":
-                    connectionString = $"{Program.configDir}/Quazal/Database/Ghostbusters_PS3.sqlite";
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(connectionString)!);
-
-                    retCtx = new MainDbContext(MainDbContext.OnContextBuilding(new DbContextOptionsBuilder<MainDbContext>(), 0, $"Data Source={connectionString}").Options);
-
-                    retCtx.Database.Migrate();
-
-                    return retCtx;
+                    initiateSharedUbiPlayers = true;
+                    break;
                 case "v2Services":
                     connectionString = $"{Program.configDir}/Quazal/Database/RendezVous_v2.sqlite";
 
@@ -58,14 +38,81 @@ namespace RDVServices
 
                     retCtx.Database.Migrate();
 
-                    return retCtx;
+                    break;
                 default:
 					LoggerAccessor.LogError($"[DbHelper] - Unknwon: {serviceClass} Class passed to the database!");
 					break;
 			}
 
-			return null;
+            if (retCtx != null)
+                InitiateDefaultPlayers(retCtx, initiateSharedUbiPlayers);
+
+            return retCtx;
 		}
+
+        private static void InitiateDefaultPlayers(MainDbContext context, bool initiateSharedUbiPlayers)
+        {
+            if (!context.Users.Any())
+            {
+                // Add dummy user with starting ID == 1000 and two guest accounts.
+                context.Users.Add(new User()
+                {
+                    Id = 1000,
+                    Username = "dummy",
+                    PlayerNickName = "dummy",
+                    Password = "dummy",
+                    RewardFlags = 0,
+                });
+                context.SaveChanges();
+
+                if (initiateSharedUbiPlayers)
+                {
+                    User newUser = new User()
+                    {
+                        Username = "AAAABBBB",
+                        PlayerNickName = "AAAABBBB",
+                        Password = "tmp",
+                    };
+
+                    try
+                    {
+                        context.Users.Add(newUser);
+                        context.SaveChanges();
+                    }
+                    catch
+                    {
+                        LoggerAccessor.LogError($"[DBHelper] - Unable to add default ubi {newUser.Username} user (internal error)");
+                        return;
+                    }
+
+                    // update password as user Id is acquired
+                    newUser.Password = SecurePasswordHasher.Hash($"{newUser.Id}-CCCCDDDD");
+                    context.SaveChanges();
+
+                    newUser = new User()
+                    {
+                        Username = "sam_the_fisher",
+                        PlayerNickName = "sam_the_fisher",
+                        Password = "tmp",
+                    };
+
+                    try
+                    {
+                        context.Users.Add(newUser);
+                        context.SaveChanges();
+                    }
+                    catch
+                    {
+                        LoggerAccessor.LogError($"[DBHelper] - Unable to add default ubi {newUser.Username} user (internal error)");
+                        return;
+                    }
+
+                    // update password as user Id is acquired
+                    newUser.Password = SecurePasswordHasher.Hash($"{newUser.Id}-password1234");
+                    context.SaveChanges();
+                }
+            }
+        }
 
         public static bool RegisterUser(string serviceClass, string userName, string password, uint PID, string? NickName = null)
         {
@@ -73,20 +120,6 @@ namespace RDVServices
             {
                 if (context != null)
                 {
-                    if (!context.Users.Any())
-                    {
-                        // Add dummy user with starting ID == 1000
-                        context.Users.Add(new User()
-                        {
-                            Id = 1000,
-                            Username = "dummy",
-                            PlayerNickName = "dummy",
-                            Password = "dummy",
-                            RewardFlags = 0,
-                        });
-                        context.SaveChanges();
-                    }
-
                     bool HasNickName = !string.IsNullOrEmpty(NickName);
 
                     if (!context.Users.Any(x => x.Username == userName || x.Id == PID || (HasNickName && x.PlayerNickName == NickName)))

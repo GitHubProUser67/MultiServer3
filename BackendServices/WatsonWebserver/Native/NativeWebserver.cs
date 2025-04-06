@@ -743,6 +743,30 @@
 
                                             if (ctx.Response.ContentLength > 0) Statistics.IncrementSentPayloadBytes(Convert.ToInt64(ctx.Response.ContentLength));
                                             Routes.PostRouting?.Invoke(ctx).ConfigureAwait(false);
+
+                                            if (!listenerCtx.Response.KeepAlive)
+                                            {
+                                                try
+                                                {
+                                                    ctx.Request.Data?.Close();
+                                                }
+                                                catch
+                                                {
+                                                }
+                                            }
+
+                                            // Manually dispose the response if previous methods failed to avoids memory leaks.
+                                            if (!ctx.Response.ResponseSent)
+                                            {
+                                                try
+                                                {
+                                                    ((HttpResponse)ctx.Response)._OutputStream.Close();
+                                                }
+                                                catch
+                                                {
+                                                }
+                                                ((HttpResponse)ctx.Response)._Response.Close();
+                                            }
                                         }
                                     }
 
@@ -762,7 +786,7 @@
                             }
                         }));
 
-                    int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                    int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS, token); //Synchronously Waits up to 500ms for any Task completion
                     if (RemoveAtIndex != -1) //Remove the completed task from the list
                         HttpClientTasks.RemoveAt(RemoveAtIndex);
                 }
@@ -770,6 +794,10 @@
                 #endregion
             }
             catch (TaskCanceledException)
+            {
+
+            }
+            catch (OperationCanceledException)
             {
 
             }

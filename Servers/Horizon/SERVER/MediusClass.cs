@@ -52,8 +52,8 @@ namespace Horizon.SERVER
         private static ulong _sessionKeyCounter = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
         private static DateTime? _lastSuccessfulDbAuth = null;
-        private static DateTime _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
-        private static DateTime _lastComponentLog = Utils.GetHighPrecisionUtcTime();
+        private static DateTime _lastConfigRefresh = DateTimeUtils.GetHighPrecisionUtcTime();
+        private static DateTime _lastComponentLog = DateTimeUtils.GetHighPrecisionUtcTime();
 
         public static bool started = false;
 
@@ -63,7 +63,7 @@ namespace Horizon.SERVER
             {
                 // Attempt to authenticate with the db middleware
                 // We do this every 24 hours to get a fresh new token
-                if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
+                if (_lastSuccessfulDbAuth == null || (DateTimeUtils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
                     if (!await HorizonServerConfiguration.Database.Authenticate())
                     {
@@ -73,7 +73,7 @@ namespace Horizon.SERVER
                     }
                     else
                     {
-                        _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
+                        _lastSuccessfulDbAuth = DateTimeUtils.GetHighPrecisionUtcTime();
                         LoggerAccessor.LogInfo("Successfully authenticated with the db middleware server");
 
                         // pass to manager
@@ -105,21 +105,21 @@ namespace Horizon.SERVER
                 // Tick plugins
                 await Plugins.Tick();
 
-                if ((Utils.GetHighPrecisionUtcTime() - _lastComponentLog).TotalSeconds > 15f)
+                if ((DateTimeUtils.GetHighPrecisionUtcTime() - _lastComponentLog).TotalSeconds > 15f)
                 {
                     AuthenticationServer.Log();
                     LobbyServer.Log();
                     ProxyServer.Log();
                     ProfileServer.Log();
                     MatchmakingServer.Log();
-                    _lastComponentLog = Utils.GetHighPrecisionUtcTime();
+                    _lastComponentLog = DateTimeUtils.GetHighPrecisionUtcTime();
                 }
 
                 // Reload config
-                if ((Utils.GetHighPrecisionUtcTime() - _lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
+                if ((DateTimeUtils.GetHighPrecisionUtcTime() - _lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
                 {
                     RefreshConfig();
-                    _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
+                    _lastConfigRefresh = DateTimeUtils.GetHighPrecisionUtcTime();
                 }
             }
             catch (Exception ex)

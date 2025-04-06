@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer build script 23/02/2025
+@echo MultiServer build script 03/04/2025
 @echo.
 
 @echo Cleaning up directories:
@@ -62,6 +62,8 @@ if exist "~BuildOutput/MultiServer/Release/net6.0" (
 
 @echo Cleaning up temp build files and directories:
 for /d /r . %%d in (bin,obj,".vs") do @if exist "%%d" rd /s/q "%%d"
+
+streams.exe -s -d
 
 @echo.
 

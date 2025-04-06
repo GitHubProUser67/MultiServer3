@@ -10,7 +10,7 @@ namespace Server.SVO_CLI.SVOGames
 
         public static void GT4_XML_SVO(HttpListenerContext context)
         {
-            using (var response = context.Response)
+            using (var resp = context.Response)
             {
                 try
                 {
@@ -22,9 +22,7 @@ namespace Server.SVO_CLI.SVOGames
                                 {
                                     case "GET":
                                         HttpListenerRequest req = context.Request;
-                                        HttpListenerResponse resp = context.Response;
                                         resp.Headers.Set("Content-Type", "text/xml");
-
 
                                         byte[] uriStore = Encoding.ASCII.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                                             "<XML>\r\n\t" +
@@ -57,9 +55,6 @@ namespace Server.SVO_CLI.SVOGames
 
                                         resp.ContentLength64 = uriStore.Length;
                                         resp.OutputStream.Write(uriStore);
-#if DEBUG
-                                        LoggerAccessor.LogInfo($"Start URIStore for GT4 Online Public Beta PS2 SENT!");
-#endif
                                         break;
                                 }
 
@@ -70,7 +65,7 @@ namespace Server.SVO_CLI.SVOGames
                 catch (Exception ex)
                 {
                     LoggerAccessor.LogError($"[SVO] - GT4Beta_SVO thrown an assertion - {ex}");
-                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    resp.StatusCode = (int)HttpStatusCode.InternalServerError;
                 }
             }
         }

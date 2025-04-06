@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Horizon.LIBRARY.Pipeline.Attribute;
 using Horizon.SERVER;
+using NetworkLibrary.Extension;
 
 namespace Horizon.DME
 {
@@ -125,7 +126,7 @@ namespace Horizon.DME
             _scertHandler.OnChannelInactive += async (channel) =>
             {
                 LoggerAccessor.LogError("Lost connection to MPS");
-                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                TimeLostConnection = DateTimeUtils.GetHighPrecisionUtcTime();
                 await Stop();
             };
 
@@ -181,10 +182,10 @@ namespace Horizon.DME
         public bool CheckMPSConnectivity()
         {
             if (_mpsState == MPSConnectionState.FAILED ||
-                (_mpsState != MPSConnectionState.AUTHENTICATED && (Utils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
+                (_mpsState != MPSConnectionState.AUTHENTICATED && (DateTimeUtils.GetHighPrecisionUtcTime() - _utcConnectionState).TotalSeconds > 30))
             {
                 LoggerAccessor.LogError("[DMEMediusManager] - HandleIncomingMessages() - MPS server is not authenticated!");
-                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                TimeLostConnection = DateTimeUtils.GetHighPrecisionUtcTime();
                 Stop().Wait();
                 return false;
             }
@@ -262,7 +263,7 @@ namespace Horizon.DME
 
         private async Task ConnectMPS()
         {
-            _utcConnectionState = Utils.GetHighPrecisionUtcTime();
+            _utcConnectionState = DateTimeUtils.GetHighPrecisionUtcTime();
             _mpsState = MPSConnectionState.NO_CONNECTION;
 
             try
@@ -273,7 +274,7 @@ namespace Horizon.DME
             catch (Exception)
             {
                 LoggerAccessor.LogError($"Failed to connect to MPS");
-                TimeLostConnection = Utils.GetHighPrecisionUtcTime();
+                TimeLostConnection = DateTimeUtils.GetHighPrecisionUtcTime();
                 return;
             }
 

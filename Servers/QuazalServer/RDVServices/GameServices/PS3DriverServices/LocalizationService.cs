@@ -1,10 +1,9 @@
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
-    [RMCService(RMCProtocolId.LocalizationService)]
+    [RMCService((ushort)RMCProtocolId.LocalizationService)]
     public class LocalizationService : RMCServiceBase
     {
         private static string LocaleCode = "en-US";

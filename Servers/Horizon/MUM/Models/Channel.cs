@@ -5,6 +5,7 @@ using Horizon.SERVER;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using CustomLogger;
+using NetworkLibrary.Extension;
 
 namespace Horizon.MUM.Models
 {
@@ -57,9 +58,9 @@ namespace Horizon.MUM.Models
         public MediusWorldStatus WorldStatus;
 
         protected bool _removeChannel = false;
-        public DateTime _timeCreated = Utils.GetHighPrecisionUtcTime();
+        public DateTime _timeCreated = DateTimeUtils.GetHighPrecisionUtcTime();
 
-        public virtual bool ReadyToDestroy => Type == ChannelType.Game && (_removeChannel || ((Utils.GetHighPrecisionUtcTime() - _timeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) && GameCount == 0 && PartyCount == 0);
+        public virtual bool ReadyToDestroy => Type == ChannelType.Game && (_removeChannel || ((DateTimeUtils.GetHighPrecisionUtcTime() - _timeCreated).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds) && GameCount == 0 && PartyCount == 0);
         public virtual int PlayerCount => LocalClients.Count;
         public virtual int GameCount => _games.Count;
         public virtual int PartyCount => _parties.Count;
@@ -455,7 +456,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = source.AccountName,
                         Message = message,
                         MessageType = MediusChatMessageType.Broadcast,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
                 else
@@ -466,7 +467,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = source.AccountName,
                         Message = message,
                         MessageType = MediusChatMessageType.Broadcast,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
             }
@@ -486,7 +487,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = source.AccountName,
                         Message = message,
                         MessageType = MediusChatMessageType.Whisper,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
                 else
@@ -497,7 +498,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = source.AccountName,
                         Message = message,
                         MessageType = MediusChatMessageType.Whisper,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
             }
@@ -517,7 +518,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = source.AccountName,
                         Message = message,
                         MessageType = MediusChatMessageType.Clan,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
                 else
@@ -528,7 +529,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = source.AccountName,
                         Message = message,
                         MessageType = MediusChatMessageType.Clan,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
             }
@@ -552,7 +553,7 @@ namespace Horizon.MUM.Models
                     OriginatorAccountName = "SYSTEM",
                     Message = message,
                     MessageType = MediusChatMessageType.Broadcast,
-                    TimeStamp = Utils.GetUnixTime()
+                    TimeStamp = DateTimeUtils.GetUnixTime()
                 });
             }
             else
@@ -563,7 +564,7 @@ namespace Horizon.MUM.Models
                     OriginatorAccountName = "SYSTEM",
                     Message = message,
                     MessageType = MediusChatMessageType.Broadcast,
-                    TimeStamp = Utils.GetUnixTime()
+                    TimeStamp = DateTimeUtils.GetUnixTime()
                 });
             }
 
@@ -587,7 +588,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = "SYSTEM",
                         Message = message,
                         MessageType = MediusChatMessageType.Broadcast,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
                 else
@@ -598,7 +599,7 @@ namespace Horizon.MUM.Models
                         OriginatorAccountName = "SYSTEM",
                         Message = message,
                         MessageType = MediusChatMessageType.Broadcast,
-                        TimeStamp = Utils.GetUnixTime()
+                        TimeStamp = DateTimeUtils.GetUnixTime()
                     });
                 }
             }

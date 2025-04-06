@@ -118,9 +118,8 @@
                 {
                     _SslStream.Close();
                 }
-                catch (Exception)
+                catch
                 {
-
                 }
             }
 
@@ -130,9 +129,8 @@
                 {
                     _NetworkStream.Close();
                 }
-                catch (Exception)
+                catch
                 {
-
                 }
             }
 
@@ -144,9 +142,8 @@
                     _TcpClient.Dispose();
                     _TcpClient = null;
                 }
-                catch (Exception)
+                catch
                 {
-
                 }
             }
         }

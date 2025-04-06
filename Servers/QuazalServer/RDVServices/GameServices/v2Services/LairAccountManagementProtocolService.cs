@@ -5,7 +5,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.v2Services
 {
-    [RMCService(RMCProtocolId.LairAccountManagementProtocol)]
+    [RMCService((ushort)RMCProtocolId.LairAccountManagementProtocol)]
     public class LairAccountManagementProtocolService : RMCServiceBase
     {
         [RMCMethod(1)]

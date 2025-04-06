@@ -35,7 +35,7 @@ namespace Horizon.MUIS
         private static Dictionary<string, int[]> _appIdGroups = new();
         private static ulong _sessionKeyCounter = 0;
         private static readonly object _sessionKeyCounterLock = _sessionKeyCounter;
-        private static DateTime lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
+        private static DateTime lastConfigRefresh = DateTimeUtils.GetHighPrecisionUtcTime();
         private static DateTime? _lastSuccessfulDbAuth = null;
 
         public static bool started = false;
@@ -46,7 +46,7 @@ namespace Horizon.MUIS
             {
                 // Attempt to authenticate with the db middleware
                 // We do this every 24 hours to get a fresh new token
-                if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
+                if (_lastSuccessfulDbAuth == null || (DateTimeUtils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
                     if (!await HorizonServerConfiguration.Database.Authenticate())
                     {
@@ -56,7 +56,7 @@ namespace Horizon.MUIS
                     }
                     else
                     {
-                        _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
+                        _lastSuccessfulDbAuth = DateTimeUtils.GetHighPrecisionUtcTime();
 
                         // pass to manager
                         await OnDatabaseAuthenticated();
@@ -77,10 +77,10 @@ namespace Horizon.MUIS
                     await Task.WhenAll(UniverseInfoServers.Select(x => x.Tick()));
 
                 // Reload config
-                if ((Utils.GetHighPrecisionUtcTime() - lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
+                if ((DateTimeUtils.GetHighPrecisionUtcTime() - lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
                 {
                     RefreshConfig();
-                    lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
+                    lastConfigRefresh = DateTimeUtils.GetHighPrecisionUtcTime();
                 }
             }
             catch (Exception ex)

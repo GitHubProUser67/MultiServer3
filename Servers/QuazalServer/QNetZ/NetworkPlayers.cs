@@ -8,18 +8,20 @@ namespace QuazalServer.QNetZ
 	{
 		public static uint RVCIDCounter = 0xBB98E;
 
-        private static object lockObject = new();
+        private static readonly object _Lock = new();
 
         public static readonly List<PlayerInfo> Players = new();
 
         public static PlayerInfo? GetPlayerInfoByPID(uint pid)
 		{
-            return Players.Where(pl => pl.PID == pid).FirstOrDefault();
+            lock (_Lock)
+                return Players.Where(pl => pl.PID == pid).FirstOrDefault();
         }
 
 		public static PlayerInfo? GetPlayerInfoByUsername(string userName)
 		{
-            return Players.Where(pl => pl.Name == userName).FirstOrDefault();
+            lock (_Lock)
+                return Players.Where(pl => pl.Name == userName).FirstOrDefault();
         }
 
 		public static PlayerInfo CreatePlayerInfo(QClient connection)
@@ -31,27 +33,32 @@ namespace QuazalServer.QNetZ
                 RVCID = RVCIDCounter++
             };
 
-            Players.Add(plInfo);
+            lock (_Lock)
+                Players.Add(plInfo);
 
-			return plInfo;
-		}
+            return plInfo;
+        }
 
-		public static void PurgeAllPlayers()
+        public static void PurgeAllPlayers()
 		{
-			Players.Clear();
+            lock (_Lock)
+                Players.Clear();
 		}
 
 		public static void DropPlayerInfo(PlayerInfo playerInfo)
 		{
-			LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - dropping player: {playerInfo.Name}");
+            lock (_Lock)
+            {
+                LoggerAccessor.LogWarn($"[Quazal NetworkPlayers] - dropping player: {playerInfo.Name}");
 
-            playerInfo.OnDropped();
-            Players.Remove(playerInfo);
+                playerInfo.OnDropped();
+                Players.Remove(playerInfo);
+            }
         }
 
 		public static void DropPlayers()
 		{
-			lock (lockObject) // Prevents the same action being done multiple times if the loop is very tight.
+			lock (_Lock)
 			{
                 Players.RemoveAll(playerInfo => {
                     if (playerInfo.Client != null)

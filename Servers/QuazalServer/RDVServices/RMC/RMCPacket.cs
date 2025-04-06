@@ -1,6 +1,5 @@
 using CustomLogger;
 using QuazalServer.QNetZ;
-using QuazalServer.QNetZ.Factory;
 using System.Reflection;
 using System.Text;
 
@@ -8,7 +7,7 @@ namespace QuazalServer.RDVServices.RMC
 {
     public class RMCPacket
     {
-        public RMCProtocolId proto;
+        public ushort proto;
         public bool isRequest;
         public bool success;
         public uint error;
@@ -42,11 +41,11 @@ namespace QuazalServer.RDVServices.RMC
                 try
                 {
                     if ((b & 0x7F) != 0x7F)
-                        proto = (RMCProtocolId)(b & 0x7F);
+                        proto = (ushort)(b & 0x7F);
                     else
                     {
                         b = Helper.ReadU16(m);
-                        proto = (RMCProtocolId)b;
+                        proto = b;
                     }
                 }
                 catch

@@ -11,7 +11,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
     /// Game session 
     ///		Implements the sessions responsible for the gameplay process
     /// </summary>
-    [RMCService(RMCProtocolId.GameSessionService)]
+    [RMCService((ushort)RMCProtocolId.GameSessionService)]
     public class GameSessionService : RMCServiceBase
     {
         static uint GameSessionCounter = 22110;

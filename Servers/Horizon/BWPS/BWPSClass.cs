@@ -2,6 +2,7 @@ using CustomLogger;
 using Newtonsoft.Json;
 using Horizon.BWPS.Config;
 using Horizon.LIBRARY.Common;
+using NetworkLibrary.Extension;
 
 namespace Horizon.BWPS
 {
@@ -27,7 +28,7 @@ namespace Horizon.BWPS
         {
             try
             {
-                DateTime lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
+                DateTime lastConfigRefresh = DateTimeUtils.GetHighPrecisionUtcTime();
 
                 LoggerAccessor.LogInfo("**************************************************");
                 string datetime = DateTime.Now.ToString("MMMM/dd/yyyy hh:mm:ss tt");

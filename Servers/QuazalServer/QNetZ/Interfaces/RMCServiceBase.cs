@@ -24,7 +24,7 @@ namespace QuazalServer.QNetZ.Interfaces
 			return factory.GetServiceMethodById(GetType(), methodId);
 		}
 
-		protected void SendRMCCall<T>(QClient client, RMCProtocolId protoId, uint methodId, T requestData) where T : class
+		protected void SendRMCCall<T>(QClient client, ushort protoId, uint methodId, T requestData) where T : class
 		{
 			if (Context != null)
                 RMC.SendRMCCall(Context.Handler, client, protoId, methodId, new RMCPRequestDDL<T>(requestData));

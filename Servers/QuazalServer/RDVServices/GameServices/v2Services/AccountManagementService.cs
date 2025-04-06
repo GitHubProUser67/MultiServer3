@@ -9,7 +9,7 @@ using RDVServices;
 
 namespace QuazalServer.RDVServices.GameServices.v2Services
 {
-    [RMCService(RMCProtocolId.AccountManagementService)]
+    [RMCService((ushort)RMCProtocolId.AccountManagementService)]
     public class AccountManagementService : RMCServiceBase
     {
         [RMCMethod(1)]
