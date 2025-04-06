@@ -1,14 +1,13 @@
 using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
     /// <summary>
     /// User friends service
     /// </summary>
-    [RMCService(RMCProtocolId.PersistentStoreService)]
+    [RMCService((ushort)RMCProtocolId.PersistentStoreService)]
     public class PersistentStoreService : RMCServiceBase
     {
         [RMCMethod(1)]

@@ -8,7 +8,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
     /// <summary>
     /// User friends service
     /// </summary>
-    [RMCService(RMCProtocolId.PersistentStoreService)]
+    [RMCService((ushort)RMCProtocolId.PersistentStoreService)]
     public class PersistentStoreService : RMCServiceBase
     {
         [RMCMethod(1)]

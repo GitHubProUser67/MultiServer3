@@ -6,6 +6,7 @@ using System.Data;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using NetworkLibrary.Extension;
 
 namespace Horizon.LIBRARY.libAntiCheat.Models
 {
@@ -68,9 +69,9 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
         protected DateTime? utcTimeEmpty;
         protected bool destroyed = false;
 
-        public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
+        public uint Time => (uint)(DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
-        public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
+        public virtual bool ReadyToDestroy => WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
         public Game(ClientObject client, IMediusRequest createGame, Channel chatChannel, DMEObject dmeServer)
         {
@@ -89,7 +90,7 @@ namespace Horizon.LIBRARY.libAntiCheat.Models
 
             Id = IdCounter++;
 
-            utcTimeCreated = Utils.GetHighPrecisionUtcTime();
+            utcTimeCreated = DateTimeUtils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
             DMEServer = dmeServer;
             ChatChannel = chatChannel;

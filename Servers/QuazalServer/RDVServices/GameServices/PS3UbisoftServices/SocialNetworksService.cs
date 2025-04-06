@@ -4,7 +4,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 {
-    [RMCService(RMCProtocolId.SocialNetworksService)]
+    [RMCService((ushort)RMCProtocolId.SocialNetworksService)]
     public class SocialNetworksService : RMCServiceBase
     {
         [RMCMethod(1)]

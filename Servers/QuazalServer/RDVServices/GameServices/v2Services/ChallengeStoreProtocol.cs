@@ -8,7 +8,7 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
     /// <summary>
 	/// Challenge store service
 	/// </summary>
-	[RMCService(RMCProtocolId.ChallengeStoreProtocol)]
+	[RMCService((ushort)RMCProtocolId.ChallengeStoreProtocol)]
     public class ChallengeStoreProtocol : RMCServiceBase
     {
         [RMCMethod(1)]

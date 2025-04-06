@@ -104,10 +104,11 @@
 
         #region Private-Members
 
+        internal HttpListenerResponse _Response = null;
+        internal Stream _OutputStream = null;
+
         private HttpRequestBase _Request = null;
         private HttpListenerContext _Context = null;
-        private HttpListenerResponse _Response = null;
-        private Stream _OutputStream = null;
         private bool _HeadersSet = false;
         private bool _KeepAliveData = true;
 

@@ -151,7 +151,7 @@ namespace MultiSocks.Aries.Model
             foreach (var info in infos) target.Connection?.SendMessage(info);
         }
 
-        public override void RemoveUser(AriesUser user)
+        public override bool RemoveUser(AriesUser? user)
         {
             base.RemoveUser(user);
             if (Room.Users != null)
@@ -186,6 +186,7 @@ namespace MultiSocks.Aries.Model
 
             Room.BroadcastPopulation();
             Room.RemoveChallenges(user);
+            return true;
         }
     }
 }

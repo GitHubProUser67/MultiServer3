@@ -4,7 +4,6 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
@@ -12,7 +11,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
     /// Hermes match making service
     ///		Implements pre-game match making lobbies/gatherings (also known as Party buses)
     /// </summary>
-    [RMCService(RMCProtocolId.MatchMakingService)]
+    [RMCService((ushort)RMCProtocolId.MatchMakingService)]
     class MatchMakingService : RMCServiceBase
     {
         static uint GatheringIdCounter = 39000;

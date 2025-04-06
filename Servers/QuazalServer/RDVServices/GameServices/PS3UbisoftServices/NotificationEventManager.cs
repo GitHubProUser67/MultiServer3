@@ -5,7 +5,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 {
-    [RMCService(RMCProtocolId.NotificationEventManager)]
+    [RMCService((ushort)RMCProtocolId.NotificationEventManager)]
     public class NotificationEventManager : RMCServiceBase
     {
         [RMCMethod(1)]

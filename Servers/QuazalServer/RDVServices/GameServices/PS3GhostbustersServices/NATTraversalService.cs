@@ -8,7 +8,7 @@ using System.Net;
 
 namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
 {
-    [RMCService(RMCProtocolId.NATTraversalService)]
+    [RMCService((ushort)RMCProtocolId.NATTraversalService)]
     public class NATTraversalService : RMCServiceBase
     {
         [RMCMethod(1)]
@@ -34,7 +34,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
                                 { "RVCID", (int)thisClient.PlayerInfo.RVCID }
                             });
 
-                        SendRMCCall(qclient, RMCProtocolId.NATTraversalService, 2, thisClientURL);
+                        SendRMCCall(qclient, (ushort)RMCProtocolId.NATTraversalService, 2, thisClientURL);
                     }
                 }
             }

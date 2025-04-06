@@ -9,7 +9,7 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
     {
         private readonly static Dictionary<string, string> DriverSanFransiscoPCResponse = new Dictionary<string, string>()
         {
-            { "SandboxUrl",                     @"prudp:/address=pdc-lb-rdv-prod01.ubisoft.com;port=60105;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrl",                     @"prudp:/address=pdc-lb-rdv-prod01.ubisoft.com;port=60105"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv01.ubisoft.com:60105"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},

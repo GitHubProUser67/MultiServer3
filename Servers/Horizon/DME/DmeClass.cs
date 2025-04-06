@@ -37,9 +37,9 @@ namespace Horizon.DME
         public static TcpServer TcpServer = new();
         public static MediusPluginsManager Plugins = new(HorizonServerConfiguration.PluginsFolder);
 
-        private static DateTime _timeLastPluginTick = Utils.GetHighPrecisionUtcTime();
+        private static DateTime _timeLastPluginTick = DateTimeUtils.GetHighPrecisionUtcTime();
 
-        private static DateTime _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
+        private static DateTime _lastConfigRefresh = DateTimeUtils.GetHighPrecisionUtcTime();
         private static DateTime? _lastSuccessfulDbAuth = null;
 
         public static bool started = false;
@@ -70,7 +70,7 @@ namespace Horizon.DME
 
                 // Attempt to authenticate with the db middleware
                 // We do this every 24 hours to get a fresh new token
-                if (_lastSuccessfulDbAuth == null || (Utils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
+                if (_lastSuccessfulDbAuth == null || (DateTimeUtils.GetHighPrecisionUtcTime() - _lastSuccessfulDbAuth.Value).TotalHours > 24)
                 {
                     if (!await HorizonServerConfiguration.Database.Authenticate())
                     {
@@ -98,7 +98,7 @@ namespace Horizon.DME
                     }
                     else
                     {
-                        _lastSuccessfulDbAuth = Utils.GetHighPrecisionUtcTime();
+                        _lastSuccessfulDbAuth = DateTimeUtils.GetHighPrecisionUtcTime();
 
                         // refresh app settings
                         await RefreshAppSettings();
@@ -113,19 +113,19 @@ namespace Horizon.DME
                 await HandleInMessages();
 
                 // Tick plugins
-                if ((Utils.GetHighPrecisionUtcTime() - _timeLastPluginTick).TotalMilliseconds > Settings.PluginTickIntervalMs)
+                if ((DateTimeUtils.GetHighPrecisionUtcTime() - _timeLastPluginTick).TotalMilliseconds > Settings.PluginTickIntervalMs)
                 {
-                    _timeLastPluginTick = Utils.GetHighPrecisionUtcTime();
+                    _timeLastPluginTick = DateTimeUtils.GetHighPrecisionUtcTime();
                     await Plugins.Tick();
                 }
 
                 await HandleOutMessages();
 
                 // Reload config
-                if ((Utils.GetHighPrecisionUtcTime() - _lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
+                if ((DateTimeUtils.GetHighPrecisionUtcTime() - _lastConfigRefresh).TotalMilliseconds > Settings.RefreshConfigInterval)
                 {
                     RefreshConfig();
-                    _lastConfigRefresh = Utils.GetHighPrecisionUtcTime();
+                    _lastConfigRefresh = DateTimeUtils.GetHighPrecisionUtcTime();
                 }
             }
             catch (Exception ex)
@@ -169,7 +169,7 @@ namespace Horizon.DME
                     if (manager.CheckMASConnectivity())
                         OutRequestsTasks.Add(manager.HandleOutgoingMessages());
                 }
-                else if (!manager.IsAuthenticated && (Utils.GetHighPrecisionUtcTime() - manager.TimeLostConnection)?.TotalSeconds > Settings.ClientReconnectInterval)
+                else if (!manager.IsAuthenticated && (DateTimeUtils.GetHighPrecisionUtcTime() - manager.TimeLostConnection)?.TotalSeconds > Settings.ClientReconnectInterval)
                     OutRequestsTasks.Add(manager.Start());
             }
             foreach (var manager in MPSManagers)
@@ -179,7 +179,7 @@ namespace Horizon.DME
                     if (manager.Value.CheckMPSConnectivity())
                         OutRequestsTasks.Add(manager.Value.HandleOutgoingMessages());
                 }
-                else if ((Utils.GetHighPrecisionUtcTime() - manager.Value.TimeLostConnection)?.TotalSeconds > Settings.ClientReconnectInterval)
+                else if ((DateTimeUtils.GetHighPrecisionUtcTime() - manager.Value.TimeLostConnection)?.TotalSeconds > Settings.ClientReconnectInterval)
                 {
                     int applicationId = manager.Key;
 

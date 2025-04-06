@@ -43,7 +43,7 @@ namespace NetworkLibrary.AdBlocker
                         // Exclude invalid lines on the webpage.
                         if (!line.StartsWith("#") && !line.StartsWith("<") && !line.StartsWith("&"))
                         {
-                            string[] splitedLine = line.Trim().Replace("\t", string.Empty).Split(" ");
+                            string[] splitedLine = line.Trim().Replace("\t", string.Empty).Split(' ');
                             if (splitedLine.Length >= 2 && IPAddress.TryParse(splitedLine[0], out IPAddress targetIp) && targetIp != null)
                                 UrlsDic.TryAdd(splitedLine[1], targetIp);
                         }

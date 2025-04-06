@@ -171,9 +171,11 @@ namespace SVO
 #if DEBUG
             LoggerAccessor.LogInfo($"[SVO] - Connection received (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
+            ctx.Response.KeepAlive = SVOServerConfiguration.EnableKeepAlive;
             try
             {
                 bool isAllowed = false;
+                string fullurl = ctx.Request.Url.ToString();
                 string absolutepath = ctx.Request.Url.AbsolutePath;
                 string clientip = ctx.Request.RemoteEndPoint.Address.ToString();
                 int clientport = ctx.Request.RemoteEndPoint.Port;
@@ -191,7 +193,7 @@ namespace SVO
                         LoggerAccessor.LogInfo($"[SVO] - Client - {clientip}:{clientport} Requested the SVO Server while not being allowed!");
                     else
                     {
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip}:{clientport} Requested the SVO Server with URL : {ctx.Request.Url}");
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip}:{clientport} Requested the SVO Server with URL : {fullurl}");
                         isAllowed = true;
                     }
                 }
@@ -309,6 +311,24 @@ namespace SVO
                 }
                 else
                     ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+
+                if (ctx.Response.StatusCode < 400)
+                    LoggerAccessor.LogInfo($"[SVO] - {clientip}:{clientport} -> {ctx.Response.StatusCode}");
+                else
+                {
+                    switch (ctx.Response.StatusCode)
+                    {
+                        case (int)System.Net.HttpStatusCode.NotFound:
+                        case (int)System.Net.HttpStatusCode.NotImplemented:
+                        case (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable:
+                            LoggerAccessor.LogWarn($"[SVO] - {clientip}:{clientport} -> {ctx.Response.StatusCode}");
+                            break;
+
+                        default:
+                            LoggerAccessor.LogError($"[SVO] - {clientip}:{clientport} -> {ctx.Response.StatusCode}");
+                            break;
+                    }
+                }
             }
             catch (HttpListenerException e)
             {
@@ -328,13 +348,23 @@ namespace SVO
                 ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
 
+            if (!ctx.Response.KeepAlive)
+            {
+				try
+                {
+                    ctx.Request.InputStream.Close();
+                }
+                catch
+                {
+                }
+            }
+
             try
             {
                 ctx.Response.OutputStream.Close();
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // outputstream has been disposed already.
             }
             ctx.Response.Close();
 #if DEBUG

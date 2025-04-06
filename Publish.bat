@@ -1,5 +1,5 @@
 @echo off
-@echo MultiServer publisher script 23/02/2025
+@echo MultiServer publisher script 03/04/2025
 @echo.
 
 @echo Cleaning up directories:
@@ -86,6 +86,8 @@ endlocal
 
 @echo Cleaning up temp build files and directories:
 for /d /r . %%d in (bin,obj,".vs") do @if exist "%%d" rd /s/q "%%d"
+
+streams.exe -s -d
 
 @echo.
 

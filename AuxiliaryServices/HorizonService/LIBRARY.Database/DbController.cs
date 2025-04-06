@@ -2583,7 +2583,7 @@ namespace Horizon.LIBRARY.Database
 
                     invite.ResponseMessage = message;
                     invite.ResponseStatus = responseStatus;
-                    invite.ResponseTime = (int)Utils.GetUnixTime();
+                    invite.ResponseTime = (int)DateTimeUtils.GetUnixTime();
 
                     // handle accept
                     if (responseStatus == 1)
@@ -2602,7 +2602,7 @@ namespace Horizon.LIBRARY.Database
                         InvitationId = inviteId,
                         Response = responseStatus,
                         ResponseMessage = message,
-                        ResponseTime = (int)Utils.GetUnixTime()
+                        ResponseTime = (int)DateTimeUtils.GetUnixTime()
                     })).IsSuccessStatusCode;
                 }
             }

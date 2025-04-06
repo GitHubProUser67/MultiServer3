@@ -28,7 +28,7 @@ namespace NetworkLibrary.Extension
             }
 
             // Add the new element to the last position
-            newArray[^1] = newElement;
+            newArray[newArray.Length - 1] = newElement;
 
             return newArray;
         }

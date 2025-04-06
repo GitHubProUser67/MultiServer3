@@ -5,8 +5,7 @@ using Horizon.DME.PluginArgs;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Horizon.PluginManager;
-using Horizon.LIBRARY.Common;
-using System;
+using NetworkLibrary.Extension;
 
 namespace Horizon.DME.Models
 {
@@ -353,7 +352,7 @@ namespace Horizon.DME.Models
             }
 
             player.HasJoined = true;
-            UtcLastJoined = Utils.GetHighPrecisionUtcTime();
+            UtcLastJoined = DateTimeUtils.GetHighPrecisionUtcTime();
 
             // Plugin
             DmeClass.Plugins.OnEvent(PluginEvent.DME_PLAYER_ON_JOINED, new OnPlayerArgs()

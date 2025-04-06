@@ -5,7 +5,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 {
-    [RMCService(RMCProtocolId.GameSessionExService)]
+    [RMCService((ushort)RMCProtocolId.GameSessionExService)]
     public class GameSessionExService : RMCServiceBase
     {
         [RMCMethod(1)]

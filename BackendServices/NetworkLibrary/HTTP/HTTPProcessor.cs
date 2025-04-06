@@ -14,7 +14,6 @@ using System.Web;
 using System.Text.Json;
 using NetworkLibrary.Extension;
 using Ionic.Exploration;
-
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #else
@@ -635,9 +634,12 @@ namespace NetworkLibrary.HTTP
 #if NET7_0_OR_GREATER
             try
             {
-                HttpResponseMessage response = new HttpClient().GetAsync(url).Result;
-                response.EnsureSuccessStatusCode();
-                return response.Content.ReadAsStringAsync().Result;
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = client.GetAsync(url).Result;
+                    response.EnsureSuccessStatusCode();
+                    return response.Content.ReadAsStringAsync().Result;
+                }
             }
             catch
             {
@@ -647,7 +649,8 @@ namespace NetworkLibrary.HTTP
             try
             {
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                return new WebClient().DownloadStringTaskAsync(url).Result;
+                using (WebClient client = new WebClient())
+                    return client.DownloadString(url);
 #pragma warning restore
             }
             catch
@@ -704,8 +707,7 @@ namespace NetworkLibrary.HTTP
 
                     client.Headers[HttpRequestHeader.ContentType] = ContentType;
 
-                    // Send POST request
-                    return client.UploadStringTaskAsync(url, postData).Result;
+                    return client.UploadString(url, postData);
                 }
 #pragma warning restore
             }

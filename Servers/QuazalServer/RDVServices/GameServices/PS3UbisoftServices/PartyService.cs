@@ -10,7 +10,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
     /// Hermes party service
     ///		Additional layer to the Match making service AND a game session
     /// </summary>
-    [RMCService(RMCProtocolId.PartyService)]
+    [RMCService((ushort)RMCProtocolId.PartyService)]
     class PartyService : RMCServiceBase
     {
         [RMCMethod(1)]

@@ -1,4 +1,3 @@
-using CustomLogger;
 using EndianTools;
 using System;
 using System.Collections.Generic;
@@ -10,48 +9,12 @@ using System.Threading.Tasks;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #endif
-#if NETCORE3_0_OR_GREATER
-using System.Runtime.Intrinsics.X86;
-#endif
 
 namespace NetworkLibrary.Extension
 {
     public static class InternetProtocolUtils
     {
         private static object _InternalLock = new object();
-
-        public static void GetIPInfos(string ipAddress, byte? cidrPrefixLength, bool detailed = false)
-        {
-            if (cidrPrefixLength == null || cidrPrefixLength.Value > 32 || cidrPrefixLength.Value < 8)
-            {
-                LoggerAccessor.LogError($"[IPUtils] - GetIPInfos - Invalid CIDR prefix! {(cidrPrefixLength.HasValue ? cidrPrefixLength.Value.ToString() : "null")}");
-                return;
-            }
-
-            LoggerAccessor.LogDebug("[IPUtils] - Network Details:");
-            LoggerAccessor.LogDebug($"[IPUtils] - IP Address:{ipAddress}");
-
-            byte[] ipBytes = IPAddress.Parse(ipAddress).GetAddressBytes();
-
-            LoggerAccessor.LogDebug($"[IPUtils] - Is Private:{IsPrivateIpAddress(ipBytes)}");
-
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(ipBytes);
-
-            uint subnetMask = GetSubnetMask(cidrPrefixLength.Value);
-            uint networkAddress = BitConverter.ToUInt32(ipBytes, 0) & subnetMask;
-            uint broadcastAddress = networkAddress | ~subnetMask;
-
-            LoggerAccessor.LogDebug($"[IPUtils] - Subnet Mask:{ConvertToIpAddress(subnetMask)}");
-
-            if (detailed)
-            {
-                LoggerAccessor.LogDebug($"[IPUtils] - CIDR Prefix Length:{cidrPrefixLength.Value}");
-                LoggerAccessor.LogDebug($"[IPUtils] - Network Address:{ConvertToIpAddress(networkAddress)}");
-                LoggerAccessor.LogDebug($"[IPUtils] - Broadcast Address:{ConvertToIpAddress(broadcastAddress)}");
-                LoggerAccessor.LogDebug($"[IPUtils] - Number of Hosts:{CalculateNumberOfHosts(subnetMask)}");
-            }
-        }
 
         /// <summary>
         /// Get the public IP of the server.
@@ -62,15 +25,21 @@ namespace NetworkLibrary.Extension
         /// <returns>A nullable string.</returns>
         public static string GetPublicIPAddress(bool allowipv6 = false, bool ipv6urlformat = false)
         {
+            const string icanhazipUrl = "http://icanhazip.com/";
+            const string icanhazipIpv4Url = "http://ipv4.icanhazip.com/";
+
 #if NET7_0_OR_GREATER
             try
             {
-                HttpResponseMessage response = new HttpClient().GetAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result;
-                response.EnsureSuccessStatusCode();
-                string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
-                if (ipv6urlformat && allowipv6 && result.Length > 15)
-                    return $"[{result}]";
-                return result;
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = client.GetAsync(allowipv6 ? icanhazipUrl : icanhazipIpv4Url).Result;
+                    response.EnsureSuccessStatusCode();
+                    string result = response.Content.ReadAsStringAsync().Result.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
+                    if (ipv6urlformat && allowipv6 && result.Length > 15)
+                        return $"[{result}]";
+                    return result;
+                }
             }
             catch
             {
@@ -79,12 +48,15 @@ namespace NetworkLibrary.Extension
             try
             {
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                string result = new WebClient().DownloadStringTaskAsync(allowipv6 ? "http://icanhazip.com/" : "http://ipv4.icanhazip.com/").Result
+                using (WebClient client = new WebClient())
+                {
+                    string result = client.DownloadString(allowipv6 ? icanhazipUrl : icanhazipIpv4Url)
 #pragma warning restore
                     .Replace("\r\n", string.Empty).Replace("\n", string.Empty).Trim();
-                if (ipv6urlformat && allowipv6 && result.Length > 15)
-                    return $"[{result}]";
-                return result;
+                    if (ipv6urlformat && allowipv6 && result.Length > 15)
+                        return $"[{result}]";
+                    return result;
+                }
             }
             catch
             {
@@ -95,45 +67,66 @@ namespace NetworkLibrary.Extension
         }
 
         /// <summary>
-        /// Get the local IP of the server.
-        /// <para>Obtiens l'IP locale du server.</para>
-        /// </summary>
-        /// <param name="allowipv6">Allow IPV6 format.</param>
-        /// <returns>A nullable IPAddress.</returns>
-        public static IPAddress GetLocalIPAddress(bool allowipv6 = false)
+		/// Get all server IP addresses
+		/// </summary>
+		/// <returns>All IPv4/IPv6 addresses of this machine</returns>
+		public static IPAddress[] GetLocalIPAddresses(bool allowipv6 = false)
         {
-            try
+            List<IPAddress> IPs = new List<IPAddress>();
+            if (NetworkInterface.GetIsNetworkAvailable())
             {
-                if (NetworkInterface.GetIsNetworkAvailable())
+                try
                 {
-                    // Find the first valid interface with the desired IP version.
-                    foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces()
-#if NET5_0_OR_GREATER
-                        .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.Contains("virtual", StringComparison.InvariantCultureIgnoreCase)))
-#else
-                        .Where(n => n.OperationalStatus == OperationalStatus.Up && !n.Description.ToLower().Contains("virtual")))
-#endif
+                    foreach ((NetworkInterface Netif, UnicastIPAddressInformation ipa) in
+                                     from NetworkInterface Netif in NetworkInterface.GetAllNetworkInterfaces()
+                                     .Where(item => item.OperationalStatus == OperationalStatus.Up)
+                                     from ipa in Netif.GetIPProperties().UnicastAddresses
+                                     select (Netif, ipa))
                     {
-                        IPInterfaceProperties properties = networkInterface.GetIPProperties();
-
-                        // Filter out non-IPv4 or non-IPv6 addresses based on the allowIPv6 parameter, and excluse localhost results.
-                        IEnumerable<IPAddress> addresses = allowipv6
-                            ? properties.UnicastAddresses.Where(addr => addr.Address != IPAddress.Loopback && addr.Address.ToString() != "::1").Select(addr => addr.Address)
-                            : properties.UnicastAddresses
-                                .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork && addr.Address != IPAddress.Loopback)
-                                .Select(addr => addr.Address);
-
-                        // If there is at least one address, return the first one
-                        if (addresses.Any())
-                            return addresses.First();
+                        if (ipa.Address.AddressFamily == AddressFamily.InterNetwork || (allowipv6 && ipa.Address.AddressFamily == AddressFamily.InterNetworkV6))
+                            IPs.Add(ipa.Address);
                     }
                 }
+                catch
+                {
+                    // On Android 13+ the GetAllNetworkInterfaces() may not work and throw NetworkInformationException or something.
+                    // http://www.win3x.org/win3board/viewtopic.php?p=206998#p206998
+                    // https://www.cyberforum.ru/xamarin/thread3032822.html
+                    // https://stackoverflow.com/questions/6803073/get-local-ip-address/27376368#27376368
+                    // Not well tested.
+                    try
+                    {
+                        using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                        {
+                            socket.Connect("8.8.8.8", 65530);
+                            IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                            IPAddress ipa = endPoint.Address;
+                            if (!allowipv6 && ipa.AddressFamily == AddressFamily.InterNetworkV6)
+                                ipa = ipa.MapToIPv4();
+                            IPs.Add(ipa);
+                        }
+                    }
+                    catch { }
+                }
             }
-            catch
-            {
-            }
+            IPs.Add(IPAddress.Parse("10.0.2.2")); //QEMU, SheepShaver, Basilisk II emulators host system IP address (SLIRP)
+            return IPs.ToArray();
+        }
 
-            return null;
+        /// <summary>
+        /// Check if IP is inside LAN (behind router)
+        /// </summary>
+        /// <param name="address">The IP Address to check</param>
+        /// <returns><c>True</c> if it's local address or <c>False</c> if it's from Internet</returns>
+        public static bool IsLanIP(IPAddress address)
+        {
+            Ping ping = new Ping();
+            var rep = ping.Send(address, 100, new byte[] { 1 }, new PingOptions()
+            {
+                DontFragment = true,
+                Ttl = 1
+            });
+            return rep.Status != IPStatus.TtlExpired && rep.Status != IPStatus.TimedOut && rep.Status != IPStatus.TimeExceeded;
         }
 
         public static Task<bool> TryGetServerIP(out string extractedIP, bool allowipv6 = false)
@@ -143,7 +136,7 @@ namespace NetworkLibrary.Extension
             if (!NetworkLibraryConfiguration.EnableServerIpAutoNegotiation)
             {
                 isPublic = NetworkLibraryConfiguration.UsePublicIp;
-                extractedIP = isPublic ? GetPublicIPAddress(allowipv6) ?? NetworkLibraryConfiguration.FallbackServerIp : GetLocalIPAddress(allowipv6).ToString() ?? NetworkLibraryConfiguration.FallbackServerIp;
+                extractedIP = isPublic ? GetPublicIPAddress(allowipv6) ?? NetworkLibraryConfiguration.FallbackServerIp : GetLocalIPAddresses(allowipv6).First().ToString();
                 return Task.FromResult(isPublic);
             }
             else
@@ -182,7 +175,7 @@ namespace NetworkLibrary.Extension
                             }
                             catch // Failed to connect to public ip, so we fallback to local IP.
                             {
-                                ServerIP = GetLocalIPAddress(true).ToString();
+                                ServerIP = GetLocalIPAddresses(true).First().ToString();
 
                                 try
                                 {
@@ -191,7 +184,7 @@ namespace NetworkLibrary.Extension
                                 }
                                 catch // Failed to connect to local ip, trying IPV4 only as a last resort.
                                 {
-                                    ServerIP = GetLocalIPAddress().ToString();
+                                    ServerIP = GetLocalIPAddresses().First().ToString();
                                 }
                             }
                         }
@@ -208,7 +201,7 @@ namespace NetworkLibrary.Extension
                         }
                         catch // Failed to connect to public ip, so we fallback to local IP.
                         {
-                            ServerIP = GetLocalIPAddress().ToString();
+                            ServerIP = GetLocalIPAddresses().First().ToString();
                         }
                     }
                 }
@@ -274,83 +267,9 @@ namespace NetworkLibrary.Extension
             return BitConverter.ToUInt32(bytes, 0);
         }
 
-        public static byte? GetLocalSubnet()
-        {
-            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                // Skip loopback and tunnel interfaces
-                if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
-                    nic.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
-                    continue;
-
-                foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
-                {
-                    // Get only IPv4 addresses
-                    if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
-                        return (byte)SubnetMaskToCIDR(ip.IPv4Mask);
-                }
-            }
-
-            return null;
-        }
-
         private static string ConvertToIpAddress(uint ip)
         {
             return new IPAddress(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ip) : ip)).ToString();
-        }
-
-        private static bool IsPrivateIpAddress(byte[] ipBytes)
-        {
-            // Check for private IP ranges
-            return // 10.0.0.0/8
-                ipBytes[0] == 10 ||
-                // 172.16.0.0/12
-                ipBytes[0] == 172 && ipBytes[1] >= 16 && ipBytes[1] <= 31 ||
-                // 192.168.0.0/16
-                ipBytes[0] == 192 && ipBytes[1] == 168;
-        }
-
-        private static uint GetSubnetMask(byte cidrPrefixLength)
-        {
-            // Use bit shifting to generate subnet mask
-            return cidrPrefixLength == 0 ? 0 : 0xFFFFFFFF << 32 - cidrPrefixLength;
-        }
-
-        private static uint SubnetMaskToCIDR(IPAddress subnetMask)
-        {
-            uint cidr = 0;
-
-            foreach (byte b in subnetMask.GetAddressBytes())
-            {
-                cidr += CountSetBits(b);
-            }
-
-            return cidr;
-        }
-
-        private static uint CountSetBits(uint value)
-        {
-            // Use the Popcnt intrinsic if available
-#if NETCORE3_0_OR_GREATER
-            if (Popcnt.IsSupported)
-                return Popcnt.PopCount(value);
-#endif
-
-            // Fallback method to count set bits if Popcnt is not supported
-            uint count = 0;
-
-            while (value != 0)
-            {
-                count++;
-                value &= value - 1;
-            }
-
-            return count;
-        }
-
-        private static double CalculateNumberOfHosts(uint subnetMask)
-        {
-            return Math.Pow(2, 32 - CountSetBits(subnetMask)) - 2;
         }
     }
 }
