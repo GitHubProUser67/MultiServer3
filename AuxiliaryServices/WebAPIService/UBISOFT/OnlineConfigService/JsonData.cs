@@ -65,6 +65,19 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
+        
+        private readonly static Dictionary<string, string> GhostReconOnlinePCResponse = new Dictionary<string, string>()
+        {
+            { "SandboxUrl",                     @"prudp:/address=lb-rdv-as-prod01.ubisoft.com;port=21221"},
+            { "SandboxUrlWS",                   @"ne1-z3-as-rdv06.ubisoft.com:21215"},
+            { "uplay_DownloadServiceUrl",       @"https://secure.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
+            { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.0.1/"},
+            { "uplay_WebServiceBaseUrl",        @"https://secure.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+        };
+
 
 
         private readonly static Dictionary<string, string> AC3PS3Response = new Dictionary<string, string>()
@@ -264,6 +277,16 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
                     break;
                 case "18a7f5db34d34b118c1a0b8eeb517fd7":
                     foreach (var v in GhostReconFutureSoliderPS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
+                        });
+                    }
+                    break;
+                case "23ad683803a0457cabce83f905811dbc":
+                    foreach (var v in GhostReconOnlinePCResponse)
                     {
                         list.Add(new OnlineConfigEntry
                         {
