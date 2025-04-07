@@ -13,7 +13,7 @@ namespace MultiSocks.Aries.Messages
 
             client.SendMessage(new PgetOut()
             {
-                USER = client.User.Username
+                USER = "TEMP"
             });
             
             client.SendMessage(new PresOut()
