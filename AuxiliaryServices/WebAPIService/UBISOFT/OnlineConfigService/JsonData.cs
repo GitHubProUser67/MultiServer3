@@ -78,7 +78,18 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"https://secure.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-
+        private readonly static Dictionary<string, string> ACRevelationsPS3Response = new Dictionary<string, string>()
+        {
+            { "SandboxUrlPS3",                  @"prudp:/address=lb-ne1-z02-rdv-ac.ubisoft.com;port=21067;serviceid=UP0001-BLUS30808_00"},
+            { "SandboxUrlWS",                   @"ne1-z2-ac-rdv04.ubisoft.com:21065"},
+            { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
+            { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
+            { "uplay_MovieBaseUrl",             @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
+            { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+        };
 
         private readonly static Dictionary<string, string> AC3PS3Response = new Dictionary<string, string>()
         {
@@ -237,6 +248,16 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
                     break;
                 case "90a8c600b48142629f1e102133e18398":
                     foreach (var v in AC3PS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
+                        });
+                    }
+                    break;
+                case "1d0a2b0e95c649a6a473f5754e2126d2":
+                    foreach (var v in ACRevelationsPS3Response)
                     {
                         list.Add(new OnlineConfigEntry
                         {
