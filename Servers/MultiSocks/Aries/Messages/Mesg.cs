@@ -18,7 +18,7 @@ namespace MultiSocks.Aries.Messages
             PlusMesg mesg = new()
             {
                 N = user?.PersonaName,
-                T = TEXT,
+                T = TEXT ?? string.Empty,
             };
 
             //where is this message going
