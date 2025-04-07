@@ -37,7 +37,7 @@ namespace MultiSocks.Blaze.Components.Redirector
                     });
             }
 
-            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddress().ToString();
+            string ip = MultiSocksServerConfiguration.UsePublicIPAddress ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
 
             return Task.FromResult(new ServerInstanceInfo()
             {

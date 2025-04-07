@@ -30,7 +30,7 @@ namespace WebAPIService.ILoveSony
 
                         #region Resistance Fall of Man EULA
                         case "/i_love_sony/legal/UP9000-BCUS98107_00/1":
-                            return MyResistanceEula.ILoveSonyEula(PostData, HTTPProcessor.ExtractBoundary(ContentType));
+                            return MyResistanceEula.ILoveSonyEula();
                         #endregion
 
                         default:    

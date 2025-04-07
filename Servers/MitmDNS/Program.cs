@@ -187,7 +187,7 @@ class Program
         if (MitmDNSServerConfiguration.PublicIpFallback)
             DNSResolver.ServerIp = InternetProtocolUtils.GetPublicIPAddress();
         else
-            DNSResolver.ServerIp = InternetProtocolUtils.GetLocalIPAddress().ToString();
+            DNSResolver.ServerIp = InternetProtocolUtils.GetLocalIPAddresses().ToString();
 
         if (Server == null)
             Server = new(Environment.ProcessorCount * 4);

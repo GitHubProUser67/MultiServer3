@@ -215,7 +215,7 @@ namespace MitmDNS
                             if (MitmDNSServerConfiguration.PublicIpFallback)
                                 IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
                             else
-                                IP = InternetProtocolUtils.GetLocalIPAddress();
+                                IP = InternetProtocolUtils.GetLocalIPAddresses().First();
                         }
                         break;
                     }
@@ -224,7 +224,7 @@ namespace MitmDNS
                         if (MitmDNSServerConfiguration.PublicIpFallback)
                             IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
                         else
-                            IP = InternetProtocolUtils.GetLocalIPAddress();
+                            IP = InternetProtocolUtils.GetLocalIPAddresses().First();
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }
