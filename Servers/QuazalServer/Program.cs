@@ -32,7 +32,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
                         Tuple.Create(61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
                         Tuple.Create(61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
-                        Tuple.Create(61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
+                        //Tuple.Create(61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
                         Tuple.Create(31080, "b417OVR", "PS3UbisoftServices"), // TOPGUNPS3
                         //Tuple.Create(60001, "ridfebb9", "RockBand3Services"), // RB3
                         //Tuple.Create(21032, "8dtRv2oj", "PCUbisoftServices"), // GRO
@@ -60,7 +60,7 @@ public static class QuazalServerConfiguration
                         Tuple.Create(61131, 61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
                         Tuple.Create(61133, 61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
                         Tuple.Create(61137, 61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
-                        Tuple.Create(61139, 61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
+                        //Tuple.Create(61139, 61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
                         Tuple.Create(31001, 31000, "k0ltsebj", "PS3UbisoftServices"), // TOPGUNPS3
                         Tuple.Create(30160, 30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
                         Tuple.Create(30560, 30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
