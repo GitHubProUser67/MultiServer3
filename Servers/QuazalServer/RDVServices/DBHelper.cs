@@ -40,7 +40,7 @@ namespace RDVServices
 
                     break;
                 default:
-					LoggerAccessor.LogError($"[DbHelper] - Unknwon: {serviceClass} Class passed to the database!");
+					LoggerAccessor.LogError($"[DbHelper] - Unknown: {serviceClass} Class passed to the database!");
 					break;
 			}
 
