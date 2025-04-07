@@ -161,23 +161,6 @@ namespace MultiSocks.Blaze.Components.Util
             });
         }
 
-        public override Task<NullStruct> SetClientMetricsAsync(ClientMetrics request, BlazeRpcContext context)
-        {
-#if DEBUG
-            LoggerAccessor.LogInfo($"[Blaze] - ClientMetrics: Blaze Flags         : {request.mBlazeFlags}");
-            LoggerAccessor.LogInfo($"[Blaze] - ClientMetrics: Device Info         : {request.mDeviceInfo}");
-            LoggerAccessor.LogInfo($"[Blaze] - ClientMetrics: Flags               : {request.mFlags}");
-            LoggerAccessor.LogInfo($"[Blaze] - ClientMetrics: Last Result Code    : {request.mLastRsltCode}");
-            LoggerAccessor.LogInfo($"[Blaze] - ClientMetrics: Nat Type            : {request.mNatType}");
-            LoggerAccessor.LogInfo($"[Blaze] - ClientMetrics: UPNP Status         : {request.mStatus}");
-            LoggerAccessor.LogInfo($"[Blaze] - ClientMetrics: WAN IP Addr         : {request.mWanIpAddr}");
-#endif
-            return Task.FromResult(new NullStruct()
-            {
-
-            });
-        }
-
         public override Task<FetchConfigResponse> FetchClientConfigAsync(FetchClientConfigRequest request, BlazeRpcContext context)
         {
 #if DEBUG
@@ -212,7 +195,7 @@ namespace MultiSocks.Blaze.Components.Util
                     }
                     else
                     {
-                        LoggerAccessor.LogWarn($"File not found! Path expected: {fileBF4PathFull}");
+                        LoggerAccessor.LogWarn($"File not found! Path expected: {fileME3PathFull}");
                     }
                     break;
                 case "ME3_DATA":

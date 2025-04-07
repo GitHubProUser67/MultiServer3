@@ -30,7 +30,6 @@ namespace MultiSocks.Aries
         private readonly AbstractAriesServer? RedirectoNFSMWA124_PAL;
         private readonly AbstractAriesServer? RedirectorNascarThunder04_NTSC;
         private readonly AbstractAriesServer? RedirectorMarvelNemesis06_NTSC;
-        private readonly AbstractAriesServer? RedirectorTigerWoods06_NTSC;
         private readonly AbstractAriesServer? RedirectorNASCAR08_PS3;
         private readonly AbstractAriesServer? RedirectorNASCAR09_PS3;
         private readonly AbstractAriesServer? RedirectorHASBROFAMILYGAMENIGHT_PS3;
@@ -53,7 +52,6 @@ namespace MultiSocks.Aries
         private readonly AbstractAriesServer? FightNightR2_NTSCMatchmaker;
         private readonly AbstractAriesServer? Fifa06_NTSC_Matchmaker;
         private readonly AbstractAriesServer? MaddenNFL06_NTSC_Matchmaker;
-        private readonly AbstractAriesServer? TigerWoods06_NTSC_Matchmaker;
         private readonly AbstractAriesServer? NFSMWA124_PAL_Matchmaker;
         private readonly AbstractAriesServer? MarvelNemesis_NTSC_Matchmaker;
         private readonly AbstractAriesServer? SimsMatchmaker;
@@ -326,18 +324,6 @@ namespace MultiSocks.Aries
             {
                 LoggerAccessor.LogError($"[Redirector] Marvel Nemesis - Rise of the Imperfects NTSC Failed to start! Exception: {ex}");
             }
-            #endregion
-
-            #region Tiger Woods PGA Tour 06
-            try
-            {
-                RedirectorTigerWoods06_NTSC = new RedirectorServer(30200, ListenIP, 20301, "TWPGA-PS2-2006", "PS2");
-                LoggerAccessor.LogInfo($"[Redirector] Tiger Woods PGA Tour 06 NTSC Started!");
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[Redirector] Tiger Woods PGA Tour 06 NTSC Failed to start! Exception: {ex}");
-            }
 
             #endregion
 
@@ -483,16 +469,6 @@ namespace MultiSocks.Aries
             catch (Exception ex)
             {
                 LoggerAccessor.LogError($"[Burnout Revenge Matchmaker] Failed to start! Exception: {ex}");
-            }
-
-
-            try
-            {
-                TigerWoods06_NTSC_Matchmaker = new MatchmakerServer(20301, ListenIP, new List<Tuple<string, bool>>());
-            }
-            catch (Exception ex)
-            {
-                LoggerAccessor.LogError($"[Tiger Woods NTSC Matchmaker] Failed to start! Exception: {ex}");
             }
 
             try
@@ -653,7 +629,6 @@ namespace MultiSocks.Aries
                     RedirectorBOPULTIMATEBOX_PC?.Dispose();
                     Redirector007EverythingOrNothing_NTSC?.Dispose();
                     RedirectorMarvelNemesis06_NTSC?.Dispose();
-                    RedirectorTigerWoods06_NTSC?.Dispose();
                     RedirectorNascarThunder04_NTSC?.Dispose();
                     RedirectorNASCAR08_PS3?.Dispose();
                     RedirectorNASCAR09_PS3?.Dispose();
@@ -681,7 +656,6 @@ namespace MultiSocks.Aries
                     NascarThunder04_NTSC_Matchmaker?.Dispose();
                     MaddenNFL06_NTSC_Matchmaker?.Dispose();
                     MarvelNemesis_NTSC_Matchmaker?.Dispose();
-                    TigerWoods06_NTSC_Matchmaker?.Dispose();
                     NCAAMM06_NTSC_Matchmaker?.Dispose();
                     NFSMWA124_PAL_Matchmaker?.Dispose();
                     HASBROFAMILYGAMENIGHTPS3Matchmaker?.Dispose();
