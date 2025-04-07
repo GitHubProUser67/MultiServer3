@@ -2010,10 +2010,10 @@ namespace Horizon.SERVER.Medius
                         // Check the client isn't already logged in
                         if (ExsitingClient != null && ExsitingClient.IsLoggedIn)
                         {
-                            data.ClientObject.Queue(new MediusAccountLoginResponse()
+                            data.ClientObject.Queue(new MediusTicketLoginResponse()
                             {
                                 MessageID = ticketLoginRequest.MessageID,
-                                StatusCode = MediusCallbackStatus.MediusAccountLoggedIn
+                                StatusCodeTicketLogin = MediusCallbackStatus.MediusAccountLoggedIn
                             });
 
                             break;

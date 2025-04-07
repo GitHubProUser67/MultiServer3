@@ -76,16 +76,10 @@ namespace MultiSocks.Aries.Messages
                     game.BroadcastPopulation(mc);
                 }
                 else
-                {
-                    LoggerAccessor.LogError("Game is null");
-                    // TODO SEND DIRTYSOCKS ERROR!
-                }
+                    client.SendMessage(new GcreDupl());
             }
             else
-            {
-                LoggerAccessor.LogError("One of the game variables is null!");
-                // TODO SEND DIRTYSOCKS ERROR!
-            }
+                client.SendMessage(new GcreInvp());
         }
     }
 }
