@@ -40,7 +40,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// IP of the DME.
         /// </summary>
-        public string DMEIp { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+        public string DMEIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         #endregion
 
         #region PublicIp
@@ -48,7 +48,7 @@ namespace Horizon.DME.Config
         /// By default the server will grab its local ip.
         /// If this is set, it will use its public ip instead.
         /// </summary>
-        public bool UsePublicIp { get; set; } = false;
+        public bool UsePublicIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result;
 
         /// <summary>
         /// If UsePublicIp is set to true, allow overriding and skipping using dyndns's dynamic
@@ -116,7 +116,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Authentication Server.
         /// </summary>
-        public string Ip { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.
@@ -138,7 +138,7 @@ namespace Horizon.DME.Config
         /// <summary>
         /// Ip of the Medius Proxy Server.
         /// </summary>
-        public string Ip { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+        public string Ip { get; set; } = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
 
         /// <summary>
         /// The port that the Proxy Server is bound to.

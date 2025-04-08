@@ -9,6 +9,7 @@
     using SpaceWizards.HttpListener;
     using System.Collections.Generic;
     using NetworkLibrary.Extension;
+    using NetworkLibrary.HTTP;
 
     /// <summary>
     /// Watson webserver.
@@ -131,7 +132,7 @@
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
+                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(InternetProtocolUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
@@ -156,7 +157,7 @@
             _Token = token;
 
             if (Settings.Ssl.Enable)
-                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
+                _HttpListener.SetCertificate(System.Net.IPAddress.Parse(InternetProtocolUtils.GetFirstActiveIPAddress(Settings.Hostname, "0.0.0.0")), Settings.Port, Settings.Ssl.SslCertificate);
 
             _HttpListener.Prefixes.Add(Settings.Prefix);
             _HttpListener.Start();
@@ -694,12 +695,23 @@
                                     }
                                     catch (Exception eInner)
                                     {
-                                        ctx.Response.StatusCode = 500;
-                                        ctx.Response.ContentType = DefaultPages.Pages[500].ContentType;
+                                        System.Net.HttpStatusCode statusCode = System.Net.HttpStatusCode.InternalServerError;
+                                        string htmlPage = await DefaultHTMLPages.GenerateErrorPageAsync(
+                                            statusCode,
+                                            null,
+                                            null,
+                                            null,
+                                            "Watson Webserver",
+                                            "https://github.com/GitHubProUser67/MultiServer3",
+                                            ctx.Request.Destination.Port,
+                                            false,
+                                            eInner).ConfigureAwait(false);
+                                        ctx.Response.StatusCode = (int)statusCode;
+                                        ctx.Response.ContentType = DefaultPages.Pages[(int)statusCode].ContentType;
                                         if (ctx.Response.ChunkedTransfer)
-                                            await ctx.Response.SendChunk(Encoding.UTF8.GetBytes(DefaultPages.Pages[500].Content), true).ConfigureAwait(false);
+                                            await ctx.Response.SendChunk(Encoding.UTF8.GetBytes(htmlPage), true).ConfigureAwait(false);
                                         else
-                                            await ctx.Response.Send(DefaultPages.Pages[500].Content).ConfigureAwait(false);
+                                            await ctx.Response.Send(htmlPage).ConfigureAwait(false);
                                         Events.HandleExceptionEncountered(this, new ExceptionEventArgs(ctx, eInner));
                                     }
                                     finally
@@ -732,6 +744,30 @@
 
                                             if (ctx.Response.ContentLength > 0) Statistics.IncrementSentPayloadBytes(Convert.ToInt64(ctx.Response.ContentLength));
                                             Routes.PostRouting?.Invoke(ctx).ConfigureAwait(false);
+
+                                            if (!listenerCtx.Response.KeepAlive)
+                                            {
+                                                try
+                                                {
+                                                    ctx.Request.Data?.Close();
+                                                }
+                                                catch
+                                                {
+                                                }
+                                            }
+
+                                            // Manually dispose the response if previous methods failed to avoids memory leaks.
+                                            if (!ctx.Response.ResponseSent)
+                                            {
+                                                try
+                                                {
+                                                    ((HttpResponse)ctx.Response)._OutputStream.Close();
+                                                }
+                                                catch
+                                                {
+                                                }
+                                                ((HttpResponse)ctx.Response)._Response.Close();
+                                            }
                                         }
                                     }
 
@@ -751,7 +787,7 @@
                             }
                         }));
 
-                    int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                    int RemoveAtIndex = Task.WaitAny(HttpClientTasks.ToArray(), AwaiterTimeoutInMS, token); //Synchronously Waits up to 500ms for any Task completion
                     if (RemoveAtIndex != -1) //Remove the completed task from the list
                         HttpClientTasks.RemoveAt(RemoveAtIndex);
                 }
@@ -759,6 +795,10 @@
                 #endregion
             }
             catch (TaskCanceledException)
+            {
+
+            }
+            catch (OperationCanceledException)
             {
 
             }

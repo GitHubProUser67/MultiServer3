@@ -10,7 +10,7 @@ namespace MultiSocks.Aries.Messages
 
             client.SKEY = "51ba8aee64ddfacae5baefa6bf61e009";
 
-            OutputCache.Add("SKEY", client.SKEY);
+            OutputCache.Add("SKEY", "$" + client.SKEY);
 
             if (!string.IsNullOrEmpty(context.Project) && context.Project.Contains("BURNOUT5"))
             {

@@ -10,7 +10,6 @@ namespace SSFWServer.Services
     public class SSFWLayoutService
     {
         private string? key;
-        private bool disposedValue;
 
         public SSFWLayoutService(string? key)
         {

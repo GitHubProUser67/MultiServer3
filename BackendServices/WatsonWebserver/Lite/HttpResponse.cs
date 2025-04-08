@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using NetworkLibrary.Extension;
     using WatsonWebserver.Core;
+    using WatsonWebserver.Lite.Extensions;
 
     /// <summary>
     /// Response to an HTTP request.
@@ -145,7 +146,8 @@
                 return await SendInternalAsync(0, null, true, token).ConfigureAwait(false);
 
             byte[] bytes = Encoding.UTF8.GetBytes(data);
-            return await SendInternalAsync(bytes.Length, new MemoryStream(bytes), true, token).ConfigureAwait(false);
+            using (var ms = new MemoryStream(bytes))
+                return await SendInternalAsync(bytes.Length, ms, true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -155,7 +157,8 @@
             if (data == null || data.Length < 1)
                 return await SendInternalAsync(0, null, true, token).ConfigureAwait(false);
 
-            return await SendInternalAsync(data.Length, new MemoryStream(data), true, token).ConfigureAwait(false);
+            using (var ms = new MemoryStream(data))
+                return await SendInternalAsync(data.Length, ms, true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -181,10 +184,13 @@
             {
                 if (chunk == null || chunk.Length < 1) chunk = Array.Empty<byte>();
 
-                byte[] message = ByteUtils.CombineByteArrays(Encoding.UTF8.GetBytes(chunk.Length.ToString("X") + "\r\n"), chunk, Encoding.UTF8.GetBytes("\r\n"));
-                if (isFinal) message = ByteUtils.CombineByteArray(message, Encoding.UTF8.GetBytes("0\r\n\r\n"));
-
-                await SendInternalAsync(message.Length, new MemoryStream(message), isFinal, token).ConfigureAwait(false);
+                using (MemoryStream ms = new MemoryStream())
+                using (HttpResponseContentStream ctwire = new HttpResponseContentStream(ms, ChunkedTransfer))
+                {
+                    ctwire.Write(chunk, 0, chunk.Length);
+                    if (isFinal) ctwire.WriteTerminator();
+                    await SendInternalAsync(ctwire.Length, ms, isFinal, token).ConfigureAwait(false);
+                }
             }
             catch
             {
@@ -459,13 +465,7 @@
                     Headers.Add("Transfer-Encoding", "chunked");
                 }
                 else if (!ProtocolVersion.Contains("HTTP/"))
-                {
-                    try
-                    {
-                        ProtocolVersion = "HTTP/" + double.Parse(ProtocolVersion, CultureInfo.InvariantCulture).ToString().Replace(",", ".");
-                    }
-                    catch { }
-                }
+                    ProtocolVersion = "HTTP/" + double.Parse(ProtocolVersion, CultureInfo.InvariantCulture).ToString().Replace(",", ".");
 
                 if (ServerSentEvents)
                 {
@@ -559,26 +559,18 @@
                     _HeadersSent = true;
                 }
 
-                if (stream != null && stream.CanRead && contentLength > 0)
+                if (stream != null && stream.CanRead)
                 {
-                    using (stream)
-                    {
-                        // We override the bufferSize for large content, else, we murder the CPU.
-                        int bufferSize = contentLength > 8000000 && _StreamBufferSize < 500000 ? 500000 : _StreamBufferSize;
+                    // We override the bufferSize for large content, else, we murder the CPU.
+                    int bufferSize = contentLength > 8000000 && _StreamBufferSize < 500000 ? 500000 : _StreamBufferSize;
 
-                        try
-                        {
-                            // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
-                            if (contentLength > 0)
-                                await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, contentLength, false, token).ConfigureAwait(false);
-                            else
-                                await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, false, token).ConfigureAwait(false);
+                    // Some clients might cut the connection while the data is being copied, this is expected, so we simply ignore failed writes.
+                    if (contentLength > 0)
+                        await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, contentLength, false, token).ConfigureAwait(false);
+                    else
+                        await StreamUtils.CopyStreamAsync(stream, _Stream, bufferSize, false, token).ConfigureAwait(false);
 
-                            // Only flush when there is valid data.
-                            await _Stream.FlushAsync(token).ConfigureAwait(false);
-                        }
-                        catch { }
-                    }
+                    await _Stream.FlushAsync(token).ConfigureAwait(false);
                 }
 
                 if (close)

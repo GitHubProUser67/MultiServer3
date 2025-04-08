@@ -8,7 +8,6 @@ namespace SSFWServer.Services
     public class SSFWAvatarLayoutService
     {
         private string? key;
-        private bool disposedValue;
 
         public SSFWAvatarLayoutService(string sessionid, string? key)
         {
@@ -92,6 +91,5 @@ namespace SSFWServer.Services
                 LoggerAccessor.LogError($"[SSFW] - SSFWUpdateAvatar errored out with this exception - {ex}");
             }
         }
-
     }
 }

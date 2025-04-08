@@ -5,7 +5,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
 {
-    [RMCService(RMCProtocolId.GhostbustersPS3Service)]
+    [RMCService((ushort)RMCProtocolId.GhostbustersPS3Service)]
     public class GhostbustersPS3Service : RMCServiceBase
     {
         [RMCMethod(4)]

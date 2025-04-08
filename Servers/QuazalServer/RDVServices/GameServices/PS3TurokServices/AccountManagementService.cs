@@ -8,7 +8,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3TurokServices
 {
-    [RMCService(RMCProtocolId.AccountManagementService)]
+    [RMCService((ushort)RMCProtocolId.AccountManagementService)]
     public class AccountManagementService : RMCServiceBase
     {
         [RMCMethod(1)]

@@ -1,6 +1,7 @@
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Common.Stream;
+using NetworkLibrary.Extension;
 
 namespace Horizon.RT.Models
 {
@@ -10,7 +11,7 @@ namespace Horizon.RT.Models
         public override RT_MSG_TYPE Id => RT_MSG_TYPE.RT_MSG_SERVER_STARTUP_INFO_NOTIFY;
 
         public byte GameHostType { get; set; } = (byte)MGCL_GAME_HOST_TYPE.MGCLGameHostClientServerAuxUDP;
-        public uint Timebase { get; set; } = Utils.GetUnixTime();
+        public uint Timebase { get; set; } = DateTimeUtils.GetUnixTime();
 
         public byte[] Field1 = Utils.FromString("249433");
         public byte[] Field3 = Utils.FromString("01010100");

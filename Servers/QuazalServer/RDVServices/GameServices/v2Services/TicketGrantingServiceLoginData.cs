@@ -4,17 +4,17 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.DDL;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
-using QuazalServer.RDVServices.RMC;
 using System.Net;
 using Alcatraz.Context.Entities;
 using RDVServices;
+using CustomLogger;
 
 namespace QuazalServer.RDVServices.GameServices.v2Services
 {
     /// <summary>
     /// Authentication service (ticket granting)
     /// </summary>
-    [RMCService(RMCProtocolId.TicketGrantingService)]
+    [RMCService((ushort)RMCProtocolId.TicketGrantingService)]
     public class TicketGrantingServiceLoginData : RMCServiceBase
     {
         [RMCMethod(1)]
@@ -29,15 +29,29 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
                 // create tracking client info
                 PlayerInfo? plInfo = NetworkPlayers.GetPlayerInfoByUsername(userName);
 
-                if (plInfo != null && plInfo.Client != null &&
-                    !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
-                    plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                if (plInfo != null)
                 {
-                    CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
-                    NetworkPlayers.DropPlayerInfo(plInfo);
+                    if (plInfo.Client != null &&
+                        !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
+                        plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                    {
+                        LoggerAccessor.LogWarn($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
+                        return Result(new Login(0)
+                        {
+                            retVal = (uint)ErrorCode.RendezVous_ConcurrentLoginDenied,
+                            pConnectionData = new RVConnectionData()
+                            {
+                                m_urlRegularProtocols = new StationURL("prudp:/")
+                            },
+                            strReturnMsg = string.Empty,
+                            pbufResponse = new byte[] { }
+                        });
+                    }
+                    else
+                        NetworkPlayers.DropPlayerInfo(plInfo);
                 }
 
-                CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName}");
+                LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName}");
 
                 User? dbUser = DBHelper.GetUserByUserName(Context.Handler.Factory.Item1, userName);
                 plInfo = NetworkPlayers.CreatePlayerInfo(Context.Client);
@@ -66,7 +80,7 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
                                     })
                         },
                         strReturnMsg = string.Empty,
-                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey, "h7fyctiuucf")
+                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey)
                     });
                 }
                 else if (dbUser != null && File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Database/RendezVous_v2/account_passwords/{userName}_password.txt"))
@@ -93,7 +107,7 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
                             })
                         },
                         strReturnMsg = string.Empty,
-                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey,
+                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey,
                         File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Database/RendezVous_v2/account_passwords/{userName}_password.txt"))
                     });
                 }
@@ -119,15 +133,29 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
                 // create tracking client info
                 PlayerInfo? plInfo = NetworkPlayers.GetPlayerInfoByUsername(userName);
 
-                if (plInfo != null && plInfo.Client != null &&
-                    !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
-                    plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                if (plInfo != null)
                 {
-                    CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
-                    NetworkPlayers.DropPlayerInfo(plInfo);
+                    if (plInfo.Client != null &&
+                        !plInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
+                        plInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+                    {
+                        LoggerAccessor.LogWarn($"[RMC Authentication] - User login request {userName} was already logged-in - disconnecting...");
+                        return Result(new Login(0)
+                        {
+                            retVal = (uint)ErrorCode.RendezVous_ConcurrentLoginDenied,
+                            pConnectionData = new RVConnectionData()
+                            {
+                                m_urlRegularProtocols = new StationURL("prudp:/")
+                            },
+                            strReturnMsg = string.Empty,
+                            pbufResponse = new byte[] { }
+                        });
+                    }
+                    else
+                        NetworkPlayers.DropPlayerInfo(plInfo);
                 }
 
-                CustomLogger.LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName}");
+                LoggerAccessor.LogInfo($"[RMC Authentication] - User login request {userName}");
 
                 User? dbUser = DBHelper.GetUserByUserName(Context.Handler.Factory.Item1, userName);
                 plInfo = NetworkPlayers.CreatePlayerInfo(Context.Client);
@@ -167,7 +195,7 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
                             })
                         },
                         strReturnMsg = string.Empty,
-                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.ticket).toBuffer(Context.Handler.AccessKey,
+                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey,
                         File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Database/RendezVous_v2/account_passwords/{userName}_password.txt"))
                     });
                 }
@@ -183,7 +211,7 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
         {
             if (Context != null)
             {
-                KerberosTicket kerberos = new(sourcePID, targetPID, Constants.SessionKey, Constants.ticket);
+                KerberosTicket kerberos = new(sourcePID, targetPID, Constants.SessionKey, Constants.TicketData);
 
                 TicketData ticketData = new()
                 {
@@ -191,15 +219,15 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
                 };
 
                 if (sourcePID == 100) // Quazal guest account.
-                    ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
+                    ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey);
                 else
                 {
                     User? dbUser = DBHelper.GetUserByPID(Context.Handler.Factory.Item1, sourcePID);
 
                     if (dbUser != null && File.Exists(QuazalServerConfiguration.QuazalStaticFolder + $"/Database/RendezVous_v2/account_passwords/{dbUser.Username}_password.txt"))
-                        ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Database/RendezVous_v2/account_passwords/{dbUser.Username}_password.txt"));
+                        ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey, File.ReadAllText(QuazalServerConfiguration.QuazalStaticFolder + $"/Database/RendezVous_v2/account_passwords/{dbUser.Username}_password.txt"));
                     else
-                        ticketData.pbufResponse = kerberos.toBuffer(Context.Handler.AccessKey);
+                        ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey);
                 }
 
                 return Result(ticketData);

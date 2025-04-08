@@ -31,7 +31,7 @@ public static class HorizonServerConfiguration
     public static string? BWPSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/bwps.json";
     public static string? NATConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/nat.json";
     public static string MediusAPIKey { get; set; } = NetworkLibrary.Crypto.WebCrypto.GenerateRandomBase64KeyAsync().Result;
-    public static string SSFWUrl { get; set; } = $"http://{IpUtils.GetLocalIPAddress().ToString()}:8080";
+    public static string SSFWUrl { get; set; } = $"http://{(InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddresses().First().ToString())}:8080";
     public static string[]? HTTPSDNSList { get; set; }
 
     public static DbController Database = new(DatabaseConfig);
@@ -127,7 +127,7 @@ public static class HorizonServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         try
         {
@@ -157,6 +157,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "horizon.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static ConcurrentBag<CrudServerHandler>? HTTPBag;
     private static MumServerHandler? MUMServer;
 
@@ -258,12 +259,11 @@ class Program
             LoggerAccessor.LogError(args.Exception);
             args.SetObserved();
         };
-
-        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         GeoIP.Initialize();
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         HorizonServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

@@ -1,6 +1,7 @@
 using CustomLogger;
 using Newtonsoft.Json.Linq;
 using ApacheNet;
+using ApacheNet.PluginManager;
 using System.Runtime;
 using NetworkLibrary.GeoLocalization;
 using System.IO;
@@ -10,7 +11,6 @@ using System;
 using System.Threading.Tasks;
 using NetworkLibrary.AIModels;
 using System.Security.Cryptography;
-using NetworkLibrary.HTTP.PluginManager;
 using System.Reflection;
 using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;
@@ -27,6 +27,7 @@ public static class ApacheNetServerConfiguration
     public static bool DNSAllowUnsafeRequests { get; set; } = true;
     public static bool EnableAdguardFiltering { get; set; } = false;
     public static bool EnableDanPollockHosts { get; set; } = false;
+    public static bool EnableBuiltInPlugins { get; set; } = true;
     public static bool EnableKeepAlive { get; set; } = false;
     public static string HttpVersion { get; set; } = "1.1";
     public static string APIStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwapiroot";
@@ -47,6 +48,7 @@ public static class ApacheNetServerConfiguration
     public static bool RangeHandling { get; set; } = false;
     public static bool ChunkedTransfers { get; set; } = false;
     public static bool DomainFolder { get; set; } = false;
+    public static bool NestedDirectoryReporting { get; set; } = false;
     public static bool NotFoundSuggestions { get; set; } = false;
     public static bool NotFoundWebArchive { get; set; } = false;
     public static int NotFoundWebArchiveDateLimit { get; set; } = 0;
@@ -146,6 +148,7 @@ public static class ApacheNetServerConfiguration
                 new JProperty("allow_unsafe_requests", DNSAllowUnsafeRequests),
                 new JProperty("enable_adguard_filtering", EnableAdguardFiltering),
                 new JProperty("enable_dan_pollock_hosts", EnableDanPollockHosts),
+                new JProperty("enable_builtin_plugins", EnableBuiltInPlugins),
                 new JProperty("enable_keep_alive", EnableKeepAlive),
                 new JProperty("aspnet_redirect_url", ASPNETRedirectUrl),
                 new JProperty("php", new JObject(
@@ -168,6 +171,7 @@ public static class ApacheNetServerConfiguration
                 new JProperty("certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name),
                 new JProperty("default_plugins_port", DefaultPluginsPort),
                 new JProperty("plugins_folder", PluginsFolder),
+                new JProperty("nested_directory_reporting", NestedDirectoryReporting),
                 new JProperty("404_not_found_suggestions", NotFoundSuggestions),
                 new JProperty("404_not_found_web_archive", NotFoundWebArchive),
                 new JProperty("404_not_found_web_archive_date_limit", NotFoundWebArchiveDateLimit),
@@ -199,6 +203,7 @@ public static class ApacheNetServerConfiguration
             DNSAllowUnsafeRequests = GetValueOrDefault(config, "allow_unsafe_requests", DNSAllowUnsafeRequests);
             EnableAdguardFiltering = GetValueOrDefault(config, "enable_adguard_filtering", EnableAdguardFiltering);
             EnableDanPollockHosts = GetValueOrDefault(config, "enable_dan_pollock_hosts", EnableDanPollockHosts);
+            EnableBuiltInPlugins = GetValueOrDefault(config, "enable_builtin_plugins", EnableBuiltInPlugins);
             EnableKeepAlive = GetValueOrDefault(config, "enable_keep_alive", EnableKeepAlive);
             APIStaticFolder = GetValueOrDefault(config, "api_static_folder", APIStaticFolder);
             ASPNETRedirectUrl = GetValueOrDefault(config, "aspnet_redirect_url", ASPNETRedirectUrl);
@@ -215,6 +220,7 @@ public static class ApacheNetServerConfiguration
             HTTPSCertificatePassword = GetValueOrDefault(config, "certificate_password", HTTPSCertificatePassword);
             HTTPSCertificateHashingAlgorithm = new HashAlgorithmName(GetValueOrDefault(config, "certificate_hashing_algorithm", HTTPSCertificateHashingAlgorithm.Name));
             PluginsFolder = GetValueOrDefault(config, "plugins_folder", PluginsFolder);
+            NestedDirectoryReporting = GetValueOrDefault(config, "nested_directory_reporting", NestedDirectoryReporting);
             DefaultPluginsPort = GetValueOrDefault(config, "default_plugins_port", DefaultPluginsPort);
             NotFoundSuggestions = GetValueOrDefault(config, "404_not_found_suggestions", NotFoundSuggestions);
             NotFoundWebArchive = GetValueOrDefault(config, "404_not_found_web_archive", NotFoundWebArchive);
@@ -274,7 +280,7 @@ public static class ApacheNetServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         if (obj != null)
         {
@@ -318,6 +324,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "ApacheNet.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static string DNSconfigMD5 = string.Empty;
     private static Timer? FilesystemTree = null;
     private static Task? DNSThread = null;
@@ -489,12 +496,11 @@ class Program
             LoggerAccessor.LogError(args.Exception);
             args.SetObserved();
         };
-
-        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
         GeoIP.Initialize();
 
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
         ApacheNetServerConfiguration.RefreshVariables(configPath);
 
         if (ApacheNetServerConfiguration.PreferNativeHttpListenerEngine

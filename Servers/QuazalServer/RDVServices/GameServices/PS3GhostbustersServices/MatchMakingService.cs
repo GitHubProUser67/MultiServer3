@@ -12,7 +12,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
     /// Hermes match making service
     ///		Implements pre-game match making lobbies/gatherings (also known as Party buses)
     /// </summary>
-    [RMCService(RMCProtocolId.MatchMakingService)]
+    [RMCService((ushort)RMCProtocolId.MatchMakingService)]
     class MatchMakingService : RMCServiceBase
     {
         static uint GatheringIdCounter = 39000;

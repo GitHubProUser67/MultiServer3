@@ -1,6 +1,7 @@
 using CustomLogger;
 using NetworkLibrary.Extension;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,8 +18,8 @@ namespace ApacheNet
 {
     public static partial class SecureDNSConfigProcessor
     {
-        public static Dictionary<string, DnsSettings> DicRules = new();
-        public static Dictionary<string, DnsSettings> StarRules = new();
+        public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
+        public static ConcurrentDictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
 
         public static void InitDNSSubsystem()
@@ -112,30 +113,12 @@ namespace ApacheNet
                                 // Replace "*" characters with ".*" which means any number of any character for Regexp
                                 domain = domain.Replace("*", ".*");
 
-                                lock (StarRules)
-#if NETCOREAPP2_0_OR_GREATER
-                                    StarRules.TryAdd(domain, dns);
-#else
-                                {
-                                    if (!StarRules.ContainsKey(domain))
-                                        StarRules.Add(domain, dns);
-                                }
-#endif
+                                StarRules.TryAdd(domain, dns);
                             }
                             else
                             {
-                                lock (DicRules)
-                                {
-#if NETCOREAPP2_0_OR_GREATER
-                                    DicRules.TryAdd(domain, dns);
-                                    DicRules.TryAdd("www." + domain, dns);
-#else
-                                    if (!DicRules.ContainsKey(domain))
-                                        DicRules.Add(domain, dns);
-                                    if (!DicRules.ContainsKey("www." + domain))
-                                        DicRules.Add("www." + domain, dns);
-#endif
-                                }
+                                DicRules.TryAdd(domain, dns);
+                                DicRules.TryAdd("www." + domain, dns);
                             }
                         }
                         else
@@ -192,11 +175,8 @@ namespace ApacheNet
                                 dns.Mode = HandleMode.Redirect;
                                 dns.Address = GetIp(match.Groups[1].Value);
 
-                                lock (DicRules)
-                                {
-                                    DicRules.TryAdd(hostname, dns);
-                                    DicRules.TryAdd("www." + hostname, dns);
-                                }
+                                DicRules.TryAdd(hostname, dns);
+                                DicRules.TryAdd("www." + hostname, dns);
 
                                 break;
                             }
@@ -209,7 +189,7 @@ namespace ApacheNet
         #region GetIP
         private static string GetIp(string ip)
         {
-            IPAddress IP = IPAddress.Loopback;
+            IPAddress IP;
 
             switch (Uri.CheckHostName(ip))
             {
@@ -229,16 +209,16 @@ namespace ApacheNet
                         {
                             IP = Dns.GetHostAddresses(ip).FirstOrDefault()?.MapToIPv4() ?? IPAddress.Loopback;
                         }
-                        catch // Host is invalid or non-existant, fallback to local server IP
+                        catch
                         {
-                            IP = IpUtils.GetLocalIPAddress(true);
+                            IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
                         }
                         break;
                     }
                 default:
                     {
-                        IP = IpUtils.GetLocalIPAddress(true);
-                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
+                        IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
+                        LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in SecureDNSConfigProcessor.GetIp()");
                         break;
                     }
             }

@@ -58,7 +58,8 @@ namespace QuazalServer.RDVServices
 
 		public static void SendNotification(QPacketHandlerPRUDP handler, QClient client, NotificationEvent eventData)
 		{
-            RMC.RMC.SendRMCCall(handler, client, RMC.RMCProtocolId.NotificationEventManager, 1, new RMC.RMCPRequestDDL<NotificationEvent>(eventData));
+			const byte NotificationEventManagerProtId = 14; 
+            RMC.RMC.SendRMCCall(handler, client, NotificationEventManagerProtId, 1, new RMC.RMCPRequestDDL<NotificationEvent>(eventData));
 		}
 	}
 }

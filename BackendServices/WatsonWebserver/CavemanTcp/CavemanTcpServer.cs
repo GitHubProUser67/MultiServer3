@@ -1062,6 +1062,16 @@
         }
 
         /// <summary>
+        /// Get direct access to the underlying TcpClient.
+        /// </summary>
+        /// <param name="guid">Client GUID.</param>
+        /// <returns>TcpClient.</returns>
+        public TcpClient GetRawTcpClient(Guid guid)
+        {
+            return GetTcpClient(guid);
+        }
+
+        /// <summary>
         /// Determines if a client is connected by its IP:port.
         /// </summary>
         /// <param name="ipPort">The client IP:port.</param>
@@ -1314,7 +1324,7 @@
 
                     if (!_IsListening && (_Clients.Count >= _Settings.MaxConnections))
                     {
-                        Task.Delay(100).Wait();
+                        Task.Delay(100, _Token).Wait();
                         continue;
                     }
                     else if (!_IsListening)
@@ -1327,7 +1337,7 @@
 
                     while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
                     {
-                        TcpClientTasks.Add(_Listener.AcceptTcpClientAsync().ContinueWith(t => 
+                        TcpClientTasks.Add(_Listener.AcceptTcpClientAsync(_Token).AsTask().ContinueWith(t => 
                         {
                             ClientMetadata client = null;
 
@@ -1403,10 +1413,18 @@
                         }));
                     }
 
-                    int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                    int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS, _Token); //Synchronously Waits up to 500ms for any Task completion
                     if (RemoveAtIndex != -1) //Remove the completed task from the list
                         TcpClientTasks.RemoveAt(RemoveAtIndex);
                 }
+            }
+            catch (TaskCanceledException)
+            {
+
+            }
+            catch (OperationCanceledException)
+            {
+
             }
             catch (ObjectDisposedException)
             {
@@ -1498,22 +1516,24 @@
                         try
                         {
                             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                                , "cavemantcp");
+                                , ".mono");
+                            path = Path.Combine(path, "httplistener");
                             string cert_prefix = _sniDomain + $"-{localEndpoint.Port}";
                             string cert_file = Path.Combine(path, string.Format("{0}.pem", cert_prefix));
                             string pvk_file = Path.Combine(path, string.Format("{0}_privkey.pem", cert_prefix));
                             if (File.Exists(cert_file) && File.Exists(pvk_file))
-                                return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
-                            else
+                                return CertificateHelper.LoadCertificate(cert_file, pvk_file);
+                            cert_file = Path.Combine(path, string.Format("{0}.cer", cert_prefix));
+                            pvk_file = Path.Combine(path, string.Format("{0}.pvk", cert_prefix));
+                            if (File.Exists(cert_file) && File.Exists(pvk_file))
+                                return CertificateHelper.LoadCertificate(cert_file, pvk_file);
+                            string origin_directory = Path.Combine(path, cert_prefix);
+                            if (Directory.Exists(origin_directory))
                             {
-                                string origin_directory = Path.Combine(path, cert_prefix);
-                                if (Directory.Exists(origin_directory))
-                                {
-                                    cert_file = Path.Combine(origin_directory, "Origin Certificate");
-                                    pvk_file = Path.Combine(origin_directory, "Private Key");
-                                    if (File.Exists(cert_file) && File.Exists(pvk_file))
-                                        return CertificateHelper.LoadPemCertificate(cert_file, pvk_file);
-                                }
+                                cert_file = Path.Combine(origin_directory, "Origin Certificate");
+                                pvk_file = Path.Combine(origin_directory, "Private Key");
+                                if (File.Exists(cert_file) && File.Exists(pvk_file))
+                                    return CertificateHelper.LoadCertificate(cert_file, pvk_file);
                             }
                         }
                         catch
@@ -2291,6 +2311,19 @@
 
                 if (!_Ssl) return client.NetworkStream;
                 else return client.SslStream;
+            }
+        }
+
+        private TcpClient GetTcpClient(Guid guid)
+        {
+            lock (_ClientsLock)
+            {
+                if (!_Clients.TryGetValue(guid, out ClientMetadata client))
+                {
+                    throw new KeyNotFoundException("Client with GUID " + guid.ToString() + " not found.");
+                }
+
+                return client.Client;
             }
         }
 

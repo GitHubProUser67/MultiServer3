@@ -6,7 +6,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
-    [RMCService(RMCProtocolId.RichPresenceService)]
+    [RMCService((ushort)RMCProtocolId.RichPresenceService)]
     public class RichPresenceService : RMCServiceBase
     {
         [RMCMethod(1)]

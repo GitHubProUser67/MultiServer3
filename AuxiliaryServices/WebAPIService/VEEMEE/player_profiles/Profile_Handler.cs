@@ -20,13 +20,13 @@ namespace WebAPIService.VEEMEE.player_profiles
                 Dictionary<(string, string), List<string>> lists = new Dictionary<(string, string), List<string>>();
 
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                game = data["game"];
+                game = data["game"].First();
                 if (string.IsNullOrEmpty(game))
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - Profile_Handler:SetPOST - Client tried to push invalid game! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 foreach (var item in data)
                 {
@@ -37,16 +37,16 @@ namespace WebAPIService.VEEMEE.player_profiles
 
                         variables.Add(new Dictionary<string, string>
                         {
-                            { "name", item.Value },
-                            { "type", data[$"type[{index}]"] },
-                            { "value", data[$"value[{index}]"] }
+                            { "name", item.Value.First() },
+                            { "type", data[$"type[{index}]"].First() },
+                            { "value", data[$"value[{index}]"] .First()}
                         });
                     }
                     // Process lists
                     else if (item.Key.StartsWith("list["))
                     {
                         int listIndex = GetIndex(item.Key);
-                        (string, string) listIdentifier = (data[$"list[{listIndex}][name]"], data[$"list[{listIndex}][type]"]);
+                        (string, string) listIdentifier = (data[$"list[{listIndex}][name]"].First(), data[$"list[{listIndex}][type]"].First());
 
                         if (lists.ContainsKey(listIdentifier))
                             continue; // Already processed, skip.
@@ -56,7 +56,7 @@ namespace WebAPIService.VEEMEE.player_profiles
                         // Add values to the list based on value indices
                         foreach (var listItem in data.Where(kvp => kvp.Key.StartsWith($"list[{listIndex}][values]")))
                         {
-                            lists[listIdentifier].Add(listItem.Value);
+                            lists[listIdentifier].Add(listItem.Value.First());
                         }
                     }
                 }
@@ -186,13 +186,13 @@ namespace WebAPIService.VEEMEE.player_profiles
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                game = data["game"];
+                game = data["game"].First();
                 if (string.IsNullOrEmpty(game))
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - Profile_Handler:GetPOST - Client tried to push invalid game! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 switch (game)
                 {

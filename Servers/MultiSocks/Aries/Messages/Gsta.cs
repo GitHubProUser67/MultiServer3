@@ -17,9 +17,6 @@ namespace MultiSocks.Aries.Messages
             {
                 user.CurrentGame.SetGameStatus(true);
 
-                lock (mc.Games)
-                    mc.Games.UpdateGame(user.CurrentGame);
-
                 user.Connection?.SendMessage(this);
 
                 user.SendPlusWho(user, context.Project);

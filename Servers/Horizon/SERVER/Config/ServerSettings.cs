@@ -16,7 +16,7 @@ namespace Horizon.SERVER.Config
         /// <summary>
         /// IP of the MEDIUS.
         /// </summary>
-        public string MEDIUSIp { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+        public string MEDIUSIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         #endregion
 
         #region PublicIp
@@ -24,7 +24,7 @@ namespace Horizon.SERVER.Config
         /// By default the server will grab its local ip.
         /// If this is set, it will use its public ip instead.
         /// </summary>
-        public bool UsePublicIp { get; set; } = false;
+        public bool UsePublicIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result;
 
         /// <summary>
         /// If UsePublicIp is set to true, allow overriding and skipping using dyndns's dynamic
@@ -142,7 +142,7 @@ namespace Horizon.SERVER.Config
         /// Provide the IP, Port and WorldID of the MUM that will control this MLS
         /// (no valid defaults)
         /// </summary>
-        public string MUMIp { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+        public string MUMIp { get; set; } = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         public int MUMPort { get; set; } = 10076;
         public int MUMWorldID { get; set; } = 1;
         #endregion
@@ -153,7 +153,7 @@ namespace Horizon.SERVER.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string? NATIp { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+        public string? NATIp { get; set; } = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
 
         /// <summary>
         /// Port of the NAT server.
@@ -210,7 +210,7 @@ namespace Horizon.SERVER.Config
         /// <summary>
         /// Set the hostname to the ApacheWebServerHostname
         /// </summary>
-        public string MFSTransferURI { get; set; } = $"http://{IpUtils.GetLocalIPAddress()}/";
+        public string MFSTransferURI { get; set; } = $"http://{InternetProtocolUtils.GetLocalIPAddresses().First()}/";
 
         /// <summary>
         /// Max number of download requests in the download queue
@@ -261,7 +261,7 @@ namespace Horizon.SERVER.Config
         // (no valid defaults)
         // Uncomment MUCG params to enable connectivity to MUCG
 
-        public string MUCGServerIP = IpUtils.GetLocalIPAddress().ToString();
+        public string MUCGServerIP = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         public int MUCGServerPort = 10072;
         public int MUCGWorldID = 1;
         #endregion
@@ -295,7 +295,7 @@ namespace Horizon.SERVER.Config
         // IP Address and port of the billing service provider.
         // This is the SCE-RT Product Service if the billing provider is SCE-RT
         // Or the SCEK connection if the provider is SCEK
-        public string BillingProviderIpAddr = IpUtils.GetLocalIPAddress().ToString();
+        public string BillingProviderIpAddr = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         public int BillingServiceProviderPort = 2222;
 
         // Billing security settings
@@ -406,12 +406,12 @@ namespace Horizon.SERVER.Config
         /// <summary>
         /// Tries to patch HTTPS ticketlogin check inside Medius client SDK.
         /// </summary>
-        public bool HttpsSVOCheckPatcher { get; set; } = true;
+        public bool HttpsSVOCheckPatcher { get; set; } = false;
 
         /// <summary>
         /// Enables Memory Poking.
         /// </summary>
-        public bool PokePatchOn { get; set; } = true;
+        public bool PokePatchOn { get; set; } = false;
 
         #region PSHOME
         public bool PlaystationHomeAllowAnyEboot { get; set; } = true;

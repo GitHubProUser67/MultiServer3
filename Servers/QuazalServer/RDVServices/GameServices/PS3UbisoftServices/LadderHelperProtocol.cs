@@ -4,7 +4,7 @@ using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 {
-    [RMCService(RMCProtocolId.LadderHelperProtocol)]
+    [RMCService((ushort)RMCProtocolId.LadderHelperProtocol)]
     public class LadderHelperProtocol : RMCServiceBase
     {
         [RMCMethod(1)]

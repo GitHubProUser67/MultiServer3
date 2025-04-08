@@ -556,7 +556,7 @@ namespace MultiSpy.Servers
 
 				// yeah yeah, this is terrible, but it stops a memory leak :|
 				GC.Collect();
-			} catch (Exception) {
+			} catch {
 			}
 		}
 

@@ -257,6 +257,11 @@ namespace Horizon.SERVER.Medius
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
+                                                        case 0x0016cc6c:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x0016cc6c, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -294,6 +299,11 @@ namespace Horizon.SERVER.Medius
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
+                                                        case 0x0016b4d0:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x0016b4d0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
+                                                            break;
                                                     }
                                                     break;
                                                 default:
@@ -324,6 +334,11 @@ namespace Horizon.SERVER.Medius
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
                                                             break;
+                                                        case 0x001709e0:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x001709e0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
+                                                            break;
                                                     }
                                                     break;
                                                 case "01.86.09":
@@ -346,6 +361,11 @@ namespace Horizon.SERVER.Medius
                                                             // Sets WorldCorePointer.
                                                             if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                                                 data.ClientObject.SetWorldCorePointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
+                                                            break;
+                                                        case 0x0016dac0:
+                                                            // Patches out the forceInvite command.
+                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                                PokeAddress(0x0016dac0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
                                                     break;
@@ -894,9 +914,9 @@ namespace Horizon.SERVER.Medius
                                     // Ensure that we're past the from date
                                     // Ensure that we're before the to date (if set)
                                     if (r.Result.MaintenanceMode.IsActive
-                                         && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
+                                         && DateTimeUtils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                          && (!r.Result.MaintenanceMode.ToDt.HasValue
-                                             || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
+                                             || r.Result.MaintenanceMode.ToDt > DateTimeUtils.GetHighPrecisionUtcTime()))
                                         QueueBanMessage(data, "Server in maintenance mode.");
                                     else
                                     {
@@ -930,9 +950,9 @@ namespace Horizon.SERVER.Medius
                                     // Ensure that we're past the from date
                                     // Ensure that we're before the to date (if set)
                                     if (r.Result.MaintenanceMode.IsActive
-                                         && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
+                                         && DateTimeUtils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                          && (!r.Result.MaintenanceMode.ToDt.HasValue
-                                             || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
+                                             || r.Result.MaintenanceMode.ToDt > DateTimeUtils.GetHighPrecisionUtcTime()))
                                         QueueBanMessage(data, "Server in maintenance mode.");
                                     #endregion
 
@@ -982,9 +1002,9 @@ namespace Horizon.SERVER.Medius
                                         // Ensure that we're past the from date
                                         // Ensure that we're before the to date (if set)
                                         if (r.Result.MaintenanceMode.IsActive
-                                             && Utils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
+                                             && DateTimeUtils.GetHighPrecisionUtcTime() > r.Result.MaintenanceMode.FromDt
                                              && (!r.Result.MaintenanceMode.ToDt.HasValue
-                                                 || r.Result.MaintenanceMode.ToDt > Utils.GetHighPrecisionUtcTime()))
+                                                 || r.Result.MaintenanceMode.ToDt > DateTimeUtils.GetHighPrecisionUtcTime()))
                                             QueueBanMessage(data, "Server in maintenance mode.");
 
                                         #endregion
@@ -1920,8 +1940,8 @@ namespace Horizon.SERVER.Medius
 
                         string accountLoggingMsg = string.Empty;
                         byte[] XI5TicketData = ByteUtils.CombineByteArrays(BitConverter.GetBytes(
-                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), new byte[][] { BitConverter.GetBytes(
-                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size), ticketLoginRequest.TicketData });
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Version) : ticketLoginRequest.Version), BitConverter.GetBytes(
+                            BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ticketLoginRequest.Size) : ticketLoginRequest.Size), ticketLoginRequest.TicketData);
 
                         // Extract the desired portion of the binary data for a npticket 4.0
                         byte[] extractedData = new byte[0x63 - 0x54 + 1];
@@ -1938,13 +1958,16 @@ namespace Horizon.SERVER.Medius
                             extractedData = trimmedData;
                         }
 
+                        XI5Ticket ticker = new XI5Ticket(XI5TicketData);
+
+                        uint NpId = ticker.IssuerId;
                         string UserOnlineId = Encoding.UTF8.GetString(extractedData);
 
                         if (ByteUtils.FindBytePattern(XI5TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                         {
-                            if (MediusClass.Settings.ForceOfficialRPCNSignature && !new XI5Ticket(XI5TicketData).SignedByOfficialRPCN)
+                            if (MediusClass.Settings.ForceOfficialRPCNSignature && !ticker.SignedByOfficialRPCN)
                             {
-                                LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} was caught using an invalid RPCN signature!");
+                                LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} was caught using an invalid RPCN signature!");
 
                                 // Account is banned
                                 // Temporary solution is to tell the client the login failed
@@ -1957,13 +1980,13 @@ namespace Horizon.SERVER.Medius
                                 break;
                             }
 
-                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN";
+                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} logged in and is on RPCN";
                             data.ClientObject.IsOnRPCN = true;
                             UserOnlineId += "@RPCN";
                         }
                         else if (UserOnlineId.EndsWith("@RPCN"))
                         {
-                            LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} was caught using a RPCN suffix while not on it!");
+                            LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} was caught using a RPCN suffix while not on it!");
 
                             // Account is banned
                             // Temporary solution is to tell the client the login failed
@@ -1976,7 +1999,7 @@ namespace Horizon.SERVER.Medius
                             break;
                         }
                         else
-                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on PSN";
+                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} logged in and is on PSN";
 
                         _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), accountLoggingMsg, byte.MinValue);
 
@@ -2818,11 +2841,13 @@ namespace Horizon.SERVER.Medius
                         switch (data.ClientObject.ClientHomeData.Version)
                         {
                             case "01.86.09":
-                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                if (MediusClass.Settings.PokePatchOn)
                                 {
                                     CheatQuery(0x00546cf4, 4, clientChannel);
 
                                     CheatQuery(0x005478dc, 4, clientChannel);
+
+                                    CheatQuery(0x0016cc6c, 4, clientChannel);
                                 }
 
                                 CheatQuery(0x1054e5c0, 4, clientChannel);
@@ -2842,11 +2867,13 @@ namespace Horizon.SERVER.Medius
                         switch (data.ClientObject.ClientHomeData.Version)
                         {
                             case "01.82.09":
-                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                if (MediusClass.Settings.PokePatchOn)
                                 {
                                     CheatQuery(0x00530770, 4, clientChannel);
 
                                     CheatQuery(0x00531370, 4, clientChannel);
+
+                                    CheatQuery(0x0016b4d0, 4, clientChannel);
                                 }
 
                                 CheatQuery(0x1053e160, 4, clientChannel);
@@ -2859,21 +2886,25 @@ namespace Horizon.SERVER.Medius
                         switch (data.ClientObject.ClientHomeData.Version)
                         {
                             case "01.83.12":
-                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                if (MediusClass.Settings.PokePatchOn)
                                 {
                                     CheatQuery(0x0054ac80, 4, clientChannel);
 
                                     CheatQuery(0x00548bc0, 4, clientChannel);
+
+                                    CheatQuery(0x001709e0, 4, clientChannel);
                                 }
 
                                 CheatQuery(0x1054e1c0, 4, clientChannel);
                                 break;
                             case "01.86.09":
-                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                if (MediusClass.Settings.PokePatchOn)
                                 {
                                     CheatQuery(0x00557d8c, 4, clientChannel);
 
                                     CheatQuery(0x00555cb4, 4, clientChannel);
+
+                                    CheatQuery(0x0016dac0, 4, clientChannel);
                                 }
 
                                 CheatQuery(0x1054e358, 4, clientChannel);
@@ -2886,7 +2917,7 @@ namespace Horizon.SERVER.Medius
                         switch (data.ClientObject.ClientHomeData.Version)
                         {
                             case "01.86.09":
-                                if (!data.ClientObject.IsOnRPCN && MediusClass.Settings.PokePatchOn)
+                                if (MediusClass.Settings.PokePatchOn)
                                 {
                                     CheatQuery(0x006f59b8, 4, clientChannel);
                                     CheatQuery(0x002aa960, 4, clientChannel);

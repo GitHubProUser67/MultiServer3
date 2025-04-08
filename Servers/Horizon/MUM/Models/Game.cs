@@ -8,6 +8,7 @@ using System.Data;
 using Horizon.PluginManager;
 using Horizon.HTTPSERVICE;
 using Horizon.SERVER;
+using NetworkLibrary.Extension;
 
 namespace Horizon.MUM.Models
 {
@@ -76,11 +77,11 @@ namespace Horizon.MUM.Models
 
         protected string? accountIdsAtStart;
 
-        public uint Time => (uint)(Utils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
+        public uint Time => (uint)(DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeCreated).TotalMilliseconds;
 
         public bool Destroyed = false;
 
-        public virtual bool ReadyToDestroy => !Destroyed && WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
+        public virtual bool ReadyToDestroy => !Destroyed && WorldStatus == MediusWorldStatus.WorldClosed && utcTimeEmpty.HasValue && (DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeEmpty)?.TotalSeconds > 1f;
 
         public Game(ClientObject client, IMediusRequest createGame, ClientObject? dmeServer)
         {
@@ -101,8 +102,8 @@ namespace Horizon.MUM.Models
             else if (createGame is MediusServerCreateGameOnSelfRequest0 r6)
                 FromCreateGameOnSelfRequest0(r6);
 
-            utcTimeCreated = Utils.GetHighPrecisionUtcTime();
-            utcTimeTick = Utils.GetHighPrecisionUtcTime();
+            utcTimeCreated = DateTimeUtils.GetHighPrecisionUtcTime();
+            utcTimeTick = DateTimeUtils.GetHighPrecisionUtcTime();
             utcTimeEmpty = null;
             DMEServer = dmeServer;
             GameChannel!.RegisterGame(this);
@@ -480,11 +481,11 @@ namespace Horizon.MUM.Models
 
             // Auto close when everyone leaves or if host fails to connect after timeout time if not a p2p game.
             if ((GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer) ? (!utcTimeEmpty.HasValue && !LocalClients.Any(x => x.InGame)
-                && (hasHostJoined || (Utils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
-                : (!utcTimeEmpty.HasValue && (Utils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+                && (hasHostJoined || (DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
+                : (!utcTimeEmpty.HasValue && (DateTimeUtils.GetHighPrecisionUtcTime() - utcTimeTick).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).GameTimeoutSeconds))
             {
                 LoggerAccessor.LogWarn("AUTO CLOSING WORLD");
-                utcTimeEmpty = Utils.GetHighPrecisionUtcTime();
+                utcTimeEmpty = DateTimeUtils.GetHighPrecisionUtcTime();
                 await SetWorldStatus(MediusWorldStatus.WorldClosed);
             }
         }
@@ -633,8 +634,10 @@ namespace Horizon.MUM.Models
             lock (LocalClients)
             {
                 LocalClients.RemoveAll(x => x.Client == client);
-
-                if (MigrateHost && MediusVersion >= 109)
+				
+                if (LocalClients.Count == 0)
+                    EndGame(appid).Wait();
+                else if (MigrateHost && MediusVersion >= 109)
                     Host = LocalClients.FirstOrDefault()?.Client;
             }
         }
@@ -660,7 +663,7 @@ namespace Horizon.MUM.Models
             if (report.MediusWorldID != MediusWorldId)
                 return;
 
-            utcTimeTick = Utils.GetHighPrecisionUtcTime();
+            utcTimeTick = DateTimeUtils.GetHighPrecisionUtcTime();
 
             string? previousGameName = GameName;
 
@@ -740,7 +743,7 @@ namespace Horizon.MUM.Models
             if (report.MediusWorldID != MediusWorldId)
                 return;
 
-            utcTimeTick = Utils.GetHighPrecisionUtcTime();
+            utcTimeTick = DateTimeUtils.GetHighPrecisionUtcTime();
 
             string? previousGameName = GameName;
 
@@ -811,7 +814,7 @@ namespace Horizon.MUM.Models
             if (report.MediusWorldID != MediusWorldId)
                 return;
 
-            utcTimeTick = Utils.GetHighPrecisionUtcTime();
+            utcTimeTick = DateTimeUtils.GetHighPrecisionUtcTime();
 
             string? previousGameName = GameName;
 
@@ -960,7 +963,7 @@ namespace Horizon.MUM.Models
             {
                 case MediusWorldStatus.WorldActive:
                     {
-                        utcTimeStarted = Utils.GetHighPrecisionUtcTime();
+                        utcTimeStarted = DateTimeUtils.GetHighPrecisionUtcTime();
                         accountIdsAtStart = GetActivePlayerList();
 
                         // Send to plugins
@@ -969,7 +972,7 @@ namespace Horizon.MUM.Models
                     }
                 case MediusWorldStatus.WorldClosed:
                     {
-                        utcTimeEnded = Utils.GetHighPrecisionUtcTime();
+                        utcTimeEnded = DateTimeUtils.GetHighPrecisionUtcTime();
 
                         // Send to plugins
                         await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_GAME_ON_ENDED, new OnGameArgs() { Game = this });

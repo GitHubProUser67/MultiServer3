@@ -43,7 +43,7 @@ namespace MultiSpy.Servers
 						_socket = null;
 					}
 				}
-			} catch (Exception) {
+			} catch {
 			}
 		}
 

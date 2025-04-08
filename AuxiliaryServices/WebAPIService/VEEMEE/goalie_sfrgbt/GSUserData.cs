@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using NetworkLibrary.HTTP;
 
@@ -18,16 +20,16 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "d2us7A2EcU2PuBuz")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - goalie_sfrgbt - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
-                guest = data["guest"];
-                goals = data["goals"];
-                duration = data["duration"];
+                psnid = data["psnid"].First();
+                guest = data["guest"].First();
+                goals = data["goals"].First();
+                duration = data["duration"].First();
 
                 string directoryPath = string.Empty;
                 string filePath = string.Empty;
@@ -49,7 +51,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                 {
                     try
                     {
-                        GSScoreBoardData.UpdateScoreBoard(psnid, duration, int.Parse(goals));
+                        GSScoreBoardData.UpdateScoreBoard(psnid, duration, (float)double.Parse(goals, CultureInfo.InvariantCulture));
                         GSScoreBoardData.UpdateAllTimeScoreboardXml(apiPath, global); // We finalized edit, so we issue a write.
                         GSScoreBoardData.UpdateTodayScoreboardXml(apiPath, global, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
@@ -58,12 +60,22 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                         // Not Important
                     }
 
+                    string XmlData = File.ReadAllText(filePath);
+
+                    // Check for invalid profiles.
+                    if (XmlData.StartsWith("<scores></scores>"))
+                    {
+                        XmlData = $"<scores><entry><psnid>{psnid}</psnid><goals>{goals}</goals><duration>{duration}</duration><paid_goals></paid_goals></entry></scores>";
+                        File.WriteAllText(filePath, XmlData);
+                        return XmlData;
+                    }
+
                     // Load the XML string into an XmlDocument
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml($"<xml>{File.ReadAllText(filePath)}</xml>");
 
                     // Find the <goals> element
-                    XmlElement goalsElement = xmlDoc.SelectSingleNode("/xml/goals") as XmlElement;
+                    XmlElement goalsElement = xmlDoc.SelectSingleNode("/xml/scores/entry/goals") as XmlElement;
 
                     if (goalsElement != null)
                     {
@@ -71,7 +83,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                         goalsElement.InnerText = goals;
 
                         // Find the <duration> element
-                        XmlElement durationElement = xmlDoc.SelectSingleNode("/xml/duration") as XmlElement;
+                        XmlElement durationElement = xmlDoc.SelectSingleNode("/xml/scores/entry/duration") as XmlElement;
 
                         if (durationElement != null)
                         {
@@ -86,7 +98,7 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                 }
                 else
                 {
-                    string XmlData = $"<scores></scores><entry></entry><psnid>{psnid}</psnid><goals>{goals}</goals><duration>{duration}</duration><paid_goals></paid_goals>";
+                    string XmlData = $"<scores><entry><psnid>{psnid}</psnid><goals>{goals}</goals><duration>{duration}</duration><paid_goals></paid_goals></entry></scores>";
                     File.WriteAllText(filePath, XmlData);
                     return XmlData;
                 }
@@ -103,13 +115,13 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "d2us7A2EcU2PuBuz")
                 {
                     CustomLogger.LoggerAccessor.LogError("[VEEMEE] - goalie_sfrgbt - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 string directoryPath = string.Empty;
                 string filePath = string.Empty;
@@ -126,10 +138,16 @@ namespace WebAPIService.VEEMEE.goalie_sfrgbt
                 }
 
                 if (File.Exists(filePath))
-                    return File.ReadAllText(filePath);
+                {
+                    string XmlData = File.ReadAllText(filePath);
+
+                    // Check for invalid profiles.
+                    if (!XmlData.StartsWith("<scores></scores>"))
+                        return XmlData;
+                }
             }
 
-            return null;
+            return $"<scores><entry><psnid>{psnid}</psnid><goals>0</goals><duration>0</duration><paid_goals></paid_goals></entry></scores>";
         }
     }
 }

@@ -2,6 +2,7 @@ using System.IO;
 using Horizon.RT.Common;
 using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Common.Stream;
+using NetworkLibrary.Extension;
 
 namespace Horizon.RT.Models
 {
@@ -18,7 +19,7 @@ namespace Horizon.RT.Models
         public MessageId MessageID { get; set; }
 
         public MediusCallbackStatus StatusCode;
-        public int GMT_time = (int)Utils.GetUnixTime();
+        public int GMT_time = (int)DateTimeUtils.GetUnixTime();
         public MediusTimeZone Local_server_timezone;
 
         public override void Deserialize(MessageReader reader)

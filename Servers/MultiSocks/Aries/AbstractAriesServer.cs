@@ -13,19 +13,25 @@ namespace MultiSocks.Aries
         public abstract Dictionary<string, Type?> NameToClass { get; }
         public string? Project = null;
         public string? SKU = null;
-        public string listenIP = string.Empty;
+        public ushort listenPort;
+        public string listenIP;
         public int SessionID = 1;
         public VulnerableCertificateGenerator? SSLCache = null;
-        public ConcurrentList<AriesClient> DirtySocksClients = new();
+        public List<AriesClient> DirtySocksClients = new();
         public TcpListener? Listener;
 
+        private List<Task> TcpClientTasks = new();
+        private readonly int AwaiterTimeoutInMS = 500;
+        private int MaxConcurrentListeners = 10;
+        private volatile bool threadActive;
         private bool secure = false;
         private bool WeakChainSignedRSAKey = false;
         private string CN = string.Empty;
-        private Thread ListenerThread;
+        private Thread? ListenerThread;
 
         public AbstractAriesServer(ushort port, string listenIP, string? Project = null, string? SKU = null, bool secure = false, string CN = "", bool WeakChainSignedRSAKey = false)
         {
+            listenPort = port;
             this.listenIP = listenIP;
             this.secure = secure;
             this.WeakChainSignedRSAKey = WeakChainSignedRSAKey;
@@ -36,78 +42,106 @@ namespace MultiSocks.Aries
             if (secure)
                 SSLCache = new();
 
-            Listener = new TcpListener(IPAddress.Any, port);
-            Listener.Start();
-
             ListenerThread = new Thread(RunLoop);
             ListenerThread.Start();
         }
 
-        private async void RunLoop()
+        private void RunLoop()
         {
+            threadActive = true;
+
+            object _sync = new object();
+
             try
             {
-                while (true)
+                Listener = new TcpListener(IPAddress.Any, listenPort);
+                Listener.Start();
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError("[AbstractAriesServer] - An Exception Occured while starting the DirtySock listener: " + e.Message);
+                threadActive = false;
+                return;
+            }
+
+            LoggerAccessor.LogInfo($"[AbstractAriesServer] - DirtySock Server started on port {listenPort}...");
+
+            // wait for requests
+            while (threadActive)
+            {
+                lock (_sync)
                 {
-                    //blocks til we get a new connection
-                    TcpClient? client = Listener?.AcceptTcpClient();
-                    if (client != null && client.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
-                    {
-                        if (remoteEndPoint.AddressFamily == AddressFamily.InterNetworkV6)
-                            AddClient(new AriesClient(this, client, secure, CN, WeakChainSignedRSAKey)
-                            {
-                                ADDR = remoteEndPoint.Address.MapToIPv4().ToString(),
-                                SessionID = SessionID++
-                            });
-                        else
-                            AddClient(new AriesClient(this, client, secure, CN, WeakChainSignedRSAKey)
-                            {
-                                ADDR = remoteEndPoint.Address.ToString(),
-                                SessionID = SessionID++
-                            });
-                    }
-                    await Task.Delay(1);
+                    if (!threadActive)
+                        break;
                 }
-            }
-            catch (IOException ex)
-            {
-                if (ex.InnerException is SocketException socketException && socketException.ErrorCode != 995 &&
-                    socketException.SocketErrorCode != SocketError.ConnectionReset && socketException.SocketErrorCode != SocketError.ConnectionAborted
-                    && socketException.SocketErrorCode != SocketError.ConnectionRefused)
-                    LoggerAccessor.LogError($"TCP DirtySock listener thrown a IOException! (IOException: {ex})");
-            }
-            catch (SocketException ex)
-            {
-                if (ex.ErrorCode != 995 && ex.SocketErrorCode != SocketError.ConnectionReset && ex.SocketErrorCode != SocketError.ConnectionAborted 
-                    && ex.SocketErrorCode != SocketError.ConnectionRefused && ex.SocketErrorCode != SocketError.Interrupted)
-                    LoggerAccessor.LogError($"TCP DirtySock listener thrown a SocketException! (SocketException: {ex})");
-            }
-            catch (Exception ex)
-            {
-                if (ex.HResult != 995) LoggerAccessor.LogError($"TCP DirtySock listener thrown an assertion! (Exception: {ex})");
+
+                while (TcpClientTasks.Count < MaxConcurrentListeners) //Maximum number of concurrent listeners
+                    TcpClientTasks.Add(Listener!.AcceptTcpClientAsync().ContinueWith(t =>
+                    {
+                        TcpClient? client = null;
+                        try
+                        {
+                            if (!t.IsCompleted)
+                                return;
+
+                            client = t.Result;
+                        }
+                        catch
+                        {
+                        }
+                        _ = Task.Run(() => {
+                            if (client != null && client.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
+                            {
+#if DEBUG
+                                LoggerAccessor.LogInfo($"[AbstractAriesServer] - Connection received (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+#endif
+                                if (remoteEndPoint.AddressFamily == AddressFamily.InterNetworkV6)
+                                    AddClient(new AriesClient(this, client, secure, CN, WeakChainSignedRSAKey)
+                                    {
+                                        ADDR = remoteEndPoint.Address.MapToIPv4().ToString(),
+                                        SessionID = SessionID++
+                                    });
+                                else
+                                    AddClient(new AriesClient(this, client, secure, CN, WeakChainSignedRSAKey)
+                                    {
+                                        ADDR = remoteEndPoint.Address.ToString(),
+                                        SessionID = SessionID++
+                                    });
+                            }
+                        });
+                    }));
+
+                int RemoveAtIndex = Task.WaitAny(TcpClientTasks.ToArray(), AwaiterTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
+                if (RemoveAtIndex != -1) //Remove the completed task from the list
+                    TcpClientTasks.RemoveAt(RemoveAtIndex);
             }
         }
 
         public virtual void AddClient(AriesClient client)
         {
-            DirtySocksClients.Add(client);
+            lock (DirtySocksClients)
+                DirtySocksClients.Add(client);
         }
 
         public virtual void RemoveClient(AriesClient client)
         {
-            DirtySocksClients.Remove(client);
+            lock (DirtySocksClients)
+                DirtySocksClients.Remove(client);
         }
 
         public void Broadcast(AbstractMessage msg)
         {
-            foreach (AriesClient user in DirtySocksClients)
+            lock (DirtySocksClients)
             {
-                user.PingSendTick = DateTime.Now.Ticks;
-                user.SendMessage(msg);
+                foreach (AriesClient user in DirtySocksClients)
+                {
+                    user.PingSendTick = DateTime.Now.Ticks;
+                    user.SendMessage(msg);
+                }
             }
         }
 
-        public virtual void HandleMessage(string name, Span<byte> data, AriesClient client)
+        public virtual void HandleMessage(string name, byte[] data, AriesClient client)
         {
             try
             {
@@ -119,7 +153,7 @@ namespace MultiSocks.Aries
 #endif
                 if (!NameToClass.TryGetValue(name, out Type? c))
                 {
-                    LoggerAccessor.LogError($"{client.ADDR} Requested an unexpected message Type {name} : {body.Replace("\n", "")}");
+                    LoggerAccessor.LogError($"{client.ADDR} Requested an unexpected message Type {name} : {body.Replace("\n", string.Empty)}");
                     return;
                 }
 
@@ -130,9 +164,8 @@ namespace MultiSocks.Aries
                     if (c != null)
                         msg = (AbstractMessage?)Activator.CreateInstance(c);
                 }
-                catch (Exception)
+                catch
                 {
-                    // Not Important.
                 }
 
                 if (msg != null)
@@ -149,9 +182,22 @@ namespace MultiSocks.Aries
 
         public void Dispose()
         {
-            Listener?.Stop();
-            Listener = null;
-            ListenerThread.Join();
+            // stop thread and listener
+            threadActive = false;
+
+            if (Listener != null)
+                Listener.Stop();
+
+            // wait for thread to finish
+            if (ListenerThread != null)
+            {
+                ListenerThread.Join();
+                ListenerThread = null;
+            }
+
+            // finish closing listener
+            if (Listener != null)
+                Listener = null;
         }
     }
 }

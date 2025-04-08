@@ -1,4 +1,3 @@
-using NetworkLibrary.HTTP;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -8,6 +7,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NetworkLibrary.Extension.Newtonsoft.Json;
 
 namespace NetworkLibrary.Crypto
 {
@@ -111,8 +111,8 @@ namespace NetworkLibrary.Crypto
 
             if (string.IsNullOrEmpty(result))
                 return null;
-            else
-                return Encoding.UTF8.GetBytes(result);
+            
+            return Encoding.UTF8.GetBytes(result);
         }
 
         public static string EncryptNoPreserveCBC(object ObjectToEncrypt, string AccessKey, byte[] IV, bool xmlsecuretags = false, bool xmlbody = false)
@@ -156,8 +156,8 @@ namespace NetworkLibrary.Crypto
 
             if (string.IsNullOrEmpty(result))
                 return null;
-            else
-                return Encoding.UTF8.GetBytes(result);
+            
+            return Encoding.UTF8.GetBytes(result);
         }
 
         public static string DecryptCBC(string StringToDecrypt, string AccessKey, byte[] IV)
@@ -225,8 +225,8 @@ namespace NetworkLibrary.Crypto
 
             if (string.IsNullOrEmpty(result))
                 return null;
-            else
-                return Encoding.UTF8.GetBytes(result);
+
+            return Encoding.UTF8.GetBytes(result);
         }
 
         public static string EncryptNoPreserveCTR(object ObjectToEncrypt, string AccessKey, byte[] IV, bool xmlsecuretags = false, bool xmlbody = false)

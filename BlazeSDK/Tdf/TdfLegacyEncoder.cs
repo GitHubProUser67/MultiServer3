@@ -17,17 +17,21 @@ namespace Tdf
 
         public byte[] Encode<T>(T obj) where T : notnull
         {
-            MemoryStream payload = new MemoryStream();
-            WriteTo(payload, obj);
-            return payload.ToArray();
+            using (MemoryStream payload = new MemoryStream())
+            {
+                WriteTo(payload, obj);
+                return payload.ToArray();
+            }
         }
 
 
         public byte[] Encode(object obj)
         {
-            MemoryStream payload = new MemoryStream();
-            WriteTo(payload, obj);
-            return payload.ToArray();
+            using (MemoryStream payload = new MemoryStream())
+            {
+                WriteTo(payload, obj);
+                return payload.ToArray();
+            }
         }
 
         public void WriteTo<T>(Stream stream, T obj) where T : notnull => WriteTo(stream, (object)obj);

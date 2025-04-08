@@ -12,17 +12,74 @@ namespace ApacheNet
 {
     public class LocalFileStreamHelper
     {
-        public static async Task<bool> handleRequest(HttpContextBase ctx, string encoding, string absolutepath, string filePath, string ContentType, bool isVideoOrAudio, bool isHtmlCompatible, bool noCompressCacheControl)
+        private const long compressionSizeLimit = 800L * 1024 * 1024; // 800MB in bytes
+
+        public static async Task<bool> HandleRequest(HttpContextBase ctx, string encoding, string absolutepath, string filePath, string ContentType, bool isVideoOrAudio, bool isHtmlCompatible, bool noCompressCacheControl)
         {
+            bool isNoneMatchValid = false;
+            string ifModifiedSince = ctx.Request.RetrieveHeaderValue("If-Modified-Since");
+            bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, ifModifiedSince);
+            string NoneMatch = ctx.Request.RetrieveHeaderValue("If-None-Match");
+            string EtagMD5 = HTTPProcessor.ETag(filePath);
+
+            if (!string.IsNullOrEmpty(EtagMD5))
+            {
+                isNoneMatchValid = NoneMatch == EtagMD5;
+                ctx.Response.Headers.Add("ETag", EtagMD5);
+                ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
+            }
+
+            if ((isNoneMatchValid && isModifiedSinceValid) ||
+                (isNoneMatchValid && string.IsNullOrEmpty(ifModifiedSince)) ||
+                (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
+            {
+                ctx.Response.ChunkedTransfer = false;
+                ctx.Response.ContentType = "text/plain";
+                ctx.Response.StatusCode = (int)HttpStatusCode.NotModified;
+                return await ctx.Response.Send();
+            }
+
             bool compressionSettingEnabled = ApacheNetServerConfiguration.EnableHTTPCompression;
             bool sent = false;
+            string extension = Path.GetExtension(filePath);
             Stream? st;
 
-            if (ApacheNetServerConfiguration.EnableImageUpscale && ContentType.StartsWith("image/"))
+            if (ApacheNetServerConfiguration.EnableImageUpscale && ((!string.IsNullOrEmpty(ContentType) && ContentType.StartsWith("image/")) || (!string.IsNullOrEmpty(extension) && extension.Equals(".dds", StringComparison.InvariantCultureIgnoreCase))))
             {
                 ctx.Response.ContentType = ContentType;
 
-                st = ImageOptimizer.OptimizeImage(ApacheNetServerConfiguration.ConvertersFolder, filePath, Path.GetExtension(filePath));
+                try
+                {
+                    st = ImageOptimizer.OptimizeImage(ApacheNetServerConfiguration.ConvertersFolder, filePath, extension, ImageOptimizer.defaultOptimizerParams);
+
+                    if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && st.Length >= compressionSizeLimit)
+                    {
+                        if (encoding.Contains("zstd"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                            st = HTTPProcessor.ZstdCompressStream(st);
+                        }
+                        else if (encoding.Contains("br"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "br");
+                            st = HTTPProcessor.BrotliCompressStream(st);
+                        }
+                        else if (encoding.Contains("gzip"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                            st = HTTPProcessor.GzipCompressStream(st);
+                        }
+                        else if (encoding.Contains("deflate"))
+                        {
+                            ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                            st = HTTPProcessor.InflateStream(st);
+                        }
+                    }
+                }
+                catch
+                {
+                    st = null;
+                }
             }
             else if (isHtmlCompatible && isVideoOrAudio)
             {
@@ -66,25 +123,30 @@ namespace ApacheNet
 
                 MemoryStream htmlMs = new MemoryStream(Encoding.UTF8.GetBytes(htmlContent));
 
-                if (encoding.Contains("zstd"))
+                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding))
                 {
-                    ctx.Response.Headers.Add("Content-Encoding", "zstd");
-                    st = HTTPProcessor.ZstdCompressStream(htmlMs);
-                }
-                else if (encoding.Contains("br"))
-                {
-                    ctx.Response.Headers.Add("Content-Encoding", "br");
-                    st = HTTPProcessor.BrotliCompressStream(htmlMs);
-                }
-                else if (encoding.Contains("gzip"))
-                {
-                    ctx.Response.Headers.Add("Content-Encoding", "gzip");
-                    st = HTTPProcessor.GzipCompressStream(htmlMs);
-                }
-                else if (encoding.Contains("deflate"))
-                {
-                    ctx.Response.Headers.Add("Content-Encoding", "deflate");
-                    st = HTTPProcessor.InflateStream(htmlMs);
+                    if (encoding.Contains("zstd"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "zstd");
+                        st = HTTPProcessor.ZstdCompressStream(htmlMs);
+                    }
+                    else if (encoding.Contains("br"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "br");
+                        st = HTTPProcessor.BrotliCompressStream(htmlMs);
+                    }
+                    else if (encoding.Contains("gzip"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "gzip");
+                        st = HTTPProcessor.GzipCompressStream(htmlMs);
+                    }
+                    else if (encoding.Contains("deflate"))
+                    {
+                        ctx.Response.Headers.Add("Content-Encoding", "deflate");
+                        st = HTTPProcessor.InflateStream(htmlMs);
+                    }
+                    else
+                        st = htmlMs;
                 }
                 else
                     st = htmlMs;
@@ -93,9 +155,7 @@ namespace ApacheNet
             {
                 ctx.Response.ContentType = ContentType;
 
-                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding)
-                && (ContentType.StartsWith("text/") || ContentType.StartsWith("application/") || ContentType.StartsWith("font/")
-                         || ContentType == "image/svg+xml" || ContentType == "image/x-icon"))
+                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && new FileInfo(filePath).Length >= compressionSizeLimit)
                 {
                     if (encoding.Contains("zstd"))
                     {
@@ -133,59 +193,37 @@ namespace ApacheNet
                 return await ctx.Response.Send();
             }
 
-            ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
-            ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
-
-            string NoneMatch = ctx.Request.RetrieveHeaderValue("If-None-Match");
-            string? EtagMD5 = HTTPProcessor.ETag(filePath);
-            bool isNoneMatchValid = !string.IsNullOrEmpty(NoneMatch) && NoneMatch.Equals(EtagMD5);
-            bool isModifiedSinceValid = HTTPProcessor.CheckLastWriteTime(filePath, ctx.Request.RetrieveHeaderValue("If-Modified-Since"));
-
-            if ((isNoneMatchValid && isModifiedSinceValid) ||
-                (isNoneMatchValid && string.IsNullOrEmpty(ctx.Request.RetrieveHeaderValue("If-Modified-Since"))) ||
-                (isModifiedSinceValid && string.IsNullOrEmpty(NoneMatch)))
+            using (st)
             {
-                ctx.Response.ChunkedTransfer = false;
-                ctx.Response.Headers.Clear();
-                ctx.Response.ContentType = "text/plain";
-                if (!string.IsNullOrEmpty(EtagMD5))
-                {
-                    ctx.Response.Headers.Add("ETag", EtagMD5);
-                    ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                }
-                ctx.Response.StatusCode = 304;
-                sent = await ctx.Response.Send();
-            }
-            else
-            {
-                ctx.Response.StatusCode = 200;
-
-                if (!string.IsNullOrEmpty(EtagMD5))
-                {
-                    ctx.Response.Headers.Add("ETag", EtagMD5);
-                    ctx.Response.Headers.Add("Expires", DateTime.Now.AddMinutes(30).ToString("r"));
-                }
-
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
+                ctx.Response.Headers.Add("Last-Modified", File.GetLastWriteTime(filePath).ToString("r"));
                 if (ctx.Response.ChunkedTransfer)
                 {
-                    const int buffersize = 16 * 1024;
-
-                    bool isNotlastChunk;
                     long bytesLeft = st.Length;
-                    byte[] buffer;
 
-                    while (bytesLeft > 0)
+                    if (bytesLeft == 0)
+                        sent = await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+                    else
                     {
-                        isNotlastChunk = bytesLeft > buffersize;
-                        buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
-                        int n = st.Read(buffer, 0, buffer.Length);
+                        const int buffersize = 16 * 1024;
 
-                        if (isNotlastChunk)
-                            await ctx.Response.SendChunk(buffer, false);
-                        else
-                            sent = await ctx.Response.SendChunk(buffer, true);
+                        bool isNotlastChunk;
+                        byte[] buffer;
 
-                        bytesLeft -= n;
+                        while (bytesLeft > 0)
+                        {
+                            isNotlastChunk = bytesLeft > buffersize;
+                            buffer = new byte[isNotlastChunk ? buffersize : bytesLeft];
+                            int n = st.Read(buffer, 0, buffer.Length);
+
+                            if (isNotlastChunk)
+                                await ctx.Response.SendChunk(buffer, false);
+                            else
+                                sent = await ctx.Response.SendChunk(buffer, true);
+
+                            bytesLeft -= n;
+                        }
                     }
                 }
                 else
@@ -195,7 +233,7 @@ namespace ApacheNet
             return sent;
         }
 
-        public static async Task<bool> handlePartialRangeRequest(HttpContextBase ctx, string filePath, string ContentType,
+        public static async Task<bool> HandlePartialRangeRequest(HttpContextBase ctx, string filePath, string ContentType,
             bool noCompressCacheControl, string boundary = "multiserver_separator")
         {
             // This method directly communicate with the wire to handle, normally, imposible transfers.
@@ -217,7 +255,7 @@ namespace ApacheNet
                     {
                         const int rangebuffersize = 32768;
 
-                        string? acceptencoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
+                        string acceptencoding = ctx.Request.RetrieveHeaderValue("Accept-Encoding");
 
                         using (fs)
                         {
@@ -324,10 +362,14 @@ namespace ApacheNet
 
                                         if (ctx.Response.ChunkedTransfer)
                                         {
+                                            long bytesLeft = new FileInfo(filePath).Length;
+
+                                            if (bytesLeft == 0)
+                                                return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                             const int buffersize = 16 * 1024;
 
                                             bool isNotlastChunk;
-                                            long bytesLeft = new FileInfo(filePath).Length;
                                             byte[] buffer;
 
                                             while (bytesLeft > 0)
@@ -382,10 +424,14 @@ namespace ApacheNet
 
                                 if (ctx.Response.ChunkedTransfer)
                                 {
+                                    long bytesLeft = ms.Length;
+
+                                    if (bytesLeft == 0)
+                                        return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                     const int buffersize = 16 * 1024;
 
                                     bool isNotlastChunk;
-                                    long bytesLeft = ms.Length;
                                     byte[] buffer;
 
                                     while (bytesLeft > 0)
@@ -485,10 +531,14 @@ namespace ApacheNet
 
                                 if (ctx.Response.ChunkedTransfer)
                                 {
+                                    long bytesLeft = new FileInfo(filePath).Length;
+
+                                    if (bytesLeft == 0)
+                                        return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                     const int buffersize = 16 * 1024;
 
                                     bool isNotlastChunk;
-                                    long bytesLeft = new FileInfo(filePath).Length;
                                     byte[] buffer;
 
                                     while (bytesLeft > 0)
@@ -522,6 +572,9 @@ namespace ApacheNet
 
                                 if (ctx.Response.ChunkedTransfer)
                                 {
+                                    if (TotalBytes == 0)
+                                        return await ctx.Response.SendChunk(Array.Empty<byte>(), true);
+
                                     const int buffersize = 16 * 1024;
 
                                     bool isNotlastChunk;

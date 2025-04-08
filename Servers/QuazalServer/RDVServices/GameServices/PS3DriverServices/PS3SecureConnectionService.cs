@@ -13,7 +13,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
     /// <summary>
 	/// Secure connection service protocol
 	/// </summary>
-	[RMCService(RMCProtocolId.SecureConnectionService)]
+	[RMCService((ushort)RMCProtocolId.SecureConnectionService)]
     public class PS3SecureConnectionService : RMCServiceBase
     {
         [RMCMethod(1)]
@@ -93,7 +93,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
                 return Result(result);
             }
             else
-                LoggerAccessor.LogInfo($"[RMC Secure] Error: Unknown Custom Data class {hCustomData.className}");
+                LoggerAccessor.LogError($"[RMC Secure] Error: Unknown Custom Data class {hCustomData.className}");
 
             return Error((int)ErrorCode.RendezVous_ClassNotFound);
         }

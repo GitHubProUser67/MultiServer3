@@ -5,64 +5,69 @@ using Newtonsoft.Json;
 
 namespace Horizon.HTTPSERVICE
 {
-    public class RoomManager
+    public static class RoomManager
     {
         private static readonly byte[] RandSecSaltKey = ByteUtils.GenerateRandomBytes((ushort)NetObfuscator.SecSalt.Length);
 
         private static readonly ConcurrentList<Room> rooms = new ConcurrentList<Room>();
 
+        private static object _Lock = new object();
+
         // Update or Create a Room based on the provided parameters
         public static void UpdateOrCreateRoom(string appId, string? gameName, int? gameId, string? worldId, string? accountName, int accountDmeId, string? languageType, bool host)
         {
-            Room? roomToUpdate = rooms.FirstOrDefault(r => r.AppId == appId);
-
-            if (roomToUpdate == null)
+            lock (_Lock)
             {
-                roomToUpdate = new Room { AppId = appId, Worlds = new List<World>() };
-                rooms.Add(roomToUpdate);
-            }
+                Room? roomToUpdate = rooms.FirstOrDefault(r => r.AppId == appId);
 
-            if (worldId != null)
-            {
-                World? worldToUpdate = roomToUpdate.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
-
-                if (worldToUpdate == null && !string.IsNullOrEmpty(worldId))
+                if (roomToUpdate == null)
                 {
-                    worldToUpdate = new World { WorldId = worldId, GameSessions = new List<GameList>() };
-                    roomToUpdate.Worlds?.Add(worldToUpdate);
+                    roomToUpdate = new Room { AppId = appId, Worlds = new List<World>() };
+                    rooms.Add(roomToUpdate);
                 }
 
-                GameList? gameToUpdate = worldToUpdate?.GameSessions?.FirstOrDefault(w => w.Name == gameName);
-
-                if (gameToUpdate == null && !string.IsNullOrEmpty(gameName) && gameId.HasValue)
+                if (worldId != null)
                 {
-                    gameToUpdate = new GameList { DmeWorldId = gameId.Value, Name = gameName, CreationDate = DateTime.Now.ToUniversalTime(), Clients = new List<Player>() };
-                    worldToUpdate?.GameSessions?.Add(gameToUpdate);
-                }
+                    World? worldToUpdate = roomToUpdate.Worlds?.FirstOrDefault(w => w.WorldId == worldId);
 
-                Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
-
-                if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType))
-                {
-                    if (gameToUpdate.Name.Contains("AP|"))
+                    if (worldToUpdate == null && !string.IsNullOrEmpty(worldId))
                     {
-                        Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == CipherString(accountName, HorizonServerConfiguration.MediusAPIKey));
-                        if (playerToUpdatehashed == null)
+                        worldToUpdate = new World { WorldId = worldId, GameSessions = new List<GameList>() };
+                        roomToUpdate.Worlds?.Add(worldToUpdate);
+                    }
+
+                    GameList? gameToUpdate = worldToUpdate?.GameSessions?.FirstOrDefault(w => w.Name == gameName);
+
+                    if (gameToUpdate == null && !string.IsNullOrEmpty(gameName) && gameId.HasValue)
+                    {
+                        gameToUpdate = new GameList { DmeWorldId = gameId.Value, Name = gameName, CreationDate = DateTime.Now.ToUniversalTime(), Clients = new List<Player>() };
+                        worldToUpdate?.GameSessions?.Add(gameToUpdate);
+                    }
+
+                    Player? playerToUpdate = gameToUpdate?.Clients?.FirstOrDefault(p => p.Name == accountName);
+
+                    if (playerToUpdate == null && !string.IsNullOrEmpty(gameToUpdate?.Name) && !string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(languageType))
+                    {
+                        if (gameToUpdate.Name.Contains("AP|"))
                         {
-                            playerToUpdate = new Player { DmeId = accountDmeId, Name = CipherString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
+                            Player? playerToUpdatehashed = gameToUpdate.Clients?.FirstOrDefault(p => p.Name == CipherString(accountName, HorizonServerConfiguration.MediusAPIKey));
+                            if (playerToUpdatehashed == null)
+                            {
+                                playerToUpdate = new Player { DmeId = accountDmeId, Name = CipherString(accountName, HorizonServerConfiguration.MediusAPIKey), Languages = languageType, Host = host };
+                                gameToUpdate.Clients?.Add(playerToUpdate);
+                            }
+                        }
+                        else
+                        {
+                            playerToUpdate = new Player { DmeId = accountDmeId, Name = accountName, Languages = languageType, Host = host };
                             gameToUpdate.Clients?.Add(playerToUpdate);
                         }
                     }
-                    else
+                    else if (playerToUpdate != null)
                     {
-                        playerToUpdate = new Player { DmeId = accountDmeId, Name = accountName, Languages = languageType, Host = host };
-                        gameToUpdate.Clients?.Add(playerToUpdate);
+                        playerToUpdate.Host = host;
+                        playerToUpdate.Languages = languageType;
                     }
-                }
-                else if (playerToUpdate != null)
-                {
-                    playerToUpdate.Host = host;
-                    playerToUpdate.Languages = languageType;
                 }
             }
         }
@@ -190,11 +195,6 @@ namespace Horizon.HTTPSERVICE
                     secSalt[i] = (byte)(NetObfuscator.SecSalt[i] ^ RandSecSaltKey[i] ^ (i * 2));
                 else
                     secSalt[i] = (byte)(NetObfuscator.SecSalt[i] ^ RandSecSaltKey[i] ^ secSalt[i - 1]);
-            }
-
-            for (i = 0; i < input.Length; i++)
-            {
-                secSalt[i % secSalt.Length] ^= (byte)input[i];
             }
 
             return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCrypto.EncryptCBC(input, key, WebCrypto.IdentIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";

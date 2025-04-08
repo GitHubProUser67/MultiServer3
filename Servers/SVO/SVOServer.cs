@@ -104,7 +104,7 @@ namespace SVO
             // start listener
             try
             {
-                System.Net.IPAddress hostAddr = System.Net.IPAddress.Parse(IpUtils.GetFirstActiveIPAddress(host, "0.0.0.0"));
+                System.Net.IPAddress hostAddr = System.Net.IPAddress.Parse(InternetProtocolUtils.GetFirstActiveIPAddress(host, "0.0.0.0"));
 
                 listener = new HttpListener();
                 if (certificate != null)
@@ -171,15 +171,18 @@ namespace SVO
 #if DEBUG
             LoggerAccessor.LogInfo($"[SVO] - Connection received (Thread " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
 #endif
+            ctx.Response.KeepAlive = SVOServerConfiguration.EnableKeepAlive;
             try
             {
                 bool isAllowed = false;
+                string fullurl = ctx.Request.Url.ToString();
                 string absolutepath = ctx.Request.Url.AbsolutePath;
-                string clientip = ctx.Request.RemoteEndPoint?.Address.ToString() ?? string.Empty;
+                string clientip = ctx.Request.RemoteEndPoint.Address.ToString();
+                int clientport = ctx.Request.RemoteEndPoint.Port;
 
                 if (IsIPBanned(clientip))
-                    LoggerAccessor.LogError($"[SECURITY] - Client - {clientip} Requested the SVO server while being banned!");
-                else
+                    LoggerAccessor.LogError($"[SECURITY] - Client - {clientip}:{clientport} Requested the SVO server while being banned!");
+                else if (!string.IsNullOrEmpty(absolutepath))
                 {
                     string? UserAgent = null;
 
@@ -187,10 +190,10 @@ namespace SVO
                         UserAgent = ctx.Request.UserAgent.ToLower();
 
                     if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("bytespider")) // Get Away TikTok.
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server while not being allowed!");
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip}:{clientport} Requested the SVO Server while not being allowed!");
                     else
                     {
-                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip} Requested the SVO Server with URL : {ctx.Request.Url}");
+                        LoggerAccessor.LogInfo($"[SVO] - Client - {clientip}:{clientport} Requested the SVO Server with URL : {fullurl}");
                         isAllowed = true;
                     }
                 }
@@ -218,7 +221,7 @@ namespace SVO
 
                                     FileInfo[] files = directory.GetFiles();
 
-                                    if (files.Length >= 20)
+                                    if (files.Length > 19)
                                     {
                                         FileInfo oldestFile = files.OrderBy(file => file.CreationTime).First();
                                         LoggerAccessor.LogInfo("[SVO] - Replacing Home Debug log file: " + oldestFile.Name);
@@ -238,7 +241,7 @@ namespace SVO
                                             ctx.Response.ContentLength64 = datatooutput.Length;
                                             ctx.Response.OutputStream.Write(datatooutput, 0, datatooutput.Length);
                                         }
-                                        catch (Exception)
+                                        catch
                                         {
                                             // Not Important.
                                         }
@@ -296,9 +299,9 @@ namespace SVO
                                     ctx.Response.ContentLength64 = FileContent.Length;
                                     ctx.Response.OutputStream.Write(FileContent, 0, FileContent.Length);
                                 }
-                                catch (Exception)
+                                catch
                                 {
-                                    // Not Important;
+                                    // Not Important.
                                 }
                             }
                         }
@@ -308,6 +311,24 @@ namespace SVO
                 }
                 else
                     ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+
+                if (ctx.Response.StatusCode < 400)
+                    LoggerAccessor.LogInfo($"[SVO] - {clientip}:{clientport} -> {ctx.Response.StatusCode}");
+                else
+                {
+                    switch (ctx.Response.StatusCode)
+                    {
+                        case (int)System.Net.HttpStatusCode.NotFound:
+                        case (int)System.Net.HttpStatusCode.NotImplemented:
+                        case (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable:
+                            LoggerAccessor.LogWarn($"[SVO] - {clientip}:{clientport} -> {ctx.Response.StatusCode}");
+                            break;
+
+                        default:
+                            LoggerAccessor.LogError($"[SVO] - {clientip}:{clientport} -> {ctx.Response.StatusCode}");
+                            break;
+                    }
+                }
             }
             catch (HttpListenerException e)
             {
@@ -327,13 +348,23 @@ namespace SVO
                 ctx.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             }
 
+            if (!ctx.Response.KeepAlive)
+            {
+				try
+                {
+                    ctx.Request.InputStream.Close();
+                }
+                catch
+                {
+                }
+            }
+
             try
             {
                 ctx.Response.OutputStream.Close();
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // outputstream has been disposed already.
             }
             ctx.Response.Close();
 #if DEBUG

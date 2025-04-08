@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using NetworkLibrary.HTTP;
 
@@ -19,17 +21,17 @@ namespace WebAPIService.VEEMEE.gofish
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "tHeHuYUmuDa54qur")
                 {
-                    CustomLogger.LoggerAccessor.LogError("[VEEMEE] - goalie_sfrgbt - Client tried to push invalid key! Invalidating request.");
+                    CustomLogger.LoggerAccessor.LogError("[VEEMEE] - gofish - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
-                score = data["score"];
-                fishcount = data["fishcount"];
-                biggestfishweight = data["biggestfishweight"];
-                totalfishweight = data["totalfishweight"];
+                psnid = data["psnid"].First();
+                score = data["score"].First();
+                fishcount = data["fishcount"].First();
+                biggestfishweight = data["biggestfishweight"].First();
+                totalfishweight = data["totalfishweight"].First();
 
                 Directory.CreateDirectory($"{apiPath}/VEEMEE/gofish/User_Data");
 
@@ -37,7 +39,7 @@ namespace WebAPIService.VEEMEE.gofish
                 {
                     try
                     {
-                        GFScoreBoardData.UpdateScoreBoard(psnid, fishcount, biggestfishweight, totalfishweight, int.Parse(score));
+                        GFScoreBoardData.UpdateScoreBoard(psnid, fishcount, biggestfishweight, totalfishweight, (float)double.Parse(score, CultureInfo.InvariantCulture));
                         GFScoreBoardData.UpdateAllTimeScoreboardXml(apiPath); // We finalized edit, so we issue a write.
                         GFScoreBoardData.UpdateTodayScoreboardXml(apiPath, DateTime.Now.ToString("yyyy_MM_dd")); // We finalized edit, so we issue a write.
                     }
@@ -109,19 +111,19 @@ namespace WebAPIService.VEEMEE.gofish
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                key = data["key"];
+                key = data["key"].First();
                 if (key != "tHeHuYUmuDa54qur")
                 {
-                    CustomLogger.LoggerAccessor.LogError("[VEEMEE] - goalie_sfrgbt - Client tried to push invalid key! Invalidating request.");
+                    CustomLogger.LoggerAccessor.LogError("[VEEMEE] - gofish - Client tried to push invalid key! Invalidating request.");
                     return null;
                 }
-                psnid = data["psnid"];
+                psnid = data["psnid"].First();
 
                 if (File.Exists($"{apiPath}/VEEMEE/gofish/User_Data/{psnid}.xml"))
                     return File.ReadAllText($"{apiPath}/VEEMEE/gofish/User_Data/{psnid}.xml");
             }
 
-            return null;
+            return $"<psnid>{psnid}</psnid><score>0</score><fishcount>0</fishcount><psnid>{psnid}</psnid><biggestfishweight>0</biggestfishweight><totalfishweight>0</totalfishweight>";
         }
     }
 }

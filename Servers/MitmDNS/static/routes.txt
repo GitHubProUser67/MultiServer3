@@ -122,6 +122,7 @@ stats.outso-srv1.com,Redirect,IP
 ouwf.outso-srv1.com,Redirect,IP
 gp1.wac.edgecastcdn.net,Redirect,IP
 wpc.33F8.edgecastcdn.net,Redirect,IP
+ec2-184-72-239-107.compute-1.amazonaws.com,Redirect,IP
 
 ;Lootgear
 server.lootgear.com,Redirect,IP
@@ -407,8 +408,10 @@ testdriveub.available.gamespy.com,Redirect,IP
 key.gamespy.com,Redirect,IP
 peerchat.gamespy.com,Redirect,IP
 
+;Alcatraz
+alcatraz.drivermadness.net,Redirect,IP
+
 ;Ubisoft
-lb-rdv-as-prod01.ubisoft.com,Redirect,IP
 pdc-vm-rdv01.ubisoft.com,Redirect,IP
 pdc-vm-rdv02.ubisoft.com,Redirect,IP
 pdc-vm-rdv03.ubisoft.com,Redirect,IP
@@ -427,6 +430,15 @@ pdc-lb-rdv-prod06.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod07.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod08.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod09.ubisoft.com,Redirect,IP
+mdc-mm-rdv01.ubisoft.com,Redirect,IP
+mdc-mm-rdv02.ubisoft.com,Redirect,IP
+mdc-mm-rdv03.ubisoft.com,Redirect,IP
+mdc-mm-rdv04.ubisoft.com,Redirect,IP
+mdc-mm-rdv05.ubisoft.com,Redirect,IP
+mdc-mm-rdv06.ubisoft.com,Redirect,IP
+mdc-mm-rdv07.ubisoft.com,Redirect,IP
+mdc-mm-rdv08.ubisoft.com,Redirect,IP
+mdc-mm-rdv09.ubisoft.com,Redirect,IP
 ne1-z3-as-rdv03.ubisoft.com,Redirect,IP
 lb-rdv-prod.ubi.com,Redirect,IP
 api-ubiservices.ubi.com,Redirect,IP

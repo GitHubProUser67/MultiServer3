@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	<DockerfileRunArguments>-p 61920:61920 -p 50100:50100 -p 10075:10075 -p 10076:10076 -p 10077:10077 -p 10073:10073 -p 50000:50000 -p 10070:10070 -p 3101:3101 -p 2222:2222 -p 10373:10373 -p 10372:10372 -p 10071:10071 -p 10072:10072 -p 10079:10079 -p 10078:10078 -p 10080:10080</DockerfileRunArguments>
+	<DockerfileRunArguments>-p 61920:61920 -p 50100:50100 -p 10075:10075 -p 10076:10076 -p 10077:10077 -p 10073:10073 -p 50000:50000 -p 10070:10070 -p 3101:3101 -p 2222:2222 -p 10373:10373 -p 10372:10372 -p 10071:10071 -p 10072:10072 -p 10079:10079 -p 10078:10078 -p 10080:10080 -p 65535:65535</DockerfileRunArguments>
 	<ApplicationIcon>Horizon.ico</ApplicationIcon>
 	<ServerGarbageCollection>true</ServerGarbageCollection>
 	<PublishSingleFile>false</PublishSingleFile> <!-- Single mode cannot load plugins due to no assembly loading support. -->
@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\AuxiliaryServices\HorizonService\HorizonService.csproj" />
-    <ProjectReference Include="..\..\BackendServices\SoftFloatLibrary\SoftFloatLibrary.csproj" />
+    <ProjectReference Include="..\..\BackendServices\PS2FloatLibrary\PS2FloatLibrary.csproj" />
 	<ProjectReference Include="..\..\BackendServices\TechnitiumLibrary.Net.Firewall\TechnitiumLibrary.Net.Firewall.csproj" />
 	<ProjectReference Include="..\..\BackendServices\WatsonWebserver\WatsonWebserver.csproj" />
   </ItemGroup>

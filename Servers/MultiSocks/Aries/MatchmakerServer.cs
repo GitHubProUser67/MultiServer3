@@ -132,16 +132,8 @@ namespace MultiSocks.Aries
 
                 AriesGame? game = user.CurrentGame;
                 Model.AriesRoom? room = user.CurrentRoom;
-                if (game != null)
-                {
-                    if (game.RemoveUserAndCheckGameValidity(user))
-                    {
-                        lock (Games)
-                        {
-                            Games.RemoveGame(game);
-                        }
-                    }
-                }
+                if (game != null && game.RemoveUserAndCheckGameValidity(user))
+                    Games.RemoveGame(game);
 
                 if (room != null)
                 {
@@ -171,20 +163,14 @@ namespace MultiSocks.Aries
 
             string? DecryptedPass = passutils.ssc2Decode(PASS, client.SKEY);
 
-            if (DecryptedPass != null) // EA assumed that Consoles protect the login so they crypt an empty password, extremly bad, but can't do anything.
+            if (DecryptedPass == string.Empty) // EA assumed that Consoles protect the login so they crypt an empty password, extremly bad, but can't do anything.
             {
 
             }
-            else
+            else if (user.Password != DecryptedPass)
             {
-                if (!string.IsNullOrEmpty(user.Password))
-                {
-                    if (!user.Password.Equals(DecryptedPass))
-                    {
-                        client.SendMessage(new AuthPass());
-                        return;
-                    }
-                }
+                client.SendMessage(new AuthPass());
+                return;
             }
 
             CustomLogger.LoggerAccessor.LogInfo("Logged in: " + user.Username);
@@ -209,7 +195,6 @@ namespace MultiSocks.Aries
             };
 
             Users.AddUser(user2);
-
             client.User = user2;
 
             Dictionary<string, string?> OutputCache;

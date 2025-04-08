@@ -8,7 +8,6 @@ namespace SSFWServer.Services
     {
         private string? sessionid;
         private string? key;
-        private bool disposedValue;
 
         public SSFWAdminObjectService(string sessionid, string? key)
         {

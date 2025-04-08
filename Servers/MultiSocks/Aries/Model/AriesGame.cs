@@ -1,11 +1,10 @@
 using MultiSocks.Aries.Messages;
+using System.Collections.Concurrent;
 
 namespace MultiSocks.Aries.Model
 {
     public class AriesGame
     {
-        private readonly object _PlayerSyncLock = new();
-
         public int MaxSize;
         public int MinSize;
         public int ID;
@@ -22,7 +21,10 @@ namespace MultiSocks.Aries.Model
         public bool Started = false;
 
         public UserCollection Users = new();
-        List<AriesUser> UsersCache = new(); // This is necessary to prevent users leaving during a ranked event.
+        private List<AriesUser> UsersCache = new(); // This is necessary to prevent users leaving during a ranked event.
+        private ConcurrentDictionary<int, bool> _pIdIsUsed = new();
+
+        private object _ClientIndexlock = new();
 
         public AriesGame(int maxSize, int minSize, int id, string custFlags, string @params,
                 string name, bool priv, string seed, string sysFlags, string? Pass, int roomId)
@@ -40,12 +42,39 @@ namespace MultiSocks.Aries.Model
             RoomID = roomId;
         }
 
+        private bool TryRegisterNewClientIndex(out int index)
+        {
+            lock (_ClientIndexlock)
+            {
+                for (index = 0; index < _pIdIsUsed.Count; ++index)
+                {
+                    if (_pIdIsUsed.TryGetValue(index, out bool isUsed) && !isUsed)
+                    {
+                        _pIdIsUsed[index] = true;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public void UnregisterClientIndex(int index)
+        {
+            _pIdIsUsed[index] = false;
+        }
+
         // true as a return value means close game.
         public bool RemoveUserAndCheckGameValidity(AriesUser user, int reason = 0, string? KickReason = "")
         {
             lock (Users)
             {
                 Users.RemoveUser(user);
+                if (user.CurrentGameIndex != -1)
+                {
+                    UnregisterClientIndex(user.CurrentGameIndex);
+                    user.CurrentGameIndex = -1;
+                }
 
                 user.CurrentGame = null;
 
@@ -56,6 +85,11 @@ namespace MultiSocks.Aries.Model
                     foreach (AriesUser batchuser in Users.GetAll())
                     {
                         Users.RemoveUser(batchuser);
+                        if (user.CurrentGameIndex != -1)
+                        {
+                            UnregisterClientIndex(user.CurrentGameIndex);
+                            user.CurrentGameIndex = -1;
+                        }
 
                         batchuser.CurrentGame = null;
 
@@ -81,27 +115,38 @@ namespace MultiSocks.Aries.Model
 
         public void AddHost(AriesUser? user)
         {
+            if (user == null)
+                return;
+
             Users.AddUser(user);
             Host = user;
         }
 
         public void AddGPSHost(AriesUser? user)
         {
+            if (user == null)
+                return;
+
             Users.AddUser(user);
+            TryRegisterNewClientIndex(out user.CurrentGameIndex);
             GPSHost = user;
             Host ??= user;
         }
 
         public void AddUser(AriesUser? user)
         {
+            if (user == null)
+                return;
+
             Users.AddUser(user);
+            TryRegisterNewClientIndex(out user.CurrentGameIndex);
         }
 
         public bool RemovePlayerByUsername(string? username, int reason = 0, string? KickReason = "")
         {
             if (string.IsNullOrEmpty(username)) return false;
 
-            AriesUser? userToRemove = Users.GetAll().FirstOrDefault(user => user.Username.Equals(username));
+            AriesUser? userToRemove = Users.GetUserByName(username);
 
             if (userToRemove != null)
                 return RemoveUserAndCheckGameValidity(userToRemove, reason, KickReason);
@@ -113,20 +158,12 @@ namespace MultiSocks.Aries.Model
         {
             Started = status;
 
-            lock (_PlayerSyncLock)
+            lock (UsersCache)
             {
                 UsersCache.Clear();
                 if (status)
-                    UsersCache = Users.GetAll();
+                    UsersCache.AddRange(Users.GetAll());
             }
-        }
-
-        public void UpdatePlayerParams(AriesUser updatedUser)
-        {
-            AriesUser? user = Users.GetAll().FirstOrDefault(user => user.ID == updatedUser.ID);
-
-            if (user != null)
-                Users.UpdateUser(user, updatedUser);
         }
 
         public GenericMessage GetGameDetails(string msg)
@@ -181,34 +218,34 @@ namespace MultiSocks.Aries.Model
             int i = 0;
             Dictionary<string, string> PLAYERSLIST = new();
 
-            lock (_PlayerSyncLock)
+            foreach (AriesUser user in Started ? UsersCache : Users.GetAll())
             {
-                foreach (AriesUser user in (Started && UsersCache.Count > 0) ? UsersCache.AsEnumerable() : Users.GetAll())
+                PLAYERSLIST.Add($"OPPO{i}", user == Host ? '@' + user.Username : user.Username);
+                PLAYERSLIST.Add($"OPPART{i}", "0");
+                PLAYERSLIST.Add($"OPFLAG{i}", "0");
+                PLAYERSLIST.Add($"PRES{i}", "0");
+                PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
+                PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
+                PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
+                PLAYERSLIST.Add($"MADDR{i}", user.MAC);
+
+                if (!string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5"))
                 {
-                    PLAYERSLIST.Add($"OPPO{i}", i == 0 ? '@' + user.Username : user.Username);
-                    PLAYERSLIST.Add($"OPPART{i}", "0");
-                    PLAYERSLIST.Add($"OPFLAG{i}", "0");
-                    PLAYERSLIST.Add($"PRES{i}", "0");
-                    PLAYERSLIST.Add($"OPID{i}", user.ID.ToString());
-                    PLAYERSLIST.Add($"ADDR{i}", user.ADDR);
-                    PLAYERSLIST.Add($"LADDR{i}", user.LADDR);
-                    PLAYERSLIST.Add($"MADDR{i}", user.MAC);
-
-                    if (!string.IsNullOrEmpty(user.Connection?.Context.Project) && user.Connection.Context.Project.Contains("BURNOUT5"))
+                    // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
+                    string PlayerColorModifer(int index, string param)
                     {
-                        // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
-                        string PlayerColorModifer(int index, string param)
-                        {
-                            return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", (i - 1).ToString() + ',');
-                        }
-
-                        PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
+                        const string playerIndexToChange = "ff";
+                        if (param.StartsWith(playerIndexToChange))
+                            return param.Replace(playerIndexToChange, $"{user.CurrentGameIndex},");
+                        return param;
                     }
-                    else
-                        PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
 
-                    i++;
+                    PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
                 }
+                else
+                    PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString());
+
+                i++;
             }
 
             return PLAYERSLIST;

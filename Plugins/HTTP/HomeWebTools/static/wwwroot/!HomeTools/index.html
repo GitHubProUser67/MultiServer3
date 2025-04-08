@@ -735,6 +735,8 @@
               <label for="version2">SHARC mode:</label>
               <input type="checkbox" id="version2" name="version2">
             </div>
+            <label for="optimizeassets">Optimize Assets:</label>
+            <input type="checkbox" id="optimizeassets" name="optimizeassets">
             <select id="options" name="options" class="hidden">
               <option value="default" default="">Default Key</option>
               <option value="cdn1">CDN Key 1</option>
@@ -765,13 +767,6 @@
               onchange="unbarHandleFileSelect(this);">
 
             <div class="toggle-container">
-			  <div class="toggle">
-				<label for="afsengine">AFS Mapper Engine:</label>
-				<label class="switch">
-				  <input type="checkbox" id="afsengine" name="afsengine">
-				  <span class="slider round"></span>
-				</label>
-			  </div>
 
 			  <div class="toggle">
 				<label for="subfolder">Subfolder Mode:</label>

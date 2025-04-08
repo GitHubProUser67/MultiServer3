@@ -13,21 +13,6 @@ namespace NetworkLibrary.Extension
             return Encoding.ASCII.GetString(((MemoryStream)stream).ToArray());
         }
 
-        public static string Readline(this Stream stream)
-        {
-            int next_char;
-            string data = string.Empty;
-            while (true)
-            {
-                next_char = stream.ReadByte();
-                if (next_char == '\n') { break; }
-                if (next_char == '\r') { continue; }
-                if (next_char == -1) { Thread.Sleep(1); continue; };
-                data += Convert.ToChar(next_char);
-            }
-            return data;
-        }
-
         /// <summary>
         /// Copies a Stream to an other.
         /// <para>Copie d'un Stream � un autre.</para>
@@ -35,7 +20,7 @@ namespace NetworkLibrary.Extension
         /// <param name="input">The Stream to copy.</param>
         /// <param name="output">the Steam to copy to.</param>
         /// <param name="BufferSize">the buffersize for the copy.</param>
-        public static void CopyStream(Stream input, Stream output, long BufferSize, bool ignore_errors = false)
+        public static void CopyStream(Stream input, Stream output, long BufferSize = 16 * 1024, bool ignore_errors = false)
         {
             if (BufferSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(BufferSize), "[StreamUtils] - CopyStream() - Buffer size must be greater than zero.");

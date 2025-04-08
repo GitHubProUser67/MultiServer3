@@ -7,7 +7,7 @@ using System.IO;
 
 namespace WebAPIService.VEEMEE
 {
-    public class Slot
+    public static class Slot
     {
         public static string GetObjectSpace(byte[] PostData, string ContentType)
         {

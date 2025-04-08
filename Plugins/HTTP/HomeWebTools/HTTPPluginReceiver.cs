@@ -1,28 +1,22 @@
 using NetworkLibrary.HTTP;
-using HomeTools.AFS;
-using NetworkLibrary.HTTP.PluginManager;
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
 using System.Net;
+using ApacheNet.PluginManager;
 
 namespace HomeWebTools
 {
     public class HTTPPluginReceiver : HTTPPlugin
     {
-        private string APIStaticFolder = Directory.GetCurrentDirectory() + "/static";
+        // TODO, improve the plugin params, by ideally passing the server config directly.
+        private string APIStaticFolder = string.Empty;
+        private string ConvertersStaticFolder = Directory.GetCurrentDirectory() + "/static/converters";
 
         public Task HTTPStartPlugin(string param, ushort port)
         {
             APIStaticFolder = param + "/!HomeTools";
-
-            Directory.CreateDirectory(APIStaticFolder + "/HelperFiles");
-
-            AFSClass.MapperHelperFolder = APIStaticFolder + "/HelperFiles";
-
-            _ = new Timer(AFSClass.ScheduledUpdate, null, TimeSpan.Zero, TimeSpan.FromMinutes(1440));
 
             return Task.CompletedTask;
         }
@@ -42,11 +36,11 @@ namespace HomeWebTools
                     {
                         case "POST":
 
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
+                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.ProcessQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
                             {
                                 #region LibSecure HomeTools
                                 case "/!HomeTools/MakeBarSdat/":
-                                    (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(APIStaticFolder, new MemoryStream(request.DataAsBytes), request.ContentType);
+                                    (byte[]?, string)? makeres = HomeToolsInterface.MakeBarSdat(ConvertersStaticFolder, Path.GetTempPath(), new MemoryStream(request.DataAsBytes), request.ContentType);
                                     if (makeres != null)
                                     {
                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -63,7 +57,7 @@ namespace HomeWebTools
                                     }
                                     break;
                                 case "/!HomeTools/UnBar/":
-                                    (byte[]?, string)? unbarres = HomeToolsInterface.UnBar(APIStaticFolder, new MemoryStream(request.DataAsBytes), request.ContentType, APIStaticFolder + "/HelperFiles").Result;
+                                    (byte[]?, string)? unbarres = HomeToolsInterface.UnBar(Path.GetTempPath(), new MemoryStream(request.DataAsBytes), request.ContentType, APIStaticFolder + "/HelperFiles").Result;
                                     if (unbarres != null)
                                     {
                                         response.Headers.Add("Date", DateTime.Now.ToString("r"));

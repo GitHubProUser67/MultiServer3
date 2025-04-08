@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace NetworkLibrary.Extension
 {
-    public class TCPUtils
+    public static class TCPUtils
     {
         [DllImport("Iphlpapi.dll", SetLastError = true)]
         private static extern uint GetTcpTable(IntPtr pTcpTable, ref uint dwOutBufLen, bool order);

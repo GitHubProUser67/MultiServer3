@@ -116,7 +116,7 @@ public static class SSFWServerConfiguration
     }
 
     // Helper method to get a value or default value if not present
-    public static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
+    private static T GetValueOrDefault<T>(dynamic obj, string propertyName, T defaultValue)
     {
         try
         {
@@ -146,6 +146,7 @@ class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "ssfw.json";
+    private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static SSFWClass? Server;
     private static Timer? SceneListTimer;
     private static Timer? SessionTimer;
@@ -193,11 +194,10 @@ class Program
             LoggerAccessor.LogError(args.Exception);
             args.SetObserved();
         };
-
-        IpUtils.GetIPInfos(IpUtils.GetLocalIPAddress().ToString(), IpUtils.GetLocalSubnet());
 #endif
 
-        SSFWServerConfiguration.RefreshVariables($"{Directory.GetCurrentDirectory()}/static/ssfw.json");
+        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
+        SSFWServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();
 

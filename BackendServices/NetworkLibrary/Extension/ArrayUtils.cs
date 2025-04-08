@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace NetworkLibrary.Extension
 {
@@ -32,7 +28,7 @@ namespace NetworkLibrary.Extension
             }
 
             // Add the new element to the last position
-            newArray[^1] = newElement;
+            newArray[newArray.Length - 1] = newElement;
 
             return newArray;
         }

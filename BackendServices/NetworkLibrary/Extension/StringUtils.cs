@@ -2,6 +2,7 @@ using Newtonsoft.Json.Linq;
 using SimdJsonSharp;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
@@ -65,7 +66,7 @@ namespace NetworkLibrary.Extension
 
         /// <summary>
         /// Transform a string to it's hexadecimal representation.
-        /// <para>Obtenir un string dans sa représentation hexadecimale.</para>
+        /// <para>Obtenir un string dans sa reprÃ©sentation hexadecimale.</para>
         /// <param name="str">The string to transform.</param>
         /// </summary>
         /// <returns>A string.</returns>
@@ -93,9 +94,14 @@ namespace NetworkLibrary.Extension
             return Encoding.UTF8.GetString(bytes);
         }
 
+        public static double Eval(this string expression, string filter = null)
+        {
+            return Convert.ToDouble(new DataTable().Compute(expression, filter));
+        }
+
         /// <summary>
         /// Convert a hex-formatted string to byte array.
-        /// <para>Convertir une représentation hexadécimal en tableau de bytes.</para>
+        /// <para>Convertir une reprÃ©sentation hexadÃ©cimal en tableau de bytes.</para>
         /// </summary>
         /// <param name="hex">A string looking like "300D06092A864886F70D0101050500".</param>
         /// <returns>A byte array.</returns>
@@ -104,30 +110,48 @@ namespace NetworkLibrary.Extension
             string cleanedRequest = hex.Replace(" ", string.Empty).Replace("\n", string.Empty);
 
             if (cleanedRequest.Length % 2 == 1)
-                throw new Exception("The binary key cannot have an odd number of digits");
+                throw new Exception("[StringUtils] - HexStringToByteArray - The binary key cannot have an odd number of digits");
 
             byte[] arr = new byte[cleanedRequest.Length >> 1];
 
             for (int i = 0; i < cleanedRequest.Length >> 1; ++i)
             {
-                arr[i] = (byte)((CharUtils.GetHexVal(cleanedRequest[i << 1]) << 4) + CharUtils.GetHexVal(cleanedRequest[(i << 1) + 1]));
+                arr[i] = (byte)((cleanedRequest[i << 1].GetHexVal() << 4) + cleanedRequest[(i << 1) + 1].GetHexVal());
             }
 
             return arr;
         }
 
         /// <summary>
-        /// Verify is the string is in base64 format.
-        /// <para>Vérifie si un string est en format base64.</para>
+        /// Converts a Ghidra string report into a byte array.
+        /// Extracts hex bytes from each line and places them at the correct index.
+        /// </summary>
+        /// <param name="report">The Ghidra report as a string</param>
+        /// <returns>Byte array constructed from the report</returns>
+        public static byte[] GhidraStrReportToBytes(string report, int sizeOfOutput = -1)
+        {
+            string[] lines = report.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            byte[] byteArray = new byte[sizeOfOutput <= -1 ? lines.Length : sizeOfOutput];
+
+            foreach (string line in lines)
+            {
+                Match match = Regex.Match(line, @"\b([0-9a-fA-F]+)\s+([0-9a-fA-F]{2})\s+.*?\[(\d+)\]");
+                if (match.Success)
+                    byteArray[int.Parse(match.Groups[3].Value)] = Convert.ToByte(match.Groups[2].Value, 16);
+            }
+
+            return byteArray;
+        }
+
+        /// <summary>
+        /// Verify if the string is in base64 format.
+        /// <para>VÃ©rifie si un string est en format base64.</para>
         /// </summary>
         /// <param name="base64String">The base64 string.</param>
         /// <returns>A tuple boolean, byte array.</returns>
         public static (bool, byte[]) IsBase64(this string base64String)
         {
-            // Credit: oybek https://stackoverflow.com/users/794764/oybek
-            if (string.IsNullOrEmpty(base64String) || base64String.Length % 4 != 0
-               || base64String.Contains(" ") || base64String.Contains("\t")
-               || base64String.Contains("\r") || base64String.Contains("\n"))
+            if (string.IsNullOrEmpty(base64String))
                 return (false, null);
 
 #if NETCOREAPP2_1_OR_GREATER
@@ -137,7 +161,7 @@ namespace NetworkLibrary.Extension
                         2 : 1 : 0)];
 
             if (Convert.TryFromBase64String(base64String, buffer, out int bytesWritten) && bytesWritten > 0)
-                return (true, buffer.ToArray());
+                return (true, buffer[..bytesWritten].ToArray());
 #else
             try
             {
@@ -165,7 +189,7 @@ namespace NetworkLibrary.Extension
 
         /// <summary>
         /// Adds an element to a double string array.
-        /// <para>Ajoute un élément à une liste double de strings.</para>
+        /// <para>Ajoute un Ã©lÃ©ment Ã  une liste double de strings.</para>
         /// </summary>
         /// <param name="original">The original double array.</param>
         /// <param name="bytesToRead">The new array to add.</param>

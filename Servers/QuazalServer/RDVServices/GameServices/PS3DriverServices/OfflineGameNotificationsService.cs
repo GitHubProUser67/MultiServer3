@@ -1,11 +1,10 @@
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.DDL.Models;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
-    [RMCService(RMCProtocolId.OfflineGameNotificationsService)]
+    [RMCService((ushort)RMCProtocolId.OfflineGameNotificationsService)]
 
     public class OfflineGameNotificationsService : RMCServiceBase
     {

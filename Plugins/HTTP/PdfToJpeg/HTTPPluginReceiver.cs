@@ -1,5 +1,4 @@
 using NetworkLibrary.HTTP;
-using NetworkLibrary.HTTP.PluginManager;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using System.IO.Compression;
 using PDFtoImage;
 using SkiaSharp;
 using WebAPIService.Utils;
+using ApacheNet.PluginManager;
 
 namespace PdfToJpeg
 {
@@ -36,7 +36,7 @@ namespace PdfToJpeg
                     {
                         case "POST":
 
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
+                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.ProcessQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
                             {
                                 #region PdfConvert
                                 case "/!PdfConvert/Process/":

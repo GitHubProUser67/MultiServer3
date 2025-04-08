@@ -2,7 +2,7 @@ namespace WebAPIService.UBISOFT.MatchMakingConfig
 {
     public class XMLData
     {
-        public readonly static string DFSPS3NTSCENXMLPayload = "<RESPONSE xmlns=\"\">" +
+        public readonly static string DFS_PS3_NTSC_EN_XMLPayload = "<RESPONSE xmlns=\"\">" +
             "<GatorAuthServiceActivity><VALUE>DRIVER5PS3</VALUE></GatorAuthServiceActivity><GatorAuthServiceURI>" +
             "<VALUE>http://gatorservice.ubi.com/AuthenticationServiceSSL.svc</VALUE></GatorAuthServiceURI><GatorConfigServiceURI>" +
             "<VALUE>http://gatorservice.ubi.com/ConfigService.svc</VALUE></GatorConfigServiceURI><GatorContentServiceURI>" +
@@ -17,5 +17,23 @@ namespace WebAPIService.UBISOFT.MatchMakingConfig
             "<VALUE>http://static8.cdn.ubi.com/</VALUE></uplay_DynContentSecureBaseUrl><uplay_PackageBaseUrl><VALUE>http://static8.cdn.ubi.com/u/Uplay/Packages/1.0.3-RC-Share/test6/</VALUE>" +
             "</uplay_PackageBaseUrl><uplay_WebServiceBaseUrl><VALUE>http://secure.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/</VALUE></uplay_WebServiceBaseUrl>" +
             "</RESPONSE>";
+
+        public readonly static string DFS_PC_EN_XMLPayload = @"<RESPONSE xmlns="">
+            <GatorAuthServiceActivity><VALUE>DRIVER5PC</VALUE></GatorAuthServiceActivity>
+            <GatorAuthServiceHost><VALUE>secure.ubi.com</VALUE></GatorAuthServiceHost>
+            <GatorAuthServicePort><VALUE>443</VALUE></GatorAuthServicePort>
+            <GatorAuthServiceURI><VALUE>https://secure.ubi.com/gatorservice/AuthenticationServiceSSL.svc</VALUE></GatorAuthServiceURI>
+            <GatorConfigServiceURI><VALUE>https://secure.ubi.com/gatorservice/ConfigService.svc</VALUE></GatorConfigServiceURI>
+            <GatorContentServiceURI><VALUE>https://secure.ubi.com/gatorservice/ContentService.svc</VALUE></GatorContentServiceURI>
+            <GatorServiceHost><VALUE>secure.ubi.com</VALUE></GatorServiceHost><GatorServicePort><VALUE>443</VALUE></GatorServicePort>
+            <GatorTransferServiceURI><VALUE>http://gatorservice.ubi.com/TransferService.svc</VALUE></GatorTransferServiceURI>
+            <GatorUserServiceURI><VALUE>https://secure.ubi.com/gatorservice/GatorUserService.svc</VALUE></GatorUserServiceURI>
+            <SandboxUrl><VALUE>prudp:/address=mdc-mm-rdv01.ubisoft.com;port=61105</VALUE></SandboxUrl>
+            <SandboxUrlWS><VALUE>mdc-mm-rdv01.ubisoft.com:61105</VALUE></SandboxUrlWS>
+            <uplay_DownloadServiceUrl><VALUE>https://secure.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url=</VALUE></uplay_DownloadServiceUrl>
+            <uplay_DynContentBaseUrl><VALUE>http://static8.cdn.ubi.com/u/Uplay/</VALUE></uplay_DynContentBaseUrl>
+            <uplay_DynContentSecureBaseUrl><VALUE>http://static8.cdn.ubi.com/</VALUE></uplay_DynContentSecureBaseUrl>
+            <uplay_PackageBaseUrl><VALUE>http://static8.cdn.ubi.com/u/Uplay/Packages/1.0.1/</VALUE></uplay_PackageBaseUrl>
+            <uplay_WebServiceBaseUrl><VALUE>https://secure.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/</VALUE></uplay_WebServiceBaseUrl></RESPONSE>";
     }
 }

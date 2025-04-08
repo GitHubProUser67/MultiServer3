@@ -1,10 +1,9 @@
 using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
-using QuazalServer.RDVServices.RMC;
 
 namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
 {
-    [RMCService(RMCProtocolId.OverlordFriendsService)]
+    [RMCService((ushort)RMCProtocolId.OverlordFriendsService)]
     public class OverlordFriendsService : RMCServiceBase
     {
         [RMCMethod(1)]

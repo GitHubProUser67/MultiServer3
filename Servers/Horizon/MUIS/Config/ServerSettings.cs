@@ -21,7 +21,7 @@ namespace Horizon.MUIS.Config
         /// <summary>
         /// IP of the MUIS.
         /// </summary>
-        public string MUISIp { get; set; } = IpUtils.GetLocalIPAddress().ToString();
+        public string MUISIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result ? InternetProtocolUtils.GetPublicIPAddress() : InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
         #endregion
 
         #region PublicIp
@@ -29,7 +29,7 @@ namespace Horizon.MUIS.Config
         /// By default the server will grab its local ip.
         /// If this is set, it will use its public ip instead.
         /// </summary>
-        public bool UsePublicIp { get; set; } = false;
+        public bool UsePublicIp { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result;
 
         /// <summary>
         /// If UsePublicIp is set to true, allow overriding and skipping using dyndns's dynamic
@@ -46,7 +46,7 @@ namespace Horizon.MUIS.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string? NATIp { get; set; } = IpUtils.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
+        public string? NATIp { get; set; } = InternetProtocolUtils.GetFirstActiveIPAddress("natservice.pdonline.scea.com", "34.199.94.233");
         /// <summary>
         /// Port of the NAT server.
         /// Provide the Port of the SCE-RT NAT Service

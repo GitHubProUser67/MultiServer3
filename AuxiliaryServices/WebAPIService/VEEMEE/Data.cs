@@ -1,7 +1,7 @@
 using System.IO;
 namespace WebAPIService.VEEMEE
 {
-    public class Data
+    public static class Data
     {
         public static string ParkChallenges(string apiPath)
         {

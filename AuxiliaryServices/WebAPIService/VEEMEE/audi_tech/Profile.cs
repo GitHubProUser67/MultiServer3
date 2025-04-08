@@ -7,7 +7,7 @@ using System.IO;
 
 namespace WebAPIService.VEEMEE.audi_tech
 {
-    public class Profile
+    public static class Profile
     {
         private const string DefaultProfile = @"{
                 ""psnID"": ""PUT_MYPSNID_HERE"",

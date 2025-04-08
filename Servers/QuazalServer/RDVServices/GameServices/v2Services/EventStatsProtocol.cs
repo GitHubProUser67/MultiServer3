@@ -8,7 +8,7 @@ namespace QuazalServer.RDVServices.GameServices.v2Services
     /// <summary>
 	/// Events stats service
 	/// </summary>
-	[RMCService(RMCProtocolId.EventStatsProtocol)]
+	[RMCService((ushort)RMCProtocolId.EventStatsProtocol)]
     public class EventStatsProtocol : RMCServiceBase
     {
         [RMCMethod(1)]

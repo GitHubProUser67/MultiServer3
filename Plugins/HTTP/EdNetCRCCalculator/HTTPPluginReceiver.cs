@@ -1,9 +1,9 @@
 using NetworkLibrary.HTTP;
-using NetworkLibrary.HTTP.PluginManager;
 using System;
 using System.Threading.Tasks;
 using WatsonWebserver.Core;
 using System.Net;
+using ApacheNet.PluginManager;
 
 namespace EdNetCRCCalculator
 {
@@ -29,7 +29,7 @@ namespace EdNetCRCCalculator
                     {
                         case "GET":
 
-                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.RemoveQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
+                            switch (HTTPProcessor.ExtractDirtyProxyPath(request.RetrieveHeaderValue("Referer")) + HTTPProcessor.ProcessQueryString(HTTPProcessor.DecodeUrl(request.Url.RawWithQuery)))
                             {
                                 #region EdNet CRC Tools
                                 case "/!EdNet/GetCRC/":

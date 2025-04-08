@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Text.Json;
 using NetworkLibrary.Extension;
+using Ionic.Exploration;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #else
@@ -148,6 +149,7 @@ namespace NetworkLibrary.HTTP
             {".dwf", "drawing/x-dwf"},
             {".dwp", "application/octet-stream"},
             {".dxr", "application/x-director"},
+            {".edgezlib", "application/edgecompressed-zlib"},
             {".eml", "message/rfc822"},
             {".emz", "application/octet-stream"},
             {".eot", "application/octet-stream"},
@@ -600,6 +602,7 @@ namespace NetworkLibrary.HTTP
             {".xwd", "image/x-xwindowdump"},
             {".z", "application/x-compress"},
             {".zip", "application/x-zip-compressed"},
+            {".zlib", "application/zlib"},
             #endregion
         };
 
@@ -631,9 +634,12 @@ namespace NetworkLibrary.HTTP
 #if NET7_0_OR_GREATER
             try
             {
-                HttpResponseMessage response = new HttpClient().GetAsync(url).Result;
-                response.EnsureSuccessStatusCode();
-                return response.Content.ReadAsStringAsync().Result;
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = client.GetAsync(url).Result;
+                    response.EnsureSuccessStatusCode();
+                    return response.Content.ReadAsStringAsync().Result;
+                }
             }
             catch
             {
@@ -643,7 +649,8 @@ namespace NetworkLibrary.HTTP
             try
             {
 #pragma warning disable // NET 6.0 and lower has a bug where GetAsync() is EXTREMLY slow to operate (https://github.com/dotnet/runtime/issues/65375).
-                return new WebClient().DownloadStringTaskAsync(url).Result;
+                using (WebClient client = new WebClient())
+                    return client.DownloadString(url);
 #pragma warning restore
             }
             catch
@@ -700,8 +707,7 @@ namespace NetworkLibrary.HTTP
 
                     client.Headers[HttpRequestHeader.ContentType] = ContentType;
 
-                    // Send POST request
-                    return client.UploadStringTaskAsync(url, postData).Result;
+                    return client.UploadString(url, postData);
                 }
 #pragma warning restore
             }
@@ -754,6 +760,22 @@ namespace NetworkLibrary.HTTP
             }
         }
 
+        public static string GetExtensionFromMime(string mimeType)
+        {
+            if (string.IsNullOrEmpty(mimeType))
+                return ".unknown";
+            else
+                return _mimeTypes.FirstOrDefault(x => x.Value == mimeType).Key ?? ".unknown";
+        }
+
+        public static string GetExtensionFromMime(string mimeType, Dictionary<string, string> mimeTypesDic)
+        {
+            if (string.IsNullOrEmpty(mimeType))
+                return ".unknown";
+            else
+                return mimeTypesDic.FirstOrDefault(x => x.Value == mimeType).Key ?? ".unknown";
+        }
+
         public static bool CheckHeaderMatch(byte[] byteArray, int startIndex, string header)
         {
             for (int i = 0; i < header.Length; i++)
@@ -763,7 +785,6 @@ namespace NetworkLibrary.HTTP
             }
             return true;
         }
-
 
         /// <summary>
         /// Check if it's need to return 304 instead.
@@ -822,22 +843,30 @@ namespace NetworkLibrary.HTTP
             return string.Empty;
         }
 
-        public static Dictionary<string, string> ExtractAndSortUrlEncodedPOSTData(byte[] urlEncodedDataByte)
+        public static Dictionary<string, List<string>> ExtractAndSortUrlEncodedPOSTData(byte[] urlEncodedDataByte)
         {
-            // Use HttpUtility.ParseQueryString to parse the URL-encoded data
+            // Parse the URL-encoded data
             NameValueCollection formData = HttpUtility.ParseQueryString(Encoding.UTF8.GetString(urlEncodedDataByte));
 
-            // Convert the NameValueCollection to a dictionary for easy sorting
-            Dictionary<string, string> formDataDictionary = new Dictionary<string, string>();
+            // Use a dictionary with a list to handle multiple values for the same key
+            Dictionary<string, List<string>> formDataDictionary = new Dictionary<string, List<string>>();
+
             foreach (string key in formData.AllKeys)
             {
                 if (key != null)
-                    formDataDictionary[key] = formData[key] ?? string.Empty;
+                {
+                    if (!formDataDictionary.ContainsKey(key))
+                        formDataDictionary[key] = new List<string>();
+
+                    formDataDictionary[key].AddRange(formData.GetValues(key) ?? Array.Empty<string>());
+                }
             }
+
+            // Sort the dictionary by key
 #if NET5_0_OR_GREATER
-            return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key));
+            return new Dictionary<string, List<string>>(formDataDictionary.OrderBy(x => x.Key));
 #else
-            return new Dictionary<string, string>(formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value));
+            return formDataDictionary.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
 #endif
         }
 
@@ -852,7 +881,7 @@ namespace NetworkLibrary.HTTP
             return HttpUtility.ParseQueryString(new Uri("http://test.com" + input).Query);
         }
 
-        public static string RemoveQueryString(string input)
+        public static string ProcessQueryString(string input, bool extractQuery = false)
         {
             if (string.IsNullOrEmpty(input))
                 return string.Empty;
@@ -860,9 +889,32 @@ namespace NetworkLibrary.HTTP
             int indexOfQuestionMark = input.IndexOf('?');
 
             if (indexOfQuestionMark >= 0)
-                return input.Substring(0, indexOfQuestionMark);
-            else
-                return input;
+                return extractQuery ? input.Substring(indexOfQuestionMark) : input.Substring(0, indexOfQuestionMark);
+
+            return extractQuery ? string.Empty : input;
+        }
+
+        public static Dictionary<string, string> GetQueryParameters(string fullurl)
+        {
+            if (!string.IsNullOrEmpty(fullurl))
+            {
+                Dictionary<string, string> parameterDictionary = new();
+
+                int questionMarkIndex = fullurl.IndexOf("?");
+                if (questionMarkIndex != -1) // If '?' is found
+                {
+                    string trimmedurl = fullurl.Substring(questionMarkIndex + 1);
+                    foreach (string UrlArg in HttpUtility.ParseQueryString(trimmedurl).AllKeys) // Thank you WebOne.
+                    {
+                        if (!string.IsNullOrEmpty(UrlArg))
+                            parameterDictionary[UrlArg] = HttpUtility.ParseQueryString(trimmedurl)[UrlArg] ?? string.Empty;
+                    }
+                }
+
+                return parameterDictionary;
+            }
+
+            return null;
         }
 
         public static string RemoveDiacritics(string text)
@@ -922,35 +974,37 @@ namespace NetworkLibrary.HTTP
         public static byte[] CompressZstd(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
             using (Compressor compressor = new Compressor())
+            {
+                compressor.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, Environment.ProcessorCount);
                 return compressor.Wrap(input).ToArray();
+            }
         }
 #if NET5_0_OR_GREATER
         public static byte[] CompressBrotli(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
-            using MemoryStream output = new MemoryStream();
+            using (MemoryStream output = new MemoryStream())
             using (BrotliStream brStream = new BrotliStream(output, CompressionLevel.Fastest))
             {
                 brStream.Write(input, 0, input.Length);
                 brStream.Flush();
+                return output.ToArray();
             }
-
-            return output.ToArray();
         }
 #endif
         public static byte[] CompressGzip(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
             using (MemoryStream output = new MemoryStream())
-            using (GZipStream gzipStream = new GZipStream(output, CompressionLevel.Fastest))
             {
+                ParallelGZipOutputStream gzipStream = new ParallelGZipOutputStream(output, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, Environment.ProcessorCount);
                 gzipStream.Write(input, 0, input.Length);
                 gzipStream.Close();
                 return output.ToArray();
@@ -960,14 +1014,13 @@ namespace NetworkLibrary.HTTP
         public static byte[] Inflate(byte[] input)
         {
             if (input == null)
-                return input;
+                return null;
 
             using (MemoryStream output = new MemoryStream())
-            using (ZOutputStream zlibStream = new ZOutputStream(output, 1, true))
             {
+                ZOutputStream zlibStream = new ZOutputStream(output, 1, true);
                 zlibStream.Write(input, 0, input.Length);
                 zlibStream.Close();
-                output.Close();
                 return output.ToArray();
             }
         }
@@ -975,7 +1028,7 @@ namespace NetworkLibrary.HTTP
         public static Stream ZstdCompressStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -988,8 +1041,8 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new MemoryStream();
                     using (CompressionStream outZStream = new CompressionStream(outMemoryStream))
                     {
-                        outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, 2);
-                        StreamUtils.CopyStream(input, outZStream, 4096);
+                        outZStream.SetParameter(ZSTD_cParameter.ZSTD_c_nbWorkers, Environment.ProcessorCount);
+                        StreamUtils.CopyStream(input, outZStream);
                     }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
                 }
@@ -1004,7 +1057,7 @@ namespace NetworkLibrary.HTTP
         public static Stream BrotliCompressStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -1017,7 +1070,7 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new MemoryStream();
                     using (BrotliStream outBStream = new BrotliStream(outMemoryStream, CompressionLevel.Fastest, true))
                     {
-                        StreamUtils.CopyStream(input, outBStream, 4096);
+                        StreamUtils.CopyStream(input, outBStream);
                         outBStream.Flush();
                     }
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
@@ -1033,7 +1086,7 @@ namespace NetworkLibrary.HTTP
         public static Stream GzipCompressStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -1044,11 +1097,8 @@ namespace NetworkLibrary.HTTP
                         outMemoryStream = new HugeMemoryStream();
                     else
                         outMemoryStream = new MemoryStream();
-                    using (GZipStream outGStream = new GZipStream(outMemoryStream, CompressionLevel.Fastest, true))
-                    {
-                        StreamUtils.CopyStream(input, outGStream, 4096);
-                        outGStream.Close();
-                    }
+                    using (ParallelGZipOutputStream outGStream = new ParallelGZipOutputStream(outMemoryStream, Ionic.Zlib.CompressionLevel.BestSpeed, Ionic.Zlib.CompressionStrategy.Filtered, true, Environment.ProcessorCount))
+                        StreamUtils.CopyStream(input, outGStream);
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
                 }
                 catch
@@ -1062,7 +1112,7 @@ namespace NetworkLibrary.HTTP
         public static Stream InflateStream(Stream input)
         {
             if (input == null)
-                return input;
+                return null;
 
             Stream outMemoryStream;
             using (input)
@@ -1074,10 +1124,7 @@ namespace NetworkLibrary.HTTP
                     else
                         outMemoryStream = new MemoryStream();
                     using (ZOutputStreamLeaveOpen outZStream = new ZOutputStreamLeaveOpen(outMemoryStream, 1, true))
-                    {
-                        StreamUtils.CopyStream(input, outZStream, 4096);
-                        outZStream.Close();
-                    }
+                        StreamUtils.CopyStream(input, outZStream);
                     outMemoryStream.Seek(0, SeekOrigin.Begin);
                 }
                 catch

@@ -7,7 +7,7 @@ using NetHasher;
 
 namespace WebAPIService.VEEMEE
 {
-    public class Processor
+    public static class Processor
     {
         private const string HashSalt = "veemeeHTTPRequ9R3UMWDAT8F3*#@&$^";
 
