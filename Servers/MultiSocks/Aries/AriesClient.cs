@@ -48,7 +48,7 @@ namespace MultiSocks.Aries
             Context = context;
             tcpClient = client;
 
-            LoggerAccessor.LogInfo("[AriesClient] - New connection from " + ADDR + ".");
+            LoggerAccessor.LogInfo("New connection from " + ADDR + ".");
 
             if (secure && context.SSLCache != null)
             {
@@ -62,14 +62,17 @@ namespace MultiSocks.Aries
             RecvThread.Start();
         }
 
+        public void Close()
+        {
+            tcpClient.Close();
+        }
+
         private void RunLoop()
         {
-            ClientStream = tcpClient.GetStream();
-
             if (secure)
             {
                 Ssl3TlsServer connTls = new(new Rc4TlsCrypto(false), SecureKeyCert.Item2, SecureKeyCert.Item1);
-                TlsServerProtocol serverProtocol = new(ClientStream);
+                TlsServerProtocol serverProtocol = new(tcpClient.GetStream());
 
                 try
                 {
@@ -79,12 +82,13 @@ namespace MultiSocks.Aries
                 {
                     LoggerAccessor.LogError($"[AriesClient] - ProtoSSL - Failed to accept connection:{e}");
 
+                    serverProtocol.Flush();
                     serverProtocol.Close();
                     connTls.Cancel();
 
                     ClientStream?.Dispose();
                     tcpClient.Dispose();
-                    LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} forced disconnected.");
+                    LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
                     Context.RemoveClient(this);
 
                     return;
@@ -92,6 +96,8 @@ namespace MultiSocks.Aries
 
                 ClientStream = serverProtocol.Stream;
             }
+            else
+                ClientStream = tcpClient.GetStream();
 
             bool InHeader = false;
             int len, TempDatOff = 0;
@@ -101,54 +107,58 @@ namespace MultiSocks.Aries
 
             try
             {
-                while ((len = ClientStream.Read(bytes)) != 0)
+                while (tcpClient.IsConnected())
                 {
-                    int off = 0;
-                    while (len > 0)
+                    if (tcpClient.Available > 0)
                     {
-                        // got some data
-                        if (ExpectedBytes == -1)
+                        len = ClientStream.Read(bytes);
+                        int off = 0;
+                        while (len > 0)
                         {
-                            // new packet
-                            InHeader = true;
-                            ExpectedBytes = 12; // header
-                            TempData = new byte[12];
-                            TempDatOff = 0;
-                        }
-
-                        if (TempData != null)
-                        {
-                            int copyLen = Math.Min(len, TempData.Length - TempDatOff);
-                            bytes.Slice(off, copyLen).CopyTo(TempData.Slice(TempDatOff));
-                            off += copyLen;
-                            TempDatOff += copyLen;
-                            len -= copyLen;
-
-                            if (TempDatOff == TempData.Length)
+                            // got some data
+                            if (ExpectedBytes == -1)
                             {
-                                if (InHeader)
+                                // new packet
+                                InHeader = true;
+                                ExpectedBytes = 12; // header
+                                TempData = new byte[12];
+                                TempDatOff = 0;
+                            }
+
+                            if (TempData != null)
+                            {
+                                int copyLen = Math.Min(len, TempData.Length - TempDatOff);
+                                bytes.Slice(off, copyLen).CopyTo(TempData.Slice(TempDatOff));
+                                off += copyLen;
+                                TempDatOff += copyLen;
+                                len -= copyLen;
+
+                                if (TempDatOff == TempData.Length)
                                 {
-                                    //header complete.
-                                    InHeader = false;
-                                    int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
-                                    if (size > MAX_SIZE)
+                                    if (InHeader)
                                     {
-                                        tcpClient.Close(); // either something terrible happened or they're trying to mess with us
-                                        break;
+                                        //header complete.
+                                        InHeader = false;
+                                        int size = TempData[11] | TempData[10] << 8 | TempData[9] << 16 | TempData[8] << 24;
+                                        if (size > MAX_SIZE)
+                                        {
+                                            tcpClient.Close(); // either something terrible happened or they're trying to mess with us
+                                            break;
+                                        }
+                                        CommandName = Encoding.ASCII.GetString(TempData)[..4];
+
+                                        TempData = new byte[size - 12];
+                                        TempDatOff = 0;
                                     }
-                                    CommandName = Encoding.ASCII.GetString(TempData)[..4];
+                                    else
+                                    {
+                                        // message complete, process in a sync manner to avoids issues.
+                                        GotMessage(CommandName, TempData.ToArray());
 
-                                    TempData = new byte[size - 12];
-                                    TempDatOff = 0;
-                                }
-                                else
-                                {
-                                    // message complete, process in a sync manner to avoids issues.
-                                    GotMessage(CommandName, TempData.ToArray());
-
-                                    TempDatOff = 0;
-                                    ExpectedBytes = -1;
-                                    TempData = null;
+                                        TempDatOff = 0;
+                                        ExpectedBytes = -1;
+                                        TempData = null;
+                                    }
                                 }
                             }
                         }
@@ -162,7 +172,7 @@ namespace MultiSocks.Aries
 
             ClientStream?.Dispose();
             tcpClient.Dispose();
-            LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} disconnected.");
+            LoggerAccessor.LogWarn($"[AriesClient] - User {ADDR} Disconnected.");
             Context.RemoveClient(this);
         }
 

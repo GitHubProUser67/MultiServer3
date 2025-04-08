@@ -11,7 +11,7 @@ public static class QuazalServerConfiguration
     public static string ServerPublicBindAddress { get; set; } = InternetProtocolUtils.GetPublicIPAddress();
     public static string EdNetBindAddressOverride { get; set; } = string.Empty;
     public static string QuazalStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/Quazal";
-    public static bool UsePublicIP { get; set; } = InternetProtocolUtils.TryGetServerIP(out _).Result;
+    public static bool UsePublicIP { get; set; } = false;
     public static List<Tuple<int, string, string>>? BackendServersList { get; set; } = new List<Tuple<int, string, string>>
                     {
                         Tuple.Create(30201, "yh64s", "v2Services"), // TDUPS2

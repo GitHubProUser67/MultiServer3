@@ -1,18 +1,18 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Net.Security;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using NetCoreServer;
 using CustomLogger;
 using SSFWServer.Services;
-using SSFWServer.SaveDataHelper;
 using NetworkLibrary.Extension;
 using Newtonsoft.Json;
 using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;
+using SSFWServer.Helpers;
+using System.Text.Json;
+using System.Security.Authentication;
 
 namespace SSFWServer
 {
@@ -135,9 +135,7 @@ namespace SSFWServer
         {
             try
             {
-                string absolutepath = request.Url;
-
-                if (!string.IsNullOrEmpty(absolutepath))
+                if (!string.IsNullOrEmpty(request.Url))
                 {
                     (string HeaderIndex, string HeaderItem)[] Headers = CollectHeaders(request);
 
@@ -147,6 +145,8 @@ namespace SSFWServer
 
                     if (string.IsNullOrEmpty(cacheControl) || cacheControl != "no-transform")
                         encoding = GetHeaderValue(Headers, "Accept-Encoding");
+
+                    string absolutepath = request.Url;
 
                     // Split the URL into segments
                     string[] segments = absolutepath.Trim('/').Split('/');
@@ -158,10 +158,10 @@ namespace SSFWServer
                     string filePath = Path.Combine(SSFWServerConfiguration.SSFWStaticFolder, absolutepath[1..]);
 
 #if DEBUG
-                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {absolutepath} (Details: \n{{ \"NetCoreServer\":" + System.Text.Json.JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })
+                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url} (Details: \n{{ \"NetCoreServer\":" + System.Text.Json.JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true })
                         + (Headers.Length > 0 ? $", \"Headers\":{System.Text.Json.JsonSerializer.Serialize(Headers.ToDictionary(header => header.HeaderIndex, header => header.HeaderItem), new JsonSerializerOptions { WriteIndented = true })} }} )" : "} )"));
 #else
-                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {absolutepath}");
+                    LoggerAccessor.LogInfo($"[SSFW] - Home Client Requested the SSFW Server with URL : {request.Method} {request.Url}");
 #endif
 
                     if (!string.IsNullOrEmpty(UserAgent) && UserAgent.Contains("PSHome")) // Host ban is not perfect, but netcoreserver only has that to offer...
@@ -172,6 +172,12 @@ namespace SSFWServer
                         if (string.IsNullOrEmpty(env) || !SSFWMisc.homeEnvs.Contains(env))
                             env = "cprod";
 
+                        //Instantiate services
+                        SSFWAuditService auditService = new(sessionid, env, legacykey);
+                        SSFWRewardsService rewardSvc = new(legacykey);
+                        SSFWLayoutService layout = new(legacykey);
+                        SSFWAvatarLayoutService avatarLayout = new(sessionid, legacykey);
+
                         switch (request.Method)
                         {
                             case "GET":
@@ -180,7 +186,6 @@ namespace SSFWServer
                                 if (absolutepath.Contains($"/LayoutService/{env}/person/") && IsSSFWRegistered(sessionid))
                                 {
                                     string? res = null;
-                                    SSFWLayoutService layout = new(legacykey);
 
                                     if (LayoutGetOverrides.ContainsKey(sessionid))
                                         LayoutGetOverrides.Remove(sessionid, out res);
@@ -207,8 +212,9 @@ namespace SSFWServer
                                 #region AdminObjectService
                                 else if (absolutepath.Contains("/AdminObjectService/start") && IsSSFWRegistered(sessionid))
                                 {
+                                    SSFWAdminObjectService iga = new(sessionid, legacykey);
                                     Response.Clear();
-                                    if (new SSFWAdminObjectService(sessionid, legacykey).HandleAdminObjectService(UserAgent))
+                                    if (iga.HandleAdminObjectService(UserAgent))
                                         Response.SetBegin(200);
                                     else
                                         Response.SetBegin(403);
@@ -219,7 +225,8 @@ namespace SSFWServer
                                 #region SaveDataService
                                 else if (absolutepath.Contains($"/SaveDataService/{env}/{segments.LastOrDefault()}") && IsSSFWRegistered(sessionid))
                                 {
-                                    string? res = SSFWGetFileList.SSFWSaveDataDebugGetFileList(directoryPath, segments.LastOrDefault());
+                                    SSFWGetFileList filelist = new();
+                                    string? res = filelist.SSFWSaveDataDebugGetFileList(directoryPath, segments.LastOrDefault());
                                     if (res != null)
                                         Response.MakeGetResponse(res, "application/json");
                                     else
@@ -229,7 +236,86 @@ namespace SSFWServer
 
                                 else if (IsSSFWRegistered(sessionid))
                                 {
-                                    if (File.Exists(filePath + ".json"))
+                                    //First check if this is a Inventory request
+                                    if (absolutepath.Contains($"/RewardsService/") && absolutepath.Contains("counts"))
+                                    {
+                                        //Detect if existing inv exists
+                                        if (File.Exists(filePath + ".json"))
+                                        {
+                                            string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
+
+                                            if (!string.IsNullOrEmpty(res))
+                                            {
+                                                if (GetHeaderValue(Headers, "Accept") == "application/json")
+                                                    Response.MakeGetResponse(res, "application/json");
+                                                else
+                                                    Response.MakeGetResponse(res);
+                                            }
+                                            else
+                                                Response.MakeErrorResponse();
+                                        }
+                                        else //fallback default 
+                                        {
+                                            Response.MakeGetResponse(@"{ ""00000000-00000000-00000000-00000001"": 1 } ", "application/json");
+                                        }
+                                    }
+                                    //Check for specifically the Tracking GUID
+                                    else if (absolutepath.Contains($"/RewardsService/") && absolutepath.Contains("object/00000000-00000000-00000000-00000001"))
+                                    {
+                                        //Detect if existing inv exists
+                                        if (File.Exists(filePath + ".json"))
+                                        {
+                                            string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
+
+                                            if (!string.IsNullOrEmpty(res))
+                                            {
+                                                if (GetHeaderValue(Headers, "Accept") == "application/json")
+                                                    Response.MakeGetResponse(res, "application/json");
+                                                else
+                                                    Response.MakeGetResponse(res);
+                                            }
+                                            else
+                                                Response.MakeErrorResponse();
+                                        }
+                                        else //fallback default 
+                                        {
+#if DEBUG
+                                            LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Non-existent inventories detected, using defaults!");
+#endif
+                                            if (absolutepath.Contains("p4t-cprod"))
+                                            {
+                                                #region Quest for Greatness
+                                                Response.MakeGetResponse(@"{
+  ""result"": 0,
+  ""rewards"": {
+    ""00000000-00000000-00000000-00000001"": {
+      ""migrated"": 1,
+      ""_id"": ""1""
+    }
+  }
+}", "application/json");
+                                                #endregion
+                                            }
+                                            else
+                                            {
+                                                #region Pottermore
+                                                Response.MakeGetResponse(@"{
+                                                      ""result"": 0,
+                                                      ""rewards"": [
+                                                        {
+                                                          ""00000000-00000000-00000000-00000001"": {
+                                                          ""boost"": ""AQ=="",
+                                                          ""_id"": ""tracking""
+                                                          }
+                                                        }
+                                                      ]
+                                                    }", "application/json");
+                                                #endregion
+                                            }
+
+                                        }
+                                    }
+                                    else if (File.Exists(filePath + ".json"))
                                     {
                                         string? res = FileHelper.ReadAllText(filePath + ".json", legacykey);
 
@@ -263,7 +349,7 @@ namespace SSFWServer
                                     }
                                     else
                                     {
-                                        LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Requested a non-exisant file - {filePath}");
+                                        LoggerAccessor.LogWarn($"[SSFW] : {UserAgent} Requested a non-existent file - {filePath}");
                                         Response.Clear();
                                         Response.SetBegin(404);
                                         Response.SetBody();
@@ -298,6 +384,7 @@ namespace SSFWServer
 
                                 if (request.BodyLength <= Array.MaxLength)
                                 {
+
                                     #region SSFW Login
                                     byte[] postbuffer = request.BodyBytes;
                                     if (absolutepath == $"/{LoginGUID}/login/token/psn")
@@ -362,7 +449,7 @@ namespace SSFWServer
                                     else if (absolutepath.Contains($"/AvatarLayoutService/{env}/") && IsSSFWRegistered(sessionid))
                                     {
                                         Response.Clear();
-                                        if (new SSFWAvatarLayoutService(sessionid, legacykey).HandleAvatarLayout(postbuffer, directoryPath, filePath, absolutepath, false))
+                                        if (avatarLayout.HandleAvatarLayout(postbuffer, directoryPath, filePath, absolutepath, false))
                                             Response.SetBegin(200);
                                         else
                                             Response.SetBegin(403);
@@ -374,7 +461,7 @@ namespace SSFWServer
                                     else if (absolutepath.Contains($"/LayoutService/{env}/person/") && IsSSFWRegistered(sessionid))
                                     {
                                         Response.Clear();
-                                        if (new SSFWLayoutService(legacykey).HandleLayoutServicePOST(postbuffer, directoryPath, absolutepath))
+                                        if (layout.HandleLayoutServicePOST(postbuffer, directoryPath, absolutepath))
                                             Response.SetBegin(200);
                                         else
                                             Response.SetBegin(403);
@@ -384,16 +471,24 @@ namespace SSFWServer
 
                                     #region RewardsService
                                     else if (absolutepath.Contains($"/RewardsService/{env}/rewards/") && IsSSFWRegistered(sessionid))
-                                        Response.MakeGetResponse(new SSFWRewardsService(legacykey).HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
+                                    {
+                                        Response.MakeGetResponse(rewardSvc.HandleRewardServicePOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
+                                    }
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/setpartial") && IsSSFWRegistered(sessionid))
                                     {
-                                        new SSFWRewardsService(legacykey).HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath, env, SSFWUserSessionManager.GetIdBySessionId(sessionid));
+                                        rewardSvc.HandleRewardServiceTrunksPOST(postbuffer, directoryPath, filePath, absolutepath);
                                         Response.MakeOkResponse();
                                     }
                                     else if (absolutepath.Contains($"/RewardsService/trunks-{env}/trunks/") && absolutepath.Contains("/set") && IsSSFWRegistered(sessionid))
                                     {
-                                        new SSFWRewardsService(legacykey).HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
+                                        rewardSvc.HandleRewardServiceTrunksEmergencyPOST(postbuffer, directoryPath, absolutepath);
                                         Response.MakeOkResponse();
+                                    }
+                                    else if (absolutepath.Contains($"/RewardsService/pmcards/") 
+                                        || absolutepath.Contains($"/RewardsService/p4t-cprod/") 
+                                        && IsSSFWRegistered(sessionid))
+                                    {
+                                        Response.MakeGetResponse(rewardSvc.HandleRewardServiceInvPOST(postbuffer, directoryPath, filePath, absolutepath), "application/json");
                                     }
                                     #endregion
 
@@ -461,8 +556,15 @@ namespace SSFWServer
                                                         Response.MakeErrorResponse();
                                                     break;
                                                 case "application/json":
-                                                    File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", putbuffer);
-                                                    Response.MakeOkResponse();
+                                                    if (absolutepath.Equals("/AuditService/log")) {
+                                                        auditService.HandleAuditService(absolutepath, putbuffer);
+                                                        //Audit doesn't care we send ok!
+                                                        Response.MakeOkResponse();
+                                                    } else
+                                                    {
+                                                        File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.json", putbuffer);
+                                                        Response.MakeOkResponse();
+                                                    }
                                                     break;
                                                 default:
                                                     File.WriteAllBytes($"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutepath}.bin", putbuffer);
@@ -499,7 +601,7 @@ namespace SSFWServer
                                     if (request.BodyLength <= Array.MaxLength)
                                     {
                                         Response.Clear();
-                                        if (new SSFWAvatarLayoutService(sessionid, legacykey).HandleAvatarLayout(request.BodyBytes, directoryPath, filePath, absolutepath, true))
+                                        if (avatarLayout.HandleAvatarLayout(request.BodyBytes, directoryPath, filePath, absolutepath, true))
                                             Response.SetBegin(200);
                                         else
                                             Response.SetBegin(403);
@@ -804,16 +906,33 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                try
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
+
+                                                if (rewardsList != null)
                                                 {
-                                                    new SSFWRewardsService(legacykey).AddMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-                                                    Response.Clear();
-                                                    Response.SetBegin(200);
-                                                    Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.AddMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    try
+                                                    {
+                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
+                                                        Response.Clear();
+                                                        Response.SetBegin(200);
+                                                        Response.SetBody($"UUID: {uuid} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
+                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                    }
                                                 }
-                                                catch (Exception ex)
+                                                else
                                                 {
-                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
@@ -850,23 +969,40 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                Dictionary<string, byte> entriesToAdd = new();
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
 
-                                                foreach (string iteruuid in uuids)
+                                                if (rewardsList != null)
                                                 {
-                                                    entriesToAdd.TryAdd(iteruuid, InventoryEntryType);
+                                                    Dictionary<string, byte> entriesToAdd = new();
+
+                                                    foreach (string iteruuid in uuids)
+                                                    {
+                                                        entriesToAdd.TryAdd(iteruuid, InventoryEntryType);
+                                                    }
+
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.AddMiniEntries(rewardsList, entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    try
+                                                    {
+                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
+                                                        Response.Clear();
+                                                        Response.SetBegin(200);
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
+                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                    }
                                                 }
-													
-                                                try
+                                                else
                                                 {
-                                                    new SSFWRewardsService(legacykey).AddMiniEntries(entriesToAdd, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-                                                    Response.Clear();
-                                                    Response.SetBegin(200);
-                                                    Response.SetBody($"UUIDs: {string.Join(",", uuids)} successfully added to the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
@@ -903,16 +1039,33 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                try
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
+
+                                                if (rewardsList != null)
                                                 {
-                                                    new SSFWRewardsService(legacykey).RemoveMiniEntry(uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-                                                    Response.Clear();
-                                                    Response.SetBegin(200);
-                                                    Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.RemoveMiniEntry(rewardsList, uuid, InventoryEntryType, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    try
+                                                    {
+                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
+                                                        Response.Clear();
+                                                        Response.SetBegin(200);
+                                                        Response.SetBody($"UUID: {uuid} successfully removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
+                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                    }
                                                 }
-                                                catch (Exception ex)
+                                                else
                                                 {
-                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
@@ -949,23 +1102,40 @@ namespace SSFWServer
 
                                             if (File.Exists(miniPath))
                                             {
-                                                Dictionary<string, byte> entriesToRemove = new();
+                                                List<Dictionary<string, byte>>? rewardsList = JsonConvert.DeserializeObject<List<Dictionary<string, byte>>>(FileHelper.ReadAllText(miniPath, legacykey) ?? string.Empty);
 
-                                                foreach (string iteruuid in uuids)
+                                                if (rewardsList != null)
                                                 {
-                                                    entriesToRemove.TryAdd(iteruuid, InventoryEntryType);
+                                                    Dictionary<string, byte> entriesToRemove = new();
+
+                                                    foreach (string iteruuid in uuids)
+                                                    {
+                                                        entriesToRemove.TryAdd(iteruuid, InventoryEntryType);
+                                                    }
+
+                                                    SSFWRewardsService rewardService = new SSFWRewardsService(legacykey);
+
+                                                    rewardService.RemoveMiniEntries(rewardsList, entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json");
+
+                                                    try
+                                                    {
+                                                        File.WriteAllText(miniPath, JsonConvert.SerializeObject(rewardsList, Formatting.Indented));
+                                                        Response.Clear();
+                                                        Response.SetBegin(200);
+                                                        Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                        Response.Clear();
+                                                        Response.SetBegin(500);
+                                                        Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
+                                                        LoggerAccessor.LogError($"[SSFW] - {errMsg}");
+                                                    }
                                                 }
-												
-                                                try
+                                                else
                                                 {
-                                                    new SSFWRewardsService(legacykey).RemoveMiniEntries(entriesToRemove, $"{SSFWServerConfiguration.SSFWStaticFolder}/RewardsService/trunks-{env}/trunks/{userId}.json", env, userId);
-                                                    Response.Clear();
-                                                    Response.SetBegin(200);
-                                                    Response.SetBody($"UUIDs: {string.Join(",", uuids)} removed in the Mini rewards list.", encoding, GetHeaderValue(Headers, "Origin"));
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    string errMsg = $"Mini rewards list file update errored out for file: {miniPath} (Exception: {ex})";
+                                                    string errMsg = $"Mini rewards list deserializing errored out for file: {miniPath}";
                                                     Response.Clear();
                                                     Response.SetBegin(500);
                                                     Response.SetBody(errMsg, encoding, GetHeaderValue(Headers, "Origin"));
