@@ -53,10 +53,49 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-        private readonly static Dictionary<string, string> GhostReconFutureSoliderPS3Response = new Dictionary<string, string>()
+        private readonly static Dictionary<string, string> PureFootballPS3Response = new Dictionary<string, string>()
+        {
+            { "AuthenticationServer",           @"lb-lsg-auth.ubisoft.com:3078"},
+            { "GatorAuthServiceActivity",       @"UGC_PUREFOOTBALL_PS3"},
+            { "GatorAuthServiceHost",           @"gatorservice.ubi.com"},
+            { "GatorAuthServicePort",           @"443"},
+            { "GatorConfigServiceURI",          @"http://secure.ubi.com/gatorservice/ConfigService.svc"},
+            { "GatorContentServiceURI",         @"http://secure.ubi.com/gatorservice/ContentService.svc"},
+            { "GatorServiceHost",               @"gatorservice.ubi.com"},
+            { "GatorServicePort",               @"80"},
+            { "GatorTransferServiceURI",        @"/TransferService.svc"},
+            { "GatorUserServiceURI",            @"http://secure.ubi.com/gatorservice/GatorUserService.svc"},
+            { "LobbyServer",                    @"lb-lsg-prod.ubisoft.com:3106"},
+            { "MmpTitleId",                     @"0x2777" },
+            { "NetworkPlatformCommunicationId", @"NPWR00657_00" },
+            { "NetworkPlatformServiceId",       @"UP0001-BLUS30411_00" },
+            { "SandboxUrlPS3",                  @"prudp:/address=lb-rdv-prod02.ubisoft.com;port=25000;serviceid=UP0001-BLUS30411_00" },
+            { "SandboxUrlWS",                   @"lb-rdv-prod02.ubisoft.com:25000" },
+            { "uplay_DownloadServiceUrl",       @"http://secure.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url=" },
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/" },
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.ubi.com/" },
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.0.1/" },
+            { "uplay_WebServiceBaseUrl",        @"http://secure.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/" },
+        };
+
+        private readonly static Dictionary<string, string> GhostReconFutureSoldierPS3Response = new Dictionary<string, string>()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod04.ubisoft.com;port=61120;serviceid=UPxxxx-MYGAME"},
             { "SandboxUrlWS",                   @"pdc-vm-rdv04.ubisoft.com:61120"},
+            { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
+            { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
+            { "uplay_MovieBaseUrl",             @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
+            { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+        };
+
+
+        private readonly static Dictionary<string, string> GhostReconFutureSoldierMPBetaPS3Response = new Dictionary<string, string>()
+        {
+            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod04.ubisoft.com;port=61119;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrlWS",                   @"pdc-vm-rdv04.ubisoft.com:61119"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
@@ -88,6 +127,17 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_LinkappBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/linkapp/1.1/"},
             { "uplay_MovieBaseUrl",             @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
+            { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+        };
+
+        private readonly static Dictionary<string, string> ACBrotherhoodPS3Response = new Dictionary<string, string>()
+        {
+            { "SandboxUrlPS3",                  @"prudp:/address=lb-ne1-z02-rdv-ac.ubisoft.com;port=23941;serviceid=UP0001-NPUB90483_00"},
+            { "SandboxUrlWS",                   @"ne1-z2-ac-rdv04.ubisoft.com:23940"},
+            { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.0.3-RC-Shop/"},
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
@@ -175,11 +225,11 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
 
         private readonly static Dictionary<string, string> AC2PS3Response = new Dictionary<string, string>()
         {
-            //{ "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod07.ubisoft.com;port=61129;serviceid=UPxxxx-MYGAME"},
-            //{ "SandboxUrlWS",                   @"pdc-vm-rdv07.ubisoft.com:61129"},
-            { "NetworkPlatformServiceId",       @"UP0001-BLUS30364_00"},
-            { "SandboxUrl",                     @"prudp:/address=mdc-mm-rdv57.ubisoft.com;port=23960;serviceid=UP0001-BLUS30364_00"},
-            { "SandboxUrlWS",                   @"mdc-mm-rdv57.ubisoft.com:23960"},
+            { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod07.ubisoft.com;port=61129;serviceid=UPxxxx-MYGAME"},
+            { "SandboxUrlWS",                   @"pdc-vm-rdv07.ubisoft.com:61129"},
+            //{ "NetworkPlatformServiceId",       @"UP0001-BLUS30364_00"},
+            //{ "SandboxUrlPS3",                  @"prudp:/address=mdc-mm-rdv57.ubisoft.com;port=23960;serviceid=UP0001-BLUS30364_00"},
+            //{ "SandboxUrlWS",                   @"mdc-mm-rdv57.ubisoft.com:23960"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
@@ -188,7 +238,6 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/"},
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
-
 
         private readonly static Dictionary<string, string> BeyondGoodAndEvilHDPS3Response = new Dictionary<string, string>()
         {
@@ -229,7 +278,6 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_PackageBaseUrl",           new Tuple<string, string>(@"http://static8.cdn.ubi.com/u/Uplay/Packages/1.5-Share-rc/", null)},
             { "uplay_WebServiceBaseUrl",        new Tuple<string, string>(@"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/", null)},
         };
-
 
         private readonly static Dictionary<string, string> IAAPS3Response = new Dictionary<string, string>()
         {
@@ -291,6 +339,16 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
                         });
                     }
                     break;
+                case "d2f9d73de80e4e10971ff979e9d25649":
+                    foreach (var v in ACBrotherhoodPS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
+                        });
+                    }
+                    break;
                 case "749b17f318b7463cbaa4eb5bc19527e5":
                     foreach (var v in AC2PS3Response)
                     {
@@ -331,8 +389,18 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
                         });
                     }
                     break;
+                case "06f0e94af5bb4f3b83339b4c0c91d714":
+                    foreach (var v in GhostReconFutureSoldierMPBetaPS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
+                        });
+                    }
+                    break;
                 case "18a7f5db34d34b118c1a0b8eeb517fd7":
-                    foreach (var v in GhostReconFutureSoliderPS3Response)
+                    foreach (var v in GhostReconFutureSoldierPS3Response)
                     {
                         list.Add(new OnlineConfigEntry
                         {
@@ -363,6 +431,16 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
                     break;
                 case "7a5a8edc9e2b42abb12b47d04e531b26":
                     foreach (var v in IAAPS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
+                        });
+                    }
+                    break;
+                case "0879cd6bbf17e9cbf6cf44fb35c0142f":
+                    foreach (var v in PureFootballPS3Response)
                     {
                         list.Add(new OnlineConfigEntry
                         {
