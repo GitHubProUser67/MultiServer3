@@ -135,7 +135,9 @@ namespace SSFWServer
         {
             try
             {
-                if (!string.IsNullOrEmpty(request.Url))
+                string absolutepath = HTTPProcessor.DecodeUrl(request.Url);
+
+                if (!string.IsNullOrEmpty(absolutepath))
                 {
                     (string HeaderIndex, string HeaderItem)[] Headers = CollectHeaders(request);
 
