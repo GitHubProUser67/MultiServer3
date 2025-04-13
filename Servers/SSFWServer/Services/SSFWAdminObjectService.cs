@@ -1,5 +1,6 @@
 using CustomLogger;
 using Newtonsoft.Json;
+using SSFWServer.Helpers.FileHelper;
 
 namespace SSFWServer.Services
 {
@@ -41,7 +42,7 @@ namespace SSFWServer.Services
                 }
             }
 
-            LoggerAccessor.LogError($"[SSFW] - {UserAgent} requested a IGA access, but no access allowed so we forbid!");
+            LoggerAccessor.LogError($"[SSFW] - {UserAgent} requested IGA access, but no access allowed so we forbid!");
 
             return false;
         }

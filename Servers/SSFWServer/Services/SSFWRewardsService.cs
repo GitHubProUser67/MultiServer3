@@ -1,6 +1,8 @@
 using CustomLogger;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SSFWServer.Helpers.FileHelper;
+using SSFWServer.Helpers.RegexHelper;
 using System.Text;
 using System.Text.Json;
 
@@ -24,6 +26,13 @@ namespace SSFWServer.Services
             SSFWUpdateMini(filepath + "/mini.json", Encoding.UTF8.GetString(buffer), false);
 
             return buffer;
+        }
+
+        public byte[] HandleRewardServiceInvPOST(byte[] buffer, string directorypath, string filepath, string absoultepath)
+        {
+            Directory.CreateDirectory(directorypath);
+
+            return SSFWRewardServiceInventoryPOST(buffer, directorypath, filepath, absoultepath);
         }
 
         public void HandleRewardServiceTrunksPOST(byte[] buffer, string directorypath, string filepath, string absolutepath, string env, string? userId)
@@ -222,6 +231,158 @@ namespace SSFWServer.Services
             {
                 LoggerAccessor.LogError($"[SSFW] - SSFWTrunkServiceProcess errored out with this exception - {ex}");
             }
+        }
+
+        public byte[] SSFWRewardServiceInventoryPOST(byte[] buffer, string directorypath, string filepath, string absolutePath)
+        {
+            //Tracking Inventory
+            const string trackingGuid = "00000000-00000000-00000000-00000001"; // fallback/hardcoded tracking GUID
+
+            // File paths based on the provided format
+            string countsStoreDir = $"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutePath}/";
+            string countsStore = $"{countsStoreDir}/counts.json";
+            string trackingFileDir = $"{SSFWServerConfiguration.SSFWStaticFolder}/{absolutePath}/object/";
+            string trackingFile = $"{trackingFileDir}/{trackingGuid}.json";
+
+            Directory.CreateDirectory(Path.GetDirectoryName(countsStoreDir));
+            Directory.CreateDirectory(Path.GetDirectoryName(trackingFileDir));
+
+            string fixedJsonPayload = GUIDValidator.FixJsonValues(Encoding.UTF8.GetString(buffer));
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(fixedJsonPayload);
+                JsonElement root = document.RootElement;
+                if (!root.TryGetProperty("rewards", out JsonElement rewardsElement) || rewardsElement.ValueKind != JsonValueKind.Array)
+                {
+                    LoggerAccessor.LogError("[SSFW] - SSFWRewardServiceInventoryPOST: Invalid payload - 'rewards' must be an array.");
+                    return Encoding.UTF8.GetBytes("{\"idList\": [\"00000000-00000000-00000000-00000001\"] }");
+                }
+
+                var rewards = rewardsElement.EnumerateArray();
+                if (!rewards.MoveNext())
+                {
+                    LoggerAccessor.LogError("[SSFW] - SSFWRewardServiceInventoryPOST: Invalid payload - 'rewards' array is empty.");
+                    return Encoding.UTF8.GetBytes("{\"idList\": [\"00000000-00000000-00000000-00000001\"] }");
+                }
+
+                Dictionary<string, int> counts;
+                if (File.Exists(countsStore))
+                {
+                    string countsJson = File.ReadAllText(countsStore);
+                    counts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(countsJson) ?? new Dictionary<string, int>();
+                }
+                else
+                {
+                    counts = new Dictionary<string, int>();
+                }
+
+                Dictionary<string, Dictionary<string, object>> existingTrackingData = null;
+                if (File.Exists(trackingFile))
+                {
+                    string existingTrackingJson = File.ReadAllText(trackingFile);
+                    using JsonDocument trackingDoc = JsonDocument.Parse(existingTrackingJson);
+                    JsonElement trackingRoot = trackingDoc.RootElement;
+                    if (trackingRoot.TryGetProperty("rewards", out JsonElement trackingRewardsElement) &&
+                        trackingRewardsElement.ValueKind == JsonValueKind.Object)
+                    {
+                        existingTrackingData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
+                            trackingRewardsElement.GetRawText());
+                    }
+                }
+
+                foreach (JsonElement reward in rewards)
+                {
+                    if (!reward.TryGetProperty("objectId", out JsonElement objectIdElement) ||
+                        objectIdElement.ValueKind != JsonValueKind.String)
+                    {
+                        LoggerAccessor.LogError("[SSFW] - SSFWRewardServiceInventoryPOST: Invalid reward - 'objectId' missing or not a string.");
+                        continue;
+                    }
+
+                    if (objectIdElement.ValueKind != JsonValueKind.String)
+                    {
+                        LoggerAccessor.LogError($"[SSFW] - SSFWRewardServiceInventoryPOST: 'objectId' must be a string, got {objectIdElement.ValueKind}.");
+                        continue;
+                    }
+
+                    string objectId = objectIdElement.GetString();
+
+                    // Update counts
+                    if (counts.ContainsKey(objectId))
+                    {
+                        counts[objectId]++;
+                    }
+                    else
+                    {
+                        counts[objectId] = 1;
+                    }
+
+                    // Check if this is a tracking object (has metadata or matches tracking GUID)
+                    bool hasMetadata = reward.TryGetProperty("_id", out _) ||
+                                      reward.TryGetProperty("scene", out _) ||
+                                      reward.TryGetProperty("boost", out _) ||
+                                      reward.TryGetProperty("game", out _) ||
+                                      reward.TryGetProperty("migrated", out _);
+                    if (hasMetadata || objectId == trackingGuid || objectId != string.Empty)
+                    {
+                        var trackingRewards = existingTrackingData ?? new Dictionary<string, Dictionary<string, object>>();
+                        var metadata = new Dictionary<string, object>();
+
+                        foreach (JsonProperty prop in reward.EnumerateObject())
+                        {
+                            if (prop.Name != "objectId")
+                            {
+                                switch (prop.Value.ValueKind)
+                                {
+                                    case JsonValueKind.String:
+                                        metadata[prop.Name] = prop.Value.GetString();
+                                        break;
+                                    case JsonValueKind.Number:
+                                        metadata[prop.Name] = prop.Value.GetInt32();
+                                        break;
+                                    case JsonValueKind.True:
+                                    case JsonValueKind.False:
+                                        metadata[prop.Name] = prop.Value.GetBoolean();
+                                        break;
+                                    default:
+                                        metadata[prop.Name] = prop.Value.ToString();
+                                        break;
+                                }
+                            }
+                        }
+
+                        trackingRewards[objectId] = metadata;
+
+                        // Write tracking data
+                        var trackingData = new Dictionary<string, object>
+                        {
+                            { "result", 0 },
+                            { "rewards", trackingRewards }
+                        };
+                        string trackingJson = System.Text.Json.JsonSerializer.Serialize(trackingData, new JsonSerializerOptions { WriteIndented = true });
+                        File.WriteAllText(trackingFile, trackingJson);
+#if DEBUG
+                        LoggerAccessor.LogInfo($"[SSFW] - SSFWRewardServiceInventoryPOST: Updated tracking file: {trackingFile}");
+#endif
+                    }
+                }
+
+                string updatedCountsJson = System.Text.Json.JsonSerializer.Serialize(counts, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(countsStore, updatedCountsJson);
+#if DEBUG
+                LoggerAccessor.LogInfo($"[SSFW] - SSFWRewardServiceInventoryPOST: Updated counts file: {countsStore}");
+#endif
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                LoggerAccessor.LogError($"[SSFW] - SSFWRewardServiceInventoryPOST: Error parsing JSON payload: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                LoggerAccessor.LogError($"[SSFW] - SSFWRewardServiceInventoryPOST: Error processing POST request: {ex.Message}");
+            }
+
+            return Encoding.UTF8.GetBytes(@"{ ""idList"": [""00000000-00000000-00000000-00000001""]}");
         }
 
         public void AddMiniEntry(string uuid, byte invtype, string trunkFilePath, string env, string? userId)

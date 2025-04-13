@@ -6,7 +6,7 @@ using System.Text;
 using CustomLogger;
 using NetworkLibrary.Extension;
 
-namespace SSFWServer
+namespace SSFWServer.Helpers.FileHelper
 {
     public class FileHelperCryptoClass
     {

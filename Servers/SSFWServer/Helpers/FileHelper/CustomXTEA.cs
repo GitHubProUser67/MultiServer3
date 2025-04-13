@@ -1,7 +1,7 @@
 using CustomLogger;
 using EndianTools;
 
-namespace SSFWServer
+namespace SSFWServer.Helpers.FileHelper
 {
     public class CustomXTEA
     {
