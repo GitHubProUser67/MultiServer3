@@ -17,41 +17,50 @@ public static class QuazalServerConfiguration
                         Tuple.Create(13015, "33ggb39", "PS3UbisoftServices"), // PSBPS2
                         Tuple.Create(30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30216, "hg7j1", "v2Services"), // TDUPS2BETA
+                        Tuple.Create(30601, "7fas5", "v2Services"), // C:SFPS2
                         Tuple.Create(30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
                         Tuple.Create(21221, "8dtRv2oj", "PCGROnlineServices"), // GROPC
+                        Tuple.Create(23940, "HgBfd54p", "PS3UbisoftServices"), //ACBHPS3
                         //Tuple.Create(60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
                         Tuple.Create(61111, "QusaPha9", "PS3DriverServices"), // DFSPS3
                         Tuple.Create(62111, "QusaPha9", "PS3DriverServices"), // DFSPS3NTSCLOBBY
                         Tuple.Create(60106, "5PTymlWI", "PS3UbisoftServices"), // IAAPS3
                         Tuple.Create(60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
                         Tuple.Create(61121, "q1UFc45UwoyI", "PS3GFRSServices"), // GRFSPS3
-                        //Tuple.Create(21067, "HJb8Ix1M", "PS3UbisoftServices"), // ACRevPS3
+                        Tuple.Create(61122, "os1oBiCa2bPv", "PS3GFRSServices"), // GRFSMPBPS3
+                        Tuple.Create(23900, "HgBfd54p", "PS3UbisoftServices"), // ACBHMultiPS3
+                        Tuple.Create(21065, "HJb8Ix1M", "PS3UbisoftServices"), // ACRevPS3
                         Tuple.Create(61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
                         Tuple.Create(62126, "cYoqGd4f", "PS3UbisoftServices"), // PRIVAC3PS3
                         Tuple.Create(61128, "cYoqGd4f", "PS3UbisoftServices"), // AC3MULTPS3
                         Tuple.Create(62128, "cYoqGd4f", "PS3UbisoftServices"), // AC3PRIVMULTPS3
-                        Tuple.Create(23960, "h0rszqTw", "PS3UbisoftServices"), // AC2PS3
+                        Tuple.Create(61129, "h0rszqTw", "PS3UbisoftServices"), // AC2PS3
                         Tuple.Create(61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
                         Tuple.Create(61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
                         Tuple.Create(61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
                         //Tuple.Create(33333, "674BJu2N", "PS3UbisoftServices"), // RRUPS3NatCheck
                         //Tuple.Create(28783, "674BJu2N", "PS3UbisoftServices"), // RRUPS3NatCheck
-                        //Tuple.Create(30060, "27u8xB6w", "PS3UbisoftServices"), // RRUPS3
-                        //Tuple.Create(24250, "bR8fafEw", "PS3UbisoftServices"), // JCATGPS3
+                        //Tuple.Create(30040, "Ht3J629A", "PS3UbisoftServices"), // RRUPC
+                        //Tuple.Create(30061, "27u8xB6w", "PS3UbisoftServices"), // RRUPS3
+                        Tuple.Create(24251, "bR8fafEw", "PS3UbisoftServices"), // JCATGPS3
                         //Tuple.Create(61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
-                        //Tuple.Create(31080, "b417OVR", "PS3UbisoftServices"), // TOPGUNPS3
-                        //Tuple.Create(30380, "R6V3g4s", "PS3UbisoftServices"), // TCRSVPSP
+                        //Tuple.Create(31020, "tFkQh5ds", "PS3UbisoftServices"), // DIRT2PS3
+                        Tuple.Create(31081, "b417OVR", "PS3UbisoftServices"), // TOPGUNPS3
+                        Tuple.Create(30380, "R6V3g4s", "PS3UbisoftServices"), // TCRSVPSP
                         //Tuple.Create(60001, "ridfebb9", "RockBand3Services"), // RB3
                         //Tuple.Create(21032, "8dtRv2oj", "PCUbisoftServices"), // GRO
                         Tuple.Create(30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
                         Tuple.Create(30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
                         Tuple.Create(31041, "7aK4858Q", "PS3OFPS2Services"), // OFP2PS3
+                        Tuple.Create(25000, "asdd3$#a", "PS3UbisoftServices"), // PFBPS3
+                        //Tuple.Create(30640, "oTyiaY4Ks", "PS3UbisoftServices"), // MXVATVUPS3
                         //Tuple.Create(61136, "pJ3Lsyc2", "WIIUUbisoftServices"), // WATCHDOGSWIIU
                     };
     public static List<Tuple<int, int, string, string>>? RendezVousServersList { get; set; } = new List<Tuple<int, int, string, string>>
                     {
                         Tuple.Create(30200, 30201, "yh64s", "v2Services"), // TDUPS2
                         Tuple.Create(30215, 30216, "hg7j1", "v2Services"), // TDUPS2BETA
+                        //Tuple.Create(30600, 30601, "7fas5", "v2Services"), // C:SFPS2
                         Tuple.Create(30550, 30551, "1WguH+y", "v2Services"), // RIDINGCLUBPC
                         Tuple.Create(21225, 21221, "8dtRv2oj", "PCGROnlineServices"), // GROPC
                         //Tuple.Create(60105, 60106, "w6kAtr3T", "PCDriverServices"), // DFSPC
@@ -60,21 +69,29 @@ public static class QuazalServerConfiguration
                         Tuple.Create(60107, 60106, "5PTymlWI", "PS3UbisoftServices"), // IAAPS3
                         Tuple.Create(60115, 60116, "OLjNg84Gh", "PS3UbisoftServices"), // HAWX2PS3
                         Tuple.Create(61120, 61121, "q1UFc45UwoyI", "PS3GFRSServices"), // GRFSPS3
+                        Tuple.Create(61119, 61122, "os1oBiCa2bPv", "PS3GFRSServices"), // GRFSMPBPS3
+                        Tuple.Create(21067, 21065, "HJb8Ix1M", "PS3UbisoftServices"), // ACRevPS3
+                        Tuple.Create(23941, 23940, "HgBfd54p", "PS3UbisoftServices"), // ACBHPS3
+                        Tuple.Create(23901, 23900, "HgBfd54p", "PS3UbisoftServices"), // ACBHMultiPS3
                         Tuple.Create(61125, 61126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PS3
-                        Tuple.Create(62125, 62126, "cYoqGd4f", "PS3UbisoftServices"), // PRIVAC3PS3
+                        Tuple.Create(62125, 62126, "cYoqGd4f", "PS3UbisoftServices"), // AC3PRIVPS3
                         Tuple.Create(61127, 61128, "cYoqGd4f", "PS3UbisoftServices"), // AC3MULTPS3
                         Tuple.Create(62127, 62128, "cYoqGd4f", "PS3UbisoftServices"), // AC3PRIVMULTPS3
-                        Tuple.Create(23961, 23960, "h0rszqTw", "PS3UbisoftServices"), // AC2PS3
+                        Tuple.Create(61130, 61129, "h0rszqTw", "PS3UbisoftServices"), // AC2PS3
                         Tuple.Create(61131, 61132, "lON6yKGp", "PS3UbisoftServices"), // SCBLACKLISTPS3
                         Tuple.Create(61133, 61134, "ex5LYTJ0", "PS3UbisoftServices"), // WATCHDOGSPS3
                         Tuple.Create(61137, 61138, "4TeVtJ7V", "PS3UbisoftServices"), // BGEHDPS3
-                        //Tuple.Create(30061, 30060, "27u8xB6w", "PS3UbisoftServices"), // RRUPS3
-                        //Tuple.Create(24251, 24250, "bR8fafEw", "PS3UbisoftServices"), // JCATGPS3
-                        //Tuple.Create(61139, 61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
-                        //Tuple.Create(31081, 31080, "b417OVR", "PS3UbisoftServices"), // TOPGUNPS3
+                        //Tuple.Create(30060, 30061, "27u8xB6w", "PS3UbisoftServices"), // RRUPS3
+                        //Tuple.Create(30041, 30040, "Ht3J629A", "PS3UbisoftServices"), // RRUPC
+                        Tuple.Create(24250, 24251, "bR8fafEw", "PS3UbisoftServices"), // JCATGPS3
+                        Tuple.Create(25001, 25000, "asdd3$#a", "PS3UbisoftServices"), // PFBPS3
+                        //.Create(61139, 61140, "HJb8Ix1M", "PS3RaymanLegendsServices"), // RAYMANLEGENDSPS3
+                        Tuple.Create(31080, 31081, "b417OVR", "PS3UbisoftServices"), // TOPGUNPS3
+                        //Tuple.Create(31021, 21020, "tFkQh5ds", "PS3UbisoftServices"), // DIRT2PS3
                         Tuple.Create(30160, 30161, "uG9Kv3p", "PS3TurokServices"), // TUROKPS3
                         Tuple.Create(30560, 30561, "os4R9pEiy", "PS3GhostbustersServices"), // GHOSTBUSTERSPS3
                         Tuple.Create(31040, 31041, "7aK4858Q", "PS3OFPS2Services"), // OFP2PS3
+                        //Tuple.Create(30641, 30640, "oTyiaY4Ks", "PS3UbisoftServices"), // MXVATVUPS3
                         //Tuple.Create(61135, 61136, "pJ3Lsyc2", "WIIUUbisoftServices"), // WATCHDOGSWIIU
                     };
 

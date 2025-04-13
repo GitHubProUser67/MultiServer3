@@ -91,7 +91,6 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
             { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
         };
 
-
         private readonly static Dictionary<string, string> GhostReconFutureSoldierMPBetaPS3Response = new Dictionary<string, string>()
         {
             { "SandboxUrlPS3",                  @"prudp:/address=pdc-lb-rdv-prod04.ubisoft.com;port=61119;serviceid=UPxxxx-MYGAME"},
@@ -134,6 +133,18 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
         {
             { "SandboxUrlPS3",                  @"prudp:/address=lb-ne1-z02-rdv-ac.ubisoft.com;port=23941;serviceid=UP0001-NPUB90483_00"},
             { "SandboxUrlWS",                   @"ne1-z2-ac-rdv04.ubisoft.com:23940"},
+            { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
+            { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
+            { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
+            { "uplay_PackageBaseUrl",           @"http://static8.cdn.ubi.com/u/Uplay/Packages/1.0.3-RC-Shop/"},
+            { "uplay_WebServiceBaseUrl",        @"http://wsuplay.ubi.com/UplayServices/UplayFacade/ProfileServicesFacadeRESTXML.svc/REST/"},
+        };
+
+        private readonly static Dictionary<string, string> ACBrotherhoodMultiPS3Response = new Dictionary<string, string>()
+        {
+            { "NetworkPlatformServiceId",       @"UP0001-NPUB90483_00"}, 
+            { "SandboxUrlPS3",                  @"prudp:/address=lb-ne1-z02-rdv-ac.ubisoft.com;port=23901;serviceid=UP0001-NPUB90483_00"},
+            { "SandboxUrlWS",                   @"ne1-z2-ac-rdv04.ubisoft.com:23900"},
             { "uplay_DownloadServiceUrl",       @"http://wsuplay.ubi.com/UplayServices/UplayFacade/DownloadServicesRESTXML.svc/REST/XML/?url="},
             { "uplay_DynContentBaseUrl",        @"http://static8.cdn.ubi.com/u/Uplay/"},
             { "uplay_DynContentSecureBaseUrl",  @"http://static8.cdn.ubi.com/"},
@@ -341,6 +352,16 @@ namespace WebAPIService.UBISOFT.OnlineConfigService
                     break;
                 case "d2f9d73de80e4e10971ff979e9d25649":
                     foreach (var v in ACBrotherhoodPS3Response)
+                    {
+                        list.Add(new OnlineConfigEntry
+                        {
+                            Name = v.Key,
+                            Values = new[] { v.Value }
+                        });
+                    }
+                    break;
+                case "1ebebc7e4d514f60a3f15f90029adf1e":
+                    foreach (var v in ACBrotherhoodMultiPS3Response)
                     {
                         list.Add(new OnlineConfigEntry
                         {

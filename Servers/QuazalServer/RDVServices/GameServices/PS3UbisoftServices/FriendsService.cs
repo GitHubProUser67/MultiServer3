@@ -177,15 +177,17 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
         }
 
         [RMCMethod(7)]
-        public void BlackList()
+        public RMCResult BlackList()
         {
             UNIMPLEMENTED();
+            return Error(0);
         }
 
         [RMCMethod(8)]
-        public void BlackListByName()
+        public RMCResult BlackListByName()
         {
             UNIMPLEMENTED();
+            return Error(0);
         }
 
         [RMCMethod(9)]
@@ -214,15 +216,17 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
         }
 
         [RMCMethod(10)]
-        public void UpdateDetails()
+        public RMCResult UpdateDetails()
         {
             UNIMPLEMENTED();
+            return Error(0);
         }
 
         [RMCMethod(11)]
-        public void GetList()
+        public RMCResult GetList()
         {
             UNIMPLEMENTED();
+            return Error(0);
         }
 
         [RMCMethod(12)]

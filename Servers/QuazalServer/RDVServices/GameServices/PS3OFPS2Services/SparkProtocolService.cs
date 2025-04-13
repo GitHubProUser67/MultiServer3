@@ -130,7 +130,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3OFPS2Services
         }
 
         [RMCMethod(21)]
-        public RMCResult QuickMatchWithHostUrls(int matchType)
+        public RMCResult QuickMatchWithHostUrls(int matchType) // Error(0) when no matches found
         {
             UNIMPLEMENTED();
             return Error(0);
