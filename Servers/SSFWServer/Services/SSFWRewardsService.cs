@@ -2,7 +2,7 @@ using CustomLogger;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace SSFWServer.Services
 {
@@ -246,38 +246,48 @@ namespace SSFWServer.Services
 
         private void ProcessTrunkObjectUpdate(string trunkFilePath, Dictionary<string, byte> entries, string env, string? userId, bool add)
         {
-            string? trunkJson = FileHelper.ReadAllText(trunkFilePath, key);
+            string? trunkJsonData = FileHelper.ReadAllText(trunkFilePath, key);
 
-            if (!string.IsNullOrEmpty(trunkJson))
+            if (!string.IsNullOrEmpty(trunkJsonData))
             {
+                string setpartialRequest;
+
                 try
                 {
                     string setPartialDirectory = trunkFilePath.Substring(0, trunkFilePath.Length - 5);
+                    using JsonDocument doc = JsonDocument.Parse(trunkJsonData);
+
                     List<int> indexList = new();
-                    MatchCollection matches = new Regex(@"\""index\"":\s*\""(\d+)\""").Matches(trunkJson);
-                    int i = matches.Count;
-                    int lastIndex = 0;
+                    Dictionary<int, (string, byte)> indexToItem = new();
 
-                    while (i > 0)
+                    foreach (var obj in doc.RootElement.GetProperty("objects").EnumerateArray())
                     {
-                        if (int.TryParse(matches[i - 1].Groups[1].Value, out lastIndex))
+                        if (obj.TryGetProperty("index", out var indexProp) &&
+                            obj.TryGetProperty("objectId", out var idProp) &&
+                            obj.TryGetProperty("type", out var idType) &&
+                            int.TryParse(indexProp.GetString(), out int index))
                         {
-                            indexList.Add(lastIndex);
+                            indexList.Add(index);
+                            string? idPropStr = idProp.GetString();
+                            string? idTypeStr = idType.GetString();
+                            if (!string.IsNullOrEmpty(idTypeStr) && !string.IsNullOrEmpty(idPropStr) && byte.TryParse(idTypeStr, out byte typeOfEntry))
+                                indexToItem[index] = (idPropStr, typeOfEntry);
                         }
-
-                        i--;
                     }
 
-                    if (indexList.Count > 0)
-                        lastIndex = indexList.Max() + 1;
+                    int lastIndex = indexList.Count > 0 ? indexList.Max() + 1 : 0;
 
-                    // Make sure we don't add a given uuid twice (causes inventory errors at boot)
-                    foreach (string key in entries.Keys.Where(key => trunkJson.Contains(key)))
+                    if (add)
                     {
-                        entries.Remove(key);
+                        // Make sure we don't add a given uuid twice (causes inventory errors at boot)
+                        foreach (string key in entries.Keys.Where(key => trunkJsonData.Contains(key)))
+                        {
+                            entries.Remove(key);
+                        }
+                        setpartialRequest = BuildAddSetPartialJson(entries, lastIndex);
                     }
-
-                    string setpartialRequest = BuildSetPartialJson(entries, lastIndex, add);
+                    else
+                        setpartialRequest = BuildDeleteSetPartialJson(entries, indexToItem);
 
                     Directory.CreateDirectory(setPartialDirectory);
 
@@ -292,63 +302,60 @@ namespace SSFWServer.Services
             }
         }
 
-        private string BuildSetPartialJson(Dictionary<string, byte> entries, int index, bool add)
+        private string BuildAddSetPartialJson(Dictionary<string, byte> entries, int startIndex)
         {
             // Create the object to build the JSON structure
-            if (add)
+            var jsonObject = new
             {
-                var jsonObject = new
+                add = new
                 {
-                    add = new
-                    {
-                        objects = new List<object>()
-                    }
-                };
-
-                // Loop through the dictionary and add each item to the objects list
-                foreach (var item in entries)
-                {
-                    jsonObject.add.objects.Add(new
-                    {
-                        objectId = item.Key,
-                        type = item.Value.ToString(),
-                        trunk = "0",
-                        index = index.ToString()
-                    });
-
-                    index++;
+                    objects = new List<object>()
                 }
+            };
 
-                // Serialize the object to JSON string
-                return JsonConvert.SerializeObject(jsonObject);
-            }
-            else
+            // Loop through the dictionary and add each item to the objects list
+            foreach (var item in entries)
             {
-                var jsonObject = new
+                jsonObject.add.objects.Add(new
                 {
-                    delete = new
-                    {
-                        objects = new List<object>()
-                    }
-                };
+                    objectId = item.Key,
+                    type = item.Value.ToString(),
+                    trunk = "0",
+                    index = startIndex.ToString()
+                });
 
-                // Loop through the dictionary and add each item to the objects list
-                foreach (var item in entries)
-                {
-                    jsonObject.delete.objects.Add(new
-                    {
-                        objectId = item.Key,
-                        type = item.Value.ToString(),
-                        trunk = "0",
-                        index = index.ToString()
-                    });
-
-                    index++;
-                }
-
-                // Serialize the object to JSON string
-                return JsonConvert.SerializeObject(jsonObject);
+                startIndex++;
             }
+
+            // Serialize the object to JSON string
+            return JsonConvert.SerializeObject(jsonObject);
+        }
+
+        private string BuildDeleteSetPartialJson(Dictionary<string, byte> entries, Dictionary<int, (string, byte)> indexToItem)
+        {
+            // Create the object to build the JSON structure
+            var jsonObject = new
+            {
+                delete = new
+                {
+                    objects = new List<object>()
+                }
+            };
+
+            // Loop through the dictionary and add each item to the objects list
+            foreach (var item in entries)
+            {
+                jsonObject.delete.objects.Add(new
+                {
+                    objectId = item.Key,
+                    type = item.Value.ToString(),
+                    trunk = "0",
+                    index = indexToItem.Where(x => x.Value.Item2 == item.Value && x.Value.Item1 == item.Key).FirstOrDefault().Key.ToString(),
+                });
+            }
+
+            // Serialize the object to JSON string
+            return JsonConvert.SerializeObject(jsonObject);
         }
     }
 }

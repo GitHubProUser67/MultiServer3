@@ -135,7 +135,7 @@ namespace SSFWServer
         {
             try
             {
-                string absolutepath = request.Url;
+                string absolutepath = HTTPProcessor.DecodeUrl(request.Url);
 
                 if (!string.IsNullOrEmpty(absolutepath))
                 {
