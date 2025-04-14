@@ -127,8 +127,8 @@ namespace MultiSocks.Aries.Model
             if (user == null)
                 return;
 
-            Users.AddUser(user);
             TryRegisterNewClientIndex(out user.CurrentGameIndex);
+            Users.AddUser(user);
             GPSHost = user;
             Host ??= user;
         }
@@ -138,8 +138,8 @@ namespace MultiSocks.Aries.Model
             if (user == null)
                 return;
 
-            Users.AddUser(user);
             TryRegisterNewClientIndex(out user.CurrentGameIndex);
+            Users.AddUser(user);
         }
 
         public bool RemovePlayerByUsername(string? username, int reason = 0, string? KickReason = "")
@@ -234,10 +234,7 @@ namespace MultiSocks.Aries.Model
                     // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
                     string PlayerColorModifer(int index, string param)
                     {
-                        const string playerIndexToChange = "ff";
-                        if (param.StartsWith(playerIndexToChange))
-                            return param.Replace(playerIndexToChange, $"{user.CurrentGameIndex},");
-                        return param;
+                        return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", $"{user.CurrentGameIndex},");
                     }
 
                     PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
