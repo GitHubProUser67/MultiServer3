@@ -4,7 +4,7 @@ using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.RDVServices.RMC;
 
-namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
+namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     [RMCService((ushort)RMCProtocolId.AccountManagementService)]
     public class AccountManagementService : RMCServiceBase

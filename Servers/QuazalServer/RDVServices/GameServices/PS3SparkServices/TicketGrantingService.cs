@@ -4,12 +4,10 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
 using System.Net;
-using QuazalServer.RDVServices.RMC;
-using RDVServices;
 using CustomLogger;
 using QuazalServer.QNetZ.DDL;
 
-namespace QuazalServer.RDVServices.GameServices.PS3OFPS2Services
+namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     /// <summary>
     /// Authentication service (ticket granting)

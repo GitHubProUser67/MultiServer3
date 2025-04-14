@@ -1,7 +1,7 @@
 ﻿using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 
-namespace QuazalServer.RDVServices.GameServices.PS3OFPS2Services
+namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     /// <summary>
 	/// Secure connection service protocol
@@ -14,7 +14,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3OFPS2Services
         public RMCResult CreateGame(string gameName)
         {
             UNIMPLEMENTED();
-            return Error(0);
+            return Result(new { retVal = true });
         }
 
         [RMCMethod(5)]
@@ -91,14 +91,14 @@ namespace QuazalServer.RDVServices.GameServices.PS3OFPS2Services
         public RMCResult EndGame()
         {
             UNIMPLEMENTED();
-            return Error(0);
+            return Result(new { retVal = true });
         }
 
         [RMCMethod(16)]
         public RMCResult CancelGame()
         {
             UNIMPLEMENTED();
-            return Error(0);
+            return Result(new { retVal = true });
         }
 
         [RMCMethod(17)]

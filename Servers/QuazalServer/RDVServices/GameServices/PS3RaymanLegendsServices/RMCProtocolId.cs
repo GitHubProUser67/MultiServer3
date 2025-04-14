@@ -48,7 +48,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3RaymanLegendsServices
         DriverG2WService = 121,
         Game2WebService = 122,
         GameSessionExService = 123,
-        UserStorageService = 200,
+        OLSStorageService = 200,
         TrackingExtensionService = 1001,
         LeaderboardService = 5000,
         OverlordNewsProtocolService = 5002,

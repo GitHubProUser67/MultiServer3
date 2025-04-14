@@ -8,7 +8,7 @@ using System.Text;
 using QuazalServer.RDVServices.RMC;
 using NetworkLibrary.Extension;
 
-namespace QuazalServer.RDVServices.GameServices.PS3OFPS2Services
+namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     /// <summary>
 	/// Secure connection service protocol

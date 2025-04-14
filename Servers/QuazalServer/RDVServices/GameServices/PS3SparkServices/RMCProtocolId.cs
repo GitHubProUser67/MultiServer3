@@ -1,4 +1,4 @@
-﻿namespace QuazalServer.RDVServices.GameServices.PS3OFPS2Services
+﻿namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     public enum RMCProtocolId
     {
