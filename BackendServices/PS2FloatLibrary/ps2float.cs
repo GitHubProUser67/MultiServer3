@@ -310,7 +310,68 @@ namespace PS2FloatLibrary
                 uf = radixDiv.uf
             };
         }
-		
+
+        public ps2float ELENG(ps2float y, ps2float z)
+        {
+            ps2float ACC = Mul(this);
+            ACC.MulAddAcc(y, y);
+            ps2float p = ACC.MulAdd(z, z);
+            return p.Sqrt();
+        }
+
+        public ps2float ERCPR()
+        {
+            return One.Div(this);
+        }
+
+        public ps2float ERLENG(ps2float y, ps2float z)
+        {
+            ps2float ACC = Mul(this);
+            ACC.MulAddAcc(y, y);
+            ps2float p = ACC.MulAdd(z, z);
+            p = One.Rsqrt(p);
+            return p;
+        }
+
+        public ps2float ERSADD(ps2float y, ps2float z)
+        {
+            ps2float ACC = Mul(this);
+            ACC.MulAddAcc(y, y);
+            ps2float p = ACC.MulAdd(z, z);
+            p = One.Div(p);
+            return p;
+        }
+
+        public ps2float ESQRT()
+        {
+            return Sqrt();
+        }
+
+        public ps2float ESQUR()
+        {
+            return Mul(this);
+        }
+
+        public ps2float ESUM(ps2float y, ps2float z, ps2float w)
+        {
+            ps2float ACC = Mul(One);
+            ACC.MulAddAcc(y, One);
+            ACC.MulAddAcc(z, One);
+            return ACC.MulAdd(w, One);
+        }
+
+        public ps2float ERSQRT()
+        {
+            return One.Rsqrt(this);
+        }
+
+        public ps2float ESADD(ps2float y, ps2float z)
+        {
+            ps2float ACC = Mul(this);
+            ACC.MulAddAcc(y, y);
+            return ACC.MulAdd(z, z);
+        }
+
         public ps2float EEXP()
         {
             float[] consts = new float[6] {0.249998688697815f, 0.031257584691048f, 0.002591371303424f,
@@ -333,6 +394,35 @@ namespace PS2FloatLibrary
             p = One.Div(p);
 
             return p;
+        }
+
+        public ps2float EATAN()
+        {
+            float[] eatanconst = new float[9] { 0.999999344348907f, -0.333298563957214f, 0.199465364217758f, -0.13085337519646f,
+                            0.096420042216778f, -0.055909886956215f, 0.021861229091883f, -0.004054057877511f,
+                            0.785398185253143f };
+
+            ps2float tmp1 = Add(One);
+            ps2float tmp2 = Sub(One);
+            this = tmp2.Div(tmp1);
+            ps2float tmp3 = Mul(this);
+            ps2float ACC = new ps2float(eatanconst[0]).Mul(this);
+            tmp1 = tmp3.Mul(this);
+            tmp2 = tmp1.Mul(tmp3);
+            ACC.MulAddAcc(tmp1, new ps2float(eatanconst[1]));
+            tmp1 = tmp2.Mul(tmp3);
+            ACC.MulAddAcc(tmp2, new ps2float(eatanconst[2]));
+            tmp2 = tmp1.Mul(tmp3);
+            ACC.MulAddAcc(tmp1, new ps2float(eatanconst[3]));
+            tmp1 = tmp2.Mul(tmp3);
+            ACC.MulAddAcc(tmp2, new ps2float(eatanconst[4]));
+            tmp2 = tmp1.Mul(tmp3);
+            ACC.MulAddAcc(tmp1, new ps2float(eatanconst[5]));
+            tmp1 = tmp2.Mul(tmp3);
+            ACC.MulAddAcc(tmp2, new ps2float(eatanconst[6]));
+            ACC.MulAddAcc(One, new ps2float(eatanconst[8]));
+
+            return ACC.MulAdd(tmp1, new ps2float(eatanconst[7]));
         }
 
         public ps2float ESIN()
