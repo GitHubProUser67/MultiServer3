@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using CustomLogger;
 using WebAPIService.NDREAMS.Aurora;
 using WebAPIService.NDREAMS.BlueprintHome;
+using WebAPIService.NDREAMS.Espionage9;
 using WebAPIService.NDREAMS.Fubar;
 using WebAPIService.NDREAMS.Xi2;
 
@@ -43,6 +44,8 @@ namespace WebAPIService.NDREAMS
                 case "POST":
                     switch (absolutepath)
                     {
+                        case "/skyhub/espionage.php":
+                            return Espionage9Class.ProcessPhpRequest(currentdate, PostData, ContentType, apipath);
                         case "/fubar/fisi.php":
                             return fisi.fisiProcess(PostData, ContentType);
                         case "/Teaser/beans.php":
