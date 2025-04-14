@@ -35,13 +35,13 @@ namespace PS2FloatLibrary
             this.raw = raw;
         }
 
-        public ps2float(float value)
+        public unsafe ps2float(float value)
         {
             dz = false;
             iv = false;
             of = false;
             uf = false;
-            raw = BitConverter.ToUInt32(BitConverter.GetBytes(value), 0);
+            raw = *(uint*)&value;
         }
 
         public ps2float(bool sign, byte exponent, uint mantissa)
@@ -309,6 +309,47 @@ namespace PS2FloatLibrary
                 of = radixDiv.of,
                 uf = radixDiv.uf
             };
+        }
+		
+        public ps2float EEXP()
+        {
+            float[] consts = new float[6] {0.249998688697815f, 0.031257584691048f, 0.002591371303424f,
+                        0.000171562001924f, 0.000005430199963f, 0.000000690600018f};
+
+            ps2float tmp1 = Mul(this);
+            ps2float ACC = Mul(new ps2float(consts[0]));
+            ps2float tmp2 = tmp1.Mul(this);
+            ACC.MulAddAcc(tmp1, new ps2float(consts[1]));
+            tmp1 = tmp2.Mul(this);
+            ACC.MulAddAcc(tmp2, new ps2float(consts[2]));
+            tmp2 = tmp1.Mul(this);
+            ACC.MulAddAcc(tmp1, new ps2float(consts[3]));
+            tmp1 = tmp2.Mul(this);
+            ACC.MulAddAcc(tmp2, new ps2float(consts[4]));
+            ACC.MulAddAcc(One, One);
+            ps2float p = ACC.MulAdd(tmp1, new ps2float(consts[5]));
+            p = p.Mul(p);
+            p = p.Mul(p);
+            p = One.Div(p);
+
+            return p;
+        }
+
+        public ps2float ESIN()
+        {
+            float[] sinconsts = new float[5] { 1.0f, -0.166666567325592f, 0.008333025500178f, -0.000198074136279f, 0.000002601886990f };
+
+            ps2float tmp3 = Mul(this);
+            ps2float ACC = Mul(new ps2float(sinconsts[0]));
+            ps2float tmp1 = tmp3.Mul(this);
+            ps2float tmp2 = tmp1.Mul(tmp3);
+            ACC.MulAddAcc(tmp1, new ps2float(sinconsts[1]));
+            tmp1 = tmp2.Mul(tmp3);
+            ACC.MulAddAcc(tmp2, new ps2float(sinconsts[2]));
+            tmp2 = tmp1.Mul(tmp3);
+            ACC.MulAddAcc(tmp1, new ps2float(sinconsts[3]));
+
+            return ACC.MulAdd(tmp2, new ps2float(sinconsts[4]));
         }
 
         public bool IsDenormalized()
