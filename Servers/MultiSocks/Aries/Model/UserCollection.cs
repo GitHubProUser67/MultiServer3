@@ -1,31 +1,32 @@
 using MultiSocks.Aries.Messages;
-using System.Collections.Concurrent;
 
 namespace MultiSocks.Aries.Model
 {
     public class UserCollection
     {
-        protected ConcurrentDictionary<int, AriesUser> Users = new();
+        protected ConcurrentList<AriesUser> Users = new();
 
         public List<AriesUser> GetAll()
         {
-            return Users.Values.ToList();
+            return Users.ToList();
         }
 
         public virtual bool AddUser(AriesUser? user, string VERS = "")
         {
-            if (user == null)
+            if (user == null || Users.Contains(user))
                 return false;
 
-            return Users.TryAdd(user.ID, user);
+            Users.Add(user);
+            return true;
         }
 
         public virtual bool AddUserWithRoomMesg(AriesUser? user, string VERS = "")
         {
-            if (user == null)
+            if (user == null || Users.Contains(user))
                 return false;
 
-            return Users.TryAdd(user.ID, user);
+            Users.Add(user);
+            return true;
         }
 
         public virtual bool RemoveUser(AriesUser? user)
@@ -33,7 +34,7 @@ namespace MultiSocks.Aries.Model
             if (user == null)
                 return false;
 
-            return Users.Remove(user.ID, out _);
+            return Users.Remove(user);
         }
 
         public AriesUser? GetUserByName(string? name)
@@ -41,12 +42,12 @@ namespace MultiSocks.Aries.Model
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            return Users.Values.FirstOrDefault(x => x.Username == name);
+            return Users.FirstOrDefault(x => x.Username == name);
         }
 
         public AriesUser? GetUserByPersonaName(string name)
         {
-            return Users.Values.FirstOrDefault(x => x.PersonaName == name);
+            return Users.FirstOrDefault(x => x.PersonaName == name);
         }
 
         public int Count()
@@ -56,7 +57,7 @@ namespace MultiSocks.Aries.Model
 
         public void Broadcast(AbstractMessage msg)
         {
-            foreach (AriesUser user in Users.Values)
+            foreach (AriesUser user in Users)
             {
                 if (user.Connection == null)
                 {

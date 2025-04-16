@@ -40,6 +40,10 @@ namespace MultiSocks.Aries.Model
             SysFlags = sysFlags;
             pass = Pass;
             RoomID = roomId;
+
+            // populate collection of used player ids
+            for (int i = 0; i < maxSize; ++i)
+                _pIdIsUsed.TryAdd(i, false);
         }
 
         private bool TryRegisterNewClientIndex(out int index)
@@ -239,6 +243,7 @@ namespace MultiSocks.Aries.Model
                             const string playerIndexToChange = "ff";
                             if (param.StartsWith(playerIndexToChange))
                                 return string.Concat($"{user.CurrentGameIndex},", param.AsSpan(2));
+                            return user.CurrentGameIndex.ToString();
                         }
 
                         return param;

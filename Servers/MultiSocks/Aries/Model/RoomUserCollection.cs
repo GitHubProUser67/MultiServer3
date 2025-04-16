@@ -13,23 +13,16 @@ namespace MultiSocks.Aries.Model
 
         public override bool AddUser(AriesUser? user, string VERS = "")
         {
-            lock (Users)
-            {
-                if (Users.Count >= Room.Max) return false;
-                base.AddUser(user);
-            }
+            if (Users.Count >= Room.Max) return false;
+            base.AddUser(user);
 
             //send move to this user
-            Move move;
-            lock (Users)
+            Move move = new Move()
             {
-                move = new Move()
-                {
-                    IDENT = Room.ID.ToString(),
-                    NAME = Room.Name,
-                    COUNT = Users.Count.ToString()
-                };
-            }
+                IDENT = Room.ID.ToString(),
+                NAME = Room.Name,
+                COUNT = Users.Count.ToString()
+            };
             user.Connection?.SendMessage(move);
 
             //send who to this user to tell them who they are
@@ -56,23 +49,16 @@ namespace MultiSocks.Aries.Model
 
         public override bool AddUserWithRoomMesg(AriesUser? user, string VERS = "")
         {
-            lock (Users)
-            {
-                if (Users.Count >= Room.Max) return false;
-                base.AddUser(user);
-            }
+            if (Users.Count >= Room.Max) return false;
+            base.AddUser(user);
 
             //send move to this user
-            Room move;
-            lock (Users)
+            Room move = new Room()
             {
-                move = new Room()
-                {
-                    IDENT = Room.ID.ToString(),
-                    NAME = Room.Name,
-                    COUNT = Users.Count.ToString()
-                };
-            }
+                IDENT = Room.ID.ToString(),
+                NAME = Room.Name,
+                COUNT = Users.Count.ToString()
+            };
             user.Connection?.SendMessage(move);
 
             //send who to this user to tell them who they are
@@ -100,16 +86,12 @@ namespace MultiSocks.Aries.Model
         public void AuditRoom(AriesUser user, string VERS = "")
         {
             //send move to this user
-            Peek peek;
-            lock (Users)
+            Peek peek = new Peek()
             {
-                peek = new Peek()
-                {
-                    IDENT = Room.ID.ToString(),
-                    NAME = Room.Name,
-                    COUNT = Users.Count.ToString()
-                };
-            }
+                IDENT = Room.ID.ToString(),
+                NAME = Room.Name,
+                COUNT = Users.Count.ToString()
+            };
             user.Connection?.SendMessage(peek);
 
             //send who to this user to tell them who they are
@@ -141,12 +123,9 @@ namespace MultiSocks.Aries.Model
         public void ListToUser(AriesUser target)
         {
             List<PlusUser> infos = new();
-            lock (Users)
+            foreach (var user in Users)
             {
-                foreach (var user in Users)
-                {
-                    infos.Add(user.Value.GetInfo());
-                }
+                infos.Add(user.GetInfo());
             }
             foreach (var info in infos) target.Connection?.SendMessage(info);
         }
