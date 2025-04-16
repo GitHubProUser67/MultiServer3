@@ -234,7 +234,14 @@ namespace MultiSocks.Aries.Model
                     // Burnout uses a custom function to attribute ther player colors via the server based on player index in the game, thank you Bo98!
                     string PlayerColorModifer(int index, string param)
                     {
-                        return System.Text.RegularExpressions.Regex.Replace(param, @"(?<!f)ff(?!f)", $"{user.CurrentGameIndex},");
+                        if (index == 3)
+                        {
+                            const string playerIndexToChange = "ff";
+                            if (param.StartsWith(playerIndexToChange))
+                                return string.Concat($"{user.CurrentGameIndex},", param.AsSpan(2));
+                        }
+
+                        return param;
                     }
 
                     PLAYERSLIST.Add($"OPPARAM{i}", user.GetParametersString(PlayerColorModifer));
