@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MitmDNS
@@ -21,19 +22,15 @@ namespace MitmDNS
         public static ConcurrentDictionary<string, DnsSettings> DicRules = new();
         public static ConcurrentDictionary<string, DnsSettings> StarRules = new();
         public static bool Initiated = false;
-        public static IPAddress ServerIp;
 
         public static void InitDNSSubsystem()
         {
             LoggerAccessor.LogWarn("[DNS] - DNS system configuration is initialising, endpoints will be available when initialized...");
 
-            InternetProtocolUtils.TryGetServerIP(out string ServerIpStr).Wait();
-            ServerIp = IPAddress.Parse(ServerIpStr);
-
             if (!string.IsNullOrEmpty(MitmDNSServerConfiguration.DNSOnlineConfig))
             {
                 LoggerAccessor.LogInfo("[DNS] - Downloading Configuration File...");
-                if (NetworkLibrary.Extension.Windows.Win32API.IsWindows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT || Environment.OSVersion.Platform == PlatformID.Win32S || Environment.OSVersion.Platform == PlatformID.Win32Windows) ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
                 try
                 {
 #if NET7_0_OR_GREATER
@@ -215,13 +212,19 @@ namespace MitmDNS
                         }
                         catch
                         {
-                            IP = ServerIp;
+                            if (MitmDNSServerConfiguration.PublicIpFallback)
+                                IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
+                            else
+                                IP = InternetProtocolUtils.GetLocalIPAddress();
                         }
                         break;
                     }
                 default:
                     {
-                        IP = ServerIp;
+                        if (MitmDNSServerConfiguration.PublicIpFallback)
+                            IP = IPAddress.Parse(InternetProtocolUtils.GetPublicIPAddress());
+                        else
+                            IP = InternetProtocolUtils.GetLocalIPAddress();
                         LoggerAccessor.LogError($"Unhandled UriHostNameType {Uri.CheckHostName(ip)} from {ip} in MitmDNSClass.GetIp()");
                         break;
                     }

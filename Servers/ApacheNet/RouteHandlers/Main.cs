@@ -81,6 +81,19 @@ namespace ApacheNet.RouteHandlers
                                                         break;
                                                 }
                                                 break;
+                                            case "0879cd6bbf17e9cbf6cf44fb35c0142f": //PBPS3
+                                                switch (locale)
+                                                {
+                                                    default:
+                                                        if (format == "xml")
+                                                        {
+                                                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                                            ctx.Response.ContentType = "text/html; charset=utf-8"; // Not an error, packet shows this content type...
+                                                            return ctx.Response.Send(WebAPIService.UBISOFT.MatchMakingConfig.XMLData.PB_PS3_EN_XMLPayload).Result;
+                                                        }
+                                                        break;
+                                                }
+                                                break;
                                         }
                                         break;
                                 }
