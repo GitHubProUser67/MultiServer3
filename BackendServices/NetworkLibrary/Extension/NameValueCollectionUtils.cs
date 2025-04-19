@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Text;
 
 namespace NetworkLibrary.Extension
 {
@@ -33,11 +35,18 @@ namespace NetworkLibrary.Extension
 
                     if (headerValues != null)
                     {
-                        // If there are multiple values for the same header, add each as a separate entry
-                        foreach (var value in headerValues)
+                        StringBuilder st = new StringBuilder();
+
+                        // If there are multiple values for the same header, assemble them.
+                        foreach (string value in headerValues)
                         {
-                            phpFriendlyHeaders.Add(new KeyValuePair<string, string>(phpHeaderName, value));
+                            if (st.Length != 0)
+                                st.Append("," + value);
+                            else
+                                st.Append(value);
                         }
+
+                        phpFriendlyHeaders.Add(new KeyValuePair<string, string>(phpHeaderName, st.ToString()));
                     }
                 }
             }

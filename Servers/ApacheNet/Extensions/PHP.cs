@@ -4,6 +4,7 @@ using System.IO;
 using System;
 using NetworkLibrary.Extension;
 using System.Text;
+using System.Linq;
 
 namespace ApacheNet.Extensions
 {
@@ -52,6 +53,7 @@ namespace ApacheNet.Extensions
             // Set environment variables for PHP
             proc.StartInfo.EnvironmentVariables.Add("GATEWAY_INTERFACE", "CGI/1.1");
             proc.StartInfo.EnvironmentVariables.Add("SERVER_PROTOCOL", $"HTTP/{ApacheNetServerConfiguration.HttpVersion}");
+            proc.StartInfo.EnvironmentVariables.Add("REDIRECT_STATUS", "200");
             proc.StartInfo.EnvironmentVariables.Add("DOCUMENT_ROOT", documentRootPath);
             proc.StartInfo.EnvironmentVariables.Add("SCRIPT_NAME", scriptFileName);
             proc.StartInfo.EnvironmentVariables.Add("SCRIPT_FILENAME", scriptFilePath);
@@ -66,7 +68,11 @@ namespace ApacheNet.Extensions
             proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"https://{ctx.Request.Destination.IpAddress}:{ctx.Request.Destination.Port}{ctx.Request.Url.RawWithQuery}");
             foreach (var headerKeyPair in ctx.Request.Headers.ConvertHeadersToPhpFriendly())
             {
-                proc.StartInfo.EnvironmentVariables.Add(headerKeyPair.Key, headerKeyPair.Value);
+                string? key = headerKeyPair.Key;
+                string? value = headerKeyPair.Value;
+
+                if (!string.IsNullOrEmpty(key) && value != null && IsValidEnvVarKey(key))
+                    proc.StartInfo.EnvironmentVariables.Add(key, value);
             }
             proc.StartInfo.EnvironmentVariables.Add("TMPDIR", tempPath);
             proc.StartInfo.EnvironmentVariables.Add("TEMP", tempPath);
@@ -103,7 +109,11 @@ namespace ApacheNet.Extensions
                         // into our response headers.
                         index = line.IndexOf(':');
 
-                        HeadersLocal = HeadersLocal.AddArray(new string[] { line[..index], line[(index + 2)..] });
+                        if (index != -1)
+                            HeadersLocal = HeadersLocal.AddArray(new string[] { line[..index], line[(index + 2)..] });
+                        else
+                            // Write non-header lines into the output as is.
+                            output.WriteLine(line);
                     }
                     else
                         // Write non-header lines into the output as is.
@@ -119,6 +129,12 @@ namespace ApacheNet.Extensions
             proc.WaitForExit(); // Wait for the PHP process to complete
 
             return (returndata, HeadersLocal);
+        }
+
+        private static bool IsValidEnvVarKey(string key)
+        {
+            // Environment variable keys usually can't have '=', '\0', or other special characters
+            return key.All(c => c > 31 && c != '=' && c != '\0');
         }
     }
 }

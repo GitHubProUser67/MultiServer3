@@ -36,7 +36,7 @@ public static class ApacheNetServerConfiguration
     public static string ConvertersFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/converters";
     public static string ASPNETRedirectUrl { get; set; } = string.Empty;
     public static string PHPRedirectUrl { get; set; } = string.Empty;
-    public static string PHPVersion { get; set; } = "php-8.3.0";
+    public static string PHPVersion { get; set; } = "8.4.6";
     public static string PHPStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/PHP";
     public static bool PHPDebugErrors { get; set; } = false;
     public static int BufferSize { get; set; } = 4096;
