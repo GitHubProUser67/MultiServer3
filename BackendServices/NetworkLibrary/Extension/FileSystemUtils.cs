@@ -158,6 +158,16 @@ namespace NetworkLibrary.Extension
             File.SetAttributes(filePath, File.GetAttributes(filePath) ^ FileAttributes.ReadOnly);
         }
 
+        public static string RemoveInvalidPathChars(string input)
+        {
+            const string invalidChars = "<>:\"/\\|?*";
+            foreach (char c in invalidChars)
+            {
+                input = input.Replace(c.ToString(), "");
+            }
+            return input;
+        }
+
         /// <summary>
         /// Compute the MD5 checksum of a file.
         /// <para>Calcul la somme des contr�les en MD5 d'un fichier.</para>

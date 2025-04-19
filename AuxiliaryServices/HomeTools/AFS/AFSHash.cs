@@ -23,8 +23,19 @@ namespace HomeTools.AFS
         private void ComputeHash(string text)
         {
             int hash = 0;
-            foreach (char ch in text.ToLower().Replace(Path.DirectorySeparatorChar, '/'))
-                hash = hash * 37 + Convert.ToInt32(ch);
+            foreach (char ch in text.ToLower())
+            {
+                char c = ch;
+
+                if (c == '\0')
+                    break;
+                if (c == '\\')
+                    c = '/';
+                else if ((c + 0xbf) < 0x1a)
+                    c = (char)(c + ' ');
+
+                hash = hash * 37 + Convert.ToInt32(c);
+            }
             m_hash = hash;
         }
 

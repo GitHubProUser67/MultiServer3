@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System;
 using System.Collections.Concurrent;
+using NetworkLibrary.Extension;
 
 namespace HomeTools.AFS
 {
@@ -442,6 +443,11 @@ namespace HomeTools.AFS
                         type = ".shpack",
                         pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*.(?i)shpack|(?<=[0-9a-fA-F]{8}:)(.*\\.(?i)shpack)"
                     },
+                    new RegexPatterns
+                    {
+                        type = "noExtension",
+                        pattern = "(?<=\\b(?<=source=\"|file=\"|texture\\s=\\s\"|spriteTexture\\s=\\s\"))[^\"]*?(?<!\\.[a-zA-Z0-9]{2,5})(?=\")|(?<=[0-9a-fA-F]{8}:)([^\"]*?(?<!\\.[a-zA-Z0-9]{2,5}))"
+                    }
               };
 
         public Task MapperStart(string foldertomap, string helperfolder, string prefix, string bruteforce)
@@ -506,8 +512,9 @@ namespace HomeTools.AFS
                         {
                             if (File.Exists(Path.Combine(foldertomap, file.Name)))
                             {
-                                new FileInfo(Path.Combine(foldertomap, text).ToUpper()).Directory?.Create();
-                                string upper_casetext = text.ToUpper();
+                                string fileUri = FileSystemUtils.RemoveInvalidPathChars(text);
+                                new FileInfo(Path.Combine(foldertomap, fileUri).ToUpper()).Directory?.Create();
+                                string upper_casetext = fileUri.ToUpper();
                                 if (!File.Exists(Path.Combine(foldertomap, upper_casetext)))
                                 {
                                     File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, upper_casetext));
@@ -526,8 +533,9 @@ namespace HomeTools.AFS
                             {
                                 if (File.Exists(Path.Combine(foldertomap, file.Name)))
                                 {
-                                    new FileInfo(Path.Combine(foldertomap, cdatafromatmos).ToUpper()).Directory?.Create();
-                                    string upper_casecdatafromatmos = cdatafromatmos.ToUpper();
+                                    string fileUri = FileSystemUtils.RemoveInvalidPathChars(cdatafromatmos);
+                                    new FileInfo(Path.Combine(foldertomap, fileUri).ToUpper()).Directory?.Create();
+                                    string upper_casecdatafromatmos = fileUri.ToUpper();
                                     if (!File.Exists(Path.Combine(foldertomap, upper_casecdatafromatmos)))
                                     {
                                         File.Move(Path.Combine(foldertomap, file.Name), Path.Combine(foldertomap, upper_casecdatafromatmos));
