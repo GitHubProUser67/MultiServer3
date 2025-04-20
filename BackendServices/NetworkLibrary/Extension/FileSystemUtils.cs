@@ -160,12 +160,16 @@ namespace NetworkLibrary.Extension
 
         public static string RemoveInvalidPathChars(string input)
         {
-            const string invalidChars = "<>:\"/\\|?*";
-            foreach (char c in invalidChars)
+            const string allowedChars = "-_.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\";
+            StringBuilder empty = new StringBuilder();
+            foreach (char ch in input)
             {
-                input = input.Replace(c.ToString(), "");
+                if (allowedChars.Contains(ch.ToString()))
+                    empty.Append(ch);
+                else if (ch == ' ')
+                    empty.Append('_');
             }
-            return input;
+            return empty.ToString();
         }
 
         /// <summary>
