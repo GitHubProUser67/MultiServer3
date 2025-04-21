@@ -1119,6 +1119,129 @@ namespace ApacheNet
                 await ctx.Response.Send();
             });
 
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/IslandDevelopment/{sceneIdent}/{scenetype}/{build}/{country}/setDressing.xml", async (ctx) =>
+            {
+                string? sceneIdent = ctx.Request.Url.Parameters["sceneIdent"];
+                if (string.IsNullOrEmpty(sceneIdent))
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    ctx.Response.ContentType = "text/plain";
+                    await ctx.Response.Send();
+                    return;
+                }
+                switch (sceneIdent)
+                {
+                    case "Lounge":
+                    case "Beach":
+                    case "Hideaway":
+                    case "Forest":
+                    case "Yacht":
+                    case "IceYacht":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"setDressing = {
+		                        profiles = {
+			                        'Telescope',
+                                    --'Dolphins',
+                                    'Starfish',
+                                    'Iguana',
+                                    'Gecko',
+                                    'FirePit',
+                                    'SFX',
+                                    'commercePoints',
+                                    --'Posertrons',
+                                    'Fish',
+                                    'Splashertron',
+                                    'Gate',
+		                        },
+		                        entities = {}
+	                        }
+
+		                    local options = {
+			                    profiles = {},
+			                    entities = {},
+		                    }
+		                    if setDressing then
+			                    for _, name in ipairs(setDressing.profiles) do
+				                    options.profiles[name] = {}
+			                    end
+		                    end
+		                    if setDressing then
+			                    for entName, entDef in pairs(setDressing.entities) do
+				                    options.entities[entName] = {}
+				                    for _, matName in ipairs(entDef) do
+					                    options.entities[entName][matName] = {}
+				                    end
+			                    end
+		                    end
+
+                            local TableFromInput = {
+					            options 	= options,
+					            setups 		= {
+						            ['default'] = {
+							            profiles 	= {
+                                            ['default'] = 'Telescope',
+                                            ['default'] = 'FirePit',
+                                            ['default'] = 'SFX',
+                                            ['default'] = 'commercePoints',
+                                            ['default'] = 'Splashertron',
+                                            ['default'] = 'Gate',
+                                        },
+							            dressing 	= {
+								            entities 	= {},
+							            },
+						            },
+                                    ['both'] = {
+							            profiles 	= {
+                                            ['both'] = 'Fish',
+                                        },
+							            dressing 	= {
+								            entities 	= {},
+							            },
+						            },
+                                    ['beach'] = {
+							            profiles 	= {
+                                            ['beach'] = 'Starfish',
+                                            ['beach'] = 'Iguana',
+                                            ['beach'] = 'Gecko',
+                                        },
+							            dressing 	= {
+								            entities 	= {},
+							            },
+						            },
+					            },
+					            schedule = {
+                                    january     = {'default','beach','both','default','both','default','default','beach','default','default','both','default','default','default','beach','default','default','default','default','default','beach','default','both','default','default','default','beach','default','default','default','both'},
+                                    february    = {'default','beach','default','both','default','default','default','beach','default','default','default','default','default','both','default','default','beach','default','default','default','default','both','default','default','default','default','beach','default','both'},
+                                    march       = {'default','default','default','beach','default','both','default','default','beach','default','both','default','default','default','default','default','default','beach','default','default','default','both','default','default','beach','default','default','default','default','default','both'},
+                                    april       = {'default','default','default','default','beach','default','default','both','default','default','default','default','default','default','both','default','default','default','beach','default','both','default','default','default','default','beach','default','default','both','default'},
+                                    may         = {'both','default','default','default','default','default','beach','default','default','both','default','default','default','default','default','default','beach','default','default','default','default','default','default','beach','default','default','both','default','default','default','both'},
+                                    june        = {'default','default','both','default','default','beach','default','default','both','default','default','default','default','default','beach','default','default','default','default','default','default','default','both','default','default','default','default','beach','default','both'},
+                                    july        = {'default','default','beach','default','both','default','default','beach','default','default','both','default','default','default','default','default','default','default','default','both','default','beach','default','default','default','default','default','default','both','default','default'},
+                                    august      = {'default','default','default','both','default','default','beach','default','default','default','default','default','both','default','default','beach','default','default','default','default','default','default','both','default','default','beach','default','default','default','default','both'},
+                                    september   = {'default','default','both','default','beach','default','default','default','default','default','default','beach','default','default','default','default','default','default','default','both','default','beach','default','default','default','both','default','default','default','default'},
+                                    october     = {'beach','default','default','default','both','default','default','default','default','default','default','default','beach','default','default','default','default','default','default','both','default','default','default','beach','default','default','both','default','default','default','default'},
+                                    november    = {'default','default','default','both','default','default','default','default','default','default','beach','default','default','both','default','default','default','default','default','default','both','default','beach','default','default','default','default','default','both','default'},
+                                    december    = {'default','beach','default','default','default','default','default','default','both','default','default','default','default','default','default','beach','default','both','default','default','default','default','beach','default','default','default','default','both','default','default','default'},
+                                },
+					            customisationGroups 	= {},
+					            customisation 			= {
+						            profiles 	= {},
+						            entities 	= {},
+					            }
+				            }
+
+                            return XmlConvert.LuaToXml(TableFromInput, 'lua', 1)
+                            "));
+                        return;
+                    default:
+                        LoggerAccessor.LogWarn($"[PostAuthParameters] - setDressing definition data was not found for scene:{sceneIdent}!");
+                        break;
+                }
+                ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                await ctx.Response.Send();
+            });
+
             server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/setDressing.xml", async (ctx) =>
             {
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
@@ -1185,7 +1308,7 @@ namespace ApacheNet
 				            options.profiles[name] = {}
 			            end
 		            end
-		            if  setDressing then
+		            if setDressing then
 			            for entName, entDef in pairs(setDressing.entities) do
 				            options.entities[entName] = {}
 				            for _, matName in ipairs(entDef) do
@@ -1197,13 +1320,18 @@ namespace ApacheNet
                     local TableFromInput = {
 					    options 	= options,
 					    setups 		= {
-						    ['default'] = {
-							    profiles 	= {},
-							    dressing 	= {
-								    entities 	= {},
-							    },
-						    },
-					    },
+						     ['default'] = {
+							        profiles 	= {
+                                        ['default'] = 'Votertron',
+                                        ['default'] = 'Customisation',
+                                        ['default'] = 'Posertrons',
+                                        ['default'] = 'BackstagePass',
+                                    },
+							        dressing 	= {
+								        entities 	= {},
+							        },
+						        },
+					        },
 					    schedule 	= {
 						    january 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
 						    february 	= {'default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default','default'},
@@ -1229,7 +1357,108 @@ namespace ApacheNet
                     "));
             });
 
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/IslandDevelopment/{sceneIdent}/{scenetype}/{build}/{country}/features.xml", async (ctx) =>
+            {
+                string? sceneIdent = ctx.Request.Url.Parameters["sceneIdent"];
+                if (string.IsNullOrEmpty(sceneIdent))
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    ctx.Response.ContentType = "text/plain";
+                    await ctx.Response.Send();
+                    return;
+                }
+                switch (sceneIdent)
+                {
+                    case "Lounge":
+                    case "Beach":
+                    case "Hideaway":
+                    case "Forest":
+                    case "Yacht":
+                    case "IceYacht":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
+                            local TableFromInput = {
+                                ['default'] = {
+                                    Telescope = true,
+                                    FirePit = true,
+                                    SFX = true,
+                                    commercePoints = true,
+                                    Splashertron = true,
+                                    Gate = true,
+                                },
+                                ['both'] = {
+                                    Fish = true,
+                                },
+                                ['beach'] = {
+                                    Starfish = true,
+                                    Iguana = true,
+                                    Gecko = true,
+                                },
+				            }
+
+                            return XmlConvert.LuaToXml(TableFromInput, 'lua', 1)
+                            "));
+                        return;
+                    default:
+                        LoggerAccessor.LogWarn($"[PostAuthParameters] - features definition data was not found for scene:{sceneIdent}!");
+                        break;
+                }
+                ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                await ctx.Response.Send();
+            });
+
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/features.xml", async (ctx) =>
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+                await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
+                            local TableFromInput = {
+                                ['default'] = {
+                                    Votertron = true,
+                                    Customisation = true,
+                                    Posertrons = true,
+                                    BackstagePass = true,
+                                },
+				            }
+
+                            return XmlConvert.LuaToXml(TableFromInput, 'lua', 1)
+                            "));
+            });
+
             server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/camPath.xml", async (ctx) =>
+            {
+                // For now this returns a default table, TODO: feed this with actual data.
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+                await ctx.Response.Send("<lua></lua>");
+            });
+
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/IslandDevelopment/{sceneIdent}/{scenetype}/{build}/{country}/camPath.xml", async (ctx) =>
+            {
+                // For now this returns a default table, TODO: feed this with actual data.
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+                await ctx.Response.Send("<lua></lua>");
+            });
+
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/IslandDevelopment/{sceneIdent}/{scenetype}/{build}/{country}/effects.xml", async (ctx) =>
+            {
+                // For now this returns a default table, TODO: feed this with actual data.
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+                await ctx.Response.Send("<lua></lua>");
+            });
+
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/Venue/{scenetype}/{build}/{country}/{group_def}/{profile_def}", async (ctx) =>
+            {
+                // For now this returns a default table, TODO: feed this with actual data.
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+                await ctx.Response.Send("<lua></lua>");
+            });
+
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/Lockwood/Features/IslandDevelopment/{sceneIdent}/{scenetype}/{build}/{country}/{group_def}/{profile_def}", async (ctx) =>
             {
                 // For now this returns a default table, TODO: feed this with actual data.
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
