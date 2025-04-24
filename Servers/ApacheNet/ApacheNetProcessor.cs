@@ -856,9 +856,9 @@ namespace ApacheNet
                                 string? res = null;
                                 JUGGERNAUTClass juggernaut = new(request.Method.ToString(), absolutepath);
                                 if (request.ContentLength > 0)
-                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath, request.DataAsBytes, request.ContentType);
+                                    res = juggernaut.ProcessRequest(HTTPProcessor.GetQueryParameters(fullurl), apiRootPath, request.DataAsBytes, request.ContentType);
                                 else
-                                    res = juggernaut.ProcessRequest(request.Query.Elements.ToDictionary(), apiRootPath);
+                                    res = juggernaut.ProcessRequest(HTTPProcessor.GetQueryParameters(fullurl), apiRootPath);
 
                                 if (res == null)
                                     statusCode = HttpStatusCode.InternalServerError;

@@ -16,8 +16,8 @@ namespace WebAPIService.JUGGERNAUT.clearasil
 
                     if (File.Exists($"{apiPath}/juggernaut/clearasil/scoreboard.xml"))
                         return File.ReadAllText($"{apiPath}/juggernaut/clearasil/scoreboard.xml");
-                    else
-                        return "<xml></xml>";
+					
+                    return "<xml></xml>";
                 }
             }
 

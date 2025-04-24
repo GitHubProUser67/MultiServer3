@@ -12,15 +12,33 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
         {
             if (QueryParameters != null)
             {
+                string permBoost = null;
                 string user = QueryParameters["user"];
                 string type = QueryParameters["type"];
                 string id = QueryParameters["id"];
                 string posix = QueryParameters["posix"];
-                string permBoost = QueryParameters["permBoost"];
+                try
+                {
+                    permBoost = QueryParameters["permBoost"];
+                }
+                catch
+                {
+                }
 
-                if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(posix) && !string.IsNullOrEmpty(permBoost))
+                if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(posix))
                 {
                     Directory.CreateDirectory($"{apiPath}/juggernaut/farm/User_Data");
+
+                    if (string.IsNullOrEmpty(permBoost) && posix.Contains("="))
+                    {
+                        const string permDelimiter = "permBoost=";
+                        int permBoostIndex = posix.IndexOf(permDelimiter);
+                        if (permBoostIndex != -1)
+                        {
+                            permBoost = posix.Substring(permBoostIndex + permDelimiter.Length);
+                            posix = posix.Substring(0, permBoostIndex);
+                        }
+                    }
 
                     if (File.Exists($"{apiPath}/juggernaut/farm/User_Data/{user}.xml"))
                         File.WriteAllText($"{apiPath}/juggernaut/farm/User_Data/{user}.xml",

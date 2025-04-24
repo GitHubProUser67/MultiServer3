@@ -66,7 +66,8 @@ namespace WebAPIService.JUGGERNAUT.farm.animal
             XElement newAnimal = new XElement("animal",
                 new XElement("t", type),
                 new XElement("l", 1),
-                new XElement("lf", id),
+                new XElement("lf", 0),
+                new XElement("id", id),
                 new XElement("lastFeedTime", 0),
                 new XElement("pbu", 0),
                 new XElement("tbu", 0)

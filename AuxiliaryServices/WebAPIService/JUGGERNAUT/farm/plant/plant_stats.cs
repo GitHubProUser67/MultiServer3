@@ -8,7 +8,7 @@ namespace WebAPIService.JUGGERNAUT.farm.plant
             if (File.Exists($"{apiPath}/juggernaut/farm/plant_stats.xml"))
                 return File.ReadAllText($"{apiPath}/juggernaut/farm/plant_stats.xml");
 
-            return null;
+            return "<xml><test>100.000</test><test1>500.000</test1></xml>";
         }
     }
 }
