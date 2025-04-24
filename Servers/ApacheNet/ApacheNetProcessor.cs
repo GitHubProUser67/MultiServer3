@@ -331,12 +331,12 @@ namespace ApacheNet
                     {
                         if (!string.IsNullOrEmpty(rule) && rule.StartsWith("Redirect") && rule.Length >= 9) // Redirect + whitespace is minimum 9 in length.
                         {
-                            string RouteRule = rule[8..];
+                            string RouteRule = rule.ChopOffBefore("Redirect");
 
                             if (RouteRule.StartsWith("Match "))
                             {
 #if NET7_0_OR_GREATER
-                                    Match match = ApacheMatchRegex().Match(RouteRule);
+                                Match match = ApacheMatchRegex().Match(RouteRule);
 #else
                                 Match match = new Regex(@"Match (\d{3}) (\S+) (\S+)$").Match(RouteRule);
 #endif
@@ -372,7 +372,7 @@ namespace ApacheNet
                                 {
                                     // Check if the input string contains an HTTP method
 #if NET7_0_OR_GREATER
-                                        if (HttpMethodRegex().Match(parts[0]).Success && request.Method.ToString() == parts[0])
+                                    if (HttpMethodRegex().Match(parts[0]).Success && request.Method.ToString() == parts[0])
 #else
                                     if (new Regex(@"^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)").Match(parts[0]).Success && request.Method.ToString() == parts[0])
 #endif
@@ -384,7 +384,7 @@ namespace ApacheNet
                                     }
                                     // Check if the input string contains a status code
 #if NET7_0_OR_GREATER
-                                        else if (HttpStatusCodeRegex().Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
+                                    else if (HttpStatusCodeRegex().Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
 #else
                                     else if (new Regex(@"\\b\\d{3}\\b").Match(parts[0]).Success && int.TryParse(parts[0], out int statuscode))
 #endif
@@ -394,7 +394,7 @@ namespace ApacheNet
                                         response.StatusCode = (int)statusCode;
                                         sent = await response.Send();
                                     }
-                                    else if (parts[1] == "permanent")
+                                    else if ("permanent".Equals(parts[0], StringComparison.InvariantCultureIgnoreCase))
                                     {
                                         statusCode = HttpStatusCode.PermanentRedirect;
                                         response.Headers.Add("Location", parts[2]);
@@ -475,7 +475,7 @@ namespace ApacheNet
 
                                     if (indexFile.EndsWith(".php") && Directory.Exists(ApacheNetServerConfiguration.PHPStaticFolder))
                                     {
-                                        var CollectPHP = PHP.ProcessPHPPage(ApacheNetServerConfiguration.HTTPStaticFolder + $"/{indexFile}", ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
+                                        var CollectPHP = PHP.ProcessPHPPage(ApacheNetServerConfiguration.HTTPStaticFolder + $"/{indexFile}", ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx, secure);
                                         statusCode = HttpStatusCode.OK;
                                         if (CollectPHP.Item2 != null)
                                         {
@@ -1750,7 +1750,7 @@ namespace ApacheNet
 
                                                             if (indexFile.EndsWith(".php") && Directory.Exists(ApacheNetServerConfiguration.PHPStaticFolder))
                                                             {
-                                                                var CollectPHP = PHP.ProcessPHPPage(filePath + $"/{indexFile}", ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
+                                                                var CollectPHP = PHP.ProcessPHPPage(filePath + $"/{indexFile}", ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx, secure);
                                                                 statusCode = HttpStatusCode.OK;
                                                                 if (CollectPHP.Item2 != null)
                                                                 {
@@ -1854,7 +1854,7 @@ namespace ApacheNet
                                             }
                                             else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(ApacheNetServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                             {
-                                                var CollectPHP = PHP.ProcessPHPPage(filePath, ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
+                                                var CollectPHP = PHP.ProcessPHPPage(filePath, ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx, secure);
                                                 statusCode = HttpStatusCode.OK;
                                                 if (CollectPHP.Item2 != null)
                                                 {
@@ -2272,7 +2272,7 @@ namespace ApacheNet
 
                                                             if (indexFile.EndsWith(".php") && Directory.Exists(ApacheNetServerConfiguration.PHPStaticFolder))
                                                             {
-                                                                var CollectPHP = PHP.ProcessPHPPage(filePath + $"/{indexFile}", ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
+                                                                var CollectPHP = PHP.ProcessPHPPage(filePath + $"/{indexFile}", ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx, secure);
                                                                 statusCode = HttpStatusCode.OK;
                                                                 if (CollectPHP.Item2 != null)
                                                                 {
@@ -2376,7 +2376,7 @@ namespace ApacheNet
                                             }
                                             else if (absolutepath.EndsWith(".php", StringComparison.InvariantCultureIgnoreCase) && Directory.Exists(ApacheNetServerConfiguration.PHPStaticFolder) && File.Exists(filePath))
                                             {
-                                                (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx);
+                                                (byte[]?, string[][]) CollectPHP = PHP.ProcessPHPPage(filePath, ApacheNetServerConfiguration.PHPStaticFolder, ApacheNetServerConfiguration.PHPVersion, ctx, secure);
                                                 statusCode = HttpStatusCode.OK;
                                                 if (CollectPHP.Item2 != null)
                                                 {

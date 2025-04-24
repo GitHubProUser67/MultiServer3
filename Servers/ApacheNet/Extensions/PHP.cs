@@ -10,7 +10,7 @@ namespace ApacheNet.Extensions
 {
     public class PHP
     {
-        public static (byte[]?, string[][]) ProcessPHPPage(string FilePath, string phppath, string phpver, HttpContextBase ctx)
+        public static (byte[]?, string[][]) ProcessPHPPage(string FilePath, string phppath, string phpver, HttpContextBase ctx, bool secure)
         {
             int index = ctx.Request.Url.RawWithQuery.IndexOf("?");
             string? queryString = index == -1 ? string.Empty : ctx.Request.Url.RawWithQuery[(index + 1)..];
@@ -19,7 +19,9 @@ namespace ApacheNet.Extensions
             string? documentRootPath = Path.GetDirectoryName(FilePath);
             string? scriptFilePath = Path.GetFullPath(FilePath);
             string? scriptFileName = Path.GetFileName(FilePath);
-            string? tempPath = Path.GetTempPath();
+            string? tempPath = Path.GetTempPath() + "/php-cgi";
+
+            Directory.CreateDirectory(tempPath);
 
             string[][] HeadersLocal = Array.Empty<string[]>();
             byte[]? returndata = null;
@@ -43,6 +45,7 @@ namespace ApacheNet.Extensions
             proc.StartInfo.RedirectStandardInput = true;
 
             proc.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+            proc.StartInfo.StandardErrorEncoding = Encoding.UTF8;
 
             proc.StartInfo.EnvironmentVariables.Clear();
 
@@ -64,8 +67,7 @@ namespace ApacheNet.Extensions
             proc.StartInfo.EnvironmentVariables.Add("SERVER_ADDR", ctx.Request.Destination.IpAddress);
             proc.StartInfo.EnvironmentVariables.Add("REMOTE_ADDR", ctx.Request.Source.IpAddress);
             proc.StartInfo.EnvironmentVariables.Add("REMOTE_PORT", ctx.Request.Source.Port.ToString());
-            proc.StartInfo.EnvironmentVariables.Add("REFERER", ctx.Request.RetrieveHeaderValue("Referer"));
-            proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"https://{ctx.Request.Destination.IpAddress}:{ctx.Request.Destination.Port}{ctx.Request.Url.RawWithQuery}");
+            proc.StartInfo.EnvironmentVariables.Add("REQUEST_URI", $"{(secure ? "https" : "http")}://{ctx.Request.Destination.IpAddress}:{ctx.Request.Destination.Port}{ctx.Request.Url.RawWithQuery}");
             foreach (var headerKeyPair in ctx.Request.Headers.ConvertHeadersToPhpFriendly())
             {
                 string? key = headerKeyPair.Key;
@@ -88,38 +90,54 @@ namespace ApacheNet.Extensions
 
             // Write headers and content to response stream
             bool headersEnd = false;
+            string? errorOutput = null;
             using (MemoryStream ms = new())
             using (StreamReader sr = proc.StandardOutput)
+            using (StreamReader err = proc.StandardError)
             using (StreamWriter output = new(ms))
             {
-                int i = 0;
-                string? line = null;
-                while ((line = sr.ReadLine()) != null)
+                if (ApacheNetServerConfiguration.PHPDebugErrors)
+                    // Read stderr fully after stdout is drained
+                    errorOutput = err.ReadToEnd();
+                if (!string.IsNullOrWhiteSpace(errorOutput))
                 {
-                    if (!headersEnd)
+                    output.WriteLine();
+                    output.WriteLine("<!-- PHP ERROR OUTPUT BELOW -->");
+                    output.WriteLine("<pre style=\"color:red;\">");
+                    output.WriteLine(System.Net.WebUtility.HtmlEncode(errorOutput));
+                    output.WriteLine("</pre>");
+                }
+                else
+                {
+                    int i = 0;
+                    string? line = null;
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        if (line == string.Empty)
+                        if (!headersEnd)
                         {
-                            headersEnd = true;
-                            continue;
+                            if (line == string.Empty)
+                            {
+                                headersEnd = true;
+                                continue;
+                            }
+
+                            // The first few lines are the headers, with a
+                            // key and a value. Catch those, to write them
+                            // into our response headers.
+                            index = line.IndexOf(':');
+
+                            if (index != -1)
+                                HeadersLocal = HeadersLocal.AddArray(new string[] { line[..index], line[(index + 2)..] });
+                            else
+                                // Write non-header lines into the output as is.
+                                output.WriteLine(line);
                         }
-
-                        // The first few lines are the headers, with a
-                        // key and a value. Catch those, to write them
-                        // into our response headers.
-                        index = line.IndexOf(':');
-
-                        if (index != -1)
-                            HeadersLocal = HeadersLocal.AddArray(new string[] { line[..index], line[(index + 2)..] });
                         else
                             // Write non-header lines into the output as is.
                             output.WriteLine(line);
-                    }
-                    else
-                        // Write non-header lines into the output as is.
-                        output.WriteLine(line);
 
-                    i++;
+                        i++;
+                    }
                 }
 
                 output.Flush();
