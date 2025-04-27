@@ -635,6 +635,24 @@ namespace WebAPIService.OHS
                                     case "maxSceaPlazaReward":
 										output = "{ [\"maxSceaPlazaReward\"] = 5 }";
                                         break;
+                                    case "DreamApartmentEntitlements":
+                                        output = "{" + string.Join(",", LkwdConstants.LockwoodDreamApartmentEntitlements.ConvertAll(e => $"\"{e}\"")) + "}";
+                                        break;
+                                    case "DreamYachtEntitlements":
+                                        output = "{" + string.Join(",", LkwdConstants.LockwoodDreamApartmentEntitlements.Take(2).ToList().ConvertAll(e => $"\"{e}\"")) + "}";
+                                        break;
+                                    case "DreamForestEntitlements":
+                                        output = "{" + string.Join(",", LkwdConstants.LockwoodDreamApartmentEntitlements.Skip(2).Take(2).ToList().ConvertAll(e => $"\"{e}\"")) + "}";
+                                        break;
+                                    case "DreamIslandEntitlements":
+                                        output = "{" + string.Join(",", LkwdConstants.LockwoodDreamApartmentEntitlements.Skip(5).Take(2).ToList().ConvertAll(e => $"\"{e}\"")) + "}";
+                                        break;
+                                    case "DreamHideawayEntitlements":
+                                        output = "{" + string.Join(",", LkwdConstants.LockwoodDreamApartmentEntitlements.Skip(7).Take(2).ToList().ConvertAll(e => $"\"{e}\"")) + "}";
+                                        break;
+                                    case "DreamYachtArcticEntitlements":
+                                        output = "{" + string.Join(",", LkwdConstants.LockwoodDreamApartmentEntitlements.Skip(10).Take(2).ToList().ConvertAll(e => $"\"{e}\"")) + "}";
+                                        break;
                                     default:
                                         if (directorypath.Contains("gift_machine"))
                                         {
