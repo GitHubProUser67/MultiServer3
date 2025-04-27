@@ -105,6 +105,11 @@ namespace Horizon.SERVER.Config
         /// </summary>
         public int DmeTimeoutSeconds { get; private set; } = 30;
 
+        /// <summary>
+        /// Time, in seconds, between ban checks with the database on echo packets.
+        /// </summary>
+        public int BanEchoCheckCadenceSeconds { get; private set; } = 60;
+
         public AppSettings(int appId)
         {
             AppId = appId;
@@ -170,6 +175,9 @@ namespace Horizon.SERVER.Config
             // DmeTimeoutSeconds
             if (settings.TryGetValue("DmeTimeoutSeconds", out value) && int.TryParse(value, out var dmeTimeoutSeconds))
                 DmeTimeoutSeconds = dmeTimeoutSeconds;
+            // BanEchoCheckCadenceSeconds
+            if (settings.TryGetValue("BanEchoCheckCadenceSeconds", out value) && int.TryParse(value, out var banEchoCheckCadenceSeconds))
+                BanEchoCheckCadenceSeconds = banEchoCheckCadenceSeconds;
         }
 
         public Dictionary<string, string> GetSettings()
@@ -196,6 +204,7 @@ namespace Horizon.SERVER.Config
                 { "ClientTimeoutSeconds", ClientTimeoutSeconds.ToString() },
                 { "GameTimeoutSeconds", GameTimeoutSeconds.ToString() },
                 { "DmeTimeoutSeconds", DmeTimeoutSeconds.ToString() },
+                { "BanEchoCheckCadenceSeconds", BanEchoCheckCadenceSeconds.ToString() },
             };
         }
     }

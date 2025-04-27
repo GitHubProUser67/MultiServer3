@@ -425,10 +425,10 @@ namespace Horizon.DME
             return;
         }
 
-        private async Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel)
+        private Task ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel)
         {
             if (message == null)
-                return;
+                return Task.CompletedTask;
 
             switch (message)
             {
@@ -497,8 +497,8 @@ namespace Horizon.DME
                         }
                         catch (Exception e)
                         {
-                            LoggerAccessor.LogWarn($"error at {e}");
-                        };
+                            LoggerAccessor.LogError($"[MPSClient] - ProcessMediusMessage errored out at {e}");
+                        }
 
                         break;
                     }
@@ -542,6 +542,8 @@ namespace Horizon.DME
                         break;
                     }
             }
+
+            return Task.CompletedTask;
         }
 
         #endregion

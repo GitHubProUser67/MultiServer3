@@ -6,7 +6,6 @@ using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 #endif
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using Tpm2Lib;
 
 namespace NetworkLibrary.Extension
@@ -497,12 +496,10 @@ namespace NetworkLibrary.Extension
                 return copy;
             }
 
-            bool exceptionThrown = false;
-            Task t = null;
             byte[] resultBytes = new byte[totalLength];
 
             if (first != null)
-                t = Task.Run(() => { Array.Copy(first, 0, resultBytes, 0, first.Length); });
+                Array.Copy(first, 0, resultBytes, 0, first.Length);
 
             // Calculate offsets for each array in `second` before the parallel operation.
             int[] offsets = new int[second.Length];
@@ -514,46 +511,9 @@ namespace NetworkLibrary.Extension
                 currentOffset += second[i].Length;
             }
 
-            try
+            foreach (int i in Enumerable.Range(0, second.Length))
             {
-                Parallel.ForEach(Enumerable.Range(0, second.Length), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i =>
-                {
-                    Array.Copy(second[i], 0, resultBytes, offsets[i], second[i].Length);
-                });
-
-                t?.Wait();
-            }
-            catch
-            {
-                exceptionThrown = true;
-                throw;
-            }
-            finally
-            {
-                if (t != null)
-                {
-                    if ((int)t.Status < 5)
-                    {
-                        try
-                        {
-                            t.Wait();
-                        }
-                        catch
-                        {
-                            // Don't assert if we already thrown an exception.
-                            if (!exceptionThrown)
-#pragma warning disable CA2219
-                                throw;
-#pragma warning restore
-                        }
-                        finally
-                        {
-                            t.Dispose();
-                        }
-                    }
-                    else
-                        t.Dispose();
-                }
+                Array.Copy(second[i], 0, resultBytes, offsets[i], second[i].Length);
             }
 
             return resultBytes;

@@ -237,7 +237,7 @@ namespace Horizon.MUM.Models
         /// </summary>
         public Party? CurrentParty { get; protected set; } = null;
 
-        public int? PartyIndex { get; protected set; } = null;
+        public int PartyId { get; protected set; } = -1;
 
         /// <summary>
         /// 
@@ -331,6 +331,16 @@ namespace Horizon.MUM.Models
         /// 
         /// </summary>
         protected DateTime? _logoutTime = null;
+
+        /// <summary>
+        /// The latest time a ban check occured from an echo
+        /// </summary>
+        private DateTime LastAccountBanCheckTime { get; set; } = DateTimeUtils.GetHighPrecisionUtcTime();
+
+        /// <summary>
+        /// If we need to check if they are banned from the database when an echo comes in from the client.
+        /// </summary>
+        private bool NeedToCheckBan => (DateTimeUtils.GetHighPrecisionUtcTime() - LastAccountBanCheckTime).TotalSeconds > MediusClass.GetAppSettingsOrDefault(ApplicationId).BanEchoCheckCadenceSeconds;
 
         /// <summary>
         /// 
@@ -545,9 +555,9 @@ namespace Horizon.MUM.Models
                 ChannelId = CurrentChannel?.Id,
                 GameId = CurrentGame?.MediusWorldId,
                 GameName = CurrentGame?.GameName,
-                PartyId = CurrentParty?.MediusWorldID,
+                PartyId = CurrentParty?.MediusWorldId,
                 PartyName = CurrentParty?.PartyName,
-                WorldId = CurrentGame?.MediusWorldId ?? CurrentParty?.MediusWorldID
+                WorldId = CurrentGame?.MediusWorldId ?? CurrentParty?.MediusWorldId
             });
         }
 
@@ -643,6 +653,17 @@ namespace Horizon.MUM.Models
                 LoggerAccessor.LogError($"{this} attempting to log into {account} but is already logged in!");
         }
 
+        public async Task<bool> CheckBan()
+        {
+            if (!NeedToCheckBan)
+                return false;
+
+            LastAccountBanCheckTime = DateTimeUtils.GetHighPrecisionUtcTime();
+
+            // Check if user is Account banned
+            return await HorizonServerConfiguration.Database.GetAccountIsBanned(AccountName, ApplicationId);
+        }
+
         public async Task RefreshAccount()
         {
             var accountDto = await HorizonServerConfiguration.Database.GetAccountById(AccountId);
@@ -663,7 +684,7 @@ namespace Horizon.MUM.Models
             await LeaveCurrentParty();
 
             CurrentParty = party;
-            PartyIndex = partyIndex;
+            PartyId = partyIndex;
             CurrentParty.AddPlayer(this);
 
             // Tell database
@@ -681,16 +702,14 @@ namespace Horizon.MUM.Models
             }
         }
 
-        private Task LeaveCurrentParty()
+        private async Task LeaveCurrentParty()
         {
             if (CurrentParty != null)
             {
-                CurrentParty.RemovePlayer(this);
+                await CurrentParty.RemovePlayer(this, CurrentParty.ApplicationId, CurrentParty.MediusWorldId.ToString());
                 CurrentParty = null;
             }
-            PartyIndex = null;
-
-            return Task.CompletedTask;
+            PartyId = -1;
         }
 
         #endregion

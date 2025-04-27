@@ -1958,16 +1958,14 @@ namespace Horizon.SERVER.Medius
                             extractedData = trimmedData;
                         }
 
-                        XI5Ticket ticker = new XI5Ticket(XI5TicketData);
-
-                        uint NpId = ticker.IssuerId;
                         string UserOnlineId = Encoding.UTF8.GetString(extractedData);
+                        XI5Ticket ticker = new XI5Ticket(XI5TicketData);
 
                         if (ByteUtils.FindBytePattern(XI5TicketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                         {
                             if (MediusClass.Settings.ForceOfficialRPCNSignature && !ticker.SignedByOfficialRPCN)
                             {
-                                LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} was caught using an invalid RPCN signature!");
+                                LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} was caught using an invalid RPCN signature!");
 
                                 // Account is banned
                                 // Temporary solution is to tell the client the login failed
@@ -1980,13 +1978,13 @@ namespace Horizon.SERVER.Medius
                                 break;
                             }
 
-                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} logged in and is on RPCN";
+                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on RPCN";
                             data.ClientObject.IsOnRPCN = true;
                             UserOnlineId += "@RPCN";
                         }
                         else if (UserOnlineId.EndsWith("@RPCN"))
                         {
-                            LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} was caught using a RPCN suffix while not on it!");
+                            LoggerAccessor.LogError($"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} was caught using a RPCN suffix while not on it!");
 
                             // Account is banned
                             // Temporary solution is to tell the client the login failed
@@ -1999,7 +1997,7 @@ namespace Horizon.SERVER.Medius
                             break;
                         }
                         else
-                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} with NpId:{NpId} logged in and is on PSN";
+                            accountLoggingMsg = $"[MAS] - MediusTicketLoginRequest : User {UserOnlineId} logged in and is on PSN";
 
                         _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), accountLoggingMsg, byte.MinValue);
 

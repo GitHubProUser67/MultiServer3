@@ -324,7 +324,7 @@ namespace Horizon.DME
         {
             // Get ScertClient data
             var scertClient = clientChannel.GetAttribute(LIBRARY.Pipeline.Constants.SCERT_CLIENT).Get();
-            bool enableEncryption = DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption;
+            bool enableEncryption = false/*DmeClass.GetAppSettingsOrDefault(data.ApplicationId).EnableDmeEncryption*/;
             if (scertClient.CipherService != null)
                 scertClient.CipherService.EnableEncryption = enableEncryption;
 
@@ -350,18 +350,6 @@ namespace Horizon.DME
                     }
                 case RT_MSG_CLIENT_CONNECT_TCP_AUX_UDP clientConnectTcpAuxUdp:
                     {
-                        /*
-                        if (clientConnectTcpAuxUdp.Key == null)
-                        {
-                            scertClient.CipherService.GenerateCipher(CipherContext.RC_CLIENT_SESSION);
-
-                            if (scertClient.CipherService.HasKey(CipherContext.RC_CLIENT_SESSION))
-                            {
-                                Queue(new RT_MSG_SERVER_CRYPTKEY_GAME() { GameKey = scertClient.CipherService.GetPublicKey(CipherContext.RC_CLIENT_SESSION) }, clientChannel);
-                            }
-                        }
-                        */
-
                         ClientObject? mumClient;
 
                         data.ApplicationId = clientConnectTcpAuxUdp.AppId;
@@ -893,8 +881,10 @@ namespace Horizon.DME
             {
                 case TypePing ping:
                     {
-                        LoggerAccessor.LogInfo($"PingPacketHandler: client {data.DMEObject} received \n");
-                        if (ping.RequestEcho == true)
+#if DEBUG
+                        LoggerAccessor.LogInfo($"PingPacketHandler: client {data.DMEObject} received");
+#endif
+                        if (ping.RequestEcho)
                         {
                             byte[] value = new byte[0xA];
                             Queue(new RT_MSG_CLIENT_ECHO()
@@ -903,18 +893,6 @@ namespace Horizon.DME
                             }, clientChannel);
                             break;
                         }
-
-                        /*
-                        Queue(new RT_MSG_SERVER_APP()
-                        {
-                            Message = new TypePing()
-                            {
-                                TimeOfSend = Utils.GetUnixTime(),
-                                PingInstance = ping.PingInstance,
-                                RequestEcho = ping.RequestEcho
-                            }
-                        });
-                        */
 
                         data.DMEObject?.EnqueueTcp(new RT_MSG_SERVER_APP() { 
                             Message = new TypePing()

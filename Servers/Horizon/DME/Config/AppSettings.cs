@@ -8,11 +8,6 @@ namespace Horizon.DME.Config
         public int AppId { get; }
 
         /// <summary>
-        /// When true, server will encrypt all messages (DISABLED DUE TO CLIENT-CLIENT COMMUNICATION NOT SUPPORTED YET).
-        /// </summary>
-        public bool EnableDmeEncryption { get; private set; } = false;
-
-        /// <summary>
         /// Default time in milliseconds for the client's world agg time.
         /// </summary>
         public int DefaultClientWorldAggTime { get; private set; } = 20;
@@ -51,9 +46,6 @@ namespace Horizon.DME.Config
         {
             string? value = null;
 
-            /* EnableDmeEncryption
-            if (settings.TryGetValue("EnableDmeEncryption", out value) && bool.TryParse(value, out var enableDmeEncryption))
-                EnableDmeEncryption = enableDmeEncryption; */
             // DefaultClientWorldAggTime
             if (settings.TryGetValue("DefaultClientWorldAggTime", out value) && int.TryParse(value, out var defaultClientWorldAggTime))
                 DefaultClientWorldAggTime = defaultClientWorldAggTime;
@@ -75,7 +67,6 @@ namespace Horizon.DME.Config
         {
             return new Dictionary<string, string>()
             {
-                //{ "EnableDmeEncryption", EnableDmeEncryption.ToString() },
                 { "DefaultClientWorldAggTime", DefaultClientWorldAggTime.ToString() },
                 { "ServerEchoIntervalSeconds", ServerEchoIntervalSeconds.ToString() },
                 { "KeepAliveGracePeriodSeconds", KeepAliveGracePeriodSeconds.ToString() },

@@ -226,17 +226,6 @@ namespace Horizon.MUIS
                                 break;
                             }
 
-                            /*
-                            // Ensure key is correct
-                            if (!clientCryptKeyPublic.PublicKey.Reverse().SequenceEqual(MediusStarter.Settings.MPSKey.N.ToByteArrayUnsigned()))
-                            {
-                                LoggerAccessor.LogError($"Client {clientChannel.RemoteAddress} attempting to authenticate with invalid key {Encoding.Default.GetString(clientCryptKeyPublic.PublicKey)}");
-                                data.State = ClientState.DISCONNECTED;
-                                await clientChannel.CloseAsync();
-                                break;
-                            }
-                            */
-
                             data.State = ClientState.CONNECT_1;
 
                             if (clientCryptKeyPublic.PublicKey != null)

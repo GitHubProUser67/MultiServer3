@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
 using NetworkLibrary.Extension;
+using Microsoft.Extensions.Logging;
 
 namespace Horizon.LIBRARY.Database
 {
@@ -801,6 +802,37 @@ namespace Horizon.LIBRARY.Database
                 {
                     accountName = HttpUtility.UrlEncode(accountName);
                     string route = $"Account/getAccountNameMacIsBanned?AccountName={accountName}&AppId={appId}";
+                    result = await GetDbAsync<bool>(route);
+                }
+            }
+            catch (Exception e)
+            {
+                LoggerAccessor.LogError(e);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Check if an account is banned by Account Name, IP, or MAC
+        /// </summary>
+        /// <param name="accountName">Case insensitive name of player.</param>
+        /// <param name="appId">Application ID.</param>
+        /// <returns>Returns account.</returns>
+        public async Task<bool> GetAccountIsBanned(string accountName, int appId)
+        {
+            bool result = false;
+
+            try
+            {
+                if (_settings.SimulatedMode)
+                {
+                    result = false;
+                }
+                else
+                {
+                    accountName = HttpUtility.UrlEncode(accountName);
+                    string route = $"Account/checkAccountIsBanned?AccountName={accountName}&AppId={appId}";
                     result = await GetDbAsync<bool>(route);
                 }
             }

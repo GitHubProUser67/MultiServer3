@@ -614,6 +614,20 @@ namespace Horizon.SERVER.Medius
                             break;
 
                         Queue(new RT_MSG_CLIENT_ECHO() { Value = clientEcho.Value }, clientChannel);
+
+                        _ = data.ClientObject.CheckBan().ContinueWith((r) =>
+                        {
+                            if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
+                                return;
+
+                            if (r.IsCompletedSuccessfully && r.Result)
+                            {
+                                // Banned
+                                QueueBanMessage(data);
+                                data.ClientObject.ForceDisconnect();
+                                _ = data.ClientObject.Logout();
+                            }
+                        });
                         break;
                     }
                 case RT_MSG_CLIENT_APP_TOSERVER clientAppToServer:
@@ -5425,7 +5439,7 @@ namespace Horizon.SERVER.Medius
                             break;
                         }
 
-                        if (data.ClientObject.CurrentParty?.MediusWorldID == partyPlayerReport.MediusWorldID &&
+                        if (data.ClientObject.CurrentParty?.MediusWorldId == partyPlayerReport.MediusWorldID &&
                             data.ClientObject.SessionKey == partyPlayerReport.SessionKey)
                             data.ClientObject.CurrentParty?.OnPartyPlayerReport(partyPlayerReport);
 
@@ -6944,6 +6958,15 @@ namespace Horizon.SERVER.Medius
                                     data.ClientObject.DmeId, data.ClientObject.LanguageType.ToString(), data.ClientObject == data.ClientObject.CurrentGame.Host);
 
                             await data.ClientObject.CurrentGame.OnWorldReport(worldReport, data.ClientObject.ApplicationId);
+                        }
+                        else if (data.ClientObject.CurrentParty != null)
+                        {
+                            if (data.ClientObject.CurrentParty.PartyHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
+                                RoomManager.UpdateOrCreateRoom(data.ClientObject.CurrentParty.ApplicationId.ToString(), data.ClientObject.CurrentParty.PartyName,
+                                    data.ClientObject.CurrentParty.MediusWorldId, data.ClientObject.CurrentChannel?.Id.ToString(), data.ClientObject.AccountName,
+                                    data.ClientObject.DmeId, data.ClientObject.LanguageType.ToString(), data.ClientObject == data.ClientObject.CurrentParty.Host);
+
+                            await data.ClientObject.CurrentParty.OnWorldReport(worldReport, data.ClientObject.ApplicationId);
                         }
 
                         break;
