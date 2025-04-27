@@ -19,17 +19,10 @@ namespace ApacheNet.Extensions
             string? documentRootPath = Path.GetDirectoryName(FilePath);
             string? scriptFilePath = Path.GetFullPath(FilePath);
             string? scriptFileName = Path.GetFileName(FilePath);
-            string? tempPath = Path.GetTempPath() + "/php-cgi";
-
-            Directory.CreateDirectory(tempPath);
 
             string[][] HeadersLocal = Array.Empty<string[]>();
             byte[]? returndata = null;
-            byte[]? postData = null;
-
-            // Extract POST data (if available)
-            if (ctx.Request.Method == HttpMethod.POST)
-                postData = ctx.Request.DataAsBytes;
+            byte[]? postData = ctx.Request.DataAsBytes;
 
             using Process proc = new();
 
@@ -49,11 +42,30 @@ namespace ApacheNet.Extensions
 
             proc.StartInfo.EnvironmentVariables.Clear();
 
-            // Set content length for POST data
+            // Set content length if needed
             if (postData != null)
                 proc.StartInfo.EnvironmentVariables.Add("CONTENT_LENGTH", postData.Length.ToString());
 
             // Set environment variables for PHP
+            if (NetworkLibrary.Extension.Windows.Win32API.IsWindows)
+            {
+                proc.StartInfo.EnvironmentVariables["SYSTEMROOT"] = Environment.GetEnvironmentVariable("SYSTEMROOT");
+                proc.StartInfo.EnvironmentVariables["WINDIR"] = Environment.GetEnvironmentVariable("WINDIR");
+                proc.StartInfo.EnvironmentVariables["COMSPEC"] = Environment.GetEnvironmentVariable("COMSPEC");
+                proc.StartInfo.EnvironmentVariables["TMPDIR"] = Environment.GetEnvironmentVariable("TMPDIR");
+                proc.StartInfo.EnvironmentVariables["TEMP"] = Environment.GetEnvironmentVariable("TEMP");
+            }
+            else
+            {
+                const string usrDir = "/usr";
+                const string tmpDir = "/tmp";
+                proc.StartInfo.EnvironmentVariables["SYSTEMROOT"] = usrDir;
+                proc.StartInfo.EnvironmentVariables["WINDIR"] = usrDir;
+                proc.StartInfo.EnvironmentVariables["COMSPEC"] = "/bin/sh";
+                proc.StartInfo.EnvironmentVariables["TMPDIR"] = tmpDir;
+                proc.StartInfo.EnvironmentVariables["TEMP"] = tmpDir;
+            }
+            proc.StartInfo.EnvironmentVariables["PATH"] = Environment.GetEnvironmentVariable("PATH");
             proc.StartInfo.EnvironmentVariables.Add("GATEWAY_INTERFACE", "CGI/1.1");
             proc.StartInfo.EnvironmentVariables.Add("SERVER_PROTOCOL", $"HTTP/{ApacheNetServerConfiguration.HttpVersion}");
             proc.StartInfo.EnvironmentVariables.Add("REDIRECT_STATUS", "200");
@@ -76,14 +88,12 @@ namespace ApacheNet.Extensions
                 if (!string.IsNullOrEmpty(key) && value != null && IsValidEnvVarKey(key))
                     proc.StartInfo.EnvironmentVariables.Add(key, value);
             }
-            proc.StartInfo.EnvironmentVariables.Add("TMPDIR", tempPath);
-            proc.StartInfo.EnvironmentVariables.Add("TEMP", tempPath);
 
             proc.Start();
 
             if (postData != null)
             {
-                // Write request body to standard input, for POST data
+                // Write request body to standard input
                 using StreamWriter? sw = proc.StandardInput;
                 sw.BaseStream.Write(postData, 0, postData.Length);
             }
