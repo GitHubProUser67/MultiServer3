@@ -1,65 +1,65 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
 namespace NetworkLibrary.GeoLocalization
 {
     public class GeoData
     {
-        [JsonProperty("place_id")]
+        [JsonPropertyName("place_id")]
         public long PlaceId { get; set; }
 
-        [JsonProperty("licence")]
+        [JsonPropertyName("licence")]
         public string Licence { get; set; }
 
-        [JsonProperty("osm_type")]
+        [JsonPropertyName("osm_type")]
         public string OsmType { get; set; }
 
-        [JsonProperty("osm_id")]
+        [JsonPropertyName("osm_id")]
         public long OsmId { get; set; }
 
-        [JsonProperty("lat")]
+        [JsonPropertyName("lat")]
         public string Lat { get; set; }
 
-        [JsonProperty("lon")]
+        [JsonPropertyName("lon")]
         public string Lon { get; set; }
 
-        [JsonProperty("class")]
+        [JsonPropertyName("class")]
         public string Class { get; set; }
 
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
-        [JsonProperty("place_rank")]
+        [JsonPropertyName("place_rank")]
         public int PlaceRank { get; set; }
 
-        [JsonProperty("importance")]
+        [JsonPropertyName("importance")]
         public double Importance { get; set; }
 
-        [JsonProperty("addresstype")]
+        [JsonPropertyName("addresstype")]
         public string AddressType { get; set; }
 
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("display_name")]
+        [JsonPropertyName("display_name")]
         public string DisplayName { get; set; }
 
-        [JsonProperty("address")]
+        [JsonPropertyName("address")]
         public Address Address { get; set; }
 
-        [JsonProperty("boundingbox")]
+        [JsonPropertyName("boundingbox")]
         public List<string> BoundingBox { get; set; }
     }
 
     public class Address
     {
-        [JsonProperty("country")]
+        [JsonPropertyName("country")]
         public string Country { get; set; }
 
-        [JsonProperty("country_code")]
+        [JsonPropertyName("country_code")]
         public string CountryCode { get; set; }
 
-        [JsonProperty("city")]
+        [JsonPropertyName("city")]
         public string City { get; set; }
     }
 }

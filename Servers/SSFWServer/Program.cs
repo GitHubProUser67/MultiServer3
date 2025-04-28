@@ -1,5 +1,4 @@
 using CustomLogger;
-using NetworkLibrary.Extension;
 using Newtonsoft.Json.Linq;
 using SSFWServer;
 using System.Reflection;
@@ -13,7 +12,7 @@ public static class SSFWServerConfiguration
     public static int SSFWTTL { get; set; } = 60;
     public static string SSFWMinibase { get; set; } = "[]";
     public static string SSFWLegacyKey { get; set; } = "**NoNoNoYouCantHaxThis****69";
-    public static string SSFWSessionIdKey { get; set; } = NetworkLibrary.Crypto.WebCrypto.GenerateRandomBase64KeyAsync().Result;
+    public static string SSFWSessionIdKey { get; set; } = WebAPIService.WebCrypto.WebCryptoClass.GenerateRandomBase64KeyAsync().Result;
     public static string SSFWStaticFolder { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwssfwroot";
     public static string HTTPSCertificateFile { get; set; } = $"{Directory.GetCurrentDirectory()}/static/SSL/SSFW.pfx";
     public static string HTTPSCertificatePassword { get; set; } = "qwerty";

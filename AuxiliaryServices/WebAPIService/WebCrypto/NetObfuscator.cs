@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace NetworkLibrary.Crypto
+namespace WebAPIService.WebCrypto
 {
     public class NetObfuscator
     {

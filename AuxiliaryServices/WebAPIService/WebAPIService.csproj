@@ -6,8 +6,9 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
-	<PackageReference Include="NLua" Version="1.7.3" />
+    <PackageReference Include="HttpMultipartParser" Version="9.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	<PackageReference Include="NLua" Version="1.7.5" />
   </ItemGroup>
   
   <ItemGroup>

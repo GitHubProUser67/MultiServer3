@@ -7,16 +7,18 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NetworkLibrary.Extension.Newtonsoft.Json;
 
-namespace NetworkLibrary.Crypto
+namespace WebAPIService.WebCrypto
 {
-    public static class WebCrypto
+    public static class WebCryptoClass
     {
         public static readonly byte[] AuthIV = new byte[] { 0x30, 0x57, 0xB5, 0x1F, 0x32, 0xD4, 0xAD, 0xBF, 0xAA, 0xAA, 0x21, 0x41, 0x6C, 0xDC, 0x5D, 0xF5 };
         public static readonly byte[] IdentIV = new byte[] { 0x47, 0x1A, 0xD2, 0xC3, 0xA4, 0x8B, 0xF1, 0xD9, 0x22, 0xBC, 0xC7, 0x61, 0xFD, 0x09, 0x8E, 0x3A };
-
+#if NET7_0_OR_GREATER
         public static async Task<string> GenerateRandomBase64KeyAsync()
+#else
+        public static Task<string> GenerateRandomBase64KeyAsync()
+#endif
         {
             const string url = "https://www.digitalsanctuary.com/aes-key-generator-free";
             const string startText = "AES-256 Key:";
@@ -32,7 +34,9 @@ namespace NetworkLibrary.Crypto
                     content = await client.GetStringAsync(url).ConfigureAwait(false);
                 }
 #else
+#pragma warning disable
                 using (System.Net.WebClient client = new System.Net.WebClient())
+#pragma warning restore
                 {
                     // Fetch the webpage content using WebClient
                     content = client.DownloadString(url);
@@ -54,7 +58,7 @@ namespace NetworkLibrary.Crypto
                             .Match(content.Substring(startIndex, endIndex - startIndex).Trim());
 
                         if (match.Success)
-                            return match.Groups[1].Value.Trim();
+                            return Task.FromResult(match.Groups[1].Value.Trim());
                     }
                 }
             }
@@ -63,7 +67,7 @@ namespace NetworkLibrary.Crypto
                 CustomLogger.LoggerAccessor.LogError($"[WebCrypto] - GenerateRandomBase64KeyAsync - an exception was thrown while fetching the key:{ex}");
             }
 
-            return null;
+            return Task.FromResult<string>(null);
         }
 
         public static string EncryptCBC(object ObjectToEncrypt, string AccessKey, byte[] IV, bool xmlsecuretags = false, bool xmlbody = false)
@@ -270,8 +274,8 @@ namespace NetworkLibrary.Crypto
 
             if (string.IsNullOrEmpty(result))
                 return null;
-            else
-                return Encoding.UTF8.GetBytes(result);
+            
+            return Encoding.UTF8.GetBytes(result);
         }
 
         public static string DecryptCTR(string StringToDecrypt, string AccessKey, byte[] IV)
@@ -312,8 +316,8 @@ namespace NetworkLibrary.Crypto
 
                 return ciphertextBytes;
             }
-            else
-                CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCBCDecryptBuffer - Invalid KeyBytes or IV!");
+            
+            CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCBCDecryptBuffer - Invalid KeyBytes or IV!");
 
             return null;
         }
@@ -322,8 +326,8 @@ namespace NetworkLibrary.Crypto
         {
             if (KeyBytes.Length >= 16 && m_iv.Length == 16)
                 return Convert.ToBase64String(InitiateCBCDecryptBuffer(Encoding.UTF8.GetBytes(FileString), KeyBytes, m_iv));
-            else
-                CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCBCDecryptBufferTobase64String - Invalid KeyBytes or IV!");
+            
+            CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCBCDecryptBufferTobase64String - Invalid KeyBytes or IV!");
 
             return null;
         }
@@ -346,8 +350,8 @@ namespace NetworkLibrary.Crypto
 
                 return ciphertextBytes;
             }
-            else
-                CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCBCEncryptBuffer - Invalid KeyBytes or IV!");
+
+            CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCBCEncryptBuffer - Invalid KeyBytes or IV!");
 
             return null;
         }
@@ -380,8 +384,8 @@ namespace NetworkLibrary.Crypto
 
                 return ciphertextBytes;
             }
-            else
-                CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCTRBuffer - Invalid KeyBytes or IV!");
+            
+            CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCTRBuffer - Invalid KeyBytes or IV!");
 
             return null;
         }
@@ -390,8 +394,8 @@ namespace NetworkLibrary.Crypto
         {
             if (KeyBytes.Length >= 16 && m_iv.Length == 16)
                 return Convert.ToBase64String(InitiateCTRBuffer(Encoding.UTF8.GetBytes(FileString), KeyBytes, m_iv));
-            else
-                CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCTRBufferTobase64String - Invalid KeyBytes or IV!");
+            
+            CustomLogger.LoggerAccessor.LogError("[WebCrypto] - InitiateCTRBufferTobase64String - Invalid KeyBytes or IV!");
 
             return null;
         }

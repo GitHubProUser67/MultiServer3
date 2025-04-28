@@ -37,7 +37,7 @@ namespace Horizon.MUM.Models
         public int AccountID;
         public int MinPlayers;
         public int MaxPlayers;
-        public int GameLevel;
+        public int PartyLevel;
         public int PlayerSkillLevel;
         public int RulesSet;
         public string? Metadata;
@@ -244,7 +244,7 @@ namespace Horizon.MUM.Models
             }
         }
 
-        public virtual async Task OnPlayerJoined(PartyClient player)
+        public virtual Task OnPlayerJoined(PartyClient player)
         {
             utcLastJoined = DateTime.UtcNow;
 
@@ -271,6 +271,8 @@ namespace Horizon.MUM.Models
             {
                 // Not Important
             }
+
+            return Task.CompletedTask;
         }
 
         public virtual void AddPlayer(ClientObject client)
@@ -311,7 +313,7 @@ namespace Horizon.MUM.Models
             }
         }
 
-        public virtual async Task RemovePlayer(ClientObject client, int appid, string? WorldId)
+        public virtual Task RemovePlayer(ClientObject client, int appid, string? WorldId)
         {
             bool MigrateHost = false;
             LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: {client} removed.");
@@ -344,6 +346,8 @@ namespace Horizon.MUM.Models
                 else if (MigrateHost && MediusVersion >= 109)
                     Host = LocalClients.FirstOrDefault()?.Client;
             }
+
+            return Task.CompletedTask;
         }
 
         public virtual async Task OnEndPartyReport(MediusEndGameReport report, int appid)
@@ -376,14 +380,11 @@ namespace Horizon.MUM.Models
 
             string? previousGameName = PartyName;
 
-            if (appId == 24180)
-                report.MaxPlayers = 10;
-
             PartyName = report.GameName;
             PartyStats = report.GameStats;
             MinPlayers = report.MinPlayers;
             MaxPlayers = report.MaxPlayers;
-            GameLevel = report.GameLevel;
+            PartyLevel = report.GameLevel;
             PlayerSkillLevel = report.PlayerSkillLevel;
             RulesSet = report.RulesSet;
             GenericField1 = report.GenericField1;
@@ -461,7 +462,7 @@ namespace Horizon.MUM.Models
             PartyStats = report.GameStats;
             MinPlayers = report.MinPlayers;
             MaxPlayers = report.MaxPlayers;
-            GameLevel = report.GameLevel;
+            PartyLevel = report.GameLevel;
             PlayerSkillLevel = report.PlayerSkillLevel;
             RulesSet = report.RulesSet;
             GenericField1 = report.GenericField1;
@@ -536,7 +537,7 @@ namespace Horizon.MUM.Models
                 if (Destroyed)
                     return Task.CompletedTask;
 
-                LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: EndGame() called.");
+                LoggerAccessor.LogInfo($"Party {MediusWorldId}: {PartyName}: EndParty() called.");
 
                 // Remove players from game world
                 lock (LocalClients)
@@ -587,10 +588,10 @@ namespace Horizon.MUM.Models
             return Task.CompletedTask;
         }
 
-        public virtual async Task SetWorldStatus(MediusWorldStatus status)
+        public virtual Task SetWorldStatus(MediusWorldStatus status)
         {
             if (WorldStatus == status)
-                return;
+                return Task.CompletedTask;
 
             _worldStatus = status;
 
@@ -607,13 +608,15 @@ namespace Horizon.MUM.Models
                     {
                         utcTimeEnded = DateTimeUtils.GetHighPrecisionUtcTime();
 
-                        return;
+                        return Task.CompletedTask;
                     }
             }
 
             // Update db
             if (!utcTimeEnded.HasValue)
                 _ = HorizonServerConfiguration.Database.UpdateParty(ToPartyDTO());
+
+            return Task.CompletedTask;
         }
     }
 }

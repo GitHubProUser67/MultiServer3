@@ -1,6 +1,6 @@
 ﻿using NetworkLibrary.Extension;
-using Newtonsoft.Json.Linq;
 using System.Linq;
+using System.Text.Json;
 
 namespace NetworkLibrary.HTTP
 {
@@ -8,18 +8,29 @@ namespace NetworkLibrary.HTTP
     {
         public static double? GetVBitRate(string jsonInfoData)
         {
-            JObject jsonObject = JObject.Parse(jsonInfoData);
-
-            var videoStreams = jsonObject["media_info"]?["streams"]?
-                .Where(s => (string)s?["codec_type"] == "video");
-
-            if (videoStreams != null)
+            using (JsonDocument doc = JsonDocument.Parse(jsonInfoData))
             {
-                foreach (var stream in videoStreams)
+                var root = doc.RootElement;
+
+                // Navigate to "media_info" -> "streams"
+                if (root.TryGetProperty("media_info", out JsonElement mediaInfo) &&
+                    mediaInfo.TryGetProperty("streams", out JsonElement streams) &&
+                    streams.ValueKind == JsonValueKind.Array)
                 {
-                    string bitRateStr = (string)stream?["bit_rate"];
-                    if (!string.IsNullOrEmpty(bitRateStr) && double.TryParse(bitRateStr, out double bitRate))
-                        return bitRate / 1024; // Convert bps to kbps
+                    foreach (JsonElement stream in streams.EnumerateArray())
+                    {
+                        // Check for "codec_type" == "video"
+                        if (stream.TryGetProperty("codec_type", out JsonElement codecType) && codecType.GetString() == "video")
+                        {
+                            // Get "bit_rate" value and convert it
+                            if (stream.TryGetProperty("bit_rate", out JsonElement bitRateElement))
+                            {
+                                string bitRateStr = bitRateElement.GetString();
+                                if (!string.IsNullOrEmpty(bitRateStr) && double.TryParse(bitRateStr, out double bitRate))
+                                    return bitRate / 1024; // Convert from bps to kbps
+                            }
+                        }
+                    }
                 }
             }
 
@@ -28,18 +39,29 @@ namespace NetworkLibrary.HTTP
 
         public static double? GetVFrameRate(string jsonInfoData)
         {
-            JObject jsonObject = JObject.Parse(jsonInfoData);
-
-            var videoStreams = jsonObject["media_info"]?["streams"]?
-                .Where(s => (string)s?["codec_type"] == "video");
-
-            if (videoStreams != null)
+            using (JsonDocument doc = JsonDocument.Parse(jsonInfoData))
             {
-                foreach (var stream in videoStreams)
+                var root = doc.RootElement;
+
+                // Navigate to "media_info" -> "streams"
+                if (root.TryGetProperty("media_info", out JsonElement mediaInfo) &&
+                    mediaInfo.TryGetProperty("streams", out JsonElement streams) &&
+                    streams.ValueKind == JsonValueKind.Array)
                 {
-                    string rFrameRate = (string)stream?["r_frame_rate"];
-                    if (!string.IsNullOrEmpty(rFrameRate))
-                        return rFrameRate.Eval();
+                    foreach (JsonElement stream in streams.EnumerateArray())
+                    {
+                        // Check for "codec_type" == "video"
+                        if (stream.TryGetProperty("codec_type", out JsonElement codecType) && codecType.GetString() == "video")
+                        {
+                            // Get "r_frame_rate" value
+                            if (stream.TryGetProperty("r_frame_rate", out JsonElement frameRateElement))
+                            {
+                                string rFrameRateStr = frameRateElement.GetString();
+                                if (!string.IsNullOrEmpty(rFrameRateStr))
+                                    return rFrameRateStr.Eval();
+                            }
+                        }
+                    }
                 }
             }
 

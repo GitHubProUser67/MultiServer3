@@ -1,8 +1,8 @@
-using WatsonWebserver.Core;
+﻿using WatsonWebserver.Core;
+using NetworkLibrary.Extension;
 using System.Diagnostics;
 using System.IO;
 using System;
-using NetworkLibrary.Extension;
 using System.Text;
 using System.Linq;
 
@@ -106,8 +106,41 @@ namespace ApacheNet.Extensions
             using (StreamReader err = proc.StandardError)
             using (StreamWriter output = new(ms))
             {
-                if (ApacheNetServerConfiguration.PHPDebugErrors)
-                    // Read stderr fully after stdout is drained
+                int i = 0;
+                string? line = null;
+                // 🔵 FIRST: Drain stdout fully
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (!headersEnd)
+                    {
+                        if (line == string.Empty)
+                        {
+                            headersEnd = true;
+                            continue;
+                        }
+
+                        // The first few lines are the headers, with a
+                        // key and a value. Catch those, to write them
+                        // into our response headers.
+                        index = line.IndexOf(':');
+
+                        if (index != -1)
+                            HeadersLocal = HeadersLocal.AddArray(new string[] { line[..index], line[(index + 2)..] });
+                        else
+                            // Write non-header lines into the output as is.
+                            output.WriteLine(line);
+                    }
+                    else
+                        // Write non-header lines into the output as is.
+                        output.WriteLine(line);
+
+                    i++;
+                }
+
+                output.Flush();
+
+                // 🔵 THEN: After stdout drained and no results, read stderr
+                if (ms.Length == 0 && ApacheNetServerConfiguration.PHPDebugErrors)
                     errorOutput = err.ReadToEnd();
                 if (!string.IsNullOrWhiteSpace(errorOutput))
                 {
@@ -116,41 +149,9 @@ namespace ApacheNet.Extensions
                     output.WriteLine("<pre style=\"color:red;\">");
                     output.WriteLine(System.Net.WebUtility.HtmlEncode(errorOutput));
                     output.WriteLine("</pre>");
-                }
-                else
-                {
-                    int i = 0;
-                    string? line = null;
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        if (!headersEnd)
-                        {
-                            if (line == string.Empty)
-                            {
-                                headersEnd = true;
-                                continue;
-                            }
-
-                            // The first few lines are the headers, with a
-                            // key and a value. Catch those, to write them
-                            // into our response headers.
-                            index = line.IndexOf(':');
-
-                            if (index != -1)
-                                HeadersLocal = HeadersLocal.AddArray(new string[] { line[..index], line[(index + 2)..] });
-                            else
-                                // Write non-header lines into the output as is.
-                                output.WriteLine(line);
-                        }
-                        else
-                            // Write non-header lines into the output as is.
-                            output.WriteLine(line);
-
-                        i++;
-                    }
+                    output.Flush();
                 }
 
-                output.Flush();
                 returndata = ms.ToArray();
             }
 

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="MaxMind.GeoIP2" Version="5.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SimdJsonSharp.Bindings" Version="1.7.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
     <PackageReference Include="ZstdSharp.Port" Version="0.8.5" />

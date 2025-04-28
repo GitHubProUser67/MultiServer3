@@ -1,5 +1,4 @@
 ﻿using CustomLogger;
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -28,13 +27,18 @@ namespace NetworkLibrary
 
                 Directory.CreateDirectory(Path.GetDirectoryName(configPath) ?? Directory.GetCurrentDirectory() + "/static");
 
-                // Write the JObject to a file
-                File.WriteAllText(configPath, new JObject(
-                    new JProperty("enable_server_ip_auto_negotiation", EnableServerIpAutoNegotiation),
-                    new JProperty("use_public_ip", UsePublicIp),
-                    new JProperty("fallback_server_ip", FallbackServerIp)
+                // Write the JsonObject to a file
+                var configObject = new
+                {
+                    enable_server_ip_auto_negotiation = EnableServerIpAutoNegotiation,
+                    use_public_ip = UsePublicIp,
+                    fallback_server_ip = FallbackServerIp
+                };
 
-                ).ToString());
+                File.WriteAllText(configPath, JsonSerializer.Serialize(configObject, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                }));
 
                 return;
             }
@@ -42,13 +46,16 @@ namespace NetworkLibrary
             try
             {
                 // Parse the JSON configuration
-                JsonElement config = JsonDocument.Parse(File.ReadAllText(configPath)).RootElement;
+                using (var doc = JsonDocument.Parse(File.ReadAllText(configPath)))
+                {
+                    JsonElement config = doc.RootElement;
 
-                EnableServerIpAutoNegotiation = GetValueOrDefault(config, "enable_server_ip_auto_negotiation", EnableServerIpAutoNegotiation);
-                UsePublicIp = GetValueOrDefault(config, "use_public_ip", UsePublicIp);
-                string tempVerificationIp = GetValueOrDefault(config, "fallback_server_ip", FallbackServerIp);
-                if (IPAddress.TryParse(tempVerificationIp, out _))
-                    FallbackServerIp = tempVerificationIp;
+                    EnableServerIpAutoNegotiation = GetValueOrDefault(config, "enable_server_ip_auto_negotiation", EnableServerIpAutoNegotiation);
+                    UsePublicIp = GetValueOrDefault(config, "use_public_ip", UsePublicIp);
+                    string tempVerificationIp = GetValueOrDefault(config, "fallback_server_ip", FallbackServerIp);
+                    if (IPAddress.TryParse(tempVerificationIp, out _))
+                        FallbackServerIp = tempVerificationIp;
+                }
             }
             catch (Exception ex)
             {

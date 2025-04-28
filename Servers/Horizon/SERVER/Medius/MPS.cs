@@ -848,27 +848,57 @@ namespace Horizon.SERVER.Medius
                     {
                         //Fetch Current Game, and Update it with the new one
                         Game? game = MediusClass.Manager.GetGameByGameId(serverMoveGameWorldOnMeRequest.CurrentMediusWorldID);
-                        if (game?.MediusWorldId != serverMoveGameWorldOnMeRequest.CurrentMediusWorldID)
-                        {
-                            data.MeClientObject?.Queue(new MediusServerMoveGameWorldOnMeResponse()
-                            {
-                                MessageID = serverMoveGameWorldOnMeRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_UNSUCCESSFUL,
-                            });
-                        }
-                        else
-                        {
-                            game.MediusWorldId = serverMoveGameWorldOnMeRequest.NewGameMediusWorldID;
-                            game.netAddressList.AddressList[0] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[0];
-                            game.netAddressList.AddressList[1] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[1];
+                        Party? party = MediusClass.Manager.GetPartyByPartyId(serverMoveGameWorldOnMeRequest.CurrentMediusWorldID);
 
-                            data.MeClientObject?.Queue(new MediusServerMoveGameWorldOnMeResponse()
+                        if (game != null)
+                        {
+                            if (game.MediusWorldId != serverMoveGameWorldOnMeRequest.CurrentMediusWorldID)
                             {
-                                MessageID = serverMoveGameWorldOnMeRequest.MessageID,
-                                Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
-                                MediusWorldID = serverMoveGameWorldOnMeRequest.NewGameMediusWorldID
-                            });
+                                data.MeClientObject?.Queue(new MediusServerMoveGameWorldOnMeResponse()
+                                {
+                                    MessageID = serverMoveGameWorldOnMeRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_UNSUCCESSFUL,
+                                });
+                            }
+                            else
+                            {
+                                game.MediusWorldId = serverMoveGameWorldOnMeRequest.NewGameMediusWorldID;
+                                game.netAddressList.AddressList[0] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[0];
+                                game.netAddressList.AddressList[1] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[1];
+
+                                data.MeClientObject?.Queue(new MediusServerMoveGameWorldOnMeResponse()
+                                {
+                                    MessageID = serverMoveGameWorldOnMeRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                    MediusWorldID = serverMoveGameWorldOnMeRequest.NewGameMediusWorldID
+                                });
+                            }
                         }
+                        else if (party != null)
+                        {
+                            if (party.MediusWorldId != serverMoveGameWorldOnMeRequest.CurrentMediusWorldID)
+                            {
+                                data.MeClientObject?.Queue(new MediusServerMoveGameWorldOnMeResponse()
+                                {
+                                    MessageID = serverMoveGameWorldOnMeRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_UNSUCCESSFUL,
+                                });
+                            }
+                            else
+                            {
+                                party.MediusWorldId = serverMoveGameWorldOnMeRequest.NewGameMediusWorldID;
+                                party.netAddressList.AddressList[0] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[0];
+                                party.netAddressList.AddressList[1] = serverMoveGameWorldOnMeRequest.AddressList.AddressList[1];
+
+                                data.MeClientObject?.Queue(new MediusServerMoveGameWorldOnMeResponse()
+                                {
+                                    MessageID = serverMoveGameWorldOnMeRequest.MessageID,
+                                    Confirmation = MGCL_ERROR_CODE.MGCL_SUCCESS,
+                                    MediusWorldID = serverMoveGameWorldOnMeRequest.NewGameMediusWorldID
+                                });
+                            }
+                        }
+
                         break;
                     }
                 #endregion
@@ -894,7 +924,7 @@ namespace Horizon.SERVER.Medius
                     {
                         if (data.MeClientObject == null) // Happens when the game creation fails.
                         {
-                            LoggerAccessor.LogWarn("[MLS] - Client Object: {data.ClientObject} called MediusServerEndGameOnMeRequest without a Me Client Object, ignoring.");
+                            LoggerAccessor.LogWarn("[MPS] - Client Object: {data.ClientObject} called MediusServerEndGameOnMeRequest without a Me Client Object, ignoring.");
                             break;
                         }
 
@@ -945,17 +975,15 @@ namespace Horizon.SERVER.Medius
                 #region MediusServerConnectNotification
                 case MediusServerConnectNotification connectNotification:
                     {
-                        if (data.ClientObject != null && MediusClass.Manager.GetGameByMediusWorldId((data.ClientObject).SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID) != null)
+                        if (data.ClientObject != null)
                         {
-                            Game? conn = MediusClass.Manager.GetGameByMediusWorldId(data.ClientObject.SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
-                            if (conn != null)
-                                await conn.OnMediusServerConnectNotification(connectNotification);
-                        }
-                        else if (data.ClientObject != null)
-                        {
-                            Party? conn = MediusClass.Manager.GetPartyByMediusWorldId(data.ClientObject.SessionKey ?? string.Empty, (int)connectNotification.MediusWorldUID);
-                            if (conn != null)
-                                await conn.OnMediusServerConnectNotification(connectNotification);
+                            Game? gameConn = MediusClass.Manager.GetGameByMediusWorldId(data.ClientObject.SessionKey ?? string.Empty, connectNotification.MediusWorldUID);
+                            Party? partyConn = MediusClass.Manager.GetPartyByMediusWorldId(data.ClientObject.SessionKey ?? string.Empty, connectNotification.MediusWorldUID);
+
+                            if (gameConn != null)
+                                await gameConn.OnMediusServerConnectNotification(connectNotification);
+                            else if (partyConn != null)
+                                await partyConn.OnMediusServerConnectNotification(connectNotification);
                         }
 
                         //MediusServerConnectNotification -  sent Notify msg to MUM
@@ -1064,7 +1092,7 @@ namespace Horizon.SERVER.Medius
             {
                 /* Why this exists? Some games register their own DME servers, not a problem.
                  * But in some rare cases (Ratchet UYA Beta Trial/Press) the server is SO OLD that is requires it's own packet format.
-                   This option allows us to return only our "modern" server, to save of reverse-engineering efforts. */
+                   This option allows us to return only our "modern" server, to save on reverse-engineering efforts ;). */
                 if (appId == 10680 || appId == 10681)
                     return _scertHandler?.Group?
                         .Select(x => _channelDatas[x.Id.AsLongText()]?.ClientObject)
@@ -1079,7 +1107,7 @@ namespace Horizon.SERVER.Medius
             }
             catch (Exception e)
             {
-                LoggerAccessor.LogError("No DME Game Server assigned to this AppId\n", e);
+                LoggerAccessor.LogError($"[MPS] - No DME Game Server assigned to this AppId. (Exception:{e})");
             }
 
             return null;

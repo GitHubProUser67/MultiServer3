@@ -225,6 +225,9 @@ namespace Horizon.MUM
 
         public Party? GetPartyByMediusWorldId(string dmeSessionKey, int MediusWorldId)
         {
+            if (string.IsNullOrEmpty(dmeSessionKey))
+                return null;
+
             foreach (var lookupByAppId in _lookupsByAppId)
             {
                 lock (lookupByAppId.Value.PartyIdToGame)
@@ -376,14 +379,6 @@ namespace Horizon.MUM
                         return party;
                 }
             }
-
-            return null;
-        }
-
-        public Party? GetPartyByName(string gameName, ClientObject? data)
-        {
-            if (data != null && data.CurrentParty != null && data.CurrentParty.PartyName == gameName)
-                return data.CurrentParty;
 
             return null;
         }
@@ -718,10 +713,6 @@ namespace Horizon.MUM
                 // Create and add
                 try
                 {
-                    Game game = new(client, matchCreateGameRequest, client);
-
-                    await AddGame(game);
-
                     // Try to get next free MPS server
                     // If none exist, return error to clist
                     //var dme = MediusStarter.ProxyServer.GetFreeDme(client.ApplicationId);
@@ -737,24 +728,17 @@ namespace Horizon.MUM
                         return;
                     }
 
-                    mps.SendServerCreateGameWithAttributesRequestP2P(matchCreateGameRequest.MessageID.ToString(), client.AccountId, game.MediusWorldId, false, game, client);
+                    ClientObject dme = client;
 
-                    /*
-                    client.Queue(new MediusMatchCreateGameResponse()
-                    {
-                        MessageID = matchCreateGameRequest.MessageID,
-                        StatusCode = MediusCallbackStatus.MediusSuccess,
-                        MediusWorldID = game.Id,
-                        SystemSpecificStatusCode = 0,
-                        RequestData = matchCreateGameRequest.RequestData,
-                        ApplicationDataSize = matchCreateGameRequest.ApplicationDataSize,
-                        ApplicationData = matchCreateGameRequest.ApplicationData,
-                    });
-                    */
+                    Game game = new(client, matchCreateGameRequest, dme);
+
+                    await client.JoinGameP2P(game);
+                    await AddGame(game);
+
+                    mps.SendServerCreateGameWithAttributesRequestP2P(matchCreateGameRequest.MessageID.ToString(), client.AccountId, game.MediusWorldId, false, game, client);
                 }
                 catch (Exception e)
                 {
-                    // 
                     LoggerAccessor.LogError(e);
 
                     // Failure creating match game for some reason
@@ -1024,8 +1008,6 @@ namespace Horizon.MUM
             {
                 _ = EnqueueJoinGameAsync(client.ApplicationId, game.MediusWorldId, () =>
                 {
-                    //MediusClass.AntiCheatPlugin.mc_anticheat_event_msg(AnticheatEventCode.anticheatJOINGAME, request.MediusWorldID, client.AccountId, Program.AntiCheatClient, request, 4);
-
                     // if This is a Peer to Peer Player Host as DME we treat differently
                     if (game.GameHostType == MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer
                         && game.netAddressList?.AddressList?[0].AddressType == NetAddressType.NetAddressTypeSignalAddress)
@@ -1541,7 +1523,7 @@ namespace Horizon.MUM
 
         #region Party
 
-        public async Task joinParty(ClientObject client, MediusPartyJoinByIndexRequest request, IChannel channel)
+        public Task joinParty(ClientObject client, MediusPartyJoinByIndexRequest request)
         {
             List<int> approvedMaxPlayersAppIds = new() { 20624, 22500, 22920, 22924, 22930, 23360, 24000, 24180 };
 
@@ -1610,6 +1592,8 @@ namespace Horizon.MUM
                     }
                 });
             }
+
+            return Task.CompletedTask;
         }
 
         public async Task AddParty(Party party)
@@ -1651,11 +1635,13 @@ namespace Horizon.MUM
 
             // Try to get next free dme server
             // If none exist, return error to clist
-
             var dme = MediusClass.ProxyServer.GetFreeDme(client.ApplicationId);
             MPS mps = MediusClass.GetMPS();
-
-            if (dme == null)
+            if (mps == null)
+            {
+                
+            }
+            else if (dme == null)
             {
                 client.Queue(new MediusPartyCreateResponse()
                 {
@@ -1675,17 +1661,7 @@ namespace Horizon.MUM
 
                     await client.JoinParty(party, party.MediusWorldId);
 
-                    if (mps == null)
-                    {
-                        client.Queue(new MediusPartyCreateResponse()
-                        {
-                            MessageID = request.MessageID,
-                            MediusWorldID = party.MediusWorldId,
-                            StatusCode = MediusCallbackStatus.MediusFail
-                        });
-                    }
-                    else
-                        mps.SendServerCreateGameWithAttributesRequest(request.MessageID.ToString(), client.AccountId, party.MediusWorldId, party.MediusWorldId, true, (int)party.Attributes, client.ApplicationId, party.MaxPlayers);
+                    mps.SendServerCreateGameWithAttributesRequest(request.MessageID.ToString(), client.AccountId, party.GameChannel!.Id, party.MediusWorldId, true, (int)party.Attributes, client.ApplicationId, party.MaxPlayers);
 
                     return;
                 }

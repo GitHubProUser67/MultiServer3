@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +6,8 @@ using System.Threading.Tasks;
 using System.Text;
 using System.Web;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace NetworkLibrary.HTTP
 {
@@ -30,11 +31,12 @@ namespace NetworkLibrary.HTTP
                 if (html)
                     return CreateFileNodeHtmlString(structure, Path.GetFileName(rootDirectory), ServerPort, mimeTypesDic);
                 else
-                    return JsonConvert.SerializeObject(structure,
-                     Formatting.Indented, new JsonSerializerSettings()
-                     {
-                         NullValueHandling = NullValueHandling.Ignore
-                     });
+                    return JsonSerializer.Serialize(structure,
+                      new JsonSerializerOptions
+                      {
+                          WriteIndented = true,
+                          DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                      });
             }
             catch (Exception ex)
             {

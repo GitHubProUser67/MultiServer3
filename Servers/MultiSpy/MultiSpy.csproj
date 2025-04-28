@@ -13,12 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Costura.Fody" Version="5.7.0">
+    <PackageReference Include="Costura.Fody" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
     </PackageReference>
     <PackageReference Include="IronPython" Version="2.7.12" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
   </ItemGroup>
 
@@ -44,8 +44,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Include="Costura32\SQLite.Interop.dll" />
-    <EmbeddedResource Include="Costura64\SQLite.Interop.dll" />
+    <EmbeddedResource Include="costura-win-x86\SQLite.Interop.dll" />
+    <EmbeddedResource Include="costura-win-x64\SQLite.Interop.dll" />
   </ItemGroup>
   
   <ItemGroup>

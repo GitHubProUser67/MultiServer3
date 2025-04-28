@@ -4,10 +4,11 @@ using System.IO;
 
 namespace WebAPIService.WebArchive
 {
-	/// <summary>
-	/// Request to a Internet Archive Wayback Machine CDX server for archived copy of website
-	/// </summary>
-	public class WebArchiveRequest
+    /// <summary>
+    /// From WebOne (https://github.com/atauenis/webone).
+    /// Request to a Internet Archive Wayback Machine CDX server for archived copy of website
+    /// </summary>
+    public class WebArchiveRequest
 	{
         /* Documentation:
 		https://github.com/internetarchive/wayback/blob/master/wayback-cdx-server/README.md

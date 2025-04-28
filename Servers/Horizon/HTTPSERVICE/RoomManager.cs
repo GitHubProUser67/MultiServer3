@@ -1,6 +1,6 @@
 using Horizon.SERVER;
-using NetworkLibrary.Crypto;
 using NetworkLibrary.Extension;
+using WebAPIService.WebCrypto;
 using Newtonsoft.Json;
 
 namespace Horizon.HTTPSERVICE
@@ -197,7 +197,7 @@ namespace Horizon.HTTPSERVICE
                     secSalt[i] = (byte)(NetObfuscator.SecSalt[i] ^ RandSecSaltKey[i] ^ secSalt[i - 1]);
             }
 
-            return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCrypto.EncryptCBC(input, key, WebCrypto.IdentIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";
+            return $"<Secure RNG=\"{BitConverter.ToString(secSalt).Replace("-", string.Empty)}\">" + NetObfuscator.Encrypt(WebCryptoClass.EncryptCBC(input, key, WebCryptoClass.IdentIV), secSalt, (byte)key.Aggregate(0, (current, c) => current ^ c)) + "</Secure>";
         }
     }
 

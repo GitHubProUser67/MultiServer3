@@ -1,7 +1,7 @@
 using NetHasher;
-using NetworkLibrary.Crypto;
 using NetworkLibrary.Extension;
 using System.Text;
+using WebAPIService.WebCrypto;
 
 namespace WebAPIService.SSFW
 {
@@ -16,8 +16,8 @@ namespace WebAPIService.SSFW
 
             if (!string.IsNullOrEmpty(key) && key.IsBase64().Item1)
             {
-                md5hash = DotNetHasher.ComputeMD5String(WebCrypto.EncryptToByteArrayCBC(input1Bytes, key, WebCrypto.AuthIV));
-                sha512hash = DotNetHasher.ComputeSHA512String(WebCrypto.EncryptToByteArrayCBC(input2Bytes, key, WebCrypto.AuthIV));
+                md5hash = DotNetHasher.ComputeMD5String(WebCryptoClass.EncryptToByteArrayCBC(input1Bytes, key, WebCryptoClass.AuthIV));
+                sha512hash = DotNetHasher.ComputeSHA512String(WebCryptoClass.EncryptToByteArrayCBC(input2Bytes, key, WebCryptoClass.AuthIV));
             }
             else
             {

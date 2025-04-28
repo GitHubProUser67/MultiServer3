@@ -1,4 +1,3 @@
-using Newtonsoft.Json.Linq;
 using SimdJsonSharp;
 using System;
 using System.Collections.Generic;
@@ -10,6 +9,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Runtime.InteropServices;
 #endif
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -299,7 +299,8 @@ namespace NetworkLibrary.Extension
             {
                 try
                 {
-                    FindPropertyValuesNested(JObject.Parse(jsonText), result, property);
+                    using (var doc = JsonDocument.Parse(jsonText))
+                        FindPropertyValuesNested(doc.RootElement, result, property);
                 }
                 catch 
                 {
@@ -310,27 +311,25 @@ namespace NetworkLibrary.Extension
         }
 
         // Recursive method to find all the requested property values in any nested structure
-        private static void FindPropertyValuesNested(JToken token, List<string> output, string property)
+        private static void FindPropertyValuesNested(JsonElement element, List<string> output, string property)
         {
-            if (token == null) return;
-
-            // If the token is an object, traverse through its properties
-            if (token.Type == JTokenType.Object)
+            // If the element is an object, traverse through its properties
+            if (element.ValueKind == JsonValueKind.Object)
             {
-                foreach (JProperty nestedProperty in token)
+                foreach (JsonProperty nestedProperty in element.EnumerateObject())
                 {
-                    // Check if the property contains a the requested key
+                    // If the property name matches the requested property, add it to the output list
                     if (nestedProperty.Name == property)
                         output.Add(nestedProperty.Value.ToString());
 
-                    // Recurse on the value of this nestedProperty
+                    // Recurse on the value of this property
                     FindPropertyValuesNested(nestedProperty.Value, output, property);
                 }
             }
-            // If the token is an array, process each element in the array
-            else if (token.Type == JTokenType.Array)
+            // If the element is an array, process each item in the array
+            else if (element.ValueKind == JsonValueKind.Array)
             {
-                foreach (JToken nestedArrayItem in token)
+                foreach (JsonElement nestedArrayItem in element.EnumerateArray())
                 {
                     FindPropertyValuesNested(nestedArrayItem, output, property);
                 }

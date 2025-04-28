@@ -662,6 +662,67 @@ namespace NetworkLibrary.HTTP
             return null;
         }
 
+        public static (byte[] data, Dictionary<string, string> headers) RequestFullURLGET(string url)
+        {
+#if NET7_0_OR_GREATER
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = client.GetAsync(url).Result;
+                    response.EnsureSuccessStatusCode();
+
+                    byte[] data = response.Content.ReadAsByteArrayAsync().Result;
+
+                    var headers = new Dictionary<string, string>();
+                    foreach (var header in response.Headers)
+                    {
+                        headers[header.Key] = string.Join(", ", header.Value);
+                    }
+                    foreach (var header in response.Content.Headers)
+                    {
+                        headers[header.Key] = string.Join(", ", header.Value);
+                    }
+
+                    return (data, headers);
+                }
+            }
+            catch
+            {
+                // Not Important.
+            }
+#else
+            try
+            {
+#pragma warning disable
+                using (WebClient client = new WebClient())
+                {
+                    byte[] data = client.DownloadData(url);
+                    var headers = new Dictionary<string, string>();
+
+                    // WebClient exposes headers after a request via ResponseHeaders
+                    if (client.ResponseHeaders != null)
+                    {
+                        foreach (string key in client.ResponseHeaders.AllKeys)
+                        {
+                            headers[key] = client.ResponseHeaders[key];
+                        }
+                    }
+
+                    return (data, headers);
+                }
+#pragma warning restore
+            }
+            catch
+            {
+                // Not Important.
+            }
+#endif
+
+            return (null, null);
+        }
+
+
         public static string RequestURLPOST(string url, Dictionary<string, string> headers, string postData, string ContentType)
         {
 #if NET7_0_OR_GREATER

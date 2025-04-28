@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System;
 using System.Net;
+using System.Text.Json;
 #if NET7_0_OR_GREATER
 using System.Net.Http;
 #endif
@@ -19,7 +19,7 @@ namespace NetworkLibrary.GeoLocalization
             {
                 try
                 {
-                    return JsonConvert.DeserializeObject<IPInfo>(await client.GetStringAsync($"https://ipinfo.io/{ip}/json").ConfigureAwait(false));
+                    return JsonSerializer.Deserialize<IPInfo>(await client.GetStringAsync($"https://ipinfo.io/{ip}/json").ConfigureAwait(false));
                 }
                 catch (Exception e)
                 {
@@ -33,7 +33,7 @@ namespace NetworkLibrary.GeoLocalization
             {
                 try
                 {
-                    return JsonConvert.DeserializeObject<IPInfo>(await client.DownloadStringTaskAsync($"https://ipinfo.io/{ip}/json").ConfigureAwait(false));
+                    return JsonSerializer.Deserialize<IPInfo>(await client.DownloadStringTaskAsync($"https://ipinfo.io/{ip}/json").ConfigureAwait(false));
                 }
                 catch (Exception e)
                 {
@@ -66,7 +66,7 @@ namespace NetworkLibrary.GeoLocalization
 
                 try
                 {
-                    foreach (GeoData geoData in JsonConvert.DeserializeObject<List<GeoData>>(await client.DownloadStringTaskAsync($"https://nominatim.openstreetmap.org/search?country={country}{(string.IsNullOrEmpty(city) ? string.Empty : "&city=" + country)}&format=json&addressdetails=1").ConfigureAwait(false)))
+                    foreach (GeoData geoData in JsonSerializer.Deserialize<List<GeoData>>(await client.DownloadStringTaskAsync($"https://nominatim.openstreetmap.org/search?country={country}{(string.IsNullOrEmpty(city) ? string.Empty : "&city=" + country)}&format=json&addressdetails=1").ConfigureAwait(false)))
                     {
                         // Extract the latitude and longitude to a more friendly format.
                         geoDataDic.Add(geoData, new double[] { Convert.ToDouble(geoData.Lat, CultureInfo.InvariantCulture), Convert.ToDouble(geoData.Lon, CultureInfo.InvariantCulture) });

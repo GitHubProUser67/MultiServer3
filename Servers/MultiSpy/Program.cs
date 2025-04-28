@@ -8,7 +8,6 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using System.Text.Json;
-using NetworkLibrary.Extension;
 
 public static class MultiSpyServerConfiguration
 {
@@ -4754,18 +4753,21 @@ public static class MultiSpyServerConfiguration
 
         try
         {
-            // Parse the JSON configuration
-            JsonElement config = JsonDocument.Parse(File.ReadAllText(configPath)).RootElement;
+			// Parse the JSON configuration
+			using (var doc = JsonDocument.Parse(File.ReadAllText(configPath)))
+			{
+                JsonElement config = doc.RootElement;
 
-            EnableLogin = GetValueOrDefault(config, "enable_login", EnableLogin);
-            EnablePeerChat = GetValueOrDefault(config, "enable_peer_chat", EnablePeerChat);
-            EnableNatNeg = GetValueOrDefault(config, "enable_natneg", EnableNatNeg);
-            EnableCdKey = GetValueOrDefault(config, "enable_cdkey", EnableCdKey);
-            EnableMaster = GetValueOrDefault(config, "enable_master", EnableMaster);
-            EnableList = GetValueOrDefault(config, "enable_list", EnableList);
-            DatabasePath = GetValueOrDefault(config, "database_path", DatabasePath);
-            ChatServerPath = GetValueOrDefault(config, "chat_server_path", ChatServerPath);
-            GamesKey = GetValueOrDefault(config, "games_key", GamesKey);
+                EnableLogin = GetValueOrDefault(config, "enable_login", EnableLogin);
+                EnablePeerChat = GetValueOrDefault(config, "enable_peer_chat", EnablePeerChat);
+                EnableNatNeg = GetValueOrDefault(config, "enable_natneg", EnableNatNeg);
+                EnableCdKey = GetValueOrDefault(config, "enable_cdkey", EnableCdKey);
+                EnableMaster = GetValueOrDefault(config, "enable_master", EnableMaster);
+                EnableList = GetValueOrDefault(config, "enable_list", EnableList);
+                DatabasePath = GetValueOrDefault(config, "database_path", DatabasePath);
+                ChatServerPath = GetValueOrDefault(config, "chat_server_path", ChatServerPath);
+                GamesKey = GetValueOrDefault(config, "games_key", GamesKey);
+            }
         }
         catch (Exception ex)
         {

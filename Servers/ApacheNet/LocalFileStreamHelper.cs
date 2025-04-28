@@ -12,7 +12,7 @@ namespace ApacheNet
 {
     public class LocalFileStreamHelper
     {
-        private const long compressionSizeLimit = 800L * 1024 * 1024; // 800MB in bytes
+        public const long compressionSizeLimit = 800L * 1024 * 1024; // 800MB in bytes
 
         public static async Task<bool> HandleRequest(HttpContextBase ctx, string encoding, string absolutepath, string filePath, string ContentType, bool isVideoOrAudio, bool isHtmlCompatible, bool noCompressCacheControl)
         {
@@ -52,7 +52,7 @@ namespace ApacheNet
                 {
                     st = ImageOptimizer.OptimizeImage(ApacheNetServerConfiguration.ConvertersFolder, filePath, extension, ImageOptimizer.defaultOptimizerParams);
 
-                    if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && st.Length >= compressionSizeLimit)
+                    if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && st.Length <= compressionSizeLimit)
                     {
                         if (encoding.Contains("zstd"))
                         {
@@ -155,7 +155,7 @@ namespace ApacheNet
             {
                 ctx.Response.ContentType = ContentType;
 
-                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && new FileInfo(filePath).Length >= compressionSizeLimit)
+                if (compressionSettingEnabled && !noCompressCacheControl && !string.IsNullOrEmpty(encoding) && new FileInfo(filePath).Length <= compressionSizeLimit)
                 {
                     if (encoding.Contains("zstd"))
                     {

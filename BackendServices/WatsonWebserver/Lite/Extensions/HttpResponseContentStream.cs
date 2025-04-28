@@ -5,7 +5,7 @@ using System.Text;
 namespace WatsonWebserver.Lite.Extensions
 {
     /// <summary>
-    /// From WebOne.
+    /// From WebOne (https://github.com/atauenis/webone).
     /// A wrapper around a <see cref="Stream"/> that can write HTTP response bodies in according to RFC 9112 §7.
     /// </summary>
     public class HttpResponseContentStream : Stream

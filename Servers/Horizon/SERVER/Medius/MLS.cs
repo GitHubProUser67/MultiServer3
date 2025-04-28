@@ -5419,7 +5419,7 @@ namespace Horizon.SERVER.Medius
                         }
 
                         // Send to plugins
-                        //await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_CREATE_PARTY, new OnPlayerRequestArgs() { Player = data.ClientObject, Request = partyCreateRequest });
+                        await MediusClass.Plugins.OnEvent(PluginEvent.MEDIUS_PLAYER_ON_CREATE_GAME, new OnPlayerRequestArgs() { Player = data.ClientObject, Request = partyCreateRequest });
 
                         await MediusClass.Manager.CreateParty(data.ClientObject, partyCreateRequest);
                         break;
@@ -5460,7 +5460,7 @@ namespace Horizon.SERVER.Medius
                             break;
                         }
 
-                        await MediusClass.Manager.joinParty(data.ClientObject, partyJoinByIndex, clientChannel);
+                        await MediusClass.Manager.joinParty(data.ClientObject, partyJoinByIndex);
 
                         break;
                     }

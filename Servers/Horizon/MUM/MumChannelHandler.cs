@@ -4,10 +4,9 @@ using Horizon.SERVER;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
-using NetworkLibrary.Crypto;
 using Horizon.MUM.Models;
 using CastleLibrary.NetHasher.CRC;
-using NetworkLibrary.Extension.Newtonsoft.Json;
+using WebAPIService.WebCrypto;
 
 namespace Horizon.MUM
 {
@@ -33,12 +32,12 @@ namespace Horizon.MUM
 
         public static string? JsonSerializeChannelsList()
         {
-            return WebCrypto.EncryptCTR(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true);
+            return WebCryptoClass.EncryptCTR(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true);
         }
 
         public static string? XMLSerializeChannelsList()
         {
-            return WebCrypto.EncryptCTR(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true, true);
+            return WebCryptoClass.EncryptCTR(MediusClass.Manager.GetAllChannels(), HorizonServerConfiguration.MediusAPIKey, MumUtils.ConfigIV, true, true);
         }
 
         public static string GetCRC32ChannelsList()
