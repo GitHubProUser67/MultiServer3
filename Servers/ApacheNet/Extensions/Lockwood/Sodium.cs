@@ -1036,65 +1036,73 @@ namespace ApacheNet.Extensions.Lockwood
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         ctx.Response.ContentType = "text/xml";
                         await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
-                    local TableFromInput = {
-                        [""defs""] = { [""silver""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/silver.dds""
-                        },
-                        [""crimson""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/crimson.dds""
-                        },
-                        [""classic_green""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/classic_green.dds""
-                        },
-                        [""bumble_bee""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/bumble_bee.dds""
-                        },
-                        [""salamander""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/salamander.dds""
-                        },
-                        [""sonic_camo""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/sonic_camo.dds""
-                        },
-                        [""phoenix""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/phoenix.dds""
-                        },
-                        [""marshmallow""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/marshmallow.dds""
-                        },
-                        [""velocity_racer_green""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/velocity_racer_green.dds""
-                        },
-                        [""animal_magnetism""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/animal_magnetism.dds""
-                        },
-                        [""fruit_salad""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/fruit_salad.dds""
-                        },
-                        [""sodium_one_chili_red_edition""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/sodium_one_chili_red_edition.dds""
-                        },
-                        [""blue_viper""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/blue_viper.dds""
-                        },
-                        [""apple_twist""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/apple_twist.dds""
-                        },
-                        [""union_jackson""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/union_jackson.dds""
-                        },
-                        [""hiromaru_racer""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/hiromaru_racer.dds""
-                        },
-                        [""star_spangled""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/star_spangled.dds""
-                        },
-                        [""seasons_greetings""] = {
-                            [""skin_texture""] = ""webassets/Sodium/sodium_blimp/craft_data/textures/seasons_greetings.dds""
-                        } }
-                    }
+                            local TableFromInput = {
+                                [""defs""] = {
+                                    [""SKIN_basic""] = {
+                                        [""skin_texture""] = ""jetcraft_body_d.dds""
+                                    },
+                                    [""SKIN_basic_01""] = {
+                                        [""skin_texture""] = ""jet_skin_01_d.dds""
+                                    },
+                                    [""SKIN_basic_02""] = {
+                                        [""skin_texture""] = ""jet_skin_02_d.dds""
+                                    },
+                                    [""SKIN_basic_03""] = {
+                                        [""skin_texture""] = ""jet_skin_03_d.dds""
+                                    },
+                                    [""SKIN_basic_04""] = {
+                                        [""skin_texture""] = ""jet_skin_04_d.dds""
+                                    },
+                                    [""SKIN_basic_05""] = {
+                                        [""skin_texture""] = ""jet_skin_05_d.dds""
+                                    },
+                                    [""SKIN_basic_06""] = {
+                                        [""skin_texture""] = ""jet_skin_06_d.dds""
+                                    },
+                                    [""SKIN_basic_07""] = {
+                                        [""skin_texture""] = ""jet_skin_07_d.dds""
+                                    },
+                                    [""SKIN_basic_08""] = {
+                                        [""skin_texture""] = ""jet_skin_08_d.dds""
+                                    },
+                                    [""SKIN_basic_09""] = {
+                                        [""skin_texture""] = ""jet_skin_09_d.dds""
+                                    },
+                                    [""SKIN_basic_10""] = {
+                                        [""skin_texture""] = ""jet_skin_10_d.dds""
+                                    },
+                                    [""SKIN_basic_11""] = {
+                                        [""skin_texture""] = ""jet_skin_11_d.dds""
+                                    },
+                                    [""SKIN_basic_12""] = {
+                                        [""skin_texture""] = ""jet_skin_12_d.dds""
+                                    },
+                                    [""SKIN_basic_13""] = {
+                                        [""skin_texture""] = ""jet_skin_13_d.dds""
+                                    },
+                                    [""SKIN_basic_14""] = {
+                                        [""skin_texture""] = ""jet_skin_14_d.dds""
+                                    },
+                                    [""SKIN_basic_15""] = {
+                                        [""skin_texture""] = ""jet_skin_15_d.dds""
+                                    },
+                                    [""SKIN_basic_16""] = {
+                                        [""skin_texture""] = ""jet_skin_16_d.dds""
+                                    },
+                                    [""SKIN_basic_17""] = {
+                                        [""skin_texture""] = ""jet_skin_17_d.dds""
+                                    },
+                                    [""SKIN_basic_18""] = {
+                                        [""skin_texture""] = ""jet_skin_18_d.dds""
+                                    },
+                                    [""SKIN_basic_19""] = {
+                                        [""skin_texture""] = ""jet_skin_19_d.dds""
+                                    },
+                                }
+                            }
 
-                    return Encode(TableFromInput, 4, 4)
-                    ").Trim());
+                            return Encode(TableFromInput, 4, 4)
+                            "));
                         return;
                     default:
                         LoggerAccessor.LogWarn($"[PostAuthParameters] - SodiumBlimp definition data was not found for defs:{defs}!");
@@ -1107,7 +1115,1159 @@ namespace ApacheNet.Extensions.Lockwood
 
         public static void BuildSodium2Plugin(WebserverBase server)
         {
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/sodium2/scores/{version}/{lang}.xml", async (ctx) =>
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
 
+                string xmlPath = $"/webassets/Sodium/sodium2/scores/{ctx.Request.Url.Parameters["version"]}/{ctx.Request.Url.Parameters["lang"]}.xml";
+                string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
+
+                if (File.Exists(filePath))
+                {
+                    await ctx.Response.Send(File.ReadAllText(filePath));
+                    return;
+                }
+
+                LoggerAccessor.LogDebug($"[PostAuthParameters] - sodium2 score definition data was not found, falling back to static file.");
+
+                await ctx.Response.Send(@"
+                    <?xml version='1.0' encoding='UTF-8'?>
+                    <!--Archived from: https://web.archive.org/web/20110110184845/http://www.outso-srv1.com:80/webassets/Sodium/sodium2/scores/v1.0/en-GB.xml-->
+                    <data>
+                        <CompletedRace>
+                            <id>1</id>
+                            <bling>0</bling>
+                            <text>Completed race</text>
+                            <xp>15</xp>
+                            <xp_max>100</xp_max>
+                            <xp_curve>1</xp_curve>
+                            <cr>2</cr>
+                            <cr_max>10</cr_max>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>lerpf( c.rating, 0, 1, 0.3, 1 ) </Evaluate>
+                        </CompletedRace>
+                        <Single_FirstPlace>
+                            <id>2</id>
+                            <group>Single</group>
+                            <bling>2</bling>
+                            <text>Victory!</text>
+                            <xp>40</xp>
+                            <cr>25</cr>
+                            <Evaluate>c.single and (c.place == 1)</Evaluate>
+                        </Single_FirstPlace>
+                        <Single_SecondPlace>
+                            <id>3</id>
+                            <group>Single</group>
+                            <bling>1</bling>
+                            <text>Finished second place</text>
+                            <xp>40</xp>
+                            <cr>25</cr>
+                            <Evaluate>c.single and (c.place == 2)</Evaluate>
+                        </Single_SecondPlace>
+                        <Single_ThirdPlace>
+                            <id>4</id>
+                            <group>Single</group>
+                            <bling>0</bling>
+                            <text>3rd.. For the cause</text>
+                            <xp>20</xp>
+                            <cr>6</cr>
+                            <Evaluate>c.single and (c.place == 3)</Evaluate>
+                        </Single_ThirdPlace>
+                        <MovingUpInStyle_Challenge>
+                            <id>5</id>
+                            <group>Place_Challenge</group>
+                            <bling>3</bling>
+                            <text>Moving up in style</text>
+                            <xp>50</xp>
+                            <cr>10</cr>
+                            <Evaluate>c.multi and (c.jatosUsed == 2) and (c.ghosts == 2) and (c.place == 1) and c.rating</Evaluate>
+                        </MovingUpInStyle_Challenge>
+                        <MovingUp_Challenge>
+                            <id>6</id>
+                            <group>Place_Challenge</group>
+                            <bling>2</bling>
+                            <text>Moving up in the world</text>
+                            <xp>50</xp>
+                            <cr>10</cr>
+                            <Evaluate>c.multi and (c.ghosts == 2) and (c.place == 1) and c.rating</Evaluate>
+                        </MovingUp_Challenge>
+                        <StandingGroundInStyle_Challenge>
+                            <id>7</id>
+                            <group>Place_Challenge</group>
+                            <bling>2</bling>
+                            <text>Standing your ground in style</text>
+                            <xp>50</xp>
+                            <cr>5</cr>
+                            <Evaluate>c.multi and (c.ghosts == 2) and (c.place == 2) and c.rating</Evaluate>
+                        </StandingGroundInStyle_Challenge>
+                        <StandingGround_Challenge>
+                            <id>8</id>
+                            <group>Place_Challenge</group>
+                            <bling>1</bling>
+                            <text>Standing your ground</text>
+                            <xp>25</xp>
+                            <cr>5</cr>
+                            <Evaluate>c.multi and (c.ghosts == 2) and (c.place == 2) and c.rating</Evaluate>
+                        </StandingGround_Challenge>
+                        <RecordTime_World>
+                            <id>9</id>
+                            <group>RecordTime</group>
+                            <bling>4</bling>
+                            <text>WORLD RECORD LAP TIME!</text>
+                            <xp>250</xp>
+                            <cr>400</cr>
+                            <Evaluate>c.time &lt; t.world</Evaluate>
+                        </RecordTime_World>
+                        <RecordTime_Daily>
+                            <id>10</id>
+                            <group>RecordTime</group>
+                            <bling>3</bling>
+                            <text>DAILY WORLD RECORD LAP TIME!</text>
+                            <xp>250</xp>
+                            <cr>400</cr>
+                            <Evaluate>c.time &lt; t.daily</Evaluate>
+                        </RecordTime_Daily>
+                        <RecordTime_Friend>
+                            <id>11</id>
+                            <group>RecordTime</group>
+                            <bling>2</bling>
+                            <text>FRIEND BOARD LAP TIME RECORD</text>
+                            <xp>100</xp>
+                            <cr>150</cr>
+                            <Evaluate>(t.numFriends&gt;0) and (c.time &lt; t.friend) and ((1+c.rating)*0.5)</Evaluate>
+                        </RecordTime_Friend>
+                        <RecordTime_Personal>
+                            <id>12</id>
+                            <group>RecordTime</group>
+                            <bling>1</bling>
+                            <text>Personal best time</text>
+                            <xp>100</xp>
+                            <cr>150</cr>
+                            <Evaluate>c.time &lt; t.user and c.rating</Evaluate>
+                        </RecordTime_Personal>
+                        <RecordSpeed_World>
+                            <id>13</id>
+                            <group>RecordSpeed</group>
+                            <bling>4</bling>
+                            <text>WORLD SPEED RECORD!</text>
+                            <xp>150</xp>
+                            <cr>250</cr>
+                            <Evaluate>c.speed &gt; s.world</Evaluate>
+                        </RecordSpeed_World>
+                        <RecordSpeed_Daily>
+                            <id>14</id>
+                            <group>RecordSpeed</group>
+                            <bling>3</bling>
+                            <text>DAILY WORLD SPEED RECORD!</text>
+                            <xp>150</xp>
+                            <cr>250</cr>
+                            <Evaluate>c.speed &gt; s.daily</Evaluate>
+                        </RecordSpeed_Daily>
+                        <RecordSpeed_Friend>
+                            <id>15</id>
+                            <group>RecordSpeed</group>
+                            <bling>2</bling>
+                            <text>FRIEND BOARD SPEED RECORD</text>
+                            <xp>50</xp>
+                            <cr>100</cr>
+                            <Evaluate>(s.numFriends&gt;0) and (c.speed &gt; s.friend)</Evaluate>
+                        </RecordSpeed_Friend>
+                        <RecordSpeed_Personal>
+                            <id>16</id>
+                            <group>RecordSpeed</group>
+                            <bling>1</bling>
+                            <text>Personal speed record</text>
+                            <xp>50</xp>
+                            <cr>100</cr>
+                            <Evaluate>c.speed &gt; s.user</Evaluate>
+                        </RecordSpeed_Personal>
+                        <ExpertStyle>
+                            <id>17</id>
+                            <group>Style</group>
+                            <bling>2</bling>
+                            <text>Ballistic finish style bonus</text>
+                            <xp>125</xp>
+                            <xp_max>150</xp_max>
+                            <cr>15</cr>
+                            <cr_max>15</cr_max>
+                            <Evaluate>c.jatoFinish and c.noBreaks and c.rating</Evaluate>
+                        </ExpertStyle>
+                        <InStyle>
+                            <id>18</id>
+                            <group>Style</group>
+                            <bling>1</bling>
+                            <text>Rocket finish bonus</text>
+                            <xp>50</xp>
+                            <xp_max>100</xp_max>
+                            <cr>10</cr>
+                            <cr_max>10</cr_max>
+                            <Evaluate>c.jatoFinish and (c.rating+0.01)</Evaluate>
+                        </InStyle>
+                        <NoBreaks>
+                            <id>19</id>
+                            <group>Style</group>
+                            <bling>1</bling>
+                            <text>Untouched airbreaks</text>
+                            <xp>75</xp>
+                            <cr>17</cr>
+                            <Evaluate>c.noBreaks and c.rating</Evaluate>
+                        </NoBreaks>
+                        <MadAirBonus>
+                            <id>20</id>
+                            <group>Air</group>
+                            <bling>2</bling>
+                            <text>Flying Scotsman</text>
+                            <xp>50</xp>
+                            <xp_max>100</xp_max>
+                            <xp_curve>1</xp_curve>
+                            <cr>15</cr>
+                            <cr_max>10</cr_max>
+                            <Evaluate>lerpf( c.airDist, 7000, 10000, 0, 1 )</Evaluate>
+                        </MadAirBonus>
+                        <AirBonus>
+                            <id>21</id>
+                            <group>Air</group>
+                            <bling>1</bling>
+                            <text>Air distance bonus</text>
+                            <xp>25</xp>
+                            <xp_max>50</xp_max>
+                            <xp_curve>1</xp_curve>
+                            <cr>5</cr>
+                            <cr_max>5</cr_max>
+                            <Evaluate>lerpf( c.airDist, 2000, 8000, 0, 1 )</Evaluate>
+                        </AirBonus>
+                        <SuperSonic>
+                            <id>22</id>
+                            <group>Sonic</group>
+                            <bling>1</bling>
+                            <text>Stayed supersonic</text>
+                            <xp>150</xp>
+                            <cr>32</cr>
+                            <Evaluate>(c.boom == 1) and (c.subSonic == 0) and (c.firstBoomDist&lt;2000)</Evaluate>
+                        </SuperSonic>
+                        <BarrierDancing>
+                            <id>23</id>
+                            <group>Sonic</group>
+                            <bling>2</bling>
+                            <text>Messing with sound</text>
+                            <xp>0</xp>
+                            <xp_max>250</xp_max>
+                            <xp_curve>3</xp_curve>
+                            <cr>0</cr>
+                            <cr_max>25</cr_max>
+                            <cr_curve>3</cr_curve>
+                            <Evaluate>lerpf( c.boom, 10, 40, 0, 1 )</Evaluate>
+                        </BarrierDancing>
+                        <Solo_HardTraining>
+                            <id>24</id>
+                            <group>Solo</group>
+                            <bling>2</bling>
+                            <text>Rocket Man! </text>
+                            <xp>0</xp>
+                            <xp_max>200</xp_max>
+                            <xp_curve>2</xp_curve>
+                            <cr>0</cr>
+                            <cr_max>20</cr_max>
+                            <cr_curve>2</cr_curve>
+                            <Evaluate>c.solo and ( c.jatosUsed &gt; 1) and (c.ghosts &gt; 1) and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </Solo_HardTraining>
+                        <Solo_SelfImprovement>
+                            <id>25</id>
+                            <group>Solo</group>
+                            <bling>1</bling>
+                            <text>Honing your skills</text>
+                            <xp>0</xp>
+                            <xp_max>200</xp_max>
+                            <xp_curve>2</xp_curve>
+                            <cr>0</cr>
+                            <cr_max>20</cr_max>
+                            <cr_curve>2</cr_curve>
+                            <Evaluate>c.solo and (c.ghosts &gt; 1) and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </Solo_SelfImprovement>
+                        <NinjaSkillBonus>
+                            <id>26</id>
+                            <group>Skill</group>
+                            <bling>3</bling>
+                            <text>Ninja skill bonus!</text>
+                            <xp>200</xp>
+                            <xp_max>300</xp_max>
+                            <xp_curve>1</xp_curve>
+                            <cr>50</cr>
+                            <cr_max>30</cr_max>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>c.onTrack and (c.jatosUsed &gt; 1) and (c.place &lt; 2) and (c.ghosts &gt; 1) and (c.boom == 1) and (c.subSonic == 0) and (c.rating &gt; 0.3) and c.rating</Evaluate>
+                        </NinjaSkillBonus>
+                        <ExpertSkillBonus>
+                            <id>27</id>
+                            <group>Skill</group>
+                            <bling>2</bling>
+                            <text>Expert skill bonus</text>
+                            <xp>100</xp>
+                            <xp_max>150</xp_max>
+                            <xp_curve>1</xp_curve>
+                            <cr>25</cr>
+                            <cr_max>15</cr_max>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>c.onTrack and (c.jatosUsed &gt; 0) and (c.place &lt; 2) and (c.ghosts &gt; 0) and (c.rating &gt; 0.3) and c.rating</Evaluate>
+                        </ExpertSkillBonus>
+                        <SkillBonus>
+                            <id>28</id>
+                            <group>Skill</group>
+                            <bling>1</bling>
+                            <text>Skill bonus</text>
+                            <xp>50</xp>
+                            <xp_max>100</xp_max>
+                            <xp_curve>1</xp_curve>
+                            <cr>12</cr>
+                            <cr_max>10</cr_max>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>c.onTrack and (c.jatosUsed &gt; 0) and (c.place &lt; 3) and (c.ghosts &gt; 0) and c.rating</Evaluate>
+                        </SkillBonus>
+                        <FinishWithABang>
+                            <id>29</id>
+                            <bling>2</bling>
+                            <text>Finished with a bang</text>
+                            <xp>50</xp>
+                            <xp_max>150</xp_max>
+                            <xp_curve>2</xp_curve>
+                            <cr>0</cr>
+                            <cr_max>15</cr_max>
+                            <cr_curve>2</cr_curve>
+                            <Evaluate>(c.finishBangDist &lt; 1000) and lerpf( c.finishBangDist, 1000, 0, 0, 1 )</Evaluate>
+                        </FinishWithABang>
+                        <HDC_Champion>
+                            <id>30</id>
+                            <group>HDC</group>
+                            <bling>4</bling>
+                            <text>HDC  world champion</text>
+                            <cr>150</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.hdc &gt; 4) and (c.time &lt; t.world) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </HDC_Champion>
+                        <HDC_DailyChampion>
+                            <id>31</id>
+                            <group>HDC</group>
+                            <bling>4</bling>
+                            <text>HDC daily world champion</text>
+                            <cr>75</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.hdc &gt; 4) and (c.time &lt; t.daily) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </HDC_DailyChampion>
+                        <HDC_FullHouseGoldenBoy>
+                            <id>32</id>
+                            <group>HDC</group>
+                            <bling>4</bling>
+                            <text>HDC  golden boy</text>
+                            <cr>50</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.hdc &gt; 4) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </HDC_FullHouseGoldenBoy>
+                        <HDC_FullHouseExpertShowman>
+                            <id>33</id>
+                            <group>HDC</group>
+                            <bling>3</bling>
+                            <text>HDC Sponsored expert showman</text>
+                            <cr>45</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.hdc &gt; 4) and (c.rating &gt; 0.3) and (c.finishBang &lt; 1000) and (lerpf( c.finishBang, 1000, 0, 0, 1 ) * c.rating)</Evaluate>
+                        </HDC_FullHouseExpertShowman>
+                        <HDC_FullHouseFavourite>
+                            <id>34</id>
+                            <group>HDC</group>
+                            <bling>2</bling>
+                            <text>HDC Sponsored favourite</text>
+                            <cr>35</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.hdc &gt; 4) and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </HDC_FullHouseFavourite>
+                        <HDC_FullHouseShowman>
+                            <id>35</id>
+                            <group>HDC</group>
+                            <bling>2</bling>
+                            <text>HDC Sponsored showman</text>
+                            <cr>30</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.hdc &gt; 4) and (c.finishBangDist &lt; 1000) and lerpf( c.finishBang, 1000, 0, 0, 1 )</Evaluate>
+                        </HDC_FullHouseShowman>
+                        <HDC_Sponsored>
+                            <id>36</id>
+                            <group>HDC</group>
+                            <bling>1</bling>
+                            <text>HDC Sponsored</text>
+                            <cr>5</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.hdc &gt; 0) and (c.rating+0.2 * lerpf( c.hdc, 0, 5, 0, 1 ))</Evaluate>
+                        </HDC_Sponsored>
+                        <RYLEE_Champion>
+                            <id>37</id>
+                            <group>RYLEE</group>
+                            <bling>4</bling>
+                            <text>RYLEE  world champion</text>
+                            <cr>150</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.rylee &gt; 4) and (c.time &lt; t.world) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </RYLEE_Champion>
+                        <RYLEE_DailyChampion>
+                            <id>38</id>
+                            <group>RYLEE</group>
+                            <bling>4</bling>
+                            <text>RYLEE daily world champion</text>
+                            <cr>75</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.rylee &gt; 4) and (c.time &lt; t.daily) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </RYLEE_DailyChampion>
+                        <RYLEE_FullHouseGoldenBoy>
+                            <id>39</id>
+                            <group>RYLEE</group>
+                            <bling>4</bling>
+                            <text>RYLEE  golden boy</text>
+                            <cr>50</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.rylee &gt; 4) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </RYLEE_FullHouseGoldenBoy>
+                        <RYLEE_FullHouseExpertShowman>
+                            <id>40</id>
+                            <group>RYLEE</group>
+                            <bling>3</bling>
+                            <text>RYLEE Sponsored expert showman</text>
+                            <cr>45</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.rylee &gt; 4) and (c.rating &gt; 0.3) and (c.finishBang &lt; 1000) and (lerpf(c.finishBang, 1000, 0, 0, 1) * c.rating)</Evaluate>
+                        </RYLEE_FullHouseExpertShowman>
+                        <RYLEE_FullHouseFavourite>
+                            <id>41</id>
+                            <group>RYLEE</group>
+                            <bling>2</bling>
+                            <text>RYLEE Sponsored favourite</text>
+                            <cr>35</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.rylee &gt; 4) and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </RYLEE_FullHouseFavourite>
+                        <RYLEE_FullHouseShowman>
+                            <id>42</id>
+                            <group>RYLEE</group>
+                            <bling>2</bling>
+                            <text>RYLEE Sponsored showman</text>
+                            <cr>30</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.rylee &gt; 4) and (c.finishBangDist &lt; 1000) and lerpf(c.finishBang, 1000, 0, 0, 1)</Evaluate>
+                        </RYLEE_FullHouseShowman>
+                        <RYLEE_Sponsored>
+                            <id>43</id>
+                            <group>RYLEE</group>
+                            <bling>1</bling>
+                            <text>RYLEE Sponsored</text>
+                            <cr>5</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.rylee &gt; 0) and (c.rating+0.2 * lerpf(c.rylee, 0, 5, 0, 1))</Evaluate>
+                        </RYLEE_Sponsored>
+                        <JETBOX_Champion>
+                            <id>44</id>
+                            <group>JETBOX</group>
+                            <bling>4</bling>
+                            <text>JETBOX  world champion</text>
+                            <cr>150</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.jetbox &gt; 4) and (c.time &lt; t.world) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </JETBOX_Champion>
+                        <JETBOX_DailyChampion>
+                            <id>45</id>
+                            <group>JETBOX</group>
+                            <bling>4</bling>
+                            <text>JETBOX daily world champion</text>
+                            <cr>75</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.jetbox &gt; 4) and (c.time &lt; t.daily) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </JETBOX_DailyChampion>
+                        <JETBOX_FullHouseGoldenBoy>
+                            <id>46</id>
+                            <group>JETBOX</group>
+                            <bling>4</bling>
+                            <text>JETBOX  golden boy</text>
+                            <cr>50</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.jetbox &gt; 4) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </JETBOX_FullHouseGoldenBoy>
+                        <JETBOX_FullHouseExpertShowman>
+                            <id>47</id>
+                            <group>JETBOX</group>
+                            <bling>3</bling>
+                            <text>JETBOX Sponsored expert showman</text>
+                            <cr>45</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.jetbox &gt; 4) and (c.rating &gt; 0.3) and (c.finishBang &lt; 1000) and (lerpf(c.finishBang, 1000, 0, 0, 1) * c.rating)</Evaluate>
+                        </JETBOX_FullHouseExpertShowman>
+                        <JETBOX_FullHouseFavourite>
+                            <id>48</id>
+                            <group>JETBOX</group>
+                            <bling>2</bling>
+                            <text>JETBOX Sponsored favourite</text>
+                            <cr>35</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.jetbox &gt; 4) and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </JETBOX_FullHouseFavourite>
+                        <JETBOX_FullHouseShowman>
+                            <id>49</id>
+                            <group>JETBOX</group>
+                            <bling>2</bling>
+                            <text>JETBOX Sponsored showman</text>
+                            <cr>30</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.jetbox &gt; 4) and (c.finishBangDist &lt; 1000) and lerpf(c.finishBang, 1000, 0, 0, 1)</Evaluate>
+                        </JETBOX_FullHouseShowman>
+                        <JETBOX_Sponsored>
+                            <id>50</id>
+                            <group>JETBOX</group>
+                            <bling>1</bling>
+                            <text>JETBOX Sponsored</text>
+                            <cr>5</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.jetbox &gt; 0) and (c.rating+0.2 * lerpf(c.jetbox, 0, 5, 0, 1))</Evaluate>
+                        </JETBOX_Sponsored>
+                        <LEXAN_Champion>
+                            <id>51</id>
+                            <group>LEXAN</group>
+                            <bling>4</bling>
+                            <text>LEXAN  world champion</text>
+                            <cr>150</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.lexan &gt; 4) and (c.time &lt; t.world) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </LEXAN_Champion>
+                        <LEXAN_DailyChampion>
+                            <id>52</id>
+                            <group>LEXAN</group>
+                            <bling>4</bling>
+                            <text>LEXAN daily world champion</text>
+                            <cr>75</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.lexan &gt; 4) and (c.time &lt; t.daily) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </LEXAN_DailyChampion>
+                        <LEXAN_FullHouseGoldenBoy>
+                            <id>53</id>
+                            <group>LEXAN</group>
+                            <bling>4</bling>
+                            <text>LEXAN  golden boy</text>
+                            <cr>50</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.lexan &gt; 4) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </LEXAN_FullHouseGoldenBoy>
+                        <LEXAN_FullHouseExpertShowman>
+                            <id>54</id>
+                            <group>LEXAN</group>
+                            <bling>3</bling>
+                            <text>LEXAN Sponsored expert showman</text>
+                            <cr>45</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.lexan &gt; 4) and (c.rating &gt; 0.3) and (c.finishBang &lt; 1000) and (lerpf(c.finishBang, 1000, 0, 0, 1) * c.rating)</Evaluate>
+                        </LEXAN_FullHouseExpertShowman>
+                        <LEXAN_FullHouseFavourite>
+                            <id>55</id>
+                            <group>LEXAN</group>
+                            <bling>2</bling>
+                            <text>LEXAN Sponsored favourite</text>
+                            <cr>35</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.lexan &gt; 4) and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </LEXAN_FullHouseFavourite>
+                        <LEXAN_FullHouseShowman>
+                            <id>56</id>
+                            <group>LEXAN</group>
+                            <bling>2</bling>
+                            <text>LEXAN Sponsored showman</text>
+                            <cr>30</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.lexan &gt; 4) and (c.finishBangDist &lt; 1000) and lerpf(c.finishBang, 1000, 0, 0, 1)</Evaluate>
+                        </LEXAN_FullHouseShowman>
+                        <LEXAN_Sponsored>
+                            <id>57</id>
+                            <group>LEXAN</group>
+                            <bling>1</bling>
+                            <text>LEXAN Sponsored</text>
+                            <cr>5</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.lexan &gt; 0) and (c.rating+0.2 * lerpf(c.lexan, 0, 5, 0, 1))</Evaluate>
+                        </LEXAN_Sponsored>
+                        <ProPulse_Champion>
+                            <id>58</id>
+                            <group>ProPulse</group>
+                            <bling>4</bling>
+                            <text>ProPulse  world champion</text>
+                            <cr>150</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.propulse &gt; 4) and (c.time &lt; t.world) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </ProPulse_Champion>
+                        <ProPulse_DailyChampion>
+                            <id>59</id>
+                            <group>ProPulse</group>
+                            <bling>4</bling>
+                            <text>ProPulse daily world champion</text>
+                            <cr>75</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.propulse &gt; 4) and (c.time &lt; t.daily) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </ProPulse_DailyChampion>
+                        <ProPulse_FullHouseGoldenBoy>
+                            <id>60</id>
+                            <group>ProPulse</group>
+                            <bling>4</bling>
+                            <text>ProPulse  golden boy</text>
+                            <cr>50</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.propulse &gt; 4) and c.onTrack and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </ProPulse_FullHouseGoldenBoy>
+                        <ProPulse_FullHouseExpertShowman>
+                            <id>61</id>
+                            <group>ProPulse</group>
+                            <bling>3</bling>
+                            <text>ProPulse Sponsored expert showman</text>
+                            <cr>45</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.propulse &gt; 4) and (c.rating &gt; 0.3) and (c.finishBang &lt; 1000) and (lerpf(c.finishBang, 1000, 0, 0, 1) * c.rating)</Evaluate>
+                        </ProPulse_FullHouseExpertShowman>
+                        <ProPulse_FullHouseFavourite>
+                            <id>62</id>
+                            <group>ProPulse</group>
+                            <bling>2</bling>
+                            <text>ProPulse Sponsored favourite</text>
+                            <cr>35</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.propulse &gt; 4) and (c.rating &gt; 0.3) and c.rating </Evaluate>
+                        </ProPulse_FullHouseFavourite>
+                        <ProPulse_FullHouseShowman>
+                            <id>63</id>
+                            <group>ProPulse</group>
+                            <bling>2</bling>
+                            <text>ProPulse Sponsored showman</text>
+                            <cr>30</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.propulse &gt; 4) and (c.finishBangDist &lt; 1000) and lerpf(c.finishBang, 1000, 0, 0, 1)</Evaluate>
+                        </ProPulse_FullHouseShowman>
+                        <ProPulse_Sponsored>
+                            <id>64</id>
+                            <group>ProPulse</group>
+                            <bling>1</bling>
+                            <text>ProPulse Sponsored</text>
+                            <cr>5</cr>
+                            <cr_curve>1</cr_curve>
+                            <Evaluate>(c.propulse &gt; 0) and (c.rating+0.2 * lerpf(c.propulse, 0, 5, 0, 1))</Evaluate>
+                        </ProPulse_Sponsored>
+                    </data>");
+            });
+
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/sodium2_shop/{version}/{project}/{lang}.xml", async (ctx) =>
+            {
+                string? project = ctx.Request.Url.Parameters["project"];
+                if (string.IsNullOrEmpty(project))
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    ctx.Response.ContentType = "text/plain";
+                    await ctx.Response.Send();
+                    return;
+                }
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+
+                string xmlPath = $"/webassets/Sodium/sodium2_shop/{ctx.Request.Url.Parameters["version"]}/{project}/{ctx.Request.Url.Parameters["lang"]}.xml";
+                string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
+
+                if (File.Exists(filePath))
+                {
+                    await ctx.Response.Send(File.ReadAllText(filePath));
+                    return;
+                }
+
+                LoggerAccessor.LogDebug($"[PostAuthParameters] - sodium2_shop {project} definition data was not found, falling back to static file.");
+
+                switch (project)
+                {
+                    case "lang":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(@"
+                        <!--Archived from: https://web.archive.org/web/20110110184850/http://www.outso-srv1.com:80/webassets/Sodium/sodium2_shop/v0.2/lang/en-GB.xml-->
+                        <lang>
+                            <cloth>
+                                <clothing_1>
+                                    <name>Clothing Item 1</name>
+                                    <desc>This is a clothing item</desc>
+                                </clothing_1>
+                                <clothing_2>
+                                    <name>Clothing Item 2</name>
+                                    <desc>This is another clothing item</desc>
+                                </clothing_2>
+                            </cloth>
+                            <furn>
+                                <furniture_1>
+                                    <name>Furniture Item 1</name>
+                                    <desc>Description furniture item 1</desc>
+                                </furniture_1>
+                                <furniture_2>
+                                    <name>Furniture Item 2</name>
+                                    <desc>Description furniture item 2</desc>
+                                </furniture_2>
+                                <furniture_3>
+                                    <name>Furniture Item 3</name>
+                                    <desc>Description furniture item 3</desc>
+                                </furniture_3>
+                                <furniture_4>
+                                    <name>Furniture Item 4</name>
+                                    <desc>Description furniture item 4</desc>
+                                </furniture_4>
+                                <furniture_5>
+                                    <name>Furniture Item 5</name>
+                                    <desc>Description furniture item 5</desc>
+                                </furniture_5>
+                                <furniture_6>
+                                    <name>Furniture Item 6</name>
+                                    <desc>Description furniture item 6</desc>
+                                </furniture_6>
+                                <furniture_7>
+                                    <name>Furniture Item 7</name>
+                                    <desc>Description furniture item 7</desc>
+                                </furniture_7>
+                                <furniture_8>
+                                    <name>Furniture Item 8</name>
+                                    <desc>Description furniture item 8</desc>
+                                </furniture_8>
+                                <furniture_9>
+                                    <name>Furniture Item 9</name>
+                                    <desc>Description furniture item 9</desc>
+                                </furniture_9>
+                                <furniture_10>
+                                    <name>Furniture Item 10</name>
+                                    <desc>Description furniture item 10</desc>
+                                </furniture_10>
+                                <furniture_11>
+                                    <name>Furniture Item 11</name>
+                                    <desc>Description furniture item 11</desc>
+                                </furniture_11>
+                                <furniture_12>
+                                    <name>Furniture Item 12</name>
+                                    <desc>Description furniture item 12</desc>
+                                </furniture_12>
+                                <furniture_13>
+                                    <name>Furniture Item 13</name>
+                                    <desc>Description furniture item 13</desc>
+                                </furniture_13>
+                                <furniture_14>
+                                    <name>Furniture Item 14</name>
+                                    <desc>Description furniture item 14</desc>
+                                </furniture_14>
+                                <furniture_4ab>
+                                    <name>Furniture Item 4ab</name>
+                                    <desc>Description furniture item 4ab</desc>
+                                </furniture_4ab>
+                                <furniture_5ab>
+                                    <name>Furniture Item 5ab</name>
+                                    <desc>Description furniture item 5ab</desc>
+                                </furniture_5ab>
+                                <furniture_6ab>
+                                    <name>Furniture Item 6ab</name>
+                                    <desc>Description furniture item 6ab</desc>
+                                </furniture_6ab>
+                                <furniture_7ab>
+                                    <name>Furniture Item 7ab</name>
+                                    <desc>Description furniture item 7ab</desc>
+                                </furniture_7ab>
+                                <furniture_8ab>
+                                    <name>Furniture Item 8ab</name>
+                                    <desc>Description furniture item 8ab</desc>
+                                </furniture_8ab>
+                                <furniture_9ab>
+                                    <name>Furniture Item 9ab</name>
+                                    <desc>Description furniture item 9ab</desc>
+                                </furniture_9ab>
+                                <furniture_10ab>
+                                    <name>Furniture Item 10ab</name>
+                                    <desc>Description furniture item 10ab</desc>
+                                </furniture_10ab>
+                                <furniture_11ab>
+                                    <name>Furniture Item 11ab</name>
+                                    <desc>Description furniture item 11ab</desc>
+                                </furniture_11ab>
+                                <furniture_12ab>
+                                    <name>Furniture Item 12ab</name>
+                                    <desc>Description furniture item 12ab</desc>
+                                </furniture_12ab>
+                            </furn>
+                            <jato>
+                                <jato_uber>
+                                    <name>TURBULENCE Heavy Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. Massive acceleration bonuses available at the touch of a button are balanced by the heavy fuel load of an unused rocket.</desc>
+                                </jato_uber>
+                                <jato_ssrb_x>
+                                    <name>HARE Fast Action Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. Instant acceleration for those times when you want to leave the pack behind.</desc>
+                                </jato_ssrb_x>
+                                <jato_basic>
+                                    <name>TOUCHSTONE Rocket Boosters </name>
+                                    <desc>Add these explosive boosters to Sodium2 racer to gain the advantage! Average burn time and thrust power make this the perfect all-purpose rocket. Experiment to find the best place to trigger.</desc>
+                                </jato_basic>
+                                <jato_ride>
+                                    <name>FIRECRACKER Explosive Rocket Boosters</name>
+                                    <desc>Add these boosters to your Sodium2 racer to gain the advantage. Best things come in small packages - unbelievable acceleration pushing your vehicle to the limit but with a short life so make it count.</desc>
+                                </jato_ride>
+                                <jato_pulsar>
+                                    <name>AEON Long Life Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. A more steady boost effect but a much longer life will give a big advantage if you can maintain speed.</desc>
+                                </jato_pulsar>
+                                <jato_uber_sink>
+                                    <name>ANTERIAL THRUST Heavy Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. Massive acceleration bonuses available at the touch of a button are balanced by the heavy fuel load of an unused rocket.</desc>
+                                </jato_uber_sink>
+                                <jato_ssrb_x_sink>
+                                    <name>RABBIT Fast Action Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. Instant acceleration for those times when you want to leave the pack behind.</desc>
+                                </jato_ssrb_x_sink>
+                                <jato_basic_sink>
+                                    <name>AGGRESSOR Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. Average burn time and thrust power make this the perfect all-purpose rocket. Experiment to find the best place to trigger.</desc>
+                                </jato_basic_sink>
+                                <jato_ride_sink>
+                                    <name>ERUPTOR Explosive Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. Best things come in small packages - unbelievable acceleration pushing your vehicle to the limit but with a short life so make it count.</desc>
+                                </jato_ride_sink>
+                                <jato_pulsar_sink>
+                                    <name>TERAPIN Long Life Rocket Booster</name>
+                                    <desc>Add to your Sodium2 racer to gain the advantage. A more steady boost effect but a much longer life will give a big advantage if you can maintain speed.</desc>
+                                </jato_pulsar_sink>
+                            </jato>
+                            <fuel>
+                                <fuel_basic>
+                                    <name>Stock Fuel</name>
+                                    <desc>Don't play it safe with the standard fuel, try out our new experimental fuel variants to take those precious seconds off your lap time.</desc>
+                                </fuel_basic>
+                                <fuel_bionomic>
+                                    <name>NOBEL 808 Fuel</name>
+                                    <desc>A balanced fuel type for your Sodium2 racer that marginally increases both your top speed and acceleration.</desc>
+                                </fuel_bionomic>
+                                <fuel_jp2>
+                                    <name>MOLOTOV Fuel</name>
+                                    <desc>A highly unstable fuel mix for your Sodium2 racer that focuses on providing boosted acceleration.</desc>
+                                </fuel_jp2>
+                                <fuel_jp3>
+                                    <name>DYNAMITE Fuel</name>
+                                    <desc>An explosive fuel variant for your Sodium2 racer that increases your maximum top speed.</desc>
+                                </fuel_jp3>
+                                <fuel_bionomic_sink>
+                                    <name>SCHONBEIN Fuel</name>
+                                    <desc>A balanced fuel type for your Sodium2 racer that marginally increases both your top speed and acceleration.</desc>
+                                </fuel_bionomic_sink>
+                                <fuel_jp2_sink>
+                                    <name>THERMOCHEM Fuel</name>
+                                    <desc>A highly unstable fuel mix for your Sodium2 racer that focuses on providing boosted acceleration.</desc>
+                                </fuel_jp2_sink>
+                                <fuel_jp3_sink>
+                                    <name>DETON8 Fuel</name>
+                                    <desc>An explosive fuel variant for your Sodium2 racer that increases your maximum top speed.</desc>
+                                </fuel_jp3_sink>
+                            </fuel>
+                            <burn>
+                                <burn_basic>
+                                    <name>Stock Afterburners</name>
+                                    <desc>More thrust equals more acceleration but increased air pressure will destabilise your vehicle. Have you got the skill to take advantage of this advantage?</desc>
+                                </burn_basic>
+                                <burn_injectionmatrix>
+                                    <name>IGNITION Afterburners</name>
+                                    <desc>Adds a small level of acceleration to your Sodium2 racer. Your ride may become more unstable as a result.</desc>
+                                </burn_injectionmatrix>
+                                <burn_fdc>
+                                    <name>BONESHAKER Afterburners</name>
+                                    <desc>Hold your nerve through the increased instability and you will control a higher level of acceleration.</desc>
+                                </burn_fdc>
+                                <burn_ballistic>
+                                    <name>BALLISTIC Afterburners</name>
+                                    <desc>With great power comes great instability. Leave your opponents standing but be careful that the reduced stability doesn’t slam you into a wall. That would be embarrassing. </desc>
+                                </burn_ballistic>
+                                <burn_injectionmatrix_sink>
+                                    <name>LIVE WIRE Afterburners</name>
+                                    <desc>Adds a small level of acceleration to your Sodium2 racer. Your ride may become more unstable as a result.</desc>
+                                </burn_injectionmatrix_sink>
+                                <burn_fdc_sink>
+                                    <name>FOREFRONT Afterburners</name>
+                                    <desc>Hold your nerve through the increased instability and you will control a higher level of acceleration.</desc>
+                                </burn_fdc_sink>
+                                <burn_ballistic_sink>
+                                    <name>EXPEL v82  Afterburners</name>
+                                    <desc>With great power comes great instability. Leave your opponents standing but be careful that the reduced stability doesn’t slam you into a wall. That would be embarrassing. </desc>
+                                </burn_ballistic_sink>
+                            </burn>
+                            <eng>
+                                <eng_basic>
+                                    <name>Stock Engine</name>
+                                    <desc>Feel the need? The need for speed? It’s a fine balance between increasing your top speed and being weighed down on corners.</desc>
+                                </eng_basic>
+                                <eng_lexan_enyojar>
+                                    <name>TITAN Engine</name>
+                                    <desc>A noticeable jump in top speed to pull your Sodium2 racer away from its competition on the straights. An increase in weight will slow you down through the turns.</desc>
+                                </eng_lexan_enyojar>
+                                <eng_jetbox_shockdriver_jb22>
+                                    <name>SHOCKDRIVER Engine</name>
+                                    <desc>Control the lower turning speed into corners and your Sodium2 racer will hit those higher velocities.</desc>
+                                </eng_jetbox_shockdriver_jb22>
+                                <eng_hdc_aerospike_hf>
+                                    <name>DREADNOUGHT Engine</name>
+                                    <desc>A large and powerful engine to push your Sodium2 racer towards Mach 2. Don't forget to take account of the extra weight through the bends or a crash at that speed will leave nothing but a smear.</desc>
+                                </eng_hdc_aerospike_hf>
+                                <eng_lexan_enyojar_sink>
+                                    <name>APOLLO Engine</name>
+                                    <desc>A noticeable jump in top speed to pull your Sodium2 racer away from its competition on the straights. An increase in weight will slow you down through the turns.</desc>
+                                </eng_lexan_enyojar_sink>
+                                <eng_jetbox_shockdriver_jb22_sink>
+                                    <name>THUNDERHORSE Engine</name>
+                                    <desc>Control the lower turning speed into corners and your Sodium2 racer will hit those higher velocities.</desc>
+                                </eng_jetbox_shockdriver_jb22_sink>
+                                <eng_hdc_aerospike_hf_sink>
+                                    <name>THOR Engine</name>
+                                    <desc>A large and powerful engine to push your Sodium2 racer towards Mach 2. Don't forget to take account of the extra weight through the bends or a crash at that speed will leave nothing but a smear.</desc>
+                                </eng_hdc_aerospike_hf_sink>
+                            </eng>
+                            <brks>
+                                <brks_basic>
+                                    <name>Stock Air Brakes</name>
+                                    <desc>It's all in the reflexes. Speed is nothing if you haven't installed air brakes to prevent catastrophic crashes.</desc>
+                                </brks_basic>
+                                <brks_icarus>
+                                    <name>DEADLINE Air Brakes</name>
+                                    <desc>Sacrifice a small fraction of your Sodium2 racer's top speed and you'll turn more sharply into corners.</desc>
+                                </brks_icarus>
+                                <brks_wakebender>
+                                    <name>TERMINUS Air Brakes</name>
+                                    <desc>Improved hydraulics for your Sodium2 vehicle will give you a greater braking force so you spend less time on the brakes round the tight bends and more time on the POWER!</desc>
+                                </brks_wakebender>
+                                <brks_frictodraulic>
+                                    <name>HYDROSTATIC Air Brakes</name>
+                                    <desc>A brutally effective Air Brake system to get your Sodium2 racer through tighter corners at higher speeds but compliment them with other increased acceleration components or your rivals will make up lost ground as you struggle to pull away.</desc>
+                                </brks_frictodraulic>
+                                <brks_icarus_sink>
+                                    <name>INERTIA Air Brakes</name>
+                                    <desc>Sacrifice a small fraction of your Sodium2 racer's top speed and you'll turn more sharply into corners.</desc>
+                                </brks_icarus_sink>
+                                <brks_wakebender_sink>
+                                    <name>TERMINAL FRICTION Air Brakes</name>
+                                    <desc>Improved hydraulics for your Sodium2 vehicle will give you a greater braking force so you spend less time on the brakes round the tight bends and more time on the POWER!</desc>
+                                </brks_wakebender_sink>
+                                <brks_frictodraulic_sink>
+                                    <name>CYBER-HALT Air Brakes</name>
+                                    <desc>A brutally effective Air Brake system to get your Sodium2 racer through tighter corners at higher speeds but compliment them with other increased acceleration components or your rivals will make up lost ground as you struggle to pull away.</desc>
+                                </brks_frictodraulic_sink>
+                            </brks>
+                            <frame>
+                                <frame_basic>
+                                    <name>Stock Frame</name>
+                                    <desc>It's what's inside that counts. Customise the internal frame of your racer to tweak stability, weight and crash impact effects.</desc>
+                                </frame_basic>
+                                <frame_nanofiber>
+                                    <name>NANOFIBER V.24 Lightweight Frame</name>
+                                    <desc>A lighter frame will increase the acceleration of your Sodium2 racer at the cost of stability and crash impacts that reduce momentum by a greater amount.</desc>
+                                </frame_nanofiber>
+                                <frame_composite>
+                                    <name>GALVONIUM Alpha Composite Frame</name>
+                                    <desc>Heavier materials increase the stability of your Sodium2 racer as well as making it more resistant to loss of speed during impacts.</desc>
+                                </frame_composite>
+                                <frame_omniplex>
+                                    <name>OMNIPLEX 48x Sturdy Frame</name>
+                                    <desc>A heavy, sturdy frame for your Sodium2 racer will notably increase stability but the increased weight will create a greater loss of momentum following race impacts.</desc>
+                                </frame_omniplex>
+                                <frame_nanofiber_sink>
+                                    <name>DIGIVAULT Frame</name>
+                                    <desc>A lighter frame will increase the acceleration of your Sodium2 racer at the cost of stability and crash impacts that reduce momentum by a greater amount.</desc>
+                                </frame_nanofiber_sink>
+                                <frame_composite_sink>
+                                    <name>STERLING Frame</name>
+                                    <desc>Heavier materials increase the stability of your Sodium2 racer as well as making it more resistant to loss of speed during impacts.</desc>
+                                </frame_composite_sink>
+                                <frame_omniplex_sink>
+                                    <name>SCHUMATTER Frame</name>
+                                    <desc>A heavy, sturdy frame for your Sodium2 racer will notably increase stability but the increased weight will create a greater loss of momentum following race impacts.</desc>
+                                </frame_omniplex_sink>
+                            </frame>
+                            <fcomp>
+                                <fcomp_basic>
+                                    <name>Stock Flight Computer</name>
+                                    <desc>Flight Computer updates will make your vehicle much more responsive and increase stability at higher speeds.</desc>
+                                </fcomp_basic>
+                                <fcomp_autoadjustomator>
+                                    <name>SYNAPSE Flight Computer</name>
+                                    <desc>A minor stability increase is offset by a longer transonic period as you push through the speed of sound.</desc>
+                                </fcomp_autoadjustomator>
+                                <fcomp_synap_9000>
+                                    <name>VOLTA Flight Computer</name>
+                                    <desc>This Sodium2 flight computer is designed for optimum transonic transition up to Mach 1, but will also offer an increase in stability and improved turn response.</desc>
+                                </fcomp_synap_9000>
+                                <fcomp_ray_the_tube>
+                                    <name>WHITE BOX Flight Computer</name>
+                                    <desc>The latest in flight computer technology will constantly update the trajectory of your Sodium2 racer to greatly increase stability and turn response, but an extended time to break the Mach 1 barrier may let your opponents in.</desc>
+                                </fcomp_ray_the_tube>
+                                <fcomp_autoadjustomator_sink>
+                                    <name>HALLI Flight Computer</name>
+                                    <desc>A minor stability increase is offset by a longer transonic period as you push through the speed of sound.</desc>
+                                </fcomp_autoadjustomator_sink>
+                                <fcomp_synap_9000_sink>
+                                    <name>VECTOR Flight Computer</name>
+                                    <desc>This Sodium2 flight computer is designed for optimum transonic transition up to Mach 1, but will also offer an increase in stability and improved turn response.</desc>
+                                </fcomp_synap_9000_sink>
+                                <fcomp_ray_the_tube_sink>
+                                    <name>PULSEDROID Flight Computer</name>
+                                    <desc>The latest in flight computer technology will constantly update the trajectory of your Sodium2 racer to greatly increase stability and turn response, but an extended time to break the Mach 1 barrier may let your opponents in.</desc>
+                                </fcomp_ray_the_tube_sink>
+                            </fcomp>
+                            <skin>
+                                <skin_basic>
+                                    <name>SILVER - Sodium 2 Racer Paint Scheme</name>
+                                    <desc>New skins for your Sodium2 racer. </desc>
+                                </skin_basic>
+                                <skin_basic_01>
+                                    <name>CRIMSON - Sodium 2 Racer Paint Scheme</name>
+                                    <desc>Purchase this striking, deep red paint scheme for your Sodium2 vehicle and be the envy of the racing community.</desc>
+                                </skin_basic_01>
+                                <skin_basic_02>
+                                    <name>RACING GREEN - Sodium 2 Racer Paint Scheme</name>
+                                    <desc>Add a smooth green skin to your Sodium2 racer for a more natural look whilst racing to winning times.</desc>
+                                </skin_basic_02>
+                                <skin_basic_03>
+                                    <name>BUMBLE BEE - Sodium 2 Racer Paint Scheme</name>
+                                    <desc>A dazzling yellow skin for your Sodium2 racer. Pass over the finish line as no more than a blinding, golden streak!</desc>
+                                </skin_basic_03>
+                                <skin_basic_04>
+                                    <name>HDC SALAMANDER - Sodium 2 Racer Paint Scheme</name>
+                                    <desc>This radical HDC paint scheme features go-faster everything! </desc>
+                                </skin_basic_04>
+                                <skin_basic_05>
+                                    <name>JETBOX SONIC CAMO - Sodium 2 Racer Paint Scheme</name>
+                                    <desc>This futuristic evolution of the classic camo paint scheme will leave other racers wondering what just past them by.</desc>
+                                </skin_basic_05>
+                                <skin_basic_06>
+                                    <name>Sodium 2 Racer Paint Scheme - RYLEE</name>
+                                    <desc>New skins for your Sodium2 racer. </desc>
+                                </skin_basic_06>
+                                <skin_basic_07>
+                                    <name>Sodium2 Vehicle Paint Scheme - [JETBOX]</name>
+                                    <desc>An exciting new paint scheme for your Sodium 2 racer!</desc>
+                                </skin_basic_07>
+                                <skin_basic_08>
+                                    <name>Sodium 2 Racer Paint Scheme - LEXAN</name>
+                                    <desc>New skins for your Sodium2 racer. </desc>
+                                </skin_basic_08>
+                                <skin_basic_09>
+                                    <name>Sodium 2 Racer Paint Scheme  - [ProPulse]</name>
+                                    <desc>An exciting new paint scheme for you Sodium 2 racer!</desc>
+                                </skin_basic_09>
+                                <skin_basic_10>
+                                    <name>FRUIT SALAD - Sodium 2 Racer Paint Scheme</name>
+                                    <desc>New skins for your Sodium2 racer. </desc>
+                                </skin_basic_10>
+                            </skin>
+                            <engh>
+                                <engh_basic>
+                                    <name>Stock Hover Engine</name>
+                                    <desc>Hover Engines for your Sodium2 racer. Experiment with these for tighter, faster, smoother turns. Make sure you compensate for the extra weight added to your vehicle.</desc>
+                                </engh_basic>
+                                <engh_jetfan>
+                                    <name>JETFAN Hover Engine</name>
+                                    <desc>More responsive turning allows your Sodium2 racer to avoid surprise obstacles at high speed.</desc>
+                                </engh_jetfan>
+                                <engh_electrostatic>
+                                    <name>ELECTROSTATIC Hover Engine</name>
+                                    <desc>Adding the more powerful motor in this Hover Engine to your Sodium2 racer will increase turn response at the cost of weight.</desc>
+                                </engh_electrostatic>
+                                <engh_vortexthruster>
+                                    <name>VORTEX Hover Engine</name>
+                                    <desc>This Hover Engine benefits from increased blade size and less weight to produce faster turning, although loss of momentum after impacts will pronounced.</desc>
+                                </engh_vortexthruster>
+                                <engh_jetfan_sink>
+                                    <name>HUMMING BIRD Hover Engine</name>
+                                    <desc>More responsive turning allows your Sodium2 racer to avoid surprise obstacles at high speed.</desc>
+                                </engh_jetfan_sink>
+                                <engh_electrostatic_sink>
+                                    <name>HORNET Hover Engine</name>
+                                    <desc>Adding the more powerful motor in this Hover Engine to your Sodium2 racer will increase turn response at the cost of weight.</desc>
+                                </engh_electrostatic_sink>
+                                <engh_vortexthruster_sink>
+                                    <name>VERTICES Hover Engine</name>
+                                    <desc>This Hover Engine benefits from increased blade size and less weight to produce faster turning, although loss of momentum after impacts will pronounced.</desc>
+                                </engh_vortexthruster_sink>
+                            </engh>
+                            <aero>
+                                <aero_basic>
+                                    <name>Stock Aerofoils</name>
+                                    <desc>Change the aerodynamic profile of your Sodium2 racer to ride the turbulence hazards of a supersonic race.</desc>
+                                </aero_basic>
+                                <aero_aerobatic>
+                                    <name>STEADFAST Aerofoils</name>
+                                    <desc>Improves general handling of the Sodium2 racer and reduces drag through the sound barrier.</desc>
+                                </aero_aerobatic>
+                                <aero_scythe>
+                                    <name>AEROBATIC Aerofoils</name>
+                                    <desc>A minor improvement to the straight line speed of the Sodium2 racer also allows you to cut smoothly through the most awkward of turns.</desc>
+                                </aero_scythe>
+                                <aero_interceptor>
+                                    <name>INTERCEPTOR Aerofoils</name>
+                                    <desc>A more streamlined design for your Sodium2 racer to produce exceptional straight line speed and turning power. Turn too tightly though and you'll lose momentum.</desc>
+                                </aero_interceptor>
+                                <aero_aerobatic_sink>
+                                    <name>FLIGHT SYS Aerofoils</name>
+                                    <desc>Improves general handling of the Sodium2 racer and reduces drag through the sound barrier.</desc>
+                                </aero_aerobatic_sink>
+                                <aero_scythe_sink>
+                                    <name>ALBATROS Aerofoils</name>
+                                    <desc>A minor improvement to the straight line speed of the Sodium2 racer also allows you to cut smoothly through the most awkward of turns.</desc>
+                                </aero_scythe_sink>
+                                <aero_interceptor_sink>
+                                    <name>ENTROPY Aerofoils </name>
+                                    <desc>A more streamlined design for your Sodium2 racer to produce exceptional straight line speed and turning power. Turn too tightly though and you'll lose momentum.</desc>
+                                </aero_interceptor_sink>
+                            </aero>
+                            <inta>
+                                <inta_basic>
+                                    <name>Stock Air Intakes</name>
+                                    <desc>Stock Air Intakes</desc>
+                                </inta_basic>
+                            </inta>
+                            <ctrl>
+                                <ctrl_basic>
+                                    <name>Stock Control Surfaces</name>
+                                    <desc>Stock Control Surfaces</desc>
+                                </ctrl_basic>
+                            </ctrl>
+                            <any>
+                                <any_empty>
+                                    <name>Nothing</name>
+                                    <desc>Mount nothing here</desc>
+                                </any_empty>
+                            </any>
+                        </lang>");
+                        return;
+                    case "mountLocks":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(@"
+                        <!--Archived from: https://web.archive.org/web/20110110184918/http://www.outso-srv1.com:80/webassets/Sodium/sodium2_shop/v0.2/mountLocks/SCEE.xml-->
+                        <mountlocks>
+                            <jato1 type=""bool"">true</jato1>
+                            <jato2 type=""bool"">true</jato2>
+                            <fuel type=""bool"">false</fuel>
+                            <tank type=""bool"">false</tank>
+                            <burn type=""bool"">true</burn>
+                            <eng type=""bool"">true</eng>
+                            <brks type=""bool"">false</brks>
+                            <frame type=""bool"">false</frame>
+                            <fcomp type=""bool"">true</fcomp>
+                            <inta type=""bool"">false</inta>
+                            <skin type=""bool"">true</skin>
+                            <engh type=""bool"">false</engh>
+                            <stbl type=""bool"">false</stbl>
+                            <ctrl type=""bool"">false</ctrl>
+                            <aero type=""bool"">true</aero>
+                        </mountlocks>");
+                        return;
+                    default:
+                        LoggerAccessor.LogWarn($"[PostAuthParameters] - sodium2_shop definition data was not found for project:{project}!");
+                        break;
+                }
+                ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                await ctx.Response.Send();
+            });
         }
     }
 }

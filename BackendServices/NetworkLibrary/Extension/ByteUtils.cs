@@ -6,6 +6,7 @@ using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 #endif
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Tpm2Lib;
 
 namespace NetworkLibrary.Extension
@@ -511,10 +512,10 @@ namespace NetworkLibrary.Extension
                 currentOffset += second[i].Length;
             }
 
-            foreach (int i in Enumerable.Range(0, second.Length))
+            Parallel.ForEach(Enumerable.Range(0, second.Length), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i =>
             {
                 Array.Copy(second[i], 0, resultBytes, offsets[i], second[i].Length);
-            }
+            });
 
             return resultBytes;
         }
