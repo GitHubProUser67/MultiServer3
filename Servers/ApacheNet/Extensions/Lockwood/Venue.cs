@@ -259,6 +259,44 @@ namespace ApacheNet.Extensions.Lockwood
 
                 switch (group_def)
                 {
+                    case "Customisation":
+                        await ctx.Response.Send($@"<lua>
+	                                    <feature_com_context type='num'>{UniqueIDCounter.CreateUniqueID()}</feature_com_context>
+                                        <applet>
+		                                    <Customisation_def></Customisation_def>
+	                                    </applet>
+                                        <detectors>
+		                                    <detectorsCustomisation_def></detectorsCustomisation_def>
+	                                    </detectors>
+	                                    <feature_root>
+                                            <root>
+			                                    <rot type='vec'>0,0,0,0</rot>
+                                                <scale type='vec'>0,0,0,0</scale>
+                                                <pos type='vec'>-2.366,1.790,16.434,0</pos>
+                                                <applet>
+			                                        <name>Customisation_def</name>
+                                                    <override>
+                                                        <appletId>ProfileCustomisation_Applet</appletId>
+                                                        <register>AppletRegister_ProfileCustomisation.lua</register>
+                                                        <params>
+                                                            <url>generic_cp</url>
+                                                        </params>
+                                                    </override>
+		                                        </applet>
+                                                <detectors>
+			                                        <name>detectorsCustomisation_def</name>
+                                                    <override>
+                                                        <proximity>50000</proximity>
+                                                        <homeTarget>
+                                                            <localisation>CUSTOMISE</localisation>
+                                                            <radius type='num'>2.5</radius>
+                                                        </homeTarget>
+                                                    </override>
+		                                        </detectors>
+		                                    </root>
+	                                    </feature_root>
+                                    </lua>");
+                        return;
                     case "Music":
                         await ctx.Response.Send($@"<lua>
 	                                <feature_com_context type='num'>{UniqueIDCounter.CreateUniqueID()}</feature_com_context>
@@ -286,7 +324,7 @@ namespace ApacheNet.Extensions.Lockwood
 		                                </root>
 	                                </feature_root>
                                 </lua>");
-                        break;
+                        return;
                     case "Posertrons":
                         await ctx.Response.Send($@"<lua>
 	                                <feature_com_context type='num'>{UniqueIDCounter.CreateUniqueID()}</feature_com_context>
@@ -294,7 +332,7 @@ namespace ApacheNet.Extensions.Lockwood
 		                                <Posertrons_V2></Posertrons_V2>
 	                                </applet>
 	                                <feature_root>
-		                                <root>
+		                                <root_catwalk>
 			                                <rot type='vec'>0,0,0,0</rot>
                                             <scale type='vec'>1,1,1,1</scale>
                                             <pos type='vec'>0,0,0,0</pos>
@@ -311,10 +349,27 @@ namespace ApacheNet.Extensions.Lockwood
                                                     </params>
                                                 </override>
 		                                    </applet>
-		                                </root>
+		                                </root_catwalk>
+                                        <root_custom>
+			                                <rot type='vec'>0,-208,0,-208</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>-2.596,1.790,16.674,0</pos>
+                                            <applet>
+			                                    <name>Posertrons_V2</name>
+                                                <override>
+                                                    <appletId>Posertron_Applet</appletId>
+                                                    <register>AppletRegister_posertron.lua</register>
+                                                    <params>
+                                                        <model>
+                                                            <mdl>customize_logo.mdl</mdl>
+                                                        </model>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_custom>
 	                                </feature_root>
                                 </lua>");
-                        break;
+                        return;
                     default:
                         LoggerAccessor.LogWarn($"[PostAuthParameters] - group_def definition data was not found for group_def:{group_def}!");
                         break;
