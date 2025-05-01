@@ -1,9 +1,12 @@
 ﻿namespace PS2FloatLibrary
 {
+    //****************************************************************
+    // Booth Multiplier
     // From the PCSX2 Team (TellowKrinkle)
+    //****************************************************************
     public class BoothMultiplier
     {
-        // Uses an accurate and faster wallace tree generation.
+        // Uses hardware multiply for most of the multiplication (accurate).
         public static bool fastMul = true;
 
         private struct BoothRecode

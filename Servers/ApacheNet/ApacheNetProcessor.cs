@@ -345,10 +345,19 @@ namespace ApacheNet
                                     // Compare the regex rule against the test URL
                                     if (Regex.IsMatch(absolutepath, match.Groups[2].Value))
                                     {
-                                        statusCode = (HttpStatusCode)int.Parse(match.Groups[1].Value);
-                                        response.Headers.Add("Location", match.Groups[3].Value);
-                                        response.StatusCode = (int)statusCode;
-                                        sent = await response.Send();
+                                        HttpStatusCode extractedStatusCode = (HttpStatusCode)int.Parse(match.Groups[1].Value);
+                                        if (extractedStatusCode == HttpStatusCode.OK)
+                                        {
+                                            absolutepath = match.Groups[3].Value;
+                                            fulluripath = absolutepath + HTTPProcessor.ProcessQueryString(fullurl, true);
+                                        }
+                                        else
+                                        {
+                                            statusCode = extractedStatusCode;
+                                            response.Headers.Add("Location", match.Groups[3].Value);
+                                            response.StatusCode = (int)statusCode;
+                                            sent = await response.Send();
+                                        }
                                     }
                                 }
                             }
@@ -381,10 +390,19 @@ namespace ApacheNet
                                         // Compare the regex rule against the test URL
                                         if (Regex.IsMatch(absolutepath, match.Groups[2].Value))
                                         {
-                                            statusCode = (HttpStatusCode)int.Parse(match.Groups[1].Value);
-                                            response.Headers.Add("Location", match.Groups[3].Value);
-                                            response.StatusCode = (int)statusCode;
-                                            sent = await response.Send();
+                                            HttpStatusCode extractedStatusCode = (HttpStatusCode)int.Parse(match.Groups[1].Value);
+                                            if (extractedStatusCode == HttpStatusCode.OK)
+                                            {
+                                                absolutepath = match.Groups[3].Value;
+                                                fulluripath = absolutepath + HTTPProcessor.ProcessQueryString(fullurl, true);
+                                            }
+                                            else
+                                            {
+                                                statusCode = extractedStatusCode;
+                                                response.Headers.Add("Location", match.Groups[3].Value);
+                                                response.StatusCode = (int)statusCode;
+                                                sent = await response.Send();
+                                            }
                                         }
                                     }
                                 }
@@ -939,7 +957,7 @@ namespace ApacheNet
                             {
                                 LoggerAccessor.LogInfo($"[{loggerprefix}] - {clientip}:{clientport} Requested a PREMIUMAGENCY method : {absolutepath}");
 
-                                string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, apiRootPath, fullurl).ProcessRequest(request.DataAsBytes, request.ContentType);
+                                string? res = new PREMIUMAGENCYClass(request.Method.ToString(), absolutepath, apiRootPath, fulluripath).ProcessRequest(request.DataAsBytes, request.ContentType);
                                 if (string.IsNullOrEmpty(res))
                                 {
                                     response.ContentType = "text/plain";
@@ -1950,7 +1968,7 @@ namespace ApacheNet
 
                                                 if (ApacheNetServerConfiguration.NotFoundWebArchive && !string.IsNullOrEmpty(Host) && !Host.Equals("web.archive.org") && !Host.Equals("archive.org"))
                                                 {
-                                                    WebArchiveRequest archiveReq = new($"{(secure ? "https" : "http")}://{Host}:{ServerPort}" + fullurl);
+                                                    WebArchiveRequest archiveReq = new($"{(secure ? "https" : "http")}://{Host}:{ServerPort}" + fulluripath);
                                                     if (archiveReq.Archived)
                                                     {
                                                         const string archivedSourceHeaderKey = "x-archive-src";

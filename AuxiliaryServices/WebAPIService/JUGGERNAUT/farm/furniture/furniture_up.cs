@@ -9,12 +9,10 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
     {
         public static string ProcessUp(byte[] PostData, string ContentType, string apiPath)
         {
-            string file = string.Empty;
-
             if (ContentType == "application/x-www-form-urlencoded" && PostData != null)
             {
                 var data = HTTPProcessor.ExtractAndSortUrlEncodedPOSTData(PostData);
-                file = data["file"].First();
+                string file = data["file"].First();
 
                 if (!string.IsNullOrEmpty(file))
                 {
