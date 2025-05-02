@@ -270,11 +270,6 @@ namespace Horizon.SERVER.Medius
                                                 case "01.82.09":
                                                     switch (clientCheatQuery.StartAddress)
                                                     {
-                                                        case 0x00530770:
-                                                            // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc0, 0x2b, 0x78 }))
-                                                                PokeAddress(0x00530770, new byte[] { 0x60, 0xc0, 0x07, 0xf0 }, clientChannel);
-                                                            break;
                                                         case 0x00531370:
                                                             // 4096 character command line limit.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
@@ -305,11 +300,6 @@ namespace Horizon.SERVER.Medius
                                                 case "01.83.12":
                                                     switch (clientCheatQuery.StartAddress)
                                                     {
-                                                        case 0x0054ac80:
-                                                            // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
-                                                                PokeAddress(0x0054ac80, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
-                                                            break;
                                                         case 0x00548bc0:
                                                             // 4096 character command line limit.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
@@ -333,11 +323,6 @@ namespace Horizon.SERVER.Medius
                                                 case "01.86.09":
                                                     switch (clientCheatQuery.StartAddress)
                                                     {
-                                                        case 0x00557d8c:
-                                                            // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
-                                                                PokeAddress(0x00557d8c, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
-                                                            break;
                                                         case 0x00555cb4:
                                                             // 4096 character command line limit.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
@@ -381,16 +366,6 @@ namespace Horizon.SERVER.Medius
                                                             // Disable SSFW Reward check for 1.86 retail.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0x65, 0x1b, 0x78 }))
                                                                 PokeAddress(0x002aa960, new byte[] { 0x48, 0x40, 0xe2, 0x2c }, clientChannel);
-                                                            break;
-                                                        case 0x000861e8:
-                                                            // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc6, 0x2b, 0x78 }))
-                                                                PokeAddress(0x000861e8, new byte[] { 0x60, 0xc6, 0x07, 0xf0 }, clientChannel);
-                                                            break;
-                                                        case 0x00087080:
-                                                            // 4096 character command line limit.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
-                                                                PokeAddress(0x00087080, new byte[] { 0x2f, 0x83, 0x0f, 0xff }, clientChannel);
                                                             break;
                                                         case 0x105c24c8:
                                                             // Sets WorldCorePointer.
@@ -490,8 +465,6 @@ namespace Horizon.SERVER.Medius
 
                                                                         if (MediusClass.Settings.PokePatchOn)
                                                                         {
-                                                                            CheatQuery(0x00530770, 4, clientChannel);
-
                                                                             CheatQuery(0x00531370, 4, clientChannel);
 
                                                                             CheatQuery(0x0016b4d0, 4, clientChannel);
@@ -511,8 +484,6 @@ namespace Horizon.SERVER.Medius
 
                                                                         if (MediusClass.Settings.PokePatchOn)
                                                                         {
-                                                                            CheatQuery(0x0054ac80, 4, clientChannel);
-
                                                                             CheatQuery(0x00548bc0, 4, clientChannel);
 
                                                                             CheatQuery(0x001709e0, 4, clientChannel);
@@ -525,8 +496,6 @@ namespace Horizon.SERVER.Medius
 
                                                                         if (MediusClass.Settings.PokePatchOn)
                                                                         {
-                                                                            CheatQuery(0x00557d8c, 4, clientChannel);
-
                                                                             CheatQuery(0x00555cb4, 4, clientChannel);
 
                                                                             CheatQuery(0x0016dac0, 4, clientChannel);
@@ -548,10 +517,6 @@ namespace Horizon.SERVER.Medius
                                                                         {
                                                                             CheatQuery(0x006f59b8, 4, clientChannel);
                                                                             CheatQuery(0x002aa960, 4, clientChannel);
-
-                                                                            CheatQuery(0x000861e8, 4, clientChannel);
-
-                                                                            CheatQuery(0x00087080, 4, clientChannel);
                                                                         }
 
                                                                         CheatQuery(0x105c24c8, 4, clientChannel);
