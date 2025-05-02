@@ -2389,6 +2389,17 @@ namespace Horizon.RT.Common
         MGCLGameHostMax = 7,
     }
 
+    [Flags]
+    public enum StartupMessageFlags : byte
+    {
+        None = 0,
+        HasStartupInfo = 1 << 1, // 0x02
+        HasGlobalTimeReset = 1 << 2, // 0x04
+        HasFieldSetA = 1 << 3, // 0x08
+        HasFieldSetB = 1 << 4, // 0x10
+        HasFieldSetC = 1 << 5, // 0x20
+    }
+
     public enum MGCL_ERROR_CODE : sbyte
     {
         /// <summary>

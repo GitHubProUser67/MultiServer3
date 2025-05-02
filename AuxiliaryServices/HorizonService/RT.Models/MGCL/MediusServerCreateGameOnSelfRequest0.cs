@@ -63,9 +63,17 @@ namespace Horizon.RT.Models
             base.Serialize(writer);
 
             writer.Write(MessageID ?? MessageId.Empty);
-            writer.Write(GameName, Constants.MGCL_GAMENAME_MAXLEN);
+
+            if (writer.MediusVersion == 113)
+                writer.Write(GameName, Constants.MGCL_GAMENAME_MAXLEN1);
+            else
+                writer.Write(GameName, Constants.MGCL_GAMENAME_MAXLEN);
             writer.Write(GameStats, Constants.MGCL_GAMESTATS_MAXLEN);
-            writer.Write(GamePassword, Constants.MGCL_GAMEPASSWORD_MAXLEN);
+
+            if (writer.MediusVersion == 113)
+                writer.Write(GamePassword, Constants.MGCL_GAMEPASSWORD_MAXLEN1);
+            else
+                writer.Write(GamePassword, Constants.MGCL_GAMEPASSWORD_MAXLEN);
             writer.Write(new byte[3]);
             writer.Write(ApplicationID);
             writer.Write(MaxPlayers);

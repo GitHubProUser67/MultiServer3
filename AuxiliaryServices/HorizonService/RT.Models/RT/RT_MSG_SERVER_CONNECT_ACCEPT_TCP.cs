@@ -20,7 +20,6 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-
             if (reader.MediusVersion <= 108)
             {
                 UNK_07 = reader.ReadBytes(3);

@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -22,11 +24,10 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
                     // Check if the pattern is found
                     if (match.Success)
                     {
-                        // Convert the string to float
-                        if (float.TryParse(match.Groups[1].Value.Replace(".", ","), out float slotIDFloat))
+                        try
                         {
-                            // Convert float to int and remove trailing zeros
-                            int slotIDInt = (int)slotIDFloat;
+                            // Convert the string to a int
+                            int slotIDInt = (int)double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
 
                             // Match the pattern in the input string
                             match = Regex.Match(file, @"<user>(.*?)<\/user>");
@@ -43,6 +44,9 @@ namespace WebAPIService.JUGGERNAUT.farm.furniture
 
                                 return string.Empty;
                             }
+                        }
+                        catch
+                        {
                         }
                     }
                 }

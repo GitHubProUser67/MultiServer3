@@ -17,37 +17,26 @@ namespace Horizon.RT.Models
 
         public override void Deserialize(MessageReader reader)
         {
-            // 
             base.Deserialize(reader);
 
-            // 
             MessageID = reader.Read<MessageId>();
             SessionKey = reader.ReadString(Constants.SESSIONKEY_MAXLEN);
-            if(reader.MediusVersion == 113)
-            {
+            if (reader.MediusVersion == 113)
                 Message = reader.ReadString(Constants.CLANMSG_MAXLEN_113_2);
-            } else
-            {
+            else
                 Message = reader.ReadString(Constants.CLANMSG_MAXLEN);
-            }
         }
 
         public override void Serialize(MessageWriter writer)
         {
-            // 
             base.Serialize(writer);
 
-            // 
             writer.Write(MessageID ?? MessageId.Empty);
             writer.Write(SessionKey, Constants.SESSIONKEY_MAXLEN);
             if (writer.MediusVersion == 113)
-            {
                 writer.Write(Message, Constants.CLANMSG_MAXLEN_113_2);
-            }
             else
-            {
                 writer.Write(Message, Constants.CLANMSG_MAXLEN);
-            }
         }
 
         public override string ToString()

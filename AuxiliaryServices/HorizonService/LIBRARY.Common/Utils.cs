@@ -1,37 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Horizon.LIBRARY.Common
 {
     public static class Utils
     {
-        public static byte[] FromString(string str)
-        {
-            byte[] buffer = new byte[str.Length / 2];
-
-            for (int i = 0; i < buffer.Length; ++i)
-            {
-                buffer[i] = byte.Parse(str.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
-            }
-
-            return buffer;
-        }
-
-        public static byte[] FromStringFlipped(string str)
-        {
-            byte[] buffer = new byte[str.Length / 2];
-
-            int strIndex = str.Length - 2;
-            for (int i = 0; i < buffer.Length; ++i)
-            {
-                buffer[i] = byte.Parse(str.Substring(strIndex, 2), System.Globalization.NumberStyles.HexNumber);
-                strIndex -= 2;
-            }
-
-            return buffer;
-        }
-
         #region LINQ
 
         /// <summary>
