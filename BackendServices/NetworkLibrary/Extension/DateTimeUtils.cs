@@ -35,6 +35,11 @@ namespace NetworkLibrary.Extension
             return new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(unixTime);
         }
 
+        public static string GetCurrentUnixTimestampAsString()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        }
+
         #endregion
     }
 }

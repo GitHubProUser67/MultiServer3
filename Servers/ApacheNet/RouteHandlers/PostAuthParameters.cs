@@ -31,6 +31,7 @@ namespace ApacheNet
 
                 Sodium.BuildSodiumPlugin(server);
                 Sodium.BuildSodiumBlimpPlugin(server);
+                SodiumObjectives.BuildSodiumObjectivesPlugin(server);
                 Sodium.BuildSodium2Plugin(server);
 
                 Venue.BuildVenuePlugin(server);

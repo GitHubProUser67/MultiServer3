@@ -1007,7 +1007,29 @@ namespace ApacheNet.Extensions.Lockwood
 
         public static void BuildSodiumBlimpPlugin(WebserverBase server)
         {
-            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/SodiumBlimp/{version}/defs/{defs}.xml", async (ctx) =>
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/sodium_blimp/{version}/{xmldef}", async (ctx) =>
+            {
+                ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                ctx.Response.ContentType = "text/xml";
+
+                string version = ctx.Request.Url.Parameters["version"] ?? "7";
+                string xmldef = ctx.Request.Url.Parameters["xmldef"] ?? "en-US";
+
+                string xmlPath = $"/webassets/Sodium/sodium_blimp/{version}/{xmldef}";
+                string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
+
+                if (File.Exists(filePath))
+                {
+                    await ctx.Response.Send(File.ReadAllText(filePath));
+                    return;
+                }
+
+                LoggerAccessor.LogDebug($"[PostAuthParameters] - SodiumBlimp regional definition data was not found for xmldef:{xmldef}, falling back to empty data.");
+
+                await ctx.Response.Send();
+            });
+
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/static/SodiumBlimp/{version}/defs/{defs}", async (ctx) =>
             {
                 string? defs = ctx.Request.Url.Parameters["defs"];
                 if (string.IsNullOrEmpty(defs))
@@ -1017,7 +1039,7 @@ namespace ApacheNet.Extensions.Lockwood
                     await ctx.Response.Send();
                     return;
                 }
-                string xmlPath = $"/static/SodiumBlimp/{ctx.Request.Url.Parameters["version"]}/defs/{defs}.xml";
+                string xmlPath = $"/static/SodiumBlimp/{ctx.Request.Url.Parameters["version"]}/defs/{defs}";
                 string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
 
                 if (File.Exists(filePath))
@@ -1032,6 +1054,489 @@ namespace ApacheNet.Extensions.Lockwood
 
                 switch (defs)
                 {
+                    case "dig_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
+                         local TableFromInput = {
+                            defs = {
+                                rewards = { 
+                                    ""SURVEY_TABLE"",
+                                    ""TECHSUIT_CONCEPT_WALL_ART_SILVER"",
+                                    ""CHROME_CATSUIT_CONCEPT_WALL_ART"",
+                                    ""TASET_ROBO_BEETLE_ORNAMENT_BLACK_N_WHITE"",
+                                    ""FASON_ROBO_PANGOLIN_ORNAMENT_SILVER"",
+                                    ""SMALL_FLORO_CACTUS_GREEN"",
+                                    ""PROPULSE_TWO_SEATER_AISLE_CHAIR"",
+                                    ""TECHSUIT_CONCEPT_WALL_ART_BLACK"",
+                                    ""BUMBLEBEE_BODY_SUIT_CONCEPT_WALL_ART"",
+                                    ""TASET_ROBO_BEETLE_ORNAMENT_BURNT_ORANGE"",
+                                    ""FASON_ROBO_PANGOLIN_ORNAMENT_YELLOW"",
+                                    ""SMALL_FLORO_CACTUS_ORANGE"",
+                                    ""FUSELAGE_ACTIVE_OBJECT_BED"",
+                                },
+                                tolerance = 10,
+                                resources = {
+                                    silicon = { weighting = 100 },
+						            silver = { weighting = 90 },
+						            gold = { weighting = 80 },
+						            JATO_basic_Sink = { weighting = 60 },
+						            JATO_Ride_Sink = { weighting = 50 },
+						            JATO_uber_Sink = { weighting = 20 },
+						            JATO_SSRB_x_Sink = { weighting = 5 },
+                                },
+                                rockDanceProps = { 'ROCK_001','ROCK_001','ROCK_003','ROCK_004','ROCK_005','ROCK_006','ROCK_007','ROCK_008','ROCK_009','ROCK_010','ROCK_011' }
+                            }
+                        }
+
+                        return Encode(TableFromInput, 4, 4)
+                        "));
+                        return;
+                    case "sound_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
+                         local TableFromInput = {
+                            defs = {
+                                TELEPAD_HUM = {
+                                    volume = 0.6,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 4,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                TELEPAD_POW = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 50,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                TELEPAD_S_POW = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 50,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_CHARGE = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_L_SERVO = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_STOMP = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_HOVER = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 1,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_HUM = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                ARROW_DEPLOY = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_DEPLOY = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                ARROW_SPIN = {
+                                    volume = 1,
+                                    pitch = 0.1,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_SPAWN = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                THUMPER_HOVER = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                BLIMP_WIND = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                MOVING_WIND = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                DIG = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                DIG_SUCCESS = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                DIG_FAIL = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                FANFARE = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                ODOMETER = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                MENU_ACCEPT = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                BINOC_ZOOM = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                BINOC_ROTATE = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                BLIMP_CANOPY = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                AMBIENT = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                },
+                                ENGINE = {
+                                    volume = 1,
+                                    pitch = 0,
+                                    falloff_start = 0,
+                                    falloff_end = 100,
+                                    pan = -1,
+                                    allow_cull = false,
+                                }
+                            }
+                        }
+
+                        return Encode(TableFromInput, 4, 4)
+                        "));
+                                        return;
+                    case "burner_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(@"<defs>
+                            <burner>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>1.406,19.366,-4.964,0.000</pos>
+                            </burner>
+                            <burner_0>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>-3.220,19.366,-4.964,0.000</pos>
+                            </burner_0>
+                            <burner_1>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>-3.519,20.172,-7.094,0.000</pos>
+                            </burner_1>
+                            <burner_2>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>1.079,20.172,-7.094,0.000</pos>
+                            </burner_2>
+                            <burner_3>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>1.079,20.172,-11.102,0.000</pos>
+                            </burner_3>
+                            <burner_4>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>-3.519,20.172,-11.102,0.000</pos>
+                            </burner_4>
+                            <burner_5>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>-3.220,19.366,-1.000,0.000</pos>
+                            </burner_5>
+                            <burner_6>
+                                <model>burner_001.mdl</model>
+                                <pos type='vec'>1.406,19.366,-1.000,0.000</pos>
+                            </burner_6>
+                        </defs>");
+                        return;
+                    case "cloth_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(@"<defs>
+                            <cloth>
+                                <col type='vec'>1.000,0.000,0.000,1.000</col> <!-- Red -->
+                                <model>streamer_large.mdl</model>
+                                <pos type='vec'>-0.006,31.343,-55.902,0.000</pos>
+                            </cloth>
+                            <cloth_0>
+                                <col type='vec'>0.000,1.000,0.000,1.000</col> <!-- Green -->
+                                <model>streamer_medium.mdl</model>
+                                <pos type='vec'>8.143,11.187,-27.885,0.000</pos>
+                            </cloth_0>
+                            <cloth_1>
+                                <col type='vec'>1.000,1.000,0.000,1.000</col> <!-- Yellow -->
+                                <model>streamer_small.mdl</model>
+                                <pos type='vec'>-0.028,0.266,1.415,0.000</pos>
+                            </cloth_1>
+                            <cloth_2>
+                                <col type='vec'>0.000,1.000,1.000,1.000</col> <!-- Cyan -->
+                                <model>streamer_large.mdl</model>
+                                <pos type='vec'>4.119,7.023,-43.151,0.000</pos>
+                                <rot type='vec'>-90.000,0.000,0.000,0.000</rot>
+                            </cloth_2>
+                            <cloth_3>
+                                <col type='vec'>0.000,1.000,1.000,1.000</col> <!-- Cyan -->
+                                <model>streamer_large.mdl</model>
+                                <pos type='vec'>-4.119,7.023,-43.151,0.000</pos>
+                                <rot type='vec'>-90.000,0.000,0.000,0.000</rot>
+                            </cloth_3>
+                            <cloth_4>
+                                <col type='vec'>0.000,1.000,1.000,1.000</col> <!-- Cyan -->
+                                <model>streamer_large.mdl</model>
+                                <pos type='vec'>-10.197,4.607,-17.537,0.000</pos>
+                                <rot type='vec'>-90.000,0.000,0.000,0.000</rot>
+                            </cloth_4>
+                            <cloth_5>
+                                <col type='vec'>0.000,1.000,1.000,1.000</col> <!-- Cyan -->
+                                <model>streamer_large.mdl</model>
+                                <pos type='vec'>6.119,4.607,-17.537,0.000</pos>
+                                <rot type='vec'>-90.000,0.000,0.000,0.000</rot>
+                            </cloth_5>
+                        </defs>");
+                        return;
+                    case "light_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(@"<defs>
+                            <light_dummy>
+                                <atten_end type='num'>0</atten_end>
+                                <atten_power type='num'>0</atten_power>
+                                <atten_start type='num'>0</atten_start>
+                                <col type='vec'>0.000,0.000,0.000,0.000</col>
+                                <light_type>point</light_type>
+                                <pos type='vec'>0.000,0.000,0.000,0.000</pos>
+                                <mask>mask_002.dds</mask>
+                            </light_dummy>
+                        </defs>");
+                        return;
+                    case "gfx_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
+                         local TableFromInput = {
+                            defs = {
+                                CLOUD_002 = {
+                                    efx = ""cloud_002.efx"",
+                                    count = 3,
+                                    attach_type = ""render""
+                                },
+                                BUY_BAG = {
+                                    efx = ""glowser.efx"",
+                                    count = 1,
+                                    attach_type = ""emitter""
+                                },
+                                CLOUD_003 = {
+                                    efx = ""cloud_003.efx"",
+                                    count = 4,
+                                    attach_type = ""render""
+                                },
+                                DIG = {
+                                    efx = ""dig.efx"",
+                                    count = 10,
+                                    attach_type = ""emitter""
+                                },
+                                DUST_001 = {
+                                    efx = ""dust_cloud.efx"",
+                                    count = 5,
+                                    attach_type = ""render""
+                                },
+                                GEYSER_001_JET = {
+                                    efx = ""geyser_001_jet.efx"",
+                                    count = 3,
+                                    attach_type = ""emitter""
+                                },
+                                GEYSER_001_STEAM = {
+                                    efx = ""geyser_001_steam.efx"",
+                                    count = 6,
+                                    attach_type = ""emitter""
+                                },
+                                THUMPER_HOVER = {
+                                    efx = ""hoverBlast.efx"",
+                                    count = 5,
+                                    attach_type = ""emitter""
+                                },
+                                TELEPAD = {
+                                    efx = ""telepad_send.efx"",
+                                    count = 1,
+                                    attach_type = ""emitter""
+                                },
+                                THUMPER_CHARGE = {
+                                    efx = ""thumperCharge.efx"",
+                                    count = 1,
+                                    attach_type = ""emitter""
+                                },
+                                THUMPER_THUD = {
+                                    efx = ""thumperThud.efx"",
+                                    count = 1,
+                                    attach_type = ""emitter""
+                                },
+                                WIND_STREAK = {
+                                    efx = ""windStreak.efx"",
+                                    count = 3,
+                                    attach_type = ""emitter""
+                                },
+                            }
+                        }
+
+                        return Encode(TableFromInput, 4, 4)
+                        "));
+                        return;
+                    case "map_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
+                            local TableFromInput = {
+                                [""def""] = {
+                                    [""cloud_gfx""] = { ""CLOUD_002"", ""CLOUD_003"" },
+                                    [""horizon_inner""] = ""inner_ring.mdl"",
+                                    [""horizon_centre""] = ""centre_ring.mdl"",
+                                    [""horizon_outer""] = ""outer_ring.mdl"",
+                                    [""master_seed""] = 15959,
+                                    [""max_cloud_height""] = 5600,
+                                    [""min_cloud_height""] = 700,
+                                    [""sky_model""] = ""sky_001.mdl"",
+                                    [""terrain_collision""] = ""terrain_001.hkx"",
+                                    [""terrain_model""] = ""terrain_002.mdl"",
+                                    [""terrain_radius""] = 1000000,
+                                    [""terrain_tile_size""] = 10000
+                                }
+                            }
+
+                            return Encode(TableFromInput, 4, 4)
+                            "));
+                        return;
+                    case "blimp_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(@"<defs>
+                            <fwd_accel type='num'>300</fwd_accel>
+                            <fwd_speed type='num'>999</fwd_speed>
+                            <max_height type='num'>5050</max_height>
+                            <min_height type='num'>20</min_height>
+                            <pitch_speed type='num'>250</pitch_speed>
+                            <start_height type='num'>30</start_height>
+                            <streaks>
+                                <_ type='vec'>-12.557,30.923,-47.163,0.000</_>
+                                <_ type='vec'>12.557,30.923,-47.163,0.000</_>
+                            </streaks>
+                            <turn_speed type='num'>30</turn_speed>
+                        </defs>");
+                        return;
+                    case "prop_defs.xml":
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/xml";
+                        await ctx.Response.Send(WebAPIService.OHS.LUA2XmlProcessor.TransformLuaTableToXml(@"
+                            local TableFromInput = {
+                                [""defs""] = {
+                                    [""PROPS""] = {},
+                                    [""GROUPS""] = { dummy = { weight = 100 } }
+                                }
+                            }
+
+                            return Encode(TableFromInput, 4, 4)
+                            "));
+                        return;
                     case "craft_defs.xml":
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                         ctx.Response.ContentType = "text/xml";
@@ -1115,12 +1620,12 @@ namespace ApacheNet.Extensions.Lockwood
 
         public static void BuildSodium2Plugin(WebserverBase server)
         {
-            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/sodium2/scores/{version}/{lang}.xml", async (ctx) =>
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/sodium2/scores/{version}/{lang}", async (ctx) =>
             {
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                 ctx.Response.ContentType = "text/xml";
 
-                string xmlPath = $"/webassets/Sodium/sodium2/scores/{ctx.Request.Url.Parameters["version"]}/{ctx.Request.Url.Parameters["lang"]}.xml";
+                string xmlPath = $"/webassets/Sodium/sodium2/scores/{ctx.Request.Url.Parameters["version"]}/{ctx.Request.Url.Parameters["lang"]}";
                 string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
 
                 if (File.Exists(filePath))
@@ -1754,7 +2259,7 @@ namespace ApacheNet.Extensions.Lockwood
                     </data>");
             });
 
-            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/sodium2_shop/{version}/{project}/{lang}.xml", async (ctx) =>
+            server.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/webassets/Sodium/sodium2_shop/{version}/{project}/{lang}", async (ctx) =>
             {
                 string? project = ctx.Request.Url.Parameters["project"];
                 if (string.IsNullOrEmpty(project))
@@ -1767,7 +2272,7 @@ namespace ApacheNet.Extensions.Lockwood
                 ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                 ctx.Response.ContentType = "text/xml";
 
-                string xmlPath = $"/webassets/Sodium/sodium2_shop/{ctx.Request.Url.Parameters["version"]}/{project}/{ctx.Request.Url.Parameters["lang"]}.xml";
+                string xmlPath = $"/webassets/Sodium/sodium2_shop/{ctx.Request.Url.Parameters["version"]}/{project}/{ctx.Request.Url.Parameters["lang"]}";
                 string filePath = !ApacheNetServerConfiguration.DomainFolder ? ApacheNetServerConfiguration.HTTPStaticFolder + xmlPath : ApacheNetServerConfiguration.HTTPStaticFolder + $"/{ctx.Request.RetrieveHeaderValue("Host")}" + xmlPath;
 
                 if (File.Exists(filePath))

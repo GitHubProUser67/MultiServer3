@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.Text;
 using NetworkLibrary.HTTP;
 using static WebAPIService.OHS.UserCounter;
+using NetworkLibrary.Extension;
 
 namespace WebAPIService.OHS
 {
@@ -465,8 +466,12 @@ namespace WebAPIService.OHS
 
                             if (!string.IsNullOrEmpty(ohsUserName))
                             {
+                                bool keyFound = false;
+
                                 if (directorypath.EndsWith("/SCEA/WorldDomination"))
                                 {
+                                    keyFound = true;
+
                                     string leaderboardPath = directorypath + $"/Leaderboards/{ohsKey}.luatable";
 
                                     if (File.Exists(leaderboardPath))
@@ -491,14 +496,25 @@ namespace WebAPIService.OHS
                                         if (jsonObject.TryGetValue("key", out JToken keyValueToken) && keyValueToken.Type == JTokenType.Object)
                                         {
                                             if (((JObject)keyValueToken).TryGetValue(ohsKey, out JToken wishlistToken))
+                                            {
+                                                keyFound = true;
                                                 output = LuaUtils.ConvertJTokenToLuaTable(wishlistToken, true);
+                                            }
                                         }
                                     }
                                 }
-                                else
+                                if (!keyFound)
                                 {
                                     switch (ohsKey)
                                     {
+                                        case "last_logon":
+                                            if (directorypath.Contains("sodium_blimp"))
+                                                output = "\"" + DateTimeUtils.GetCurrentUnixTimestampAsString() + "\"";
+                                            break;
+                                        case "reward_count":
+                                            if (directorypath.Contains("sodium_blimp"))
+                                                output = "0";
+                                            break;
                                         case "timestamp":
                                             if (directorypath.Contains("Ooblag"))
                                                 output = DateTime.Now.ToString("yyyyMMdd");
@@ -562,6 +578,10 @@ namespace WebAPIService.OHS
                             {
                                 switch (ohsKey)
                                 {
+                                    case "cp_urls":
+                                        if (directorypath.Contains("sodium_blimp"))
+                                            output = "{SCEA='Lockwood_Showcase_6663_C388/A/CPALOCKSHOW00.xml',SCEE='Lockwood_Showcase_6663_C388/E/CPELockwood00.xml',SCEJ='Sodium_Main_1864_A357/J/CPJSodium00.xml',SCEAsia='Sodium_Main_1864_A357/H/CPHSodium00.xml'}";
+                                        break;
                                     case "vickie_version":
                                         output = "7";
                                         break;
