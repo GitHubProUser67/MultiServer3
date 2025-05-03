@@ -1356,18 +1356,18 @@ namespace ApacheNet.Extensions.Lockwood
                         await ctx.Response.Send(@"<defs>
                             <cloth>
                                 <col type='vec'>1.000,0.000,0.000,1.000</col> <!-- Red -->
-                                <model>streamer_large.mdl</model>
-                                <pos type='vec'>-0.006,31.343,-55.902,0.000</pos>
+                                <model>streamer_small.mdl</model>
+                                <pos type='vec'>0.000,16.980,-22.793,0.000</pos>
                             </cloth>
                             <cloth_0>
                                 <col type='vec'>0.000,1.000,0.000,1.000</col> <!-- Green -->
                                 <model>streamer_medium.mdl</model>
-                                <pos type='vec'>8.143,11.187,-27.885,0.000</pos>
+                                <pos type='vec'>8.143,11.467,-27.885,0.000</pos>
                             </cloth_0>
                             <cloth_1>
                                 <col type='vec'>1.000,1.000,0.000,1.000</col> <!-- Yellow -->
                                 <model>streamer_small.mdl</model>
-                                <pos type='vec'>-0.028,0.266,1.415,0.000</pos>
+                                <pos type='vec'>-0.019,0.496,1.324,0.000</pos>
                             </cloth_1>
                             <cloth_2>
                                 <col type='vec'>0.000,1.000,1.000,1.000</col> <!-- Cyan -->
@@ -1393,6 +1393,46 @@ namespace ApacheNet.Extensions.Lockwood
                                 <pos type='vec'>6.119,4.607,-17.537,0.000</pos>
                                 <rot type='vec'>-90.000,0.000,0.000,0.000</rot>
                             </cloth_5>
+                            <cloth_6>
+                                <col type='vec'>0.000,1.000,1.000,1.000</col> <!-- Cyan -->
+                                <model>streamer_medium.mdl</model>
+                                <pos type='vec'>16.319,37.152,-21.773,0.000</pos>
+                            </cloth_6>
+                            <cloth_7>
+                                <col type='vec'>0.000,1.000,1.000,1.000</col> <!-- Cyan -->
+                                <model>streamer_medium.mdl</model>
+                                <pos type='vec'>-16.259,37.152,-21.773,0.000</pos>
+                            </cloth_7>
+                            <cloth_8>
+                                <col type='vec'>1.000,0.000,0.000,1.000</col> <!-- Red -->
+                                <model>streamer_small.mdl</model>
+                                <pos type='vec'>5.334,18.312,-22.910,0.000</pos>
+                            </cloth_8>
+                            <cloth_9>
+                                <col type='vec'>1.000,0.000,0.000,1.000</col> <!-- Red -->
+                                <model>streamer_small.mdl</model>
+                                <pos type='vec'>-4.892,18.205,-22.910,0.000</pos>
+                            </cloth_9>
+                            <cloth_10>
+                                <col type='vec'>1.000,0.000,0.000,1.000</col> <!-- Red -->
+                                <model>streamer_small.mdl</model>
+                                <pos type='vec'>-6.989,18.894,20.017,0.000</pos>
+                            </cloth_10>
+                            <cloth_11>
+                                <col type='vec'>1.000,0.000,0.000,1.000</col> <!-- Red -->
+                                <model>streamer_small.mdl</model>
+                                <pos type='vec'>6.989,18.894,20.017,0.000</pos>
+                            </cloth_11>
+                            <cloth_12>
+                                <col type='vec'>1.000,1.000,1.000,1.000</col> <!-- White -->
+                                <model>streamer_medium.mdl</model>
+                                <pos type='vec'>11.699,3.213,1.252,0.000</pos>
+                            </cloth_12>
+                            <cloth_13>
+                                <col type='vec'>1.000,1.000,1.000,1.000</col> <!-- White -->
+                                <model>streamer_medium.mdl</model>
+                                <pos type='vec'>-11.699,3.213,1.252,0.000</pos>
+                            </cloth_13>
                         </defs>");
                         return;
                     case "light_defs.xml":
