@@ -272,8 +272,9 @@ namespace WebAPIService.NDREAMS.Aurora
 
                             if (int.TryParse(score, out int resscore))
                             {
+                                OrbrunnerScoreBoardData.CheckForInitiatedleaderboard(apipath);
                                 OrbrunnerScoreBoardData.UpdateScoreBoard(name, resscore);
-                                OrbrunnerScoreBoardData.UpdateTodayScoreboardXml(apipath, DateTime.Now.ToString("yyyy_MM_dd"));
+                                OrbrunnerScoreBoardData.UpdateScoreboardXml(apipath);
                                 HighestScore = OrbrunnerScoreBoardData.GetHighestScore();
                                 if (HighestScore != null && !string.IsNullOrEmpty(HighestScore.Value.Item1))
                                 {
@@ -293,6 +294,7 @@ namespace WebAPIService.NDREAMS.Aurora
                             return $"<xml><success>false</success><error>Signature Mismatch</error><extra>{errMsg}</extra><function>ProcessOrbrunnerScores</function></xml>";
                         }
                     case "high":
+                        OrbrunnerScoreBoardData.CheckForInitiatedleaderboard(apipath);
                         HighestScore = OrbrunnerScoreBoardData.GetHighestScore();
                         if (HighestScore != null && !string.IsNullOrEmpty(HighestScore.Value.Item1))
                             high = $"{HighestScore.Value.Item1},{HighestScore.Value.Item2}";
