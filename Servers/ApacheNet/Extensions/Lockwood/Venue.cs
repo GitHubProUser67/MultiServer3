@@ -259,6 +259,83 @@ namespace ApacheNet.Extensions.Lockwood
 
                 switch (group_def)
                 {
+                    case "BackstagePass":
+                        await ctx.Response.Send($@"<lua>
+	                                    <feature_com_context type='num'>{UniqueIDCounter.CreateUniqueID()}</feature_com_context>
+                                        <applet>
+                                            <StageEnter_def></StageEnter_def>
+		                                    <StageExit_def></StageExit_def>
+	                                    </applet>
+                                        <detectors>
+                                            <detectorsStageEnter_def></detectorsStageEnter_def>
+		                                    <detectorsStageExit_def></detectorsStageExit_def>
+	                                    </detectors>
+	                                    <feature_root>
+                                            <root_stage_enter>
+			                                    <rot type='vec'>0,0,0,0</rot>
+                                                <scale type='vec'>0,0,0,0</scale>
+                                                <pos type='vec'>7.617,1.532,-20.761,0</pos>
+                                                <applet>
+			                                        <name>StageEnter_def</name>
+                                                    <override>
+                                                        <appletId>StageAccess_Applet</appletId>
+                                                        <register>AppletRegister_StageAccess.lua</register>
+                                                        <params>
+                                                            <destination>stage_enter_dest</destination>
+                                                            <mode>Entrance</mode>
+                                                        </params>
+                                                    </override>
+		                                        </applet>
+                                                <detectors>
+			                                            <name>detectorsStageEnter_def</name>
+                                                        <override>
+                                                            <proximity>50000</proximity>
+                                                            <homeTarget>
+                                                                <localisation>STAGE_ENTER</localisation>
+                                                                 <radius type='num'>1.2</radius>
+                                                            </homeTarget>
+                                                        </override>
+		                                        </detectors>
+		                                    </root_stage_enter>
+                                            <root_stage_exit>
+			                                    <rot type='vec'>0,0,0,0</rot>
+                                                <scale type='vec'>0,0,0,0</scale>
+                                                <pos type='vec'>6.907,1.532,-20.761,0</pos>
+                                                <applet>
+			                                        <name>StageEnter_def</name>
+                                                    <override>
+                                                        <appletId>StageAccess_Applet</appletId>
+                                                        <register>AppletRegister_StageAccess.lua</register>
+                                                        <params>
+                                                            <destination>stage_exit_dest</destination>
+                                                            <mode>Exit</mode>
+                                                        </params>
+                                                    </override>
+		                                        </applet>
+                                                <detectors>
+			                                            <name>detectorsStageExit_def</name>
+                                                        <override>
+                                                            <proximity>50000</proximity>
+                                                            <homeTarget>
+                                                                <localisation>STAGE_LEAVE</localisation>
+                                                                <radius type='num'>1.2</radius>
+                                                            </homeTarget>
+                                                        </override>
+		                                        </detectors>
+		                                    </root_stage_exit>
+                                            <stage_enter_dest>
+			                                        <rot type='vec'>0,0,0,0</rot>
+                                                    <scale type='vec'>0,0,0,0</scale>
+                                                    <pos type='vec'>6.766,1.922,-20.612,0</pos>
+		                                    </stage_enter_dest>
+                                            <stage_exit_dest>
+			                                        <rot type='vec'>0,0,0,0</rot>
+                                                    <scale type='vec'>0,0,0,0</scale>
+                                                    <pos type='vec'>10.369,1.922,-20.612,0</pos>
+		                                    </stage_exit_dest>
+	                                    </feature_root>
+                                    </lua>");
+                        return;
                     case "Customisation":
                         await ctx.Response.Send($@"<lua>
 	                                    <feature_com_context type='num'>{UniqueIDCounter.CreateUniqueID()}</feature_com_context>
@@ -296,6 +373,274 @@ namespace ApacheNet.Extensions.Lockwood
 		                                    </root>
 	                                    </feature_root>
                                     </lua>");
+                        return;
+                    case "Votertron":
+                        await ctx.Response.Send($@"<lua>
+	                                <feature_com_context type='num'>{UniqueIDCounter.CreateUniqueID()}</feature_com_context>
+                                    <applet>
+		                                <Cameratron_def></Cameratron_def>
+		                                <Screenatron_def></Screenatron_def>
+		                                <Screenatron_0_def></Screenatron_0_def>
+		                                <Screenatron_1_def></Screenatron_1_def>
+		                                <Screenatron_2_def></Screenatron_2_def>
+		                                <Stagertron_def></Stagertron_def>
+		                                <Strutertron_def></Strutertron_def>
+		                                <Votertron_def></Votertron_def>
+		                                <Votertron_0_def></Votertron_0_def>
+		                                <Votertron_1_def></Votertron_1_def>
+	                                </applet>
+                                    <detectors>
+		                                    <detectorsStrut_def></detectorsStrut_def>
+		                                    <detectorsVotertron_def></detectorsVotertron_def>
+		                                    <detectorsVotertron_0_def></detectorsVotertron_0_def>
+		                                    <detectorsVotertron_1_def></detectorsVotertron_1_def>
+	                                </detectors>
+	                                <feature_root>
+		                                <root_cam>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>0,0,0,0</scale>
+                                            <pos type='vec'>0,0,0,0</pos>
+                                            <applet>
+			                                    <name>Cameratron_def</name>
+                                                <override>
+                                                    <appletId>Cameratron_Applet</appletId>
+                                                    <register>AppletRegister_cameratron.lua</register>
+                                                    <params>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_cam>
+                                        <root_screen>
+			                                <rot type='vec'>0,-90,0,-90</rot>
+                                            <scale type='vec'>0.8,1.6,1,1</scale>
+                                            <pos type='vec'>16.360,4.748,2.837,0</pos>
+                                            <applet>
+			                                    <name>Screenatron_def</name>
+                                                <override>
+                                                    <appletId>Screenatron_Applet</appletId>
+                                                    <register>AppletRegister_screenatron.lua</register>
+                                                    <params>
+                                                        <scale type='num'>2</scale>
+                                                        <mode>multiple</mode>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_screen>
+                                        <root_screen_large_0>
+			                                <rot type='vec'>0,-90,0,-90</rot>
+                                            <scale type='vec'>0.8,1.6,1,1</scale>
+                                            <pos type='vec'>16.360,4.748,-6.308,0</pos>
+                                            <applet>
+			                                    <name>Screenatron_def</name>
+                                                <override>
+                                                    <appletId>Screenatron_Applet</appletId>
+                                                    <register>AppletRegister_screenatron.lua</register>
+                                                    <params>
+                                                        <scale type='num'>2</scale>
+                                                        <mode>multiple</mode>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_screen_large_0>
+                                        <root_screen_large_1>
+			                                <rot type='vec'>0,-90,0,-90</rot>
+                                            <scale type='vec'>0.8,1.6,1,1</scale>
+                                            <pos type='vec'>16.360,4.748,11.750,0</pos>
+                                            <applet>
+			                                    <name>Screenatron_def</name>
+                                                <override>
+                                                    <appletId>Screenatron_Applet</appletId>
+                                                    <register>AppletRegister_screenatron.lua</register>
+                                                    <params>
+                                                        <scale type='num'>2</scale>
+                                                        <mode>multiple</mode>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_screen_large_1>
+                                        <root_screen_0>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>0.7,1.1,1,1</scale>
+                                            <pos type='vec'>-4.606,3.940,-18.917,0</pos>
+                                            <applet>
+			                                    <name>Screenatron_0_def</name>
+                                                <override>
+                                                    <appletId>Screenatron_Applet</appletId>
+                                                    <register>AppletRegister_screenatron.lua</register>
+                                                    <params>
+                                                        <scale type='num'>3</scale>
+                                                        <voterId type='num'>1</voterId>
+                                                        <mode>single</mode>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_screen_0>
+                                        <root_screen_1>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>0.7,1.1,1,1</scale>
+                                            <pos type='vec'>8.987,3.940,-18.917,0</pos>
+                                            <applet>
+			                                    <name>Screenatron_1_def</name>
+                                                <override>
+                                                    <appletId>Screenatron_Applet</appletId>
+                                                    <register>AppletRegister_screenatron.lua</register>
+                                                    <params>
+                                                        <scale type='num'>3</scale>
+                                                        <voterId type='num'>3</voterId>
+                                                        <mode>single</mode>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_screen_1>
+                                        <root_screen_2>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>0.5,1.1,1,1</scale>
+                                            <pos type='vec'>2.128,3.940,-21.718,0</pos>
+                                            <applet>
+			                                    <name>Screenatron_2_def</name>
+                                                <override>
+                                                    <appletId>Screenatron_Applet</appletId>
+                                                    <register>AppletRegister_screenatron.lua</register>
+                                                    <params>
+                                                        <scale type='num'>3</scale>
+                                                        <voterId type='num'>2</voterId>
+                                                        <mode>single</mode>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_screen_2>
+                                        <root_stage>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>0,0,0,0</scale>
+                                            <pos type='vec'>0,0,0,0</pos>
+                                            <applet>
+			                                    <name>Stagertron_def</name>
+                                                <override>
+                                                    <appletId>Stagertron_Applet</appletId>
+                                                    <register>AppletRegister_stagertron.lua</register>
+                                                    <params>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_stage>
+                                        <root_struter>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>0,0,0,0</scale>
+                                            <pos type='vec'>-3.960,1.479,-20.632,0</pos>
+                                            <applet>
+			                                    <name>Strutertron_def</name>
+                                                <override>
+                                                    <appletId>Strutertron_Applet</appletId>
+                                                    <register>AppletRegister_strutertron.lua</register>
+                                                    <params>
+                                                        <malePos type='vec'>1.396,1.000,-20.253,0</malePos>
+                                                        <femalePos type='vec'>1.396,1.000,-19.087,0</femalePos>
+                                                        <destination>catwalk_exit_dest</destination>
+                                                        <behavior>WalkTheWalk</behavior>
+                                                        <female>votertron_female</female>
+                                                        <male>votertron_male</male>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+                                            <detectors>
+			                                        <name>detectorsStrut_def</name>
+                                                    <override>
+                                                        <proximity>50000</proximity>
+                                                        <homeTarget>
+                                                            <localisation>VOTERTRON_JOIN_AS_POSER</localisation>
+                                                            <radius type='num'>1.2</radius>
+                                                        </homeTarget>
+                                                    </override>
+		                                    </detectors>
+		                                </root_struter>
+                                        <root_vote>
+			                                <rot type='vec'>0,180,0,180</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>0.670,0.501,9.141,0</pos>
+                                            <applet>
+			                                    <name>Votertron_def</name>
+                                                <override>
+                                                    <appletId>Votertron_Applet</appletId>
+                                                    <register>AppletRegister_Votertron.lua</register>
+                                                    <params>
+                                                        <male type='vec'>0,0,0,0</male>
+                                                        <female type='vec'>0,0,0,0</female>
+                                                        <voterId type='num'>1</voterId>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+                                            <detectors>
+			                                        <name>detectorsVotertron_def</name>
+                                                    <override>
+                                                        <proximity>50000</proximity>
+                                                        <homeTarget>
+                                                            <localisation>VOTERTRON_JOIN_AS_VOTER</localisation>
+                                                            <radius type='num'>0.8</radius>
+                                                        </homeTarget>
+                                                    </override>
+		                                    </detectors>
+		                                </root_vote>
+                                        <root_vote_0>
+			                                <rot type='vec'>0,180,0,180</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>1.944,0.501,9.141,0</pos>
+                                            <applet>
+			                                    <name>Votertron_0_def</name>
+                                                <override>
+                                                    <appletId>Votertron_Applet</appletId>
+                                                    <register>AppletRegister_Votertron.lua</register>
+                                                    <params>
+                                                        <male type='vec'>0,0,0,0</male>
+                                                        <female type='vec'>0,0,0,0</female>
+                                                        <voterId type='num'>2</voterId>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+                                            <detectors>
+			                                        <name>detectorsVotertron_0_def</name>
+                                                    <override>
+                                                        <proximity>50000</proximity>
+                                                        <homeTarget>
+                                                            <localisation>VOTERTRON_JOIN_AS_VOTER</localisation>
+                                                            <radius type='num'>0.8</radius>
+                                                        </homeTarget>
+                                                    </override>
+		                                    </detectors>
+		                                </root_vote_0>
+                                        <root_vote_1>
+			                                <rot type='vec'>0,180,0,180</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>3.191,0.501,9.141,0</pos>
+                                            <applet>
+			                                    <name>Votertron_1_def</name>
+                                                <override>
+                                                    <appletId>Votertron_Applet</appletId>
+                                                    <register>AppletRegister_Votertron.lua</register>
+                                                    <params>
+                                                        <male type='vec'>0,0,0,0</male>
+                                                        <female type='vec'>0,0,0,0</female>
+                                                        <voterId type='num'>3</voterId>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+                                            <detectors>
+			                                        <name>detectorsVotertron_1_def</name>
+                                                    <override>
+                                                        <proximity>50000</proximity>
+                                                        <homeTarget>
+                                                            <localisation>VOTERTRON_JOIN_AS_VOTER</localisation>
+                                                            <radius type='num'>0.8</radius>
+                                                        </homeTarget>
+                                                    </override>
+		                                    </detectors>
+		                                </root_vote_1>
+                                        <catwalk_exit_dest>
+			                                    <rot type='vec'>0,0,0,0</rot>
+                                                <scale type='vec'>0,0,0,0</scale>
+                                                <pos type='vec'>-4.589,1.849,-20.478,0</pos>
+		                                </catwalk_exit_dest>
+	                                </feature_root>
+                                </lua>");
                         return;
                     case "Music":
                         await ctx.Response.Send($@"<lua>
@@ -350,6 +695,96 @@ namespace ApacheNet.Extensions.Lockwood
                                                 </override>
 		                                    </applet>
 		                                </root_catwalk>
+                                        <root_judge>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>2,0,8.077,0</pos>
+                                            <applet>
+			                                    <name>Posertrons_V2</name>
+                                                <override>
+                                                    <appletId>Posertron_Applet</appletId>
+                                                    <register>AppletRegister_posertron.lua</register>
+                                                    <params>
+                                                        <model>
+                                                            <mdl>judges.mdl</mdl>
+                                                            <hkx>judges.hkx</hkx>
+                                                        </model>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_judge>
+                                        <root_judge_0>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>-2.863,0.169,-6.622,0</pos>
+                                            <applet>
+			                                    <name>Posertrons_V2</name>
+                                                <override>
+                                                    <appletId>Posertron_Applet</appletId>
+                                                    <register>AppletRegister_posertron.lua</register>
+                                                    <params>
+                                                        <model>
+                                                            <mdl>bench.mdl</mdl>
+                                                            <hkx>bench.hkx</hkx>
+                                                        </model>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_judge_0>
+                                        <root_judge_1>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>7.117,0.169,-6.622,0</pos>
+                                            <applet>
+			                                    <name>Posertrons_V2</name>
+                                                <override>
+                                                    <appletId>Posertron_Applet</appletId>
+                                                    <register>AppletRegister_posertron.lua</register>
+                                                    <params>
+                                                        <model>
+                                                            <mdl>bench.mdl</mdl>
+                                                            <hkx>bench.hkx</hkx>
+                                                        </model>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_judge_1>
+                                        <root_block>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>7.731,1.479,-20.632,0</pos>
+                                            <applet>
+			                                    <name>Posertrons_V2</name>
+                                                <override>
+                                                    <appletId>Posertron_Applet</appletId>
+                                                    <register>AppletRegister_posertron.lua</register>
+                                                    <params>
+                                                        <model>
+                                                            <mdl>rope.mdl</mdl>
+                                                            <hkx>rope.hkx</hkx>
+                                                        </model>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_block>
+                                        <root_block_0>
+			                                <rot type='vec'>0,0,0,0</rot>
+                                            <scale type='vec'>1,1,1,1</scale>
+                                            <pos type='vec'>-3.190,1.479,-20.632,0</pos>
+                                            <applet>
+			                                    <name>Posertrons_V2</name>
+                                                <override>
+                                                    <appletId>Posertron_Applet</appletId>
+                                                    <register>AppletRegister_posertron.lua</register>
+                                                    <params>
+                                                        <model>
+                                                            <mdl>rope.mdl</mdl>
+                                                            <hkx>rope.hkx</hkx>
+                                                        </model>
+                                                    </params>
+                                                </override>
+		                                    </applet>
+		                                </root_block_0>
                                         <root_custom>
 			                                <rot type='vec'>0,-208,0,-208</rot>
                                             <scale type='vec'>1,1,1,1</scale>
