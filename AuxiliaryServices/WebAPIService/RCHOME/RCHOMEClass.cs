@@ -53,7 +53,7 @@ namespace WebAPIService.RCHOME
                                             {
                                                 if (!_leaderboards.ContainsKey(gameName))
                                                     _leaderboards.Add(gameName, new FiringRangeLeaderboards());
-                                                return _leaderboards[gameName].ConvertScoreboardToXml();
+                                                return _leaderboards[gameName].UpdateScoreboardXml(workpath, gameName);
                                             }
                                         }
                                     }
@@ -86,8 +86,7 @@ namespace WebAPIService.RCHOME
                                                 if (!string.IsNullOrEmpty(gameName) && _leaderboards.ContainsKey(gameName) && int.TryParse(score, out int intScore))
                                                 {
                                                     _leaderboards[gameName].UpdateScoreBoard(player, intScore);
-                                                    _leaderboards[gameName].UpdateScoreboardXml(workpath, gameName);
-                                                    return _leaderboards[gameName].ConvertScoreboardToXml();
+                                                    return _leaderboards[gameName].UpdateScoreboardXml(workpath, gameName);
                                                 }
                                             }
                                         }

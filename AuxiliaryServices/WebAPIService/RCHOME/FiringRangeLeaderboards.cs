@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace WebAPIService.RCHOME
 {
     internal class FiringRangeLeaderboards
     {
+        private static bool _initiated = false;
+
         private object _Lock = new object();
 
         public class FiringRangeScoreboardEntry
@@ -19,6 +19,41 @@ namespace WebAPIService.RCHOME
         }
 
         private List<FiringRangeScoreboardEntry> scoreboard = new List<FiringRangeScoreboardEntry>();
+
+        public void LoadScoreboardFromXml(string path)
+        {
+            if (!File.Exists(path))
+            {
+                _initiated = true;
+                return;
+            }
+
+            scoreboard.Clear();
+
+            foreach (var rowElement in XDocument.Parse(File.ReadAllText(path)).Descendants("row"))
+            {
+                var cells = rowElement.Elements("c").ToList();
+
+                if (cells.Count == 2)
+                {
+                    string psnid = cells[0].Value;
+                    int.TryParse(cells[1].Value, out int score);
+
+                    scoreboard.Add(new FiringRangeScoreboardEntry
+                    {
+                        psnid = psnid,
+                        score = score
+                    });
+                }
+            }
+
+            scoreboard.Sort((a, b) => b.score.CompareTo(a.score));
+
+            if (scoreboard.Count > 10)
+                scoreboard.RemoveRange(10, scoreboard.Count - 10);
+
+            _initiated = true;
+        }
 
         public void UpdateScoreBoard(string psnid, int newScore)
         {
@@ -46,8 +81,11 @@ namespace WebAPIService.RCHOME
                 scoreboard.RemoveRange(10, scoreboard.Count - 10);
         }
 
-        public string ConvertScoreboardToXml()
+        private string ConvertScoreboardToXml(string path)
         {
+            if (!_initiated)
+                LoadScoreboardFromXml(path);
+
             XElement xmlScoreboard = new XElement("data");
 
             foreach (var entry in scoreboard)
@@ -62,7 +100,7 @@ namespace WebAPIService.RCHOME
             return xmlScoreboard.ToString();
         }
 
-        public void UpdateScoreboardXml(string apiPath, string gameName)
+        public string UpdateScoreboardXml(string apiPath, string gameName)
         {
             string directoryPath = $"{apiPath}/RCHOME/{gameName}";
             string filePath = $"{apiPath}/RCHOME/{gameName}/leaderboard.xml";
@@ -70,8 +108,10 @@ namespace WebAPIService.RCHOME
             lock (_Lock)
             {
                 Directory.CreateDirectory(directoryPath);
-                File.WriteAllText(filePath, ConvertScoreboardToXml());
+                string xmlData = ConvertScoreboardToXml(filePath);
+                File.WriteAllText(filePath, xmlData);
                 CustomLogger.LoggerAccessor.LogDebug($"[RCHOME] - {gameName} - scoreboard XML updated.");
+                return xmlData;
             }
         }
     }
