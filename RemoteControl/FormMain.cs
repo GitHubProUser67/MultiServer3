@@ -1,4 +1,4 @@
-using CastleLibrary.NetHasher.CRC;
+using NetHasher.CRC;
 using System.Text;
 
 namespace RemoteControl

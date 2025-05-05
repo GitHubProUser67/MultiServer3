@@ -3,7 +3,7 @@
 using System.Threading.Tasks;
 #endif
 
-namespace CastleLibrary.NetHasher.CRC
+namespace NetHasher.CRC
 {
     public static class CRC64
     {

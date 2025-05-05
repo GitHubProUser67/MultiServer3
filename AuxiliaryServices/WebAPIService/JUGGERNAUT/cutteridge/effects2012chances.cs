@@ -8,7 +8,7 @@ namespace WebAPIService.JUGGERNAUT.cutteridge
             if (File.Exists($"{apiPath}/juggernaut/cutteridge/effects2012chances.xml"))
                 return File.ReadAllText($"{apiPath}/juggernaut/cutteridge/effects2012chances.xml");
 
-            return null;
+            return "<scarecrow>500</scarecrow><girlChance>350</girlChance><doorChance>650</doorChance><kitchenChance>900</kitchenChance>";
         }
     }
 }

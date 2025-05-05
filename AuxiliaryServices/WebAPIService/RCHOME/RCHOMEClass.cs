@@ -4,6 +4,7 @@ using NetHasher;
 using NetworkLibrary.HTTP;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using WebAPIService.LOOT;
 
@@ -83,9 +84,9 @@ namespace WebAPIService.RCHOME
                                         {
                                             lock (_leaderboards)
                                             {
-                                                if (!string.IsNullOrEmpty(gameName) && _leaderboards.ContainsKey(gameName) && int.TryParse(score, out int intScore))
+                                                if (!string.IsNullOrEmpty(gameName) && _leaderboards.ContainsKey(gameName))
                                                 {
-                                                    _leaderboards[gameName].UpdateScoreBoard(player, intScore);
+                                                    _leaderboards[gameName].UpdateScoreBoard(player, (int)double.Parse(score, CultureInfo.InvariantCulture));
                                                     return _leaderboards[gameName].UpdateScoreboardXml(workpath, gameName);
                                                 }
                                             }

@@ -1,7 +1,7 @@
 using EndianTools;
 using System;
 using System.Collections;
-using CastleLibrary.NetHasher.CRC;
+using NetHasher.CRC;
 
 namespace HomeTools.ChannelID
 {
@@ -178,8 +178,8 @@ namespace HomeTools.ChannelID
             byte[] numArray = new byte[16];
             new BitArray(bytes3).Xor(new BitArray(new SceneKey(new byte[] { 0xB9, 0x20, 0x86, 0xBC, 0x3E, 0x8B, 0x4A, 0xDF, 0xA3, 0x01, 0x4D, 0xEE, 0x2F, 0xA3, 0xAB, 0x69 }).GetBytes())).CopyTo(numArray, 0);
             ushort crc = EndianUtils.ReverseUshort(CRC16.Create(numArray, 0, 14));
-            numArray[14] = (byte)(crc >> 8); // Get the higher 8 bits
-            numArray[15] = (byte)crc;        // Get the lower 8 bits
+            numArray[14] = (byte)(crc >> 8);
+            numArray[15] = (byte)crc;
             return new SceneKey(numArray);
         }
 

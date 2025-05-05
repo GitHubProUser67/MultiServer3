@@ -21,7 +21,7 @@ using Horizon.LIBRARY.Pipeline.Attribute;
 using NetworkLibrary.Extension;
 using Horizon.MUM.Models;
 using Horizon.SERVER.Extension.PlayStationHome;
-using CastleLibrary.NetHasher.CRC;
+using NetHasher.CRC;
 
 namespace Horizon.SERVER.Medius
 {

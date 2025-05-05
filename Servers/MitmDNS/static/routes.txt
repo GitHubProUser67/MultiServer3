@@ -103,6 +103,7 @@ development.scee.net,Redirect,IP
 samples.hdk.scee.net,Redirect,IP
 prd.destinations.scea.com,Redirect,IP
 dev.destinations.scea.com,Redirect,IP
+homeleaderboards.software.eu.playstation.com,Redirect,IP
 
 ;VeeMee
 away.veemee.com,Redirect,IP

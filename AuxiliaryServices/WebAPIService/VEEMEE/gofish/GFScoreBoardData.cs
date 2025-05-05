@@ -44,8 +44,7 @@ namespace WebAPIService.VEEMEE.gofish
                 string biggestfishweight = playerElement.Element("biggestfishweight")?.Value;
                 string totalfishweight = playerElement.Element("totalfishweight")?.Value;
 
-                float score = 0;
-                float.TryParse(scoreStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out score);
+                float.TryParse(scoreStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float score);
 
                 scoreboard.Add(new ScoreboardEntry
                 {

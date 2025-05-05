@@ -1,6 +1,6 @@
 using System;
 
-namespace CastleLibrary.NetHasher.CRC
+namespace NetHasher.CRC
 {
     public static class CRC8
     {

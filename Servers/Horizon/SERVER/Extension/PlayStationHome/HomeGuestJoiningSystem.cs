@@ -5,7 +5,7 @@ using NetworkLibrary.HTTP;
 using PS2FloatLibrary;
 using System.Security.Cryptography;
 using System.Text;
-using CastleLibrary.NetHasher.CRC;
+using NetHasher.CRC;
 
 namespace Horizon.SERVER.Extension.PlayStationHome
 {

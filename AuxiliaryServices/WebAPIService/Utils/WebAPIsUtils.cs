@@ -2,7 +2,7 @@ using CustomLogger;
 using System.IO.Compression;
 using System.IO;
 using System;
-using CastleLibrary.NetHasher.CRC;
+using NetHasher.CRC;
 using System.Text;
 
 namespace WebAPIService.Utils

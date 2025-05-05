@@ -9,7 +9,7 @@ using System.Runtime.Intrinsics.Arm;
 #endif
 using EndianTools;
 
-namespace CastleLibrary.NetHasher.CRC
+namespace NetHasher.CRC
 {
     public static class CRC32
     {

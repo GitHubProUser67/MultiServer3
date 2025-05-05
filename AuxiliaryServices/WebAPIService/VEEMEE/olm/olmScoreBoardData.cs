@@ -41,8 +41,7 @@ namespace WebAPIService.VEEMEE.olm
                 string scoreStr = playerElement.Element("score")?.Value;
                 string throws = playerElement.Element("throws")?.Value;
 
-                float score = 0;
-                float.TryParse(scoreStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out score);
+                float.TryParse(scoreStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float score);
 
                 scoreboard.Add(new ScoreboardEntry
                 {
