@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace NetworkLibrary
@@ -10,7 +11,14 @@ namespace NetworkLibrary
     {
         public static bool EnableServerIpAutoNegotiation { get; set; } = true;
         public static bool UsePublicIp { get; set; } = true;
+        public static bool EnableSNMPReports { get; set; } = false;
         public static string FallbackServerIp { get; set; } = "0.0.0.0";
+        public static string SNMPTrapHost { get; set; } = IPAddress.Loopback.ToString();
+        public static string SNMPEnterpriseOid { get; set; } = "12345";
+        public static HashAlgorithmName SNMPHashAlgorithm { get; set; } = HashAlgorithmName.MD5;
+        public static string SNMPUserName { get; set; } = "usr-md5-aes";
+        public static string SNMPAuthPassword { get; set; } = "authkey1";
+        public static string SNMPPrivatePassword { get; set; } = "privkey1";
 
         /// <summary>
         /// Tries to load the specified configuration file.
@@ -32,7 +40,17 @@ namespace NetworkLibrary
                 {
                     enable_server_ip_auto_negotiation = EnableServerIpAutoNegotiation,
                     use_public_ip = UsePublicIp,
-                    fallback_server_ip = FallbackServerIp
+                    fallback_server_ip = FallbackServerIp,
+                    snmp = new
+                    {
+                        enable = EnableSNMPReports,
+                        trap_host = SNMPTrapHost,
+                        enterprise_oid = SNMPEnterpriseOid,
+                        hash_algorithm = SNMPHashAlgorithm.Name,
+                        username = SNMPUserName,
+                        auth_password = SNMPAuthPassword,
+                        private_password = SNMPPrivatePassword,
+                    },
                 };
 
                 File.WriteAllText(configPath, JsonSerializer.Serialize(configObject, new JsonSerializerOptions
@@ -55,6 +73,16 @@ namespace NetworkLibrary
                     string tempVerificationIp = GetValueOrDefault(config, "fallback_server_ip", FallbackServerIp);
                     if (IPAddress.TryParse(tempVerificationIp, out _))
                         FallbackServerIp = tempVerificationIp;
+                    if (config.TryGetProperty("snmp", out JsonElement snmpElement))
+                    {
+                        EnableSNMPReports = snmpElement.GetProperty("enable").GetBoolean();
+                        SNMPTrapHost = snmpElement.GetProperty("trap_host").GetString();
+                        SNMPEnterpriseOid = snmpElement.GetProperty("enterprise_oid").GetString();
+                        SNMPHashAlgorithm = new HashAlgorithmName(snmpElement.GetProperty("hash_algorithm").GetString());
+                        SNMPUserName = snmpElement.GetProperty("username").GetString();
+                        SNMPAuthPassword = snmpElement.GetProperty("auth_password").GetString();
+                        SNMPPrivatePassword = snmpElement.GetProperty("private_password").GetString();
+                    }
                 }
             }
             catch (Exception ex)

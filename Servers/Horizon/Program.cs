@@ -10,6 +10,9 @@ using System.Reflection;
 using Horizon.HTTPSERVICE;
 using Horizon.MUM;
 using NetworkLibrary.Extension;
+using NetworkLibrary.SNMP;
+using NetworkLibrary;
+using Microsoft.Extensions.Logging;
 
 public static class HorizonServerConfiguration
 {
@@ -158,6 +161,7 @@ class Program
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "horizon.json";
     private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
+    private static SnmpTrapSender? trapSender = null;
     private static ConcurrentBag<CrudServerHandler>? HTTPBag;
     private static MumServerHandler? MUMServer;
 
@@ -263,7 +267,49 @@ class Program
 
         GeoIP.Initialize();
 
-        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
+        NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
+
+        if (NetworkLibraryConfiguration.EnableSNMPReports)
+        {
+            trapSender = new SnmpTrapSender(NetworkLibraryConfiguration.SNMPHashAlgorithm.Name, NetworkLibraryConfiguration.SNMPTrapHost, NetworkLibraryConfiguration.SNMPUserName,
+                    NetworkLibraryConfiguration.SNMPAuthPassword, NetworkLibraryConfiguration.SNMPPrivatePassword,
+                    NetworkLibraryConfiguration.SNMPEnterpriseOid);
+
+            if (trapSender.report != null)
+            {
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Information, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendInfo(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Warning, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendWarn(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Error, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendCrit(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Critical, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendCrit(msg);
+                });
+#if DEBUG
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Debug, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendInfo(msg);
+                });
+#endif
+            }
+        }
+
         HorizonServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

@@ -4,7 +4,9 @@ using MultiSocks.Blaze;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Runtime;
-using NetworkLibrary.Extension;
+using NetworkLibrary.SNMP;
+using NetworkLibrary;
+using Microsoft.Extensions.Logging;
 
 public static class MultiSocksServerConfiguration
 {
@@ -84,6 +86,7 @@ class Program
     public static string configDir = Directory.GetCurrentDirectory() + "/static/";
     private static string configPath = configDir + "MultiSocks.json";
     private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
+    private static SnmpTrapSender? trapSender = null;
     private static AriesServer? DirtySocksServer;
     private static BlazeClass? BlazeDirtySocksServer;
 
@@ -124,7 +127,49 @@ class Program
         };
 #endif
 
-        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
+        NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
+
+        if (NetworkLibraryConfiguration.EnableSNMPReports)
+        {
+            trapSender = new SnmpTrapSender(NetworkLibraryConfiguration.SNMPHashAlgorithm.Name, NetworkLibraryConfiguration.SNMPTrapHost, NetworkLibraryConfiguration.SNMPUserName,
+                    NetworkLibraryConfiguration.SNMPAuthPassword, NetworkLibraryConfiguration.SNMPPrivatePassword,
+                    NetworkLibraryConfiguration.SNMPEnterpriseOid);
+
+            if (trapSender.report != null)
+            {
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Information, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendInfo(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Warning, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendWarn(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Error, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendCrit(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Critical, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendCrit(msg);
+                });
+#if DEBUG
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Debug, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendInfo(msg);
+                });
+#endif
+            }
+        }
+
         MultiSocksServerConfiguration.RefreshVariables(configPath);
 
         StartOrUpdateServer();

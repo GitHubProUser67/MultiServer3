@@ -16,6 +16,9 @@ using NetworkLibrary.HTTP;
 using System.Collections.Concurrent;
 using NetworkLibrary.Extension;
 using System.Diagnostics;
+using NetworkLibrary.SNMP;
+using NetworkLibrary;
+using Microsoft.Extensions.Logging;
 
 public static class ApacheNetServerConfiguration
 {
@@ -329,6 +332,7 @@ class Program
     private static Timer? FilesystemTree = null;
     private static Task? DNSThread = null;
     private static Task? DNSRefreshThread = null;
+    private static SnmpTrapSender? trapSender = null;
     private static ConcurrentBag<ApacheNetProcessor>? HTTPSBag = null;
     private static readonly FileSystemWatcher dnswatcher = new();
 
@@ -500,7 +504,49 @@ class Program
 
         GeoIP.Initialize();
 
-        NetworkLibrary.NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
+        NetworkLibraryConfiguration.RefreshVariables(configNetworkLibraryPath);
+
+        if (NetworkLibraryConfiguration.EnableSNMPReports)
+        {
+            trapSender = new SnmpTrapSender(NetworkLibraryConfiguration.SNMPHashAlgorithm.Name, NetworkLibraryConfiguration.SNMPTrapHost, NetworkLibraryConfiguration.SNMPUserName,
+                    NetworkLibraryConfiguration.SNMPAuthPassword, NetworkLibraryConfiguration.SNMPPrivatePassword,
+                    NetworkLibraryConfiguration.SNMPEnterpriseOid);
+
+            if (trapSender.report != null)
+            {
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Information, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendInfo(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Warning, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendWarn(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Error, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendCrit(msg);
+                });
+
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Critical, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendCrit(msg);
+                });
+#if DEBUG
+                LoggerAccessor.RegisterPostLogAction(LogLevel.Debug, (msg, args) =>
+                {
+                    if (NetworkLibraryConfiguration.EnableSNMPReports)
+                        trapSender!.SendInfo(msg);
+                });
+#endif
+            }
+        }
+
         ApacheNetServerConfiguration.RefreshVariables(configPath);
 
         if (ApacheNetServerConfiguration.PreferNativeHttpListenerEngine
