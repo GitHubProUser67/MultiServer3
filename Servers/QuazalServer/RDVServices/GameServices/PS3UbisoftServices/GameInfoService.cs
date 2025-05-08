@@ -56,5 +56,12 @@ namespace QuazalServer.RDVServices.GameServices.PS3UbisoftServices
 
             return Result(fileList);
         }
+
+        [RMCMethod(7)]
+        public RMCResult GetGameSettingsFile(string fileName)
+        {
+            UNIMPLEMENTED();
+            return Error(0);
+        }
     }
 }

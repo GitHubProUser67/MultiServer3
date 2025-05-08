@@ -1,4 +1,4 @@
-namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
+﻿namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     public enum RMCProtocolId
     {
@@ -8,6 +8,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
         SecureConnectionService = 11,
         NotificationEventManager = 14,
         NotificationService = 15,
+        SimpleAuthenticationService = 16,
         HealthService = 18,
         MonitoringService = 19,
         FriendsService = 20,
@@ -23,9 +24,14 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
         Tracking3 = 36,
         LocalizationService = 39,
         GameSessionService = 42,
+        UplayWinService = 49,
         MatchMakingProtocolExtClient = 50,
+        UplayStorageService = 53,
+        UplayStatsService = 55,
+        SparkProtocolService = 60,
         OfflineGameNotificationsService = 71,
-        NpFriendsService = 83,
+        ChallengeHelperProtocol = 105,
+        ClanHelperProtocol = 106,
         LadderHelperProtocol = 107,
         PlayerStatsService = 108,
         RichPresenceService = 109,
@@ -43,7 +49,14 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
         DriverG2WService = 121,
         Game2WebService = 122,
         GameSessionExService = 123,
+        TrackingExtensionService = 1001,
+        LeaderboardService = 5000,
+        OverlordNewsProtocolService = 5002,
         OverlordCoreProtocolService = 5003,
+        ExtraContentProtocolService = 5004,
         OverlordFriendsService = 5005,
+        AwardsService = 5006,
+        OverlordChallengeProtocolService = 5007,
+        OverlordDareProtocolService = 5008,
     }
 }

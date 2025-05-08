@@ -6,7 +6,7 @@ using QuazalServer.RDVServices.DDL.Models;
 using QuazalServer.RDVServices.RMC;
 using System.Net;
 
-namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
+namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     [RMCService((ushort)RMCProtocolId.NATTraversalService)]
     public class NATTraversalService : RMCServiceBase
