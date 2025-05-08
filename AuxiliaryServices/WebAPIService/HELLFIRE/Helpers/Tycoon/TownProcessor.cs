@@ -7,7 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace WebAPIService.HELLFIRE.Helpers
+namespace WebAPIService.HELLFIRE.Helpers.Tycoon
 {
     public class TownProcessor
     {

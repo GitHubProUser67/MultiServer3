@@ -258,7 +258,7 @@ namespace WebAPIService.VEEMEE.gofish
 
             if (_lastDailyResetTime.Date != now)
             {
-                scoreboard.Clear();
+                scoreboardDaily.Clear();
                 _lastDailyResetTime = now;
                 CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - gofish - Daily scoreboard reset at {DateTime.Now}.");
             }

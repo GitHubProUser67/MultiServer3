@@ -7,7 +7,6 @@ namespace WebAPIService.HELLFIRE.Helpers
 {
     public class Leaderboards
     {
-
         public static string GetLeaderboardsClearasil(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
             string path = $"{WorkPath}/ClearasilSkater/User_Data";
@@ -89,7 +88,7 @@ namespace WebAPIService.HELLFIRE.Helpers
             string LBPath = $"{WorkPath}/NovusPrime/User_Data/Leaderboards.xml";
 
             #region Template LB to start with
-            /*string templateLB = @"<GalaxyRider42>
+            /*string templateLB = @"<Root><GalaxyRider42>
                                     <DisplayName>GalaxyRider42</DisplayName>
                                     <Score>0</Score>
                                 </GalaxyRider42>
@@ -128,7 +127,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                                 <VoidTrekker11>
                                     <DisplayName>VoidTrekker11</DisplayName>
                                     <Score>0</Score>
-                                </VoidTrekker11>";*/
+                                </VoidTrekker11></Root>";*/
             #endregion
 
             using (MemoryStream ms = new MemoryStream(PostData))
@@ -165,7 +164,6 @@ namespace WebAPIService.HELLFIRE.Helpers
 
         public static string GetGlobalRevenueCollectedLeaderboard(byte[] PostData, string boundary, string UserID, string WorkPath)
         {
-           
             return @"<Response>
                             <Entry>
                                 <DisplayName>AgentDark447</DisplayName>

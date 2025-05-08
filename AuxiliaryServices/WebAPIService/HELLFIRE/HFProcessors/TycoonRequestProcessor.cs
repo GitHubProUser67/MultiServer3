@@ -4,6 +4,7 @@ using HttpMultipartParser;
 using WebAPIService.HELLFIRE.Helpers;
 using System.IO;
 using System.Threading;
+using WebAPIService.HELLFIRE.Helpers.Tycoon;
 
 namespace TycoonServer.HFProcessors
 {

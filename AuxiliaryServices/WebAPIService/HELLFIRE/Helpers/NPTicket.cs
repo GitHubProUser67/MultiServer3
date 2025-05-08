@@ -65,7 +65,7 @@ namespace WebAPIService.HELLFIRE.Helpers
 
                 if (ByteUtils.FindBytePattern(ticketData, new byte[] { 0x52, 0x50, 0x43, 0x4E }, 184) != -1)
                 {
-                    LoggerAccessor.LogInfo($"[HFGames] : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
+                    LoggerAccessor.LogInfo($"[HFGames] - NovusPrime : User {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on RPCN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData) + "RPCN";
@@ -85,7 +85,7 @@ namespace WebAPIService.HELLFIRE.Helpers
                 }
                 else
                 {
-                    LoggerAccessor.LogInfo($"[HFGames] : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
+                    LoggerAccessor.LogInfo($"[HFGames] - NovusPrime : {Encoding.ASCII.GetString(extractedData).Replace("H", string.Empty)} logged in and is on PSN");
 
                     // Convert the modified data to a string
                     resultString = Encoding.ASCII.GetString(extractedData);

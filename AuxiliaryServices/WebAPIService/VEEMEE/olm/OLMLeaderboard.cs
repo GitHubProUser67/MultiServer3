@@ -50,7 +50,11 @@ namespace WebAPIService.VEEMEE.olm
                                         // Check if the file is newer than 7 days
                                         double diff = (refdate - fileDateTime).TotalDays;
                                         if (diff <= 7)
-                                            return File.ReadAllText($"{apiPath}/VEEMEE/olm/leaderboard_{refdate.AddDays(-diff):yyyy_MM_dd}.xml");
+                                        {
+                                            string weekScoreBoardPath = $"{apiPath}/VEEMEE/olm/leaderboard_{refdate.AddDays(-diff):yyyy_MM_dd}.xml";
+                                            if (File.Exists(weekScoreBoardPath))
+                                                return File.ReadAllText(weekScoreBoardPath);
+                                        }
                                     }
                                 }
                             }

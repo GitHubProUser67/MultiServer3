@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System;
+using System.Globalization;
 
 namespace WebAPIService.VEEMEE.olm
 {
@@ -241,9 +242,9 @@ namespace WebAPIService.VEEMEE.olm
 
             if (_lastResetTime < lastMondayMidnight)
             {
-                scoreboard.Clear();
+                scoreboardWeekly.Clear();
                 _lastResetTime = now;
-                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - Global scoreboard reset at {now}.");
+                CustomLogger.LoggerAccessor.LogDebug($"[VEEMEE] - olm - Weekly scoreboard reset at {now}.");
             }
         }
 
@@ -265,7 +266,8 @@ namespace WebAPIService.VEEMEE.olm
                         string fileDate = match.Groups[1].Value;
 
                         // Parse the file date
-                        if (DateTime.TryParse(fileDate, out DateTime fileDateTime))
+                        if (DateTime.TryParseExact(fileDate, "yyyy_MM_dd",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fileDateTime))
                         {
                             // Check if the file is newer than 7 days
                             if ((DateTime.Parse(date) - fileDateTime).TotalDays <= 7)

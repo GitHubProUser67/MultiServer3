@@ -121,7 +121,8 @@ public static class ApacheNetServerConfiguration
             "www.services.heavyh2o.net",
             "nDreams-multiserver-cdn",
             "secure.cpreprod.homeps3.online.scee.com",
-            "secure.heavyh2o.net"
+            "secure.heavyh2o.net",
+            "game.hellfiregames.com"
         };
     public static List<ushort>? Ports { get; set; } = new() { 80, 443, 3074, 3658, 9090, 10010, 26004, 33000 };
     public static List<string>? RedirectRules { get; set; }

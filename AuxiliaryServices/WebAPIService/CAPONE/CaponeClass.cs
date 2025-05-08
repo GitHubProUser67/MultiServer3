@@ -21,7 +21,7 @@ namespace WebAPIService.CAPONE
         }
 
 
-        public string? ProcessRequest(byte[] PostData, string ContentType, bool https)
+        public string ProcessRequest(byte[] PostData, string ContentType, bool https)
         {
             if (string.IsNullOrEmpty(absolutePath))
                 return null;

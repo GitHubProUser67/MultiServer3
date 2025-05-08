@@ -9,7 +9,7 @@ namespace WebAPIService.PREMIUMAGENCY
 {
     public class Event
     {
-        public static string? confirmEventRequestPOST(byte[]? PostData, string? ContentType, string eventId, string workPath, string fulluripath, string method)
+        public static string confirmEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workPath, string fulluripath, string method)
         {
             string nid = string.Empty;
 
@@ -70,7 +70,7 @@ namespace WebAPIService.PREMIUMAGENCY
             }
         }
 
-        public static string? checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
+        public static string checkEventRequestPOST(byte[] PostData, string ContentType, string eventId, string workpath, string fulluripath, string method)
         {
             string nid = string.Empty;
 

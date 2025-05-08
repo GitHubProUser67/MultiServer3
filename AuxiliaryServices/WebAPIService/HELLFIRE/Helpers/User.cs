@@ -3,8 +3,10 @@ using HttpMultipartParser;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Xml;
+using WebAPIService.HELLFIRE.Helpers.NovusPrime;
 
 namespace WebAPIService.HELLFIRE.Helpers
 {
@@ -544,8 +546,11 @@ namespace WebAPIService.HELLFIRE.Helpers
         {
             string profilePath = $"{WorkPath}/NovusPrime/User_Data/{UserID}.xml";
             string xmlProfile = string.Empty;
+
             if (File.Exists(profilePath))
                 xmlProfile = File.ReadAllText(profilePath);
+            else
+                xmlProfile = DefaultNovusPrimeProfile;
 
             var doc = new XmlDocument();
 
@@ -622,7 +627,6 @@ namespace WebAPIService.HELLFIRE.Helpers
                 var doc = new XmlDocument();
                 var lbDoc = new XmlDocument();
 
-
                 doc.LoadXml("<root>" + xmlProfile + "</root>"); // Wrap the XML string in a root element
                 if (doc != null && PostData != null && !string.IsNullOrEmpty(boundary))
                 {
@@ -654,50 +658,58 @@ namespace WebAPIService.HELLFIRE.Helpers
                                     #region Leaderboard entry update
 
                                     if (File.Exists(lbPath))
-                                    {
                                         lbDoc.LoadXml("<root>" + File.ReadAllText(lbPath) + "</root>");
+                                    else
+                                    {
+                                        XmlElement rootElement = lbDoc.CreateElement("root");
+                                        lbDoc.AppendChild(rootElement);
+                                    }
 
-                                        if (lbDoc.SelectSingleNode($"//{UserID}") != null)
+                                    XmlNode userNameExistEntry = lbDoc.SelectSingleNode($"//{UserID}");
+                                    int totalNebulonEver = (int)double.Parse(data.GetParameterValue("TotalNebulonEver"), CultureInfo.InvariantCulture);
+
+                                    if (userNameExistEntry != null)
+                                    {
+                                        XmlNode scoreNode = userNameExistEntry.SelectSingleNode("Score");
+                                        if (scoreNode == null)
                                         {
-                                            XmlNode userNameExistEntry = lbDoc.SelectSingleNode($"//{UserID}");
-
-                                            XmlNode scoreNode = userNameExistEntry.SelectSingleNode("//Score");
-                                            scoreNode.InnerText = data.GetParameterValue("TotalNebulonEver").Split(".")[0];
-
+                                            scoreNode = lbDoc.CreateElement("Score");
+                                            userNameExistEntry.AppendChild(scoreNode);
                                         }
-                                        else
-                                        {
-                                            XmlElement userNameElement = lbDoc.CreateElement(UserID);
-                                            XmlElement displayNameElement = lbDoc.CreateElement("DisplayName");
-                                            XmlElement scoreElement = lbDoc.CreateElement("Score");
-
-                                            scoreElement.InnerText = data.GetParameterValue("TotalNebulonEver");
-                                            displayNameElement.InnerText = UserID;
-
-                                            userNameElement.AppendChild(displayNameElement);
-                                            userNameElement.AppendChild(scoreElement);
-
-                                            lbDoc.DocumentElement.AppendChild(userNameElement);
-                                        }
-
+                                        scoreNode.InnerText = totalNebulonEver.ToString();
                                     }
                                     else
                                     {
-
                                         XmlElement userNameElement = lbDoc.CreateElement(UserID);
                                         XmlElement displayNameElement = lbDoc.CreateElement("DisplayName");
                                         XmlElement scoreElement = lbDoc.CreateElement("Score");
 
-                                        scoreElement.InnerText = data.GetParameterValue("TotalNebulonEver");
                                         displayNameElement.InnerText = UserID;
+                                        scoreElement.InnerText = totalNebulonEver.ToString();
 
                                         userNameElement.AppendChild(displayNameElement);
                                         userNameElement.AppendChild(scoreElement);
 
-                                        lbDoc.AppendChild(userNameElement);
+                                        lbDoc.DocumentElement.AppendChild(userNameElement);
+                                    }
+
+                                    DateTime refdate = DateTime.Now; // We avoid race conditions by calculating it one time.
+
+                                    try
+                                    {
+                                        InterGalacticLeaderboardData.UpdateWeeklyScoreBoard(UserID, totalNebulonEver);
+                                        // We finalized edit, so we issue a write.
+                                        InterGalacticLeaderboardData.UpdateTodayScoreboardXml(WorkPath, refdate.ToString("yyyy_MM_dd"));
+                                        InterGalacticLeaderboardData.UpdateWeeklyScoreboardXml(WorkPath, refdate.ToString("yyyy_MM_dd"));
+                                        InterGalacticLeaderboardData.UpdateMonthlyScoreboardXml(WorkPath, refdate.ToString("yyyy_MM"));
+                                    }
+                                    catch (Exception)
+                                    {
+                                        // Not Important
                                     }
 
                                     File.WriteAllText(lbPath, lbDoc.DocumentElement.InnerXml);
+
                                     #endregion
                                 }
                                 break;
