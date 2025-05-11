@@ -5,8 +5,8 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["WebServers/MultiHTTP/MultiHTTP.csproj", "MultiHTTP/"]
-RUN dotnet restore "WebServers/MultiHTTP/MultiHTTP.csproj"
+COPY ["Servers/MultiHTTP/MultiHTTP.csproj", "MultiHTTP/"]
+RUN dotnet restore "Servers/MultiHTTP/MultiHTTP.csproj"
 COPY . .
 WORKDIR "/src/MultiHTTP"
 RUN dotnet build "MultiHTTP.csproj" -c Release -o /app/build

@@ -5,14 +5,15 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["SpecializedServers/QuazalServer/QuazalServer.csproj", "QuazalServer/"]
-RUN dotnet restore "SpecializedServers/QuazalServer/QuazalServer.csproj"
+RUN mkdir -p QuazalServer
+COPY ["Servers/QuazalServer/QuazalServer_docker.csproj", "QuazalServer/"]
+RUN dotnet restore "QuazalServer/QuazalServer_docker.csproj"
 COPY . .
 WORKDIR "/src/QuazalServer"
-RUN dotnet build "QuazalServer.csproj" -c Release -o /app/build
+RUN dotnet build "QuazalServer_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "QuazalServer.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "QuazalServer_docker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
