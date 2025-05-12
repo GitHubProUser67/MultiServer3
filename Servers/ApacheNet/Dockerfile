@@ -18,4 +18,4 @@ RUN dotnet publish "ApacheNet_docker.csproj" -c Release -o /app/publish /p:UseAp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ApacheNet.dll"]
+ENTRYPOINT ["dotnet", "ApacheNet_docker.dll"]

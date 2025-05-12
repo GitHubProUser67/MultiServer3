@@ -17,4 +17,4 @@ RUN dotnet publish "MultiSocks_docker.csproj" -c Release -o /app/publish /p:UseA
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MultiSocks.dll"]
+ENTRYPOINT ["dotnet", "MultiSocks_docker.dll"]

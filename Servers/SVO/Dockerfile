@@ -17,4 +17,4 @@ RUN dotnet publish "SVO_docker.csproj" -c Release -o /app/publish /p:UseAppHost=
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SVO.dll"]
+ENTRYPOINT ["dotnet", "SVO_docker.dll"]

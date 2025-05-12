@@ -18,4 +18,4 @@ RUN dotnet publish "QuazalServer_docker.csproj" -c Release -o /app/publish /p:Us
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "QuazalServer.dll"]
+ENTRYPOINT ["dotnet", "QuazalServer_docker.dll"]

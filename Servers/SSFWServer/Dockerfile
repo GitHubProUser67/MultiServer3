@@ -17,4 +17,4 @@ RUN dotnet publish "SSFWServer_docker.csproj" -c Release -o /app/publish /p:UseA
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SSFWServer.dll"]
+ENTRYPOINT ["dotnet", "SSFWServer_docker.dll"]

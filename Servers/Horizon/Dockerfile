@@ -17,4 +17,4 @@ RUN dotnet publish "Horizon_docker.csproj" -c Release -o /app/publish /p:UseAppH
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Horizon.dll"]
+ENTRYPOINT ["dotnet", "Horizon_docker.dll"]
