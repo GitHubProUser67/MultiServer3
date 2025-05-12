@@ -12,6 +12,19 @@ services:
       context: .
       dockerfile: Servers/MultiSocks/Dockerfile
     network_mode: "bridge"  # Needed for SSL Handling
+    ports:
+      - "11000:11000"
+      - "11050:11050"
+      - "11051:11051"
+      - "11100:11100"
+      - "11101:11101"
+      - "11140:11140"
+      - "18700:18700"
+      - "21850:21850"
+      - "21851:21851"
+      - "21870:21870"
+      - "21871:21871"
+      - "65535:65535"
 
   ssfwserver:
     image: ssfwserver
@@ -19,29 +32,47 @@ services:
       context: .
       dockerfile: Servers/SSFWServer/Dockerfile
     network_mode: "bridge"  # Needed for SSL Handling
-
+    ports:
+      - "8080:8080"
+      - "10443:10443"
+      - "65534:65535"
+      
   svo:
     image: svo
     build:
       context: .
       dockerfile: Servers/SVO/Dockerfile
     network_mode: "bridge"  # Needed for SSL Handling
-
+    ports:
+      - "10058:10058"
+      - "10060:10060"
+      - "10061:10061"
+      - "10062:10062"
+      - "65533:65535"
+      
   quazalserver:
     image: quazalserver
     build:
       context: .
       dockerfile: Servers/QuazalServer/Dockerfile
+    ports:
+      - "30550:30550"
 
   mitmdns:
     image: mitmdns
     build:
       context: .
       dockerfile: Servers/MitmDNS/Dockerfile
-
+    ports:
+      - "53:53" # This breaks DNS, how to ensure localhost doesn't already use 53?
+      - "65532:65535"
+      
   apachenet:
     image: apachenet
     build:
       context: .
       dockerfile: Servers/ApacheNet/Dockerfile
-
+    ports:
+      - "443:443"
+      - "65531:65535"
+      
