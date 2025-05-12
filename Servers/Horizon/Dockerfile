@@ -5,7 +5,7 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Servers/Horizon/Horizon_docker.csproj", "Horizon/"]
+COPY ["Servers/Horizon/*", "Horizon/"]
 RUN dotnet restore "Horizon/Horizon_docker.csproj"
 COPY . .
 WORKDIR "/src/Horizon"

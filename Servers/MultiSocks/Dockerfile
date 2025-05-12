@@ -5,7 +5,7 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Servers/MultiSocks/MultiSocks_docker.csproj", "MultiSocks/"]
+COPY ["Servers/MultiSocks/*", "MultiSocks/"]
 RUN dotnet restore "MultiSocks/MultiSocks_docker.csproj"
 COPY . .
 WORKDIR "/src/MultiSocks"

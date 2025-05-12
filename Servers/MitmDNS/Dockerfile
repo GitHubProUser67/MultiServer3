@@ -5,7 +5,7 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Servers/MitmDNS/MitmDNS_docker.csproj", "MitmDNS/"]
+COPY ["Servers/MitmDNS/*", "MitmDNS/"]
 RUN dotnet restore "MitmDNS/MitmDNS_docker.csproj"
 COPY . .
 WORKDIR "/src/MitmDNS"

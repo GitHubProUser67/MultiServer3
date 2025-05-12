@@ -5,7 +5,7 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Servers/SSFWServer/SSFWServer_docker.csproj", "SSFWServer/"]
+COPY ["Servers/SSFWServer/*", "SSFWServer/"]
 RUN dotnet restore "SSFWServer/SSFWServer_docker.csproj"
 COPY . .
 WORKDIR "/src/SSFWServer"
