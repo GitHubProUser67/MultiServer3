@@ -39,3 +39,9 @@ services:
       context: .
       dockerfile: Servers/MitmDNS/Dockerfile
 
+  apachenet:
+    image: apachenet
+    build:
+      context: .
+      dockerfile: Servers/ApacheNet/Dockerfile
+
