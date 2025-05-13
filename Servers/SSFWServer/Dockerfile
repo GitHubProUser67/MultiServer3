@@ -5,16 +5,16 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["SpecializedServers/SSFWServer/SSFWServer.csproj", "SSFWServer/"]
-RUN dotnet restore "SpecializedServers/SSFWServer/SSFWServer.csproj"
+COPY ["Servers/SSFWServer/", "SSFWServer/"]
+RUN dotnet restore "SSFWServer/SSFWServer_docker.csproj"
 COPY . .
 WORKDIR "/src/SSFWServer"
-RUN dotnet build "SSFWServer.csproj" -c Release -o /app/build
+RUN dotnet build "SSFWServer_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "SSFWServer.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "SSFWServer_docker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SSFWServer.dll"]
+ENTRYPOINT ["dotnet", "SSFWServer_docker.dll"]

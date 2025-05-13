@@ -5,16 +5,16 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["WebServers/MitmDNS/MitmDNS.csproj", "MitmDNS/"]
-RUN dotnet restore "WebServers/MitmDNS/MitmDNS.csproj"
+COPY ["Servers/MitmDNS/", "MitmDNS/"]
+RUN dotnet restore "MitmDNS/MitmDNS_docker.csproj"
 COPY . .
 WORKDIR "/src/MitmDNS"
-RUN dotnet build "MitmDNS.csproj" -c Release -o /app/build
+RUN dotnet build "MitmDNS_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "MitmDNS.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "MitmDNS_docker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MitmDNS.dll"]
+ENTRYPOINT ["dotnet", "MitmDNS_docker.dll"]

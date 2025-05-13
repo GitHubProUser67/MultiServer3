@@ -5,16 +5,16 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["SpecializedServers/SVO/SVO.csproj", "SVO/"]
-RUN dotnet restore "SpecializedServers/SVO/SVO.csproj"
+COPY ["Servers/SVO/", "SVO/"]
+RUN dotnet restore "SVO/SVO_docker.csproj"
 COPY . .
 WORKDIR "/src/SVO"
-RUN dotnet build "SVO.csproj" -c Release -o /app/build
+RUN dotnet build "SVO_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "SVO.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "SVO_docker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SVO.dll"]
+ENTRYPOINT ["dotnet", "SVO_docker.dll"]
