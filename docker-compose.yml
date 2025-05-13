@@ -4,14 +4,14 @@ services:
     build:
       context: .
       dockerfile: Servers/Horizon/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
+    network_mode: "host"  # Needed for SSL Handling
 
   multisocks:
     image: multisocks
     build:
       context: .
       dockerfile: Servers/MultiSocks/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
+    network_mode: "host"  # Needed for SSL Handling
     ports:
       - "11000:11000"
       - "11050:11050"
@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: Servers/SSFWServer/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
+    network_mode: "host"  # Needed for SSL Handling
     ports:
       - "8080:8080"
       - "10443:10443"
@@ -42,7 +42,7 @@ services:
     build:
       context: .
       dockerfile: Servers/SVO/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
+    network_mode: "host"  # Needed for SSL Handling
     ports:
       - "10058:10058"
       - "10060:10060"
@@ -55,6 +55,7 @@ services:
     build:
       context: .
       dockerfile: Servers/QuazalServer/Dockerfile
+    network_mode: "host" 
     ports:
       - "21032:21032"
       - "30160:30160"
@@ -99,6 +100,7 @@ services:
     build:
       context: .
       dockerfile: Servers/MitmDNS/Dockerfile
+    network_mode: "host"
     ports:
       - "53:53" # This breaks DNS, how to ensure localhost doesn't already use 53?
       - "65532:65535" # I don't think we use this
@@ -108,6 +110,7 @@ services:
     build:
       context: .
       dockerfile: Servers/ApacheNet/Dockerfile
+    network_mode: "host"
     ports:
       - "443:443"
       #- "65531:65535" # I don't think we use this
