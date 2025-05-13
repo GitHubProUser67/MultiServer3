@@ -6,7 +6,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 RUN mkdir -p ApacheNet
-COPY ["Servers/ApacheNet/*", "ApacheNet/"]
+COPY ["Servers/ApacheNet/", "ApacheNet/"]
 RUN dotnet restore "ApacheNet/ApacheNet_docker.csproj"
 COPY . .
 WORKDIR "/src/ApacheNet"

@@ -6,7 +6,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 RUN mkdir -p QuazalServer
-COPY ["Servers/QuazalServer/*", "QuazalServer/"]
+COPY ["Servers/QuazalServer/", "QuazalServer/"]
 RUN dotnet restore "QuazalServer/QuazalServer_docker.csproj"
 COPY . .
 WORKDIR "/src/QuazalServer"

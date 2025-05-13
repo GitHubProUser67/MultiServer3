@@ -6,10 +6,11 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 RUN mkdir -p Horizon
-COPY ["Servers/Horizon/*", "Horizon/"]
+COPY ["Servers/Horizon/", "Horizon/"]
 RUN dotnet restore "Horizon/Horizon_docker.csproj"
 COPY . .
 WORKDIR "/src/Horizon"
+
 RUN dotnet build "Horizon_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
