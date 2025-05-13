@@ -1,10 +1,10 @@
 services:
-  #horizon:
-  #  image: horizon
-  #  build:
-  #    context: .
-  #    dockerfile: Servers/Horizon/Dockerfile
-  #  network_mode: "bridge"  # Needed for SSL Handling
+  horizon:
+    image: horizon
+    build:
+      context: .
+      dockerfile: Servers/Horizon/Dockerfile
+    network_mode: "bridge"  # Needed for SSL Handling
 
   multisocks:
     image: multisocks
@@ -24,7 +24,7 @@ services:
       - "21851:21851"
       - "21870:21870"
       - "21871:21871"
-      - "65535:65535"
+      #- "65535:65535" # I don't think we use this
 
   ssfwserver:
     image: ssfwserver
@@ -35,7 +35,7 @@ services:
     ports:
       - "8080:8080"
       - "10443:10443"
-      - "65534:65535"
+      #- "65534:65535" # I don't think we use this
       
   svo:
     image: svo
@@ -48,7 +48,7 @@ services:
       - "10060:10060"
       - "10061:10061"
       - "10062:10062"
-      - "65533:65535"
+      #- "65533:65535" # I don't think we use this
       
   quazalserver:
     image: quazalserver
@@ -64,8 +64,8 @@ services:
       context: .
       dockerfile: Servers/MitmDNS/Dockerfile
     ports:
-      - "53:53" # This breaks DNS, how to ensure localhost doesn't already use 53?
-      - "65532:65535"
+      #- "53:53" # This breaks DNS, how to ensure localhost doesn't already use 53?
+      - "65532:65535" # I don't think we use this
       
   apachenet:
     image: apachenet
@@ -74,5 +74,4 @@ services:
       dockerfile: Servers/ApacheNet/Dockerfile
     ports:
       - "443:443"
-      - "65531:65535"
-      
+      #- "65531:65535" # I don't think we use this
