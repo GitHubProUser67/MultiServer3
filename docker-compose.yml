@@ -100,7 +100,7 @@ services:
       context: .
       dockerfile: Servers/MitmDNS/Dockerfile
     ports:
-      #- "53:53" # This breaks DNS, how to ensure localhost doesn't already use 53?
+      - "53:53" # This breaks DNS, how to ensure localhost doesn't already use 53?
       - "65532:65535" # I don't think we use this
       
   apachenet:
