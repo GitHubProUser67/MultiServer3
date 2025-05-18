@@ -2,11 +2,15 @@ using MultiSocks.Aries.DataStore;
 using MultiSocks.Aries.Messages;
 using MultiSocks.Aries.Model;
 using MultiSocks.Utils;
+using NetHasher.CRC;
+using System.Text;
 
 namespace MultiSocks.Aries
 {
     public class MatchmakerServer : AbstractAriesServer
     {
+        private readonly UniqueIDGenerator _guestIdGen = new UniqueIDGenerator();
+
         public override Dictionary<string, Type?> NameToClass { get; } =
             new Dictionary<string, Type?>()
             {
@@ -24,7 +28,7 @@ namespace MultiSocks.Aries
                 { "dper", typeof(Dper) }, //delete persona
                 { "edit", null }, //?
                 { "fbst", typeof(Fbst) }, //?
-                { "fget", typeof(Fget) }, //?
+                { "fget", typeof(Fget) }, // get friend/rival list
                 { "fupd", typeof(Fupd) }, // Update friend/rival lists in user record
                 { "fupr", typeof(Fupr) }, //?
                 { "hchk", typeof(Hchk) }, //?
@@ -159,9 +163,7 @@ namespace MultiSocks.Aries
                 return;
             }
 
-            PasswordUtils passutils = new();
-
-            string? DecryptedPass = passutils.ssc2Decode(PASS, client.SKEY);
+            string? DecryptedPass = new PasswordUtils().ssc2Decode(PASS, client.SKEY);
 
             if (DecryptedPass == string.Empty) // EA assumed that Consoles protect the login so they crypt an empty password, extremly bad, but can't do anything.
             {
@@ -202,7 +204,7 @@ namespace MultiSocks.Aries
             if (client.VERS.Contains("BURNOUT5"))
             {
                 OutputCache = new() {
-                { "LAST", "2018.1.1-00:00:00" },
+                { "LAST", DateTime.Now.ToString("yyyy.M.d-HH:mm:ss") },
                 { "TOS", user.TOS },
                 { "SHARE", user.SHARE },
                 { "_LUID", "$00000000000003fe" },
@@ -227,11 +229,86 @@ namespace MultiSocks.Aries
                 { "GEND", "M" },
                 { "FROM", user2.LOC[2..] },
                 { "LANG", user2.LOC[..2] },
-                { "LAST", "2003.12.8 15:51:38" },
+                { "LAST", DateTime.Now.ToString("yyyy.M.d HH:mm:ss") },
                 { "TOS", user.TOS },
                 { "NAME", user.Username },
                 { "MAIL", user.MAIL },
                 { "PERSONAS", string.Join(',', user.Personas) }};
+
+                client.SendMessage(new Auth() { OutputCache = OutputCache });
+
+                Rooms.SendRooms(user2);
+            }
+        }
+
+        public void TryGuestLogin(AriesClient client, string? PASS, string LOC, string? MAC, string TOKEN)
+        {
+            // From: https://github.com/teknogods/eaEmu/blob/master/eaEmu/ea/games/pcburnout08.py#L184
+            string guestUsername = $"guest{_guestIdGen.CreateUniqueID()}";
+
+            //is someone else already logged in as this user?
+            AriesUser? oldUser = Users.GetUserByName(guestUsername);
+            if (oldUser != null)
+            {
+                client.SendMessage(new AuthLogn());
+                return;
+            }
+
+            CustomLogger.LoggerAccessor.LogInfo("Logged in: " + guestUsername);
+
+            string[] personas = new string[1] { guestUsername };
+
+            // make a user object from DB user
+            AriesUser user2 = new()
+            {
+                MAC = MAC ?? string.Empty,
+                Connection = client,
+                ID = (int)CRC32.CreateCastagnoli(Encoding.UTF8.GetBytes(guestUsername + (new PasswordUtils().ssc2Decode(PASS, client.SKEY) ?? string.Empty) + "EA")),
+                Personas = personas,
+                Username = guestUsername,
+                ADDR = client.ADDR,
+                LADDR = client.LADDR,
+                LOC = LOC
+            };
+
+            Users.AddUser(user2);
+            client.User = user2;
+
+            Dictionary<string, string?> OutputCache;
+
+            if (client.VERS.Contains("BURNOUT5"))
+            {
+                OutputCache = new() {
+                { "LAST", DateTime.Now.ToString("yyyy.M.d-HH:mm:ss") },
+                { "TOS", "1" },
+                { "SHARE", "1" },
+                { "_LUID", "$00000000000003fe" },
+                { "NAME", guestUsername },
+                { "PERSONAS", string.Join(',', personas) },
+                { "MAIL", "user@domain.com" },
+                { "BORN", "19700101" },
+                { "FROM", user2.LOC[2..] },
+                { "LOC", user2.LOC },
+                { "SPAM", "NN" },
+                { "SINCE", "2008.1.1-00:00:00" },
+                { "GFIDS", "1" },
+                { "ADDR", client.ADDR },
+                { "TOKEN", TOKEN }};
+
+                client.SendMessage(new Auth() { OutputCache = OutputCache });
+            }
+            else
+            {
+                OutputCache = new() {
+                { "BORN", "19800325" },
+                { "GEND", "M" },
+                { "FROM", user2.LOC[2..] },
+                { "LANG", user2.LOC[..2] },
+                { "LAST", DateTime.Now.ToString("yyyy.M.d HH:mm:ss") },
+                { "TOS", "1" },
+                { "NAME", guestUsername },
+                { "MAIL", "user@domain.com" },
+                { "PERSONAS", string.Join(',', personas) }};
 
                 client.SendMessage(new Auth() { OutputCache = OutputCache });
 

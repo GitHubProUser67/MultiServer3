@@ -5,7 +5,6 @@ using MultiSocks.Blaze.Components.Redirector;
 using MultiSocks.Blaze.Components.Util;
 using MultiSocks.Blaze.Util;
 using MultiSocks.ProtoSSL;
-using NetworkLibrary.Extension;
 using System.Net;
 
 namespace MultiSocks.Blaze
@@ -20,13 +19,12 @@ namespace MultiSocks.Blaze
 
         public BlazeClass(CancellationToken cancellationToken)
         {
-            InternetProtocolUtils.TryGetServerIP(out string ListenIP).Wait(cancellationToken);
             string domain = "gosredirector.ea.com";
 
             // Create Blaze Redirector servers
-            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 42127), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", true, true).Item3);
+            redirector = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Parse(MultiSocksServerConfiguration.ServerBindAddress), 42127), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", true, true).Item3);
             // Create  Main Blaze server
-            mainBlaze = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Any, 33152), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", false, false).Item3, false);
+            mainBlaze = Blaze3.CreateBlazeServer(domain, new IPEndPoint(IPAddress.Parse(MultiSocksServerConfiguration.ServerBindAddress), 33152), SSLCache.GetVulnerableCustomEaCert(domain, "Global Online Studio", false, false).Item3, false);
 
 
             redirector.AddComponent<RedirectorComponent>();

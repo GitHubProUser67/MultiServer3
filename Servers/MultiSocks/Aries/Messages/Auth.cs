@@ -8,6 +8,8 @@ namespace MultiSocks.Aries.Messages
 
         public override void Process(AbstractAriesServer context, AriesClient client)
         {
+            if (context is not MatchmakerServer mc) return;
+
             string VERS = GetInputCacheValue("VERS") ?? string.Empty;
             string SKU = GetInputCacheValue("SKU") ?? string.Empty;
             string? MADDR = GetInputCacheValue("MADDR");
@@ -15,8 +17,7 @@ namespace MultiSocks.Aries.Messages
             string? PASS = GetInputCacheValue("PASS");
             string? MAC = GetInputCacheValue("MAC");
             string? LOC = GetInputCacheValue("LOC");
-
-            if (context is not MatchmakerServer mc) return;
+            string? TOKEN = GetInputCacheValue("TOKEN");
 
             client.VERS = VERS;
             client.SKU = SKU;
@@ -39,14 +40,22 @@ namespace MultiSocks.Aries.Messages
 
             }
 
-            DbAccount? user = AriesServer.Database?.GetByName(NAME);
-            if (user == null)
+            if (!string.IsNullOrEmpty(NAME))
             {
-                client.SendMessage(new AuthImst());
+                DbAccount? user = AriesServer.Database?.GetByName(NAME);
+                if (user != null)
+                {
+                    mc.TryLogin(user, client, PASS, LOC ?? "enUS", MAC, TOKEN);
+                    return;
+                }
+            }
+            else if (!string.IsNullOrEmpty(TOKEN))
+            {
+                mc.TryGuestLogin(client, PASS, LOC ?? "enUS", MAC, TOKEN);
                 return;
             }
 
-            mc.TryLogin(user, client, PASS, LOC ?? "enUS", MAC, GetInputCacheValue("TOKEN"));
+            client.SendMessage(new AuthImst());
         }
     }
 }

@@ -2,8 +2,6 @@
 {
     public class UniqueIDGenerator
     {
-        private readonly object _InternalLock = new object();
-
         private uint UniqueIDCounter;
 
         public UniqueIDGenerator(uint startingValue = 0)
@@ -13,8 +11,7 @@
 
         public uint CreateUniqueID()
         {
-            lock (_InternalLock)
-                return ++UniqueIDCounter;
+            return ++UniqueIDCounter;
         }
     }
 }

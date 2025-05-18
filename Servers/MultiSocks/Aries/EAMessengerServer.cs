@@ -107,7 +107,7 @@ namespace MultiSocks.Aries
                 GEND = "M",
                 FROM = "US",
                 LANG = "en",
-                LAST = "2003.12.8 15:51:38",
+                LAST = DateTime.Now.ToString("yyyy.M.d HH:mm:ss"),
                 TOS = user.TOS,
                 NAME = user.Username,
                 MAIL = user.MAIL,

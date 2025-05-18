@@ -11,9 +11,14 @@ namespace MultiSocks.Aries.Messages
             AriesUser? user = client.User;
             if (user == null) return;
 
+            string? TAG = GetInputCacheValue("TAG");
+
             user.SendPlusWho(user, context.Project);
 
             client.SendMessage(new PlusFup());
+
+            if (!string.IsNullOrEmpty(TAG))
+                OutputCache.Add(TAG, string.Empty);
 
             client.SendMessage(this);
         }
