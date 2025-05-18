@@ -5,7 +5,6 @@ using Horizon.RT.Cryptography;
 using Horizon.RT.Models;
 using Horizon.RT.Models.Misc;
 using Horizon.RT.Models.Lobby;
-using Horizon.LIBRARY.Common;
 using Horizon.LIBRARY.Database.Models;
 using Horizon.LIBRARY.libAntiCheat;
 using Horizon.SERVER.Config;
@@ -228,11 +227,6 @@ namespace Horizon.SERVER.Medius
                                                 case "01.86.09":
                                                     switch (clientCheatQuery.StartAddress)
                                                     {
-                                                        case 0x00546cf4:
-                                                            // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc0, 0x2b, 0x78 }))
-                                                                PokeAddress(0x00546cf4, new byte[] { 0x60, 0xc0, 0x07, 0xf0 }, clientChannel);
-                                                            break;
                                                         case 0x005478dc:
                                                             // 4096 character command line limit.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
@@ -248,7 +242,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x0016cc6c:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x0016cc6c, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -285,7 +279,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x0016b4d0:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x0016b4d0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -315,7 +309,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x001709e0:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x001709e0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -338,7 +332,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x0016dac0:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x0016dac0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -437,8 +431,6 @@ namespace Horizon.SERVER.Medius
 
                                                                         if (MediusClass.Settings.PokePatchOn)
                                                                         {
-                                                                            CheatQuery(0x00546cf4, 4, clientChannel);
-
                                                                             CheatQuery(0x005478dc, 4, clientChannel);
 
                                                                             CheatQuery(0x0016cc6c, 4, clientChannel);
@@ -529,14 +521,22 @@ namespace Horizon.SERVER.Medius
                                                     }
                                                     else if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot)
                                                     {
-                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
+                                                        string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
 
                                                         _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(x => x != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
-                                                        data.State = ClientState.DISCONNECTED;
-                                                        await clientChannel.CloseAsync();
+                                                        await HorizonServerConfiguration.Database.BanIp(data.ClientObject.IP).ContinueWith((r) =>
+                                                        {
+                                                            if (r.IsCompletedSuccessfully && r.Result)
+                                                            {
+                                                                // Banned
+                                                                QueueBanMessage(data);
+                                                            }
+                                                            data.ClientObject.ForceDisconnect();
+                                                            _ = data.ClientObject.Logout();
+                                                        });
                                                     }
                                                 }
                                                 break;
@@ -1129,7 +1129,7 @@ namespace Horizon.SERVER.Medius
                         /*
                         if (data.ApplicationId == 22920) // Starhawk
                         {
-                            byte[] payload = Convert.FromBase64String("http");
+                            byte[] payload = "http".IsBase64().Item2;
 
                             Queue(new RT_MSG_SERVER_MEMORY_POKE()
                             {
@@ -1849,11 +1849,7 @@ namespace Horizon.SERVER.Medius
                                 }
                                 else
                                 {
-                                    if (HorizonServerConfiguration.Database._settings.SimulatedMode == false)
-                                    {
-                                        //NotFound in Database so remove from list
-                                        //dblist.Remove(accountName);
-                                    }
+                                    //NotFound in Database so remove from list?
                                 }
                             });
                         }
@@ -2922,7 +2918,7 @@ namespace Horizon.SERVER.Medius
                                 foreach (var ladderEntry in r.Result)
                                 {
                                     byte[] mediusStats = new byte[Constants.ACCOUNTSTATS_MAXLEN];
-                                    try { var dbAccStats = Convert.FromBase64String(ladderEntry.MediusStats ?? ""); mediusStats = dbAccStats; } catch (Exception) { }
+                                    try { var dbAccStats = (ladderEntry.MediusStats ?? "").IsBase64().Item2; mediusStats = dbAccStats; } catch (Exception) { }
                                     responses.Add(new MediusLadderListResponse()
                                     {
                                         MessageID = ladderListRequest.MessageID,
@@ -2991,7 +2987,7 @@ namespace Horizon.SERVER.Medius
                                 foreach (var ladderEntry in r.Result)
                                 {
                                     byte[] mediusStats = new byte[Constants.ACCOUNTSTATS_MAXLEN];
-                                    try { var dbAccStats = Convert.FromBase64String(ladderEntry.MediusStats ?? string.Empty); mediusStats = dbAccStats; } catch (Exception) { }
+                                    try { var dbAccStats = (ladderEntry.MediusStats ?? string.Empty).IsBase64().Item2; mediusStats = dbAccStats; } catch (Exception) { }
                                     var account = MediusClass.Manager.GetClientByAccountId(ladderEntry.AccountId, data.ClientObject.ApplicationId);
                                     responses.Add(new MediusLadderList_ExtraInfoResponse()
                                     {
@@ -3072,7 +3068,7 @@ namespace Horizon.SERVER.Medius
                                 foreach (var ladderEntry in r.Result)
                                 {
                                     byte[] mediusStats = new byte[Constants.ACCOUNTSTATS_MAXLEN];
-                                    try { var dbAccStats = Convert.FromBase64String(ladderEntry.MediusStats ?? ""); mediusStats = dbAccStats; } catch (Exception) { }
+                                    try { var dbAccStats = (ladderEntry.MediusStats ?? "").IsBase64().Item2; mediusStats = dbAccStats; } catch (Exception) { }
                                     responses.Add(new MediusLadderList_ExtraInfoResponse()
                                     {
                                         MessageID = ladderList_ExtraInfoRequest.MessageID,
@@ -3366,7 +3362,7 @@ namespace Horizon.SERVER.Medius
                                 foreach (var ladderEntry in r.Result)
                                 {
                                     byte[] mediusStats = new byte[Constants.ACCOUNTSTATS_MAXLEN];
-                                    try { var dbAccStats = Convert.FromBase64String(ladderEntry.MediusStats ?? ""); mediusStats = dbAccStats; } catch (Exception) { }
+                                    try { var dbAccStats = (ladderEntry.MediusStats ?? "").IsBase64().Item2; mediusStats = dbAccStats; } catch (Exception) { }
                                     responses.Add(new MediusClanLadderListResponse()
                                     {
                                         MessageID = clanLadderListRequest.MessageID,
@@ -3548,7 +3544,7 @@ namespace Horizon.SERVER.Medius
                                 if (r.IsCompletedSuccessfully && r.Result != null)
                                 {
                                     byte[] mediusStats = new byte[Constants.ACCOUNTSTATS_MAXLEN];
-                                    try { var dbAccStats = Convert.FromBase64String(r.Result.MediusStats ?? string.Empty); mediusStats = dbAccStats; } catch { }
+                                    try { var dbAccStats = (r.Result.MediusStats ?? string.Empty).IsBase64().Item2; mediusStats = dbAccStats; } catch { }
                                     var playerClientObject = MediusClass.Manager.GetClientByAccountId(r.Result.AccountId, data.ClientObject.ApplicationId);
                                     data?.ClientObject?.Queue(new MediusPlayerInfoResponse()
                                     {
@@ -3942,7 +3938,7 @@ namespace Horizon.SERVER.Medius
                                         foreach (var clanIamIn in r.Result)
                                         {
                                             byte[] clanStats = new byte[Constants.CLANSTATS_MAXLEN];
-                                            try { var dbAccStats = Convert.FromBase64String(clanIamIn.ClanStats.ToString() ?? ""); clanStats = dbAccStats; } catch (Exception) { }
+                                            try { var dbAccStats = (clanIamIn.ClanStats.ToString() ?? "").IsBase64().Item2; clanStats = dbAccStats; } catch (Exception) { }
                                             responses.AddRange(clanIamIn.ClanMember
                                             .Where(x => x.AccountId == data.ClientObject.AccountId)
                                             .Skip((getMyClansRequest.Start - 1) * getMyClansRequest.PageSize)
@@ -4093,7 +4089,7 @@ namespace Horizon.SERVER.Medius
                                         var account = MediusClass.Manager.GetClientByAccountId(x.AccountId, data.ClientObject.ApplicationId);
                                         var cachedAccount = HorizonServerConfiguration.Database.GetAccountById(x.AccountId);
                                         byte[] mediusStats = new byte[Constants.ACCOUNTSTATS_MAXLEN];
-                                        try { var dbAccStats = Convert.FromBase64String(cachedAccount.Result.MediusStats ?? string.Empty); mediusStats = dbAccStats; } catch (Exception) { }
+                                        try { var dbAccStats = (cachedAccount.Result.MediusStats ?? string.Empty).IsBase64().Item2; mediusStats = dbAccStats; } catch (Exception) { }
                                         return new MediusGetClanMemberList_ExtraInfoResponse()
                                         {
                                             MessageID = getClanMemberList_ExtraInfoRequest.MessageID,
@@ -4268,7 +4264,7 @@ namespace Horizon.SERVER.Medius
                                     ClanName = r.Result.ClanName,
                                     LeaderAccountID = r.Result.ClanLeaderAccount.AccountId,
                                     LeaderAccountName = r.Result.ClanLeaderAccount.AccountName,
-                                    Stats = Convert.FromBase64String(r.Result.ClanMediusStats),
+                                    Stats = r.Result.ClanMediusStats.IsBase64().Item2,
                                     Status = r.Result.IsDisbanded ? MediusClanStatus.ClanDisbanded : MediusClanStatus.ClanActive
                                 });
                             }
@@ -4319,7 +4315,7 @@ namespace Horizon.SERVER.Medius
                                     ClanID = r.Result.ClanId,
                                     LeaderAccountID = r.Result.ClanLeaderAccount.AccountId,
                                     LeaderAccountName = r.Result.ClanLeaderAccount.AccountName,
-                                    Stats = Convert.FromBase64String(r.Result.ClanMediusStats),
+                                    Stats = r.Result.ClanMediusStats.IsBase64().Item2,
                                     Status = r.Result.IsDisbanded ? MediusClanStatus.ClanDisbanded : MediusClanStatus.ClanActive
                                 });
                             }
@@ -6169,7 +6165,7 @@ namespace Horizon.SERVER.Medius
                                     if (r.IsCompletedSuccessfully && r.Result != null)
                                     {
                                         byte[] mediusStats = new byte[Constants.ACCOUNTSTATS_MAXLEN];
-                                        try { byte[] dbAccStats = Convert.FromBase64String(r.Result.MediusStats ?? string.Empty); mediusStats = dbAccStats; } catch { }
+                                        try { byte[] dbAccStats = (r.Result.MediusStats ?? string.Empty).IsBase64().Item2; mediusStats = dbAccStats; } catch { }
                                         ClientObject? playerClientObject = MediusClass.Manager.GetClientByAccountId(lobbyPlayer.AccountId, data.ClientObject.ApplicationId);
                                         lobbyWorldPlayerListResponses.Add(new MediusLobbyWorldPlayerListResponse()
                                         {
@@ -6900,21 +6896,23 @@ namespace Horizon.SERVER.Medius
                             if (data.ApplicationId == 20371 || data.ApplicationId == 20374)
                             {
                                 string HomeUserEntry = data.ClientObject.AccountName + ":" + data.ClientObject.IP;
-                                bool isHomeCheat = MediusClass.Settings.PlaystationHomeAntiCheat
+                                if (MediusClass.Settings.PlaystationHomeAntiCheat
                                        && (!MediusClass.Settings.PlaystationHomeUsersServersAccessList.ContainsKey(HomeUserEntry)
                                            || string.IsNullOrEmpty(MediusClass.Settings.PlaystationHomeUsersServersAccessList[HomeUserEntry])
-                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[HomeUserEntry] != "ADMIN"));
-
-                                if (isHomeCheat)
-                                {
-                                    _ = Task.Run(() =>
-                                    {
-                                        Parallel.ForEach(homeAntiCheatPlugin.ProcessAntiCheatRequest(data.ClientObject, HomeUserEntry), requestParameters =>
+                                           || (MediusClass.Settings.PlaystationHomeUsersServersAccessList[HomeUserEntry] != "ADMIN")))
+                                    _ = Parallel.ForEachAsync(
+                                        homeAntiCheatPlugin.ProcessAntiCheatRequest(data.ClientObject, HomeUserEntry),
+                                        (requestParameters, cancellationToken) =>
                                         {
-                                            CheatQuery(requestParameters.Item1, requestParameters.Item2, clientChannel, requestParameters.Item3, requestParameters.Item4);
+                                            CheatQuery(
+                                                requestParameters.Item1,
+                                                requestParameters.Item2,
+                                                clientChannel,
+                                                requestParameters.Item3,
+                                                requestParameters.Item4
+                                            );
+                                            return ValueTask.CompletedTask;
                                         });
-                                    });
-                                }
                             }
 
                             if (data.ClientObject.CurrentGame.GameHostType != MGCL_GAME_HOST_TYPE.MGCLGameHostPeerToPeer)
@@ -9850,14 +9848,22 @@ namespace Horizon.SERVER.Medius
                                                     case "IGA":
                                                         break;
                                                     default:
-                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                        string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                         _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
-                                                        data.State = ClientState.DISCONNECTED;
-                                                        await clientChannel.CloseAsync();
+                                                        await HorizonServerConfiguration.Database.BanIp(data.ClientObject.IP).ContinueWith((r) =>
+                                                        {
+                                                            if (r.IsCompletedSuccessfully && r.Result)
+                                                            {
+                                                                // Banned
+                                                                QueueBanMessage(data);
+                                                            }
+                                                            data.ClientObject.ForceDisconnect();
+                                                            _ = data.ClientObject.Logout();
+                                                        });
                                                         break;
                                                 }
                                             }
@@ -9872,14 +9878,22 @@ namespace Horizon.SERVER.Medius
                                                         break;
                                                 }
 
-                                                string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED IGA COMMAND - {SupplementalMessage}) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                 _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                 LoggerAccessor.LogError(anticheatMsg);
 
-                                                data.State = ClientState.DISCONNECTED;
-                                                await clientChannel.CloseAsync();
+                                                await HorizonServerConfiguration.Database.BanIp(data.ClientObject.IP).ContinueWith((r) =>
+                                                {
+                                                    if (r.IsCompletedSuccessfully && r.Result)
+                                                    {
+                                                        // Banned
+                                                        QueueBanMessage(data);
+                                                    }
+                                                    data.ClientObject.ForceDisconnect();
+                                                    _ = data.ClientObject.Logout();
+                                                });
                                             }
                                             break;
                                         case -27: // REXEC
@@ -9890,27 +9904,43 @@ namespace Horizon.SERVER.Medius
                                                     case "ADMIN":
                                                         break;
                                                     default:
-                                                        string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                        string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                         _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
-                                                        data.State = ClientState.DISCONNECTED;
-                                                        await clientChannel.CloseAsync();
+                                                        await HorizonServerConfiguration.Database.BanIp(data.ClientObject.IP).ContinueWith((r) =>
+                                                        {
+                                                            if (r.IsCompletedSuccessfully && r.Result)
+                                                            {
+                                                                // Banned
+                                                                QueueBanMessage(data);
+                                                            }
+                                                            data.ClientObject.ForceDisconnect();
+                                                            _ = data.ClientObject.Logout();
+                                                        });
                                                         break;
                                                 }
                                             }
                                             else
                                             {
-                                                string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
+                                                string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORISED REXEC COMMAND) - User:{HomeUserEntry} CID:{data.MachineId}";
 
                                                 _ = data.ClientObject!.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(client => client != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                 LoggerAccessor.LogError(anticheatMsg);
 
-                                                data.State = ClientState.DISCONNECTED;
-                                                await clientChannel.CloseAsync();
+                                                await HorizonServerConfiguration.Database.BanIp(data.ClientObject.IP).ContinueWith((r) =>
+                                                {
+                                                    if (r.IsCompletedSuccessfully && r.Result)
+                                                    {
+                                                        // Banned
+                                                        QueueBanMessage(data);
+                                                    }
+                                                    data.ClientObject.ForceDisconnect();
+                                                    _ = data.ClientObject.Logout();
+                                                });
                                             }
                                             break;
                                     }
@@ -11142,9 +11172,6 @@ namespace Horizon.SERVER.Medius
         private async Task<bool> GuestLogin(IChannel clientChannel, ChannelData data)
         {
             bool Anonymous = false;
-
-            var fac = new PS2CipherFactory();
-            var rsa = fac.CreateNew(CipherContext.RSA_AUTH) as PS2_RSA;
 
             AccountDTO? accountDto = await HorizonServerConfiguration.Database.GetAccountByFirstIp(data.ClientObject!.IP.ToString());
 

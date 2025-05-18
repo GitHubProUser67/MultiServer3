@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
+
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 #else
@@ -156,25 +158,62 @@ namespace NetworkLibrary.Extension
 
 #if NETCOREAPP2_1_OR_GREATER
             Span<byte> buffer = new byte[((base64String.Length * 3) + 3) / 4 -
-                (base64String.Length > 0 && base64String[base64String.Length - 1] == '=' ?
-                    base64String.Length > 1 && base64String[base64String.Length - 2] == '=' ?
+                (base64String.Length > 0 && base64String[^1] == '=' ?
+                    base64String.Length > 1 && base64String[^2] == '=' ?
                         2 : 1 : 0)];
 
-            if (Convert.TryFromBase64String(base64String, buffer, out int bytesWritten) && bytesWritten > 0)
+            if (Convert.TryFromBase64String(base64String, buffer, out int bytesWritten))
                 return (true, buffer[..bytesWritten].ToArray());
 #else
             try
             {
-                byte[] buffer = Convert.FromBase64String(base64String);
-
-                if (buffer.Length > 0)
-                    return (true, buffer);
+                return (true, Convert.FromBase64String(base64String));
             }
             catch
             {
-
             }
 #endif
+            char[] base64CharArray = base64String.Replace(" ", string.Empty)
+                    .Replace("\t", string.Empty).Replace("\r", string.Empty)
+                    .Replace("\n", string.Empty)
+                    .ToCharArray();
+            try
+            {
+                // Fallback to managed implementation (NET's own decoder has issues with python base64 data)
+                Decoded managedDecodeResult = ManagedBase64.Decode(base64CharArray);
+                bool hasDecoded = managedDecodeResult.success;
+                if (!hasDecoded)
+                {
+                    managedDecodeResult = ManagedBase64.Decode(base64CharArray, !hasDecoded);
+                    hasDecoded = managedDecodeResult.success;
+                    return (hasDecoded, hasDecoded ?
+                        ManagedBase64.NumberArrayToString(managedDecodeResult.data)
+                        .SelectMany(c =>
+                            {
+                                byte[] charBytes = BitConverter.GetBytes(c);
+                                if (!BitConverter.IsLittleEndian)
+                                    Array.Reverse(charBytes);
+                                return charBytes;
+                            })
+                        .Where((_, index) => index % 2 == 0)
+                        .ToArray()
+                        : null);
+                }
+                else
+                    return (hasDecoded, ManagedBase64.NumberArrayToString(managedDecodeResult.data)
+                        .SelectMany(c =>
+                        {
+                            byte[] charBytes = BitConverter.GetBytes(c);
+                            if (!BitConverter.IsLittleEndian)
+                                Array.Reverse(charBytes);
+                            return charBytes;
+                        })
+                        .Where((_, index) => index % 2 == 0)
+                        .ToArray());
+            }
+            catch
+            {
+            }
 
             return (false, null);
         }

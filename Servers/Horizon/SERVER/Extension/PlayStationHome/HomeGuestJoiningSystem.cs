@@ -6,10 +6,11 @@ using PS2FloatLibrary;
 using System.Security.Cryptography;
 using System.Text;
 using NetHasher.CRC;
+using NetworkLibrary.GeoLocalization;
 
 namespace Horizon.SERVER.Extension.PlayStationHome
 {
-    public class HomeGuestJoiningSystem
+    public static class HomeGuestJoiningSystem
     {
         private static readonly byte[] RandCRCKey = ByteUtils.GenerateRandomBytes(24);
         private static readonly byte[] RandCRCIV = ByteUtils.GenerateRandomBytes(8);
@@ -79,10 +80,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         });
                                     }
 
-                                    if (isLcCompatible)
-                                        _ = HomeRTMTools.SendRemoteCommand(client, $"lc Debug.System( 'map {sceneData[0]}' )");
-                                    else
-                                        _ = HomeRTMTools.SendRemoteCommand(client, $"map {sceneData[0]}");
+                                    _ = HomeServerMessage.SendSimpleRelocate(client, GeoIP.GetCountryLangCodeFromIP(client.IP) ?? "enUS", Encoding.UTF8.GetBytes(sceneData[0]), isLcCompatible);
                                 }
 
                                 return Task.FromResult(true);

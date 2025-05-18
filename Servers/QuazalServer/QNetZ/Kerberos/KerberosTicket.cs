@@ -40,12 +40,27 @@ namespace QuazalServer.QNetZ
                         case "cYoqGd4f":
                         case "QusaPha9":
                         case "q1UFc45UwoyI":
+                        case "os1oBiCa2bPv":
                         case "h0rszqTw":
                         case "lON6yKGp":
                         case "4TeVtJ7V":
                         case "HJb8Ix1M":
-                        case "uG9Kv3p":
+                        case "b417OVR":
+                        case "7aK4858Q":
+                        case "asdd3$#a":
+                        case "oTyiaY4Ks":
+                        case "HgBfd54p":
+                        case "bR8fafEw":
+                        case "tFkQh5ds":
+						case "uG9Kv3p":
+                        case "Ey6Ma18":
+                        case "bfa620c57c2d3bcdf4362a6fa6418e58":
+						case "bf99796d6674ef63697f453296d7934c":
+                        case "88808fd91016c8f2ce3670ca1216a113":
                             key = Helper.DeriveKey(userPID, input ?? "PS3NPDummyPwd");
+                            break;
+						case "d52d1e000328fbc724fde65006b88b56":
+                            key = Helper.DeriveKey(userPID, input ?? "LSP PASSWORD");
                             break;
                         case "w6kAtr3T":
                             key = Helper.DeriveKey(userPID, input ?? "UbiDummyPwd");

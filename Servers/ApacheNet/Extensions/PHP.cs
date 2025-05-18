@@ -28,8 +28,8 @@ namespace ApacheNet.Extensions
 
             proc.StartInfo.FileName = $"{phppath}/{phpver}/php-cgi";
 
-            proc.StartInfo.Arguments = $"-q -d \"error_reporting=E_ALL\" -d \"display_errors={ApacheNetServerConfiguration.PHPDebugErrors}\" -d \"expose_php=Off\" -d \"include_path='{documentRootPath}'\" " +
-                         $"-d \"extension_dir='{$@"{phppath}/{phpver}/ext/"}'\" \"{FilePath}\"";
+            proc.StartInfo.Arguments = $"-q -c \"{$"{phppath}/{phpver}/php.ini"}\" -d \"error_reporting=E_ALL\" -d \"display_errors={ApacheNetServerConfiguration.PHPDebugErrors}\" -d \"expose_php=Off\" -d \"include_path='{documentRootPath}'\" " +
+                         $"-d \"extension_dir='{$"{phppath}/{phpver}/ext/"}'\" \"{FilePath}\"";
 
             proc.StartInfo.CreateNoWindow = true;
             proc.StartInfo.UseShellExecute = false;

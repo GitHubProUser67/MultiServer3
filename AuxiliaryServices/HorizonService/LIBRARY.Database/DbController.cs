@@ -265,7 +265,7 @@ namespace Horizon.LIBRARY.Database
         /// </summary>
         /// <param name="name">Case insensitive name of player.</param>
         /// <returns>Returns account.</returns>
-        public async Task<AccountDTO> GetAccountByName(string name, int appId)
+        public async Task<AccountDTO> GetAccountByName(string name, int appId, bool forceRpcnCheck = false)
         {
             AccountDTO result = null;
 
@@ -273,58 +273,65 @@ namespace Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    if (name == "gameRecorder_r2_pubeta_master" && appId == 21731)
+                    if (name != null)
                     {
-                        AccountDTO R2PuBeta;
-                        _simulatedAccounts.Add(R2PuBeta = new AccountDTO()
+                        if (name == "gameRecorder_r2_pubeta_master" && appId == 21731)
                         {
-                            AccountId = 2,
-                            AccountName = "gameRecorder_r2_pubeta_master",
-                            AccountPassword = string.Empty,
-                            AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
-                            AccountCustomWideStats = new int[1000],
-                            AppId = 21731,
-                            MachineId = string.Empty,
-                            MediusStats = string.Empty,
-                            Friends = Array.Empty<AccountRelationDTO>(),
-                            Ignored = Array.Empty<AccountRelationDTO>(),
-                            IsBanned = false
-                        });
+                            AccountDTO R2PuBeta;
+                            _simulatedAccounts.Add(R2PuBeta = new AccountDTO()
+                            {
+                                AccountId = 2,
+                                AccountName = "gameRecorder_r2_pubeta_master",
+                                AccountPassword = string.Empty,
+                                AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
+                                AccountCustomWideStats = new int[1000],
+                                AppId = 21731,
+                                MachineId = string.Empty,
+                                MediusStats = string.Empty,
+                                Friends = Array.Empty<AccountRelationDTO>(),
+                                Ignored = Array.Empty<AccountRelationDTO>(),
+                                IsBanned = false
+                            });
 
-                        return R2PuBeta;
-                    }
-                    else if (name == "ftb3 Moderator_0" && appId == 21694)
-                    {
-                        AccountDTO ftb3Mod;
-                        _simulatedAccounts.Add(ftb3Mod = new AccountDTO()
+                            return R2PuBeta;
+                        }
+                        else if (name == "ftb3 Moderator_0" && appId == 21694)
                         {
-                            AccountId = 2,
-                            AccountName = "ftb3 Moderator_0",
-                            AccountPassword = string.Empty,
-                            AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
-                            AccountCustomWideStats = new int[1000],
-                            AppId = 21694,
-                            MachineId = string.Empty,
-                            MediusStats = string.Empty,
-                            Friends = Array.Empty<AccountRelationDTO>(),
-                            Ignored = Array.Empty<AccountRelationDTO>(),
-                            IsBanned = false
-                        });
+                            AccountDTO ftb3Mod;
+                            _simulatedAccounts.Add(ftb3Mod = new AccountDTO()
+                            {
+                                AccountId = 2,
+                                AccountName = "ftb3 Moderator_0",
+                                AccountPassword = string.Empty,
+                                AccountWideStats = new int[Constants.LADDERSTATSWIDE_MAXLEN],
+                                AccountCustomWideStats = new int[1000],
+                                AppId = 21694,
+                                MachineId = string.Empty,
+                                MediusStats = string.Empty,
+                                Friends = Array.Empty<AccountRelationDTO>(),
+                                Ignored = Array.Empty<AccountRelationDTO>(),
+                                IsBanned = false
+                            });
 
-                        return ftb3Mod;
+                            return ftb3Mod;
+                        }
+                        else
+                            result = _simulatedAccounts.FirstOrDefault(x =>
+                                x.AppId == appId &&
+                                x.AccountName != null &&
+                                (forceRpcnCheck
+                                    ? x.AccountName.ToLower() == name.ToLower()
+                                    : (x.AccountName.EndsWith("@RPCN", StringComparison.OrdinalIgnoreCase)
+                                        ? x.AccountName.Substring(0, x.AccountName.Length - "@RPCN".Length)
+                                        : x.AccountName).ToLower() == name.ToLower()
+                                )
+                            );
                     }
-                    else
-                        result = _simulatedAccounts.FirstOrDefault(x => x.AppId == appId && 
-                                 x.AccountName != null && 
-                                 name != null && 
-                                (x.AccountName.EndsWith("@RPCN") 
-                                ? x.AccountName.Substring(0, x.AccountName.Length - "@RPCN".Length) 
-                                : x.AccountName).ToLower() == name.ToLower());
                 }
                 else
                 {
                     name = HttpUtility.UrlEncode(name);
-                    string route = $"Account/searchAccountByName?AccountName={name}&AppId={appId}";
+                    string route = $"Account/searchAccountByName?AccountName={name}&AppId={appId}&ForceRpcnCheck={forceRpcnCheck}";
                     result = await GetDbAsync<AccountDTO>(route);
                 }
             }
@@ -397,7 +404,7 @@ namespace Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    var checkExisting = await GetAccountByName(createAccount.AccountName, createAccount.AppId);
+                    var checkExisting = await GetAccountByName(createAccount.AccountName, createAccount.AppId, true);
                     if (checkExisting == null)
                     {
                         _simulatedAccounts.Add(result = new AccountDTO()
@@ -712,7 +719,7 @@ namespace Horizon.LIBRARY.Database
         /// <summary>
         /// Gets whether or not the ip is banned.
         /// </summary>
-        public async Task<bool> GetIsIpBanned(string ip)
+        public async Task<bool> GetIsIpBanned(IPAddress ip)
         {
             bool result = false;
 
@@ -720,16 +727,14 @@ namespace Horizon.LIBRARY.Database
             {
                 if (_settings.SimulatedMode)
                 {
-                    if (IPAddress.TryParse(ip, out IPAddress Parsedip) && Parsedip != null && Parsedip != IPAddress.None)
+                    if (ip != null && ip != IPAddress.None && ip != IPAddress.Any && ip != IPAddress.IPv6Any)
                     {
-                        (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "IPAddress", InternetProtocolUtils.GetIPAddressAsUInt(Parsedip).ToString());
+                        (string, bool) ResultItem = JsonDatabaseController.ReadFromJsonFile(directoryPath, "IPAddress", InternetProtocolUtils.GetIPAddressAsUInt(ip).ToString());
 
                         switch (ResultItem.Item1)
                         {
                             case "OK":
                                 return ResultItem.Item2;
-                            default:
-                                return false;
                         }
                     }
 
@@ -879,11 +884,11 @@ namespace Horizon.LIBRARY.Database
         /// Posts the given ip to ban to the database.
         /// </summary>
         /// <param name="ipToBan">client ip.</param>
-        public async Task<bool> BanIp(string ipToBan)
+        public async Task<bool> BanIp(IPAddress ipToBan)
         {
             bool result = false;
 
-            if (string.IsNullOrEmpty(ipToBan))
+            if (ipToBan == null || ipToBan == IPAddress.None || ipToBan == IPAddress.Any || ipToBan == IPAddress.IPv6Any)
                 return result;
 
             try

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Horizon.SERVER.Extension.PlayStationHome
 {
-    public class HomeRTMTools
+    public static class HomeRTMTools
     {
         private static readonly byte[] RexecHubMessageHeader = new byte[] { 0x64, 0x00 };
 
@@ -98,7 +98,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                 });
             }
 
-            return Task.FromResult(false);
+            return Task.FromResult(true);
         }
 
         private static byte[] EnsureMultipleOfEight(byte[] input)

@@ -121,4 +121,8 @@
   <data name="MultiServer" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\MultiServer.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Amiga CD32 - Boot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amiga CD32 - Boot.wav;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <comment>From: https://archive.org/details/Boot_Sounds_Compilation</comment>
+  </data>
 </root>

@@ -1,6 +1,7 @@
 using MaxMind.GeoIP2;
 using MaxMind.GeoIP2.Responses;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -11,6 +12,23 @@ namespace NetworkLibrary.GeoLocalization
         public readonly DatabaseReader Reader;
 
         private static GeoIP _instance;
+
+        // Static map of country ISO codes to language codes
+        private static readonly Dictionary<string, string> CountryLanguageMap = new Dictionary<string, string>
+        {
+            { "US", "en" },
+            { "GB", "en" },
+            { "FR", "fr" },
+            { "DE", "de" },
+            { "JP", "ja" },
+            { "CN", "zh" },
+            { "KR", "ko" },
+            { "IT", "it" },
+            { "ES", "es" },
+            { "RU", "ru" },
+            { "BR", "pt" },
+            { "IN", "hi" },
+        };
 
         public GeoIP(DatabaseReader reader)
         {
@@ -125,6 +143,34 @@ namespace NetworkLibrary.GeoLocalization
 
             return null;
         }
+
+        public static string GetCountryLangCodeFromIP(IPAddress IPAddr)
+        {
+            // Format as follows -> enUS.
+            if (Instance != null && Instance.Reader != null)
+            {
+                try
+                {
+                    if (Instance.Reader.TryCountry(IPAddr, out CountryResponse countryresponse)
+                        && countryresponse != null
+                        && !string.IsNullOrEmpty(countryresponse.Country.IsoCode))
+                    {
+                        string isoCode = countryresponse.Country.IsoCode;
+                        if (CountryLanguageMap.TryGetValue(isoCode, out string langCode))
+                            return $"{langCode}{isoCode}";
+                        return $"{CountryLanguageMap["US"]}{isoCode}";
+                    }
+                }
+                catch
+                {
+                    // Not Important.
+                }
+            }
+
+            return null;
+        }
+
+
 
         public static GeoIP Instance
         {

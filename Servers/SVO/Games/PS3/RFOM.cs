@@ -1,6 +1,7 @@
-﻿using CustomLogger;
+using CustomLogger;
 using DotNetty.Common.Internal.Logging;
 using Horizon.LIBRARY.Database.Models;
+using NetworkLibrary.Extension;
 using Org.BouncyCastle.Asn1.Ocsp;
 using SVO;
 using System.Net;
@@ -463,7 +464,7 @@ namespace SVO.Games.PS3
                                                         case "type1":
                                                             {
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data1"]);
+                                                                byte[] data = parsedData["data1"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -472,7 +473,7 @@ namespace SVO.Games.PS3
                                                         case "type2":
                                                             {
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data2"]);
+                                                                byte[] data = parsedData["data2"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -480,7 +481,7 @@ namespace SVO.Games.PS3
                                                         case "type3":
                                                             {
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data3"]);
+                                                                byte[] data = parsedData["data3"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
 
                                                                 File.WriteAllBytes(filePath, data);
@@ -489,7 +490,7 @@ namespace SVO.Games.PS3
                                                         case "type4":
                                                             {
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data4"]);
+                                                                byte[] data = parsedData["data4"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -497,7 +498,7 @@ namespace SVO.Games.PS3
                                                         case "type5":
                                                             {
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data5"]);
+                                                                byte[] data = parsedData["data5"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -506,7 +507,7 @@ namespace SVO.Games.PS3
                                                             {
 
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data6"]);
+                                                                byte[] data = parsedData["data6"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -515,7 +516,7 @@ namespace SVO.Games.PS3
                                                         case "type7":
                                                             {
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data7"]);
+                                                                byte[] data = parsedData["data7"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
 
                                                                 File.WriteAllBytes(filePath, data);
@@ -526,7 +527,7 @@ namespace SVO.Games.PS3
                                                             {
 
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data8"]);
+                                                                byte[] data = parsedData["data8"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
 
                                                                 File.WriteAllBytes(filePath, data);
@@ -536,7 +537,7 @@ namespace SVO.Games.PS3
                                                             {
 
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data9"]);
+                                                                byte[] data = parsedData["data9"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -545,7 +546,7 @@ namespace SVO.Games.PS3
                                                             {
 
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data100"]);
+                                                                byte[] data = parsedData["data100"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -554,7 +555,7 @@ namespace SVO.Games.PS3
                                                             {
 
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data102"]);
+                                                                byte[] data = parsedData["data102"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -563,7 +564,7 @@ namespace SVO.Games.PS3
                                                             {
 
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data300"]);
+                                                                byte[] data = parsedData["data300"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }
@@ -571,7 +572,7 @@ namespace SVO.Games.PS3
                                                         case "type500":
                                                             {
                                                                 // Convert Base64 to bytes
-                                                                byte[] data = Convert.FromBase64String(parsedData["data500"]);
+                                                                byte[] data = parsedData["data500"].IsBase64().Item2;
                                                                 string filePath = Path.Combine(directoryPath, $"svoStatsBlob-a{accountId}-{key}.bin");
                                                                 File.WriteAllBytes(filePath, data);
                                                             }

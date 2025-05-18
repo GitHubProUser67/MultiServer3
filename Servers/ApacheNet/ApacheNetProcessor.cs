@@ -178,11 +178,15 @@ namespace ApacheNet
 
         private static async Task AuthorizeConnection(HttpContextBase ctx)
         {
-            if (ApacheNetServerConfiguration.BannedIPs != null && ApacheNetServerConfiguration.BannedIPs.Contains(ctx.Request.Source.IpAddress))
+            string IpToBan = ctx.Request.Source.IpAddress;
+            if (!"::1".Equals(IpToBan) && !"127.0.0.1".Equals(IpToBan) && !"localhost".Equals(IpToBan, StringComparison.InvariantCultureIgnoreCase))
             {
-                LoggerAccessor.LogError($"[SECURITY] - Client - {ctx.Request.Source.IpAddress}:{ctx.Request.Source.Port} Requested the HTTPS server while being banned!");
-                ctx.Response.StatusCode = 403;
-                await ctx.Response.Send();
+                if (!string.IsNullOrEmpty(IpToBan) && ApacheNetServerConfiguration.BannedIPs != null && ApacheNetServerConfiguration.BannedIPs.Contains(IpToBan))
+                {
+                    LoggerAccessor.LogError($"[SECURITY] - Client - {ctx.Request.Source.IpAddress}:{ctx.Request.Source.Port} Requested the HTTPS server while being banned!");
+                    ctx.Response.StatusCode = 403;
+                    await ctx.Response.Send();
+                }
             }
         }
 
@@ -1392,7 +1396,7 @@ namespace ApacheNet
 
                                                     try
                                                     {
-                                                        byte[] DnsReq = Convert.FromBase64String(dnsRequestBase64Url);
+                                                        byte[] DnsReq = dnsRequestBase64Url.IsBase64().Item2;
                                                         Request Req = Request.FromArray(DnsReq);
 
                                                         if (Req.OperationCode == OperationCode.Query)

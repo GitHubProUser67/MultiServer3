@@ -129,6 +129,10 @@
             textBoxHTTPPath = new TextBox();
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
+            groupBoxDisclaimer = new GroupBox();
+            linkLabelGithub = new LinkLabel();
+            labelTutoReport = new Label();
+            labelLinkFormater = new Label();
             tabControlMain.SuspendLayout();
             tabPageMain.SuspendLayout();
             groupBoxControls.SuspendLayout();
@@ -153,6 +157,7 @@
             tabPageEdenserver.SuspendLayout();
             tabPageSettings.SuspendLayout();
             groupBoxServersPath.SuspendLayout();
+            groupBoxDisclaimer.SuspendLayout();
             SuspendLayout();
             // 
             // tabControlMain
@@ -177,6 +182,7 @@
             // 
             // tabPageMain
             // 
+            tabPageMain.Controls.Add(groupBoxDisclaimer);
             tabPageMain.Controls.Add(richTextBoxInformation);
             tabPageMain.Controls.Add(groupBoxControls);
             tabPageMain.Controls.Add(pictureBoxMainLogo);
@@ -214,7 +220,7 @@
             groupBoxControls.Margin = new Padding(3, 4, 3, 4);
             groupBoxControls.Name = "groupBoxControls";
             groupBoxControls.Padding = new Padding(3, 4, 3, 4);
-            groupBoxControls.Size = new Size(697, 931);
+            groupBoxControls.Size = new Size(697, 723);
             groupBoxControls.TabIndex = 1;
             groupBoxControls.TabStop = false;
             groupBoxControls.Text = "Controls";
@@ -761,7 +767,7 @@
             tabPageHTTP.Padding = new Padding(3, 4, 3, 4);
             tabPageHTTP.Size = new Size(1414, 935);
             tabPageHTTP.TabIndex = 1;
-            tabPageHTTP.Text = "MultiHTTP";
+            tabPageHTTP.Text = "ApacheNet";
             tabPageHTTP.UseVisualStyleBackColor = true;
             // 
             // richTextBoxHTTPLog
@@ -1255,6 +1261,47 @@
             textBoxHTTPPath.Size = new Size(514, 27);
             textBoxHTTPPath.TabIndex = 0;
             // 
+            // groupBoxDisclaimer
+            // 
+            groupBoxDisclaimer.Controls.Add(labelLinkFormater);
+            groupBoxDisclaimer.Controls.Add(labelTutoReport);
+            groupBoxDisclaimer.Controls.Add(linkLabelGithub);
+            groupBoxDisclaimer.Location = new Point(704, 730);
+            groupBoxDisclaimer.Name = "groupBoxDisclaimer";
+            groupBoxDisclaimer.Size = new Size(697, 201);
+            groupBoxDisclaimer.TabIndex = 2;
+            groupBoxDisclaimer.TabStop = false;
+            groupBoxDisclaimer.Text = "Disclaimer";
+            // 
+            // linkLabelGithub
+            // 
+            linkLabelGithub.AutoSize = true;
+            linkLabelGithub.Location = new Point(38, 86);
+            linkLabelGithub.Name = "linkLabelGithub";
+            linkLabelGithub.Size = new Size(341, 20);
+            linkLabelGithub.TabIndex = 0;
+            linkLabelGithub.TabStop = true;
+            linkLabelGithub.Text = "https://github.com/GitHubProUser67/MultiServer3";
+            linkLabelGithub.LinkClicked += linkLabelGithub_LinkClicked;
+            // 
+            // labelTutoReport
+            // 
+            labelTutoReport.AutoSize = true;
+            labelTutoReport.Location = new Point(20, 40);
+            labelTutoReport.Name = "labelTutoReport";
+            labelTutoReport.Size = new Size(432, 20);
+            labelTutoReport.TabIndex = 1;
+            labelTutoReport.Text = "For more infos about the software, please visit the following Url:";
+            // 
+            // labelLinkFormater
+            // 
+            labelLinkFormater.AutoSize = true;
+            labelLinkFormater.Location = new Point(20, 86);
+            labelLinkFormater.Name = "labelLinkFormater";
+            labelLinkFormater.Size = new Size(15, 20);
+            labelLinkFormater.TabIndex = 2;
+            labelLinkFormater.Text = "-";
+            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -1300,6 +1347,8 @@
             tabPageSettings.ResumeLayout(false);
             groupBoxServersPath.ResumeLayout(false);
             groupBoxServersPath.PerformLayout();
+            groupBoxDisclaimer.ResumeLayout(false);
+            groupBoxDisclaimer.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -1405,5 +1454,9 @@
         private Button buttonStartEdenserver;
         private TextBox textBoxEdenserver;
         private RichTextBox richTextBoxLicense;
+        private GroupBox groupBoxDisclaimer;
+        private LinkLabel linkLabelGithub;
+        private Label labelLinkFormater;
+        private Label labelTutoReport;
     }
 }

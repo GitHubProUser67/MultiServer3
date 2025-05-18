@@ -41,6 +41,9 @@ namespace WebAPIService.UBISOFT.gsconnect
                                     case "HEROES_657d2c2ebadc6a1d":
                                         ini_file = "homm5/servers.ini";
                                         break;
+                                    case "GHOSTRECONIT_PS2":
+                                        ini_file = "grjs/GS.ini";
+                                        break;
                                     case "SPLINTERCELL3PS2US":
                                     case "SPLINTERCELL3PC":
                                     case "SPLINTERCELL3PCCOOP":

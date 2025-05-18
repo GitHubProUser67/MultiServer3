@@ -1,4 +1,5 @@
-﻿using CustomLogger;
+using CustomLogger;
+using NetworkLibrary.Extension;
 using System;
 using System.Data;
 using System.IO;
@@ -830,7 +831,7 @@ namespace HomeTools.PS3_Creator
             // First we need to turn the input string into a byte array. 
             // We presume that Base64 encoding was used 
 
-            byte[] cipherBytes = Convert.FromBase64String(cipherText);
+            byte[] cipherBytes = cipherText.IsBase64().Item2;
 
             // Then, we need to turn the password into Key and IV 
             // We are using salt to make it harder to guess our key

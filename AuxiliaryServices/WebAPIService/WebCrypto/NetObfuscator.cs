@@ -1,4 +1,5 @@
-﻿using System;
+using NetworkLibrary.Extension;
+using System;
 using System.Text;
 
 namespace WebAPIService.WebCrypto
@@ -99,7 +100,7 @@ namespace WebAPIService.WebCrypto
             {
                 decoded[i] = (char)(decoded[i] - 3);
             }
-            return Convert.FromBase64String(decoded.ToString());
+            return decoded.ToString().IsBase64().Item2;
         }
 
         private static byte[] RandomSalt(byte[] data, byte[] salt)

@@ -153,7 +153,7 @@ namespace Horizon.SERVER.Config
         /// Provide the IP of the SCE-RT NAT Service
         /// Default is: natservice.pdonline.scea.com:10070
         /// </summary>
-        public string? NATIp { get; set; } = InternetProtocolUtils.GetLocalIPAddresses().First().ToString();
+        public string? NATIp { get; set; } = null;
 
         /// <summary>
         /// Port of the NAT server.
@@ -413,10 +413,21 @@ namespace Horizon.SERVER.Config
         /// </summary>
         public bool PokePatchOn { get; set; } = false;
 
-        #region PSHOME
+        #region PSHOME Internal Plugin
+        /// <summary>
+        /// Enables the use of non-validated home eboots.
+        /// </summary>
         public bool PlaystationHomeAllowAnyEboot { get; set; } = true;
 
+        /// <summary>
+        /// Enables home anti-cheat checks.
+        /// </summary>
         public bool PlaystationHomeAntiCheat { get; set; } = false;
+
+        /// <summary>
+        /// Enables home ForceInvite mitigation fixes.
+        /// </summary>
+        public bool PlaystationHomeForceInviteExploitPatch { get; set; } = false;
 
         public Dictionary<string, string> PlaystationHomeUsersServersAccessList { get; set; } = new();
 

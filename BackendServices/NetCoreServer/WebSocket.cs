@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
+using NetworkLibrary.Extension;
 
 namespace NetCoreServer
 {
@@ -101,7 +102,7 @@ namespace NetCoreServer
                     }
 
                     // Get the received WebSocket hash
-                    wskey = Encoding.UTF8.GetString(Convert.FromBase64String(value));
+                    wskey = Encoding.UTF8.GetString(value.IsBase64().Item2);
 
                     // Compare original and received hashes
                     if (string.Compare(wskey, wshash, StringComparison.InvariantCulture) != 0)

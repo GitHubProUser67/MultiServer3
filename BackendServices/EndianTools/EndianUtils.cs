@@ -205,7 +205,7 @@ namespace EndianTools
             return BinaryPrimitives.ReverseEndianness(dataIn);
 #else
             // Use bitwise operations to swap the bytes
-            return (ushort)((ushort)((dataIn & 0xff) << 8) | ((dataIn >> 8) & 0xff));
+            return (ushort)((ushort)((dataIn & byte.MaxValue) << 8) | ((dataIn >> 8) & byte.MaxValue));
 #endif
         }
     }

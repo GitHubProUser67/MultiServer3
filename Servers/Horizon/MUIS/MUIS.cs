@@ -332,14 +332,22 @@ namespace Horizon.MUIS
 
                                                         if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot && data.ClientObject.ClientHomeData == null)
                                                         {
-                                                            string anticheatMsg = $"[MUIS] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
+                                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
 
                                                             _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(x => x != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                             LoggerAccessor.LogError(anticheatMsg);
 
-                                                            data.State = ClientState.DISCONNECTED;
-                                                            await clientChannel.CloseAsync();
+                                                            await HorizonServerConfiguration.Database.BanIp(data.ClientObject.IP).ContinueWith((r) =>
+                                                            {
+                                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                                {
+                                                                    // Banned
+                                                                    QueueBanMessage(data);
+                                                                }
+                                                                data.ClientObject.ForceDisconnect();
+                                                                _ = data.ClientObject.Logout();
+                                                            });
                                                         }
                                                     }
                                                     break;
@@ -423,6 +431,21 @@ namespace Horizon.MUIS
                         }
                 }
             }
+        }
+
+        protected virtual Task QueueBanMessage(ChannelData? data, string msg = "You have been banned!")
+        {
+            // Send ban message
+            data?.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
+            {
+                Severity = (byte)MediusClass.GetAppSettingsOrDefault(data.ApplicationId).BanSystemMessageSeverity,
+                EncodingType = DME_SERVER_ENCODING_TYPE.DME_SERVER_ENCODING_UTF8,
+                LanguageType = DME_SERVER_LANGUAGE_TYPE.DME_SERVER_LANGUAGE_US_ENGLISH,
+                EndOfMessage = true,
+                Message = msg
+            });
+
+            return Task.CompletedTask;
         }
 
         protected virtual void ProcessMediusMessage(BaseMediusMessage message, IChannel clientChannel, ChannelData data)

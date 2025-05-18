@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using NetworkLibrary.Extension;
 using System;
 using System.ComponentModel;
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
@@ -75,7 +76,7 @@ namespace SpaceWizards.HttpListener
                     return false;
                 }
 
-                string authString = Encoding.UTF8.GetString(Convert.FromBase64String(headerValue));
+                string authString = Encoding.UTF8.GetString(headerValue.IsBase64().Item2);
                 int colonPos = authString.IndexOf(':');
                 if (colonPos < 0)
                 {

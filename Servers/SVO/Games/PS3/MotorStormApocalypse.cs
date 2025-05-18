@@ -29,7 +29,6 @@ namespace SVO
                             switch (method)
                             {
                                 case "POST":
-
                                     string signature = string.Empty;
 
                                     string signatureClass = string.Empty;
@@ -125,7 +124,7 @@ namespace SVO
 
                                     try
                                     {
-                                        await SVOServerConfiguration.Database.GetAccountByName(psnname, 23360).ContinueWith((r) =>
+                                        await SVOServerConfiguration.Database.GetAccountByName(psnname, 22500).ContinueWith((r) =>
                                         {
                                             //Found in database so keep.
                                             langId = request.Url.Query.Substring(94, request.Url.Query.Length - 94);

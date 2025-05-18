@@ -422,6 +422,7 @@ pdc-vm-rdv06.ubisoft.com,Redirect,IP
 pdc-vm-rdv07.ubisoft.com,Redirect,IP
 pdc-vm-rdv08.ubisoft.com,Redirect,IP
 pdc-vm-rdv09.ubisoft.com,Redirect,IP
+pdc-vm-rdv10.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod01.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod02.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod03.ubisoft.com,Redirect,IP
@@ -431,6 +432,7 @@ pdc-lb-rdv-prod06.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod07.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod08.ubisoft.com,Redirect,IP
 pdc-lb-rdv-prod09.ubisoft.com,Redirect,IP
+pdc-lb-rdv-prod10.ubisoft.com,Redirect,IP
 mdc-mm-rdv01.ubisoft.com,Redirect,IP
 mdc-mm-rdv02.ubisoft.com,Redirect,IP
 mdc-mm-rdv03.ubisoft.com,Redirect,IP
@@ -440,12 +442,16 @@ mdc-mm-rdv06.ubisoft.com,Redirect,IP
 mdc-mm-rdv07.ubisoft.com,Redirect,IP
 mdc-mm-rdv08.ubisoft.com,Redirect,IP
 mdc-mm-rdv09.ubisoft.com,Redirect,IP
+mdc-mm-rdv10.ubisoft.com,Redirect,IP
+ne1-z2-ac-rdv04.ubisoft.com,Redirect,IP
 ne1-z3-as-rdv03.ubisoft.com,Redirect,IP
+ne1-z3-as-rdv06.ubisoft.com,Redirect,IP
 lb-rdv-prod.ubi.com,Redirect,IP
-api-ubiservices.ubi.com,Redirect,IP
+lb-ne1-z02-rdv-ac.ubisoft.com,Redirect,IP
 lb-ne1z-prod-mpe-traversal.ubisoft.com,Redirect,IP
 lb-ne1z-prod-mpe-detect01.ubisoft.com,Redirect,IP
 lb-ne1z-prod-mpe-detect02.ubisoft.com,Redirect,IP
+api-ubiservices.ubi.com,Redirect,IP
 wsuplay.ubi.com,Redirect,IP
 static2.cdn.ubi.com,Redirect,IP
 static8.cdn.ubi.com,Redirect,IP

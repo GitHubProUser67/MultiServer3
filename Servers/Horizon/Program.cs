@@ -25,7 +25,7 @@ public static class HorizonServerConfiguration
     public static bool EnableDME { get; set; } = true;
     public static bool EnableMuis { get; set; } = true;
     public static bool EnableBWPS { get; set; } = true;
-    public static bool EnableNAT { get; set; } = true;
+    public static bool EnableNAT { get; set; } = false;
     public static string? PlayerAPIStaticPath { get; set; } = $"{Directory.GetCurrentDirectory()}/static/wwwroot";
     public static string? EBOOTDEFSConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/ebootdefs.json";
     public static string? DMEConfig { get; set; } = $"{Directory.GetCurrentDirectory()}/static/dme.json";

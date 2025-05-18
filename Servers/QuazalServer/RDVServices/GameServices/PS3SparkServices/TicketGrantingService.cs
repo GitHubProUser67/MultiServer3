@@ -4,11 +4,10 @@ using QuazalServer.QNetZ.Attributes;
 using QuazalServer.QNetZ.Interfaces;
 using QuazalServer.QNetZ.Connection;
 using System.Net;
-using QuazalServer.RDVServices.RMC;
 using CustomLogger;
 using QuazalServer.QNetZ.DDL;
 
-namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
+namespace QuazalServer.RDVServices.GameServices.PS3SparkServices
 {
     /// <summary>
     /// Authentication service (ticket granting)
@@ -69,16 +68,42 @@ namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
                                     "prudps",
                                     prudplink,
                                     new Dictionary<string, int>() {
-                                            { "port", Context.Handler.BackendPort },
-                                            { "CID", 1 },
-                                            { "PID", (int)Context.Client.sPID },
-                                            { "sid", 1 },
-                                            { "stream", 3 },
-                                            { "type", 2 } // Public, not BehindNAT
+                                        { "port", Context.Handler.BackendPort },
+                                        { "CID", 1 },
+                                        { "PID", (int)Context.Client.sPID },
+                                        { "sid", 1 },
+                                        { "stream", 3 },
+                                        { "type", 2 } // Public, not BehindNAT
                                     })
                         },
                         strReturnMsg = string.Empty,
                         pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey, "h7fyctiuucf")
+                    });
+                }
+                else if (userName == "Tracking")
+                {
+                    plInfo.AccountId = userName;
+                    plInfo.Name = userName;
+
+                    return Result(new Login(0)
+                    {
+                        retVal = (int)ErrorCode.Core_NoError,
+                        pConnectionData = new RVConnectionData()
+                        {
+                            m_urlRegularProtocols = new(
+                                    "prudps",
+                                    prudplink,
+                                    new Dictionary<string, int>() {
+                                        { "port", Context.Handler.BackendPort },
+                                        { "CID", 1 },
+                                        { "PID", (int)Context.Client.sPID },
+                                        { "sid", 1 },
+                                        { "stream", 3 },
+                                        { "type", 2 } // Public, not BehindNAT
+                                    })
+                        },
+                        strReturnMsg = string.Empty,
+                        pbufResponse = new KerberosTicket(plInfo.PID, Context.Client.sPID, Constants.SessionKey, Constants.TicketData).ToBuffer(Context.Handler.AccessKey, "JaDe!")
                     });
                 }
                 else // Console login not uses Quazal storage, they use a given account to log-in.
@@ -96,12 +121,12 @@ namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
                                         "prudps",
                                         prudplink,
                                         new Dictionary<string, int>() {
-                                            { "port", Context.Handler.BackendPort },
-                                            { "CID", 1 },
-                                            { "PID", (int)Context.Client.sPID },
-                                            { "sid", 1 },
-                                            { "stream", 3 },
-                                            { "type", 2 } // Public, not BehindNAT
+                                        { "port", Context.Handler.BackendPort },
+                                        { "CID", 1 },
+                                        { "PID", (int)Context.Client.sPID },
+                                        { "sid", 1 },
+                                        { "stream", 3 },
+                                        { "type", 2 } // Public, not BehindNAT
                                         })
                         },
                         strReturnMsg = string.Empty,
@@ -125,7 +150,9 @@ namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
                     retVal = (int)ErrorCode.Core_NoError,
                 };
 
-                if (sourcePID == 100) // Quazal guest account.
+                if (sourcePID == 0) // Ubisoft tracker account.
+                    ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey, "JaDe!");
+                else if (sourcePID == 100) // Quazal guest account.
                     ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey, "h7fyctiuucf");
                 else
                     ticketData.pbufResponse = kerberos.ToBuffer(Context.Handler.AccessKey);

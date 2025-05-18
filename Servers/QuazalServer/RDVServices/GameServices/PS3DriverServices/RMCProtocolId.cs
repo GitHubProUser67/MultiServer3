@@ -25,6 +25,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3DriverServices
         GameSessionService = 42,
         MatchMakingProtocolExtClient = 50,
         OfflineGameNotificationsService = 71,
+        NpFriendsService = 83,
         LadderHelperProtocol = 107,
         PlayerStatsService = 108,
         RichPresenceService = 109,

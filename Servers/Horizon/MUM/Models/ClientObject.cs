@@ -660,8 +660,8 @@ namespace Horizon.MUM.Models
 
             LastAccountBanCheckTime = DateTimeUtils.GetHighPrecisionUtcTime();
 
-            // Check if user is Account banned
-            return await HorizonServerConfiguration.Database.GetAccountIsBanned(AccountName, ApplicationId);
+            // Check if user is Account or Ip banned
+            return await HorizonServerConfiguration.Database.GetAccountIsBanned(AccountName, ApplicationId) || await HorizonServerConfiguration.Database.GetIsIpBanned(IP);
         }
 
         public async Task RefreshAccount()

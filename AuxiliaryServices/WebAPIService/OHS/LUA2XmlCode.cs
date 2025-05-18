@@ -64,7 +64,18 @@ XmlConvert =
 
 			local convert =
 			{
-				string	   = function( val ) return tostring(val) end,
+				string = function( val )
+					-- Workaround for lack of Vector4 in classic lua interpreters.
+					local pattern = ""^([+-]?[0-9]*%.?[0-9]+),([+-]?[0-9]*%.?[0-9]+),([+-]?[0-9]*%.?[0-9]+),([+-]?[0-9]*%.?[0-9]+)$""
+					local x, y, z, w = val:match(pattern)
+					-- If we found the vector pattern, process it
+					if x and y and z and w then
+						local components = {x, y, z, w}
+						return table.concat(components, ','), 'vec'
+					else
+					  return tostring(val)  -- Default string conversion
+					end
+				end,
 				boolean	   = function( val ) return tostring(val), 'bool' end,
 				number 	   = function( val ) return math.floor(val) == val and string.format('%d', val) or tostring(val), 'num' end,
 				vector4	   = function( val ) return table.concat({val:X(), val:Y(), val:Z(), val:W()}, ','), 'vec' end,
@@ -166,7 +177,18 @@ XmlConvert =
 
 local ENCODE =
 {
-	string     = function( x ) return tostring(x) end,
+	string = function( val )
+            -- Workaround for lack of Vector4 in classic lua interpreters.
+            local pattern = ""^([+-]?[0-9]*%.?[0-9]+),([+-]?[0-9]*%.?[0-9]+),([+-]?[0-9]*%.?[0-9]+),([+-]?[0-9]*%.?[0-9]+)$""
+            local x, y, z, w = val:match(pattern)
+            -- If we found the vector pattern, process it
+            if x and y and z and w then
+                local components = {x, y, z, w}
+                return table.concat(components, ','), 'vec'
+            else
+              return tostring(val)  -- Default string conversion
+            end
+        end,
 	boolean    = function( x ) return tostring(x), 'bool' end,
 	['nil']    = function( x ) return nil, 'nil' end,
 	number     = function( x ) return math.floor(x) == x and string.format('%d', x) or tostring(x), 'num' end,

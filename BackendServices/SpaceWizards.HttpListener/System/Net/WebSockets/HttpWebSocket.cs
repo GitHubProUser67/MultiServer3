@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using NetworkLibrary.Extension;
 using System;
 #if !NET5_0_OR_GREATER
 using System.Collections.Generic;
@@ -199,7 +200,7 @@ namespace SpaceWizards.HttpListener.WebSockets
                 try
                 {
                     // key must be 16 bytes then base64-encoded
-                    isSecWebSocketKeyInvalid = Convert.FromBase64String(secWebSocketKey!).Length != 16;
+                    isSecWebSocketKeyInvalid = secWebSocketKey!.IsBase64().Item2.Length != 16;
                 }
                 catch
                 {

@@ -13,19 +13,41 @@ namespace Horizon.SERVER.Extension.PlayStationHome
     {
         #region Anticheat References
 
-        private byte[] Ref1 = Convert.FromBase64String("j1S4yArhxE6OW2ZPQzq+oA==");
+        private static byte[] Ref1 = "j1S4yArhxE6OW2ZPQzq+oA==".IsBase64().Item2;
 
-        private byte[] Ref2 = Convert.FromBase64String("XtKRFh5cJ/iW3RzTcyHa8g==");
+        private static byte[] Ref2 = "XtKRFh5cJ/iW3RzTcyHa8g==".IsBase64().Item2;
 
-        private byte[] Ref3 = Convert.FromBase64String("VDQrkh5H7aV9T/GbaDwNUw==");
+        private static byte[] Ref3 = "VDQrkh5H7aV9T/GbaDwNUw==".IsBase64().Item2;
 
-        private byte[] Ref4 = Convert.FromBase64String("FA5bx20s0liKa36ROeQ8Lw==");
+        private static byte[] Ref4 = "FA5bx20s0liKa36ROeQ8Lw==".IsBase64().Item2;
 
-        private byte[] Ref5 = Convert.FromBase64String("gjhutOUMfyuOPC5gjtt9/Q==");
+        private static byte[] Ref5 = "gjhutOUMfyuOPC5gjtt9/Q==".IsBase64().Item2;
 
-        private byte[] Ref6 = Convert.FromBase64String("AAAAAAAAAAE=");
+        private static byte[] Ref6 = "AAAAAAAAAAE=".IsBase64().Item2;
+
+        private static List<byte[]> ForceInviteRefs = new List<byte[]> { 
+            "B4A08C784F3097477A95BAE6ED2360B8".HexStringToByteArray(),
+            "5FB36D34F9C08B51C653602A9A1E0EE2".HexStringToByteArray(),
+            "3190194C117C510E0414DF77B4BEE615".HexStringToByteArray(),
+            "090276717FA70EAEBCA71218898D226F".HexStringToByteArray(),
+        };
 
         #endregion
+
+        protected virtual Task QueueBanMessage(ChannelData? data, string msg = "You have caught cheating!")
+        {
+            // Send ban message
+            data?.SendQueue.Enqueue(new RT_MSG_SERVER_SYSTEM_MESSAGE()
+            {
+                Severity = (byte)MediusClass.GetAppSettingsOrDefault(data.ApplicationId).BanSystemMessageSeverity,
+                EncodingType = DME_SERVER_ENCODING_TYPE.DME_SERVER_ENCODING_UTF8,
+                LanguageType = DME_SERVER_LANGUAGE_TYPE.DME_SERVER_LANGUAGE_US_ENGLISH,
+                EndOfMessage = true,
+                Message = msg
+            });
+
+            return Task.CompletedTask;
+        }
 
         public async void ProcessAntiCheatQuery(ChannelData data, RT_MSG_SERVER_CHEAT_QUERY clientCheatQuery, IChannel? clientChannel)
         {
@@ -40,7 +62,7 @@ namespace Horizon.SERVER.Extension.PlayStationHome
             ClientObject? client = data.ClientObject;
             byte[] QueryData = clientCheatQuery.Data;
 
-            if (client?.ClientHomeData != null)
+            if (client != null && client.ClientHomeData != null)
             {
                 switch (client.ClientHomeData.Type)
                 {
@@ -53,14 +75,43 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                     case 0x101590b0:
                                         if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !QueryData.EqualsTo(Ref3)))
                                         {
-                                            string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
+                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
 
-                                            _ = client?.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+                                            _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
 
                                             LoggerAccessor.LogError(anticheatMsg);
 
-                                            data.State = ClientState.DISCONNECTED;
-                                            await clientChannel.CloseAsync();
+                                            await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                            {
+                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                {
+                                                    // Banned
+                                                    QueueBanMessage(data);
+                                                }
+                                                client.ForceDisconnect();
+                                                _ = client.Logout();
+                                            });
+                                        }
+                                        break;
+                                    case 0x0016cb68:
+                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !QueryData.EqualsTo(ForceInviteRefs[0])))
+                                        {
+                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FORCE INVITE BYPASS ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
+
+                                            _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+
+                                            LoggerAccessor.LogError(anticheatMsg);
+
+                                            await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                            {
+                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                {
+                                                    // Banned
+                                                    QueueBanMessage(data);
+                                                }
+                                                client.ForceDisconnect();
+                                                _ = client.Logout();
+                                            });
                                         }
                                         break;
                                 }
@@ -79,6 +130,32 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                     case "HDK Online Only (Dbg Symbols)":
                         switch (client.ClientHomeData.Version)
                         {
+                            case "01.82.09":
+                                switch (clientCheatQuery.StartAddress)
+                                {
+                                    case 0x0016b490:
+                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !QueryData.EqualsTo(ForceInviteRefs[1])))
+                                        {
+                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FORCE INVITE BYPASS ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
+
+                                            _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+
+                                            LoggerAccessor.LogError(anticheatMsg);
+
+                                            await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                            {
+                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                {
+                                                    // Banned
+                                                    QueueBanMessage(data);
+                                                }
+                                                client.ForceDisconnect();
+                                                _ = client.Logout();
+                                            });
+                                        }
+                                        break;
+                                }
+                                break;
                             default:
                                 break;
                         }
@@ -86,6 +163,58 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                     case "Online Debug":
                         switch (client.ClientHomeData.Version)
                         {
+                            case "01.83.12":
+                                switch (clientCheatQuery.StartAddress)
+                                {
+                                    case 0x001709a0:
+                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !QueryData.EqualsTo(ForceInviteRefs[2])))
+                                        {
+                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FORCE INVITE BYPASS ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
+
+                                            _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+
+                                            LoggerAccessor.LogError(anticheatMsg);
+
+                                            await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                            {
+                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                {
+                                                    // Banned
+                                                    QueueBanMessage(data);
+                                                }
+                                                client.ForceDisconnect();
+                                                _ = client.Logout();
+                                            });
+                                        }
+                                        break;
+                                }
+                                break;
+                            case "01.86.09":
+                                switch (clientCheatQuery.StartAddress)
+                                {
+                                    case 0x0016da80:
+                                        if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !QueryData.EqualsTo(ForceInviteRefs[3])))
+                                        {
+                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FORCE INVITE BYPASS ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
+
+                                            _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+
+                                            LoggerAccessor.LogError(anticheatMsg);
+
+                                            await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                            {
+                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                {
+                                                    // Banned
+                                                    QueueBanMessage(data);
+                                                }
+                                                client.ForceDisconnect();
+                                                _ = client.Logout();
+                                            });
+                                        }
+                                        break;
+                                }
+                                break;
                             default:
                                 break;
                         }
@@ -100,33 +229,49 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && (QueryData.EqualsTo(Ref1)
                                             || QueryData.EqualsTo(Ref2) || QueryData.EqualsTo(Ref4)))
                                         {
-                                            string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
+                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: UNAUTHORIZED TOOL USAGE) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
 
-                                            _ = client?.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+                                            _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
 
                                             LoggerAccessor.LogError(anticheatMsg);
 
-                                            data.State = ClientState.DISCONNECTED;
-                                            await clientChannel.CloseAsync();
+                                            await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                            {
+                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                {
+                                                    // Banned
+                                                    QueueBanMessage(data);
+                                                }
+                                                client.ForceDisconnect();
+                                                _ = client.Logout();
+                                            });
                                         }
                                         break;
                                     case 0x100BA820:
                                         if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && (QueryData.Length != 16 || !QueryData.EqualsTo(Ref3)))
                                         {
-                                            string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
+                                            string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
 
-                                            _ = client?.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+                                            _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
 
                                             LoggerAccessor.LogError(anticheatMsg);
 
-                                            data.State = ClientState.DISCONNECTED;
-                                            await clientChannel.CloseAsync();
+                                            await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                            {
+                                                if (r.IsCompletedSuccessfully && r.Result)
+                                                {
+                                                    // Banned
+                                                    QueueBanMessage(data);
+                                                }
+                                                client.ForceDisconnect();
+                                                _ = client.Logout();
+                                            });
                                         }
                                         break;
                                     case 0x104F7320:
                                         if (clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4)
                                         {
-                                            if (client != null && client.HomePointer == 0)
+                                            if (client.HomePointer == 0)
                                             {
                                                 client.SetPointer(BitConverter.ToUInt32(BitConverter.IsLittleEndian ? EndianUtils.ReverseArray(QueryData) : QueryData));
 
@@ -154,25 +299,41 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                         {
                                             if (clientCheatQuery.StartAddress == client.HomePointer + 6928U && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH && QueryData.Length == 16 && QueryData.EqualsTo(Ref5))
                                             {
-                                                string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
+                                                string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: LAG FREEZE ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
 
-                                                _ = client?.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+                                                _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
 
                                                 LoggerAccessor.LogError(anticheatMsg);
 
-                                                data.State = ClientState.DISCONNECTED;
-                                                await clientChannel.CloseAsync();
+                                                await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                                {
+                                                    if (r.IsCompletedSuccessfully && r.Result)
+                                                    {
+                                                        // Banned
+                                                        QueueBanMessage(data);
+                                                    }
+                                                    client.ForceDisconnect();
+                                                    _ = client.Logout();
+                                                });
                                             }
                                             else if (clientCheatQuery.StartAddress == client.HomePointer + 5300U && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 8 && QueryData.EqualsTo(Ref6))
                                             {
-                                                string anticheatMsg = $"[MLS] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client?.IP + ":" + client?.AccountName} CID:{data.MachineId}";
+                                                string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED MALICIOUS USAGE (Reason: FREEZE ATTEMPT) - User:{client.IP + ":" + client.AccountName} CID:{data.MachineId}";
 
-                                                _ = client?.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
+                                                _ = client.CurrentChannel?.BroadcastSystemMessage(client.CurrentChannel.LocalClients.Where(x => x != client), anticheatMsg, byte.MaxValue);
 
                                                 LoggerAccessor.LogError(anticheatMsg);
 
-                                                data.State = ClientState.DISCONNECTED;
-                                                await clientChannel.CloseAsync();
+                                                await HorizonServerConfiguration.Database.BanIp(client.IP).ContinueWith((r) =>
+                                                {
+                                                    if (r.IsCompletedSuccessfully && r.Result)
+                                                    {
+                                                        // Banned
+                                                        QueueBanMessage(data);
+                                                    }
+                                                    client.ForceDisconnect();
+                                                    _ = client.Logout();
+                                                });
                                             }
                                         }
                                         break;
@@ -199,6 +360,8 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                         {
                             case "01.86.09":
                                 results.Add((0x101590b0, 20, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, 1));
+                                if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch)
+                                    results.Add((0x0016cb68, 364, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, 1));
                                 break;
                             default:
                                 break;
@@ -214,6 +377,10 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                     case "HDK Online Only (Dbg Symbols)":
                         switch (client.ClientHomeData.Version)
                         {
+                            case "01.82.09":
+                                if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch)
+                                    results.Add((0x0016b490, 172, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, 1));
+                                break;
                             default:
                                 break;
                         }
@@ -221,6 +388,14 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                     case "Online Debug":
                         switch (client.ClientHomeData.Version)
                         {
+                            case "01.83.12":
+                                if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch)
+                                    results.Add((0x001709a0, 168, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, 1));
+                                break;
+                            case "01.86.09":
+                                if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch)
+                                    results.Add((0x0016da80, 168, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, 1));
+                                break;
                             default:
                                 break;
                         }
@@ -242,7 +417,6 @@ namespace Horizon.SERVER.Extension.PlayStationHome
                                 }
                                 else
                                     results.Add((268759069U, 27, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, 1));
-
                                 results.Add((0x100BA820, 20, CheatQueryType.DME_SERVER_CHEAT_QUERY_SHA1_HASH, 1));
                                 results.Add((0x104F7320, 4, CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY, 1));
                                 break;

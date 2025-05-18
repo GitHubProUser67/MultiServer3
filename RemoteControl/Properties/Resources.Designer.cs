@@ -61,6 +61,16 @@ namespace RemoteControl.Properties {
         }
         
         /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
+        internal static byte[] Amiga_CD32___Boot {
+            get {
+                object obj = ResourceManager.GetObject("Amiga CD32 - Boot", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap MultiServer {

@@ -94,16 +94,6 @@ namespace Horizon.SERVER.Medius
                 _channelDatas.TryAdd(key, data);
 
                 OnConnected(channel);
-
-                /*
-                // Check if IP is banned
-                ServerConfiguration.Database.GetIsIpBanned((channel.RemoteAddress as IPEndPoint).Address.MapToIPv4().ToString()).ContinueWith((r) =>
-                {
-                    data.IsBanned = r.IsCompletedSuccessfully && r.Result;
-                    if (data.IsBanned == true)
-                        QueueBanMessage(data, "Your IP has been banned!");
-                });
-                */
             };
 
             // Remove client on disconnect

@@ -127,6 +127,8 @@ public static class ApacheNetServerConfiguration
     public static List<ushort>? Ports { get; set; } = new() { 80, 443, 3074, 3658, 9090, 10010, 26004, 33000 };
     public static List<string>? RedirectRules { get; set; }
     public static List<string>? BannedIPs { get; set; }
+    public static List<string>? AllowedManagementIPs { get; set; }
+
     public static Dictionary<string, HTTPPlugin> plugins = PluginLoader.LoadPluginsFromFolder(PluginsFolder);
 
     /// <summary>
@@ -190,6 +192,7 @@ public static class ApacheNetServerConfiguration
                 new JProperty("Ports", new JArray(Ports ?? new List<ushort> { })),
                 new JProperty("RedirectRules", new JArray(RedirectRules ?? new List<string> { })),
                 new JProperty("BannedIPs", new JArray(BannedIPs ?? new List<string> { })),
+                new JProperty("AllowedManagementIPs", new JArray(AllowedManagementIPs ?? new List<string> { })),
                 new JProperty("plugins_custom_parameters", string.Empty)
             ).ToString());
 
@@ -276,6 +279,18 @@ public static class ApacheNetServerConfiguration
             {
 
             }
+            // Deserialize AllowedManagementIPs if it exists
+            try
+            {
+                JArray AllowedManagementIPsArray = config.AllowedManagementIPs;
+                // Deserialize AllowedManagementIPs if it exists
+                if (AllowedManagementIPsArray != null)
+                    AllowedManagementIPs = AllowedManagementIPsArray.ToObject<List<string>>();
+            }
+            catch
+            {
+
+            }
         }
         catch (Exception ex)
         {
@@ -327,7 +342,7 @@ public static class ApacheNetServerConfiguration
 class Program
 {
     private static string configDir = Directory.GetCurrentDirectory() + "/static/";
-    private static string configPath = configDir + "ApacheNet.json";
+    public static string configPath = configDir + "ApacheNet.json";
     private static string configNetworkLibraryPath = configDir + "NetworkLibrary.json";
     private static string DNSconfigMD5 = string.Empty;
     private static Timer? FilesystemTree = null;
@@ -368,7 +383,7 @@ class Program
         }
     }
 
-    private static void StartOrUpdateServer()
+    public static void StartOrUpdateServer()
     {
         if (HTTPSBag != null)
         {

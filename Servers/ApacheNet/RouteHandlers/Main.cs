@@ -5,12 +5,110 @@ using WebAPIService.THQ;
 using WebAPIService.RCHOME;
 using WatsonWebserver.Core;
 using WebAPIService.HOMELEADERBOARDS;
+using System;
+using CustomLogger;
+using System.Threading.Tasks;
+using System.Globalization;
+using NetworkLibrary.Extension;
+using NetworkLibrary.GeoLocalization;
+using System.Text.Json;
 
 namespace ApacheNet.RouteHandlers
 {
     public class Main
     {
         public static List<Route> index = new() {
+                new() {
+                    Name = "Server shutdown endpoint",
+                    UrlRegex = "^/shutdown$",
+                    Method = "GET",
+                    Host = null,
+                    Callable = (HttpContextBase ctx) => {
+                        string ipAddr = ctx.Request.Source.IpAddress;
+                        if (!string.IsNullOrEmpty(ipAddr) && ((ApacheNetServerConfiguration.AllowedManagementIPs != null && ApacheNetServerConfiguration.AllowedManagementIPs.Contains(ipAddr))
+                        || "::1".Equals(ipAddr) || "127.0.0.1".Equals(ipAddr) || "localhost".Equals(ipAddr, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            LoggerAccessor.LogWarn($"[Main] - Allowed IP:{ipAddr} issued a server shutdown command at:{DateTime.Now}.");
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.Send("Shutdown initiated.").Wait();
+                            LoggerAccessor.LogInfo("Shutting down. Goodbye!");
+                            Environment.Exit(0);
+                        }
+                        LoggerAccessor.LogError($"[Main] - IP:{ipAddr} tried to issue a server shutdown command at:{DateTime.Now}, but this is not allowed for this address!");
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.Send().Wait();
+                        return true;
+                     }
+                },
+                new() {
+                    Name = "Server reboot endpoint",
+                    UrlRegex = "^/reboot$",
+                    Method = "GET",
+                    Host = null,
+                    Callable = (HttpContextBase ctx) => {
+                        string ipAddr = ctx.Request.Source.IpAddress;
+                        if (!string.IsNullOrEmpty(ipAddr) && ((ApacheNetServerConfiguration.AllowedManagementIPs != null && ApacheNetServerConfiguration.AllowedManagementIPs.Contains(ipAddr))
+                        || "::1".Equals(ipAddr) || "127.0.0.1".Equals(ipAddr) || "localhost".Equals(ipAddr, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            LoggerAccessor.LogWarn($"[Main] - Allowed IP:{ipAddr} issued a server reboot command at:{DateTime.Now}.");
+                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                            ctx.Response.Send("Reboot initiated.").Wait();
+                            _ = Task.Run(() => {
+                                LoggerAccessor.LogInfo("Rebooting!");
+
+                                ApacheNetServerConfiguration.RefreshVariables(Program.configPath);
+
+                                Program.StartOrUpdateServer();
+                            });
+                            return true;
+                        }
+                        LoggerAccessor.LogError($"[Main] - IP:{ipAddr} tried to issue a server reboot command at:{DateTime.Now}, but this is not allowed for this address!");
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.Send().Wait();
+                        return true;
+                     }
+                },
+                new() {
+                    Name = "Home UniqueInstanceId decypher",
+                    UrlRegex = "^/DecryptUniqueInstanceID.php$",
+                    Method = "POST",
+                    Host = null,
+                    Callable = (HttpContextBase ctx) => {
+                        if (ApacheNetServerConfiguration.EnableBuiltInPlugins)
+                        {
+                            try
+                            {
+                                string instanceId = ctx.Request.DataAsString;
+                                if (instanceId.Length == 21)
+                                {
+                                    // Parse World ID (8 hex)
+                                    uint worldId = uint.Parse(instanceId.Substring(0, 8), NumberStyles.HexNumber);
+
+                                    // Parse Local ID (5 decimal)
+                                    int localId = int.Parse(instanceId.Substring(8, 5));
+
+                                    // Parse Packed Address (8 hex)
+                                    IPAddress Address = InternetProtocolUtils.GetIPAddressFromUInt(uint.Parse(instanceId.Substring(13, 8), NumberStyles.HexNumber));
+
+                                    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                    ctx.Response.ContentType = "application/json; charset=utf-8";
+                                    return ctx.Response.Send(JsonSerializer.Serialize(new
+                                    {
+                                        WorldId = worldId,
+                                        LocalId = localId,
+                                        Address = Address.ToString()
+                                    })).Result;
+                                }
+                            }
+                            catch
+                            {
+                            }
+                            ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                            return ctx.Response.Send("Invalid instance ID format.").Result;
+                        }
+                        return false;
+                     }
+                },
                 new() {
                     Name = "Ubisoft MasterAdServerInitXml",
                     UrlRegex = "/MasterAdServerWS/MasterAdServerWS.asmx/InitXml",
@@ -79,6 +177,19 @@ namespace ApacheNet.RouteHandlers
                                                             ctx.Response.StatusCode = (int)HttpStatusCode.OK;
                                                             ctx.Response.ContentType = "text/html; charset=utf-8"; // Not an error, packet shows this content type...
                                                             return ctx.Response.Send(WebAPIService.UBISOFT.MatchMakingConfig.XMLData.DFS_PC_EN_XMLPayload).Result;
+                                                        }
+                                                        break;
+                                                }
+                                                break;
+                                            case "0879cd6bbf17e9cbf6cf44fb35c0142f": //PBPS3
+                                                switch (locale)
+                                                {
+                                                    default:
+                                                        if (format == "xml")
+                                                        {
+                                                            ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                                                            ctx.Response.ContentType = "text/html; charset=utf-8"; // Not an error, packet shows this content type...
+                                                            return ctx.Response.Send(WebAPIService.UBISOFT.MatchMakingConfig.XMLData.PB_PS3_EN_XMLPayload).Result;
                                                         }
                                                         break;
                                                 }

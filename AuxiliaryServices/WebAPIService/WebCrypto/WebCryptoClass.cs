@@ -7,6 +7,8 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using NetworkLibrary.Extension;
 
 namespace WebAPIService.WebCrypto
 {
@@ -17,6 +19,19 @@ namespace WebAPIService.WebCrypto
 #if NET7_0_OR_GREATER
         public static async Task<string> GenerateRandomBase64KeyAsync()
 #else
+#pragma warning disable
+        public class WebClientWithTimeout : System.Net.WebClient
+        {
+            public int Timeout { get; set; } = 5000; // milliseconds
+
+            protected override System.Net.WebRequest GetWebRequest(Uri address)
+            {
+                var request = base.GetWebRequest(address);
+                request.Timeout = Timeout;
+                return request;
+            }
+        }
+#pragma warning restore
         public static Task<string> GenerateRandomBase64KeyAsync()
 #endif
         {
@@ -31,12 +46,11 @@ namespace WebAPIService.WebCrypto
                 using (System.Net.Http.HttpClient client = new System.Net.Http.HttpClient())
                 {
                     // Fetch the webpage content using HttpClient
+                    client.Timeout = TimeSpan.FromSeconds(5);
                     content = await client.GetStringAsync(url).ConfigureAwait(false);
                 }
 #else
-#pragma warning disable
-                using (System.Net.WebClient client = new System.Net.WebClient())
-#pragma warning restore
+                using (WebClientWithTimeout client = new WebClientWithTimeout())
                 {
                     // Fetch the webpage content using WebClient
                     content = client.DownloadString(url);
@@ -58,16 +72,25 @@ namespace WebAPIService.WebCrypto
                             .Match(content.Substring(startIndex, endIndex - startIndex).Trim());
 
                         if (match.Success)
+#if NET7_0_OR_GREATER
+                            return match.Groups[1].Value.Trim();
+#else
                             return Task.FromResult(match.Groups[1].Value.Trim());
+#endif
                     }
                 }
+
+                CustomLogger.LoggerAccessor.LogDebug($"[WebCrypto] - GenerateRandomBase64KeyAsync - website didn't return the expected data, switching to built-in engine...");
             }
             catch (Exception ex)
             {
-                CustomLogger.LoggerAccessor.LogError($"[WebCrypto] - GenerateRandomBase64KeyAsync - an exception was thrown while fetching the key:{ex}");
+                CustomLogger.LoggerAccessor.LogDebug($"[WebCrypto] - GenerateRandomBase64KeyAsync - an exception was thrown while fetching the key:{ex}, switching to built-in engine...");
             }
-
-            return Task.FromResult<string>(null);
+#if NET7_0_OR_GREATER
+            return Convert.ToBase64String(NetworkLibrary.Extension.ByteUtils.GenerateRandomBytes(32));
+#else
+            return Task.FromResult(Convert.ToBase64String(NetworkLibrary.Extension.ByteUtils.GenerateRandomBytes(32)));
+#endif
         }
 
         public static string EncryptCBC(object ObjectToEncrypt, string AccessKey, byte[] IV, bool xmlsecuretags = false, bool xmlbody = false)
@@ -79,13 +102,13 @@ namespace WebAPIService.WebCrypto
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCBCEncryptBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -102,13 +125,13 @@ namespace WebAPIService.WebCrypto
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCBCEncryptBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -127,12 +150,12 @@ namespace WebAPIService.WebCrypto
                 result = InitiateCBCEncryptBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ServerResult", JToken.Parse(JsonConvert.SerializeObject(ObjectToEncrypt, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCBCEncryptBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -148,12 +171,12 @@ namespace WebAPIService.WebCrypto
                 result = InitiateCBCEncryptBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ServerResult", JToken.Parse(JsonConvert.SerializeObject(ObjectToEncrypt, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCBCEncryptBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -166,22 +189,22 @@ namespace WebAPIService.WebCrypto
 
         public static string DecryptCBC(string StringToDecrypt, string AccessKey, byte[] IV)
         {
-            return Encoding.UTF8.GetString(InitiateCBCDecryptBuffer(Convert.FromBase64String(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV) ?? Array.Empty<byte>());
+            return Encoding.UTF8.GetString(InitiateCBCDecryptBuffer(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV) ?? Array.Empty<byte>());
         }
 
         public static string DecryptCBC(byte[] ByteArrayToDecrypt, string AccessKey, byte[] IV)
         {
-            return Encoding.UTF8.GetString(InitiateCBCDecryptBuffer(Convert.FromBase64String(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV) ?? Array.Empty<byte>());
+            return Encoding.UTF8.GetString(InitiateCBCDecryptBuffer(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV) ?? Array.Empty<byte>());
         }
 
         public static byte[] DecryptToByteArrayCBC(string StringToDecrypt, string AccessKey, byte[] IV)
         {
-            return InitiateCBCDecryptBuffer(Convert.FromBase64String(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV);
+            return InitiateCBCDecryptBuffer(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV);
         }
 
         public static byte[] DecryptToByteArrayCBC(byte[] ByteArrayToDecrypt, string AccessKey, byte[] IV)
         {
-            return InitiateCBCDecryptBuffer(Convert.FromBase64String(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV);
+            return InitiateCBCDecryptBuffer(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV);
         }
 
         public static string EncryptCTR(object ObjectToEncrypt, string AccessKey, byte[] IV, bool xmlsecuretags = false, bool xmlbody = false)
@@ -193,13 +216,13 @@ namespace WebAPIService.WebCrypto
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -216,13 +239,13 @@ namespace WebAPIService.WebCrypto
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects | PreserveReferencesHandling.Arrays,
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -241,12 +264,12 @@ namespace WebAPIService.WebCrypto
                 result = InitiateCTRBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ServerResult", JToken.Parse(JsonConvert.SerializeObject(ObjectToEncrypt, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -262,12 +285,12 @@ namespace WebAPIService.WebCrypto
                 result = InitiateCTRBufferTobase64String(JsonConvert.DeserializeXmlNode(new JObject(new JProperty("ServerResult", JToken.Parse(JsonConvert.SerializeObject(ObjectToEncrypt, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", Convert.FromBase64String(AccessKey), IV);
+                })))).ToString(), "Root")?.OuterXml ?? "<Root></Root>", AccessKey.IsBase64().Item2, IV);
             else
                 result = InitiateCTRBufferTobase64String(JsonConvert.SerializeObject(ObjectToEncrypt, Formatting.Indented, new JsonSerializerSettings
                 {
                     Converters = { new JsonIPConverter() }
-                }), Convert.FromBase64String(AccessKey), IV);
+                }), AccessKey.IsBase64().Item2, IV);
 
             if (!string.IsNullOrEmpty(result) && xmlsecuretags)
                 result = "<Secure>" + result + "</Secure>";
@@ -280,22 +303,22 @@ namespace WebAPIService.WebCrypto
 
         public static string DecryptCTR(string StringToDecrypt, string AccessKey, byte[] IV)
         {
-            return Encoding.UTF8.GetString(InitiateCTRBuffer(Convert.FromBase64String(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV) ?? Array.Empty<byte>());
+            return Encoding.UTF8.GetString(InitiateCTRBuffer(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV) ?? Array.Empty<byte>());
         }
 
         public static string DecryptCTR(byte[] ByteArrayToDecrypt, string AccessKey, byte[] IV)
         {
-            return Encoding.UTF8.GetString(InitiateCTRBuffer(Convert.FromBase64String(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV) ?? Array.Empty<byte>());
+            return Encoding.UTF8.GetString(InitiateCTRBuffer(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV) ?? Array.Empty<byte>());
         }
 
         public static byte[] DecryptToByteArrayCTR(string StringToDecrypt, string AccessKey, byte[] IV)
         {
-            return InitiateCTRBuffer(Convert.FromBase64String(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV);
+            return InitiateCTRBuffer(StringToDecrypt.Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV);
         }
 
         public static byte[] DecryptToByteArrayCTR(byte[] ByteArrayToDecrypt, string AccessKey, byte[] IV)
         {
-            return InitiateCTRBuffer(Convert.FromBase64String(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty)), Convert.FromBase64String(AccessKey), IV);
+            return InitiateCTRBuffer(Encoding.UTF8.GetString(ByteArrayToDecrypt).Replace("<Secure>", string.Empty).Replace("</Secure>", string.Empty).IsBase64().Item2, AccessKey.IsBase64().Item2, IV);
         }
 
         private static byte[] InitiateCBCDecryptBuffer(byte[] FileBytes, byte[] KeyBytes, byte[] m_iv)

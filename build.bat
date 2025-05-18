@@ -14,49 +14,49 @@ dotnet build MultiServer3.sln --configuration Debug --property WarningLevel=0
 dotnet build MultiServer3.sln --configuration Release --property WarningLevel=0
 
 @echo Copying build output to ~BuildOutput...
-xcopy /E /Y /I "Servers/Horizon/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "Servers/MultiSocks/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "Servers/QuazalServer/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "Servers/SSFWServer/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "Servers/SVO/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "Servers/MultiSpy/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "Servers/ApacheNet/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "Servers/MitmDNS/bin" "~BuildOutput/MultiServer"
-xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows" "~BuildOutput/MultiServer/Debug"
-xcopy /E /Y /I "RemoteControl/bin/Release/net6.0-windows" "~BuildOutput/MultiServer/Release"
+xcopy /E /Y /I "Servers/Horizon/bin" "~BuildOutput"
+xcopy /E /Y /I "Servers/MultiSocks/bin" "~BuildOutput"
+xcopy /E /Y /I "Servers/QuazalServer/bin" "~BuildOutput"
+xcopy /E /Y /I "Servers/SSFWServer/bin" "~BuildOutput"
+xcopy /E /Y /I "Servers/SVO/bin" "~BuildOutput"
+xcopy /E /Y /I "Servers/MultiSpy/bin" "~BuildOutput"
+xcopy /E /Y /I "Servers/ApacheNet/bin" "~BuildOutput"
+xcopy /E /Y /I "Servers/MitmDNS/bin" "~BuildOutput"
+xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows" "~BuildOutput/Debug"
+xcopy /E /Y /I "RemoteControl/bin/Release/net6.0-windows" "~BuildOutput/Release"
 if exist "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+    xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" "~BuildOutput/Debug/net6.0/static"
 )
 if exist "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+    xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" "~BuildOutput/Release/net6.0/static"
 )
 if exist "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+    xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" "~BuildOutput/Debug/net6.0/static"
 )
 if exist "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+    xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" "~BuildOutput/Release/net6.0/static"
 )
 if exist "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" "~BuildOutput/MultiServer/Debug/net6.0/static"
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" "~BuildOutput/Debug/net6.0/static"
 )
 if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" (
-    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" "~BuildOutput/MultiServer/Release/net6.0/static"
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" "~BuildOutput/Release/net6.0/static"
 )
 if exist "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" (
-    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" "~BuildOutput/MultiServer/Debug/net6.0/runtimes"
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" "~BuildOutput/Debug/net6.0/runtimes"
 )
 if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" (
-    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~BuildOutput/MultiServer/Release/net6.0/runtimes"
+    xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~BuildOutput/Release/net6.0/runtimes"
 )
 
 @echo Crafting final output:
-if exist "~BuildOutput/MultiServer/Debug/net6.0" (
-    xcopy /E /Y /I "~BuildOutput/MultiServer/Debug/net6.0" "~BuildOutput/MultiServer/Debug"
-	@rmdir /S /Q "~BuildOutput/MultiServer/Debug/net6.0"
+if exist "~BuildOutput/Debug/net6.0" (
+    xcopy /E /Y /I "~BuildOutput/Debug/net6.0" "~BuildOutput/Debug"
+	@rmdir /S /Q "~BuildOutput/Debug/net6.0"
 )
-if exist "~BuildOutput/MultiServer/Release/net6.0" (
-    xcopy /E /Y /I "~BuildOutput/MultiServer/Release/net6.0" "~BuildOutput/MultiServer/Release"
-	@rmdir /S /Q "~BuildOutput/MultiServer/Release/net6.0"
+if exist "~BuildOutput/Release/net6.0" (
+    xcopy /E /Y /I "~BuildOutput/Release/net6.0" "~BuildOutput/Release"
+	@rmdir /S /Q "~BuildOutput/Release/net6.0"
 )
 @echo.
 

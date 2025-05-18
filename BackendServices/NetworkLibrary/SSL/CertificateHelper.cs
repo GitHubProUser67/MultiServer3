@@ -51,6 +51,164 @@ namespace NetworkLibrary.SSL
             "bYQLCIt+jerXmCHG8+c8eS9enNFMFY3h7CI3zJpDC5fcgJCNs2ebb0gIFVbPv/Er\r\n" +
             "fF6adulZkMV8gzURZVE=\r\n" +
             "-----END CERTIFICATE-----\n";
+        public const string CLOUDFLARE_NET_CA = "-----BEGIN CERTIFICATE-----\n" +
+            "MIIEADCCAuigAwIBAgIID+rOSdTGfGcwDQYJKoZIhvcNAQELBQAwgYsxCzAJBgNV\n" +
+            "BAYTAlVTMRkwFwYDVQQKExBDbG91ZEZsYXJlLCBJbmMuMTQwMgYDVQQLEytDbG91\n" +
+            "ZEZsYXJlIE9yaWdpbiBTU0wgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MRYwFAYDVQQH\n" +
+            "Ew1TYW4gRnJhbmNpc2NvMRMwEQYDVQQIEwpDYWxpZm9ybmlhMB4XDTE5MDgyMzIx\n" +
+            "MDgwMFoXDTI5MDgxNTE3MDAwMFowgYsxCzAJBgNVBAYTAlVTMRkwFwYDVQQKExBD\n" +
+            "bG91ZEZsYXJlLCBJbmMuMTQwMgYDVQQLEytDbG91ZEZsYXJlIE9yaWdpbiBTU0wg\n" +
+            "Q2VydGlmaWNhdGUgQXV0aG9yaXR5MRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRMw\n" +
+            "EQYDVQQIEwpDYWxpZm9ybmlhMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC\n" +
+            "AQEAwEiVZ/UoQpHmFsHvk5isBxRehukP8DG9JhFev3WZtG76WoTthvLJFRKFCHXm\n" +
+            "V6Z5/66Z4S09mgsUuFwvJzMnE6Ej6yIsYNCb9r9QORa8BdhrkNn6kdTly3mdnykb\n" +
+            "OomnwbUfLlExVgNdlP0XoRoeMwbQ4598foiHblO2B/LKuNfJzAMfS7oZe34b+vLB\n" +
+            "yrP/1bgCSLdc1AxQc1AC0EsQQhgcyTJNgnG4va1c7ogPlwKyhbDyZ4e59N5lbYPJ\n" +
+            "SmXI/cAe3jXj1FBLJZkwnoDKe0v13xeF+nF32smSH0qB7aJX2tBMW4TWtFPmzs5I\n" +
+            "lwrFSySWAdwYdgxw180yKU0dvwIDAQABo2YwZDAOBgNVHQ8BAf8EBAMCAQYwEgYD\n" +
+            "VR0TAQH/BAgwBgEB/wIBAjAdBgNVHQ4EFgQUJOhTV118NECHqeuU27rhFnj8KaQw\n" +
+            "HwYDVR0jBBgwFoAUJOhTV118NECHqeuU27rhFnj8KaQwDQYJKoZIhvcNAQELBQAD\n" +
+            "ggEBAHwOf9Ur1l0Ar5vFE6PNrZWrDfQIMyEfdgSKofCdTckbqXNTiXdgbHs+TWoQ\n" +
+            "wAB0pfJDAHJDXOTCWRyTeXOseeOi5Btj5CnEuw3P0oXqdqevM1/+uWp0CM35zgZ8\n" +
+            "VD4aITxity0djzE6Qnx3Syzz+ZkoBgTnNum7d9A66/V636x4vTeqbZFBr9erJzgz\n" +
+            "hhurjcoacvRNhnjtDRM0dPeiCJ50CP3wEYuvUzDHUaowOsnLCjQIkWbR7Ni6KEIk\n" +
+            "MOz2U0OBSif3FTkhCgZWQKOOLo1P42jHC3ssUZAtVNXrCk3fw9/E15k8NPkBazZ6\n" +
+            "0iykLhH1trywrKRMVw67F44IE8Y=\n" +
+            "-----END CERTIFICATE-----\n";
+        public const string LETSENCRYPT_ISRG1_NET_CA = "-----BEGIN CERTIFICATE-----\n" +
+            "MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw\n" +
+            "TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\n" +
+            "cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMTUwNjA0MTEwNDM4\n" +
+            "WhcNMzUwNjA0MTEwNDM4WjBPMQswCQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJu\n" +
+            "ZXQgU2VjdXJpdHkgUmVzZWFyY2ggR3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBY\n" +
+            "MTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAK3oJHP0FDfzm54rVygc\n" +
+            "h77ct984kIxuPOZXoHj3dcKi/vVqbvYATyjb3miGbESTtrFj/RQSa78f0uoxmyF+\n" +
+            "0TM8ukj13Xnfs7j/EvEhmkvBioZxaUpmZmyPfjxwv60pIgbz5MDmgK7iS4+3mX6U\n" +
+            "A5/TR5d8mUgjU+g4rk8Kb4Mu0UlXjIB0ttov0DiNewNwIRt18jA8+o+u3dpjq+sW\n" +
+            "T8KOEUt+zwvo/7V3LvSye0rgTBIlDHCNAymg4VMk7BPZ7hm/ELNKjD+Jo2FR3qyH\n" +
+            "B5T0Y3HsLuJvW5iB4YlcNHlsdu87kGJ55tukmi8mxdAQ4Q7e2RCOFvu396j3x+UC\n" +
+            "B5iPNgiV5+I3lg02dZ77DnKxHZu8A/lJBdiB3QW0KtZB6awBdpUKD9jf1b0SHzUv\n" +
+            "KBds0pjBqAlkd25HN7rOrFleaJ1/ctaJxQZBKT5ZPt0m9STJEadao0xAH0ahmbWn\n" +
+            "OlFuhjuefXKnEgV4We0+UXgVCwOPjdAvBbI+e0ocS3MFEvzG6uBQE3xDk3SzynTn\n" +
+            "jh8BCNAw1FtxNrQHusEwMFxIt4I7mKZ9YIqioymCzLq9gwQbooMDQaHWBfEbwrbw\n" +
+            "qHyGO0aoSCqI3Haadr8faqU9GY/rOPNk3sgrDQoo//fb4hVC1CLQJ13hef4Y53CI\n" +
+            "rU7m2Ys6xt0nUW7/vGT1M0NPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNV\n" +
+            "HRMBAf8EBTADAQH/MB0GA1UdDgQWBBR5tFnme7bl5AFzgAiIyBpY9umbbjANBgkq\n" +
+            "hkiG9w0BAQsFAAOCAgEAVR9YqbyyqFDQDLHYGmkgJykIrGF1XIpu+ILlaS/V9lZL\n" +
+            "ubhzEFnTIZd+50xx+7LSYK05qAvqFyFWhfFQDlnrzuBZ6brJFe+GnY+EgPbk6ZGQ\n" +
+            "3BebYhtF8GaV0nxvwuo77x/Py9auJ/GpsMiu/X1+mvoiBOv/2X/qkSsisRcOj/KK\n" +
+            "NFtY2PwByVS5uCbMiogziUwthDyC3+6WVwW6LLv3xLfHTjuCvjHIInNzktHCgKQ5\n" +
+            "ORAzI4JMPJ+GslWYHb4phowim57iaztXOoJwTdwJx4nLCgdNbOhdjsnvzqvHu7Ur\n" +
+            "TkXWStAmzOVyyghqpZXjFaH3pO3JLF+l+/+sKAIuvtd7u+Nxe5AW0wdeRlN8NwdC\n" +
+            "jNPElpzVmbUq4JUagEiuTDkHzsxHpFKVK7q4+63SM1N95R1NbdWhscdCb+ZAJzVc\n" +
+            "oyi3B43njTOQ5yOf+1CceWxG1bQVs5ZufpsMljq4Ui0/1lvh+wjChP4kqKOJ2qxq\n" +
+            "4RgqsahDYVvTH9w7jXbyLeiNdd8XM2w9U/t7y0Ff/9yi0GE44Za4rF2LN9d11TPA\n" +
+            "mRGunUHBcnWEvgJBQl9nJEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57d\n" +
+            "emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=\n" +
+            "-----END CERTIFICATE-----\n";
+        public const string LETSENCRYPT_ISRG2_NET_CA = "-----BEGIN CERTIFICATE-----\n" +
+            "MIICGzCCAaGgAwIBAgIQQdKd0XLq7qeAwSxs6S+HUjAKBggqhkjOPQQDAzBPMQsw\n" +
+            "CQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJuZXQgU2VjdXJpdHkgUmVzZWFyY2gg\n" +
+            "R3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBYMjAeFw0yMDA5MDQwMDAwMDBaFw00\n" +
+            "MDA5MTcxNjAwMDBaME8xCzAJBgNVBAYTAlVTMSkwJwYDVQQKEyBJbnRlcm5ldCBT\n" +
+            "ZWN1cml0eSBSZXNlYXJjaCBHcm91cDEVMBMGA1UEAxMMSVNSRyBSb290IFgyMHYw\n" +
+            "EAYHKoZIzj0CAQYFK4EEACIDYgAEzZvVn4CDCuwJSvMWSj5cz3es3mcFDR0HttwW\n" +
+            "+1qLFNvicWDEukWVEYmO6gbf9yoWHKS5xcUy4APgHoIYOIvXRdgKam7mAHf7AlF9\n" +
+            "ItgKbppbd9/w+kHsOdx1ymgHDB/qo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0T\n" +
+            "AQH/BAUwAwEB/zAdBgNVHQ4EFgQUfEKWrt5LSDv6kviejM9ti6lyN5UwCgYIKoZI\n" +
+            "zj0EAwMDaAAwZQIwe3lORlCEwkSHRhtFcP9Ymd70/aTSVaYgLXTWNLxBo1BfASdW\n" +
+            "tL4ndQavEi51mI38AjEAi/V3bNTIZargCyzuFJ0nN6T5U6VR5CmD1/iQMVtCnwr1\n" +
+            "/q4AaOeMSQ+2b1tbFfLn\n" +
+            "-----END CERTIFICATE-----\n";
+        public const string GTS_ROOT_NET_CA = @"-----BEGIN CERTIFICATE-----
+MIIFVzCCAz+gAwIBAgINAgPlk28xsBNJiGuiFzANBgkqhkiG9w0BAQwFADBHMQsw
+CQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEU
+MBIGA1UEAxMLR1RTIFJvb3QgUjEwHhcNMTYwNjIyMDAwMDAwWhcNMzYwNjIyMDAw
+MDAwWjBHMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZp
+Y2VzIExMQzEUMBIGA1UEAxMLR1RTIFJvb3QgUjEwggIiMA0GCSqGSIb3DQEBAQUA
+A4ICDwAwggIKAoICAQC2EQKLHuOhd5s73L+UPreVp0A8of2C+X0yBoJx9vaMf/vo
+27xqLpeXo4xL+Sv2sfnOhB2x+cWX3u+58qPpvBKJXqeqUqv4IyfLpLGcY9vXmX7w
+Cl7raKb0xlpHDU0QM+NOsROjyBhsS+z8CZDfnWQpJSMHobTSPS5g4M/SCYe7zUjw
+TcLCeoiKu7rPWRnWr4+wB7CeMfGCwcDfLqZtbBkOtdh+JhpFAz2weaSUKK0Pfybl
+qAj+lug8aJRT7oM6iCsVlgmy4HqMLnXWnOunVmSPlk9orj2XwoSPwLxAwAtcvfaH
+szVsrBhQf4TgTM2S0yDpM7xSma8ytSmzJSq0SPly4cpk9+aCEI3oncKKiPo4Zor8
+Y/kB+Xj9e1x3+naH+uzfsQ55lVe0vSbv1gHR6xYKu44LtcXFilWr06zqkUspzBmk
+MiVOKvFlRNACzqrOSbTqn3yDsEB750Orp2yjj32JgfpMpf/VjsPOS+C12LOORc92
+wO1AK/1TD7Cn1TsNsYqiA94xrcx36m97PtbfkSIS5r762DL8EGMUUXLeXdYWk70p
+aDPvOmbsB4om3xPXV2V4J95eSRQAogB/mqghtqmxlbCluQ0WEdrHbEg8QOB+DVrN
+VjzRlwW5y0vtOUucxD/SVRNuJLDWcfr0wbrM7Rv1/oFB2ACYPTrIrnqYNxgFlQID
+AQABo0IwQDAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4E
+FgQU5K8rJnEaK0gnhS9SZizv8IkTcT4wDQYJKoZIhvcNAQEMBQADggIBAJ+qQibb
+C5u+/x6Wki4+omVKapi6Ist9wTrYggoGxval3sBOh2Z5ofmmWJyq+bXmYOfg6LEe
+QkEzCzc9zolwFcq1JKjPa7XSQCGYzyI0zzvFIoTgxQ6KfF2I5DUkzps+GlQebtuy
+h6f88/qBVRRiClmpIgUxPoLW7ttXNLwzldMXG+gnoot7TiYaelpkttGsN/H9oPM4
+7HLwEXWdyzRSjeZ2axfG34arJ45JK3VmgRAhpuo+9K4l/3wV3s6MJT/KYnAK9y8J
+ZgfIPxz88NtFMN9iiMG1D53Dn0reWVlHxYciNuaCp+0KueIHoI17eko8cdLiA6Ef
+MgfdG+RCzgwARWGAtQsgWSl4vflVy2PFPEz0tv/bal8xa5meLMFrUKTX5hgUvYU/
+Z6tGn6D/Qqc6f1zLXbBwHSs09dR2CQzreExZBfMzQsNhFRAbd03OIozUhfJFfbdT
+6u9AWpQKXCBfTkBdYiJ23//OYb2MI3jSNwLgjt7RETeJ9r/tSQdirpLsQBqvFAnZ
+0E6yove+7u7Y/9waLd64NnHi/Hm3lCXRSHNboTXns5lndcEZOitHTtNCjv0xyBZm
+2tIMPNuzjsmhDYAPexZ3FL//2wmUspO8IFgV6dtxQ/PeEMMA3KgqlbbC1j+Qa3bb
+bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIIFVzCCAz+gAwIBAgINAgPlrsWNBCUaqxElqjANBgkqhkiG9w0BAQwFADBHMQsw
+CQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEU
+MBIGA1UEAxMLR1RTIFJvb3QgUjIwHhcNMTYwNjIyMDAwMDAwWhcNMzYwNjIyMDAw
+MDAwWjBHMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZp
+Y2VzIExMQzEUMBIGA1UEAxMLR1RTIFJvb3QgUjIwggIiMA0GCSqGSIb3DQEBAQUA
+A4ICDwAwggIKAoICAQDO3v2m++zsFDQ8BwZabFn3GTXd98GdVarTzTukk3LvCvpt
+nfbwhYBboUhSnznFt+4orO/LdmgUud+tAWyZH8QiHZ/+cnfgLFuv5AS/T3KgGjSY
+6Dlo7JUle3ah5mm5hRm9iYz+re026nO8/4Piy33B0s5Ks40FnotJk9/BW9BuXvAu
+MC6C/Pq8tBcKSOWIm8Wba96wyrQD8Nr0kLhlZPdcTK3ofmZemde4wj7I0BOdre7k
+RXuJVfeKH2JShBKzwkCX44ofR5GmdFrS+LFjKBC4swm4VndAoiaYecb+3yXuPuWg
+f9RhD1FLPD+M2uFwdNjCaKH5wQzpoeJ/u1U8dgbuak7MkogwTZq9TwtImoS1mKPV
++3PBV2HdKFZ1E66HjucMUQkQdYhMvI35ezzUIkgfKtzra7tEscszcTJGr61K8Yzo
+dDqs5xoic4DSMPclQsciOzsSrZYuxsN2B6ogtzVJV+mSSeh2FnIxZyuWfoqjx5RW
+Ir9qS34BIbIjMt/kmkRtWVtd9QCgHJvGeJeNkP+byKq0rxFROV7Z+2et1VsRnTKa
+G73VululycslaVNVJ1zgyjbLiGH7HrfQy+4W+9OmTN6SpdTi3/UGVN4unUu0kzCq
+gc7dGtxRcw1PcOnlthYhGXmy5okLdWTK1au8CcEYof/UVKGFPP0UJAOyh9OktwID
+AQABo0IwQDAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4E
+FgQUu//KjiOfT5nK2+JopqUVJxce2Q4wDQYJKoZIhvcNAQEMBQADggIBAB/Kzt3H
+vqGf2SdMC9wXmBFqiN495nFWcrKeGk6c1SuYJF2ba3uwM4IJvd8lRuqYnrYb/oM8
+0mJhwQTtzuDFycgTE1XnqGOtjHsB/ncw4c5omwX4Eu55MaBBRTUoCnGkJE+M3DyC
+B19m3H0Q/gxhswWV7uGugQ+o+MePTagjAiZrHYNSVc61LwDKgEDg4XSsYPWHgJ2u
+NmSRXbBoGOqKYcl3qJfEycel/FVL8/B/uWU9J2jQzGv6U53hkRrJXRqWbTKH7QMg
+yALOWr7Z6v2yTcQvG99fevX4i8buMTolUVVnjWQye+mew4K6Ki3pHrTgSAai/Gev
+HyICc/sgCq+dVEuhzf9gR7A/Xe8bVr2XIZYtCtFenTgCR2y59PYjJbigapordwj6
+xLEokCZYCDzifqrXPW+6MYgKBesntaFJ7qBFVHvmJ2WZICGoo7z7GJa7Um8M7YNR
+TOlZ4iBgxcJlkoKM8xAfDoqXvneCbT+PHV28SSe9zE8P4c52hgQjxcCMElv924Sg
+JPFI/2R80L5cFtHvma3AH/vLrrw4IgYmZNralw4/KBVEqE8AyvCazM90arQ+POuV
+7LXTWtiBmelDGDfrs7vRWGJB82bSj6p4lVQgw1oudCvV0b4YacCs1aTPObpRhANl
+6WLAYv7YTVWW4tAR+kg0Eeye7QUd5MjWHYbL
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIICCTCCAY6gAwIBAgINAgPluILrIPglJ209ZjAKBggqhkjOPQQDAzBHMQswCQYD
+VQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEUMBIG
+A1UEAxMLR1RTIFJvb3QgUjMwHhcNMTYwNjIyMDAwMDAwWhcNMzYwNjIyMDAwMDAw
+WjBHMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2Vz
+IExMQzEUMBIGA1UEAxMLR1RTIFJvb3QgUjMwdjAQBgcqhkjOPQIBBgUrgQQAIgNi
+AAQfTzOHMymKoYTey8chWEGJ6ladK0uFxh1MJ7x/JlFyb+Kf1qPKzEUURout736G
+jOyxfi//qXGdGIRFBEFVbivqJn+7kAHjSxm65FSWRQmx1WyRRK2EE46ajA2ADDL2
+4CejQjBAMA4GA1UdDwEB/wQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQW
+BBTB8Sa6oC2uhYHP0/EqEr24Cmf9vDAKBggqhkjOPQQDAwNpADBmAjEA9uEglRR7
+VKOQFhG/hMjqb2sXnh5GmCCbn9MN2azTL818+FsuVbu/3ZL3pAzcMeGiAjEA/Jdm
+ZuVDFhOD3cffL74UOO0BzrEXGhF16b0DjyZ+hOXJYKaV11RZt+cRLInUue4X
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIICCTCCAY6gAwIBAgINAgPlwGjvYxqccpBQUjAKBggqhkjOPQQDAzBHMQswCQYD
+VQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEUMBIG
+A1UEAxMLR1RTIFJvb3QgUjQwHhcNMTYwNjIyMDAwMDAwWhcNMzYwNjIyMDAwMDAw
+WjBHMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2Vz
+IExMQzEUMBIGA1UEAxMLR1RTIFJvb3QgUjQwdjAQBgcqhkjOPQIBBgUrgQQAIgNi
+AATzdHOnaItgrkO4NcWBMHtLSZ37wWHO5t5GvWvVYRg1rkDdc/eJkTBa6zzuhXyi
+QHY7qca4R9gq55KRanPpsXI5nymfopjTX15YhmUPoYRlBtHci8nHc8iMai/lxKvR
+HYqjQjBAMA4GA1UdDwEB/wQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQW
+BBSATNbrdP9JNqPV2Py1PsVq8JQdjDAKBggqhkjOPQQDAwNpADBmAjEA6ED/g94D
+9J+uHXqnLrmvT/aDHQ4thQEd0dlq7A/Cr8deVl5c1RxYIigL9zC2L7F8AjEA8GE8
+p/SgguMh1YQdc4acLa/KNJvxn7kjNuK8YAOdgLOaVsjh4rsUecrNIdSUtUlD
+-----END CERTIFICATE-----
+";
         private static readonly RSAParameters ROOT_CA_PARAMETERS = new RSAParameters()
         {
             Modulus = Convert.FromBase64String("2ZTXqhDKcw0ncDFYMh4MVTwV/2f8e" +
@@ -128,6 +286,9 @@ namespace NetworkLibrary.SSL
             ".example", ".localhost", ".test" // Reserved TLDs
         };
 
+        private static readonly string[] certExtensions = { ".cer", ".pem", ".pfx" };
+        private static readonly string[] keyExtensions = { ".pem", ".pfx", ".pvk" };
+
         private static ConcurrentDictionary<string, X509Certificate2> FakeCertificates = new ConcurrentDictionary<string, X509Certificate2>();
 
         /// <summary>
@@ -137,9 +298,9 @@ namespace NetworkLibrary.SSL
         /// <param name="directoryPath">The output RootCA filename.</param>
         /// <param name="Hashing">The Hashing algorithm to use.</param>
         /// <returns>A X509Certificate2.</returns>
-        public static X509Certificate2 CreateRootCertificateAuthority(string OutputPfxCertificatePath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
+        public static X509Certificate2 CreateRootCertificateAuthority(string OutputCertificatePath, HashAlgorithmName Hashing, string CN = "MultiServer Certificate Authority", string OU = "Scientists Department", string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US")
         {
-            string certDirectoryPath = Path.GetDirectoryName(OutputPfxCertificatePath);
+            string certDirectoryPath = Path.GetDirectoryName(OutputCertificatePath);
 
             File.WriteAllText(certDirectoryPath + "/lock.txt", string.Empty);
 
@@ -173,18 +334,28 @@ namespace NetworkLibrary.SSL
                 string PemRootCACertificate = CRT_HEADER + Convert.ToBase64String(RootCACertificate.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER;
 
                 // Export the private key.
-                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}_privkey.pem",
+                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputCertificatePath)}_privkey.pem",
                     PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                 rsa.Clear();
 
                 // Export the certificate.
-                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}.pem", PemRootCACertificate);
+                File.WriteAllText(certDirectoryPath + $"/{Path.GetFileNameWithoutExtension(OutputCertificatePath)}.pem", PemRootCACertificate);
 
-                // Export the certificate in PFX format.
-                File.WriteAllBytes(OutputPfxCertificatePath, RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
+                string outputExtension = certExtensions.FirstOrDefault(ext =>
+                    Path.GetExtension(OutputCertificatePath).Equals(ext, StringComparison.OrdinalIgnoreCase))
+                    ?? ".pfx";
 
-                CreateCertificatesTextFile(PemRootCACertificate, certDirectoryPath + "/CERTIFICATES.TXT");
+                // Export the certificate in it's requested format.
+                if (".cer".Equals(outputExtension, StringComparison.OrdinalIgnoreCase))
+                    // Export as DER-encoded cert
+                    File.WriteAllBytes(OutputCertificatePath, RootCACertificate.Export(X509ContentType.Cert, string.Empty));
+                else if (".pem".Equals(outputExtension, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Do nothing, we saved it as a pem previously.
+                }
+                else
+                    File.WriteAllBytes(OutputCertificatePath, RootCACertificate.Export(X509ContentType.Pfx, string.Empty));
 
                 File.Delete(certDirectoryPath + "/lock.txt");
 
@@ -273,10 +444,10 @@ namespace NetworkLibrary.SSL
         /// </summary>
         /// <param name="RootCACertificate">The initial RootCA.</param>
         /// <param name="Hashing">The Hashing algorithm to use.</param>
-        /// <param name="OutputPfxCertificatePath">The output chained signed certificate file path.</param>
+        /// <param name="OutputCertificatePath">The output chained signed certificate file path.</param>
         /// <param name="OutputCertificatePassword">The password of the output chained signed certificate.</param>
         /// <param name="DnsList">DNS to set in the SAN attributes.</param>
-        public static void MakeMasterChainSignedCert(X509Certificate2 RootCACertificate, HashAlgorithmName Hashing, string OutputPfxCertificatePath,
+        public static void MakeMasterChainSignedCert(X509Certificate2 RootCACertificate, HashAlgorithmName Hashing, string OutputCertificatePath,
             string OutputCertificatePassword, string[] DnsList, string CN = "MultiServerCorp.online", string OU = "Scientists Department",
             string O = "MultiServer Corp", string L = "New York", string S = "Northeastern United", string C = "US", bool Wildcard = true)
         {
@@ -344,19 +515,31 @@ namespace NetworkLibrary.SSL
                         certSerialNumber).CopyWithPrivateKey(rsa);
 
                     // Export the private key.
-                    File.WriteAllText(Path.GetDirectoryName(OutputPfxCertificatePath) + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}_privkey.pem",
+                    File.WriteAllText(Path.GetDirectoryName(OutputCertificatePath) + $"/{Path.GetFileNameWithoutExtension(OutputCertificatePath)}_privkey.pem",
                         PRIVATE_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks) + PRIVATE_RSA_KEY_FOOTER);
 
                     // Export the public key.
-                    File.WriteAllText(Path.GetDirectoryName(OutputPfxCertificatePath) + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}_pubkey.pem",
+                    File.WriteAllText(Path.GetDirectoryName(OutputCertificatePath) + $"/{Path.GetFileNameWithoutExtension(OutputCertificatePath)}_pubkey.pem",
                         PUBLIC_RSA_KEY_HEADER + Convert.ToBase64String(rsa.ExportRSAPublicKey(), Base64FormattingOptions.InsertLineBreaks) + PUBLIC_RSA_KEY_FOOTER);
 
                     // Export the certificate.
-                    File.WriteAllText(Path.GetDirectoryName(OutputPfxCertificatePath) + $"/{Path.GetFileNameWithoutExtension(OutputPfxCertificatePath)}.pem",
+                    File.WriteAllText(Path.GetDirectoryName(OutputCertificatePath) + $"/{Path.GetFileNameWithoutExtension(OutputCertificatePath)}.pem",
                         CRT_HEADER + Convert.ToBase64String(ChainSignedCert.RawData, Base64FormattingOptions.InsertLineBreaks) + CRT_FOOTER);
 
-                    // Export the certificate in PFX format.
-                    File.WriteAllBytes(OutputPfxCertificatePath, ChainSignedCert.Export(X509ContentType.Pfx, OutputCertificatePassword));
+                    string outputExtension = certExtensions.FirstOrDefault(ext =>
+                    Path.GetExtension(OutputCertificatePath).Equals(ext, StringComparison.OrdinalIgnoreCase))
+                    ?? ".pfx";
+
+                    // Export the certificate in it's requested format.
+                    if (".cer".Equals(outputExtension, StringComparison.OrdinalIgnoreCase))
+                        // Export as DER-encoded cert
+                        File.WriteAllBytes(OutputCertificatePath, ChainSignedCert.Export(X509ContentType.Cert, OutputCertificatePassword));
+                    else if (".pem".Equals(outputExtension, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Do nothing, we saved it as a pem previously.
+                    }
+                    else
+                        File.WriteAllBytes(OutputCertificatePath, ChainSignedCert.Export(X509ContentType.Pfx, OutputCertificatePassword));
 
                     rsa.Clear();
                 }
@@ -386,29 +569,15 @@ namespace NetworkLibrary.SSL
             if (File.Exists(directoryPath + "/lock.txt"))
                 WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
 
-            if (!File.Exists(directoryPath + $"/{rootCaCertName}_rootca.pem") || !File.Exists(directoryPath + $"/{rootCaCertName}_rootca_privkey.pem"))
+            RootCACertificate = LoadCertificate(directoryPath + $"/{rootCaCertName}_rootca", directoryPath + $"/{rootCaCertName}_rootca_privkey");
+
+            if (RootCACertificate == null)
                 RootCACertificate = CreateRootCertificateAuthority(directoryPath + $"/{rootCaCertName}_rootca.pfx", HashAlgorithmName.SHA256);
-            else
-                RootCACertificate = LoadCertificate(directoryPath + $"/{rootCaCertName}_rootca.pem", directoryPath + $"/{rootCaCertName}_rootca_privkey.pem");
+
+            if (!File.Exists(directoryPath + "/CERTIFICATES.TXT") && File.Exists(directoryPath + $"/{rootCaCertName}_rootca.pem"))
+                CreateCertificatesTextFile(File.ReadAllText(directoryPath + $"/{rootCaCertName}_rootca.pem"), directoryPath + "/CERTIFICATES.TXT");
 
             MakeMasterChainSignedCert(RootCACertificate, Hashing, certPath, certPassword, DnsList);
-        }
-
-        public static void InitializeSSLRootCaCertificates(string certPath, HashAlgorithmName Hashing)
-        {
-            if (string.IsNullOrEmpty(certPath) || !certPath.EndsWith(".pfx", StringComparison.InvariantCultureIgnoreCase))
-                throw new InvalidDataException("[CertificateHelper] - InitializeSSLRootCaCertificates: Invalid certificate file path or extension, only .pfx files are supported.");
-
-            string certName = Path.GetFileNameWithoutExtension(certPath);
-            string directoryPath = Path.GetDirectoryName(certPath) ?? Directory.GetCurrentDirectory() + "/static/SSL";
-
-            Directory.CreateDirectory(directoryPath);
-
-            if (File.Exists(directoryPath + "/lock.txt"))
-                WaitForFileDeletionAsync(directoryPath + "/lock.txt").Wait();
-
-            if (!File.Exists(certPath) || !File.Exists(directoryPath + $"/{certName}_privkey.pem"))
-                CreateRootCertificateAuthority(certPath, Hashing);
         }
 
         /// <summary>
@@ -426,18 +595,76 @@ namespace NetworkLibrary.SSL
         /// Initiate a X509Certificate2 from a certificate and a privatekey.
         /// <para>Initialise un certificat X509Certificate2 depuis un fichier certificate et un fichier privatekey.</para>
         /// </summary>
-        /// <param name="certificatePath">cert path.</param>
-        /// <param name="privateKeyPath">private key path.</param>
+        /// <param name="certificatePathInput">cert path.</param>
+        /// <param name="privateKeyPathInput">private key path.</param>
         /// <returns>A X509Certificate2.</returns>
-        public static X509Certificate2 LoadCertificate(string certificatePath, string privateKeyPath)
+        public static X509Certificate2 LoadCertificate(string certificatePathInput, string privateKeyPathInput)
         {
-            using (X509Certificate2 cert = new X509Certificate2(certificatePath))
-            using (AsymmetricAlgorithm key = LoadPrivateKey(privateKeyPath))
+
+            // Find first existing certificate file
+            string certificatePath = Path.HasExtension(certificatePathInput)
+                ? certificatePathInput
+                : certExtensions
+                .Select(ext => certificatePathInput + ext)
+                .FirstOrDefault(File.Exists);
+
+            if (certificatePath == null)
             {
-                if (key is RSA rsaKey)
-                    return new X509Certificate2(cert.CopyWithPrivateKey(rsaKey).Export(X509ContentType.Pfx));
-                else
-                    return new X509Certificate2(cert.CopyWithPrivateKey((ECDsa)key).Export(X509ContentType.Pfx));
+                LoggerAccessor.LogWarn($"[CertificateHelper] - LoadCertificate: Certificate file not found for: {certificatePathInput} with extensions {string.Join(", ", certExtensions)}");
+                return null;
+            }
+
+            // Find first existing private key file
+            string privateKeyPath = Path.HasExtension(privateKeyPathInput)
+                ? privateKeyPathInput
+                : keyExtensions
+                .Select(ext => privateKeyPathInput + ext)
+                .FirstOrDefault(File.Exists);
+
+            if (privateKeyPath == null)
+            {
+                LoggerAccessor.LogWarn($"[CertificateHelper] - LoadCertificate: Private key file not found for: {privateKeyPathInput} with extensions {string.Join(", ", keyExtensions)}");
+                return null;
+            }
+#if DEBUG
+            LoggerAccessor.LogInfo($"[CertificateHelper] - LoadCertificate: Using certificate: {certificatePath}");
+            LoggerAccessor.LogInfo($"[CertificateHelper] - LoadCertificate: Using private key: {privateKeyPath}");
+#endif
+            using (X509Certificate2 cert = new X509Certificate2(certificatePath))
+            {
+                AsymmetricAlgorithm key = null;
+
+                try
+                {
+                    if (privateKeyPath.EndsWith(".pfx", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var keyCert = new X509Certificate2(privateKeyPath);
+                        key = keyCert.GetRSAPrivateKey() as AsymmetricAlgorithm
+                            ?? keyCert.GetECDsaPrivateKey();
+
+                        if (key == null)
+                        {
+                            LoggerAccessor.LogError($"[CertificateHelper] - LoadCertificate: No supported private key found in PFX.");
+                            return null;
+                        }
+                    }
+                    else
+                        key = LoadPrivateKey(privateKeyPath);
+
+                    if (key is RSA rsaKey)
+                        return new X509Certificate2(cert.CopyWithPrivateKey(rsaKey).Export(X509ContentType.Pfx));
+                    else if (key is ECDsa ecdsaKey)
+                        return new X509Certificate2(cert.CopyWithPrivateKey(ecdsaKey).Export(X509ContentType.Pfx));
+                    else
+                    {
+                        LoggerAccessor.LogError($"[CertificateHelper] - LoadCertificate: Unsupported key type.");
+                        return null;
+                    }
+                }
+                finally
+                {
+                    key?.Dispose();
+                }
             }
         }
 
@@ -566,7 +793,7 @@ namespace NetworkLibrary.SSL
         /// <returns>Nothing.</returns>
         private static void CreateCertificatesTextFile(string rootcaSubject, string FileName)
         {
-            File.WriteAllText(FileName, rootcaSubject + ENTRUST_NET_CA);
+            File.WriteAllText(FileName, rootcaSubject + ENTRUST_NET_CA + CLOUDFLARE_NET_CA + LETSENCRYPT_ISRG1_NET_CA + LETSENCRYPT_ISRG2_NET_CA + GTS_ROOT_NET_CA);
         }
 
         private static async Task WaitForFileDeletionAsync(string filePath)

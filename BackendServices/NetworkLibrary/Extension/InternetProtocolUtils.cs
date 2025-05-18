@@ -267,6 +267,14 @@ namespace NetworkLibrary.Extension
             return BitConverter.ToUInt32(bytes, 0);
         }
 
+        public static IPAddress GetIPAddressFromUInt(uint address)
+        {
+            byte[] bytes = BitConverter.GetBytes(address);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return new IPAddress(bytes);
+        }
+
         private static string ConvertToIpAddress(uint ip)
         {
             return new IPAddress(BitConverter.GetBytes(BitConverter.IsLittleEndian ? EndianUtils.ReverseUint(ip) : ip)).ToString();

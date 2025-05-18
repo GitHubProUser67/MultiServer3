@@ -239,11 +239,6 @@ namespace Horizon.SERVER.Medius
                                                 case "01.86.09":
                                                     switch (clientCheatQuery.StartAddress)
                                                     {
-                                                        case 0x00546cf4:
-                                                            // 0x7f0 rights on every commands.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x7c, 0xc0, 0x2b, 0x78 }))
-                                                                PokeAddress(0x00546cf4, new byte[] { 0x60, 0xc0, 0x07, 0xf0 }, clientChannel);
-                                                            break;
                                                         case 0x005478dc:
                                                             // 4096 character command line limit.
                                                             if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x83, 0x00, 0xfe }))
@@ -259,7 +254,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x0016cc6c:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x0016cc6c, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -296,7 +291,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x0016b4d0:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x0016b4d0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -326,7 +321,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x001709e0:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x001709e0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -349,7 +344,7 @@ namespace Horizon.SERVER.Medius
                                                             break;
                                                         case 0x0016dac0:
                                                             // Patches out the forceInvite command.
-                                                            if (MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
+                                                            if (MediusClass.Settings.PlaystationHomeForceInviteExploitPatch && MediusClass.Settings.PokePatchOn && clientCheatQuery.QueryType == CheatQueryType.DME_SERVER_CHEAT_QUERY_RAW_MEMORY && QueryData.Length == 4 && QueryData.EqualsTo(new byte[] { 0x2f, 0x80, 0x00, 0x00 }))
                                                                 PokeAddress(0x0016dac0, new byte[] { 0x2f, 0x80, 0x00, 0x02 }, clientChannel);
                                                             break;
                                                     }
@@ -466,14 +461,22 @@ namespace Horizon.SERVER.Medius
                                                     }
                                                     else if (!MediusClass.Settings.PlaystationHomeAllowAnyEboot)
                                                     {
-                                                        string anticheatMsg = $"[MAS] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
+                                                        string anticheatMsg = $"[SECURITY] - HOME ANTI-CHEAT - DETECTED UNKNOWN EBOOT - User:{data.ClientObject.IP + ":" + data.ClientObject.AccountName} CID:{data.MachineId}";
 
                                                         _ = data.ClientObject.CurrentChannel?.BroadcastSystemMessage(data.ClientObject.CurrentChannel.LocalClients.Where(x => x != data.ClientObject), anticheatMsg, byte.MaxValue);
 
                                                         LoggerAccessor.LogError(anticheatMsg);
 
-                                                        data.State = ClientState.DISCONNECTED;
-                                                        await clientChannel.CloseAsync();
+                                                        await HorizonServerConfiguration.Database.BanIp(data.ClientObject.IP).ContinueWith((r) =>
+                                                        {
+                                                            if (r.IsCompletedSuccessfully && r.Result)
+                                                            {
+                                                                // Banned
+                                                                QueueBanMessage(data);
+                                                            }
+                                                            data.ClientObject.ForceDisconnect();
+                                                            _ = data.ClientObject.Logout();
+                                                        });
                                                     }
                                                 }
                                                 break;
@@ -1662,7 +1665,7 @@ namespace Horizon.SERVER.Medius
                             #endregion
                             else
                             {
-                                _ = HorizonServerConfiguration.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                _ = HorizonServerConfiguration.Database.GetAccountByName(accountLoginRequest.Username, data.ClientObject.ApplicationId, true).ContinueWith(async (r) =>
                                 {
                                     if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                         return;
@@ -2019,7 +2022,7 @@ namespace Horizon.SERVER.Medius
                                 }
                                 else
                                 {
-                                    await HorizonServerConfiguration.Database.GetAccountByName(UserOnlineId, data.ClientObject.ApplicationId).ContinueWith(async (r) =>
+                                    await HorizonServerConfiguration.Database.GetAccountByName(UserOnlineId, data.ClientObject.ApplicationId, true).ContinueWith(async (r) =>
                                     {
                                         if (data == null || data.ClientObject == null || !data.ClientObject.IsConnected)
                                             return;
@@ -2816,8 +2819,6 @@ namespace Horizon.SERVER.Medius
                             case "01.86.09":
                                 if (MediusClass.Settings.PokePatchOn)
                                 {
-                                    CheatQuery(0x00546cf4, 4, clientChannel);
-
                                     CheatQuery(0x005478dc, 4, clientChannel);
 
                                     CheatQuery(0x0016cc6c, 4, clientChannel);

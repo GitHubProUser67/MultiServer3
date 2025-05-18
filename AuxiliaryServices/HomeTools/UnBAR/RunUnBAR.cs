@@ -148,7 +148,7 @@ namespace HomeTools.UnBAR
                                 Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
                                 SharcHeader = LIBSECURE.InitiateAESBuffer(SharcHeader,
-                                 Convert.FromBase64String(options), HeaderIV, "CTR");
+                                 options.IsBase64().Item2, HeaderIV, "CTR");
 
                                 if (SharcHeader == null)
                                     return Task.CompletedTask; // Sharc Header failed to decrypt.
@@ -159,7 +159,7 @@ namespace HomeTools.UnBAR
                                     Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
                                     SharcHeader = LIBSECURE.InitiateAESBuffer(SharcHeader,
-                                     Convert.FromBase64String(options), HeaderIV, "CTR");
+                                     options.IsBase64().Item2, HeaderIV, "CTR");
 
                                     if (SharcHeader == null)
                                         return Task.CompletedTask; // Sharc Header failed to decrypt.
@@ -170,7 +170,7 @@ namespace HomeTools.UnBAR
                                         Buffer.BlockCopy(RawBarData, 24, SharcHeader, 0, SharcHeader.Length);
 
                                         SharcHeader = LIBSECURE.InitiateAESBuffer(SharcHeader,
-                                         Convert.FromBase64String(options), HeaderIV, "CTR");
+                                         options.IsBase64().Item2, HeaderIV, "CTR");
 
                                         if (SharcHeader == null)
                                             return Task.CompletedTask; // Sharc Header failed to decrypt.
@@ -201,7 +201,7 @@ namespace HomeTools.UnBAR
 
                                     ToolsImplementation.IncrementIVBytes(HeaderIV, 1); // IV so we increment.
 
-                                    SharcTOC = LIBSECURE.InitiateAESBuffer(SharcTOC, Convert.FromBase64String(options), HeaderIV, "CTR");
+                                    SharcTOC = LIBSECURE.InitiateAESBuffer(SharcTOC, options.IsBase64().Item2, HeaderIV, "CTR");
 
                                     if (SharcTOC != null)
                                     {

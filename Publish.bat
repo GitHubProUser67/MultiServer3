@@ -32,53 +32,53 @@ for %%r in (%RIDs%) do (
     dotnet publish MultiServer3.sln -r %%r -c Release %params%
 	
 	@echo Copying %%r build output to ~PublishOutput...
-	xcopy /E /Y /I "Servers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/MultiSocks/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/QuazalServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/SSFWServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/SVO/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/MultiSpy/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/ApacheNet/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/MitmDNS/bin/Debug/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-	xcopy /E /Y /I "Servers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "Servers/MultiSocks/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "Servers/QuazalServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "Servers/SSFWServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "Servers/SVO/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "Servers/MultiSpy/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "Servers/ApacheNet/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
-	xcopy /E /Y /I "Servers/MitmDNS/bin/Release/net6.0/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+	xcopy /E /Y /I "Servers/Horizon/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/MultiSocks/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/QuazalServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/SSFWServer/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/SVO/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/MultiSpy/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/ApacheNet/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/MitmDNS/bin/Debug/net6.0/%%r/publish" "~PublishOutput/%%r/Debug"
+	xcopy /E /Y /I "Servers/Horizon/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
+	xcopy /E /Y /I "Servers/MultiSocks/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
+	xcopy /E /Y /I "Servers/QuazalServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
+	xcopy /E /Y /I "Servers/SSFWServer/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
+	xcopy /E /Y /I "Servers/SVO/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
+	xcopy /E /Y /I "Servers/MultiSpy/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
+	xcopy /E /Y /I "Servers/ApacheNet/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
+	xcopy /E /Y /I "Servers/MitmDNS/bin/Release/net6.0/%%r/publish" "~PublishOutput/%%r/Release"
 	if exist "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" (
-		xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" "~PublishOutput/MultiServer/%%r/Debug/static"
+		xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Debug/net6.0/static" "~PublishOutput/%%r/Debug/static"
 	)
 	if exist "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" (
-		xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
+		xcopy /E /Y /I "Plugins/HTTP/HomeWebTools/bin/Release/net6.0/static" "~PublishOutput/%%r/Release/static"
 	)
 	if exist "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" (
-		xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" "~PublishOutput/MultiServer/%%r/Debug/static"
+		xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Debug/net6.0/static" "~PublishOutput/%%r/Debug/static"
 	)
 	if exist "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" (
-		xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
+		xcopy /E /Y /I "Plugins/HTTP/EdNetCRCCalculator/bin/Release/net6.0/static" "~PublishOutput/%%r/Release/static"
 	)
 	if exist "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" (
-		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" "~PublishOutput/MultiServer/%%r/Debug/static"
+		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/static" "~PublishOutput/%%r/Debug/static"
 	)
 	if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" (
-		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" "~PublishOutput/MultiServer/%%r/Release/static"
+		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/static" "~PublishOutput/%%r/Release/static"
 	)
 	if exist "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" (
-		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" "~PublishOutput/MultiServer/%%r/Debug/runtimes"
+		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Debug/net6.0/runtimes" "~PublishOutput/%%r/Debug/runtimes"
 	)
 	if exist "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" (
-		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~PublishOutput/MultiServer/%%r/Release/runtimes"
+		xcopy /E /Y /I "Plugins/HTTP/PdfToJpeg/bin/Release/net6.0/runtimes" "~PublishOutput/%%r/Release/runtimes"
 	)
 	if "%%r"=="win-x64" (
-		xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-		xcopy /E /Y /I "PRemoteControl/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+		xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/%%r/Debug"
+		xcopy /E /Y /I "PRemoteControl/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/%%r/Release"
 	)
 	if "%%r"=="win-x86" (
-		xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Debug"
-		xcopy /E /Y /I "RemoteControl/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/MultiServer/%%r/Release"
+		xcopy /E /Y /I "RemoteControl/bin/Debug/net6.0-windows/%%r/publish" "~PublishOutput/%%r/Debug"
+		xcopy /E /Y /I "RemoteControl/bin/Release/net6.0-windows/%%r/publish" "~PublishOutput/%%r/Release"
 	)
 )
 

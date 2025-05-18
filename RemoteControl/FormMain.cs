@@ -1,5 +1,8 @@
 using NetHasher.CRC;
+using System.Diagnostics;
+using System.Media;
 using System.Text;
+using System.Windows.Forms;
 
 namespace RemoteControl
 {
@@ -22,6 +25,12 @@ namespace RemoteControl
         public FormMain()
         {
             InitializeComponent();
+
+            using (MemoryStream amigaMs = new MemoryStream(CompressionLibrary.Edge.Zlib.EdgeZlibDecompress(Properties.Resources.Amiga_CD32___Boot).Result))
+            {
+                SoundPlayer player = new SoundPlayer(amigaMs);
+                player.Play();
+            }
 
             richTextBoxLicense.SelectAll();
             richTextBoxLicense.SelectionAlignment = HorizontalAlignment.Center;
@@ -600,6 +609,24 @@ namespace RemoteControl
             }
             else
                 Utils.ShowNoProcessMessageBox();
+        }
+
+        private void linkLabelGithub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            string? url;
+            if (e.Link.LinkData != null)
+                url = e.Link.LinkData.ToString();
+            else
+                url = linkLabelGithub.Text.Substring(e.Link.Start, e.Link.Length);
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                if (!url.Contains("://"))
+                    url = "https://" + url;
+
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                linkLabelGithub.LinkVisited = true;
+            }
         }
     }
 }

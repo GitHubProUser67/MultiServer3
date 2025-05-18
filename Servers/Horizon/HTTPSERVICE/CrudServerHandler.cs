@@ -10,6 +10,7 @@ using WatsonWebserver;
 using WatsonWebserver.Core;
 using Horizon.MUM.Models;
 using Newtonsoft.Json;
+using Horizon.DME.Models;
 
 namespace Horizon.HTTPSERVICE
 {
@@ -122,7 +123,7 @@ namespace Horizon.HTTPSERVICE
                         string clientip = ctx.Request.Source.IpAddress;
                         bool localhost = false;
 
-                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase) || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase)))
+                        if ("::1".Equals(clientip) || "127.0.0.1".Equals(clientip) || "localhost".Equals(clientip, StringComparison.InvariantCultureIgnoreCase))
                             localhost = true;
 
                         ctx.Response.Headers.Add("Date", DateTime.Now.ToString("r"));
@@ -174,8 +175,8 @@ namespace Horizon.HTTPSERVICE
                     {
                         string clientip = ctx.Request.Source.IpAddress;
 
-                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
-                        || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
+                        if (!string.IsNullOrEmpty(clientip) && ("::1".Equals(clientip) || "127.0.0.1".Equals(clientip)
+                        || "localhost".Equals(clientip, StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && "ADMIN".Equals(entry.Value))))
                         {
                             if (!string.IsNullOrEmpty(Command) && ctx.Request.QuerystringExists("DmeId") && short.TryParse(ctx.Request.RetrieveQueryValue("DmeId"), out short DmeId)
                              && ctx.Request.QuerystringExists("WorldId") && int.TryParse(ctx.Request.RetrieveQueryValue("WorldId"), out int WorldId)
@@ -335,6 +336,131 @@ namespace Horizon.HTTPSERVICE
                     }
                 });
 
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/HomeAdminMessage/{region_code}/{message}/", async (HttpContextBase ctx) =>
+                {
+                    string? region_code = ctx.Request.Url.Parameters["region_code"];
+                    string? message = HTTPProcessor.DecodeUrl(ctx.Request.Url.Parameters["message"]);
+                    string userAgent = ctx.Request.Useragent;
+
+                    if (!string.IsNullOrEmpty(userAgent) && userAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        bool Admin = false;
+                        string clientip = ctx.Request.Source.IpAddress;
+
+                        if (!string.IsNullOrEmpty(clientip) && ("::1".Equals(clientip) || "127.0.0.1".Equals(clientip)
+                        || "localhost".Equals(clientip, StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && "ADMIN".Equals(entry.Value))))
+                            Admin = true;
+
+                        if (!Admin)
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            ctx.Response.ContentType = "text/plain";
+                            await ctx.Response.Send();
+                            return;
+                        }
+
+                        bool Retail = true;
+                        bool IsLcCompatible = false;
+                        int worldId = -1;
+                        string? AccessToken = null;
+
+                        if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
+                        {
+
+                        }
+                        if (ctx.Request.QuerystringExists("Lc") && bool.TryParse(ctx.Request.RetrieveQueryValue("Lc"), out IsLcCompatible))
+                        {
+
+                        }
+                        if (ctx.Request.QuerystringExists("worldId") && int.TryParse(ctx.Request.RetrieveQueryValue("worldId"), out worldId))
+                        {
+
+                        }
+
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+
+                        if (Admin && ctx.Request.QuerystringExists("BroadcastAcrossEntireUniverse") && bool.TryParse(ctx.Request.RetrieveQueryValue("BroadcastAcrossEntireUniverse"), out bool Broadcast) && Broadcast)
+                        {
+                            ctx.Response.ContentType = "text/plain; charset=utf-8";
+
+                            await ctx.Response.Send(await HomeServerMessage.BroadcastAdminMessage(region_code, message, IsLcCompatible, Retail) ? "Requested Message sent successfully!" : "Error while sending the Requested Message!");
+                        }
+                        else
+                        {
+                            ctx.Response.ContentType = "text/plain; charset=utf-8";
+
+                            if (ctx.Request.QuerystringExists("AccessToken"))
+                                AccessToken = HTTPProcessor.DecodeUrl(ctx.Request.RetrieveQueryValue("AccessToken"));
+
+                            await ctx.Response.Send(await HomeServerMessage.SendAdminMessage(clientip, AccessToken, region_code, worldId, message, IsLcCompatible, Retail) ? "Requested Message sent successfully!" : "Error while sending the Requested Message!");
+                        }
+                    }
+                });
+
+                _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/HomeLogOff/{region_code}/{user_name}/", async (HttpContextBase ctx) =>
+                {
+                    string? region_code = ctx.Request.Url.Parameters["region_code"];
+                    string? user_name = HTTPProcessor.DecodeUrl(ctx.Request.Url.Parameters["user_name"]);
+                    string userAgent = ctx.Request.Useragent;
+
+                    if (!string.IsNullOrEmpty(userAgent) && userAgent.Contains("bytespider", StringComparison.InvariantCultureIgnoreCase)) // Get Away TikTok.
+                    {
+                        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.Send();
+                    }
+                    else
+                    {
+                        bool Retail = true;
+                        bool Admin = false;
+                        bool IsLcCompatible = false;
+                        string clientip = ctx.Request.Source.IpAddress;
+
+                        if (!string.IsNullOrEmpty(clientip) && ("::1".Equals(clientip) || "127.0.0.1".Equals(clientip)
+                        || "localhost".Equals(clientip, StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && "ADMIN".Equals(entry.Value))))
+                            Admin = true;
+
+                        if (!Admin)
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            ctx.Response.ContentType = "text/plain";
+                            await ctx.Response.Send();
+                            return;
+                        }
+                        else if (string.IsNullOrEmpty(user_name))
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                            ctx.Response.ContentType = "text/plain";
+                            await ctx.Response.Send("Empty Username parameter!");
+                            return;
+                        }
+
+                        if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
+                        {
+
+                        }
+                        if (ctx.Request.QuerystringExists("Lc") && bool.TryParse(ctx.Request.RetrieveQueryValue("Lc"), out IsLcCompatible))
+                        {
+
+                        }
+
+                        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+                        ctx.Response.ContentType = "text/plain; charset=utf-8";
+
+                        var clientTarget = MediusClass.Manager.GetClientByAccountName(user_name, Retail ? 20374 : 20371);
+                        if (clientTarget != null)
+                            await ctx.Response.Send(await HomeServerMessage.SendLogOffCommand(clientTarget, region_code, Array.Empty<byte>(), IsLcCompatible) ? "Requested LogOff sent successfully!" : "Error while sending the Requested LogOff!");
+                        else
+                            await ctx.Response.Send("Requested User is not connected on Home!");
+                    }
+                });
+
                 _Server.Routes.PostAuthentication.Parameter.Add(WatsonWebserver.Core.HttpMethod.GET, "/HomeRTM/{command}/", async (HttpContextBase ctx) =>
                 {
                     string? Command = ctx.Request.Url.Parameters["command"];
@@ -363,8 +489,8 @@ namespace Horizon.HTTPSERVICE
                         string? AccessToken = null;
                         string clientip = ctx.Request.Source.IpAddress;
 
-                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
-                        || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
+                        if (!string.IsNullOrEmpty(clientip) && ("::1".Equals(clientip) || "127.0.0.1".Equals(clientip)
+                        || "localhost".Equals(clientip, StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && "ADMIN".Equals(entry.Value))))
                             Admin = true;
 
                         if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))
@@ -558,8 +684,8 @@ namespace Horizon.HTTPSERVICE
                         string? AccessToken = null;
                         string clientip = ctx.Request.Source.IpAddress;
 
-                        if (!string.IsNullOrEmpty(clientip) && (clientip.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase)
-                        || clientip.Equals("localhost", StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && entry.Value.Equals("ADMIN"))))
+                        if (!string.IsNullOrEmpty(clientip) && ("::1".Equals(clientip) || "127.0.0.1".Equals(clientip)
+                        || "localhost".Equals(clientip, StringComparison.InvariantCultureIgnoreCase) || MediusClass.Settings.PlaystationHomeUsersServersAccessList.Any(entry => entry.Key.Contains($":{clientip}") && "ADMIN".Equals(entry.Value))))
                             Admin = true;
 
                         if (ctx.Request.QuerystringExists("Retail") && bool.TryParse(ctx.Request.RetrieveQueryValue("Retail"), out Retail))

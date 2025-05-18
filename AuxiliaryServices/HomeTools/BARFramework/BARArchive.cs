@@ -628,12 +628,12 @@ namespace HomeTools.BARFramework
                 if (m_endian == EndianType.BigEndian) // This data is always little endian.
                 {
                     writer.Write(EndianUtils.EndianSwap(IV));
-                    writer.Write(EndianUtils.EndianSwap(LIBSECURE.InitiateAESBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV, "CTR") ?? Array.Empty<byte>()));
+                    writer.Write(EndianUtils.EndianSwap(LIBSECURE.InitiateAESBuffer(CipheredHeaderData, version2key.IsBase64().Item2, IV, "CTR") ?? Array.Empty<byte>()));
                 }
                 else
                 {
                     writer.Write(IV);
-                    writer.Write(LIBSECURE.InitiateAESBuffer(CipheredHeaderData, Convert.FromBase64String(version2key), IV, "CTR") ?? Array.Empty<byte>());
+                    writer.Write(LIBSECURE.InitiateAESBuffer(CipheredHeaderData, version2key.IsBase64().Item2, IV, "CTR") ?? Array.Empty<byte>());
                 }
             }
             else

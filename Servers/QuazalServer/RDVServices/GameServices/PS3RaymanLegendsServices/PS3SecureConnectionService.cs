@@ -8,7 +8,7 @@ using System.Text;
 using QuazalServer.RDVServices.RMC;
 using NetworkLibrary.Extension;
 
-namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
+namespace QuazalServer.RDVServices.GameServices.PS3RaymanLegendsServices
 {
     /// <summary>
 	/// Secure connection service protocol
@@ -62,7 +62,7 @@ namespace QuazalServer.RDVServices.GameServices.PS3GhostbustersServices
                 byte[] extractedData = new byte[0x63 - 0x54 + 1];
 
                 // Copy it
-                Array.Copy(hCustomData.data.ticket.data, 0x50, extractedData, 0, extractedData.Length);
+                //Array.Copy(hCustomData.data.ticket.data, 0x50, extractedData, 0, extractedData.Length);
 
                 // Convert 0x00 bytes to 0x48 so FileSystem can support it
                 for (int i = 0; i < extractedData.Length; i++)
