@@ -5,8 +5,8 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["SpecializedServers/MultiSpy/MultiSpy.csproj", "MultiSpy/"]
-RUN dotnet restore "SpecializedServers/MultiSpy/MultiSpy.csproj"
+COPY ["Servers/MultiSpy/MultiSpy.csproj", "MultiSpy/"]
+RUN dotnet restore "Servers/MultiSpy/MultiSpy.csproj"
 COPY . .
 WORKDIR "/src/MultiSpy"
 RUN dotnet build "MultiSpy.csproj" -c Release -o /app/build

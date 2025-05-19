@@ -5,16 +5,19 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["SpecializedServers/Horizon/Horizon.csproj", "Horizon/"]
-RUN dotnet restore "SpecializedServers/Horizon/Horizon.csproj"
+RUN mkdir -p Horizon
+COPY ["Servers/Horizon/", "Horizon/"]
+RUN dotnet restore "Horizon/Horizon_docker.csproj"
 COPY . .
 WORKDIR "/src/Horizon"
-RUN dotnet build "Horizon.csproj" -c Release -o /app/build
+
+RUN dotnet build "Horizon_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Horizon.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Horizon_docker.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN mkdir -p /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Horizon.dll"]
+ENTRYPOINT ["dotnet", "Horizon_docker.dll"]

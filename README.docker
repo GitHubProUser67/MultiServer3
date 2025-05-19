@@ -1,0 +1,30 @@
+# Docker
+
+To use docker, you must have docker/docker-compose installed on your machine. From within the directory (with the docker-compose.yml file):
+
+```
+$ docker compose up -d
+```
+
+This will build all the images locally and run them. To stop (from within the same directoy as docker-compose.yml file):
+
+```
+$ docker compose down
+```
+
+You can use these same commands from Windows shell or Linux shell (on Linux you may need to do something special to allow access to port 53 if a DNS application is already running).
+
+Configuration options can be set by using a .env file. Right now it basically contains nothing. But it can be used in the future when images are saved remotely.
+
+```
+$ cp example.env .env
+$ docker compose up -d
+```
+
+The docker compose command knows how to find and read a file named .env automatically. This file is added to .gitignore since it can contain personal info if you edit it to point to your own stuff.
+
+# TODO
+
+* Figure out where we want to publish the images
+* Add Registry back to docker-compose.yml
+* Add Registry to example.env

@@ -5,16 +5,16 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["SpecializedServers/MultiSocks/MultiSocks.csproj", "MultiSocks/"]
-RUN dotnet restore "SpecializedServers/MultiSocks/MultiSocks.csproj"
+COPY ["Servers/MultiSocks/", "MultiSocks/"]
+RUN dotnet restore "MultiSocks/MultiSocks_docker.csproj"
 COPY . .
 WORKDIR "/src/MultiSocks"
-RUN dotnet build "MultiSocks.csproj" -c Release -o /app/build
+RUN dotnet build "MultiSocks_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "MultiSocks.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "MultiSocks_docker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MultiSocks.dll"]
+ENTRYPOINT ["dotnet", "MultiSocks_docker.dll"]

@@ -5,16 +5,17 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["WebServers/MultiHTTP/MultiHTTP.csproj", "MultiHTTP/"]
-RUN dotnet restore "WebServers/MultiHTTP/MultiHTTP.csproj"
+RUN mkdir -p ApacheNet
+COPY ["Servers/ApacheNet/", "ApacheNet/"]
+RUN dotnet restore "ApacheNet/ApacheNet_docker.csproj"
 COPY . .
-WORKDIR "/src/MultiHTTP"
-RUN dotnet build "MultiHTTP.csproj" -c Release -o /app/build
+WORKDIR "/src/ApacheNet"
+RUN dotnet build "ApacheNet_docker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "MultiHTTP.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ApacheNet_docker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MultiHTTP.dll"]
+ENTRYPOINT ["dotnet", "ApacheNet_docker.dll"]

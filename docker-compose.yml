@@ -1,66 +1,116 @@
-version: '3.4'
-
 services:
   horizon:
-    image: ${DOCKER_REGISTRY-}horizon
+    image: horizon
     build:
       context: .
-      dockerfile: SpecializedServers/Horizon/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
+      dockerfile: Servers/Horizon/Dockerfile
+    network_mode: "host"  # Needed for SSL Handling
 
   multisocks:
-    image: ${DOCKER_REGISTRY-}multisocks
+    image: multisocks
     build:
       context: .
-      dockerfile: SpecializedServers/MultiSocks/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
+      dockerfile: Servers/MultiSocks/Dockerfile
+    network_mode: "host"  # Needed for SSL Handling
+    ports:
+      - "11000:11000"
+      - "11050:11050"
+      - "11051:11051"
+      - "11100:11100"
+      - "11101:11101"
+      - "11140:11140"
+      - "18700:18700"
+      - "21850:21850"
+      - "21851:21851"
+      - "21870:21870"
+      - "21871:21871"
+      #- "65535:65535" # I don't think we use this
 
   ssfwserver:
-    image: ${DOCKER_REGISTRY-}ssfwserver
+    image: ssfwserver
     build:
       context: .
-      dockerfile: SpecializedServers/SSFWServer/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
-
+      dockerfile: Servers/SSFWServer/Dockerfile
+    network_mode: "host"  # Needed for SSL Handling
+    ports:
+      - "8080:8080"
+      - "10443:10443"
+      #- "65534:65535" # I don't think we use this
+      
   svo:
-    image: ${DOCKER_REGISTRY-}svo
+    image: svo
     build:
       context: .
-      dockerfile: SpecializedServers/SVO/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
-
-  httpsecureserverlite:
-    image: ${DOCKER_REGISTRY-}httpsecureserverlite
-    build:
-      context: .
-      dockerfile: WebServers/HTTPSecureServerLite/Dockerfile
-    network_mode: "bridge"  # Needed for SSL Handling
-
-
-  databasemiddleware:
-    image: ${DOCKER_REGISTRY-}databasemiddleware
-    build:
-      context: .
-      dockerfile: MiddlewareServices/DatabaseMiddleware/Dockerfile
-
-
+      dockerfile: Servers/SVO/Dockerfile
+    network_mode: "host"  # Needed for SSL Handling
+    ports:
+      - "10058:10058"
+      - "10060:10060"
+      - "10061:10061"
+      - "10062:10062"
+      #- "65533:65535" # I don't think we use this
+      
   quazalserver:
-    image: ${DOCKER_REGISTRY-}quazalserver
+    image: quazalserver
     build:
       context: .
-      dockerfile: SpecializedServers/QuazalServer/Dockerfile
-
-
-  httpserver:
-    image: ${DOCKER_REGISTRY-}httpserver
-    build:
-      context: .
-      dockerfile: WebServers/HTTPServer/Dockerfile
-
+      dockerfile: Servers/QuazalServer/Dockerfile
+    network_mode: "host" 
+    ports:
+      - "21032:21032"
+      - "30160:30160"
+      - "30161:30161"
+      - "30200:30200"
+      - "30201:30201"
+      - "30550:30550"
+      - "30560:30560"
+      - "30561:30561"
+      - "60001:60001"
+      - "60105:60105"
+      - "60106:60106"
+      - "60115:60115"
+      - "60116:60116"
+      - "61110:61110"
+      - "61111:61111"
+      - "61120:61120"
+      - "61121:61121"
+      - "61125:61125"
+      - "61126:61126"
+      - "61127:61127"
+      - "61128:61128"
+      - "61129:61129"
+      - "61130:61130"
+      - "61131:61131"
+      - "61132:61132"
+      - "61133:61133"
+      - "61134:61134"
+      - "61135:61135"
+      - "61136:61136"
+      - "61137:61137"
+      - "61138:61138"
+      - "62110:62110"
+      - "62111:62111"
+      - "62125:62125"
+      - "62126:62126"
+      - "62127:62127"
+      - "62128:62128" 
 
   mitmdns:
-    image: ${DOCKER_REGISTRY-}mitmdns
+    image: mitmdns
     build:
       context: .
-      dockerfile: WebServers/MitmDNS/Dockerfile
-
+      dockerfile: Servers/MitmDNS/Dockerfile
+    network_mode: "host"
+    ports:
+      - "53:53" # This breaks DNS, how to ensure localhost doesn't already use 53?
+      - "65532:65535" # I don't think we use this
+      
+  apachenet:
+    image: apachenet
+    build:
+      context: .
+      dockerfile: Servers/ApacheNet/Dockerfile
+    network_mode: "host"
+    ports:
+      - "443:443"
+      #- "65531:65535" # I don't think we use this
